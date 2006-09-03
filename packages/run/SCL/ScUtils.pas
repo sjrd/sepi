@@ -81,6 +81,7 @@ function Dir : string;
 // Fonctions de If immédiat
 function IIF(Cond : boolean; Int1, Int2 : integer) : integer; overload;
 function IIF(Cond : boolean; Flo1, Flo2 : Double ) : Double ; overload;
+function IIF(Cond : boolean; Chr1, Chr2 : Char   ) : Char   ; overload;
 function IIF(Cond : boolean; const Str1, Str2 : string) : string; overload;
 function IIF(Cond : boolean; Obj1, Obj2 : TObject) : TObject; overload;
 function IIF(Cond : boolean; Ptr1, Ptr2 : Pointer) : Pointer; overload;
@@ -182,6 +183,11 @@ end;
 function IIF(Cond : boolean; Flo1, Flo2 : Double) : Double;
 begin
   if Cond then Result := Flo1 else Result := Flo2;
+end;
+
+function IIF(Cond : boolean; Chr1, Chr2 : Char) : Char;
+begin
+  if Cond then Result := Chr1 else Result := Chr2;
 end;
 
 function IIF(Cond : boolean; const Str1, Str2 : string) : string;
