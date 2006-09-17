@@ -6,7 +6,7 @@ uses
 {$IFDEF LINUX}
   QDialogs, QGraphics,
 {$ENDIF}
-  SysUtils, Classes;
+  SysUtils, Classes, Math;
 
 {$IFDEF LINUX}
 const
@@ -93,6 +93,12 @@ function Point3DToString(Point3D : T3DPoint;
 
 function MinMax(Value, Min, Max : integer) : integer;
 // Renvoie la valeur la plus proche de Value dans l'intervalle [Min;Max]
+
+function IntDiv(Op1, Op2 : integer) : integer;
+// Renvoie la division entière de Op1 par Op2 (correct en négatif)
+
+function IntMod(Op1, Op2 : integer) : integer;
+// Renvoie le rest de la division entière de Op1 par Op2 (correct en négatif)
 
 {$IFDEF MSWINDOWS}
 function ShowMes(const Title, Text : string;
@@ -225,6 +231,16 @@ begin
   if Value > Max then Result := Max else
   if Value < Min then Result := Min else
   Result := Value;
+end;
+
+function IntDiv(Op1, Op2 : integer) : integer;
+begin
+  Result := Floor(Op1 / Op2);
+end;
+
+function IntMod(Op1, Op2 : integer) : integer;
+begin
+  Result := Op1 - IntDiv(Op1, Op2) * Op2;
 end;
 
 {$REGION 'Fonction de boîtes de dialogue'}
