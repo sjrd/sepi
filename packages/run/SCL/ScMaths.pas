@@ -1,3 +1,8 @@
+{*
+  Définit des classes et routines de mathématiques avancées
+  @author Sébastien Jean Robert Doeraene
+  @version 1.0
+*}
 unit ScMaths;
 
 interface
@@ -1616,3 +1621,4 @@ finalization
     inc(I);
   end;
 end.
+

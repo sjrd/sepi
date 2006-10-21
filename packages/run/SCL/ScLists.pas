@@ -1,3 +1,8 @@
+{*
+  Définit des classes de listes diverses
+  @author Sébastien Jean Robert Doeraene
+  @version 1.0
+*}
 unit ScLists;
 
 interface
@@ -1332,3 +1337,4 @@ initialization
 finalization
   AppParams.Free;
 end.
+

@@ -1,3 +1,8 @@
+{*
+  Définit quelques routines d'utilisation plus ou avancée
+  @author Sébastien Jean Robert Doeraene
+  @version 1.0
+*}
 unit ScExtra;
 
 interface
@@ -708,3 +713,4 @@ end;
 {$ENDREGION}
 
 end.
+

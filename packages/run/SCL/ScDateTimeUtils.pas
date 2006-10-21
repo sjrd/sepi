@@ -1,3 +1,8 @@
+{*
+  Définit quelques routines de dates et heures
+  @author Sébastien Jean Robert Doeraene
+  @version 1.0
+*}
 unit ScDateTimeUtils;
 
 interface
@@ -30,3 +35,4 @@ begin
 end;
 
 end.
+

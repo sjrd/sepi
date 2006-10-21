@@ -1,3 +1,8 @@
+{*
+  Définit quelques routines usuelles
+  @author Sébastien Jean Robert Doeraene
+  @version 1.0
+*}
 unit ScUtils;
 
 interface
@@ -69,8 +74,10 @@ type
   {$ENDIF}
 
   TSysByteSet = set of Byte;
-  TSetOfChars = TSysCharSet deprecated; // use TSysCharSet instead
-  TSetOfBytes = TSysByteSet deprecated; // use TSysByteSet instead
+  TSetOfChars = TSysCharSet
+    {$IFNDEF DCTD} deprecated {$ENDIF}; // use TSysCharSet instead
+  TSetOfBytes = TSysByteSet
+    {$IFNDEF DCTD} deprecated {$ENDIF}; // use TSysByteSet instead
 
 function Dir : string;
 // Renvoie le dossier dans lequel se trouve le programme

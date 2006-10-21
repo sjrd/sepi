@@ -1,3 +1,8 @@
+{*
+  Définit des classes travaillant sur des éléments de musique
+  @author Sébastien Jean Robert Doeraene
+  @version 1.0
+*}
 unit ScMusicUtils;
 
 interface
@@ -389,3 +394,4 @@ initialization
     ChromatonalHalfTones := 0;
   end;
 end.
+

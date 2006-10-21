@@ -1,3 +1,8 @@
+{*
+  Définit les différentes constantes de la SCL
+  @author Sébastien Jean Robert Doeraene
+  @version 1.0
+*}
 unit ScConsts;
 
 interface

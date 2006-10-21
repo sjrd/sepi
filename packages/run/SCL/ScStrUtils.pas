@@ -1,3 +1,8 @@
+{*
+  Définit quelques routines de gestion de chaînes
+  @author Sébastien Jean Robert Doeraene
+  @version 1.0
+*}
 unit ScStrUtils;
 
 interface

@@ -1,16 +1,26 @@
+{*
+  Gestion de hashes MD5
+  @author RSA Data Security, Inc.
+  @version 1.0
+*}
 unit ScMD5;
 
 interface
 
-uses Windows, SysUtils, Classes;
+uses
+  Windows, SysUtils, Classes;
 
 type
- PMD5Digest = ^TMD5Digest;
- TMD5Digest = record
-   case integer of
-     0 : (A, B, C, D : LongInt);
-     1 : (V : array [0..15] of Byte);
- end;
+  PMD5Digest = ^TMD5Digest; /// Pointeur vers un TMD5Digest
+
+  {*
+    Représente un hash MD5
+  *}
+  TMD5Digest = record
+    case integer of
+      0 : (A, B, C, D : LongInt);
+      1 : (V : array [0..15] of Byte);
+  end;
 
 function MD5String(const S : string) : TMD5Digest;
 function MD5File(const FileName : TFileName) : TMD5Digest;
@@ -313,15 +323,20 @@ procedure MD5Final(var Digest : TMD5Digest; var Context : TMD5Context);
 var Bits : array [0..7] of Byte;
     Index, PadLen : LongWord;
 begin
- MD5Encode(PByteArray(@Bits), PUINT4Array(@Context.Count), 8);
- Index := LongWord((Context.Count[0] shr 3) and $3F);
- if Index < 56 then PadLen := 56 - Index else PadLen := 120 - Index;
- MD5Update(Context, PByteArray(@Padding), PadLen);
- MD5Update(Context, PByteArray(@Bits), 8);
- MD5Encode(PByteArray(@Digest), PUINT4Array(@Context.State), 16);
- MD5_memset(PByteArray(@Context), 0, sizeof(Context));
+  MD5Encode(PByteArray(@Bits), PUINT4Array(@Context.Count), 8);
+  Index := LongWord((Context.Count[0] shr 3) and $3F);
+  if Index < 56 then PadLen := 56 - Index else PadLen := 120 - Index;
+  MD5Update(Context, PByteArray(@Padding), PadLen);
+  MD5Update(Context, PByteArray(@Bits), 8);
+  MD5Encode(PByteArray(@Digest), PUINT4Array(@Context.State), 16);
+  MD5_memset(PByteArray(@Context), 0, sizeof(Context));
 end;
 
+{*
+  Convertit un hash MD5 en chaîne de caractères
+  @param Digest   Hash MD5 à convertir
+  @return Représentation sous forme de chaîne du hash Digest
+*}
 function MD5DigestToStr(const Digest : TMD5Digest) : string;
 var I : integer;
 begin
@@ -329,17 +344,32 @@ begin
   for I := 0 to 15 do Result := Result + IntToHex(Digest.V[I], 2);
 end;
 
+{*
+  Convertit une chaîne de caractères en hash MD5
+  @param Str   Chaîne de caractères à convertir
+  @return Hash MD5 représenté par la chaîne Str
+*}
 function StrToMD5Digest(Str : string) : TMD5Digest;
 var I : integer;
 begin
   for I := 0 to 15 do Result.V[I] := StrToInt('$'+Str[I*2+1]+Str[I*2+2]);
 end;
 
+{*
+  Calcule le hash MD5 d'une chaîne de caractères
+  @param S   Chaîne de caractères
+  @return Hash MD5 de la chaîne S
+*}
 function MD5String(const S : string) : TMD5Digest;
 begin
   Result := MD5Buffer(PChar(S)^, Length(S));
 end;
 
+{*
+  Calcule le hash MD5 d'un fichier
+  @param FileName   Nom du fichier
+  @return Hash MD5 du fichier FileName
+*}
 function MD5File(const FileName : TFileName) : TMD5Digest;
 var F : TFileStream;
 begin
@@ -351,6 +381,11 @@ begin
   end;
 end;
 
+{*
+  Calcule le hash MD5 d'un flux
+  @param Stream   Flux
+  @return Hash MD5 du flux Stream
+*}
 function MD5Stream(const Stream : TStream) : TMD5Digest;
 var Context : TMD5Context;
     Buffer : array[0..4095] of Byte;
@@ -376,6 +411,12 @@ begin
   MD5Final(Result, Context);
 end;
 
+{*
+  Calcule le hash MD5 d'un buffer en mémoire
+  @param Buffer   Adresse du buffer
+  @param Size     Taille du buffer
+  @return Hash MD5 du buffer
+*}
 function MD5Buffer(const Buffer; Size : integer) : TMD5Digest;
 var Context : TMD5Context;
 begin
@@ -384,6 +425,12 @@ begin
   MD5Final(Result, Context);
 end;
 
+{*
+  Compare deux hashes MD5
+  @param Digest1   Premier hash MD5
+  @param Digest2   Second hash MD5
+  @return True si les deux hashes sont identiques, False sinon
+*}
 function MD5DigestCompare(const Digest1, Digest2 : TMD5Digest) : boolean;
 begin
   Result := False;
@@ -395,3 +442,4 @@ begin
 end;
 
 end.
+

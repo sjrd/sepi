@@ -1,3 +1,8 @@
+{*
+  Définit une classe de gestion d'un fichier LOG
+  @author Sébastien Jean Robert Doeraene
+  @version 1.0
+*}
 unit ScLOGFile;
 
 interface
@@ -75,3 +80,4 @@ begin
 end;
 
 end.
+
