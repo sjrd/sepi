@@ -36,8 +36,6 @@ type
 
 {$REGION 'Exceptions'}
 
-  ECreateError = class(Exception);
-
   EAPIError = class(Exception)
   private
     FErrorCode : integer;

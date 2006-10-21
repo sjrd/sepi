@@ -6,85 +6,107 @@ uses
   SysUtils, Classes;
 
 type
-  StringsOps = class
-  // Propose une série de méthodes pouvant être appliquée à des instances de
-  // TStrings (toutes les méthodes de recherche ignorent la différence
-  // MAJ/min dans le cas d'un TStringList avec CaseSensitive à False)
-  private
-    class function CompareStrings(Strings : TStrings; const Str1, Str2 : string) : boolean;
+  {*
+    Exception déclenchée lors d'une erreur de liste d'entiers
+  *}
+  EIntListError = class(EListError);
+
+  {*
+    Rend publique la méthode CompareStrings afin de pouvoir l'utiliser pour
+    comparer deux chaînes en respectant les règles de comparaison d'une liste.
+    Cette classe ne doit pas être utilisée dans une autre optique.
+  *}
+  TCompareStrings = class(TStrings)
   public
-    class function  IndexOf      (Strings : TStrings; const Str : string; BeginSearchAt : integer = 0; EndSearchAt : integer = -1) : integer;
-      // Recherche la chaîne Str entre BeginSearchAt et EndSearchAt inclus
-      // Si EndSearchAt = -1, la recherche s'effectue jusqu'au bout de la liste
-    class function  FindText     (Strings : TStrings; const Str : string; BeginSearchAt : integer = 0; EndSearchAt : integer = -1) : integer;
-      // Recherche le texte Text entre BeginSearchAt et EndSearchAt inclus
-      // Si EndSearchAt = -1, la recherche s'effectue jusqu'au bout de la liste
-    class function  FindFirstWord(Strings : TStrings; const Word : string; BeginSearchAt : integer = 0; EndSearchAt : integer = -1) : integer;
-      // Recherche le mot Word entre BeginSearchAt et EndSearchAt inclus
-      // mais uniquement en première position (il peut y avoir des espaces devant)
-      // Si EndSearchAt = -1, la recherche s'effectue jusqu'au bout de la liste
-    class function  FindAtPos    (Strings : TStrings; const SubStr : string; Position : integer = 1; BeginSearchAt : integer = 0; EndSearchAt : integer = -1) : integer;
-      // Recherche la sous-chaîne SubStr à la position Position de chaque
-      // chaîne de la liste entre BeginSearchAt et EndSearchAt inclus
-      // Si EndSearchAt = -1, la recherche s'effectue jusqu'au bout de la liste
-    class procedure CopyFrom     (Strings : TStrings; Source : TStrings; Index : integer = 0; Count : integer = -1);
-      // Clear + AddFrom avec les mêmes paramètres
-    class procedure AddFrom      (Strings : TStrings; Source : TStrings; Index : integer = 0; Count : integer = -1);
-      // Ajoute les Count chaînes à partir de Index depuis Source à Strings
-    class procedure FromString   (Strings : TStrings; const Str, Delim : string; const NotIn : string = '');
-      // Clear + AddFromString avec les mêmes paramètres
-    class procedure AddFromString(Strings : TStrings; const Str, Delim : string; const NotIn : string = '');
-      // Découpe Str en sous-chaînes délimitées par Delim et les ajoute
-      // Les chaînes Delim se trouvant entre un caractère impair de NotIn et le
-      // caractère pair lui correspondant ne sont pas pris en compte
+    function CompareStrings(const S1, S2 : string) : integer; override;
   end;
 
+  {*
+    Propose une série de méthodes pouvant être appliquée à des instances de
+    TStrings (toutes les méthodes de recherche respectent les règles de
+    comparaison de la liste concernée)
+  *}
+  StringsOps = class
+  public
+    class function IndexOf(Strings : TStrings; const Str : string;
+      BeginSearchAt : integer = 0; EndSearchAt : integer = -1) : integer;
+
+    class function FindText(Strings : TStrings; const Str : string;
+      BeginSearchAt : integer = 0; EndSearchAt : integer = -1) : integer;
+    class function FindFirstWord(Strings : TStrings; const Word : string;
+      BeginSearchAt : integer = 0; EndSearchAt : integer = -1) : integer;
+    class function FindAtPos(Strings : TStrings; const SubStr : string;
+      Position : integer = 1; BeginSearchAt : integer = 0;
+      EndSearchAt : integer = -1) : integer;
+
+    class procedure CopyFrom(Strings : TStrings; Source : TStrings;
+      Index : integer = 0; Count : integer = -1);
+    class procedure AddFrom(Strings : TStrings; Source : TStrings;
+      Index : integer = 0; Count : integer = -1);
+
+    class procedure FromString(Strings : TStrings; const Str, Delim : string;
+      const NotIn : string = '');
+    class procedure AddFromString(Strings : TStrings; const Str, Delim : string;
+      const NotIn : string = '');
+  end;
+
+  {*
+    Amélioration de TStringList pour lui ajouter les méthodes de StringsOps
+    ainsi qu'un index interne permettant de parcourir aisément toutes les
+    chaînes dans l'ordre
+  *}
   TScStrings = class(TStringList)
-  // Amélioration de TStringList pour lui ajouter les méthodes de StringsOps
-  // ainsi qu'un index interne permettant de parcourir aisément toutes les
-  // chaînes dans l'ordre
   private
-    FIndex : integer;
+    FIndex : integer; /// Index interne
+
     function GetHasMoreString : boolean;
     procedure SetIndex(New : integer);
   public
     constructor Create;
     constructor CreateFromFile(const FileName : TFileName);
-    constructor CreateFromString(const Str, Delim : string; const NotIn : string = '');
+    constructor CreateFromString(const Str, Delim : string;
+      const NotIn : string = '');
     constructor CreateAssign(Source : TPersistent);
 
-    // Les méthodes suivantes sont des appels aux méthodes correspondantes
-    // de la classe StringsOps
-    function  IndexOfEx    (const Str : string; BeginSearchAt : integer = 0; EndSearchAt : integer = -1) : integer;
-    function  FindText     (const Str : string; BeginSearchAt : integer = 0; EndSearchAt : integer = -1) : integer;
-    function  FindFirstWord(const Word : string; BeginSearchAt : integer = 0; EndSearchAt : integer = -1) : integer;
-    function  FindAtPos    (const SubStr : string; Position : integer = 1; BeginSearchAt : integer = 0; EndSearchAt : integer = -1) : integer;
-    procedure CopyFrom     (Source : TStrings; Index : integer = 0; Count : integer = -1);
-    procedure AddFrom      (Source : TStrings; Index : integer = 0; Count : integer = -1);
-    procedure FromString   (const Str, Delim : string; const NotIn : string = '');
-    procedure AddFromString(const Str, Delim : string; const NotIn : string = '');
+    function IndexOfEx(const Str : string; BeginSearchAt : integer = 0;
+      EndSearchAt : integer = -1) : integer;
 
-    // Gestion de l'index
+    function FindText(const Str : string; BeginSearchAt : integer = 0;
+      EndSearchAt : integer = -1) : integer;
+    function FindFirstWord(const Word : string; BeginSearchAt : integer = 0;
+      EndSearchAt : integer = -1) : integer;
+    function FindAtPos(const SubStr : string; Position : integer = 1;
+      BeginSearchAt : integer = 0; EndSearchAt : integer = -1) : integer;
+
+    procedure CopyFrom(Source : TStrings; Index : integer = 0;
+      Count : integer = -1);
+    procedure AddFrom(Source : TStrings; Index : integer = 0;
+      Count : integer = -1);
+
+    procedure FromString(const Str, Delim : string;
+      const NotIn : string = '');
+    procedure AddFromString(const Str, Delim : string;
+      const NotIn : string = '');
+
     procedure Reset;
-      // Remet l'index à 0
     function NextString : string;
-      // Renvoie la chaîne suivante (incrémente aussi l'index interne)
+
     property HasMoreString : boolean read GetHasMoreString;
-      // True s'il y a encore une ou plusieurs chaîne(s), False sinon
     property Index : integer read FIndex write SetIndex;
-      // Index
   end;
 
   TScList = class;
   TScListClass = class of TScList;
 
+  {*
+    Classe de base pour les listes dont les éléments sont de taille homogène
+    Ne créez pas d'instance de TScList, mais créez plutôt des instances de
+    ses classes descendantes.
+    Ne pas utiliser pour des listes de chaînes, de pointeurs ou d'objets ;
+    dans ces cas, utiliser respectivement TStringList (unité Classes), TList
+    (unité Classes) et TObjectList (unité Contnrs).
+  *}
   TScList = class(TPersistent)
-  // Classe de base pour les listes dont les éléments sont de taille homogène
-  // Ne créez pas d'instance de TScList, mais créez plutôt des instances de
-  // ses classes descendantes
-    // Ne pas utiliser pour des listes de chaînes, de pointeurs ou d'objets ;
-    // dans ces cas, utiliser respectivement
-    // TStringList (Classes), TList (Classes) et TObjectList (Contnrs)
   private
     FStream : TMemoryStream;
     FItemSize : integer;
@@ -131,8 +153,10 @@ type
     property Index : integer read GetIndex write SetIndex;
   end;
 
+  {*
+    Gère une liste d'entiers signés
+  *}
   TIntegerList = class(TScList)
-  // Gère une liste d'entiers
   private
     function GetItems(Index : integer) : Int64;
     procedure SetItems(Index : integer; New : Int64);
@@ -156,8 +180,10 @@ type
     property Items[index : integer] : Int64 read GetItems write SetItems; default;
   end;
 
+  {*
+    Gère une liste d'entiers non signés
+  *}
   TUnsignedIntList = class(TScList)
-  // Gère une liste d'entiers non signés
   private
     function GetItems(Index : integer) : LongWord;
     procedure SetItems(Index : integer; New : LongWord);
@@ -181,8 +207,10 @@ type
     property Items[index : integer] : LongWord read GetItems write SetItems; default;
   end;
 
+  {*
+    Gère une liste de Extended
+  *}
   TExtendedList = class(TScList)
-  // Gère une liste de Extended
   private
     function GetItems(Index : integer) : Extended;
     procedure SetItems(Index : integer; New : Extended);
@@ -205,15 +233,29 @@ type
     property Items[index : integer] : Extended read GetItems write SetItems; default;
   end;
 
-var AppParams : TScStrings;
-// Contient la liste des paramètres de l'application sous forme de TScStrings
-// Vous pouvez y supprimer ou rajouter des éléments : AppParams n'est utilisé
-// par aucune routine dans la SCL
+var
+  AppParams : TScStrings; /// Liste des paramètres envoyés à l'application
 
 implementation
 
 uses
   ScUtils, ScStrUtils, ScConsts;
+
+//////////////////////////////
+/// Classe TCompareStrings ///
+//////////////////////////////
+
+{*
+  Compare deux chaînes de caractères
+  @param S1   Première chaîne de caractères
+  @param S2   Seconde chaîne de caractères
+  @return 0 si les chaînes sont équivalente, un nombre positif si la première
+          est supérieure à la seconde, un nombre négatif dans le cas inverse
+*}
+function TCompareStrings.CompareStrings(const S1, S2 : string) : integer;
+begin
+  Result := (inherited CompareStrings(S1, S2));
+end;
 
 {$REGION 'Classe StringsOps'}
 
@@ -221,117 +263,206 @@ uses
 /// Classe StringsOps ///
 /////////////////////////
 
-class function StringsOps.CompareStrings(Strings : TStrings; const Str1, Str2 : string) : boolean;
+{*
+  Recherche une chaîne dans une liste de chaînes
+  Recherche une chaîne dans une liste de chaînes, en débutant et s'arrêtant à
+  des index spécifiés.
+  @param Strings         Liste de chaînes concernée
+  @param Str             Chaîne à rechercher
+  @param BeginSearchAt   Index à partir duquel chercher
+  @param EndSearchAt     Index jusqu'auquel chercher (jusqu'à la fin si -1)
+  @return Index de la première chaîne correspondant à Str, ou -1 si non trouvée
+*}
+class function StringsOps.IndexOf(Strings : TStrings; const Str : string;
+  BeginSearchAt : integer = 0; EndSearchAt : integer = -1) : integer;
 begin
-  // Si Strings est une instance de TStringList et que sa propriété
-  // CaseSensitive est à True, la comparaison se fait en respectant la casse.
-  if (Strings is TStringList) and TStringList(Strings).CaseSensitive then
-    Result := CompareStr(Str1, Str2) = 0
-  // Dans tous les autres cas, la comparaison se fait sans respecter la casse.
-  else
-    Result := CompareText(Str1, Str2) = 0;
-end;
-
-class function StringsOps.IndexOf(Strings : TStrings; const Str : string; BeginSearchAt : integer = 0; EndSearchAt : integer = -1) : integer;
-var Strs : TStrings;
-begin
-  Strs := Strings;
-  with Strings do
+  with TCompareStrings(Strings) do
   begin
-    // On vérifie que BeginSearchAt et EndSearchAt sont des entrées correctes
+    // On s'assure que BeginSearchAt et EndSearchAt sont des entrées correctes
     if BeginSearchAt < 0 then BeginSearchAt := 0;
     if (EndSearchAt < 0) or (EndSearchAt >= Count) then EndSearchAt := Count-1;
-    Result := BeginSearchAt; // On commence la recherche à BeginSearchAt
-    while Result <= EndSearchAt do // On termine à EndSearchAt
-      if CompareStrings(Strs, Str, Strings[BeginSearchAt]) then exit else
+
+    Result := BeginSearchAt;
+    while Result <= EndSearchAt do
+    begin
+      if CompareStrings(Str, Strings[BeginSearchAt]) = 0 then exit else
         inc(BeginSearchAt);
+    end;
     Result := -1;
   end;
 end;
 
-class function StringsOps.FindText(Strings : TStrings; const Str : string; BeginSearchAt : integer = 0; EndSearchAt : integer = -1) : integer;
+{*
+  Recherche un texte à l'intérieur des chaînes d'une liste
+  Recherche un texte à l'intérieur des chaînes d'une liste, en débutant et
+  s'arrêtant à des index spécifiés.
+  @param Strings         Liste de chaînes concernée
+  @param Str             Texte à rechercher
+  @param BeginSearchAt   Index à partir duquel chercher
+  @param EndSearchAt     Index jusqu'auquel chercher (jusqu'à la fin si -1)
+  @return Index de la première chaîne contenant Str, ou -1 si non trouvée
+*}
+class function StringsOps.FindText(Strings : TStrings; const Str : string;
+  BeginSearchAt : integer = 0; EndSearchAt : integer = -1) : integer;
 var I, Len : integer;
-    Strs : TStrings;
 begin
-  Strs := Strings;
-  with Strings do
+  with TCompareStrings(Strings) do
   begin
-    // On vérifie que BeginSearchAt et EndSearchAt sont des entrées correctes
+    // On s'assure que BeginSearchAt et EndSearchAt sont des entrées correctes
     if BeginSearchAt < 0 then BeginSearchAt := 0;
     if (EndSearchAt < 0) or (EndSearchAt >= Count) then EndSearchAt := Count-1;
+
     Len := Length(Str);
-    Result := BeginSearchAt; // On commence la recherche à BeginSearchAt
-    while Result <= EndSearchAt do // On termine à EndSearchAt
+    Result := BeginSearchAt;
+    while Result <= EndSearchAt do
     begin
-      for I := 1 to Length(Strings[Result])-Len+1 do
-        if CompareStrings(Strs, Str, Copy(Strings[Result], I, Len)) then exit;
+      for I := Length(Strings[Result])-Len+1 downto 1 do
+        if CompareStrings(Str, Copy(Strings[Result], I, Len)) = 0 then exit;
       inc(Result);
     end;
     Result := -1;
   end;
 end;
 
-class function StringsOps.FindFirstWord(Strings : TStrings; const Word : string; BeginSearchAt : integer = 0; EndSearchAt : integer = -1) : integer;
-var Strs : TStrings;
+{*
+  Recherche un mot en première position d'une chaîne d'une liste
+  Recherche un mot placé en première position d'une chaîne d'une liste (des
+  espaces peuvent se trouver devant), en débutant et s'arrêtant à des index
+  spécifiés.
+  @param Strings         Liste de chaînes concernée
+  @param Word            Mot à rechercher
+  @param BeginSearchAt   Index à partir duquel chercher
+  @param EndSearchAt     Index jusqu'auquel chercher (jusqu'à la fin si -1)
+  @return Index de la première chaîne contenant Word, ou -1 si non trouvée
+*}
+class function StringsOps.FindFirstWord(Strings : TStrings; const Word : string;
+  BeginSearchAt : integer = 0; EndSearchAt : integer = -1) : integer;
 begin
-  Strs := Strings;
-  with Strings do
+  with TCompareStrings(Strings) do
   begin
-    // On vérifie que BeginSearchAt et EndSearchAt sont des entrées correctes
+    // On s'assure que BeginSearchAt et EndSearchAt sont des entrées correctes
     if BeginSearchAt < 0 then BeginSearchAt := 0;
     if (EndSearchAt < 0) or (EndSearchAt >= Count) then EndSearchAt := Count-1;
-    Result := BeginSearchAt; // On commence la recherche à BeginSearchAt
-    while Result <= EndSearchAt do // On termine à EndSearchAt
-      if CompareStrings(Strs, Word, GetXWord(Trim(Strings[Result]), 1)) then exit else
+
+    Result := BeginSearchAt;
+    while Result <= EndSearchAt do
+    begin
+      if CompareStrings(Word, GetXWord(Trim(Strings[Result]), 1)) = 0 then
+        exit
+      else
         inc(Result);
+    end;
     Result := -1;
   end;
 end;
 
-class function StringsOps.FindAtPos(Strings : TStrings; const SubStr : string; Position : integer = 1; BeginSearchAt : integer = 0; EndSearchAt : integer = -1) : integer;
+{*
+  Recherche une sous-chaîne à une position spécifiée les chaînes d'une liste
+  Recherche une sous-chaîne débutant à une position spécifiée dans les chaînes
+  d'une liste, en débutant et s'arrêtant à des index spécifiés.
+  @param Strings         Liste de chaînes concernée
+  @param SubStr          Sous-chaîne à rechercher
+  @param Position        Position dans les chaînes où chercher la sous-chaîne
+  @param BeginSearchAt   Index à partir duquel chercher
+  @param EndSearchAt     Index jusqu'auquel chercher (jusqu'à la fin si -1)
+  @return Index de la première chaîne contenant Word, ou -1 si non trouvée
+*}
+class function StringsOps.FindAtPos(Strings : TStrings; const SubStr : string;
+  Position : integer = 1; BeginSearchAt : integer = 0;
+  EndSearchAt : integer = -1) : integer;
 var Len : integer;
-    Strs : TStrings;
 begin
-  Strs := Strings;
-  with Strings do
+  with TCompareStrings(Strings) do
   begin
-    // On vérifie que BeginSearchAt et EndSearchAt sont des entrées correctes
+    // On s'assure que BeginSearchAt et EndSearchAt sont des entrées correctes
     if BeginSearchAt < 0 then BeginSearchAt := 0;
     if (EndSearchAt < 0) or (EndSearchAt >= Count) then EndSearchAt := Count-1;
+
     Len := Length(SubStr);
-    Result := BeginSearchAt; // On commence la recherche à BeginSearchAt
-    while Result <= EndSearchAt do // On termine à EndSearchAt
-      if CompareStrings(Strs, SubStr, Copy(Strings[Result], Position, Len)) then exit else
+    Result := BeginSearchAt;
+    while Result <= EndSearchAt do
+    begin
+      if CompareStrings(SubStr, Copy(Strings[Result], Position, Len)) = 0 then
+        exit
+      else
         inc(Result);
+    end;
     Result := -1;
   end;
 end;
 
-class procedure StringsOps.CopyFrom(Strings : TStrings; Source : TStrings; Index : integer = 0; Count : integer = -1);
+{*
+  Remplit une liste de chaînes avec des chaînes d'une autre liste
+  Remplit une liste de chaînes avec les chaînes d'une autre liste depuis un
+  index et sur un nombre spécifiés.
+  @param Strings   Liste de chaînes concernée
+  @param Source    Liste de chaînes à partir de laquelle recopier les chaînes
+  @param Index     Index où commencer la copie
+  @param Count     Nombre de chaînes à copier
+*}
+class procedure StringsOps.CopyFrom(Strings : TStrings; Source : TStrings;
+  Index : integer = 0; Count : integer = -1);
 begin
   Strings.Clear;
   AddFrom(Strings, Source, Index, Count);
 end;
 
-class procedure StringsOps.AddFrom(Strings : TStrings; Source : TStrings; Index : integer = 0; Count : integer = -1);
+{*
+  Ajoute à une liste de chaînes des chaînes d'une autre liste
+  Ajoute à une liste de chaînes les chaînes d'une autre liste depuis un index et
+  sur un nombre spécifiés.
+  @param Strings   Liste de chaînes concernée
+  @param Source    Liste de chaînes à partir de laquelle recopier les chaînes
+  @param Index     Index où commencer la copie
+  @param Count     Nombre de chaînes à copier
+*}
+class procedure StringsOps.AddFrom(Strings : TStrings; Source : TStrings;
+  Index : integer = 0; Count : integer = -1);
 var I, EndAt : integer;
 begin
-  // On vérifie que Index et Count sont des entrées correctes
+  // On s'assure que Index et Count sont des entrées correctes
   if Index < 0 then exit;
-  if (Count < 0) or (Index+Count > Source.Count) then EndAt := Source.Count-1 else
+  if (Count < 0) or (Index+Count > Source.Count) then
+    EndAt := Source.Count-1
+  else
     EndAt := Index+Count-1;
+
   // On recopie les chaînes
   for I := Index to EndAt do
     Strings.Append(Source[I]);
 end;
 
-class procedure StringsOps.FromString(Strings : TStrings; const Str, Delim : string; const NotIn : string = '');
+{*
+  Découpe une chaîne en sous-chaînes et remplit une liste de ces sous-chaînes
+  Découpe une chaîne en sous-chaînes délimitées par des caractères spécifiés, et
+  remplit une liste de chaînes avec ces sous-chaînes.
+  @param Strings   Liste de chaînes dans laquelle copier les sous-chaînes
+  @param Str       Chaîne à découper
+  @param Delim     Caractères qui délimitent deux sous-chaînes
+  @param NotIn     Paires de caractères échappant les délimiteurs
+  @raise EListError NotIn contient un nombre impair de caractères
+  @raise EListError Delim et NotIn contiennent un même caractère
+*}
+class procedure StringsOps.FromString(Strings : TStrings;
+  const Str, Delim : string; const NotIn : string = '');
 begin
   Strings.Clear;
   AddFromString(Strings, Str, Delim, NotIn);
 end;
 
-class procedure StringsOps.AddFromString(Strings : TStrings; const Str, Delim : string; const NotIn : string = '');
+{*
+  Découpe une chaîne en sous-chaînes et ajoute ces sous-chaînes à une liste
+  Découpe une chaîne en sous-chaînes délimitées par des caractères spécifiés, et
+  ajoute ces sous-chaînes à une liste de chaînes.
+  @param Strings   Liste de chaînes à laquelle ajouter les sous-chaînes
+  @param Str       Chaîne à découper
+  @param Delim     Caractères qui délimitent deux sous-chaînes
+  @param NotIn     Paires de caractères échappant les délimiteurs
+  @raise EListError NotIn contient un nombre impair de caractères
+  @raise EListError Delim et NotIn contiennent un même caractère
+*}
+class procedure StringsOps.AddFromString(Strings : TStrings;
+  const Str, Delim : string; const NotIn : string = '');
 var I, J, Len : integer;
     NotIn1, NotIn2 : string;
     C : Char;
@@ -339,18 +470,20 @@ begin
   with Strings do
   begin
     // On vérifie que NotIn contient un nombre pair de caractères
-    if (Length(NotIn) mod 2) = 1 then
-      raise Exception.Create(sScNotInMustPairsOfChars);
+    if Odd(Length(NotIn)) then
+      raise EListError.Create(sScNotInMustPairsOfChars);
+
     // On vérifie qu'il n'y a pas d'interférence entre Delim et NotIn
     for I := 1 to Length(NotIn) do if Pos(NotIn[I], Delim) > 0 then
-      raise Exception.Create(sScDelimMustDifferentThanNotIn);
+      raise EListError.Create(sScDelimMustDifferentThanNotIn);
 
-    Len := Length(Str);
     // Séparation de NotIn en NotIn1 et NotIn2
     NotIn1 := '';
     NotIn2 := '';
     for I := 1 to Length(NotIn) do if (I mod 2) = 1 then
       NotIn1 := NotIn1+NotIn[I] else NotIn2 := NotIn2+NotIn[I];
+
+    Len := Length(Str);
 
     I := 1;
     while True do
@@ -359,6 +492,7 @@ begin
       // On ignore de ce fait plusieurs caractères de Delim à la suite
       while (I <= Len) and (Pos(Str[I], Delim) <> 0) do inc(I);
       if (I > Len) then Break;
+
       // On recherche le caractère de Delim suivant
       J := I;
       while (J <= Len) and (Pos(Str[J], Delim) = 0) do
@@ -373,7 +507,8 @@ begin
         end;
         inc(J);
       end;
-      // On ajoute la chaîne repérée par les caractères de Delim
+
+      // On ajoute la sous-chaîne repérée par les caractères de Delim
       Add(Copy(Str, I, J-I));
       I := J;
     end;
@@ -388,85 +523,203 @@ end;
 /// Classe TScStrings ///
 /////////////////////////
 
+{*
+  Crée une nouvelle instance de TScStrings
+*}
 constructor TScStrings.Create;
 begin
   inherited Create;
   FIndex := 0;
 end;
 
+{*
+  Crée une nouvelle instance de TScStrings chargée à partir d'un fichier
+  @param FileName   Nom du fichier à partir duquel charger la liste de chaînes
+*}
 constructor TScStrings.CreateFromFile(const FileName : TFileName);
 begin
   Create;
   LoadFromFile(FileName);
 end;
 
-constructor TScStrings.CreateFromString(const Str, Delim : string; const NotIn : string = '');
+{*
+  Crée une nouvelle instance de TScStrings à partir d'une chaîne découpée
+  @param Str       Chaîne à découper
+  @param Delim     Caractères qui délimitent deux sous-chaînes
+  @param NotIn     Paires de caractères échappant les délimiteurs
+  @raise EListError NotIn contient un nombre impair de caractères
+  @raise EListError Delim et NotIn contiennent un même caractère
+*}
+constructor TScStrings.CreateFromString(const Str, Delim : string;
+  const NotIn : string = '');
 begin
   Create;
   FromString(Str, Delim, NotIn);
 end;
 
+{*
+  Crée une nouvelle instance de TScStrings assignée à partir d'une source
+  @param Source   Objet source à copier dans la liste de chaînes
+*}
 constructor TScStrings.CreateAssign(Source : TPersistent);
 begin
   Create;
   Assign(Source);
 end;
 
+{*
+  Indique s'il y a encore des chaînes à lire
+  @return True s'il y a encore des chaînes à lire, False sinon
+*}
 function TScStrings.GetHasMoreString : boolean;
 begin
   Result := Index < Count;
 end;
 
+{*
+  Modifie l'index interne
+  @param New   Nouvelle valeur de l'index interne
+*}
 procedure TScStrings.SetIndex(New : integer);
 begin
   if New >= 0 then FIndex := New;
 end;
 
-function TScStrings.IndexOfEx(const Str : string; BeginSearchAt : integer = 0; EndSearchAt : integer = -1) : integer;
+{*
+  Recherche une chaîne dans la liste de chaînes
+  Recherche une chaîne dans la liste de chaînes, en débutant et s'arrêtant à
+  des index spécifiés.
+  @param Str             Chaîne à rechercher
+  @param BeginSearchAt   Index à partir duquel chercher
+  @param EndSearchAt     Index jusqu'auquel chercher (jusqu'à la fin si -1)
+  @return Index de la première chaîne correspondant à Str, ou -1 si non trouvée
+*}
+function TScStrings.IndexOfEx(const Str : string; BeginSearchAt : integer = 0;
+  EndSearchAt : integer = -1) : integer;
 begin
   Result := StringsOps.IndexOf(Self, Str, BeginSearchAt, EndSearchAt);
 end;
 
-function TScStrings.FindText(const Str : string; BeginSearchAt : integer = 0; EndSearchAt : integer = -1) : integer;
+{*
+  Recherche un texte à l'intérieur des chaînes de la liste
+  Recherche un texte à l'intérieur des chaînes de la liste, en débutant et
+  s'arrêtant à des index spécifiés.
+  @param Str             Texte à rechercher
+  @param BeginSearchAt   Index à partir duquel chercher
+  @param EndSearchAt     Index jusqu'auquel chercher (jusqu'à la fin si -1)
+  @return Index de la première chaîne contenant Str, ou -1 si non trouvée
+*}
+function TScStrings.FindText(const Str : string; BeginSearchAt : integer = 0;
+  EndSearchAt : integer = -1) : integer;
 begin
   Result := StringsOps.FindText(Self, Text, BeginSearchAt, EndSearchAt);
 end;
 
-function TScStrings.FindFirstWord(const Word : string; BeginSearchAt : integer = 0; EndSearchAt : integer = -1) : integer;
+{*
+  Recherche un mot en première position d'une chaîne de la liste
+  Recherche un mot placé en première position d'une chaîne de la liste (des
+  espaces peuvent se trouver devant), en débutant et s'arrêtant à des index
+  spécifiés.
+  @param Word            Mot à rechercher
+  @param BeginSearchAt   Index à partir duquel chercher
+  @param EndSearchAt     Index jusqu'auquel chercher (jusqu'à la fin si -1)
+  @return Index de la première chaîne contenant Word, ou -1 si non trouvée
+*}
+function TScStrings.FindFirstWord(const Word : string;
+  BeginSearchAt : integer = 0; EndSearchAt : integer = -1) : integer;
 begin
   Result := StringsOps.FindFirstWord(Self, Word, BeginSearchAt, EndSearchAt);
 end;
 
-function TScStrings.FindAtPos(const SubStr : string; Position : integer = 1; BeginSearchAt : integer = 0; EndSearchAt : integer = -1) : integer;
+{*
+  Recherche une sous-chaîne à une position spécifiée les chaînes de la liste
+  Recherche une sous-chaîne débutant à une position spécifiée dans les chaînes
+  de la liste, en débutant et s'arrêtant à des index spécifiés.
+  @param SubStr          Sous-chaîne à rechercher
+  @param Position        Position dans les chaînes où chercher la sous-chaîne
+  @param BeginSearchAt   Index à partir duquel chercher
+  @param EndSearchAt     Index jusqu'auquel chercher (jusqu'à la fin si -1)
+  @return Index de la première chaîne contenant Word, ou -1 si non trouvée
+*}
+function TScStrings.FindAtPos(const SubStr : string; Position : integer = 1;
+  BeginSearchAt : integer = 0; EndSearchAt : integer = -1) : integer;
 begin
-  Result := StringsOps.FindAtPos(Self, SubStr, Position, BeginSearchAt, EndSearchAt);
+  Result := StringsOps.FindAtPos(Self, SubStr, Position, BeginSearchAt,
+    EndSearchAt);
 end;
 
-procedure TScStrings.CopyFrom(Source : TStrings; Index : integer = 0; Count : integer = -1);
+{*
+  Remplit la liste de chaînes avec des chaînes d'une autre liste
+  Remplit la liste de chaînes avec les chaînes d'une autre liste depuis un index
+  et sur un nombre spécifiés.
+  @param Source    Liste de chaînes à partir de laquelle recopier les chaînes
+  @param Index     Index où commencer la copie
+  @param Count     Nombre de chaînes à copier
+*}
+procedure TScStrings.CopyFrom(Source : TStrings; Index : integer = 0;
+  Count : integer = -1);
 begin
   StringsOps.CopyFrom(Self, Source, Index, Count);
 end;
 
-procedure TScStrings.AddFrom(Source : TStrings; Index : integer = 0; Count : integer = -1);
+{*
+  Ajoute à la liste de chaînes des chaînes d'une autre liste
+  Ajoute à la liste de chaînes les chaînes d'une autre liste depuis un index et
+  sur un nombre spécifiés.
+  @param Source    Liste de chaînes à partir de laquelle recopier les chaînes
+  @param Index     Index où commencer la copie
+  @param Count     Nombre de chaînes à copier
+*}
+procedure TScStrings.AddFrom(Source : TStrings; Index : integer = 0;
+  Count : integer = -1);
 begin
   StringsOps.AddFrom(Self, Source, Index, Count);
 end;
 
-procedure TScStrings.FromString(const Str, Delim : string; const NotIn : string = '');
+{*
+  Découpe une chaîne en sous-chaînes et remplit la liste de ces sous-chaînes
+  Découpe une chaîne en sous-chaînes délimitées par des caractères spécifiés, et
+  remplit la liste de chaînes avec ces sous-chaînes.
+  @param Str       Chaîne à découper
+  @param Delim     Caractères qui délimitent deux sous-chaînes
+  @param NotIn     Paires de caractères échappant les délimiteurs
+  @raise EListError NotIn contient un nombre impair de caractères
+  @raise EListError Delim et NotIn contiennent un même caractère
+*}
+procedure TScStrings.FromString(const Str, Delim : string;
+  const NotIn : string = '');
 begin
   StringsOps.FromString(Self, Str, Delim, NotIn);
 end;
 
-procedure TScStrings.AddFromString(const Str, Delim : string; const NotIn : string = '');
+{*
+  Découpe une chaîne en sous-chaînes et ajoute ces sous-chaînes à la liste
+  Découpe une chaîne en sous-chaînes délimitées par des caractères spécifiés, et
+  ajoute ces sous-chaînes à la liste de chaînes.
+  @param Str       Chaîne à découper
+  @param Delim     Caractères qui délimitent deux sous-chaînes
+  @param NotIn     Paires de caractères échappant les délimiteurs
+  @raise EListError NotIn contient un nombre impair de caractères
+  @raise EListError Delim et NotIn contiennent un même caractère
+*}
+procedure TScStrings.AddFromString(const Str, Delim : string;
+  const NotIn : string = '');
 begin
   StringsOps.AddFromString(Self, Str, Delim, NotIn);
 end;
 
+{*
+  Remet à 0 l'index interne
+*}
 procedure TScStrings.Reset;
 begin
   FIndex := 0;
 end;
 
+{*
+  Lit la chaîne suivante dans la liste de chaîne
+  @return La chaîne suivante
+*}
 function TScStrings.NextString : string;
 begin
   if HasMoreString then Result := Strings[Index] else Result := '';
@@ -736,7 +989,7 @@ constructor TIntegerList.Create(IntSize : integer = 4);
 begin
   // On vérifie que IntSize est entre 1 et 8 inclus
   if (IntSize < 1) or (IntSize > 8) then
-    raise ECreateError.CreateFmt(sScWrongIntSize, [IntSize]);
+    raise EIntListError.CreateFmt(sScWrongIntSize, [IntSize]);
   inherited Create(IntSize);
 end;
 
@@ -859,7 +1112,7 @@ constructor TUnsignedIntList.Create(IntSize : integer = 4);
 begin
   // On vérifie que IntSize est entre 1 et 4 inclus
   if (IntSize < 1) or (IntSize > 4) then
-    raise ECreateError.CreateFmt(sScWrongIntSize, [IntSize]);
+    raise EIntListError.CreateFmt(sScWrongIntSize, [IntSize]);
   inherited Create(IntSize);
 end;
 

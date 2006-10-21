@@ -168,5 +168,5 @@
 			<VersionInfoKeys Name="OriginalFilename">SepiCoreD.bpl</VersionInfoKeys>
 			<VersionInfoKeys Name="ProductName">Sepi</VersionInfoKeys>
 		</VersionInfoKeys>
-  </Delphi.Personality>
+	</Delphi.Personality>
 </BorlandProject>
