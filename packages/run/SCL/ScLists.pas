@@ -13,13 +13,18 @@ uses
 type
   {*
     Exception déclenchée lors d'une erreur de liste d'entiers
+    @author Sébastien Jean Robert Doeraene
+    @version 1.0
   *}
   EIntListError = class(EListError);
 
   {*
+    Classe purement abstraite rendant publique la méthode CompareStrings
     Rend publique la méthode CompareStrings afin de pouvoir l'utiliser pour
     comparer deux chaînes en respectant les règles de comparaison d'une liste.
     Cette classe ne doit pas être utilisée dans une autre optique.
+    @author Sébastien Jean Robert Doeraene
+    @version 1.0
   *}
   TCompareStrings = class(TStrings)
   public
@@ -27,9 +32,12 @@ type
   end;
 
   {*
+    Classe utilitaire avec des méthodes avancées de gestion de listes de chaînes
     Propose une série de méthodes pouvant être appliquée à des instances de
     TStrings (toutes les méthodes de recherche respectent les règles de
     comparaison de la liste concernée)
+    @author Sébastien Jean Robert Doeraene
+    @version 1.0
   *}
   StringsOps = class
   public
@@ -56,9 +64,12 @@ type
   end;
 
   {*
+    Extension de TStringList y ajoutant quelques fonctionnalités
     Amélioration de TStringList pour lui ajouter les méthodes de StringsOps
     ainsi qu'un index interne permettant de parcourir aisément toutes les
     chaînes dans l'ordre
+    @author Sébastien Jean Robert Doeraene
+    @version 1.0
   *}
   TScStrings = class(TStringList)
   private
@@ -104,17 +115,20 @@ type
   TScListClass = class of TScList;
 
   {*
+    Classe abstraite de base pour la création de listes
     Classe de base pour les listes dont les éléments sont de taille homogène
     Ne créez pas d'instance de TScList, mais créez plutôt des instances de
     ses classes descendantes.
     Ne pas utiliser pour des listes de chaînes, de pointeurs ou d'objets ;
     dans ces cas, utiliser respectivement TStringList (unité Classes), TList
     (unité Classes) et TObjectList (unité Contnrs).
+    @author Sébastien Jean Robert Doeraene
+    @version 1.0
   *}
   TScList = class(TPersistent)
   private
-    FStream : TMemoryStream;
-    FItemSize : integer;
+    FStream : TMemoryStream; /// Flux mémoire interne contenant la liste
+    FItemSize : integer;     /// Taille en octets d'un élément de la liste
 
     function GetCount : integer;
     procedure SetCount(New : integer);
@@ -126,11 +140,10 @@ type
 
     procedure AssignTo(Dest : TPersistent); override;
 
-    // Renvoie True si ScListClass est une classe d'assignation
     function IsAssignClass(ScListClass : TScListClass) : boolean; virtual;
 
-    // Les méthodes suivantes doivent être appellées par les méthodes de même
-    // nom (sans le _) des descendants
+    { Les méthodes suivantes doivent être appellées par les méthodes de même
+      nom (sans le _) des descendants }
     procedure _Read(var Buffer);
     procedure _Write(var Buffer);
     procedure _GetItems(AIndex : integer; var Buffer);
@@ -160,6 +173,8 @@ type
 
   {*
     Gère une liste d'entiers signés
+    @author Sébastien Jean Robert Doeraene
+    @version 1.0
   *}
   TIntegerList = class(TScList)
   private
@@ -182,11 +197,14 @@ type
     function Insert(Index : integer; New : Int64) : integer;
     function Delete(Index : integer) : Int64;
 
-    property Items[index : integer] : Int64 read GetItems write SetItems; default;
+    property Items[index : integer] : Int64
+      read GetItems write SetItems; default;
   end;
 
   {*
     Gère une liste d'entiers non signés
+    @author Sébastien Jean Robert Doeraene
+    @version 1.0
   *}
   TUnsignedIntList = class(TScList)
   private
@@ -209,11 +227,14 @@ type
     function Insert(Index : integer; New : LongWord) : integer;
     function Delete(Index : integer) : LongWord;
 
-    property Items[index : integer] : LongWord read GetItems write SetItems; default;
+    property Items[index : integer] : LongWord
+      read GetItems write SetItems; default;
   end;
 
   {*
     Gère une liste de Extended
+    @author Sébastien Jean Robert Doeraene
+    @version 1.0
   *}
   TExtendedList = class(TScList)
   private
@@ -235,7 +256,8 @@ type
     function Insert(Index : integer; New : Extended) : integer;
     function Delete(Index : integer) : Extended;
 
-    property Items[index : integer] : Extended read GetItems write SetItems; default;
+    property Items[index : integer] : Extended
+      read GetItems write SetItems; default;
   end;
 
 var
@@ -739,66 +761,97 @@ end;
 /// Classe TScList ///
 //////////////////////
 
+{*
+  Crée une nouvelle instance de TScList
+  @param ItemSize   Taille en octets d'un élément de la liste
+*}
 constructor TScList.Create(ItemSize : integer);
 begin
   FStream := TMemoryStream.Create;
   FItemSize := ItemSize;
 end;
 
+{*
+  Détruit l'instance
+*}
 destructor TScList.Destroy;
 begin
   FStream.Free;
   inherited Destroy;
 end;
 
+{*
+  Nombre d'éléments de la liste
+  @return Nombre d'éléments de la liste
+*}
 function TScList.GetCount : integer;
 begin
-  // Le nombre d'éléments est la taille du flux divisées la taille d'un élément
   Result := FStream.Size div FItemSize;
 end;
 
+{*
+  Modifie le nombre d'éléments de la liste
+  @param New   Nouveau nombre d'éléments de la liste
+*}
 procedure TScList.SetCount(New : integer);
 begin
-  // La taille du flux est le nombre d'éléments multiplié par leur taille
   if New <= 0 then FStream.SetSize(0) else
     FStream.SetSize(New*FItemSize);
 end;
 
+{*
+  Indique s'il y a encore des éléments à lire
+  @return True s'il y a encore des éléments à lire, False sinon
+*}
 function TScList.GetHasMoreValue : boolean;
 begin
-  // Il y a encore une ou plusieurs valeurs à lire ssi la position du flux
-  // est inférieure à sa taille
   Result := FStream.Position < FStream.Size;
 end;
 
+{*
+  Index interne de la liste
+  @return Index interne de la liste
+*}
 function TScList.GetIndex : integer;
 begin
-  // L'index est la position du flux divisé par la taille des éléments
   Result := FStream.Position div FItemSize;
 end;
 
+{*
+  Modifie l'index interne de la liste
+  @param New   Nouvelle valeur de l'index interne
+  @raise EListError Index de liste hors bornes
+*}
 procedure TScList.SetIndex(New : integer);
 begin
   // On vérifie que New est bien un index correct
   if (New < 0) or (New > Count) then
     raise EListError.CreateFmt(sScIndexOutOfRange, [New]);
-  // La position du flux est l'index multiplié par la taille des éléments
+
   FStream.Position := New*FItemSize;
 end;
 
+{*
+  Propose une interface pour les méthodes traitant des données non publiées
+  @param Filer   Objet lecteur ou écrivain
+*}
 procedure TScList.DefineProperties(Filer : TFiler);
 begin
   inherited;
-  // La ligne suivante crée une propriété publiée inexistante qui permet
-  // d'enregistrer le contenu via WriteComponent et de le lire via
-  // ReadComponent
+  { La ligne suivante crée une propriété publiée fictive qui permet
+    d'enregistrer le contenu via WriteComponent et de le lire via
+    ReadComponent. Don't localize. }
   Filer.DefineBinaryProperty('Items', LoadFromStream, SaveToStream, True);
 end;
 
+{*
+  Copie les propriétés d'un objet dans l'objet destination
+  @param Dest   Objet destination dans lequel copier la liste
+*}
 procedure TScList.AssignTo(Dest : TPersistent);
 begin
-  // On autorise l'assignation ssi Dest.ClassType fait partie de la liste des
-  // Classes d'assignation et que les tailles d'élements sont les mêmes
+  { On autorise l'assignation ssi Dest.ClassType fait partie de la liste des
+    classes d'assignation et que les tailles d'élements sont les mêmes }
   if (Dest is TScList) and
      (TScList(Dest).FItemSize = FItemSize) and
      IsAssignClass(TScListClass(Dest.ClassType)) then
@@ -808,57 +861,90 @@ begin
   inherited;
 end;
 
+{*
+  Indique si une classe est une classe d'assignation de la liste
+  Les classes descendantes de TScList peuvent surcharger cette méthode pour
+  indiquer quelles sont les classes d'assignation de la liste.
+  @param ScListClass   Classe à tester
+  @return True si ScListClass est une classe d'assignation, False sinon
+*}
 function TScList.IsAssignClass(ScListClass : TScListClass) : boolean;
 begin
-  // Si on remonte jusqu'ici, c'est que ce n'est une classe d'assignation
+  // Si on remonte jusqu'ici, c'est que ce n'est pas une classe d'assignation
   Result := False;
 end;
 
+{*
+  Lit un élément de la liste à la position courante
+  @param Buffer   Buffer non typé dans lequel enregistrer l'élément lu
+*}
 procedure TScList._Read(var Buffer);
 begin
-  // Lit un élément à la position courante
   FStream.ReadBuffer(Buffer, FItemSize);
 end;
 
+{*
+  Écrit un élément dans la liste à la position courante
+  Si l'index interne est à la fin de la liste, celle-ci est agrandie pour
+  acceuillir le nouvel élément.
+  @param Buffer   Buffer non typé contenant l'élément à écrire
+*}
 procedure TScList._Write(var Buffer);
 begin
-  // Écrit l'élément à la position courante
   FStream.WriteBuffer(Buffer, FItemSize);
 end;
 
+{*
+  Lit un élément identifié par son index
+  @param AIndex   Index de l'élément à lire
+  @param Buffer   Buffer non typé dans lequel enregistré l'élément lu
+  @raise EListError Index de liste hors bornes
+*}
 procedure TScList._GetItems(AIndex : integer; var Buffer);
 begin
   // On vérifie que AIndex est un index correct
   if (AIndex < 0) or (AIndex >= Count) then
     raise EListError.CreateFmt(sScIndexOutOfRange, [AIndex]);
-  // On se place au bon endroit pour lire l'élément
+
   Index := AIndex;
-  // On lit l'élément
   _Read(Buffer);
 end;
 
+{*
+  Modifie un élément identifié par son index
+  @param AIndex   Index de l'élément à modifier
+  @param Buffer   Buffer non typé contenant l'élément à écrire
+  @raise EListError Index de liste hors bornes
+*}
 procedure TScList._SetItems(AIndex : integer; var Buffer);
 begin
   // On vérifie que AIndex est un index correct
   if (AIndex < 0) or (AIndex >= Count) then
     raise EListError.CreateFmt(sScIndexOutOfRange, [AIndex]);
-  // On se place au bon endroit pour écrire l'élément
+
   Index := AIndex;
-  // On écrit l'élément
   _Write(Buffer);
 end;
 
+{*
+  Ajoute un élément
+  @param Buffer   Buffer non typé contenant l'élément à ajouter
+  @return Index de l'élément ajouté
+*}
 function TScList._Add(var Buffer) : integer;
 begin
-  // Le résultat est l'index du nouvel élément, soit le nombre d'éléments actuel
   Result := Count;
-  // On se place à la fin du flux
   Index := Result;
-  // On écrit l'élément ; comme c'est un flux mémoire, cela agrandira
-  // automatiquemnt le flux de façon à accepter les nouvelles données
   _Write(Buffer);
 end;
 
+{*
+  Insert un nouvel élément à une position donnée
+  @param AIndex   Index où insérer l'élément
+  @param Buffer   Buffer non typé contenant l'élément à insérer
+  @return Index de l'élément inséré
+  @raise EListError Index de liste hors bornes
+*}
 function TScList._Insert(AIndex : integer; var Buffer) : integer;
 var Temp : TMemoryStream;
 begin
@@ -870,24 +956,32 @@ begin
   if AIndex = Count then Result := _Add(Buffer) else
   begin
     Temp := TMemoryStream.Create;
-    Result := AIndex; // La valeur de retour est l'index du nouvel élément
+    try
+      Result := AIndex;
 
-    // On copie tous les éléments à partir de AIndex dans Temp
-    Index := AIndex;
-    Temp.CopyFrom(FStream, FStream.Size-FStream.Position);
+      // On copie tous les éléments à partir de AIndex dans Temp
+      Index := AIndex;
+      Temp.CopyFrom(FStream, FStream.Size-FStream.Position);
 
-    // On agrandi la liste
-    Count := Count+1;
+      // On agrandi la liste
+      Count := Count+1;
 
-    // On écrit le nouvel élément et à sa suite le contenu de Temp
-    Index := AIndex;
-    _Write(Buffer);
-    FStream.CopyFrom(Temp, 0);
-
-    Temp.Free;
+      // On écrit le nouvel élément et à sa suite le contenu de Temp
+      Index := AIndex;
+      _Write(Buffer);
+      FStream.CopyFrom(Temp, 0);
+    finally
+      Temp.Free;
+    end;
   end;
 end;
 
+{*
+  Supprime un élément de la liste
+  @param AIndex   Index de l'élément à supprimer
+  @param Buffer   Buffer non typé dans lequel enregistré l'élément supprimé
+  @raise EListError Index de liste hors bornes
+*}
 procedure TScList._Delete(AIndex : integer; var Buffer);
 var Temp : TMemoryStream;
 begin
@@ -896,29 +990,36 @@ begin
     raise EListError.CreateFmt(sScIndexOutOfRange, [AIndex]);
 
   Temp := TMemoryStream.Create;
+  try
+    // On lit la valeur de retour à l'emplacement qui va être supprimé
+    Index := AIndex;
+    _Read(Buffer);
 
-  // On lit la valeur de retour à l'emplacement qui va être supprimé
-  Index := AIndex;
-  _Read(Buffer);
+    // On copie tous les éléments après celui-là dans Temp
+    if FStream.Position <> FStream.Size then // Pour éviter le CopyFrom(0)
+      Temp.CopyFrom(FStream, FStream.Size-FStream.Position);
 
-  // On copie tous les éléments après celui-là dans Temp
-  if FStream.Position <> FStream.Size then // Pour éviter le CopyFrom(..., 0)
-    Temp.CopyFrom(FStream, FStream.Size-FStream.Position);
+    // On réduit la liste
+    Count := Count-1;
 
-  // On réduit la liste
-  Count := Count-1;
-
-  // On recopie le contenu de Temp à partir de l'emplacement qui a été supprimé
-  Index := AIndex;
-  FStream.CopyFrom(Temp, 0);
-
-  Temp.Free;
+    // On recopie le contenu de Temp à partir de l'emplacement qui a été supprimé
+    Index := AIndex;
+    FStream.CopyFrom(Temp, 0);
+  finally
+    Temp.Free;
+  end;
 end;
 
+{*
+  Copie le contenu d'un autre objet similaire
+  Appelez Assign pour copier les propriétés ou d'autres attributs d'un objet sur
+  un autre.
+  @param Source   Objet source à copier
+*}
 procedure TScList.Assign(Source : TPersistent);
 begin
-  // On autorise l'assignation ssi Source.ClassType fait partie de la liste des
-  // classes d'assignation et que les tailles d'élements sont les mêmes
+  { On autorise l'assignation ssi Source.ClassType fait partie de la liste des
+    classes d'assignation et que les tailles d'élements sont les mêmes. }
   if (Source is TScList) and
      (TScList(Source).FItemSize = FItemSize) and
      IsAssignClass(TScListClass(Source.ClassType)) then
@@ -928,38 +1029,58 @@ begin
   inherited;
 end;
 
+{*
+  Vide la liste
+*}
 procedure TScList.Clear;
 begin
   Count := 0;
 end;
 
+{*
+  Remet à 0 l'index interne
+*}
 procedure TScList.Reset;
 begin
   Index := 0;
 end;
 
+{*
+  Charge la liste depuis un flux
+  La liste doit avoir été enregistrée au moyen de SaveToStream.
+  @param Stream   Flux depuis lequel lire la liste
+*}
 procedure TScList.LoadFromStream(Stream : TStream);
 var Size : Int64;
 begin
   // On lit la taille sur 8 octets (Int64)
   Stream.Read(Size, 8);
-  FStream.Size := 0;
-  // Si la taille est plus grande que 0, on fait un CopyFrom
-  if Size > 0 then
+  FStream.Size := Size;
+  FStream.Position := 0;
+  if Size > 0 then // Pour éviter le CopyFrom(0)
     FStream.CopyFrom(Stream, Size);
 end;
 
+{*
+  Enregistre la liste dans un flux
+  La liste pourra être relue avec LoadFromStream.
+  @param Stream   Flux dans lequel enregistrer la liste
+*}
 procedure TScList.SaveToStream(Stream : TStream);
 var Size : Int64;
 begin
   // On écrit la taille sur 8 octets (Int64)
   Size := FStream.Size;
   Stream.Write(Size, 8);
-  // Si la taille est plus grande que 0, on fait un CopyFrom
   if Size > 0 then
     Stream.CopyFrom(FStream, 0);
 end;
 
+{*
+  Charge la liste depuis un fichier
+  La liste doit avoir été enregistrée au moyen de SaveToFile.
+  @param FileName   Nom du fichier depuis lequel lire la liste
+*}
 procedure TScList.LoadFromFile(const FileName : TFileName);
 var FileStream : TFileStream;
 begin
@@ -971,6 +1092,11 @@ begin
   end;
 end;
 
+{*
+  Enregistre la liste dans un fichier
+  La liste pourra être relue avec LoadFromFile.
+  @param FileName   Nom du fichier dans lequel enregistrer la liste
+*}
 procedure TScList.SaveToFile(const FileName : TFileName);
 var FileStream : TFileStream;
 begin
@@ -990,34 +1116,63 @@ end;
 /// Classe TIntegerList ///
 ///////////////////////////
 
+{*
+  Crée une nouvelle instance de TIntegerList
+  @param IntSize   Taille en octets des entiers (entre 1 et 8 inclus)
+  @raise EIntListError Taille d'entier incorrecte
+*}
 constructor TIntegerList.Create(IntSize : integer = 4);
 begin
   // On vérifie que IntSize est entre 1 et 8 inclus
   if (IntSize < 1) or (IntSize > 8) then
     raise EIntListError.CreateFmt(sScWrongIntSize, [IntSize]);
+
   inherited Create(IntSize);
 end;
 
-constructor TIntegerList.CreateAssign(Source : TPersistent; IntSize : integer = 4);
+{*
+  Crée une nouvelle instance de TIntegerList, copie d'une autre source
+  @param Source    Objet source à copier
+  @param IntSize   Taille en octets des entiers (entre 1 et 8 inclus)
+  @raise EIntListError Taille d'entier incorrecte
+*}
+constructor TIntegerList.CreateAssign(Source : TPersistent;
+  IntSize : integer = 4);
 begin
   Create(IntSize);
   Assign(Source);
 end;
 
+{*
+  Tableau indexé par leurs index des éléments de la liste
+  @param Index   Index de l'élément à lire
+  @return Valeur de l'élément à l'index Index
+  @raise EListError Index de liste hors bornes
+*}
 function TIntegerList.GetItems(Index : integer) : Int64;
 begin
   _GetItems(Index, Result);
   MakeItGood(Result);
 end;
 
+{*
+  Modifie le tableau indexé par leurs index des éléments de la liste
+  @param Index   Index de l'élément à modifier
+  @param New     Nouvelle valeur de l'élément à l'index Index
+  @raise EListError Index de liste hors bornes
+*}
 procedure TIntegerList.SetItems(Index : integer; New : Int64);
 begin
   _SetItems(Index, New);
 end;
 
+{*
+  S'assure que Value contient la valeur exacte selon la taille stockée
+  Cette procédure remplit les octets non stockés de manière à transformer un
+  entier stocké sur un nombre quelconque d'octets en Int64 (sur 8 octets)
+  @param Value   Valeur à traiter
+*}
 procedure TIntegerList.MakeItGood(var Value : Int64);
-// Cette procédure remplis les octets non stockés de manière à transformer
-// un entier sur un nombre quelconque d'octets en Int64 (sur 8 octets)
 type
   TRecVal = record
     case integer of
@@ -1026,20 +1181,30 @@ type
   end;
 var RecVal : TRecVal;
     I : integer;
-    Remplis : Shortint;
+    FillWith : Shortint;
 begin
+  // On s'évite un travail inutile si Value est déjà stocké sur 8 octets
+  if ItemSize = 8 then exit;
+
+  // On initialise RecVal.Int (et donc aussi RecVal.Ints)
   RecVal.Int := Value;
-    // On initialise RecVal.Int (et donc aussi RecVal.Ints)
-  if RecVal.Ints[ItemSize] < 0 then Remplis := -1 else Remplis := 0;
-    // Si le Shortint à la position ItemSize (c-à-d l'octet de poids le plus
-    // fort stocké) est négatif (c-à-d si le nombre complet est négatif),
-    // on remplit les suivant avec -1 (11111111b) et sinon avec 0 (00000000b)
-  for I := ItemSize+1 to 8 do RecVal.Ints[I] := Remplis;
-    // On remplit les les octets non stockés avec la valeur de Remplis
+
+  { Si le Shortint à la position ItemSize (c-à-d l'octet de poids le plus
+    fort stocké) est négatif (c-à-d si le nombre complet est négatif),
+    on remplit les suivant avec -1 (11111111b) et sinon avec 0 (00000000b) }
+  if RecVal.Ints[ItemSize] < 0 then FillWith := -1 else FillWith := 0;
+
+  // On remplit les les octets non stockés avec la valeur de Remplis
+  for I := ItemSize+1 to 8 do RecVal.Ints[I] := FillWith;
+
+  // On réactualise Value
   Value := RecVal.Int;
-    // On réactualise Value
 end;
 
+{*
+  Copie les propriétés d'un objet dans l'objet destination
+  @param Dest   Objet destination dans lequel copier la liste
+*}
 procedure TIntegerList.AssignTo(Dest : TPersistent);
 var DestStrings : TStrings;
 begin
@@ -1057,12 +1222,25 @@ begin
   inherited;
 end;
 
+{*
+  Indique si une classe est une classe d'assignation de la liste
+  Les classes descendantes de TScList peuvent surcharger cette méthode pour
+  indiquer quelles sont les classes d'assignation de la liste.
+  @param ScListClass   Classe à tester
+  @return True si ScListClass est une classe d'assignation, False sinon
+*}
 function TIntegerList.IsAssignClass(ScListClass : TScListClass) : boolean;
 begin
   if ScListClass.InheritsFrom(TIntegerList) then Result := True else
   Result := inherited IsAssignClass(ScListClass);
 end;
 
+{*
+  Copie le contenu d'un autre objet similaire
+  Appelez Assign pour copier les propriétés ou d'autres attributs d'un objet sur
+  un autre.
+  @param Source   Objet source à copier
+*}
 procedure TIntegerList.Assign(Source : TPersistent);
 var SourceStrings : TStrings;
     I : integer;
@@ -1078,27 +1256,51 @@ begin
   inherited;
 end;
 
+{*
+  Lit un élément de la liste à la position courante
+  @return L'élément lu
+*}
 function TIntegerList.Read : Int64;
 begin
   _Read(Result);
   MakeItGood(Result);
 end;
 
+{*
+  Écrit un élément dans la liste à la position courante
+  @param New   Élémént à écrire
+*}
 procedure TIntegerList.Write(New : Int64);
 begin
   _Write(New);
 end;
 
+{*
+  Ajoute un élément à la liste
+  @param New   Élémént à ajouter
+  @return Index de l'élément ajouté
+*}
 function TIntegerList.Add(New : Int64) : integer;
 begin
   Result := _Add(New);
 end;
 
+{*
+  Insert un élément dans la liste à un index spécifié
+  @param Index   Index où insérer l'élément
+  @param New     Élémént à insérer
+  @return Index de l'élément inséré
+*}
 function TIntegerList.Insert(Index : integer; New : Int64) : integer;
 begin
   Result := _Insert(Index, New);
 end;
 
+{*
+  Supprime un élément de la liste
+  @param Index   Index de l'élément à supprimer
+  @return L'élément supprimé
+*}
 function TIntegerList.Delete(Index : integer) : Int64;
 begin
   _Delete(Index, Result);
@@ -1113,34 +1315,63 @@ end;
 /// Classe TUnsignedIntList ///
 ///////////////////////////////
 
+{*
+  Crée une nouvelle instance de TUnsignedIntList
+  @param IntSize   Taille en octets des entiers (entre 1 et 4 inclus)
+  @raise EIntListError Taille d'entier incorrecte
+*}
 constructor TUnsignedIntList.Create(IntSize : integer = 4);
 begin
   // On vérifie que IntSize est entre 1 et 4 inclus
   if (IntSize < 1) or (IntSize > 4) then
     raise EIntListError.CreateFmt(sScWrongIntSize, [IntSize]);
+
   inherited Create(IntSize);
 end;
 
-constructor TUnsignedIntList.CreateAssign(Source : TPersistent; IntSize : integer = 4);
+{*
+  Crée une nouvelle instance de TUnsignedIntList, copie d'une autre source
+  @param Source    Objet source à copier
+  @param IntSize   Taille en octets des entiers (entre 1 et 4 inclus)
+  @raise EIntListError Taille d'entier incorrecte
+*}
+constructor TUnsignedIntList.CreateAssign(Source : TPersistent;
+  IntSize : integer = 4);
 begin
   Create(IntSize);
   Assign(Source);
 end;
 
+{*
+  Tableau indexé par leurs index des éléments de la liste
+  @param Index   Index de l'élément à lire
+  @return Valeur de l'élément à l'index Index
+  @raise EListError Index de liste hors bornes
+*}
 function TUnsignedIntList.GetItems(Index : integer) : LongWord;
 begin
   _GetItems(Index, Result);
   MakeItGood(Result);
 end;
 
+{*
+  Modifie le tableau indexé par leurs index des éléments de la liste
+  @param Index   Index de l'élément à modifier
+  @param New     Nouvelle valeur de l'élément à l'index Index
+  @raise EListError Index de liste hors bornes
+*}
 procedure TUnsignedIntList.SetItems(Index : integer; New : LongWord);
 begin
   _SetItems(Index, New);
 end;
 
+{*
+  S'assure que Value contient la valeur exacte selon la taille stockée
+  Cette procédure remplit les octets non stockés de manière à transformer un
+  entier stocké sur un nombre quelconque d'octets en LongWord (sur 4 octets)
+  @param Value   Valeur à traiter
+*}
 procedure TUnsignedIntList.MakeItGood(var Value : LongWord);
-// Cette procédure remplis les octets non stockés de manière à transformer
-// un entier sur un nombre quelconque d'octets en LongWord (sur 4 octets)
 type
   TRecVal = record
     case integer of
@@ -1150,14 +1381,23 @@ type
 var RecVal : TRecVal;
     I : integer;
 begin
+  // On s'évite un travail inutile si Value est déjà stocké sur 4 octets
+  if ItemSize = 4 then exit;
+
+  // On initialise RecVal.Int (et donc aussi RecVal.Ints)
   RecVal.Int := Value;
-    // On initialise RecVal.Int (et donc aussi RecVal.Ints)
+
+  // On remplit les octets non stockés avec des 0
   for I := ItemSize+1 to 4 do RecVal.Ints[I] := 0;
-    // On remplit les octets non stockés avec des 0
+
+  // On réactualise Value
   Value := RecVal.Int;
-    // On réactualise Value
 end;
 
+{*
+  Copie les propriétés d'un objet dans l'objet destination
+  @param Dest   Objet destination dans lequel copier la liste
+*}
 procedure TUnsignedIntList.AssignTo(Dest : TPersistent);
 var DestStrings : TStrings;
 begin
@@ -1175,12 +1415,25 @@ begin
   inherited;
 end;
 
+{*
+  Indique si une classe est une classe d'assignation de la liste
+  Les classes descendantes de TScList peuvent surcharger cette méthode pour
+  indiquer quelles sont les classes d'assignation de la liste.
+  @param ScListClass   Classe à tester
+  @return True si ScListClass est une classe d'assignation, False sinon
+*}
 function TUnsignedIntList.IsAssignClass(ScListClass : TScListClass) : boolean;
 begin
   if ScListClass.InheritsFrom(TUnsignedIntList) then Result := True else
   Result := inherited IsAssignClass(ScListClass);
 end;
 
+{*
+  Copie le contenu d'un autre objet similaire
+  Appelez Assign pour copier les propriétés ou d'autres attributs d'un objet sur
+  un autre.
+  @param Source   Objet source à copier
+*}
 procedure TUnsignedIntList.Assign(Source : TPersistent);
 var SourceStrings : TStrings;
     I : integer;
@@ -1203,27 +1456,51 @@ begin
   inherited;
 end;
 
+{*
+  Lit un élément de la liste à la position courante
+  @return L'élément lu
+*}
 function TUnsignedIntList.Read : LongWord;
 begin
   _Read(Result);
   MakeItGood(Result);
 end;
 
+{*
+  Écrit un élément dans la liste à la position courante
+  @param New   Élémént à écrire
+*}
 procedure TUnsignedIntList.Write(New : LongWord);
 begin
   _Write(New);
 end;
 
+{*
+  Ajoute un élément à la liste
+  @param New   Élémént à ajouter
+  @return Index de l'élément ajouté
+*}
 function TUnsignedIntList.Add(New : LongWord) : integer;
 begin
   Result := _Add(New);
 end;
 
+{*
+  Insert un élément dans la liste à un index spécifié
+  @param Index   Index où insérer l'élément
+  @param New     Élémént à insérer
+  @return Index de l'élément inséré
+*}
 function TUnsignedIntList.Insert(Index : integer; New : LongWord) : integer;
 begin
   Result := _Insert(Index, New);
 end;
 
+{*
+  Supprime un élément de la liste
+  @param Index   Index de l'élément à supprimer
+  @return L'élément supprimé
+*}
 function TUnsignedIntList.Delete(Index : integer) : LongWord;
 begin
   _Delete(Index, Result);
@@ -1238,27 +1515,50 @@ end;
 /// Classe TExtendedList ///
 ////////////////////////////
 
+{*
+  Crée une nouvelle instance de TExtendedList
+*}
 constructor TExtendedList.Create;
 begin
   inherited Create(sizeof(Extended));
 end;
 
+{*
+  Crée une nouvelle instance de TExtendedList, copie d'une autre source
+  @param Source    Objet source à copier
+*}
 constructor TExtendedList.CreateAssign(Source : TPersistent);
 begin
   Create;
   Assign(Source);
 end;
 
+{*
+  Tableau indexé par leurs index des éléments de la liste
+  @param Index   Index de l'élément à lire
+  @return Valeur de l'élément à l'index Index
+  @raise EListError Index de liste hors bornes
+*}
 function TExtendedList.GetItems(Index : integer) : Extended;
 begin
   _GetItems(Index, Result);
 end;
 
+{*
+  Modifie le tableau indexé par leurs index des éléments de la liste
+  @param Index   Index de l'élément à modifier
+  @param New     Nouvelle valeur de l'élément à l'index Index
+  @raise EListError Index de liste hors bornes
+*}
 procedure TExtendedList.SetItems(Index : integer; New : Extended);
 begin
   _SetItems(Index, New);
 end;
 
+{*
+  Copie les propriétés d'un objet dans l'objet destination
+  @param Dest   Objet destination dans lequel copier la liste
+*}
 procedure TExtendedList.AssignTo(Dest : TPersistent);
 var DestStrings : TStrings;
 begin
@@ -1276,12 +1576,25 @@ begin
   inherited;
 end;
 
+{*
+  Indique si une classe est une classe d'assignation de la liste
+  Les classes descendantes de TScList peuvent surcharger cette méthode pour
+  indiquer quelles sont les classes d'assignation de la liste.
+  @param ScListClass   Classe à tester
+  @return True si ScListClass est une classe d'assignation, False sinon
+*}
 function TExtendedList.IsAssignClass(ScListClass : TScListClass) : boolean;
 begin
   if ScListClass.InheritsFrom(TExtendedList) then Result := True else
   Result := inherited IsAssignClass(ScListClass);
 end;
 
+{*
+  Copie le contenu d'un autre objet similaire
+  Appelez Assign pour copier les propriétés ou d'autres attributs d'un objet sur
+  un autre.
+  @param Source   Objet source à copier
+*}
 procedure TExtendedList.Assign(Source : TPersistent);
 var SourceStrings : TStrings;
     I : integer;
@@ -1297,26 +1610,50 @@ begin
   inherited;
 end;
 
+{*
+  Lit un élément de la liste à la position courante
+  @return L'élément lu
+*}
 function TExtendedList.Read : Extended;
 begin
   _Read(Result);
 end;
 
+{*
+  Écrit un élément dans la liste à la position courante
+  @param New   Élémént à écrire
+*}
 procedure TExtendedList.Write(New : Extended);
 begin
   _Write(New);
 end;
 
+{*
+  Ajoute un élément à la liste
+  @param New   Élémént à ajouter
+  @return Index de l'élément ajouté
+*}
 function TExtendedList.Add(New : Extended) : integer;
 begin
   Result := _Add(New);
 end;
 
+{*
+  Insert un élément dans la liste à un index spécifié
+  @param Index   Index où insérer l'élément
+  @param New     Élémént à insérer
+  @return Index de l'élément inséré
+*}
 function TExtendedList.Insert(Index : integer; New : Extended) : integer;
 begin
   Result := _Insert(Index, New);
 end;
 
+{*
+  Supprime un élément de la liste
+  @param Index   Index de l'élément à supprimer
+  @return L'élément supprimé
+*}
 function TExtendedList.Delete(Index : integer) : Extended;
 begin
   _Delete(Index, Result);
