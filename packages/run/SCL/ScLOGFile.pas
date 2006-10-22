@@ -16,6 +16,8 @@ type
     Les lignes d'un fichier LOG géré avec cette classe sont de la forme :
     [Date et Heure] Titre de l'entrée ; Description de l'entrée
     Les descriptions sont toujours optionnelles.
+    @author Sébastien Jean Robert Doeraene
+    @version 1.0
   *}
   TScLogFile = class
   private

@@ -7,27 +7,34 @@ unit ScDateTimeUtils;
 
 interface
 
+uses
+  ScConsts;
+
 function GetMonthName(Month : integer; Maj : boolean = True) : string;
-// Revoie le nom du mois Month (1 pour Janvier).
-// Maj détermine s'il y a une majuscule
 
 implementation
 
+{*
+  Renvoie le nom d'un mois
+  @param Month   Mois basé sur 1
+  @param Maj     Indique si la première lettre doit être une majuscule
+  @return Le nom du mois Month, avec une majuscule si Maj vaut True
+*}
 function GetMonthName(Month : integer; Maj : boolean = True) : string;
 begin
   case Month of
-    1 : Result := 'janvier';
-    2 : Result := 'février';
-    3 : Result := 'mars';
-    4 : Result := 'avril';
-    5 : Result := 'mai';
-    6 : Result := 'juin';
-    7 : Result := 'juillet';
-    8 : Result := 'août';
-    9 : Result := 'septembre';
-    10 : Result := 'octobre';
-    11 : Result := 'novembre';
-    12 : Result := 'décembre';
+    1 : Result := sJanuary;
+    2 : Result := sFebruary;
+    3 : Result := sMarch;
+    4 : Result := sApril;
+    5 : Result := sMay;
+    6 : Result := sJune;
+    7 : Result := sJuly;
+    8 : Result := sAugust;
+    9 : Result := sSeptember;
+    10 : Result := sOctober;
+    11 : Result := sNovember;
+    12 : Result := sDecember;
     else Result := '';
   end;
   if Maj and (Result <> '') then

@@ -43,6 +43,8 @@ type
 
   {*
     Déclenchée lorsqu'une erreur a été reportée par une API Windows
+    @author Sébastien Jean Robert Doeraene
+    @version 1.0
   *}
   EAPIError = class(Exception)
   private

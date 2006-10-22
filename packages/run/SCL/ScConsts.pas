@@ -20,6 +20,20 @@ resourcestring
   sScAuthor = 'Auteur';
   sScWrongPassword = 'Mot de passe incorrect';
 
+// Months consts
+  sJanuary = 'janvier';
+  sFebruary = 'février';
+  sMarch = 'mars';
+  sApril = 'avril';
+  sMay = 'mai';
+  sJune = 'juin';
+  sJuly = 'juillet';
+  sAugust = 'août';
+  sSeptember = 'septembre';
+  sOctober = 'octobre';
+  sNovember = 'novembre';
+  sDecember = 'décembre';
+
 // Lists errors
   sScNotInMustPairsOfChars = 'NotIn doit contenir des paires de caractères';
   sScDelimMustDifferentThanNotIn = 'Delim et NotIn ne peuvent contenir un même caractère';

@@ -16,6 +16,8 @@ uses
 type
   {*
     Déclenchée lors d'une erreur de mise à jour des ressources d'un exécutable
+    @author Sébastien Jean Robert Doeraene
+    @version 1.0
   *}
   EUpdateResError = class(EAPIError) end platform;
 
