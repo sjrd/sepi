@@ -1,5 +1,5 @@
 {*
-  Définit quelques routines d'utilisation plus ou avancée
+  Définit quelques routines d'utilisation plus rare ou avancée
   @author Sébastien Jean Robert Doeraene
   @version 1.0
 *}
