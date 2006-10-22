@@ -14,56 +14,43 @@ uses
   SysUtils, Classes, ZLib, ScUtils, ScConsts;
 
 type
+  {*
+    Déclenchée lors d'une erreur de mise à jour des ressources d'un exécutable
+  *}
   EUpdateResError = class(EAPIError) end platform;
 
   {$IFDEF MSWINDOWS}
+  {*
+    Type de son
+    stFileName : Nom de fichier
+    stResource : Nom d'une ressource
+    stSysSound : Nom d'un son système
+  *}
   TSoundType = (stFileName, stResource, stSysSound);
   {$ENDIF}
 
 function CorrectIdentifier(const Ident : string) : boolean;
-// Vérifie si Ident est un identificateur Delphi correct
 
 function IntToBase(Value : integer; Base : Byte = 10) : string;
-// Convertit une valeur entière en sa représentation chaîne
 function BaseToInt(const Value : string; Base : Byte = 10) : integer;
-// Convertit une chaîne en l'entier qu'elle représente
-function BaseToIntDef(const Value : string; Default : integer = 0; Base : Byte = 10) : integer;
-// Comme SjrdStrToInt mais renvoie une valeur par défaut en cas d'échec
+function BaseToIntDef(const Value : string; Default : integer = 0;
+  Base : Byte = 10) : integer;
 
 function GetMethodFromName(Obj : TObject; MethodName : ShortString) : TMethod;
-// Renvoie l'adresse de la méthode de nom NomMethode de l'objet Objet
 
 function ConvertDoubleToInt64(Value : Double) : Int64;
-// Convertit une valeur Double en la valeur Int64 ayant les mêmes bits
-// Attention ! Il n'y a aucune correspondance entre Value et Result
-//             Cette fonction est totalement empirique
-
 function ConvertInt64ToDouble(Value : Int64) : Double;
-// Convertit une valeur Int64 en la valeur Double ayant les mêmes bits
-// Attention ! Il n'y a aucune correspondance entre Value et Result
-//             Cette fonction est totalement empirique
 
-function StrToStrRepres(const Str : string; ExcludedChars : TSysCharSet = []) : string;
-// Renvoie la représentation de Str en Pascal
-// (si Str = «C'est Noël !», renvoie «'C''est Noël !'»)
-
+function StrToStrRepres(const Str : string;
+  ExcludedChars : TSysCharSet = []) : string;
 function StrRepresToStr(Str : string) : string;
-// Renvoie la chaîne représentée en Pascal par Str
-// (si Str = «'A qui l''tour ?'», renvoie «A qui l'tour ?»)
 
-function CharToCharRepres(Charact : Char) : string;
-// Renvoie la représentation de Charact en Pascal
-// (si Charact = «A», renvoie «'A'» ; si Charact = Tab, renvoie «#9»)
-
+function CharToCharRepres(Chr : Char;
+  ExcludedChars : TSysCharSet = []) : string;
 function CharRepresToChar(Str : string) : Char;
-// Renvoie le caractère représenté en Pascal par Str
-// (si Str = «'A'», renvoie «A» ; si Str = «#10», renvoie LineFeed)
 
-function CharSetToStr(SetOfChars : TSysCharSet) : string;
-// Renvoie la chaîne représentant l'ensemble SetOfChars (sans les [])
-
+function CharSetToStr(CharSet : TSysCharSet) : string;
 function StrToCharSet(Str : string) : TSysCharSet;
-// Renvoie l'ensemble de caractères représenté par Str (Str avec ou sans les [])
 
 {$IFDEF MSWINDOWS}
 procedure CreateShellLink(const Source, Dest : string;
@@ -73,14 +60,12 @@ procedure CreateShellLink(const Source, Dest : string;
                           const Arguments : string = '';
                           const WorkDir : string = '';
                           ShowCommand : integer = SW_SHOW); platform;
-// Crée un raccourci avec les informations indiquées
 {$ENDIF}
 
 {$IFDEF MSWINDOWS}
 function ExecuteSound(const Sound : string; SoundType : TSoundType = stFileName;
                       Synchronous : boolean = False; Module : HMODULE = 0;
                       AddFlags : LongWord = 0) : boolean; platform;
-// Exécute un son via MMSytem.PlaySound
 {$ENDIF}
 
 {$REGION 'Modification des ressources'}
@@ -101,15 +86,14 @@ procedure DelResInFile(const FileName, ResName : string); platform;
 {$REGION 'Compression/décompression'}
 
 const
-  clNoComp      = ZLib.clNone;    // pas de compression
-  clFastestComp = ZLib.clFastest; // compression la plus rapide
-  clDefaultComp = ZLib.clDefault; // compression par défaut
-  clMaxComp     = ZLib.clMax;     // compression maximale
+  clNoComp      = ZLib.clNone;    /// pas de compression
+  clFastestComp = ZLib.clFastest; /// compression la plus rapide
+  clDefaultComp = ZLib.clDefault; /// compression par défaut
+  clMaxComp     = ZLib.clMax;     /// compression maximale
+
 procedure CompressStream(Stream : TStream; Dest : TStream = nil;
-                         CompressionLevel : TCompressionLevel = clDefaultComp);
-// Compresse le contenu de Stream dans Dest (si Dest = nil, dans Stream)
+  CompressionLevel : TCompressionLevel = clDefaultComp);
 procedure DecompressStream(Stream : TStream; Dest : TStream = nil);
-// Décompresse le contenu de Stream dans Dest (si Dest = nil, dans Stream)
 
 {$ENDREGION}
 
@@ -121,36 +105,58 @@ uses
 {$ENDIF}
 
 const
-  NumbersStr = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  MaxBase = 36;
+  NumbersStr = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'; /// Chiffres des bases
+  MaxBase = 36;                                        /// Base maximale
 
+{*
+  Vérifie si une chaîne de caractères est un identificateur Pascal correct
+  @param Ident   Chaîne de caractères à tester
+  @return True si Ident est un identificateur Pascal correct, False sinon
+*}
 function CorrectIdentifier(const Ident : string) : boolean;
 var I : integer;
 begin
   Result := False;
+
   // Si Ident est vide, ce n'est un indentificateur correct
   if Ident = '' then exit;
-  // Si le premier caractère n'est pas alphabétique,
-  // ce n'est pas un identificateur correct
+
+  { Si le premier caractère n'est pas alphabétique,
+    ce n'est pas un identificateur correct }
   if not (Ident[1] in ['A'..'Z', '_', 'a'..'z']) then exit;
-  // Si l'un des caractères suivant n'est pas alphanumérique,
-  // ce n'est pas un identificateur correct
+
+  { Si l'un des caractères suivant n'est pas alphanumérique,
+    ce n'est pas un identificateur correct }
   for I := 2 to Length(Ident) do
     if not (Ident[I] in ['0'..'9', 'A'..'Z', '_', 'a'..'z']) then exit;
+
   // Dans les autres cas, ça l'est
   Result := True;
 end;
 
+{*
+  Vérifie qu'une base est valide
+  @param Base   Base à tester
+  @raise EConvertError Base incorrecte
+*}
 procedure VerifyBase(Base : Byte);
 begin
   if (Base < 2) or (Base > MaxBase) then
     raise EConvertError.CreateFmt(sScWrongBase, [Base]);
 end;
 
+{*
+  Convertit un entier dans une base donnée
+  @param Value   Entier à convertir
+  @param Base    Base de destination
+  @return Représentation en chaîne de Value exprimé dans la base Base
+  @raise EConvertError Base incorrecte
+*}
 function IntToBase(Value : integer; Base : Byte = 10) : string;
 var Negative : boolean;
 begin
   VerifyBase(Base);
+
   if Value = 0 then Result := NumbersStr[1] else
   begin
     Negative := Value < 0;
@@ -165,6 +171,14 @@ begin
   end;
 end;
 
+{*
+  Convertit un nombre exprimé dans une base donnée en sa représentation décimale
+  @param Value   Chaîne de caractère représentant le nombre
+  @param Base    Base dans laquelle est exprimée le nombre
+  @return Valeur décimale du nombre
+  @raise EConvertError Base incorrecte
+  @raise EConvertError Entier incorrect
+*}
 function BaseToInt(const Value : string; Base : Byte = 10) : integer;
   procedure RaiseUncorrectInteger;
   begin
@@ -196,7 +210,17 @@ begin
   if Negative then Result := -Result;
 end;
 
-function BaseToIntDef(const Value : string; Default : integer = 0; Base : Byte = 10) : integer;
+{*
+  Convertit un nombre exprimé dans une base donnée en sa représentation décimale
+  Lorsque la chaîne n'est pas un entier valide, une valeur par défaut est
+  renvoyée.
+  @param Value     Chaîne de caractère représentant le nombre
+  @param Default   Valeur par défaut
+  @param Base      Base dans laquelle est exprimée le nombre
+  @return Valeur décimale du nombre
+*}
+function BaseToIntDef(const Value : string; Default : integer = 0;
+  Base : Byte = 10) : integer;
 begin
   try
     Result := BaseToInt(Value, Base);
@@ -205,12 +229,24 @@ begin
   end;
 end;
 
+{*
+  Recherche une méthode d'un objet à partir de son nom
+  La méthode en question doit être publiée pour pouvoir être trouvée.
+  @param Obj          L'objet définissant la méthode
+  @param MethodName   Nom de la méthode
+  @return Une référence à la méthode recherchée pour l'objet Obj
+*}
 function GetMethodFromName(Obj : TObject; MethodName : ShortString) : TMethod;
 begin
   Result.Code := Obj.MethodAddress(MethodName);
   Result.Data := Obj;
 end;
 
+{*
+  Convertit une valeur Double en la valeur Int64 ayant les mêmes bits
+  Attention ! Il n'y a aucune correspondance entre Value et Result ! Cette
+  fonction est totalement empirique.
+*}
 function ConvertDoubleToInt64(Value : Double) : Int64;
 type
   TypeDeTransition = packed record
@@ -220,12 +256,17 @@ type
   end;
 var VarDeTransition : TypeDeTransition;
 begin
-  // Ceci est totalement empirique, seuls les bits sont égaux (ce qui ne
-  // correspond absolument pas à la valeur)
+  { Ceci est totalement empirique, seuls les bits sont égaux (ce qui ne
+    correspond absolument pas à la valeur) }
   VarDeTransition.DblValue := Value;
   Result := VarDeTransition.IntValue;
 end;
 
+{*
+  Convertit une valeur Int64 en la valeur Double ayant les mêmes bits
+  Attention ! Il n'y a aucune correspondance entre Value et Result ! Cette
+  fonction est totalement empirique.
+*}
 function ConvertInt64ToDouble(Value : Int64) : Double;
 type
   TypeDeTransition = packed record
@@ -235,12 +276,22 @@ type
   end;
 var VarDeTransition : TypeDeTransition;
 begin
-  // Ceci est totalement empirique, seuls les bits sont égaux (ce qui ne
-  // correspond absolument pas à la valeur)
+  { Ceci est totalement empirique, seuls les bits sont égaux (ce qui ne
+    correspond absolument pas à la valeur) }
   VarDeTransition.IntValue := Value;
   Result := VarDeTransition.DblValue;
 end;
 
+{*
+  Détermine la représentation Pascal d'une chaîne de caractères
+  Cette représentation est la chaîne encadrée de guillemets simples ('), dont
+  ces caractères à l'intérieur de la chaîne sont doublés, et dont certains
+  caractères spéciaux sont échappés au moyen de #.
+  Cette chaîne peut alors être par exemple insérée dans un code Pascal.
+  @param Str             Chaîne à traiter
+  @param ExcludedChars   Ensemble des caractères qu'il faut échapper
+  @return Représentation Pascal de Str
+*}
 function StrToStrRepres(const Str : string;
   ExcludedChars : TSysCharSet = []) : string;
 var I : integer;
@@ -271,6 +322,16 @@ begin
   end;
 end;
 
+{*
+  Détermine une chaîne à partir de sa représentation Pascal
+  Cette représentation est la chaîne encadrée de guillemets simples ('), dont
+  ces caractères à l'intérieur de la chaîne sont doublés, et dont certains
+  caractères spéciaux sont échappés au moyen de #.
+  Cette chaîne peut par exemple être extraite d'un code Pascal.
+  @param Str   Chaîne à traiter
+  @return Chaîne représentée par Str en Pascal
+  @raise EConvertError Chaîne de caractère incorrecte
+*}
 function StrRepresToStr(Str : string) : string;
 var CharStr : string;
     I, IntChar : integer;
@@ -321,13 +382,27 @@ begin
     raise EConvertError.CreateFmt(sScWrongString, [Str]);
 end;
 
-function CharToCharRepres(Charact : Char) : string;
+{*
+  Détermine la représentation Pascal d'un caractère
+  @param Chr             Caractère à traiter
+  @param ExcludedChars   Ensemble des caractères qu'il faut échapper
+  @return Représentation Pascal de Chr
+*}
+function CharToCharRepres(Chr : Char;
+  ExcludedChars : TSysCharSet = []) : string;
 begin
-  if Charact < #32 then Result := '#'+IntToStr(Byte(Charact)) else
-  if Charact = '''' then Result := '''''''''' else
-  Result := ''''+Charact+'''';
+  ExcludedChars := ExcludedChars + [#0..#31];
+  if Chr in ExcludedChars then Result := '#'+IntToStr(Byte(Chr)) else
+  if Chr = '''' then Result := '''''''''' else
+  Result := ''''+Chr+'''';
 end;
 
+{*
+  Détermine un caractère à partir de sa représentation Pascal
+  @param Str   Chaîne à traiter
+  @return Caractère représenté par Str en Pascal
+  @raise EConvertError Caractère incorrect
+*}
 function CharRepresToChar(Str : string) : Char;
 begin
   try
@@ -364,35 +439,48 @@ begin
   end;
 end;
 
-function CharSetToStr(SetOfChars : TSysCharSet) : string;
+{*
+  Détermine la représentation Pascal d'un ensemble de caractères (sans les [])
+  @param CharSet   Ensemble de caractères à traiter
+  @return Représentation Pascal de CharSet
+*}
+function CharSetToStr(CharSet : TSysCharSet) : string;
 var I, From : Word;
 begin
   Result := '';
   I := 0;
-  // On cherche d'abord le premier caractère inclu
-  while (I <= 255) and (not (Chr(I) in SetOfChars)) do inc(I);
+  // On cherche d'abord le premier caractère inclus
+  while (I <= 255) and (not (Chr(I) in CharSet)) do inc(I);
   while I <= 255 do
   begin
-    // Chr(I) est inclu
+    // Chr(I) est inclus
     From := I;
-    // On cherche le caractère suivant qui n'est pas inclu
-    while (I <= 255) and (Chr(I) in SetOfChars) do inc(I);
+    // On cherche le caractère suivant qui n'est pas inclus
+    while (I <= 255) and (Chr(I) in CharSet) do inc(I);
     // On teste I-From, soit le nombre de caractère consécutifs
     case I-From of
       // 1 : on ajoute simplement ce caractère
       1 : Result := Result+', '+CharToCharRepres(Chr(From));
       // 2 : on ajoute ces deux caractères séparés par des virgules
-      2 : Result := Result+', '+CharToCharRepres(Chr(From))+', '+CharToCharRepres(Chr(I-1));
+      2 : Result := Result+', '+CharToCharRepres(Chr(From))+
+        ', '+CharToCharRepres(Chr(I-1));
       // 3+ : on ajoute les deux extrèmes séparés par ..
-      else Result := Result+', '+CharToCharRepres(Chr(From))+'..'+CharToCharRepres(Chr(I-1));
+      else Result := Result+', '+CharToCharRepres(Chr(From))+
+        '..'+CharToCharRepres(Chr(I-1));
     end;
-    // on cherche le caractère suivant inclu
-    repeat inc(I) until (I > 255) or (Chr(I) in SetOfChars);
+    // on cherche le caractère suivant inclus
+    repeat inc(I) until (I > 255) or (Chr(I) in CharSet);
   end;
   // On supprime les deux premiers caractères, car ce sont ', '
   Delete(Result, 1, 2);
 end;
 
+{*
+  Détermine un ensemble de caractères à partir de sa représentation Pascal
+  @param Str   Chaîne à traiter
+  @return Ensemble de caractères représenté par CharSet
+  @raise EConvertError Ensemble de caractères incorrect
+*}
 function StrToCharSet(Str : string) : TSysCharSet;
 var I : integer;
   function GetCharAt : Char;
@@ -518,6 +606,18 @@ begin
 end;
 
 {$IFDEF MSWINDOWS}
+{*
+  Crée un raccourci Windows
+  Seuls les paramètres Source et Dest sont obligatoires.
+  @param Source         Nom du fichier raccourci
+  @param Dest           Destination du raccourci
+  @param Description    Description
+  @param IconLocation   Nom du fichier contenant l'icône du raccourci
+  @param IconIndex      Index de l'icône dans le fichier
+  @param Arguments      Arguments appliqués à la destination du raccourci
+  @param WorkDir        Répertoire de travail pour l'exécution du raccourci
+  @param ShowCommand    Commande d'affichage de la destination
+*}
 procedure CreateShellLink(const Source, Dest : string;
                           const Description : string = '';
                           const IconLocation : string = '';
@@ -550,6 +650,15 @@ begin
 end;
 {$ENDIF}
 
+{*
+  Exécute un son à partir d'un fichier, d'une ressource ou d'un son système
+  @param Sound         Nom du son (selon le type de son)
+  @param SoundType     Type de son
+  @param Synchronous   True pour exécuter le son de façon synchrône
+  @param Module        Dans le cas d'une ressource, le module la contenant
+  @param AddFlags      Flags additionnels à passer à MMSystem.PlaySound
+  @return True si le son a été correctement exécuté, False sinon
+*}
 function ExecuteSound(const Sound : string; SoundType : TSoundType = stFileName;
   Synchronous : boolean = False; Module : HMODULE = 0;
   AddFlags : LongWord = 0) : boolean;
@@ -574,6 +683,12 @@ end;
 ///////////////////////////////////////
 {$IFDEF MSWINDOWS}
 
+{*
+  Débute la mise à jour des ressources d'un fichier module
+  Tout appel à BeginUpdateRes doit être compensé par un appel à EndUpdateRes.
+  @param FileName   Nom du fichier module
+  @return Handle de ressources
+*}
 function BeginUpdateRes(const FileName : string) : integer;
 begin
   // Appel de Windows.BeginUpdateResource
@@ -583,6 +698,13 @@ begin
     raise EUpdateResError.Create;
 end;
 
+{*
+  Ajoute une ressource
+  @param ResHandle   Handle de ressources obtenu par BeginUpdateRes
+  @param ResName     Nom de la ressource à ajouter
+  @param Resource    Flux contenant la ressource
+  @param ResType     Type de ressource
+*}
 procedure AddResource(ResHandle : integer; const ResName : string;
   Resource : TStream; const ResType : string = 'RT_RCDATA');
 var MemRes : TMemoryStream;
@@ -605,6 +727,11 @@ begin
   if not OK then raise EUpdateResError.Create;
 end;
 
+{*
+  Supprime une ressource
+  @param ResHandle   Handle de ressources obtenu par BeginUpdateRes
+  @param ResName     Nom de la ressource à supprimer
+*}
 procedure DelResource(ResHandle : integer; const ResName : string);
 begin
   // Appel de Windows.UpdateResource
@@ -613,6 +740,11 @@ begin
     raise EUpdateResError.Create;
 end;
 
+{*
+  Termine la mise à jour des ressources d'un fichier module
+  @param ResHandle   Handle de ressources obtenu par BeginUpdateRes
+  @param Cancel      Indique s'il faut annuler les modifications faites
+*}
 procedure EndUpdateRes(ResHandle : integer; Cancel : boolean = False);
 begin
   // Appel de Windows.EndUpdateResource
@@ -621,6 +753,13 @@ begin
     raise EUpdateResError.Create;
 end;
 
+{*
+  Ajoute une ressources à un fichier module
+  @param FileName   Nom du fichier module
+  @param ResName    Nom de la ressource à ajouter
+  @param Resource   Flux contenant la ressource
+  @param ResType    Type de ressource
+*}
 procedure AddResToFile(const FileName, ResName : string; Resource : TStream;
   const ResType : string = 'RT_RCDATA');
 var ResHandle : integer;
@@ -635,6 +774,11 @@ begin
   end;
 end;
 
+{*
+  Supprime une ressources d'un fichier module
+  @param FileName   Nom du fichier module
+  @param ResName    Nom de la ressource à supprimer
+*}
 procedure DelResInFile(const FileName, ResName : string);
 var ResHandle : integer;
 begin
@@ -654,8 +798,14 @@ end;
 
 {$REGION 'Compression/décompression'}
 
+{*
+  Compresse un flux avec la bibliothèque ZLib
+  @param Stream             Flux à compresser
+  @param Dest               Flux de destination (ou nil pour Stream, plus lent)
+  @param CompressionLevel   Niveau de compression
+*}
 procedure CompressStream(Stream : TStream; Dest : TStream = nil;
-                         CompressionLevel : TCompressionLevel = clDefaultComp);
+  CompressionLevel : TCompressionLevel = clDefaultComp);
 var Compress : TCompressionStream;
     Destination : TStream;
 begin
@@ -680,6 +830,11 @@ begin
   end;
 end;
 
+{*
+  Décompresse un flux avec la bibliothèque ZLib
+  @param Stream   Flux à décompresser
+  @param Dest     Flux de destination (ou nil pour Stream, plus lent)
+*}
 procedure DecompressStream(Stream : TStream; Dest : TStream = nil);
 var Decompress : TDecompressionStream;
     Destination : TStream;
