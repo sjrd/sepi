@@ -187,9 +187,9 @@ uses
 
 {$REGION 'Classe EAPIError'}
 
-////////////////////////
-/// Classe EAPIError ///
-////////////////////////
+{------------------}
+{ Classe EAPIError }
+{------------------}
 
 {*
   Crée une nouvelle instance de EAPIError
@@ -213,9 +213,9 @@ end;
 
 {$ENDREGION}
 
-////////////////////////////////////////
-/// Procédures et fonctions globales ///
-////////////////////////////////////////
+{----------------------------------}
+{ Procédures et fonctions globales }
+{----------------------------------}
 
 {*
   Renvoie le chemin du dossier dans lequel se trouve l'application qui s'exécute

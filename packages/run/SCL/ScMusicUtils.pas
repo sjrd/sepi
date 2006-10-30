@@ -432,9 +432,9 @@ begin
   Result := (Result*HighPos) div LowPos;
 end;
 
-/////////////////////////
-/// Classe TMusicNote ///
-/////////////////////////
+{-------------------}
+{ Classe TMusicNote }
+{-------------------}
 
 {*
   Crée une nouvelle instance de TMusicNote
@@ -497,9 +497,9 @@ begin
   Result := CalcVibrations(FNote);
 end;
 
-/////////////////////////////
-/// Classe TMusicInterval ///
-/////////////////////////////
+{-----------------------}
+{ Classe TMusicInterval }
+{-----------------------}
 
 {*
   Crée une nouvelle instance de TMusicInterval

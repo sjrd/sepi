@@ -268,9 +268,9 @@ implementation
 uses
   ScUtils, ScStrUtils, ScConsts;
 
-//////////////////////////////
-/// Classe TCompareStrings ///
-//////////////////////////////
+{------------------------}
+{ Classe TCompareStrings }
+{------------------------}
 
 {*
   Compare deux chaînes de caractères
@@ -286,9 +286,9 @@ end;
 
 {$REGION 'Classe StringsOps'}
 
-/////////////////////////
-/// Classe StringsOps ///
-/////////////////////////
+{-------------------}
+{ Classe StringsOps }
+{-------------------}
 
 {*
   Recherche une chaîne dans une liste de chaînes
@@ -546,9 +546,9 @@ end;
 
 {$REGION 'Classe TScStrings'}
 
-/////////////////////////
-/// Classe TScStrings ///
-/////////////////////////
+{-------------------}
+{ Classe TScStrings }
+{-------------------}
 
 {*
   Crée une nouvelle instance de TScStrings
@@ -757,9 +757,9 @@ end;
 
 {$REGION 'Classe TScList'}
 
-//////////////////////
-/// Classe TScList ///
-//////////////////////
+{----------------}
+{ Classe TScList }
+{----------------}
 
 {*
   Crée une nouvelle instance de TScList
@@ -1112,9 +1112,9 @@ end;
 
 {$REGION 'Classe TIntegerList'}
 
-///////////////////////////
-/// Classe TIntegerList ///
-///////////////////////////
+{---------------------}
+{ Classe TIntegerList }
+{---------------------}
 
 {*
   Crée une nouvelle instance de TIntegerList
@@ -1311,9 +1311,9 @@ end;
 
 {$REGION 'Classe TUnsignedIntList'}
 
-///////////////////////////////
-/// Classe TUnsignedIntList ///
-///////////////////////////////
+{-------------------------}
+{ Classe TUnsignedIntList }
+{-------------------------}
 
 {*
   Crée une nouvelle instance de TUnsignedIntList
@@ -1511,9 +1511,9 @@ end;
 
 {$REGION 'Classe TExtendedList'}
 
-////////////////////////////
-/// Classe TExtendedList ///
-////////////////////////////
+{----------------------}
+{ Classe TExtendedList }
+{----------------------}
 
 {*
   Crée une nouvelle instance de TExtendedList
@@ -1661,9 +1661,9 @@ end;
 
 {$ENDREGION}
 
-//////////////////////////////////////
-/// Initialization et Finalization ///
-//////////////////////////////////////
+{--------------------------------}
+{ Initialization et Finalization }
+{--------------------------------}
 
 var I : integer;
 

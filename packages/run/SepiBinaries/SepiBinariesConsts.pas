@@ -1,3 +1,8 @@
+{*
+  Définit les constantes du package SepiBinaries
+  @author Sébastien Jean Robert Doeraene
+  @version 1.0
+*}
 unit SepiBinariesConsts;
 
 interface

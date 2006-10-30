@@ -1,3 +1,8 @@
+{*
+  Définit les classes de gestion des types
+  @author Sébastien Jean Robert Doeraene
+  @version 1.0
+*}
 unit SepiTypes;
 
 interface
@@ -6,13 +11,21 @@ uses
   Classes, SysUtils, ScUtils, SepiMetaUnits, SysConst, ScLists;
 
 type
+  {*
+    Type de stockage d'une chaîne de caractères
+  *}
   TSepiStringStorage = (ssString, ssShortString, ssPChar);
 
+  {*
+    Type entier
+    @author Sébastien Jean Robert Doeraene
+    @version 1.0
+  *}
   TSepiIntegerType = class(TSepiType)
   private
-    FMinValue : integer;
-    FMaxValue : integer;
-    FNeedRangeCheck : boolean;
+    FMinValue : integer;       /// Valeur minimale
+    FMaxValue : integer;       /// Valeur maximale
+    FNeedRangeCheck : boolean; /// Indique s'il faut vérifier les étendues
   public
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
     constructor Create(AOwner : TSepiMeta; AName : string;
@@ -26,36 +39,61 @@ type
     property NeedRangeCheck : boolean read FNeedRangeCheck;
   end;
 
+  {*
+    Type entier long (64 bits)
+    @author Sébastien Jean Robert Doeraene
+    @version 1.0
+  *}
   TSepiInt64Type = class(TSepiType)
   public
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
     constructor Create(AOwner : TSepiMeta; AName : string);
   end;
 
+  {*
+    Type nombre à virgule flottante
+    @author Sébastien Jean Robert Doeraene
+    @version 1.0
+  *}
   TSepiDoubleType = class(TSepiType)
   public
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
     constructor Create(AOwner : TSepiMeta; AName : string);
   end;
 
+  {*
+    Type chaîne de caractères
+    @author Sébastien Jean Robert Doeraene
+    @version 1.0
+  *}
   TSepiStringType = class(TSepiType)
   private
-    FStorage : TSepiStringStorage;
+    FStorage : TSepiStringStorage; /// Type de stockage
   public
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
     constructor Create(AOwner : TSepiMeta; AName : string;
       AStorage : TSepiStringStorage = ssString);
   end;
 
+  {*
+    Type booléen
+    @author Sébastien Jean Robert Doeraene
+    @version 1.0
+  *}
   TSepiBooleanType = class(TSepiType)
   public
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
     constructor Create(AOwner : TSepiMeta; AName : string);
   end;
 
+  {*
+    Type énumération
+    @author Sébastien Jean Robert Doeraene
+    @version 1.0
+  *}
   TSepiEnumType = class(TSepiType)
   private
-    FValues : array of string;
+    FValues : array of string; /// Noms des valeurs
 
     function GetValueCount : integer;
     function GetValues(Index : integer) : string;
@@ -70,9 +108,14 @@ type
     property Values[index : integer] : string read GetValues;
   end;
 
+  {*
+    Type ensemble
+    @author Sébastien Jean Robert Doeraene
+    @version 1.0
+  *}
   TSepiSetType = class(TSepiType)
   private
-    FItemType : TSepiType;
+    FItemType : TSepiType; /// Type des éléments
   protected
     procedure Loaded; override;
   public
@@ -83,6 +126,11 @@ type
     function CompatibleWith(AType : TSepiType) : boolean; override;
   end;
 
+  {*
+    Type enregistrement
+    @author Sébastien Jean Robert Doeraene
+    @version 1.0
+  *}
   TSepiRecordType = class(TSepiMetaVariableContainer)
   public
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
@@ -93,11 +141,16 @@ type
 
   TSepiObjectType = class;
 
+  {*
+    Type classe
+    @author Sébastien Jean Robert Doeraene
+    @version 1.0
+  *}
   TSepiClassType = class(TSepiMetaOmniContainer)
   private
-    FAncestor : TSepiClassType;
-    FDelphiClass : TClass;
-    FObjectType : TSepiObjectType;
+    FAncestor : TSepiClassType;    /// Ancêtre
+    FDelphiClass : TClass;         /// Classe Delphi d'importation
+    FObjectType : TSepiObjectType; /// Type objet correspondant
   protected
     procedure ChildAdded(Child : TSepiMeta); override;
 
@@ -116,12 +169,17 @@ type
     property ObjectType : TSepiObjectType read FObjectType;
   end;
 
+  {*
+    Type objet
+    @author Sébastien Jean Robert Doeraene
+    @version 1.0
+  *}
   TSepiObjectType = class(TSepiMetaMemberContainer)
   private
-    FAncestor : TSepiObjectType;
-    FDelphiClass : TClass;
-    FClassType : TSepiClassType;
-    FCurrentVisibility : TSepiMemberVisibility;
+    FAncestor : TSepiObjectType;                /// Ancêtre
+    FDelphiClass : TClass;                      /// Classe Delphi d'importation
+    FClassType : TSepiClassType;                /// Type classe correspondant
+    FCurrentVisibility : TSepiMemberVisibility; /// Visibilité courante
   protected
     procedure ChildAdded(Child : TSepiMeta); override;
 
@@ -140,10 +198,15 @@ type
       read FCurrentVisibility write FCurrentVisibility;
   end;
 
+  {*
+    Type tableau statique (à N dimensions)
+    @author Sébastien Jean Robert Doeraene
+    @version 1.0
+  *}
   TSepiArrayType = class(TSepiType)
   private
-    FDimensions : array of integer;
-    FItemType : TSepiType;
+    FDimensions : array of integer; /// Taille dans chaque dimension
+    FItemType : TSepiType;          /// Type des éléments
 
     function GetDimCount : integer;
     function GetDimensions(Index : integer) : integer;
@@ -162,9 +225,14 @@ type
     property ItemType : TSepiType read FItemType;
   end;
 
+  {*
+    Type tableau dynamique (à une dimension)
+    @author Sébastien Jean Robert Doeraene
+    @version 1.0
+  *}
   TSepiDynArrayType = class(TSepiType)
   private
-    FItemType : TSepiType;
+    FItemType : TSepiType; /// Type des éléments
   protected
     procedure Loaded; override;
   public
@@ -177,9 +245,14 @@ type
     property ItemType : TSepiType read FItemType;
   end;
 
+  {*
+    Type référence de méthode
+    @author Sébastien Jean Robert Doeraene
+    @version 1.0
+  *}
   TSepiMethodRefType = class(TSepiType)
   private
-    FSignature : TSepiMethodSignature;
+    FSignature : TSepiMethodSignature; /// Signature
   public
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
     constructor Create(AOwner : TSepiMeta; AName : string);
@@ -190,9 +263,14 @@ type
     property Signature : TSepiMethodSignature read FSignature;
   end;
 
+  {*
+    Type délégation
+    @author Sébastien Jean Robert Doeraene
+    @version 1.0
+  *}
   TSepiDelegateType = class(TSepiType)
   private
-    FSignature : TSepiMethodSignature;
+    FSignature : TSepiMethodSignature; /// Signature
   public
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
     constructor Create(AOwner : TSepiMeta; AName : string);
@@ -205,9 +283,9 @@ type
 
 implementation
 
-///////////////////////////////
-/// Classe TSepiIntegerType ///
-///////////////////////////////
+{-------------------------}
+{ Classe TSepiIntegerType }
+{-------------------------}
 
 constructor TSepiIntegerType.Load(AOwner : TSepiMeta; Stream : TStream);
 begin
@@ -239,9 +317,9 @@ begin
     raise ERangeError.CreateRes(@SRangeError);
 end;
 
-/////////////////////////////
-/// Classe TSepiInt64Type ///
-/////////////////////////////
+{-----------------------}
+{ Classe TSepiInt64Type }
+{-----------------------}
 
 constructor TSepiInt64Type.Load(AOwner : TSepiMeta; Stream : TStream);
 begin
@@ -255,9 +333,9 @@ begin
   FKind := tkInt64;
 end;
 
-/////////////////////////////
-/// Classe TSepiFloatType ///
-/////////////////////////////
+{-----------------------}
+{ Classe TSepiFloatType }
+{-----------------------}
 
 constructor TSepiDoubleType.Load(AOwner : TSepiMeta; Stream : TStream);
 begin
@@ -271,9 +349,9 @@ begin
   FKind := tkDouble;
 end;
 
-//////////////////////////////
-/// Classe TSepiStringType ///
-//////////////////////////////
+{------------------------}
+{ Classe TSepiStringType }
+{------------------------}
 
 constructor TSepiStringType.Load(AOwner : TSepiMeta; Stream : TStream);
 begin
@@ -290,9 +368,9 @@ begin
   FStorage := AStorage;
 end;
 
-///////////////////////////////
-/// Classe TSepiBooleanType ///
-///////////////////////////////
+{-------------------------}
+{ Classe TSepiBooleanType }
+{-------------------------}
 
 constructor TSepiBooleanType.Load(AOwner : TSepiMeta; Stream : TStream);
 begin
@@ -306,9 +384,9 @@ begin
   FKind := tkBoolean;
 end;
 
-////////////////////////////
-/// Classe TSepiEnumType ///
-////////////////////////////
+{----------------------}
+{ Classe TSepiEnumType }
+{----------------------}
 
 constructor TSepiEnumType.Load(AOwner : TSepiMeta; Stream : TStream);
 var Count, I : integer;
@@ -356,9 +434,9 @@ begin
   Result := Self = AType;
 end;
 
-///////////////////////////
-/// Classe TSepiSetType ///
-///////////////////////////
+{---------------------}
+{ Classe TSepiSetType }
+{---------------------}
 
 constructor TSepiSetType.Load(AOwner : TSepiMeta; Stream : TStream);
 begin
@@ -387,9 +465,9 @@ begin
     FItemType.CompatibleWith(TSepiSetType(AType).FItemType);
 end;
 
-//////////////////////////////
-/// Classe TSepiRecordType ///
-//////////////////////////////
+{------------------------}
+{ Classe TSepiRecordType }
+{------------------------}
 
 constructor TSepiRecordType.Load(AOwner : TSepiMeta; Stream : TStream);
 begin
@@ -408,9 +486,9 @@ begin
   Result := Self = AType;
 end;
 
-/////////////////////////////
-/// Classe TSepiClassType ///
-/////////////////////////////
+{-----------------------}
+{ Classe TSepiClassType }
+{-----------------------}
 
 constructor TSepiClassType.Load(AOwner : TSepiMeta; Stream : TStream);
 begin
@@ -458,9 +536,9 @@ begin
     (Assigned(FAncestor) and FAncestor.InheritsFrom(AParent));
 end;
 
-//////////////////////////////
-/// Classe TSepiObjectType ///
-//////////////////////////////
+{------------------------}
+{ Classe TSepiObjectType }
+{------------------------}
 
 constructor TSepiObjectType.Load(AOwner : TSepiMeta; Stream : TStream);
 begin
@@ -509,9 +587,9 @@ begin
     (Assigned(FAncestor) and FAncestor.InheritsFrom(AParent));
 end;
 
-/////////////////////////////
-/// Classe TSepiArrayType ///
-/////////////////////////////
+{-----------------------}
+{ Classe TSepiArrayType }
+{-----------------------}
 
 constructor TSepiArrayType.Load(AOwner : TSepiMeta; Stream : TStream);
 var DimCount : integer;
@@ -581,9 +659,9 @@ begin
   Result := True;
 end;
 
-////////////////////////////////
-/// Classe TSepiDynArrayType ///
-////////////////////////////////
+{--------------------------}
+{ Classe TSepiDynArrayType }
+{--------------------------}
 
 constructor TSepiDynArrayType.Load(AOwner : TSepiMeta; Stream : TStream);
 begin
@@ -628,9 +706,9 @@ begin
   end;
 end;
 
-/////////////////////////////////
-/// Classe TSepiMethodRefType ///
-/////////////////////////////////
+{---------------------------}
+{ Classe TSepiMethodRefType }
+{---------------------------}
 
 constructor TSepiMethodRefType.Load(AOwner : TSepiMeta; Stream : TStream);
 begin
@@ -659,9 +737,9 @@ begin
     FSignature.CompatibleWith(TSepiMethodRefType(AType).FSignature);
 end;
 
-////////////////////////////////
-/// Classe TSepiDelegateType ///
-////////////////////////////////
+{--------------------------}
+{ Classe TSepiDelegateType }
+{--------------------------}
 
 constructor TSepiDelegateType.Load(AOwner : TSepiMeta; Stream : TStream);
 begin

@@ -1,3 +1,8 @@
+{*
+  Boîte de dialogue À propos
+  @author Sébastien Jean Robert Doeraene
+  @version 1.0
+*}
 unit SdAbout platform;
 
 interface
@@ -12,6 +17,11 @@ uses
   ScStrUtils, SvLabels, Classes;
 
 type
+  {*
+    Boîte de dialogue À propos
+    @author Sébastien Jean Robert Doeraene
+    @version 1.0
+  *}
   TSdAboutForm = class(TForm)
     ImageProgramIcon: TImage;
     LabelProgramName: TLabel;
@@ -33,10 +43,20 @@ implementation
 
 {$R *.dfm}
 
-///////////////////////////
-/// Classe TSdAboutForm ///
-///////////////////////////
+{---------------------}
+{ Classe TSdAboutForm }
+{---------------------}
 
+{*
+  Affiche une boîte de dialogue À propos
+  @param Title            Titre de la boîte de dialogue
+  @param ProgramIcon      Icône du programme
+  @param ProgramName      Nom du programme
+  @param ProgramVersion   Version du programme
+  @param Author           Auteur du programme
+  @param AuthorEMail      Adresse e-mail de l'auteur (optionnel)
+  @param WebSite          Site Web du programme (optionnel)
+*}
 class procedure TSdAboutForm.ShowAbout(Title : string; ProgramIcon : TGraphic;
   ProgramName : string; ProgramVersion : string; Author : string;
   AuthorEMail : string; WebSite : string);
@@ -62,3 +82,4 @@ begin
 end;
 
 end.
+

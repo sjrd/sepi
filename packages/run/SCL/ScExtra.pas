@@ -680,9 +680,9 @@ end;
 
 {$REGION 'Modification des ressources'}
 
-///////////////////////////////////////
-/// Ajout-suppression de ressources ///
-///////////////////////////////////////
+{---------------------------------}
+{ Ajout-suppression de ressources }
+{---------------------------------}
 {$IFDEF MSWINDOWS}
 
 {*

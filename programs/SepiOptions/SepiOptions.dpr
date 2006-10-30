@@ -1,3 +1,10 @@
+{*
+  Programme SepiOptions
+  SepiOptions permet de consulter et de modifier les options d'installation des
+  run-time de Sepi.
+  @author Sébastien Jean Robert Doeraene
+  @version 1.0
+*}
 program SepiOptions;
 
 uses

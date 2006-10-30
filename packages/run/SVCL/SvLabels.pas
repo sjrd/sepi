@@ -1,3 +1,8 @@
+{*
+  Composants de type Label
+  @author Sébastien Jean Robert Doeraene
+  @version 1.0
+*}
 unit SvLabels;
 
 interface
@@ -11,17 +16,28 @@ uses
 {$ENDIF}
   Classes, ScUtils;
 
-type
-  TRunURLEvent = procedure(Sender : TObject; const URL : string) of object;
+resourcestring
+  sCopyCaption = 'Copier';
+  sCopyHint = 'Copier l''URL dans le presse-papier';
+  sRunCaption = 'Lancer';
+  sRunHint = 'Lancer l''URL';
 
+type
+  {*
+    Classe de base pour les label renvoyant à une URL
+    @author Sébastien Jean Robert Doeraene
+    @version 1.0
+  *}
   TSvCustomURLLabel = class(TCustomLabel)
   private
-    FURL : string;
-    Menu : TPopupMenu;
-    FOnRunURL : TRunURLEvent;
+    FURL : string;     /// URL vers laquelle renvoyer (vide utilise Caption)
+    Menu : TPopupMenu; /// Menu contextuel par défaut
+
     function RealURL : string;
+
     procedure MenuCopyClick(Sender : TObject);
     procedure MenuRunClick(Sender : TObject);
+
     function IsFontStored : boolean;
     function IsPopupMenuStored : boolean;
   protected
@@ -29,15 +45,18 @@ type
     property Font stored IsFontStored;
     property PopupMenu stored IsPopupMenuStored;
     property URL : string read FURL write FURL;
-
-    property OnRunURL : TRunURLEvent read FOnRunURL write FOnRunURL;
-      // CLX uniquement : doit lancer l'URL passée en paramètre
   public
     constructor Create(AOwner : TComponent); override;
     destructor Destroy; override;
+
     procedure Click; override;
   end platform;
 
+  {*
+    Label renvoyant à une URL
+    @author Sébastien Jean Robert Doeraene
+    @version 1.0
+  *}
   TSvURLLabel = class(TSvCustomURLLabel)
   published
     property Align;
@@ -84,79 +103,113 @@ type
     property OnStartDrag;
 
     property URL;
-    property OnRunURL;
-  end;
+  end platform;
 
 implementation
 
-////////////////////////////////
-/// Classe TScCustomURLLabel ///
-////////////////////////////////
+{--------------------------}
+{ Classe TScCustomURLLabel }
+{--------------------------}
 
+{*
+  Crée une instance de TSvCustomURLLabel
+  @param AOwner   Propriétaire
+*}
 constructor TSvCustomURLLabel.Create(AOwner : TComponent);
 var TempMenu : TMenuItem;
 begin
    inherited Create(AOwner);
+
    Cursor := crHandPoint;
    with Font do
    begin
      Color := clBlue;
      Style := [fsUnderline];
    end;
+
    Menu := TPopupMenu.Create(Self);
-   Menu.Name := 'PopupMenu';
+   Menu.Name := 'PopupMenu'; {don't localize}
+
    TempMenu := TMenuItem.Create(Menu);
    with TempMenu do
    begin
-     Name := 'MenuCopy';
-     Caption := 'Copier l''URL';
-     Hint := 'Copier l''URL dans le presse-papier';
+     Name := 'MenuCopy'; {don't localize}
+     Caption := sCopyCaption;
+     Hint := sCopyHint;
      OnClick := MenuCopyClick;
    end;
    Menu.Items.Add(TempMenu);
+
    TempMenu := TMenuItem.Create(Menu);
    with TempMenu do
    begin
-     Name := 'MenuRun';
-     Caption := 'Lancer';
-     Hint := 'Lancer l''URL';
+     Name := 'MenuRun'; {don't localize}
+     Caption := sRunCaption;
+     Hint := sRunHint;
      OnClick := MenuRunClick;
    end;
    Menu.Items.Add(TempMenu);
+
    PopupMenu := Menu;
 end;
 
-function TSvCustomURLLabel.RealURL : string;
-begin
-  if URL = '' then Result := Caption else Result := URL;
-end;
-
+{*
+  Détruit l'instance
+*}
 destructor TSvCustomURLLabel.Destroy;
 begin
    Menu.Free;
    inherited;
 end;
 
-procedure TSvCustomURLLabel.MenuCopyClick;
+{*
+  Détermine l'URL exacte vers laquelle renvoyer
+  @return URL exacte vers laquelle renvoyer
+*}
+function TSvCustomURLLabel.RealURL : string;
+begin
+  if URL = '' then Result := Caption else Result := URL;
+end;
+
+{*
+  Exécuté lorsque le menu Copier a été sélectionné
+  @param Sender   Objet qui a déclenché l'événement
+*}
+procedure TSvCustomURLLabel.MenuCopyClick(Sender : TObject);
 begin
   Clipboard.AsText := RealURL;
 end;
 
+{*
+  Exécuté lorsque le menu Lancher a été sélectionné
+  @param Sender   Objet qui a déclenché l'événement
+*}
 procedure TSvCustomURLLabel.MenuRunClick(Sender : TObject);
 begin
   Click;
 end;
 
+{*
+  Indique si la fonte doit être stockée dans un flux dfm
+  @return True : il faut toujours sauvegarder la fonte
+*}
 function TSvCustomURLLabel.IsFontStored : boolean;
 begin
   Result := True;
 end;
 
+{*
+  Indique si le menu popup doit être stocké dans un flux dfm
+  @return True si le menu popup est différent de celui par défaut, False sinon
+*}
 function TSvCustomURLLabel.IsPopupMenuStored : boolean;
 begin
   Result := PopupMenu <> Menu;
 end;
 
+{*
+  Exécuté lorsque l'utilisateur clique sur le lien
+*}
 procedure TSvCustomURLLabel.Click;
 begin
   inherited Click;
@@ -164,7 +217,7 @@ begin
     RunURL(RealURL);
   {$ENDIF}
   {$IFDEF LINUX}
-    if Assigned(FOnRunURL) then FOnRunURL(Self, RealURL);
+    assert(False); {to-do}
   {$ENDIF}
 end;
 

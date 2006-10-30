@@ -1,10 +1,17 @@
+{*
+  Définit les constantes générales de Sepi
+  @author Sébastien Jean Robert Doeraene
+  @version 1.0
+*}
 unit SepiConsts;
 
 interface
 
 const
-  SepiMajVersion = 0;
-  SepiMinVersion = 1;
+  SepiMajVersion = 1; /// Version majeure de Sepi
+  SepiMinVersion = 0; /// Version mineure de Sepi
+
+  /// Dossier racine de Sepi dans la base de registre
   regSepiBase = '\Software\SJRDoeraene\Sepi\'; {don't localize}
 
 resourcestring
@@ -15,7 +22,9 @@ resourcestring
   sSepiCopyright = 'Sepi v%d.%d - Copyright © 2005-2006 SJRDoeraene';
   sSepiAbout = 'À propos de Sepi';
 
-  sSepiDifferentVersion = 'Versions majeurs différentes : incompatibilité de format';
+  sSepiInstanceAlreadyExists = 'Seule une instance de TSepi peut être créée';
+  sSepiDifferentVersion =
+    'Versions majeures différentes : incompatibilité de format';
   sSepiUnexistingFile = 'Le fichier spécifié n''existe pas';
 
 implementation

@@ -373,9 +373,9 @@ implementation
 
 {$REGION 'EMathsError et descendants'}
 
-////////////////////////////////////////////////////
-/// Constructeurs et destructeurs des exceptions ///
-////////////////////////////////////////////////////
+{----------------------------------------------}
+{ Constructeurs et destructeurs des exceptions }
+{----------------------------------------------}
 
 constructor EMathsError.CreateMaths;
 begin
@@ -587,9 +587,9 @@ end;
 
 {$REGION 'Procédures et fonctions globales'}
 
-////////////////////////////////////////
-/// Procédures et fonctions globales ///
-////////////////////////////////////////
+{----------------------------------}
+{ Procédures et fonctions globales }
+{----------------------------------}
 
 function IsInteger(X : Extended) : boolean;
 begin
@@ -645,9 +645,9 @@ end;
 
 {$REGION 'Classe TComplexList'}
 
-///////////////////////////
-/// Classe TComplexList ///
-///////////////////////////
+{---------------------}
+{ Classe TComplexList }
+{---------------------}
 
 type
   TComplexRec = record
@@ -750,9 +750,9 @@ end;
 
 {$REGION 'Classe TPolynom'}
 
-///////////////////////
-/// Classe TPolynom ///
-///////////////////////
+{-----------------}
+{ Classe TPolynom }
+{-----------------}
 
 {$REGION 'Constructeurs et destructeur'}
 
@@ -1279,9 +1279,9 @@ end;
 
 {$REGION 'Classe TPolynomList'}
 
-///////////////////////////
-/// Classe TPolynomList ///
-///////////////////////////
+{---------------------}
+{ Classe TPolynomList }
+{---------------------}
 
 constructor TPolynomList.Create(AOwnsObjects : boolean = False);
 begin
@@ -1398,9 +1398,9 @@ end;
 
 {$REGION 'Fonction Eval et sous-fonctions'}
 
-////////////////////////////////////////////
-/// Fonctions pour Eval et fonction Eval ///
-////////////////////////////////////////////
+{--------------------------------------}
+{ Fonctions pour Eval et fonction Eval }
+{--------------------------------------}
 
 const
   EvalChars = MonomsChars+BinaryOperators+UnaryOperators+[' ', '(', ')'];

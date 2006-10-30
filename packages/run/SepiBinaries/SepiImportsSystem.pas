@@ -1,3 +1,8 @@
+{*
+  Importe l'unité System dans un environnement Sepi
+  @author Sébastien Jean Robert Doeraene
+  @version 1.0
+*}
 unit SepiImportsSystem;
 
 interface
@@ -19,9 +24,9 @@ implementation
 
 { You must not localize any of the strings this unit contains! }
 
-//////////////////////
-/// TObject import ///
-//////////////////////
+{----------------}
+{ TObject import }
+{----------------}
 
 class function TSepiTObject.ImportTObject(AOwner : TSepiMeta) : TSepiObjectType;
 var TObjectClass : TSepiClassType;
@@ -65,9 +70,9 @@ begin
   inherited;
 end;
 
-///////////////////
-/// Unit import ///
-///////////////////
+{-------------}
+{ Unit import }
+{-------------}
 
 function ImportUnit(Root : TSepiMetaRoot) : TSepiMetaUnit;
 var I : integer;
@@ -96,7 +101,8 @@ begin
   PointerType     := TSepiIntegerType.Create(Result, 'Pointer');
   DoubleType      := TSepiDoubleType .Create(Result, 'double');
   StringType      := TSepiStringType .Create(Result, 'string');
-  ShortStringType := TSepiStringType .Create(Result, 'ShortString', ssShortString);
+  ShortStringType := TSepiStringType .Create(Result, 'ShortString',
+    ssShortString);
   PCharType       := TSepiStringType .Create(Result, 'PChar', ssPChar);
   BooleanType     := TSepiBooleanType.Create(Result, 'boolean');
 
@@ -124,11 +130,14 @@ begin
   I := S_FALSE;
   TSepiConstant.Create(Result, 'S_FALSE', IntegerType).Value.WriteBuffer(I, 4);
   I := E_NOINTERFACE;
-  TSepiConstant.Create(Result, 'E_NOINTERFACE', HRESULTType).Value.WriteBuffer(I, 4);
+  TSepiConstant.Create(Result, 'E_NOINTERFACE',
+    HRESULTType).Value.WriteBuffer(I, 4);
   I := E_UNEXPECTED;
-  TSepiConstant.Create(Result, 'E_UNEXPECTED', HRESULTType).Value.WriteBuffer(I, 4);
+  TSepiConstant.Create(Result, 'E_UNEXPECTED',
+    HRESULTType).Value.WriteBuffer(I, 4);
   I := E_NOTIMPL;
-  TSepiConstant.Create(Result, 'E_NOTIMPL', HRESULTType).Value.WriteBuffer(I, 4);
+  TSepiConstant.Create(Result, 'E_NOTIMPL',
+    HRESULTType).Value.WriteBuffer(I, 4);
 
   { ... }
 end;

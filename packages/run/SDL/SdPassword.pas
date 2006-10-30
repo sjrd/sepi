@@ -1,3 +1,8 @@
+{*
+  Boîte de dialogue de saisie de mot de passe
+  @author Sébastien Jean Robert Doeraene
+  @version 1.0
+*}
 unit SdPassword;
 
 interface
@@ -12,6 +17,11 @@ uses
   ScUtils, ScConsts, Classes;
 
 type
+  {*
+    Boîte de dialogue de saisie de mot de passe
+    @author Sébastien Jean Robert Doeraene
+    @version 1.0
+  *}
   TSdPasswordForm = class(TForm)
     LabelPrompt: TLabel;
     EditPassword: TEdit;
@@ -22,13 +32,18 @@ type
   public
     { Déclarations publiques }
     class function QueryPassword : string; overload;
-    class function QueryPassword(Password : string; ShowErrorMes : boolean = True) : boolean; overload;
+    class function QueryPassword(Password : string;
+      ShowErrorMes : boolean = True) : boolean; overload;
   end;
 
 implementation
 
 {$R *.dfm}
 
+{*
+  Demande un mot de passe à l'utilisateur
+  @return Le mot de passe qu'a saisi l'utilisateur
+*}
 class function TSdPasswordForm.QueryPassword : string;
 begin
   with Create(Application) do
@@ -41,7 +56,14 @@ begin
   end;
 end;
 
-class function TSdPasswordForm.QueryPassword(Password : string; ShowErrorMes : boolean = True) : boolean;
+{*
+  Demande un mot de passe à l'utilisateur
+  @param Password       Mot de passe correct
+  @param ShowErrorMes   Indique s'il faut notifier sur erreur
+  @return True si l'utilisateur a saisi le bon mot de passe, False sinon
+*}
+class function TSdPasswordForm.QueryPassword(Password : string;
+  ShowErrorMes : boolean = True) : boolean;
 var Passwd : string;
 begin
   if Password = '' then Passwd := '' else
@@ -52,3 +74,4 @@ begin
 end;
 
 end.
+

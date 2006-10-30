@@ -1,3 +1,8 @@
+{*
+  Définit les classes coeur de Sepi
+  @author Sébastien Jean Robert Doeraene
+  @version 1.0
+*}
 unit SepiCore;
 
 interface
@@ -6,24 +11,37 @@ uses
   Windows, SysUtils, Classes, Registry, SepiConsts, Dialogs;
 
 type
+  {*
+    Exception relative à la technologie Sepi
+  *}
   ESepiError = class(Exception);
 
+  {*
+    Version Sepi
+    @author Sébastien Jean Robert Doeraene
+    @version 1.0
+  *}
   TSepiVersion = record
-    MajVersion : integer;
-    MinVersion : integer;
+    MajVersion : integer; /// Version majeure
+    MinVersion : integer; /// Version mineure
   end;
 
+  {*
+    Classe maître universelle de Sepi
+    @author Sébastien Jean Robert Doeraene
+    @version 1.0
+  *}
   TSepi = class
   private
-    FName : string;
-    FVersion : TSepiVersion;
-    FAuthor : string;
-    FAuthorEMail : string;
-    FWebSite : string;
-    FPath : string;
+    FName : string;          /// Nom du projet Sepi
+    FVersion : TSepiVersion; /// Version courante de Sepi
+    FAuthor : string;        /// Auteur de Sepi
+    FAuthorEMail : string;   /// Adresse e-mail de l'auteur
+    FWebSite : string;       /// Site Web de Sepi
+    FPath : string;          /// Dossier d'installation des run-time Sepi
 
-    FormatPackageFileName : string;
-    FPackages : TList;
+    FormatPackageFileName : string; /// Format des noms de fichiers package
+    FPackages : TList;              /// Liste des packages chargés
 
     function FindPackage(FileName : TFileName) : Pointer;
     function GetPackHandle(FileName : TFileName) : HMODULE;
@@ -44,8 +62,11 @@ type
     property PackageHandle[FileName : TFileName] : HMODULE read GetPackHandle;
   end;
 
+const {don't localize}
+  SepiEnvVarName = 'SEPI'; /// Nom de la variable d'environnement de Sepi
+
 var
-  Sepi : TSepi;
+  Sepi : TSepi; /// Objet maître universel de Sepi - instance unique de TSepi
 
 implementation
 
@@ -53,20 +74,36 @@ const
   SepiFormatPackageFileName = 'Packages'+PathDelim+'%s.bpl'; {don't localize}
 
 type
+  {*
+    Pointeur vers TSepiPackage
+  *}
   PSepiPackage = ^TSepiPackage;
+
+  {*
+    Informations sur un package chargé par Sepi
+    @author Sébastien Jean Robert Doeraene
+    @version 1.0
+  *}
   TSepiPackage = record
     FileName : string[20];
     Handle : HMODULE;
     Counter : integer;
   end;
 
-////////////////////
-/// Classe TSepi ///
-////////////////////
+{--------------}
+{ Classe TSepi }
+{--------------}
 
+{*
+  Crée l'unique instance de TSepi
+*}
 constructor TSepi.Create;
 begin
+  if Assigned(Sepi) then
+    raise ESepiError.Create(sSepiInstanceAlreadyExists);
+
   inherited;
+
   FName := sSepiName;
   FVersion.MajVersion := SepiMajVersion;
   FVersion.MinVersion := SepiMinVersion;
@@ -74,12 +111,16 @@ begin
   FAuthorEMail := sSepiAuthorEMail;
   FWebSite := sSepiWebSite;
 
-  FPath := IncludeTrailingPathDelimiter(GetEnvironmentVariable('SEPI')); {don't localize}
+  FPath := IncludeTrailingPathDelimiter(
+    GetEnvironmentVariable(SepiEnvVarName));
 
   FormatPackageFileName := Path+SepiFormatPackageFileName;
   FPackages := TList.Create;
 end;
 
+{*
+  Détruit l'instance
+*}
 destructor TSepi.Destroy;
 var I : integer;
 begin
@@ -89,6 +130,11 @@ begin
   inherited;
 end;
 
+{*
+  Trouve un package par son nom
+  @param FileName   Nom du package à trouver
+  @return Un pointeur sur les informations sur ce package
+*}
 function TSepi.FindPackage(FileName : TFileName) : Pointer;
 var I : integer;
 begin
@@ -104,6 +150,11 @@ begin
   Result := nil;
 end;
 
+{*
+  Handles des packages chargés indexés par leurs noms respectifs
+  @param FileName   Nom d'un package
+  @return Handle du package, ou 0 si celui-ci n'a jamais été chargé
+*}
 function TSepi.GetPackHandle(FileName : TFileName) : HMODULE;
 var Package : PSepiPackage;
 begin
@@ -111,6 +162,12 @@ begin
   if Assigned(Package) then Result := Package.Handle else Result := 0;
 end;
 
+{*
+  Charge un package
+  Tout appel à LoadPackage doit être compensé par un appel à UnloadPackage.
+  @param FileName   Nom du package à charger
+  @return Handle du package nouvellement chargé
+*}
 function TSepi.LoadPackage(FileName : TFileName) : HMODULE;
 var Package : PSepiPackage;
 begin
@@ -133,6 +190,11 @@ begin
   end;
 end;
 
+{*
+  Décharge un package
+  Tout appel à UnloadPackage doit être compensé par un appel à LoadPackage.
+  @param FileName   Nom du package à décharger
+*}
 procedure TSepi.UnloadPackage(FileName : TFileName);
 var Package : PSepiPackage;
 begin

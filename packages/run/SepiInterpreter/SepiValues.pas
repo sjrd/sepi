@@ -1,10 +1,15 @@
+{*
+  Définit les classes de gestion des valeurs à l'exécution
+  @author Sébastien Jean Robert Doeraene
+  @version 1.0
+*}
 unit SepiValues;
 
 interface
 
 uses
   Classes, SysUtils, Contnrs, SepiMetaUnits, SepiTypes, ScUtils;
-{
+(*
 type
   TSepiValue = class(TPersistent)
   private
@@ -223,12 +228,12 @@ type
     procedure CallProc(Params : TObjectList);
     function CallFunc(Params : TObjectList) : TSepiValue;
   end;
-}
+*)
 implementation
-{
-/////////////////////////
-/// Classe TSepiValue ///
-/////////////////////////
+(*
+{-------------------}
+{ Classe TSepiValue }
+{-------------------}
 
 constructor TSepiValue.Create(AType : TSepiType);
 begin
@@ -241,9 +246,9 @@ begin
   Result := nil;
 end;
 
-////////////////////////////////
-/// Classe TSepiIntegerValue ///
-////////////////////////////////
+{--------------------------}
+{ Classe TSepiIntegerValue }
+{--------------------------}
 
 constructor TSepiIntegerValue.Create(AType : TSepiType);
 begin
@@ -255,9 +260,9 @@ procedure TSepiIntegerValue.Load(Stream : TStream);
 begin
 end;
 
-//////////////////////////////
-/// Classe TSepiFloatValue ///
-//////////////////////////////
+{------------------------}
+{ Classe TSepiFloatValue }
+{------------------------}
 
 constructor TSepiFloatValue.Create(AType : TSepiType);
 begin
@@ -269,9 +274,9 @@ procedure TSepiFloatValue.Load(Stream : TStream);
 begin
 end;
 
-///////////////////////////////
-/// Classe TSepiStringValue ///
-///////////////////////////////
+{-------------------------}
+{ Classe TSepiStringValue }
+{-------------------------}
 
 constructor TSepiStringValue.Create(AType : TSepiType);
 begin
@@ -283,9 +288,9 @@ procedure TSepiStringValue.Load(Stream : TStream);
 begin
 end;
 
-////////////////////////////////
-/// Classe TSepiBooleanValue ///
-////////////////////////////////
+{--------------------------}
+{ Classe TSepiBooleanValue }
+{--------------------------}
 
 constructor TSepiBooleanValue.Create(AType : TSepiType);
 begin
@@ -297,9 +302,9 @@ procedure TSepiBooleanValue.Load(Stream : TStream);
 begin
 end;
 
-/////////////////////////////
-/// Classe TSepiEnumValue ///
-/////////////////////////////
+{-----------------------}
+{ Classe TSepiEnumValue }
+{-----------------------}
 
 constructor TSepiEnumValue.Create(AType : TSepiType);
 begin
@@ -311,9 +316,9 @@ procedure TSepiEnumValue.Load(Stream : TStream);
 begin
 end;
 
-////////////////////////////
-/// Classe TSepiSetValue ///
-////////////////////////////
+{----------------------}
+{ Classe TSepiSetValue }
+{----------------------}
 
 constructor TSepiSetValue.Create(AType : TSepiType);
 begin
@@ -325,9 +330,9 @@ procedure TSepiSetValue.Load(Stream : TStream);
 begin
 end;
 
-///////////////////////////////
-/// Classe TSepiRecordValue ///
-///////////////////////////////
+{-------------------------}
+{ Classe TSepiRecordValue }
+{-------------------------}
 
 constructor TSepiRecordValue.Create(AType : TSepiType);
 var I : integer;
@@ -361,9 +366,9 @@ begin
     FValues[I].Load(Stream);
 end;
 
-//////////////////////////////
-/// Classe TSepiClassValue ///
-//////////////////////////////
+{------------------------}
+{ Classe TSepiClassValue }
+{------------------------}
 
 constructor TSepiClassValue.Create(AType : TSepiType);
 begin
@@ -375,9 +380,9 @@ procedure TSepiClassValue.Load(Stream : TStream);
 begin
 end;
 
-//////////////////////////////////
-/// Classe TSepiMetaClassValue ///
-//////////////////////////////////
+{----------------------------}
+{ Classe TSepiMetaClassValue }
+{----------------------------}
 
 constructor TSepiMetaClassValue.Create(AType : TSepiType);
 begin
@@ -389,9 +394,9 @@ procedure TSepiMetaClassValue.Load(Stream : TStream);
 begin
 end;
 
-//////////////////////////////
-/// Classe TSepiArrayValue ///
-//////////////////////////////
+{------------------------}
+{ Classe TSepiArrayValue }
+{------------------------}
 
 constructor TSepiArrayValue.Create(AType : TSepiType);
 var Size, I : integer;
@@ -443,9 +448,9 @@ begin
     FValues[I].Load(Stream);
 end;
 
-/////////////////////////////////
-/// Classe TSepiDynArrayValue ///
-/////////////////////////////////
+{---------------------------}
+{ Classe TSepiDynArrayValue }
+{---------------------------}
 
 constructor TSepiDynArrayValue.Create(AType : TSepiType);
 begin
@@ -509,9 +514,9 @@ begin
   FValues.Delete(Index);
 end;
 
-////////////////////////////////////////
-/// Classe TSepiDelegateToSepiMethod ///
-////////////////////////////////////////
+{----------------------------------}
+{ Classe TSepiDelegateToSepiMethod }
+{----------------------------------}
 
 function TSepiDelegateToSepiMethod.Equals(DelegateItem : TSepiDelegateItem) : boolean;
 begin
@@ -527,9 +532,9 @@ begin
   Result := nil;
 end;
 
-///////////////////////////////////////////
-/// Classe TSepiDelegateToDelphiRoutine ///
-///////////////////////////////////////////
+{-------------------------------------}
+{ Classe TSepiDelegateToDelphiRoutine }
+{-------------------------------------}
 
 constructor TSepiDelegateToDelphiRoutine.Create(ARoutine : Pointer);
 begin
@@ -552,9 +557,9 @@ begin
   Result := nil;
 end;
 
-//////////////////////////////////////////
-/// Classe TSepiDelegateToDelphiMethod ///
-//////////////////////////////////////////
+{------------------------------------}
+{ Classe TSepiDelegateToDelphiMethod }
+{------------------------------------}
 
 constructor TSepiDelegateToDelphiMethod.Create(AMethod : TMethod);
 type
@@ -601,9 +606,9 @@ begin
   Params.Extract(FInstance);
 end;
 
-/////////////////////////////////
-/// Classe TSepiDelegateValue ///
-/////////////////////////////////
+{---------------------------}
+{ Classe TSepiDelegateValue }
+{---------------------------}
 
 constructor TSepiDelegateValue.Create(AType : TSepiType);
 begin
@@ -653,6 +658,6 @@ begin
   else
     raise Exception.Create('');
 end;
-}
+*)
 end.
 

@@ -1,3 +1,8 @@
+{*
+  Définit le composant « À propos » de Sepi
+  @author Sébastien Jean Robert Doeraene
+  @version 1.0
+*}
 unit SepiAbout;
 
 interface
@@ -6,16 +11,26 @@ uses
   Classes, SysUtils, SepiCore, SepiConsts, SdDialogs;
 
 type
+  {*
+    Boîte de dialogue « À propos » de Sepi
+    @author Sébastien Jean Robert Doeraene
+    @version 1.0
+  *}
   TSepiAboutDialog = class(TComponent)
   private
-    FDialog : TSdAboutDialog;
+    FDialog : TSdAboutDialog; /// Boîte de dialogue générique
   public
     constructor Create(AOwner : TComponent); override;
+
     procedure Execute;
   end;
 
 implementation
 
+{*
+  Crée une instance de TSepiAboutDialog
+  @param AOwner   Propriétaire
+*}
 constructor TSepiAboutDialog.Create(AOwner : TComponent);
 begin
   inherited;
@@ -26,15 +41,20 @@ begin
   except
   end;
   FDialog.ProgramName := Sepi.Name;
-  FDialog.ProgramVersion := Format('%d.%d', [Sepi.Version.MajVersion, Sepi.Version.MinVersion]);
+  FDialog.ProgramVersion := Format('%d.%d', {don't localize}
+    [Sepi.Version.MajVersion, Sepi.Version.MinVersion]);
   FDialog.AuthorName := Sepi.Author;
   FDialog.AuthorEMail := Sepi.AuthorEMail;
   FDialog.WebSite := Sepi.WebSite;
 end;
 
+{*
+  Affiche la boîte de dialogue
+*}
 procedure TSepiAboutDialog.Execute;
 begin
   FDialog.Execute;
 end;
 
 end.
+
