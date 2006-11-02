@@ -8,7 +8,9 @@ unit ScUtils;
 interface
 
 uses
-{$IFDEF LINUX}
+{$IFDEF MSWINDOWS}
+  Windows,
+{$ELSE}
   QDialogs, QGraphics,
 {$ENDIF}
   SysUtils, Classes, Math;
@@ -130,6 +132,12 @@ type
   *}
   TSetOfBytes = TSysByteSet {$IFNDEF DCTD} deprecated {$ENDIF};
 
+const
+  /// Point nul
+  NoPoint : TPoint = (X : MaxInt; Y : MaxInt);
+  /// Point 3D nul
+  No3DPoint : T3DPoint = (X : MaxInt; Y : MaxInt; Z : MaxInt);
+
 function Dir : string;
 
 // Fonctions de If Immédiat
@@ -140,9 +148,6 @@ function IIF(Cond : boolean; const Str1, Str2 : string) : string; overload;
 function IIF(Cond : boolean; Obj1, Obj2 : TObject) : TObject; overload;
 function IIF(Cond : boolean; Ptr1, Ptr2 : Pointer) : Pointer; overload;
 function IIF(Cond : boolean; Var1, Var2 : Variant) : Variant; overload;
-
-function Point3DToString(Point3D : T3DPoint;
-  const Delim : string = ' ') : string;
 
 function MinMax(Value, Min, Max : integer) : integer;
 
@@ -167,11 +172,18 @@ function ReadStrFromStream(Stream : TStream) : string;
 procedure WriteStrToStream(Stream : TStream; const Str : string);
 
 function CorrectFileName(const FileName : string;
-  AcceptPathDelim : boolean = False; AcceptDriveDelim : boolean = False) : boolean;
+  AcceptPathDelim : boolean = False;
+  AcceptDriveDelim : boolean = False) : boolean;
+
+function IsNoPoint(const Point : TPoint) : boolean;
+function IsNo3DPoint(const Point3D : T3DPoint) : boolean;
 
 function Point3D(X, Y, Z : integer) : T3DPoint;
 
-function Same3DPoint(Point1, Point2 : T3DPoint) : boolean;
+function Same3DPoint(const Point1, Point2 : T3DPoint) : boolean;
+
+function Point3DToString(const Point3D : T3DPoint;
+  const Delim : string = ' ') : string;
 
 {$IFDEF MSWINDOWS}
 procedure RunURL(const URL : string; const Verb : string = 'open');
@@ -181,7 +193,7 @@ implementation
 
 uses
 {$IFDEF MSWINDOWS}
-  Windows, ShellAPI,
+  ShellAPI,
 {$ENDIF}
   DateUtils, Forms;
 
@@ -313,20 +325,6 @@ begin
 end;
 
 {$ENDREGION}
-
-{*
-  Convertit un point 3D en chaîne de caractères
-  @param Point3D   Point 3D à convertir
-  @param Delim     Délimiteur à placer entre les coordonnées
-  @return Point3D convertit en chaîne de caractères
-*}
-function Point3DToString(Point3D : T3DPoint;
-  const Delim : string = ' ') : string;
-begin
-  Result := IntToStr(Point3D.X) + Delim +
-            IntToStr(Point3D.Y) + Delim +
-            IntToStr(Point3D.Z);
-end;
 
 {*
   S'assure qu'une valeur est bien dans un intervalle spécifié
@@ -604,6 +602,27 @@ begin
 end;
 
 {*
+  Détermine si un point est nul
+  @param Point   Point à tester
+  @return True si le point Point est nul, False sinon
+*}
+function IsNoPoint(const Point : TPoint) : boolean;
+begin
+  Result := (Point.X = NoPoint.X) and (Point.Y = NoPoint.Y);
+end;
+
+{*
+  Détermine si un point 3D est nul
+  @param Point3D   Point à tester
+  @return True si le point Point3D est nul, False sinon
+*}
+function IsNo3DPoint(const Point3D : T3DPoint) : boolean;
+begin
+  Result := (Point3D.X = No3DPoint.X) and (Point3D.Y = No3DPoint.Y) and
+    (Point3D.Z = No3DPoint.Z);
+end;
+
+{*
   Crée un point 3D
   @param X   Coordonnée X du point
   @param Y   Coordonnée Y du point
@@ -623,10 +642,23 @@ end;
   @param Point2   Second point
   @return True si Point1 et Point2 sont identiques, False sinon
 *}
-function Same3DPoint(Point1, Point2 : T3DPoint) : boolean;
+function Same3DPoint(const Point1, Point2 : T3DPoint) : boolean;
 begin
-  Result := (Point1.X = Point2.X) and
-    (Point1.Y = Point2.Y) and (Point1.Z = Point2.Z);
+  Result := (Point1.X = Point2.X) and (Point1.Y = Point2.Y) and
+    (Point1.Z = Point2.Z);
+end;
+
+{*
+  Convertit un point 3D en chaîne de caractères
+  @param Point3D   Point 3D à convertir
+  @param Delim     Délimiteur à placer entre les coordonnées
+  @return Point3D convertit en chaîne de caractères
+*}
+function Point3DToString(const Point3D : T3DPoint;
+  const Delim : string = ' ') : string;
+begin
+  Result := IntToStr(Point3D.X) + Delim + IntToStr(Point3D.Y) + Delim +
+    IntToStr(Point3D.Z);
 end;
 
 {$IFDEF MSWINDOWS}
