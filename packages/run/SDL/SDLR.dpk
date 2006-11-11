@@ -38,7 +38,8 @@ requires
 contains
   SdAbout in 'SdAbout.pas' {SdAboutForm},
   SdDialogs in 'SdDialogs.pas',
-  SdPassword in 'SdPassword.pas' {SdPasswordForm};
+  SdPassword in 'SdPassword.pas' {SdPasswordForm},
+  SdNumber in 'SdNumber.pas' {SdNumberForm};
 
 end.
 

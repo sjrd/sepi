@@ -8,7 +8,7 @@ unit SdDialogs;
 interface
 
 uses
-  Classes, Graphics, SdPassword, SdAbout, ScConsts;
+  Classes, Graphics, SdPassword, SdAbout, SdNumber, ScConsts;
 
 type
   {*
@@ -75,6 +75,36 @@ type
     property WebSite : string read FWebSite write FWebSite;
   end platform;
 
+  {*
+    Gère une boîte de dialogue demandant un nombre à l'utilisateur
+    @author Sébastien Jean Robert Doeraene
+    @version 1.0
+  *}
+  TSdNumberDialog = class(TComponent)
+  private
+    FTitle : string;  /// Titre de la boîte de dialogue
+    FPrompt : string; /// Invite de la boîte de dialogue
+    FValue : integer; /// Valeur par défaut, puis celle saisie par l'utilisateur
+    FMin : integer;   /// Valeur minimale que peut choisir l'utilisateur
+    FMax : integer;   /// Valeur maximale que peut choisir l'utilisateur
+  public
+    constructor Create(AOwner : TComponent); override;
+
+    function Execute(const ATitle, APrompt : string;
+      ADefault, AMin, AMax : integer) : integer; overload;
+    function Execute(ADefault, AMin, AMax : integer) : integer; overload;
+    function Execute(const ATitle, APrompt : string;
+      AMin, AMax : integer) : integer; overload;
+    function Execute(AMin, AMax : integer) : integer; overload;
+    function Execute : integer; overload;
+  published
+    property Title : string read FTitle write FTitle;
+    property Prompt : string read FPrompt write FPrompt;
+    property Value : integer read FValue write FValue;
+    property Min : integer read FMin write FMin;
+    property Max : integer read FMax write FMax;
+  end;
+
 function QueryPassword : string; overload;
 
 function QueryPassWord(Password : string;
@@ -83,6 +113,9 @@ function QueryPassWord(Password : string;
 procedure ShowAbout(Title : string; ProgramIcon : TIcon; ProgramName : string;
   ProgramVersion : string; Author : string; AuthorEMail : string = '';
   WebSite : string = ''); platform;
+
+function QueryNumber(const Title, Prompt : string;
+  Default, Min, Max : integer) : integer;
 
 implementation
 
@@ -127,6 +160,21 @@ procedure ShowAbout(Title : string; ProgramIcon : TIcon; ProgramName : string;
 begin
   TSdAboutForm.ShowAbout(Title, ProgramIcon, ProgramName, ProgramVersion,
     Author, AuthorEMail, WebSite);
+end;
+
+{*
+  Demande un nombre à l'utilisateur
+  @param Title     Titre de la boîte de dialogue
+  @param Prompt    Invite de la boîte de dialogue
+  @param Default   Valeur par défaut
+  @param Min       Valeur minimum que peut choisir l'utilisateur
+  @param Max       Valeur maximum que peut choisir l'utilisateur
+  @return Nombre qu'a choisi l'utilisateur
+*}
+function QueryNumber(const Title, Prompt : string;
+  Default, Min, Max : integer) : integer;
+begin
+  Result := TSdNumberForm.QueryNumber(Title, Prompt, Default, Min, Max);
 end;
 
 {--------------------------}
@@ -258,6 +306,54 @@ procedure TSdAboutDialog.Execute;
 begin
   TSdAboutForm.ShowAbout(Title, ProgramIcon, ProgramName,
     Version+' '+ProgramVersion, Author+' '+AuthorName, AuthorEMail, WebSite);
+end;
+
+{------------------------}
+{ Classe TSdNumberDialog }
+{------------------------}
+
+{*
+  Crée une instance de TSdNumberDialog
+  @param AOwner   Propriétaire
+*}
+constructor TSdNumberDialog.Create(AOwner : TComponent);
+begin
+  inherited;
+
+  FTitle := '';
+  FPrompt := '';
+  FValue := 0;
+  FMin := 0;
+  FMax := 0;
+end;
+
+function TSdNumberDialog.Execute(const ATitle, APrompt : string;
+  ADefault, AMin, AMax : integer) : integer;
+begin
+  FValue := QueryNumber(ATitle, APrompt, ADefault, AMin, AMax);
+  Result := FValue;
+end;
+
+function TSdNumberDialog.Execute(
+  ADefault, AMin, AMax : integer) : integer;
+begin
+  Result := Execute(Title, Prompt, ADefault, AMin, AMax);
+end;
+
+function TSdNumberDialog.Execute(const ATitle, APrompt : string;
+  AMin, AMax : integer) : integer;
+begin
+  Result := Execute(Title, Prompt, Value, AMin, AMax);
+end;
+
+function TSdNumberDialog.Execute(AMin, AMax : integer) : integer;
+begin
+  Result := Execute(Title, Prompt, Value, AMin, AMax);
+end;
+
+function TSdNumberDialog.Execute : integer;
+begin
+  Result := Execute(Title, Prompt, Value, Min, Max);
 end;
 
 end.

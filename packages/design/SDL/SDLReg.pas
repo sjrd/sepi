@@ -22,7 +22,7 @@ begin
   RegisterComponents('SDL',
   [
   // SdDialogs
-    TSdPasswordDialog, TSdAboutDialog
+    TSdPasswordDialog, TSdAboutDialog, TSdNumberDialog
   ]);
 end;
 

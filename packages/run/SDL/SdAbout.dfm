@@ -14,6 +14,7 @@ object SdAboutForm: TSdAboutForm
   Font.Style = []
   OldCreateOrder = False
   Position = poScreenCenter
+  OnCreate = FormCreate
   PixelsPerInch = 96
   TextHeight = 13
   object ImageProgramIcon: TImage
@@ -43,34 +44,6 @@ object SdAboutForm: TSdAboutForm
     Width = 101
     Height = 13
     Caption = 'Auteur du programme'
-  end
-  object URLLabelEMail: TSvURLLabel
-    Left = 16
-    Top = 112
-    Width = 143
-    Height = 13
-    Cursor = crHandPoint
-    Caption = 'quelqu-un@quelque-part.com'
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clBlue
-    Font.Height = -11
-    Font.Name = 'Tahoma'
-    Font.Style = [fsUnderline]
-    ParentFont = False
-  end
-  object URLLabelWebSite: TSvURLLabel
-    Left = 16
-    Top = 136
-    Width = 141
-    Height = 13
-    Cursor = crHandPoint
-    Caption = 'http://www.programme.com/'
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clBlue
-    Font.Height = -11
-    Font.Name = 'Tahoma'
-    Font.Style = [fsUnderline]
-    ParentFont = False
   end
   object ButtonOK: TButton
     Left = 104

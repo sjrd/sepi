@@ -28,11 +28,14 @@ type
     LabelProgramVersion: TLabel;
     LabelAuthor: TLabel;
     ButtonOK: TButton;
-    URLLabelEMail: TSvURLLabel;
-    URLLabelWebSite: TSvURLLabel;
+    procedure FormCreate(Sender: TObject);
   private
     { Déclarations privées }
   public
+    { Composants non disponibles dans Turbo Explorer }
+    URLLabelEMail : TSvURLLabel;
+    URLLabelWebSite : TSvURLLabel;
+
     { Déclarations publiques }
     class procedure ShowAbout(Title : string; ProgramIcon : TGraphic;
       ProgramName : string; ProgramVersion : string; Author : string;
@@ -46,6 +49,33 @@ implementation
 {---------------------}
 { Classe TSdAboutForm }
 {---------------------}
+
+{*
+  Gestionnaire d'événement OnCreate
+  @param Sender   Objet qui a déclenché l'événement
+*}
+procedure TSdAboutForm.FormCreate(Sender: TObject);
+begin
+  // Création des composants non disponibles dans Turbo Explorer
+
+  URLLabelEMail := TSvURLLabel.Create(Self);
+  with URLLabelEMail do
+  begin
+    Name := 'URLLabelEMail'; {don't localize}
+    Parent := Self;
+    Left := 16;
+    Top := 112;
+  end;
+
+  URLLabelWebSite := TSvURLLabel.Create(Self);
+  with URLLabelWebSite do
+  begin
+    Name := 'URLLabelWebSite'; {don't localize}
+    Parent := Self;
+    Left := 16;
+    Top := 136;
+  end;
+end;
 
 {*
   Affiche une boîte de dialogue À propos
