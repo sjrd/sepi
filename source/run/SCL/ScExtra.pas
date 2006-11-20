@@ -148,6 +148,52 @@ begin
 end;
 
 {*
+  Positionne un bit à 1
+  @param Value   Valeur à modifier
+  @param Bit     Index du bit à modifier
+  @author waskol
+*}
+procedure SetBit(var Value : integer; const Bit : Byte); register;
+asm
+  BTS [eax], edx
+end;
+
+{*
+  Positionne un bit à 0
+  @param Value   Valeur à modifier
+  @param Bit     Index du bit à modifier
+  @author waskol
+*}
+procedure ClearBit(var Value : integer; const Bit : Byte); register;
+asm
+  BTR [eax], edx
+end;
+
+{*
+  Inverse un bit
+  @param Value   Valeur à modifier
+  @param Bit     Index du bit à modifier
+  @author waskol
+*}
+procedure ToggleBit(var Value : integer; const Bit : Byte); register;
+asm
+  BTC [eax], edx
+end;
+
+{*
+  Teste la valeur d'un bit
+  @param Value   Valeur à tester
+  @param Bit     Index du bit à tester
+  @return True si le bit est à 1, False sinon
+  @author waskol
+*}
+function TestBit(const Value : integer; const Bit : Byte) : boolean; register;
+asm
+  BT   eax, edx
+  setb al
+end;
+
+{*
   Convertit un entier dans une base donnée
   @param Value   Entier à convertir
   @param Base    Base de destination
