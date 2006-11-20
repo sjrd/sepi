@@ -30,7 +30,6 @@ requires
   rtl,
   vcl,
   VclSmp,
-  vclx,
   SCL90,
   SVCL90;
 

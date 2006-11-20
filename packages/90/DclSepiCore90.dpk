@@ -28,9 +28,6 @@ package DclSepiCore90;
 {$IMPLICITBUILD OFF}
 
 requires
-  rtl,
-  vcl,
-  VclSmp,
   SepiCore90;
 
 contains

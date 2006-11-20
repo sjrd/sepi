@@ -28,8 +28,6 @@ package DclSVCL90;
 {$IMPLICITBUILD OFF}
 
 requires
-  rtl,
-  vcl,
   SVCL90;
 
 contains

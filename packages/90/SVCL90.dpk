@@ -28,7 +28,6 @@ package SVCL90;
 
 requires
   rtl,
-  vclx,
   vcl,
   SCL90;
 

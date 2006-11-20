@@ -28,8 +28,6 @@ package SepiCore90;
 
 requires
   rtl,
-  vcl,
-  VclSmp,
   SDL90,
   SCL90;
 

@@ -27,7 +27,6 @@ package SepiBinaries90;
 
 requires
   rtl,
-  vcl,
   SCL90,
   SepiCore90;
 

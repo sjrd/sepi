@@ -28,7 +28,6 @@ package SepiInterpreter90;
 
 requires
   rtl,
-  vcl,
   SepiBinaries90;
 
 contains

@@ -28,10 +28,7 @@ package SCL90;
 
 requires
   rtl,
-  vcl,
-  vclshlctrls,
-  vclx,
-  VclSmp;
+  vcl;
 
 contains
   ScConsts in '..\..\source\run\SCL\ScConsts.pas',
