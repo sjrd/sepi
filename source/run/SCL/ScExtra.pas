@@ -854,9 +854,10 @@ end;
 *}
 procedure CompressStream(Stream : TStream; Dest : TStream = nil;
   CompressionLevel : TCompressionLevel = clDefaultComp);
-var Compress : TCompressionStream;
-    Destination : TStream;
+var Destination : TStream;
 begin
+  if Dest = Stream then Dest := nil;
+
   // Si Dest vaut nil, on crée un flux temporaire de destination
   if Dest = nil then Destination := TMemoryStream.Create else
   begin
@@ -864,10 +865,15 @@ begin
     Destination.Position := 0;
     Destination.Size := 0;
   end;
+
   // Création, utilisation et libération du flux de compression
-  Compress := TCompressionStream.Create(CompressionLevel, Destination);
-  Compress.CopyFrom(Stream, 0);
-  Compress.Free;
+  with TCompressionStream.Create(CompressionLevel, Destination) do
+  try
+    CopyFrom(Stream, 0);
+  finally
+    Free;
+  end;
+
   // Si Dest vaut nil, on recopie Destination dans Stream
   if Dest = nil then
   begin
@@ -884,11 +890,12 @@ end;
   @param Dest     Flux de destination (ou nil pour Stream, plus lent)
 *}
 procedure DecompressStream(Stream : TStream; Dest : TStream = nil);
-var Decompress : TDecompressionStream;
-    Destination : TStream;
+var Destination : TStream;
     Buffer : array [0..1023] of Byte;
-    Copies : integer;
+    Copied : integer;
 begin
+  if Dest = Stream then Dest := nil;
+
   // Si Dest vaut nil, on crée un flux temporaire de destination
   if Dest = nil then Destination := TMemoryStream.Create else
   begin
@@ -896,15 +903,20 @@ begin
     Destination.Position := 0;
     Destination.Size := 0;
   end;
+
   // Création, utilisation et libération du flux de décompression
-  Decompress := TDecompressionStream.Create(Stream);
-  Decompress.Position := 0;
-  repeat
-    Copies := Decompress.Read(Buffer, 1024);
-    Destination.Write(Buffer, Copies);
-  until Copies < 1024;
-  Decompress.Free;
-  // Si Dest vaut nil, on recopieDestination dans Stream
+  with TDecompressionStream.Create(Stream) do
+  try
+    Position := 0;
+    repeat
+      Copied := Read(Buffer, 1024);
+      Destination.Write(Buffer, Copied);
+    until Copied < 1024;
+  finally
+    Free;
+  end;
+
+  // Si Dest vaut nil, on recopie Destination dans Stream
   if Dest = nil then
   begin
     Stream.Position := 0;
