@@ -9,9 +9,9 @@ interface
 
 uses
 {$IFDEF MSWINDOWS}
-  Windows,
+  Windows, Dialogs, Controls, StdCtrls,
 {$ELSE}
-  QDialogs, QGraphics,
+  QDialogs, QControls, QStdCtrls, QGraphics,
 {$ENDIF}
   SysUtils, Classes, Math;
 
@@ -162,6 +162,11 @@ function ShowMes(const Title, Text : string;
 function ShowDialog(const Title, Text : string;
   DlgType : TDialogType = dtInformation; DlgButtons : TDialogButtons = dbOK;
   DefButton : Byte = 1; AddFlags : LongWord = 0) : TDialogResult;
+
+function ShowDialogRadio(const Title, Text : string; DlgType : TMsgDlgType;
+  DlgButtons : TMsgDlgButtons; DefButton : TModalResult;
+  const RadioTitles : array of string; var Selected : integer;
+  OverButtons : boolean = False) : Word;
 
 procedure Wait(Milliseconds : integer); deprecated;
 procedure WaitProcessMessages(Milliseconds : integer);
@@ -502,6 +507,108 @@ begin
   Result := MessageDlg(Title, Text, DlgType, DlgButtons, 0, MsgDefBtn);
 end;
 {$ENDIF}
+
+{*
+  Affiche une boîte de dialogue avec des boutons radio
+  ShowDialogRadio est une variante de ShowDialog qui affiche des boutons radio
+  pour chaque choix possible.
+  @param Title         Titre de la boîte de dialogue
+  @param Text          Texte de la boîte de dialogue
+  @param DlgType       Type de boîte de dialogue
+  @param DlgButtons    Boutons présents dans la boîte de dialogue
+  @param DefButton     Bouton sélectionné par défaut
+  @param RadioTitles   Libellés des différents boutons radio
+  @param Selected      Bouton radio sélectionné
+  @param OverButtons   Boutons radio placés au-dessus des boutons si True
+  @return Bouton sur lequel a cliqué l'utilisateur
+*}
+function ShowDialogRadio(const Title, Text : string; DlgType : TMsgDlgType;
+  DlgButtons : TMsgDlgButtons; DefButton : TModalResult;
+  const RadioTitles : array of string; var Selected : integer;
+  OverButtons : boolean = False) : Word;
+var Form : TForm;
+    I, MaxWidth, OldWidth : integer;
+    Button : TButton;
+begin
+  // Création de la boîte de dialogue
+  Form := CreateMessageDialog(Text, DlgType, DlgButtons);
+
+  with Form do
+  try
+    Caption := Title;
+    // On augmente la taille de la boîte de dialogue
+    Height := Height + Length(RadioTitles) * 25;
+
+    // Création des boutons radio et détermination de la largeur minimale
+    MaxWidth := 0;
+    for I := High(RadioTitles) downto Low(RadioTitles) do
+    with TRadioButton.Create(Form) do
+    begin
+      FreeNotification(Form);
+      Parent := Form;
+      Width := Canvas.TextWidth(RadioTitles[I]) + 20;
+      MaxWidth := Max(MaxWidth, Width-20);
+      Caption := RadioTitles[I];
+      Checked := I = Selected;
+      Tag := I;
+      Left := 8;
+
+      // OverButtons indique si les RadioBox sont au-dessus ou en-dessous des
+      // boutons
+      if OverButtons then
+        Top := Form.Height - 90 - (High(RadioTitles) - I) * 25
+      else
+        Top := Form.Height - 50 - (High(RadioTitles) - I) * 25;
+    end;
+
+    // Il faut aussi vérifier que la fiche peut afficher les textes des RadioBox
+    // en entier
+    OldWidth := 0;
+    if (MaxWidth + 40) > Width then
+    begin
+      OldWidth := Width;
+      Width := MaxWidth +40;
+    end;
+
+    for I := 0 to ComponentCount-1 do
+    begin
+      // On récupère chaque bouton
+      if Components[I] is TButton then
+      begin
+        Button := TButton(Components[I]);
+
+        // On met le bon bouton par défaut et on le sélectionne
+        Button.Default := Button.ModalResult = DefButton;
+        if Button.Default then ActiveControl := Button;
+
+        // S'il le faut, décaler tous les boutons vers le bas
+        if OverButtons then
+          Button.Top := Button.Top + Length(RadioTitles) * 25;
+
+        // S'il le faut, décaler tous les boutons vers la droite
+        if OldWidth > 0 then
+          Button.Left := Button.Left + (Width - OldWidth) div 2;
+      end;
+    end;
+
+    // On centre la boîte de dialogue
+    Position := poScreenCenter;
+
+    // Affichage de la boîte de dialogue
+    Result := ShowModal;
+
+    // Récupération du choix de l'utilisateur
+    Selected := -1;
+    for I := 0 to ControlCount-1 do
+    begin
+      if (Controls[I] is TRadioButton) and
+         TRadioButton(Controls[I]).Checked then
+        Selected := Controls[I].Tag;
+    end;
+  finally
+    Free;
+  end;
+end;
 
 {$ENDREGION}
 
