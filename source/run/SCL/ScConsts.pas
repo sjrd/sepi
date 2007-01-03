@@ -48,6 +48,8 @@ resourcestring
   sScWrongString = 'Impossible de convertir "%s" en chaîne de caractères';
   sSjrdWrongChar = 'Impossible de convertir "%s" en caractère';
   sScWrongCharSet = 'Impossible de convertir "%s" en ensemble de caractères';
+  sScSetOf = 'ensemble de %s';
+  sScWrongEnumSet = 'Impossible de convertir "%s" en %s';
 
 // Maths errors
   sScErrorMaths = 'Erreur de mathématiques :'+#10;

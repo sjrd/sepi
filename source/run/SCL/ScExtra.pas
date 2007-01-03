@@ -11,7 +11,7 @@ uses
 {$IFDEF MSWINDOWS}
   Windows, ComObj, ShlObj, ActiveX,
 {$ENDIF}
-  SysUtils, Classes, ZLib, ScUtils, ScConsts;
+  SysUtils, Classes, TypInfo, ZLib, ScUtils, ScConsts;
 
 type
   {*
@@ -53,6 +53,9 @@ function CharRepresToChar(Str : string) : Char;
 
 function CharSetToStr(CharSet : TSysCharSet) : string;
 function StrToCharSet(Str : string) : TSysCharSet;
+
+function EnumSetToStr(const EnumSet; TypeInfo : PTypeInfo) : string;
+procedure StrToEnumSet(const Str : string; TypeInfo : PTypeInfo; out EnumSet);
 
 {$IFDEF MSWINDOWS}
 procedure CreateShellLink(const Source, Dest : string;
@@ -650,6 +653,99 @@ begin
   except
     on Error : EConvertError do
       raise EConvertError.CreateFmt(sScWrongCharSet, [Str]);
+  end;
+end;
+
+{*
+  Convertit un type ensemble d'éléments d'énumération en chaîne
+  La représentation est celle du langage Pascal, sans les [].
+  Cette routine fonctionne également pour les ensembles d'entiers.
+  @param EnumSet    Ensemble à convertir
+  @param TypeInfo   RTTI du type ensemble ou du type énumération
+  @return Chaîne représentant l'ensemble EnumSet
+*}
+function EnumSetToStr(const EnumSet; TypeInfo : PTypeInfo) : string;
+var TypeData : PTypeData;
+    ByteValue : Byte;
+begin
+  if TypeInfo.Kind = tkSet then
+    TypeInfo := GetTypeData(TypeInfo).CompType^;
+  TypeData := GetTypeData(TypeInfo);
+
+  Result := '';
+
+  for ByteValue := TypeData.MinValue to TypeData.MaxValue do
+  begin
+    if ByteValue in TSysByteSet(EnumSet) then
+      Result := Result + GetEnumName(TypeInfo, ByteValue) + ', ';
+  end;
+
+  if Result <> '' then
+    SetLength(Result, Length(Result)-2);
+end;
+
+{*
+  Convertit une chaîne en type ensemble d'éléments d'énumération
+  La représentation est celle du langage Pascal, avec ou sans les [].
+  Cette routine fonctionne également pour les ensembles d'entiers.
+  @param Str        Chaîne à convertir
+  @param TypeInfo   RTTI du type ensemble ou du type énumération
+  @param EnumSet    Ensemble converti en sortie
+  @return Chaîne représentant l'ensemble EnumSet
+*}
+procedure StrToEnumSet(const Str : string; TypeInfo : PTypeInfo; out EnumSet);
+type
+  TSetAsBytes = array[0..31] of Byte;
+var SetName : string;
+    TypeData : PTypeData;
+    SetStr : string;
+    Index, Len, BeginIndex, Value : integer;
+begin
+  if TypeInfo.Kind = tkSet then
+  begin
+    SetName := TypeInfo.Name;
+    TypeInfo := GetTypeData(TypeInfo).CompType^;
+  end else SetName := Format(sScSetOf, [TypeInfo.Name]);
+  TypeData := GetTypeData(TypeInfo);
+
+  Len := TypeData.MaxValue div 8 + 1;
+  FillChar(EnumSet, Len, 0);
+
+  try
+    Index := 1;
+    Len := Length(Str);
+    if (Str <> '') and (Str[1] = '[') and (Str[Len] = ']') then
+    begin
+      SetStr := ',' + Copy(Str, 2, Len-2);
+      dec(Len, 1);
+    end else
+    begin
+      SetStr := ',' + Str;
+      inc(Len, 1);
+    end;
+
+    while Index <= Len do
+    begin
+      if SetStr[Index] <> ',' then
+        raise Exception.Create('');
+      inc(Index);
+
+      while (Index <= Len) and (SetStr[Index] in [' ', #13, #10]) do
+        inc(Index);
+      BeginIndex := Index;
+      while (Index <= Len) and (not (SetStr[Index] in [',', ' ', #13, #10])) do
+        inc(Index);
+
+      Value := GetEnumValue(TypeInfo,
+        Copy(SetStr, BeginIndex, Index-BeginIndex));
+      if Value < 0 then
+        raise Exception.Create('');
+      Include(TSysByteSet(EnumSet), Value);
+
+      while (Index <= Len) and (SetStr[Index] in [' ', #13, #10]) do inc(Index);
+    end;
+  except
+    raise EConvertError.CreateFmt(sScWrongEnumSet, [Str, SetName]);
   end;
 end;
 
