@@ -78,11 +78,11 @@ function ExecuteSound(const Sound : string; SoundType : TSoundType = stFileName;
 {$IFDEF MSWINDOWS}
 function BeginUpdateRes(const FileName : string) : integer; platform;
 procedure AddResource(ResHandle : integer; const ResName : string;
-  Resource : TStream; const ResType : string = 'RT_RCDATA'); platform;
+  Resource : TStream; const ResType : string = 'RCDATA'); platform;
 procedure DelResource(ResHandle : integer; const ResName : string); platform;
 procedure EndUpdateRes(ResHandle : integer; Cancel : boolean = False); platform;
 procedure AddResToFile(const FileName, ResName : string; Resource : TStream;
-  const ResType : string = 'RT_RCDATA'); platform;
+  const ResType : string = 'RCDATA'); platform;
 procedure DelResInFile(const FileName, ResName : string); platform;
 {$ENDIF}
 
@@ -850,7 +850,7 @@ end;
   @param ResType     Type de ressource
 *}
 procedure AddResource(ResHandle : integer; const ResName : string;
-  Resource : TStream; const ResType : string = 'RT_RCDATA');
+  Resource : TStream; const ResType : string = 'RCDATA');
 var MemRes : TMemoryStream;
     MustFreeRes, OK : boolean;
 begin
@@ -905,7 +905,7 @@ end;
   @param ResType    Type de ressource
 *}
 procedure AddResToFile(const FileName, ResName : string; Resource : TStream;
-  const ResType : string = 'RT_RCDATA');
+  const ResType : string = 'RCDATA');
 var ResHandle : integer;
 begin
   ResHandle := BeginUpdateRes(FileName);
