@@ -14,13 +14,6 @@ uses
   SysUtils, Classes, TypInfo, ZLib, ScUtils, ScConsts;
 
 type
-  {*
-    Déclenchée lors d'une erreur de mise à jour des ressources d'un exécutable
-    @author Sébastien Jean Robert Doeraene
-    @version 1.0
-  *}
-  EUpdateResError = class(EAPIError) end platform;
-
   {$IFDEF MSWINDOWS}
   {*
     Type de son
@@ -839,7 +832,7 @@ begin
   Result := BeginUpdateResource(PChar(FileName), False);
   // Si Result = 0, il y a eu une erreur API
   if Result = 0 then
-    raise EUpdateResError.Create;
+    RaiseLastOSError;
 end;
 
 {*
@@ -868,7 +861,7 @@ begin
   // On supprime le flux mémoire si on l'a créé
   if MustFreeRes then MemRes.Free;
   // Si UpdateResource a renvoyé False, il y a eu une erreur
-  if not OK then raise EUpdateResError.Create;
+  if not OK then RaiseLastOSError;
 end;
 
 {*
@@ -881,7 +874,7 @@ begin
   // Appel de Windows.UpdateResource
   if not UpdateResource(ResHandle, '', PChar(ResName), 0, nil, 0) then
   // Si UpdateResource a renvoyé False, il y a eu une erreur
-    raise EUpdateResError.Create;
+    RaiseLastOSError;
 end;
 
 {*
@@ -894,7 +887,7 @@ begin
   // Appel de Windows.EndUpdateResource
   if not EndUpdateResource(ResHandle, Cancel) then
   // Si EndUpdateResource a renvoyé False, il y a eu une erreur
-    raise EUpdateResError.Create;
+    RaiseLastOSError;
 end;
 
 {*

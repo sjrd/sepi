@@ -40,26 +40,6 @@ const
 {$ENDIF}
 
 type
-
-{$REGION 'Exceptions'}
-
-  {*
-    Déclenchée lorsqu'une erreur a été reportée par une API Windows
-    @author Sébastien Jean Robert Doeraene
-    @version 1.0
-  *}
-  EAPIError = class(Exception)
-  private
-    FErrorCode : integer; /// Code d'erreur HRESULT
-  public
-    constructor Create(Error : integer); overload;
-    constructor Create; overload;
-
-    property ErrorCode : integer read FErrorCode;
-  end platform;
-
-{$ENDREGION}
-
   {*
     Représente un point situé dans un espace en trois dimensions
   *}
@@ -201,34 +181,6 @@ uses
   ShellAPI,
 {$ENDIF}
   DateUtils, Forms;
-
-{$REGION 'Classe EAPIError'}
-
-{------------------}
-{ Classe EAPIError }
-{------------------}
-
-{*
-  Crée une nouvelle instance de EAPIError
-  @param Error   Code d'erreur HRESULT
-*}
-constructor EAPIError.Create(Error : integer);
-begin
-  // Le message est récupéré via SysErrorMessage
-  inherited Create(SysErrorMessage(Error));
-  FErrorCode := Error;
-end;
-
-{*
-  Crée une nouvelle instance de EAPIError
-  Le code d'erreur est récupéré avec la routien GetLastError
-*}
-constructor EAPIError.Create;
-begin
-  Create(GetLastError);
-end;
-
-{$ENDREGION}
 
 {----------------------------------}
 { Procédures et fonctions globales }
