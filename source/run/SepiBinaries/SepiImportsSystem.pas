@@ -8,7 +8,7 @@ unit SepiImportsSystem;
 interface
 
 uses
-  SepiMetaUnits, SepiTypes;
+  TypInfo, SepiMetaUnits, SepiTypes;
 
 type
   TSepiTObject = class(TObject)
@@ -29,9 +29,10 @@ implementation
 {----------------}
 
 class function TSepiTObject.ImportTObject(AOwner : TSepiMeta) : TSepiObjectType;
-var TObjectClass : TSepiClassType;
+//var TObjectClass : TSepiClassType;
 begin
-  Result := TSepiObjectType.Create(AOwner, 'TObject', nil, TSepiTObject);
+  Result := nil;
+(*  Result := TSepiObjectType.Create(AOwner, 'TObject', nil, TSepiTObject);
   TObjectClass := Result.ObjClassType;
 
   { Public declarations }
@@ -52,7 +53,7 @@ begin
   TSepiMetaDelphiMethod.Create(Result, 'Free', @TObject.Free);
 
   { TClass }
-  TSepiTypeAlias.Create(Result, 'TClass', TObjectClass);
+  TSepiTypeAlias.Create(Result, 'TClass', TObjectClass);*)
 end;
 
 destructor TSepiTObject.Destroy;
@@ -79,32 +80,32 @@ var I : integer;
 
     IntegerType : TSepiIntegerType;
     PointerType : TSepiIntegerType;
-    DoubleType : TSepiDoubleType;
+{    DoubleType : TSepiDoubleType;
     StringType : TSepiStringType;
     ShortStringType : TSepiStringType;
     PCharType : TSepiStringType;
-    BooleanType : TSepiBooleanType;
+    BooleanType : TSepiEnumType;}
 
     HRESULTType : TSepiIntegerType;
 
     RecordType : TSepiRecordType;
 
-    ObjectType : TSepiObjectType;
-    ClassType : TSepiClassType;
+    {ObjectType : TSepiObjectType;
+    ClassType : TSepiClassType;}
 
-    TObjectClass : TSepiObjectType;
+    //TObjectClass : TSepiObjectType;
 begin
   Result := TSepiMetaUnit.Create(Root, 'System');
 
   { Base types }
   IntegerType     := TSepiIntegerType.Create(Result, 'integer');
   PointerType     := TSepiIntegerType.Create(Result, 'Pointer');
-  DoubleType      := TSepiDoubleType .Create(Result, 'double');
-  StringType      := TSepiStringType .Create(Result, 'string');
-  ShortStringType := TSepiStringType .Create(Result, 'ShortString',
+  {DoubleType      :=} TSepiDoubleType .Create(Result, 'double');
+  {StringType      :=} TSepiStringType .Create(Result, 'string');
+  {ShortStringType :=} TSepiStringType .Create(Result, 'ShortString',
     ssShortString);
-  PCharType       := TSepiStringType .Create(Result, 'PChar', ssPChar);
-  BooleanType     := TSepiBooleanType.Create(Result, 'boolean');
+  {PCharType       :=} TSepiStringType .Create(Result, 'PChar', ssPChar);
+  {BooleanType     :=} TSepiEnumType.Create(Result, 'Boolean', BooleanIdents);
 
   { Types declared in System.pas }
   HRESULTType := TSepiIntegerType.Create(Result, 'HRESULT');
@@ -122,7 +123,7 @@ begin
   TSepiMetaVariable.Create(RecordType, 'Data', PointerType);
 
   { TObject class }
-  TObjectClass := TSepiTObject.ImportTObject(Result);
+  {TObjectClass :=} TSepiTObject.ImportTObject(Result);
 
   { Result constants }
   I := S_OK;

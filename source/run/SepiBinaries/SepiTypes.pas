@@ -8,7 +8,7 @@ unit SepiTypes;
 interface
 
 uses
-  Classes, SysUtils, ScUtils, SepiMetaUnits, SysConst, ScLists;
+  Classes, SysUtils, ScUtils, SepiMetaUnits, SysConst, TypInfo, ScLists;
 
 type
   {*
@@ -25,17 +25,22 @@ type
   private
     FMinValue : integer;       /// Valeur minimale
     FMaxValue : integer;       /// Valeur maximale
-    FNeedRangeCheck : boolean; /// Indique s'il faut vérifier les étendues
+    FSigned : boolean;         /// Indique si l'entier est signé ou non
+    FNeedRangeCheck : boolean;
+    procedure ExtractTypeData; /// Indique s'il faut vérifier les étendues
   public
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
+    constructor RegisterTypeInfo(AOwner : TSepiMeta; ATypeInfo : PTypeInfo);
     constructor Create(AOwner : TSepiMeta; AName : string;
-      AMinValue : integer = -MaxInt-1; AMaxValue : integer = MaxInt);
+      AMinValue : integer = -MaxInt-1; AMaxValue : integer = MaxInt;
+      ASigned : boolean = True);
 
     function InRange(Value : integer) : boolean;
     procedure CheckInRange(Value : integer);
 
     property MinValue : integer read FMinValue;
     property MaxValue : integer read FMaxValue;
+    property Signed : boolean read FSigned;
     property NeedRangeCheck : boolean read FNeedRangeCheck;
   end;
 
@@ -73,17 +78,6 @@ type
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
     constructor Create(AOwner : TSepiMeta; AName : string;
       AStorage : TSepiStringStorage = ssString);
-  end;
-
-  {*
-    Type booléen
-    @author Sébastien Jean Robert Doeraene
-    @version 1.0
-  *}
-  TSepiBooleanType = class(TSepiType)
-  public
-    constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
-    constructor Create(AOwner : TSepiMeta; AName : string);
   end;
 
   {*
@@ -139,7 +133,7 @@ type
     function CompatibleWith(AType : TSepiType) : boolean; override;
   end;
 
-  TSepiObjectType = class;
+  TSepiObjectType = class end;
 
   {*
     Type classe
@@ -169,7 +163,7 @@ type
     property ObjectType : TSepiObjectType read FObjectType;
   end;
 
-  {*
+  (*{*
     Type objet
     @author Sébastien Jean Robert Doeraene
     @version 1.0
@@ -196,7 +190,7 @@ type
     property ObjClassType : TSepiClassType read FClassType;
     property CurrentVisibility : TSepiMemberVisibility
       read FCurrentVisibility write FCurrentVisibility;
-  end;
+  end;*)
 
   {*
     Type tableau statique (à N dimensions)
@@ -263,7 +257,7 @@ type
     property Signature : TSepiMethodSignature read FSignature;
   end;
 
-  {*
+  (*{*
     Type délégation
     @author Sébastien Jean Robert Doeraene
     @version 1.0
@@ -279,38 +273,114 @@ type
     function CompatibleWith(AType : TSepiType) : boolean; override;
 
     property Signature : TSepiMethodSignature read FSignature;
-  end;
+  end;*)
 
 implementation
+
+const
+  IntegerTypeDataLength = sizeof(TOrdType) + 2*sizeof(Longint);
 
 {-------------------------}
 { Classe TSepiIntegerType }
 {-------------------------}
 
+{*
+  Charge un type entier depuis un flux
+*}
 constructor TSepiIntegerType.Load(AOwner : TSepiMeta; Stream : TStream);
 begin
   inherited;
   FKind := tkInteger;
-  Stream.ReadBuffer(FMinValue, sizeof(integer));
-  Stream.ReadBuffer(FMaxValue, sizeof(integer));
-  FNeedRangeCheck := (FMinValue <> -MaxInt-1) or (FMaxValue <> MaxInt);
+
+  AllocateTypeInfo(IntegerTypeDataLength);
+  Stream.ReadBuffer(FTypeData^, IntegerTypeDataLength);
+
+  ExtractTypeData;
 end;
 
+{*
+  Recense un type entier natif
+*}
+constructor TSepiIntegerType.RegisterTypeInfo(AOwner : TSepiMeta;
+  ATypeInfo : PTypeInfo);
+begin
+  inherited Create(AOwner, ATypeInfo.Name);
+  FKind := tkInteger;
+
+  FTypeInfo := ATypeInfo;
+  FTypeData := GetTypeData(FTypeInfo);
+
+  ExtractTypeData;
+end;
+
+{*
+  Crée un nouveau type entier
+  @param AOwner      Propriétaire du type
+  @param AName       Nom du type
+  @param AMinValue   Valeur minimale
+  @param AMaxValue   Valeur maximale
+  @param ASigned     Indique si l'entier est signé ou non
+*}
 constructor TSepiIntegerType.Create(AOwner : TSepiMeta; AName : string;
-  AMinValue : integer = -MaxInt-1; AMaxValue : integer = MaxInt);
+  AMinValue : integer = -MaxInt-1; AMaxValue : integer = MaxInt;
+  ASigned : boolean = True);
 begin
   inherited Create(AOwner, AName);
   FKind := tkInteger;
-  FMinValue := AMinValue;
-  FMaxValue := AMaxValue;
-  FNeedRangeCheck := (FMinValue <> -MaxInt-1) or (FMaxValue <> MaxInt);
+
+  AllocateTypeInfo(IntegerTypeDataLength);
+
+  if AMinValue < 0 then
+  begin
+    // Signed
+    if (AMinValue < -32768) or (AMaxValue >= 32768) then
+      FTypeData.OrdType := otSLong else
+    if (AMinValue < -128) or (AMaxValue >= 128) then
+      FTypeData.OrdType := otSWord else
+    FTypeData.OrdType := otSByte;
+  end else
+  begin
+    // Unsigned
+    if AMaxValue >= 65536 then
+      FTypeData.OrdType := otULong else
+    if AMaxValue >= 256 then
+      FTypeData.OrdType := otUWord else
+    FTypeData.OrdType := otUByte;
+  end;
+
+  FTypeData.MinValue := AMinValue;
+  FTypeData.MaxValue := AMaxValue;
+
+  ExtractTypeData;
 end;
 
+{*
+  Extrait les informations les plus importantes depuis les données de type
+*}
+procedure TSepiIntegerType.ExtractTypeData;
+begin
+  FMinValue := FTypeData.MinValue;
+  FMaxValue := FTypeData.MaxValue;
+  FSigned := FTypeData.OrdType in [otSByte, otSWord, otSLong];
+
+  FNeedRangeCheck := (FMinValue <> -MaxInt - 1) or (FMaxValue <> MaxInt);
+end;
+
+{*
+  Teste si une valeur est dans l'intervalle supporté par le type
+  @param Value   Valeur à tester
+  @return True si Value est dans l'intervalle supporté, False sinon
+*}
 function TSepiIntegerType.InRange(Value : integer) : boolean;
 begin
   Result := (Value >= FMinValue) and (Value <= FMaxValue);
 end;
 
+{*
+  S'assure qu'une valeur est dans l'intervalle supporté par le type
+  @param Value   Valeur à tester
+  @throws ERangeError Value n'était pas dans l'intervalle supporté
+*}
 procedure TSepiIntegerType.CheckInRange(Value : integer);
 begin
   if not InRange(Value) then
@@ -340,13 +410,13 @@ end;
 constructor TSepiDoubleType.Load(AOwner : TSepiMeta; Stream : TStream);
 begin
   inherited;
-  FKind := tkDouble;
+  FKind := tkFloat;
 end;
 
 constructor TSepiDoubleType.Create(AOwner : TSepiMeta; AName : string);
 begin
   inherited Create(AOwner, AName);
-  FKind := tkDouble;
+  FKind := tkFloat;
 end;
 
 {------------------------}
@@ -368,22 +438,6 @@ begin
   FStorage := AStorage;
 end;
 
-{-------------------------}
-{ Classe TSepiBooleanType }
-{-------------------------}
-
-constructor TSepiBooleanType.Load(AOwner : TSepiMeta; Stream : TStream);
-begin
-  inherited;
-  FKind := tkBoolean;
-end;
-
-constructor TSepiBooleanType.Create(AOwner : TSepiMeta; AName : string);
-begin
-  inherited Create(AOwner, AName);
-  FKind := tkBoolean;
-end;
-
 {----------------------}
 { Classe TSepiEnumType }
 {----------------------}
@@ -393,7 +447,7 @@ var Count, I : integer;
     Str : string;
 begin
   inherited;
-  FKind := tkEnum;
+  FKind := tkEnumeration;
   Count := 0;
   Stream.ReadBuffer(Count, 1);
   SetLength(FValues, Count);
@@ -410,7 +464,7 @@ constructor TSepiEnumType.Create(AOwner : TSepiMeta; AName : string;
 var I : integer;
 begin
   inherited Create(AOwner, AName);
-  FKind := tkEnum;
+  FKind := tkEnumeration;
   SetLength(FValues, Length(AValues));
   for I := 0 to Length(AValues)-1 do
   begin
@@ -513,7 +567,7 @@ end;
 procedure TSepiClassType.ChildAdded(Child : TSepiMeta);
 begin
   inherited;
-  Child.Visibility := FObjectType.FCurrentVisibility;
+  //Child.Visibility := FObjectType.FCurrentVisibility;
 end;
 
 procedure TSepiClassType.Loaded;
@@ -536,7 +590,7 @@ begin
     (Assigned(FAncestor) and FAncestor.InheritsFrom(AParent));
 end;
 
-{------------------------}
+(*{------------------------}
 { Classe TSepiObjectType }
 {------------------------}
 
@@ -585,7 +639,7 @@ function TSepiObjectType.InheritsFrom(AParent : TSepiObjectType) : boolean;
 begin
   Result := (AParent = Self) or
     (Assigned(FAncestor) and FAncestor.InheritsFrom(AParent));
-end;
+end;*)
 
 {-----------------------}
 { Classe TSepiArrayType }
@@ -713,7 +767,7 @@ end;
 constructor TSepiMethodRefType.Load(AOwner : TSepiMeta; Stream : TStream);
 begin
   inherited;
-  FKind := tkMethodRef;
+  FKind := tkMethod;
   FSignature := TSepiMethodSignature.Create(Self);
   FSignature.Load(Stream);
 end;
@@ -721,7 +775,7 @@ end;
 constructor TSepiMethodRefType.Create(AOwner : TSepiMeta; AName : string);
 begin
   inherited Create(AOwner, AName);
-  FKind := tkMethodRef;
+  FKind := tkMethod;
   FSignature := TSepiMethodSignature.Create(Self);
 end;
 
@@ -733,39 +787,8 @@ end;
 
 function TSepiMethodRefType.CompatibleWith(AType : TSepiType) : boolean;
 begin
-  Result := (AType.Kind = tkMethodRef) and
+  Result := (AType.Kind = tkMethod) and
     FSignature.CompatibleWith(TSepiMethodRefType(AType).FSignature);
-end;
-
-{--------------------------}
-{ Classe TSepiDelegateType }
-{--------------------------}
-
-constructor TSepiDelegateType.Load(AOwner : TSepiMeta; Stream : TStream);
-begin
-  inherited;
-  FKind := tkDelegate;
-  FSignature := TSepiMethodSignature.Create(Self);
-  FSignature.Load(Stream);
-end;
-
-constructor TSepiDelegateType.Create(AOwner : TSepiMeta; AName : string);
-begin
-  inherited Create(AOwner, AName);
-  FKind := tkDelegate;
-  FSignature := TSepiMethodSignature.Create(Self);
-end;
-
-destructor TSepiDelegateType.Destroy;
-begin
-  FSignature.Free;
-  inherited Destroy;
-end;
-
-function TSepiDelegateType.CompatibleWith(AType : TSepiType) : boolean;
-begin
-  Result := (AType.Kind = tkDelegate) and
-    FSignature.CompatibleWith(TSepiDelegateType(AType).FSignature);
 end;
 
 end.
