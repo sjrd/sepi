@@ -10,66 +10,9 @@ interface
 uses
   TypInfo, SepiMetaUnits, SepiTypes;
 
-type
-  TSepiTObject = class(TObject)
-  private
-    class function ImportTObject(AOwner : TSepiMeta) : TSepiObjectType;
-  public
-    destructor Destroy; override;
-    procedure AfterConstruction; override;
-    procedure BeforeDestruction; override;
-  end;
-
 implementation
 
 { You must not localize any of the strings this unit contains! }
-
-{----------------}
-{ TObject import }
-{----------------}
-
-class function TSepiTObject.ImportTObject(AOwner : TSepiMeta) : TSepiObjectType;
-//var TObjectClass : TSepiClassType;
-begin
-  Result := nil;
-(*  Result := TSepiObjectType.Create(AOwner, 'TObject', nil, TSepiTObject);
-  TObjectClass := Result.ObjClassType;
-
-  { Public declarations }
-  Result.CurrentVisibility := mvPublic;
-
-  TSepiMetaDelphiMethod.Create(TObjectClass, 'Create', @TObject.Create,
-    mkConstructor);
-
-  TSepiMetaDelphiMethod.Create(Result, 'Destroy', @TObject.Destroy,
-    mkDestructor, osVirtual);
-
-  TSepiMetaDelphiMethod.Create(Result, 'AfterConstruction',
-    @TObject.AfterConstruction, mkNormal, osVirtual);
-
-  TSepiMetaDelphiMethod.Create(Result, 'BeforeDestruction',
-    @TObject.BeforeDestruction, mkNormal, osVirtual);
-
-  TSepiMetaDelphiMethod.Create(Result, 'Free', @TObject.Free);
-
-  { TClass }
-  TSepiTypeAlias.Create(Result, 'TClass', TObjectClass);*)
-end;
-
-destructor TSepiTObject.Destroy;
-begin
-  inherited;
-end;
-
-procedure TSepiTObject.AfterConstruction;
-begin
-  inherited;
-end;
-
-procedure TSepiTObject.BeforeDestruction;
-begin
-  inherited;
-end;
 
 {-------------}
 { Unit import }
@@ -98,18 +41,18 @@ begin
   Result := TSepiMetaUnit.Create(Root, 'System');
 
   { Base types }
-  IntegerType     := TSepiIntegerType.Create(Result, 'integer');
+  IntegerType     := TSepiIntegerType.RegisterTypeInfo(
+    Result, TypeInfo(integer));
   PointerType     := TSepiIntegerType.Create(Result, 'Pointer');
-  {DoubleType      :=} TSepiDoubleType .Create(Result, 'double');
+  {DoubleType      :=} TSepiFloatType .Create(Result, 'double');
   {StringType      :=} TSepiStringType .Create(Result, 'string');
-  {ShortStringType :=} TSepiStringType .Create(Result, 'ShortString',
-    ssShortString);
-  {PCharType       :=} TSepiStringType .Create(Result, 'PChar', ssPChar);
+  {ShortStringType :=} TSepiShortStringType .Create(Result, 'ShortString');
+  {PCharType       :=} TSepiStringType .Create(Result, 'PChar');
   {BooleanType     :=} TSepiEnumType.Create(Result, 'Boolean', BooleanIdents);
 
   { Types declared in System.pas }
   HRESULTType := TSepiIntegerType.Create(Result, 'HRESULT');
-  TSepiDoubleType.Create(Result, 'TDateTime');
+  TSepiFloatType.Create(Result, 'TDateTime');
   TSepiIntegerType.Create(Result, 'THandle');
 
   { TGUID record }
@@ -123,7 +66,7 @@ begin
   TSepiMetaVariable.Create(RecordType, 'Data', PointerType);
 
   { TObject class }
-  {TObjectClass :=} TSepiTObject.ImportTObject(Result);
+  {TObjectClass := ...}
 
   { Result constants }
   I := S_OK;

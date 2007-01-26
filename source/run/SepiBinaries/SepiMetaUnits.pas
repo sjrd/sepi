@@ -8,8 +8,8 @@ unit SepiMetaUnits;
 interface
 
 uses
-  SysUtils, Classes, Contnrs, SepiCore, ScUtils, IniFiles, TypInfo, ScLists,
-  SepiBinariesConsts;
+  SysUtils, Classes, Contnrs, RTLConsts, SepiCore, ScUtils, IniFiles, TypInfo,
+  ScLists, SepiBinariesConsts;
 
 type
   {*
@@ -64,8 +64,8 @@ type
   private
     function GetMetas(Index : integer) : TSepiMeta;
     procedure SetMetas(Index : integer; Value : TSepiMeta);
-    function GetMetaFromName(Name : string) : TSepiMeta;
-    procedure SetMetaFromName(Name : string; Value : TSepiMeta);
+    function GetMetaFromName(const Name : string) : TSepiMeta;
+    procedure SetMetaFromName(const Name : string; Value : TSepiMeta);
   public
     constructor Create;
 
@@ -75,7 +75,7 @@ type
 
     property Metas[index : integer] : TSepiMeta
       read GetMetas write SetMetas; default;
-    property MetaFromName[Name : string] : TSepiMeta
+    property MetaFromName[const Name : string] : TSepiMeta
       read GetMetaFromName write SetMetaFromName;
   end;
 
@@ -88,17 +88,19 @@ type
   *}
   TSepiMeta = class
   private
-    FState : TSepiMetaState;
-    FOwner : TSepiMeta;
-    FRoot : TSepiMetaRoot;
-    FOwningUnit : TSepiMetaUnit;
-    FName : string;
-    FVisibility : TSepiMemberVisibility;
-    FChildren : TSepiMetaList;
+    FState : TSepiMetaState;             /// État
+    FOwner : TSepiMeta;                  /// Propriétaire
+    FRoot : TSepiMetaRoot;               /// Racine
+    FOwningUnit : TSepiMetaUnit;         /// Unité contenante
+    FName : string;                      /// Nom
+    FVisibility : TSepiMemberVisibility; /// Visibilité
+    FChildren : TSepiMetaList;           /// Liste des enfants
 
     procedure AddChild(Child : TSepiMeta);
     procedure RemoveChild(Child : TSepiMeta);
   protected
+    procedure LoadChildren(Stream : TStream);
+
     procedure ChildAdded(Child : TSepiMeta); virtual;
     procedure ChildRemoving(Child : TSepiMeta); virtual;
 
@@ -112,8 +114,8 @@ type
     procedure BeforeDestruction; override;
 
     function GetFullName : string;
-    function GetMeta(Name : string) : TSepiMeta;
-    function FindMeta(Name : string) : TSepiMeta;
+    function GetMeta(const Name : string) : TSepiMeta;
+    function FindMeta(const Name : string) : TSepiMeta;
 
     property Owner : TSepiMeta read FOwner;
     property Root : TSepiMetaRoot read FRoot;
@@ -124,26 +126,33 @@ type
   end;
 
   {*
+    Classe de TSepiMeta
+  *}
+  TSepiMetaClass = class of TSepiMeta;
+
+  {*
     Type
     @author Sébastien Jean Robert Doeraene
     @version 1.0
   *}
   TSepiType = class(TSepiMeta)
   private
+    FKind : TTypeKind;         /// Type de type
     FTypeInfoLength : integer; /// Taille des RTTI créées (ou 0 si non créées)
+    FTypeInfo : PTypeInfo;     /// RTTI (Runtime Type Information)
+    FTypeData : PTypeData;     /// RTTD (Runtime Type Data)
   protected
-    FKind : TTypeKind;     /// Type de type
-    FTypeInfo : PTypeInfo; /// RTTI (Runtime Type Information)
-    FTypeData : PTypeData; /// RTTD (Runtime Type Data)
-
     procedure AllocateTypeInfo(TypeDataLength : integer = 0);
   public
+    constructor RegisterTypeInfo(AOwner : TSepiMeta;
+      ATypeInfo : PTypeInfo); virtual;
+    constructor Clone(AOwner : TSepiMeta; const AName : string;
+      Source : TSepiType); virtual;
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
-    constructor Create(AOwner : TSepiMeta; const AName : string);
+    constructor Create(AOwner : TSepiMeta; const AName : string;
+      AKind : TTypeKind);
     destructor Destroy; override;
 
-    class function LoadFromStream(AOwner : TSepiMeta;
-      Stream : TStream) : TSepiType;
     class function LoadFromTypeInfo(AOwner : TSepiMeta;
       ATypeInfo : PTypeInfo) : TSepiType;
 
@@ -152,96 +161,6 @@ type
     property Kind : TTypeKind read FKind;
     property TypeInfo : PTypeInfo read FTypeInfo;
     property TypeData : PTypeData read FTypeData;
-  end;
-
-  {*
-    Conteneur de meta-variables
-    @author Sébastien Jean Robert Doeraene
-    @version 1.0
-  *}
-  TSepiMetaVariableContainer = class(TSepiType)
-  private
-    FVariables : TSepiMetaList;
-
-    function GetVariableCount : integer;
-    function GetVariables(Index : integer) : TSepiMetaVariable;
-  protected
-    procedure ChildAdded(Child : TSepiMeta); override;
-    procedure ChildRemoving(Child : TSepiMeta); override;
-  public
-    constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
-    constructor Create(AOwner : TSepiMeta; AName : string);
-    destructor Destroy; override;
-
-    property VariableCount : integer read GetVariableCount;
-    property Variables[index : integer] : TSepiMetaVariable read GetVariables;
-  end;
-
-  {*
-    Conteneur de meta-membres
-    @author Sébastien Jean Robert Doeraene
-    @version 1.0
-  *}
-  TSepiMetaMemberContainer = class(TSepiMetaVariableContainer)
-  private
-    FMethods : TSepiMetaList;
-    FOverloadedMethods : TSepiMetaList;
-    FProperties : TSepiMetaList;
-
-    function GetMethodCount : integer;
-    function GetMethods(Index : integer) : TSepiMetaMethod;
-    function GetOverloadedMethodCount : integer;
-    function GetOverloadedMethods(Index : integer) : TSepiMetaOverloadedMethod;
-    function GetPropertyCount : integer;
-    function GetProperties(Index : integer) : TSepiMetaProperty;
-  protected
-    procedure ChildAdded(Child : TSepiMeta); override;
-    procedure ChildRemoving(Child : TSepiMeta); override;
-  public
-    constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
-    constructor Create(AOwner : TSepiMeta; AName : string);
-    destructor Destroy; override;
-
-    property MethodCount : integer read GetMethodCount;
-    property Methods[index : integer] : TSepiMetaMethod read GetMethods;
-    property OverloadedMethodCount : integer read GetOverloadedMethodCount;
-    property OverloadedMethods[index : integer] : TSepiMetaOverloadedMethod
-      read GetOverloadedMethods;
-    property PropertyCount : integer read GetPropertyCount;
-    property Properties[index : integer] : TSepiMetaProperty read GetProperties;
-  end;
-
-  {*
-    Conteneur de tous types meta
-    @author Sébastien Jean Robert Doeraene
-    @version 1.0
-  *}
-  TSepiMetaOmniContainer = class(TSepiMetaMemberContainer)
-  private
-    FTypes : TSepiMetaList;
-    FConstants : TSepiMetaList;
-    FTypeAliases : TSepiMetaList;
-
-    function GetTypeCount : integer;
-    function GetTypes(Index : integer) : TSepiType;
-    function GetConstantCount : integer;
-    function GetConstants(Index : integer) : TSepiConstant;
-    function GetTypeAliasCount : integer;
-    function GetTypeAliases(Index : integer) : TSepiTypeAlias;
-  protected
-    procedure ChildAdded(Child : TSepiMeta); override;
-    procedure ChildRemoving(Child : TSepiMeta); override;
-  public
-    constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
-    constructor Create(AOwner : TSepiMeta; AName : string);
-    destructor Destroy; override;
-
-    property TypeCount : integer read GetTypeCount;
-    property Types[index : integer] : TSepiType read GetTypes;
-    property ConstantCount : integer read GetConstantCount;
-    property Constants[index : integer] : TSepiConstant read GetConstants;
-    property TypeAliasCount : integer read GetTypeAliasCount;
-    property TypeAliases[index : integer] : TSepiTypeAlias read GetTypeAliases;
   end;
 
   {*
@@ -267,7 +186,7 @@ type
     @author Sébastien Jean Robert Doeraene
     @version 1.0
   *}
-  TSepiMetaUnit = class(TSepiMetaOmniContainer)
+  TSepiMetaUnit = class(TSepiType)
   private
     { TODO 2 -cMetaunités : Ajouter des champs concernant les en-tête d'unité }
     FCurrentVisibility : TSepiMemberVisibility;
@@ -278,7 +197,7 @@ type
     procedure Loaded; override;
   public
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
-    constructor Create(AOwner : TSepiMeta; AName : string);
+    constructor Create(AOwner : TSepiMeta; const AName : string);
 
     procedure LoadRef(var Ref);
 
@@ -298,7 +217,7 @@ type
     procedure Loaded; override;
   public
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
-    constructor Create(AOwner : TSepiMeta; AName : string;
+    constructor Create(AOwner : TSepiMeta; const AName : string;
       ADest : TSepiType);
 
     property Dest : TSepiType read FDest;
@@ -317,7 +236,7 @@ type
     procedure Loaded; override;
   public
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
-    constructor Create(AOwner : TSepiMeta; AName : string;
+    constructor Create(AOwner : TSepiMeta; const AName : string;
       AType : TSepiType);
 
     property ConstType : TSepiType read FType;
@@ -336,7 +255,7 @@ type
     procedure Loaded; override;
   public
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
-    constructor Create(AOwner : TSepiMeta; AName : string;
+    constructor Create(AOwner : TSepiMeta; const AName : string;
       AType : TSepiType);
 
     property VarType : TSepiType read FType;
@@ -352,7 +271,7 @@ type
     FParamKind : TParamFlags;
   public
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
-    constructor Create(AOwner : TSepiMeta; AName : string;
+    constructor Create(AOwner : TSepiMeta; const AName : string;
       AType : TSepiType; AParamKind : TParamFlags = []);
 
     function CompatibleWith(AVariable : TSepiMetaVariable) : boolean;
@@ -408,7 +327,7 @@ type
     procedure Loaded; override;
   public
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
-    constructor Create(AOwner : TSepiMeta; AName : string;
+    constructor Create(AOwner : TSepiMeta; const AName : string;
       AKind : TMethodKind = mkProcedure;
       AOverrideState : TSepiMethodOverrideState = osNone;
       AAbstract : boolean = False);
@@ -433,7 +352,7 @@ type
     function GetVariables(Index : integer) : TSepiMetaVariable;
   public
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
-    constructor Create(AOwner : TSepiMeta; AName : string;
+    constructor Create(AOwner : TSepiMeta; const AName : string;
       AKind : TMethodKind = mkProcedure;
       AOverrideState : TSepiMethodOverrideState = osNone;
       AAbstract : boolean = False);
@@ -454,7 +373,7 @@ type
     FCallConvention : TSepiCallConvention;
     FCode : Pointer;
   public
-    constructor Create(AOwner : TSepiMeta; AName : string;
+    constructor Create(AOwner : TSepiMeta; const AName : string;
       ACode : Pointer; AKind : TMethodKind = mkProcedure;
       AOverrideState : TSepiMethodOverrideState = osNone;
       AAbstract : boolean = False;
@@ -474,7 +393,7 @@ type
     FMethodCount : integer;
   public
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
-    constructor Create(AOwner : TSepiMeta; AName : string);
+    constructor Create(AOwner : TSepiMeta; const AName : string);
 
     function NextID : integer;
     function FindMethod(Signature : TSepiMethodSignature) : TSepiMetaMethod;
@@ -504,7 +423,7 @@ type
     procedure Loaded; override;
   public
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
-    constructor Create(AOwner : TSepiMeta; AName : string;
+    constructor Create(AOwner : TSepiMeta; const AName : string;
       AReadAccess : TSepiMeta; AWriteAccess : TSepiMeta);
     destructor Destroy; override;
 
@@ -524,6 +443,8 @@ type
   *}
   TSepiImportUnitFunc = function(Root : TSepiMetaRoot) : TSepiMetaUnit;
 
+procedure SepiRegisterMetaClasses(MetaClasses : array of TSepiMetaClass);
+
 procedure SepiRegisterImportedUnit(const UnitName : string;
   ImportFunc : TSepiImportUnitFunc);
 procedure SepiUnregisterImportedUnit(const UnitName : string);
@@ -534,7 +455,51 @@ uses
   SepiTypes, SepiImportsSystem;
 
 var
-  SepiImportedUnits : TStrings;
+  SepiMetaClasses : TStrings = nil;
+  SepiImportedUnits : TStrings = nil;
+
+{*
+  Recense des classes de meta
+  @param MetaClasses   Classes de meta à recenser
+*}
+procedure SepiRegisterMetaClasses(MetaClasses : array of TSepiMetaClass);
+var I : integer;
+begin
+  if not Assigned(SepiMetaClasses) then
+  begin
+    SepiMetaClasses := TStringList.Create;
+    with TStringList(SepiMetaClasses) do
+    begin
+      CaseSensitive := False;
+      Duplicates := dupIgnore;
+    end;
+  end;
+
+  for I := Low(MetaClasses) to High(MetaClasses) do
+  begin
+    SepiMetaClasses.AddObject(
+      MetaClasses[I].ClassName, TObject(MetaClasses[I]));
+  end;
+end;
+
+{*
+  Cherche une classe de meta par son nom
+  La classe recherchée doit avoir été recensée au préalable avec
+  SepiRegisterMetaClasses.
+  @param MetaClassName   Nom de la classe de meta
+  @return La classe de meta dont le nom correspond
+  @throws EClassNotFound La classe recherchée n'existe pas
+*}
+function SepiFindMetaClass(const MetaClassName : string) : TSepiMetaClass;
+var Index : integer;
+begin
+  if not Assigned(SepiMetaClasses) then Index := -1 else
+    Index := SepiMetaClasses.IndexOf(MetaClassName);
+  if Index < 0 then
+    EClassNotFound.CreateFmt(SClassNotFound, [MetaClassName]);
+
+  Result := TSepiMetaClass(SepiMetaClasses.Objects[Index]);
+end;
 
 {*
   Recense une routine d'import d'unité
@@ -544,6 +509,16 @@ var
 procedure SepiRegisterImportedUnit(const UnitName : string;
   ImportFunc : TSepiImportUnitFunc);
 begin
+  if not Assigned(SepiImportedUnits) then
+  begin
+    SepiImportedUnits := TStringList.Create;
+    with TStringList(SepiImportedUnits) do
+    begin
+      CaseSensitive := False;
+      Duplicates := dupIgnore;
+    end;
+  end;
+
   SepiImportedUnits.AddObject(UnitName, TObject(@ImportFunc));
 end;
 
@@ -554,6 +529,7 @@ end;
 procedure SepiUnregisterImportedUnit(const UnitName : string);
 var Index : integer;
 begin
+  if not Assigned(SepiImportedUnits) then exit;
   Index := SepiImportedUnits.IndexOf(UnitName);
   if Index >= 0 then
     SepiImportedUnits.Delete(Index);
@@ -561,21 +537,29 @@ end;
 
 {*
   Cherche une routine d'import d'une unité
+  Cette routine doit avoir été recensée au prélable avec
+  SepiRegisterImportedUnit.
   @param UnitName   Nom de l'unité
   @return Routine de call-back pour l'import de l'unité, ou nil si n'existe pas
 *}
 function SepiImportedUnit(const UnitName : string) : TSepiImportUnitFunc;
 var Index : integer;
 begin
-  Index := SepiImportedUnits.IndexOf(UnitName);
-  if Index < 0 then Result := nil else
-    Result := TSepiImportUnitFunc(SepiImportedUnits.Objects[Index]);
+  if not Assigned(SepiImportedUnits) then Result := nil else
+  begin
+    Index := SepiImportedUnits.IndexOf(UnitName);
+    if Index < 0 then Result := nil else
+      Result := TSepiImportUnitFunc(SepiImportedUnits.Objects[Index]);
+  end;
 end;
 
 {----------------------}
 { Classe TSepiMetaList }
 {----------------------}
 
+{*
+  Crée une instance de TSepiMetaList
+*}
 constructor TSepiMetaList.Create;
 begin
   inherited;
@@ -583,11 +567,23 @@ begin
   Duplicates := dupError;
 end;
 
+{*
+  Liste zero-based des metas
+  @param Index   Index du meta à obtenir
+  @return Meta à l'index spécifié
+*}
 function TSepiMetaList.GetMetas(Index : integer) : TSepiMeta;
 begin
   Result := TSepiMeta(Objects[Index]);
 end;
 
+{*
+  Assigne la référence à un meta
+  Un meta ne peut pas être modifé une fois assigné, il ne peut donc être assigné
+  qu'une et une seule fois.
+  @param Index   Index du meta à modifier
+  @param Value   Référence au nouveau meta
+*}
 procedure TSepiMetaList.SetMetas(Index : integer; Value : TSepiMeta);
 begin
   if Assigned(Objects[Index]) then
@@ -595,7 +591,12 @@ begin
   Objects[Index] := Value;
 end;
 
-function TSepiMetaList.GetMetaFromName(Name : string) : TSepiMeta;
+{*
+  Liste des metas indexée par leurs noms
+  @param Name   Nom d'un meta
+  @return Le meta dont le nom a été spécifié, ou nil s'il n'existe pas
+*}
+function TSepiMetaList.GetMetaFromName(const Name : string) : TSepiMeta;
 var Index : integer;
 begin
   Index := IndexOf(Name);
@@ -603,7 +604,14 @@ begin
     Result := TSepiMeta(Objects[Index]);
 end;
 
-procedure TSepiMetaList.SetMetaFromName(Name : string; Value : TSepiMeta);
+{*
+  Assigne ou ajoute un meta par son nom
+  Un meta ne peut pas être modifé une fois assigné, il ne peut donc être assigné
+  qu'une et une seule fois.
+  @param Name    Nom du meta
+  @param Value   Référence au meta
+*}
+procedure TSepiMetaList.SetMetaFromName(const Name : string; Value : TSepiMeta);
 var Index : integer;
 begin
   Index := IndexOf(Name);
@@ -611,16 +619,31 @@ begin
     Metas[Index] := Value;
 end;
 
+{*
+  Ajoute un meta
+  @param Meta   Meta à ajouter
+  @return Index du meta nouvellement ajouté
+*}
 function TSepiMetaList.AddMeta(Meta : TSepiMeta) : integer;
 begin
   Result := AddObject(Meta.Name, Meta);
 end;
 
+{*
+  Cherche un meta dans la liste
+  @param Meta   Meta à chercher
+  @return L'index du meta dans la liste, ou nil s'il n'existe pas
+*}
 function TSepiMetaList.IndexOfMeta(Meta : TSepiMeta) : integer;
 begin
   Result := IndexOf(Meta.Name);
 end;
 
+{*
+  Supprime un meta de la liste
+  @param Meta   Meta à supprimer
+  @return L'index auquel se trouvait le meta
+*}
 function TSepiMetaList.Remove(Meta : TSepiMeta) : integer;
 begin
   Result := IndexOfMeta(Meta);
@@ -708,6 +731,18 @@ begin
 end;
 
 {*
+  Charge les enfants depuis un flux
+  @param Stream   Flux depuis lequel charger les enfants
+*}
+procedure TSepiMeta.LoadChildren(Stream : TStream);
+var Count, I : integer;
+begin
+  Stream.ReadBuffer(Count, 4);
+  for I := 0 to Count-1 do
+    SepiFindMetaClass(ReadStrFromStream(Stream)).Load(Self, Stream);
+end;
+
+{*
   Appelé lorsqu'un enfant vient d'être ajouté
   @param Child   Enfant qui vient d'être ajouté
 *}
@@ -732,7 +767,7 @@ procedure TSepiMeta.Loaded;
 var I : integer;
 begin
   for I := 0 to FChildren.Count do
-    FChildren.Metas[I].Loaded;
+    FChildren[I].Loaded;
   FState := msNormal;
 end;
 
@@ -762,18 +797,22 @@ end;
   @param Name   Nom du meta à trouver
   @return Le meta correspondant, ou nil s'il n'a pas été trouvé
 *}
-function TSepiMeta.GetMeta(Name : string) : TSepiMeta;
+function TSepiMeta.GetMeta(const Name : string) : TSepiMeta;
 var I : integer;
-    Field : string;
+    MetaName, Field : string;
 begin
   I := Pos('.', Name);
   if I > 0 then
   begin
+    MetaName := Copy(Name, 1, I-1);
     Field := Copy(Name, I+1, Length(Name));
-    Delete(Name, I, Length(Name));
-  end else Field := '';
+  end else
+  begin
+    MetaName := Name;
+    Field := '';
+  end;
 
-  Result := FChildren.MetaFromName[Name];
+  Result := FChildren.MetaFromName[MetaName];
 
   if not Assigned(Result) then exit;
   while Result is TSepiTypeAlias do
@@ -788,7 +827,7 @@ end;
   @return Le meta correspondant
   @throws ESepiMetaNotFoundError Le meta n'a pas été trouvé
 *}
-function TSepiMeta.FindMeta(Name : string) : TSepiMeta;
+function TSepiMeta.FindMeta(const Name : string) : TSepiMeta;
 begin
   Result := GetMeta(Name);
   if Result = nil then
@@ -800,6 +839,39 @@ end;
 {------------------}
 
 {*
+  Recense un type natif
+  @param AOwner      Propriétaire du type
+  @param ATypeInfo   RTTI du type à recenser
+*}
+constructor TSepiType.RegisterTypeInfo(AOwner : TSepiMeta;
+  ATypeInfo : PTypeInfo);
+begin
+  inherited Create(AOwner, ATypeInfo.Name);
+
+  FKind := ATypeInfo.Kind;
+  FTypeInfoLength := 0;
+  FTypeInfo := ATypeInfo;
+  FTypeData := GetTypeData(FTypeInfo);
+end;
+
+{*
+  Clone un type
+  @param AOwner   Propriétaire du type
+  @param AName    Nom du type
+  @param Source   Type à cloner
+*}
+constructor TSepiType.Clone(AOwner : TSepiMeta; const AName : string;
+  Source : TSepiType);
+begin
+  inherited Create(AOwner, AName);
+
+  FKind := Source.Kind;
+  FTypeInfoLength := 0;
+  FTypeInfo := nil;
+  FTypeData := nil;
+end;
+
+{*
   Charge un type depuis un flux
   @param AOwner   Propriétaire du type
   @param Stream   Flux depuis lequel charger le type
@@ -808,6 +880,7 @@ constructor TSepiType.Load(AOwner : TSepiMeta; Stream : TStream);
 begin
   inherited;
 
+  Stream.ReadBuffer(FKind, sizeof(TTypeKind));
   FTypeInfoLength := 0;
   FTypeInfo := nil;
   FTypeData := nil;
@@ -817,11 +890,14 @@ end;
   Crée un nouveau type
   @param AOwner   Propriétaire du type
   @param AName    Nom du type
+  @param AKind    Type de type
 *}
-constructor TSepiType.Create(AOwner : TSepiMeta; const AName : string);
+constructor TSepiType.Create(AOwner : TSepiMeta; const AName : string;
+  AKind : TTypeKind);
 begin
-  inherited;
+  inherited Create(AOwner, AName);
 
+  FKind := AKind;
   FTypeInfoLength := 0;
   FTypeInfo := nil;
   FTypeData := nil;
@@ -841,7 +917,7 @@ end;
 {*
   Alloue une zone mémoire pour les RTTI
   Alloue une zone mémoire adaptée au nom du type et à la taille des données de
-  type, et rempli les champs de FTypeInfo (FTypeData reste non initialisé).
+  type, et rempli les champs de TypeInfo (TypeData reste non initialisé).
   La zone mémoire ainsi allouée sera automatiquement libérée à la destruction du
   type.
   @param TypeDataLength   Taille des données de type
@@ -858,33 +934,7 @@ begin
 
   FTypeInfo.Kind := FKind;
   Move(ShortName, FTypeInfo.Name, NameLength);
-end;
-
-{*
-  Charge un type depuis un flux
-  @param AOwner   Propriétaire du type
-  @param Stream   Flux depuis lequel charger le type
-  @return Type nouvellement créé
-*}
-class function TSepiType.LoadFromStream(AOwner : TSepiMeta;
-  Stream : TStream) : TSepiType;
-var Kind : TTypeKind;
-begin
-  Stream.ReadBuffer(Kind, 1);
-  case Kind of
-    tkInteger     : Result := TSepiIntegerType  .Load(AOwner, Stream);
-    tkInt64       : Result := TSepiInt64Type    .Load(AOwner, Stream);
-    tkFloat       : Result := TSepiDoubleType   .Load(AOwner, Stream);
-    tkString      : Result := TSepiStringType   .Load(AOwner, Stream);
-    tkEnumeration : Result := TSepiEnumType     .Load(AOwner, Stream);
-    tkSet         : Result := TSepiSetType      .Load(AOwner, Stream);
-    tkRecord      : Result := TSepiRecordType   .Load(AOwner, Stream);
-    tkClass       : Result := TSepiClassType    .Load(AOwner, Stream);
-    tkArray       : Result := TSepiArrayType    .Load(AOwner, Stream);
-    tkDynArray    : Result := TSepiDynArrayType .Load(AOwner, Stream);
-    tkMethod      : Result := TSepiMethodRefType.Load(AOwner, Stream);
-    else Result := nil;
-  end;
+  FTypeData := GetTypeData(FTypeInfo);
 end;
 
 {*
@@ -923,270 +973,6 @@ end;
 function TSepiType.CompatibleWith(AType : TSepiType) : boolean;
 begin
   Result := AType.FKind = FKind;
-end;
-
-{-----------------------------------}
-{ Classe TSepiMetaVariableContainer }
-{-----------------------------------}
-
-constructor TSepiMetaVariableContainer.Load(AOwner : TSepiMeta;
-  Stream : TStream);
-var Count : integer;
-begin
-  inherited;
-  FVariables := TSepiMetaList.Create;
-
-  Stream.ReadBuffer(Count, 4);
-  while Count > 0 do
-  begin
-    TSepiMetaVariable.Load(Self, Stream);
-    dec(Count);
-  end;
-end;
-
-constructor TSepiMetaVariableContainer.Create(AOwner : TSepiMeta;
-  AName : string);
-begin
-  inherited Create(AOwner, AName);
-  FVariables := TSepiMetaList.Create;
-end;
-
-destructor TSepiMetaVariableContainer.Destroy;
-begin
-  FVariables.Free;
-  inherited;
-end;
-
-function TSepiMetaVariableContainer.GetVariableCount : integer;
-begin
-  Result := FVariables.Count;
-end;
-
-function TSepiMetaVariableContainer.GetVariables(
-  Index : integer) : TSepiMetaVariable;
-begin
-  Result := TSepiMetaVariable(FVariables.Objects[Index]);
-end;
-
-procedure TSepiMetaVariableContainer.ChildAdded(Child : TSepiMeta);
-begin
-  inherited;
-  if Child is TSepiMetaVariable then
-    FVariables.AddMeta(Child);
-end;
-
-procedure TSepiMetaVariableContainer.ChildRemoving(Child : TSepiMeta);
-begin
-  if Child is TSepiMetaVariable then
-    FVariables.Remove(Child);
-  inherited;
-end;
-
-{---------------------------------}
-{ Classe TSepiMetaMemberContainer }
-{---------------------------------}
-
-constructor TSepiMetaMemberContainer.Load(AOwner : TSepiMeta; Stream : TStream);
-var Count : integer;
-begin
-  inherited;
-  FMethods := TSepiMetaList.Create;
-  FOverloadedMethods := TSepiMetaList.Create;
-  FProperties := TSepiMetaList.Create;
-
-  Stream.ReadBuffer(Count, 4);
-  while Count > 0 do
-  begin
-    TSepiMetaMethod.Load(Self, Stream);
-    dec(Count);
-  end;
-
-  Stream.ReadBuffer(Count, 4);
-  while Count > 0 do
-  begin
-    TSepiMetaOverloadedMethod.Load(Self, Stream);
-    dec(Count);
-  end;
-
-  Stream.ReadBuffer(Count, 4);
-  while Count > 0 do
-  begin
-    TSepiMetaProperty.Load(Self, Stream);
-    dec(Count);
-  end;
-end;
-
-constructor TSepiMetaMemberContainer.Create(AOwner : TSepiMeta; AName : string);
-begin
-  inherited Create(AOwner, AName);
-  FMethods := TSepiMetaList.Create;
-  FOverloadedMethods := TSepiMetaList.Create;
-  FProperties := TSepiMetaList.Create;
-end;
-
-destructor TSepiMetaMemberContainer.Destroy;
-begin
-  FProperties.Free;
-  FOverloadedMethods.Free;
-  FMethods.Free;
-  inherited;
-end;
-
-function TSepiMetaMemberContainer.GetMethodCount : integer;
-begin
-  Result := FMethods.Count;
-end;
-
-function TSepiMetaMemberContainer.GetMethods(Index : integer) : TSepiMetaMethod;
-begin
-  Result := TSepiMetaMethod(FMethods.Objects[Index]);
-end;
-
-function TSepiMetaMemberContainer.GetOverloadedMethodCount : integer;
-begin
-  Result := FOverloadedMethods.Count;
-end;
-
-function TSepiMetaMemberContainer.GetOverloadedMethods(
-  Index : integer) : TSepiMetaOverloadedMethod;
-begin
-  Result := TSepiMetaOverloadedMethod(FOverloadedMethods.Objects[Index]);
-end;
-
-function TSepiMetaMemberContainer.GetPropertyCount : integer;
-begin
-  Result := FProperties.Count;
-end;
-
-function TSepiMetaMemberContainer.GetProperties(
-  Index : integer) : TSepiMetaProperty;
-begin
-  Result := TSepiMetaProperty(FProperties.Objects[Index]);
-end;
-
-procedure TSepiMetaMemberContainer.ChildAdded(Child : TSepiMeta);
-begin
-  inherited;
-  if Child is TSepiMetaMethod then
-    FMethods.AddMeta(Child);
-  if Child is TSepiMetaOverloadedMethod then
-    FOverloadedMethods.AddMeta(Child);
-  if Child is TSepiMetaProperty then
-    FProperties.AddMeta(Child);
-end;
-
-procedure TSepiMetaMemberContainer.ChildRemoving(Child : TSepiMeta);
-begin
-  if Child is TSepiMetaProperty then
-    FProperties.Remove(Child);
-  if Child is TSepiMetaOverloadedMethod then
-    FOverloadedMethods.Remove(Child);
-  if Child is TSepiMetaMethod then
-    FMethods.Remove(Child);
-  inherited;
-end;
-
-{-------------------------------}
-{ Classe TSepiMetaOmniContainer }
-{-------------------------------}
-
-constructor TSepiMetaOmniContainer.Load(AOwner : TSepiMeta; Stream : TStream);
-var Count : integer;
-begin
-  inherited;
-  FTypes := TSepiMetaList.Create;
-  FConstants := TSepiMetaList.Create;
-  FTypeAliases := TSepiMetaList.Create;
-
-  Stream.ReadBuffer(Count, 4);
-  while Count > 0 do
-  begin
-    TSepiType.LoadFromStream(Self, Stream);
-    dec(Count);
-  end;
-
-  Stream.ReadBuffer(Count, 4);
-  while Count > 0 do
-  begin
-    TSepiConstant.Load(Self, Stream);
-    dec(Count);
-  end;
-
-  Stream.ReadBuffer(Count, 4);
-  while Count > 0 do
-  begin
-    TSepiTypeAlias.Load(Self, Stream);
-    dec(Count);
-  end;
-end;
-
-constructor TSepiMetaOmniContainer.Create(AOwner : TSepiMeta; AName : string);
-begin
-  inherited Create(AOwner, AName);
-  FTypes := TSepiMetaList.Create;
-  FConstants := TSepiMetaList.Create;
-  FTypeAliases := TSepiMetaList.Create;
-end;
-
-destructor TSepiMetaOmniContainer.Destroy;
-begin
-  FTypeAliases.Free;
-  FConstants.Free;
-  FTypes.Free;
-  inherited;
-end;
-
-function TSepiMetaOmniContainer.GetTypeCount : integer;
-begin
-  Result := FTypes.Count;
-end;
-
-function TSepiMetaOmniContainer.GetTypes(Index : integer) : TSepiType;
-begin
-  Result := TSepiType(FTypes.Objects[Index]);
-end;
-
-function TSepiMetaOmniContainer.GetConstantCount : integer;
-begin
-  Result := FConstants.Count;
-end;
-
-function TSepiMetaOmniContainer.GetConstants(Index : integer) : TSepiConstant;
-begin
-  Result := TSepiConstant(FConstants.Objects[Index]);
-end;
-
-function TSepiMetaOmniContainer.GetTypeAliasCount : integer;
-begin
-  Result := FTypeAliases.Count;
-end;
-
-function TSepiMetaOmniContainer.GetTypeAliases(
-  Index : integer) : TSepiTypeAlias;
-begin
-  Result := TSepiTypeAlias(FTypeAliases.Objects[Index]);
-end;
-
-procedure TSepiMetaOmniContainer.ChildAdded(Child : TSepiMeta);
-begin
-  inherited;
-  if Child is TSepiType then
-    FTypes.AddMeta(Child);
-  if Child is TSepiConstant then
-    FConstants.AddMeta(Child);
-  if Child is TSepiTypeAlias then
-    FTypeAliases.AddMeta(Child);
-end;
-
-procedure TSepiMetaOmniContainer.ChildRemoving(Child : TSepiMeta);
-begin
-  if Child is TSepiTypeAlias then
-    FTypeAliases.Remove(Child);
-  if Child is TSepiConstant then
-    FConstants.Remove(Child);
-  if Child is TSepiType then
-    FTypes.Remove(Child);
-  inherited;
 end;
 
 {----------------------}
@@ -1235,9 +1021,9 @@ begin
   end;
 end;
 
-constructor TSepiMetaUnit.Create(AOwner : TSepiMeta; AName : string);
+constructor TSepiMetaUnit.Create(AOwner : TSepiMeta; const AName : string);
 begin
-  inherited Create(AOwner, AName);
+  inherited Create(AOwner, AName, tkUnknown);
   FOwningUnit := Self;
   FCurrentVisibility := mvPublic;
   FLoadingReferences := nil;
@@ -1278,7 +1064,7 @@ begin
   Stream.ReadBuffer(FDest, 4);
 end;
 
-constructor TSepiTypeAlias.Create(AOwner : TSepiMeta; AName : string;
+constructor TSepiTypeAlias.Create(AOwner : TSepiMeta; const AName : string;
   ADest : TSepiType);
 begin
   inherited Create(AOwner, AName);
@@ -1311,7 +1097,7 @@ begin
     and check for a null ValueLength. }
 end;
 
-constructor TSepiConstant.Create(AOwner : TSepiMeta; AName : string;
+constructor TSepiConstant.Create(AOwner : TSepiMeta; const AName : string;
   AType : TSepiType);
 begin
   inherited Create(AOwner, AName);
@@ -1335,7 +1121,7 @@ begin
   Stream.ReadBuffer(FType, 4);
 end;
 
-constructor TSepiMetaVariable.Create(AOwner : TSepiMeta; AName : string;
+constructor TSepiMetaVariable.Create(AOwner : TSepiMeta; const AName : string;
   AType : TSepiType);
 begin
   inherited Create(AOwner, AName);
@@ -1357,7 +1143,7 @@ begin
   Stream.ReadBuffer(FParamKind, 1);
 end;
 
-constructor TSepiMetaParam.Create(AOwner : TSepiMeta; AName : string;
+constructor TSepiMetaParam.Create(AOwner : TSepiMeta; const AName : string;
   AType : TSepiType; AParamKind : TParamFlags = []);
 begin
   inherited Create(AOwner, AName, AType);
@@ -1451,7 +1237,7 @@ begin
   FInherited := nil;
 end;
 
-constructor TSepiMetaMethod.Create(AOwner : TSepiMeta; AName : string;
+constructor TSepiMetaMethod.Create(AOwner : TSepiMeta; const AName : string;
   AKind : TMethodKind = mkProcedure;
   AOverrideState : TSepiMethodOverrideState = osNone;
   AAbstract : boolean = False);
@@ -1517,7 +1303,7 @@ begin
     FCode.CopyFrom(Stream, Count);
 end;
 
-constructor TSepiMetaSepiMethod.Create(AOwner : TSepiMeta; AName : string;
+constructor TSepiMetaSepiMethod.Create(AOwner : TSepiMeta; const AName : string;
   AKind : TMethodKind = mkProcedure;
   AOverrideState : TSepiMethodOverrideState = osNone;
   AAbstract : boolean = False);
@@ -1546,8 +1332,8 @@ end;
 { Classe TSepiMetaDelphiMethod }
 {------------------------------}
 
-constructor TSepiMetaDelphiMethod.Create(AOwner : TSepiMeta; AName : string;
-  ACode : Pointer; AKind : TMethodKind = mkProcedure;
+constructor TSepiMetaDelphiMethod.Create(AOwner : TSepiMeta;
+  const AName : string; ACode : Pointer; AKind : TMethodKind = mkProcedure;
   AOverrideState : TSepiMethodOverrideState = osNone;
   AAbstract : boolean = False;
   ACallConvention : TSepiCallConvention = ccRegister);
@@ -1569,7 +1355,7 @@ begin
 end;
 
 constructor TSepiMetaOverloadedMethod.Create(AOwner : TSepiMeta;
-  AName : string);
+  const AName : string);
 begin
   inherited Create(AOwner, AName);
   FMethodCount := 0;
@@ -1614,7 +1400,7 @@ begin
   FWriteMethodAccess := nil;
 end;
 
-constructor TSepiMetaProperty.Create(AOwner : TSepiMeta; AName : string;
+constructor TSepiMetaProperty.Create(AOwner : TSepiMeta; const AName : string;
   AReadAccess : TSepiMeta; AWriteAccess : TSepiMeta);
 begin
   inherited Create(AOwner, AName);
@@ -1681,13 +1467,13 @@ begin
 end;
 
 initialization
-  SepiImportedUnits := TStringList.Create;
-  with TStringList(SepiImportedUnits) do
-  begin
-    CaseSensitive := False;
-    Duplicates := dupIgnore;
-  end;
+  SepiRegisterMetaClasses([
+    TSepiMetaUnit, TSepiTypeAlias, TSepiConstant, TSepiMetaVariable,
+    TSepiMetaParam, TSepiMetaSepiMethod, TSepiMetaDelphiMethod,
+    TSepiMetaOverloadedMethod, TSepiMetaProperty
+  ]);
 finalization
+  SepiMetaClasses.Free;
   SepiImportedUnits.Free;
 end.
 
