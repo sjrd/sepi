@@ -21,6 +21,11 @@ type
   TBooleanKind = (bkBoolean, bkByteBool, bkWordBool, bkLongBool);
 
   {*
+    Pointeur sur ShortString
+  *}
+  PShortString = ^ShortString;
+
+  {*
     Type entier
     @author Sébastien Jean Robert Doeraene
     @version 1.0
@@ -193,12 +198,19 @@ type
   *}
   TSepiEnumType = class(TSepiType)
   private
-    FValues : array of string; /// Noms des valeurs
+    FMinValue : integer;             /// Valeur minimale
+    FMaxValue : integer;             /// Valeur maximale
+    FBaseType : TSepiEnumType;       /// Type de base (peut être Self)
+    FValueCount : integer;           /// Nombre de valeurs
+    FValues : array of PShortString; /// Noms des valeurs
+    FBaseTypeInfo : PTypeInfo;       /// Pour avoir un PPTypeInfo
 
     procedure ExtractTypeData;
 
-    function GetValueCount : integer;
-    function GetValues(Index : integer) : string;
+    function GetNames(Value : integer) : string;
+    function GetValues(const Name : string) : integer;
+  protected
+    procedure Loaded; override;
   public
     constructor RegisterTypeInfo(AOwner : TSepiMeta;
       ATypeInfo : PTypeInfo); override;
@@ -208,8 +220,12 @@ type
 
     function CompatibleWith(AType : TSepiType) : boolean; override;
 
-    property ValueCount : integer read GetValueCount;
-    property Values[index : integer] : string read GetValues;
+    property MinValue : integer read FMinValue;
+    property MaxValue : integer read FMaxValue;
+    property BaseType : TSepiEnumType read FBaseType;
+    property ValueCount : integer read FValueCount;
+    property Names[Value : integer] : string read GetNames;
+    property Values[const Name : string] : integer read GetValues;
   end;
 
   {*
@@ -868,13 +884,13 @@ end;
   Charge un type énuméré depuis un flux
 *}
 constructor TSepiEnumType.Load(AOwner : TSepiMeta; Stream : TStream);
+var TypeDataLength : integer;
 begin
   inherited;
 
-  AllocateTypeInfo(EnumTypeDataLength);
-  Stream.ReadBuffer(TypeData^, StringTypeDataLength);
-
-  ExtractTypeData;
+  Stream.ReadBuffer(TypeDataLength, 4);
+  AllocateTypeInfo(TypeDataLength);
+  Stream.ReadBuffer(TypeData^, TypeDataLength);
 end;
 
 {*
@@ -885,65 +901,118 @@ end;
 *}
 constructor TSepiEnumType.Create(AOwner : TSepiMeta; const AName : string;
   const AValues : array of string);
+var TypeDataLength, I, Len : integer;
+    Current : PChar;
+    OwningUnitName : ShortString;
 begin
   inherited Create(AOwner, AName, tkEnumeration);
 
-  AllocateTypeInfo(EnumTypeDataLength);
+  // Calcul de la taille des données de type et allocation de celles-ci
+  TypeDataLength := EnumTypeDataLength;
+  for I := Low(AValues) to High(AValues) do
+    inc(TypeDataLength, Length(AValues[I]));
+  inc(TypeDataLength, Length(AValues)); // Longueurs des chaînes
+  inc(TypeDataLength, Length(OwningUnit.Name)+1);
+  AllocateTypeInfo(TypeDataLength);
 
-  ExtractTypeData;
+  // Initialisation des variables privées
+  FValueCount := Length(AValues);
+  SetLength(FValues, ValueCount);
+  FBaseTypeInfo := TypeInfo;
+
+  // Initialisation des informations scalaires des données de type
+  TypeData.OrdType := otUByte;
+  TypeData.MinValue := 0;
+  TypeData.MaxValue := ValueCount-1;
+  TypeData.BaseType := @FBaseTypeInfo;
+
+  // Enregistrement des noms d'énumération dans les données de type
+  Current := @TypeData.NameList;
+  for I := 0 to ValueCount-1 do
+  begin
+    Len := Length(AValues[Low(AValues)+I]);
+
+    // Enregistrement de l'adresse dans le tableau FValues
+    FValues[I] := PShortString(Current);
+
+    // Recopie du nom dans les données de type
+    Current[0] := Chr(Len);
+    inc(Current);
+    Move(AValues[Low(AValues)+I][1], Current^, Len);
+
+    // Passage à l'élément suivant
+    inc(Current, Len);
+  end;
+
+  // Enregistrement du nom de l'unité dans les données de type
+  OwningUnitName := OwningUnit.Name;
+  Move(OwningUnitName[0], Current[0], Length(OwningUnitName)+1);
 end;
 
 {*
   Extrait les informations les plus importantes depuis les données de type
 *}
 procedure TSepiEnumType.ExtractTypeData;
+var Current : PShortString;
+    I : integer;
 begin
+  FMinValue := TypeData.MinValue;
+  FMaxValue := TypeData.MaxValue;
+  FBaseTypeInfo := TypeData.BaseType^;
+
+  if FBaseTypeInfo = TypeInfo then
+  begin
+    FBaseType := Self;
+    FValueCount := MaxValue+1;
+
+    // Mise au point du tableau des références vers les noms
+    SetLength(FValues, ValueCount);
+    Current := @TypeData.NameList;
+    for I := 0 to ValueCount-1 do
+    begin
+      FValues[I] := Current;
+      inc(Current, Length(Current^)+1);
+    end;
+  end else
+  begin
+    FBaseType := Root.FindTypeByTypeInfo(FBaseTypeInfo) as TSepiEnumType;
+    FValueCount := BaseType.ValueCount;
+  end;
 end;
 
-{constructor TSepiEnumType.Load(AOwner : TSepiMeta; Stream : TStream);
-var Count, I : integer;
-    Str : string;
+{*
+  Tableau des noms par leurs valeurs
+  @param Value   Valeur d'élément d'énumération
+  @return Nom de la valeur Value
+*}
+function TSepiEnumType.GetNames(Value : integer) : string;
+begin
+  Result := BaseType.FValues[Value]^;
+end;
+
+{*
+  Tableau des valeurs par leurs noms
+  @param Name   Nom d'élément d'énumération
+  @return Valeur du nom donné
+*}
+function TSepiEnumType.GetValues(const Name : string) : integer;
+begin
+  Result := GetEnumValue(TypeInfo, Name);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiEnumType.Loaded;
 begin
   inherited;
-  Count := 0;
-  Stream.ReadBuffer(Count, 1);
-  SetLength(FValues, Count);
-  for I := 0 to Count-1 do
-  begin
-    Str := ReadStrFromStream(Stream);
-    FValues[I] := Str;
-    TSepiConstant.Create(AOwner, Str, Self).Value.WriteBuffer(I, 4);
-  end;
-end;
 
-constructor TSepiEnumType.Create(AOwner : TSepiMeta; const AName : string;
-  const AValues : array of string);
-var I : integer;
-begin
-  inherited Create(AOwner, AName, tkEnumeration);
-  SetLength(FValues, Length(AValues));
-  for I := 0 to Length(AValues)-1 do
-  begin
-    FValues[I] := AValues[I];
-    TSepiConstant.Create(AOwner, AValues[I], Self).Value.WriteBuffer(I, 4);
-  end;
-end;}
+  FBaseType := TSepiEnumType(TypeData.BaseType);
+  OwningUnit.LoadRef(FBaseType);
+  FBaseTypeInfo := FBaseType.FBaseTypeInfo;
+  TypeData.BaseType := @FBaseTypeInfo;
 
-{*
-  Nombre de valeurs du type énuméré
-  @retun Nombre de valeurs
-*}
-function TSepiEnumType.GetValueCount : integer;
-begin
-  Result := Length(FValues);
-end;
-
-{*
-  Tableau zero-based des noms des valeurs
-*}
-function TSepiEnumType.GetValues(Index : integer) : string;
-begin
-  Result := FValues[Index];
+  ExtractTypeData;
 end;
 
 {*
@@ -951,7 +1020,8 @@ end;
 *}
 function TSepiEnumType.CompatibleWith(AType : TSepiType) : boolean;
 begin
-  Result := (TypeData.CompType^) = (AType.TypeData.CompType^);
+  Result := (AType is TSepiEnumType) and
+    (BaseType = TSepiEnumType(AType).BaseType);
 end;
 
 {---------------------}

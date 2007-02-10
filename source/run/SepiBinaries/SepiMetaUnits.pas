@@ -177,6 +177,8 @@ type
 
     procedure LoadUnit(UnitName : string);
 
+    function FindTypeByTypeInfo(TypeInfo : PTypeInfo) : TSepiType;
+
     property UnitCount : integer read GetUnitCount;
     property Units[index : integer] : TSepiMetaUnit read GetUnits;
   end;
@@ -999,6 +1001,32 @@ procedure TSepiMetaRoot.LoadUnit(UnitName : string);
 begin
   { TODO 2 -cMetaunités : Charger une unité par son nom (ce peut être une unité
     "système" ou non) }
+end;
+
+{*
+  Trouve un type enregistré à partir de ses informations de type
+  @param TypeInfo   Informations de type du type recherché
+  @return Le type correspondant aux informations de type données
+  @throw ESepiMetaNotFoundError Aucun type enregistré correspondant
+*}
+function TSepiMetaRoot.FindTypeByTypeInfo(TypeInfo : PTypeInfo) : TSepiType;
+var AnsiTypeName : string;
+    I : integer;
+    Meta : TSepiMeta;
+begin
+  AnsiTypeName := TypeInfo.Name;
+  for I := 0 to UnitCount-1 do
+  begin
+    Meta := Units[I].GetMeta(AnsiTypeName);
+    if Assigned(Meta) and (Meta is TSepiType) and
+       (TSepiType(Meta).TypeInfo = TypeInfo) then
+    begin
+      Result := TSepiType(Meta);
+      exit;
+    end;
+  end;
+
+  raise ESepiMetaNotFoundError.CreateFmt(SSepiObjectNotFound, [Name]);
 end;
 
 {----------------------}
