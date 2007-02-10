@@ -143,6 +143,7 @@ type
     FTypeData : PTypeData;     /// RTTD (Runtime Type Data)
   protected
     procedure AllocateTypeInfo(TypeDataLength : integer = 0);
+    procedure ExtractTypeData; virtual;
   public
     constructor RegisterTypeInfo(AOwner : TSepiMeta;
       ATypeInfo : PTypeInfo); virtual;
@@ -937,6 +938,13 @@ begin
   FTypeInfo.Kind := FKind;
   Move(ShortName, FTypeInfo.Name, NameLength);
   FTypeData := GetTypeData(FTypeInfo);
+end;
+
+{*
+  Extrait les informations les plus importantes depuis les données de type
+*}
+procedure TSepiType.ExtractTypeData;
+begin
 end;
 
 {*
