@@ -8,7 +8,8 @@ unit SepiImportsSystem;
 interface
 
 uses
-  TypInfo, SepiMetaUnits, SepiTypes;
+  TypInfo, SepiMetaUnits, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
+  SepiCompTypes;
 
 implementation
 

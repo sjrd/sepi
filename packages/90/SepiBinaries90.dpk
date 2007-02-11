@@ -34,7 +34,10 @@ contains
   SepiBinariesConsts in '..\..\source\run\SepiBinaries\SepiBinariesConsts.pas',
   SepiImportsSystem in '..\..\source\run\SepiBinaries\SepiImportsSystem.pas',
   SepiMetaUnits in '..\..\source\run\SepiBinaries\SepiMetaUnits.pas',
-  SepiTypes in '..\..\source\run\SepiBinaries\SepiTypes.pas';
+  SepiStrTypes in '..\..\source\run\SepiBinaries\SepiStrTypes.pas',
+  SepiArrayTypes in '..\..\source\run\SepiBinaries\SepiArrayTypes.pas',
+  SepiCompTypes in '..\..\source\run\SepiBinaries\SepiCompTypes.pas',
+  SepiOrdTypes in '..\..\source\run\SepiBinaries\SepiOrdTypes.pas';
 
 end.
 

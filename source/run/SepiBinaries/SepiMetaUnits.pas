@@ -455,7 +455,7 @@ procedure SepiUnregisterImportedUnit(const UnitName : string);
 implementation
 
 uses
-  SepiTypes, SepiImportsSystem;
+  SepiOrdTypes, SepiStrTypes, SepiArrayTypes, SepiCompTypes, SepiImportsSystem;
 
 var
   SepiMetaClasses : TStrings = nil;
