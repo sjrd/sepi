@@ -110,6 +110,7 @@ begin
   inherited;
 
   FMaxLength := TypeData.MaxLength;
+  FSize := FMaxLength + 1;
 end;
 
 {------------------------}
@@ -164,6 +165,7 @@ procedure TSepiStringType.ExtractTypeData;
 begin
   inherited;
 
+  FSize := 4;
   FIsUnicode := Kind = tkWString;
 end;
 

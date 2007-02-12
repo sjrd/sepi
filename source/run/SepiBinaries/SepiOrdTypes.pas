@@ -29,8 +29,8 @@ type
 
   TSepiOrdType = class(TSepiType)
   private
-    FMinValue : Longint;       /// Valeur minimale
-    FMaxValue : Longint;       /// Valeur maximale
+    FMinValue : Longint; /// Valeur minimale
+    FMaxValue : Longint; /// Valeur maximale
   protected
     procedure ExtractTypeData; override;
   public
@@ -204,6 +204,8 @@ type
     FCompTypeInfo : PTypeInfo; /// TypeInfo du type des éléments
   protected
     procedure Loaded; override;
+
+    procedure ExtractTypeData; override;
   public
     constructor RegisterTypeInfo(AOwner : TSepiMeta;
       ATypeInfo : PTypeInfo); override;
@@ -239,6 +241,12 @@ const
 procedure TSepiOrdType.ExtractTypeData;
 begin
   inherited;
+
+  case TypeData.OrdType of
+    otSByte, otUByte : FSize := 1;
+    otSWord, otUWord : FSize := 2;
+    otSLong, otULong : FSize := 4;
+  end;
 
   FMinValue := TypeData.MinValue;
   FMaxValue := TypeData.MaxValue;
@@ -494,6 +502,7 @@ procedure TSepiInt64Type.ExtractTypeData;
 begin
   inherited;
 
+  FSize := 8;
   FMinValue := TypeData.MinInt64Value;
   FMaxValue := TypeData.MaxInt64Value;
 
@@ -573,6 +582,12 @@ begin
   inherited;
 
   FFloatType := TypeData.FloatType;
+
+  case FFloatType of
+    ftSingle : FSize := 4;
+    ftDouble, ftComp, ftCurr : FSize := 8;
+    ftExtended : FSize := 10;
+  end;
 end;
 
 {-------------------------}
@@ -858,6 +873,17 @@ begin
   TypeData.CompType := @FCompTypeInfo;
 
   ExtractTypeData;
+end;
+
+{*
+  [@inheritedDoc]
+*}
+procedure TSepiSetType.ExtractTypeData;
+begin
+  inherited;
+
+  if FSize = 0 then
+    FSize := (FCompType.MaxValue - FCompType.MinValue + 1) div 8;
 end;
 
 {*

@@ -12,30 +12,48 @@ uses
 
 type
   {*
+    Informations sur une dimension de tableau
+    @author Sébastien Jean Robert Doeraene
+    @version 1.0
+  *}
+  TDimInfo = record
+    MinValue : integer;
+    MaxValue : integer;
+  end;
+
+  {*
     Type tableau statique (à N dimensions)
     @author Sébastien Jean Robert Doeraene
     @version 1.0
   *}
   TSepiArrayType = class(TSepiType)
   private
-    FDimensions : array of integer; /// Taille dans chaque dimension
-    FItemType : TSepiType;          /// Type des éléments
+    FDimCount : integer;             /// Nombre de dimensions
+    FDimensions : array of TDimInfo; /// Dimensions
+    FElementType : TSepiType;        /// Type des éléments
 
-    function GetDimCount : integer;
-    function GetDimensions(Index : integer) : integer;
+    procedure MakeSize;
+
+    function GetDimensions(Kind, Index : integer) : integer;
   protected
     procedure Loaded; override;
   public
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
     constructor Create(AOwner : TSepiMeta; const AName : string;
-      const ADimensions : array of integer; AItemType : TSepiType);
-    destructor Destroy; override;
+      const ADimensions : array of integer; AElementType : TSepiType);
 
     function CompatibleWith(AType : TSepiType) : boolean; override;
 
-    property DimCount : integer read GetDimCount;
-    property Dimensions[index : integer] : integer read GetDimensions;
-    property ItemType : TSepiType read FItemType;
+    property DimCount : integer read FDimCount;
+
+    /// Bornes inférieures des dimensions
+    property MinValues [index : integer] : integer index 1 read GetDimensions;
+    /// Bornes supérieures des dimensions
+    property MaxValues [index : integer] : integer index 2 read GetDimensions;
+    /// Nombres d'éléments des dimensions
+    property Dimensions[index : integer] : integer index 3 read GetDimensions;
+
+    property ElementType : TSepiType read FElementType;
   end;
 
   {*
@@ -45,24 +63,29 @@ type
   *}
   TSepiDynArrayType = class(TSepiType)
   private
-    FItemType : TSepiType; /// Type des éléments
+    FElementType : TSepiType;     /// Type des éléments
+    FElementTypeInfo : PTypeInfo; /// RTTI des éléments
+
+    procedure MakeTypeInfo;
   protected
     procedure Loaded; override;
+    procedure ExtractTypeData; override;
   public
+    constructor RegisterTypeInfo(AOwner : TSepiMeta;
+      ATypeInfo : PTypeInfo); override;
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
     constructor Create(AOwner : TSepiMeta; const AName : string;
-      AItemType : TSepiType);
+      AElementType : TSepiType);
 
     function CompatibleWith(AType : TSepiType) : boolean; override;
 
-    property ItemType : TSepiType read FItemType;
+    property ElementType : TSepiType read FElementType;
   end;
 
 implementation
 
 const
   // Tailles de structure TTypeData en fonction des types
-  ArrayTypeDataLength = 0;
   DynArrayTypeDataLengthBase =
     sizeof(Longint) + 2*sizeof(Pointer) + sizeof(integer);
 
@@ -70,115 +93,178 @@ const
 { Classe TSepiArrayType }
 {-----------------------}
 
+{*
+  Charge un type entier depuis un flux
+*}
 constructor TSepiArrayType.Load(AOwner : TSepiMeta; Stream : TStream);
-var DimCount : integer;
 begin
   inherited;
-  DimCount := 0;
-  Stream.ReadBuffer(DimCount, 1);
-  SetLength(FDimensions, DimCount);
-  Stream.ReadBuffer(FDimensions[0], 4*DimCount);
-  Stream.ReadBuffer(FItemType, 4);
+
+  AllocateTypeInfo;
+
+  FDimCount := 0;
+  Stream.ReadBuffer(FDimCount, 1);
+
+  SetLength(FDimensions, FDimCount);
+  Stream.ReadBuffer(FDimensions[0], FDimCount*sizeof(TDimInfo));
+  Stream.ReadBuffer(FElementType, 4);
 end;
 
+{*
+  Crée un nouveau type tableau
+  @param AOwner         Propriétaire du type
+  @param AName          Nom du type
+  @param ADimensions    Dimensions du tableau [Min1, Max1, Min2, Max2, ...]
+  @param AElementType   Type des éléments
+*}
 constructor TSepiArrayType.Create(AOwner : TSepiMeta; const AName : string;
-  const ADimensions : array of integer; AItemType : TSepiType);
-var I : integer;
+  const ADimensions : array of integer; AElementType : TSepiType);
 begin
   inherited Create(AOwner, AName, tkArray);
-  SetLength(FDimensions, Length(ADimensions));
-  for I := 0 to Length(ADimensions) do
-    FDimensions[I] := ADimensions[I];
-  FItemType := AItemType;
+
+  AllocateTypeInfo;
+
+  FDimCount := Length(ADimensions) div 2;
+  SetLength(FDimensions, FDimCount);
+  Move(ADimensions[Low(ADimensions)], FDimensions[0],
+    FDimCount*sizeof(TDimInfo));
+
+  FElementType := AElementType;
+
+  MakeSize;
 end;
 
-destructor TSepiArrayType.Destroy;
+{*
+  Calcule la taille du tableau et la range dans FSize
+*}
+procedure TSepiArrayType.MakeSize;
+var I : integer;
 begin
-  SetLength(FDimensions, 0);
-  inherited Destroy;
+  FSize := FElementType.Size;
+  for I := 0 to DimCount-1 do
+    FSize := FSize * Dimensions[I];
 end;
 
-function TSepiArrayType.GetDimCount : integer;
+{*
+  Récupère une information sur une dimension
+*}
+function TSepiArrayType.GetDimensions(Kind, Index : integer) : integer;
 begin
-  Result := Length(FDimensions);
+  with FDimensions[Index] do case Kind of
+    1 : Result := MinValue;
+    2 : Result := MaxValue;
+    else Result := MaxValue-MinValue+1;
+  end;
 end;
 
-function TSepiArrayType.GetDimensions(Index : integer) : integer;
-begin
-  Result := FDimensions[Index];
-end;
-
+{*
+  [@inheritDoc]
+*}
 procedure TSepiArrayType.Loaded;
 begin
   inherited;
-  OwningUnit.LoadRef(FItemType);
+
+  OwningUnit.LoadRef(FElementType);
+  MakeSize;
 end;
 
+{*
+  [@inheritDoc]
+*}
 function TSepiArrayType.CompatibleWith(AType : TSepiType) : boolean;
-var ArrayType : TSepiArrayType;
-    I : integer;
 begin
-  if Self = AType then
-  begin
-    Result := True;
-    exit;
-  end;
-
   Result := False;
-  if AType.Kind <> tkArray then exit;
-  ArrayType := TSepiArrayType(AType);
-
-  if FItemType <> ArrayType.FItemType then exit;
-  if Length(FDimensions) <> Length(ArrayType.FDimensions) then exit;
-  for I := 0 to Length(FDimensions)-1 do
-    if FDimensions[I] <> ArrayType.FDimensions[I] then exit;
-
-  Result := True;
 end;
 
 {--------------------------}
 { Classe TSepiDynArrayType }
 {--------------------------}
 
+{*
+  Recense un type tableau dynamique natif
+*}
+constructor TSepiDynArrayType.RegisterTypeInfo(AOwner : TSepiMeta;
+  ATypeInfo : PTypeInfo);
+begin
+  inherited;
+  ExtractTypeData;
+end;
+
+{*
+  Charge un type tableau dynamique depuis un flux
+*}
 constructor TSepiDynArrayType.Load(AOwner : TSepiMeta; Stream : TStream);
 begin
   inherited;
-  Stream.ReadBuffer(FItemType, 4);
+
+  Stream.ReadBuffer(FElementType, 4);
 end;
 
+{*
+  Crée un nouveau type tableau dynamique
+  @param AOwner         Propriétaire du type
+  @param AName          Nom du type
+  @param AElementType   Type des éléments
+*}
 constructor TSepiDynArrayType.Create(AOwner : TSepiMeta; const AName : string;
-  AItemType : TSepiType);
+  AElementType : TSepiType);
 begin
   inherited Create(AOwner, AName, tkDynArray);
-  FItemType := AItemType;
+
+  FElementType := AElementType;
+  MakeTypeInfo;
 end;
 
+{*
+  Construit les RTTI du type tableau dynamique
+*}
+procedure TSepiDynArrayType.MakeTypeInfo;
+var UnitName : ShortString;
+    TypeDataLength : integer;
+begin
+  UnitName := OwningUnit.Name;
+  TypeDataLength := DynArrayTypeDataLengthBase + Length(UnitName) + 1;
+  AllocateTypeInfo(TypeDataLength);
+
+  FSize := 4;
+  FElementTypeInfo := FElementType.TypeInfo;
+
+  TypeData.elSize := FElementType.Size;
+  TypeData.elType := nil;
+  TypeData.varType := 0;
+  TypeData.elType2 := @FElementTypeInfo;
+end;
+
+{*
+  [@inheritDoc]
+*}
 procedure TSepiDynArrayType.Loaded;
 begin
   inherited;
-  OwningUnit.LoadRef(FItemType);
+
+  OwningUnit.LoadRef(FElementType);
+  MakeTypeInfo;
 end;
 
+{*
+  [@inheritDoc]
+*}
+procedure TSepiDynArrayType.ExtractTypeData;
+begin
+  inherited;
+
+  FSize := 4;
+
+  FElementTypeInfo := TypeData.elType^;
+  FElementType := Root.FindTypeByTypeInfo(FElementTypeInfo);
+end;
+
+{*
+  [@inheritDoc]
+*}
 function TSepiDynArrayType.CompatibleWith(AType : TSepiType) : boolean;
 begin
-  if Self = AType then
-  begin
-    Result := True;
-    exit;
-  end;
-
-  if AType.Kind = tkDynArray then
-  begin
-    Result := FItemType = TSepiDynArrayType(AType).FItemType;
-  end else
-  if AType.Kind = tkArray then
-  begin
-    Result := (FItemType = TSepiArrayType(AType).FItemType) and
-      (TSepiArrayType(AType).DimCount = 0);
-  end else
-  begin
-    Result := False;
-  end;
+  Result := False;
 end;
 
 initialization

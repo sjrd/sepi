@@ -142,6 +142,8 @@ type
     FTypeInfo : PTypeInfo;     /// RTTI (Runtime Type Information)
     FTypeData : PTypeData;     /// RTTD (Runtime Type Data)
   protected
+    FSize : integer; /// Taille d'une variable de ce type
+
     procedure AllocateTypeInfo(TypeDataLength : integer = 0);
     procedure ExtractTypeData; virtual;
   public
@@ -162,6 +164,7 @@ type
     property Kind : TTypeKind read FKind;
     property TypeInfo : PTypeInfo read FTypeInfo;
     property TypeData : PTypeData read FTypeData;
+    property Size : integer read FSize;
   end;
 
   {*
@@ -855,6 +858,7 @@ begin
   FTypeInfoLength := 0;
   FTypeInfo := ATypeInfo;
   FTypeData := GetTypeData(FTypeInfo);
+  FSize := 0;
 end;
 
 {*
@@ -872,6 +876,7 @@ begin
   FTypeInfoLength := 0;
   FTypeInfo := nil;
   FTypeData := nil;
+  FSize := 0;
 end;
 
 {*
@@ -887,6 +892,7 @@ begin
   FTypeInfoLength := 0;
   FTypeInfo := nil;
   FTypeData := nil;
+  FSize := 0;
 end;
 
 {*
@@ -904,6 +910,7 @@ begin
   FTypeInfoLength := 0;
   FTypeInfo := nil;
   FTypeData := nil;
+  FSize := 0;
 end;
 
 {*
