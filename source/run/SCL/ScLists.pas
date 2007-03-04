@@ -1665,7 +1665,7 @@ end;
 { Initialization et Finalization }
 {--------------------------------}
 
-var I : integer;
+var I : integer; /// Variable de contrôle de boucle interne
 
 initialization
   AppParams := TScStrings.Create;

@@ -290,40 +290,26 @@ end;
   Convertit une valeur Double en la valeur Int64 ayant les mêmes bits
   Attention ! Il n'y a aucune correspondance entre Value et Result ! Cette
   fonction est totalement empirique.
+  @param Value   Valeur double à convertir
+  @return Valeur entière dont les bits sont identiques à Value
 *}
 function ConvertDoubleToInt64(Value : Double) : Int64;
-type
-  TypeDeTransition = packed record
-    case integer of
-    0 : (DblValue : Double);
-    1 : (IntValue : Int64);
-  end;
-var VarDeTransition : TypeDeTransition;
+var IntValue : Int64 absolute Value;
 begin
-  { Ceci est totalement empirique, seuls les bits sont égaux (ce qui ne
-    correspond absolument pas à la valeur) }
-  VarDeTransition.DblValue := Value;
-  Result := VarDeTransition.IntValue;
+  Result := IntValue;
 end;
 
 {*
   Convertit une valeur Int64 en la valeur Double ayant les mêmes bits
   Attention ! Il n'y a aucune correspondance entre Value et Result ! Cette
   fonction est totalement empirique.
+  @param Value   Valeur entière à convertir
+  @return Valeur double dont les bits sont identiques à Value
 *}
 function ConvertInt64ToDouble(Value : Int64) : Double;
-type
-  TypeDeTransition = packed record
-    case integer of
-    0 : (IntValue : Int64);
-    1 : (DblValue : Double);
-  end;
-var VarDeTransition : TypeDeTransition;
+var DoubleValue : Double absolute Value;
 begin
-  { Ceci est totalement empirique, seuls les bits sont égaux (ce qui ne
-    correspond absolument pas à la valeur) }
-  VarDeTransition.IntValue := Value;
-  Result := VarDeTransition.DblValue;
+  Result := DoubleValue;
 end;
 
 {*
