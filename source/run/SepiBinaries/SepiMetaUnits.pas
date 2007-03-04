@@ -20,23 +20,8 @@ type
   {*
     Visibilité d'un membre d'une classe, d'un objet, ou d'une unité
   *}
-  TSepiMemberVisibility = (mvPrivate, mvInternal, mvProtected,
+  TMemberVisibility = (mvPrivate, mvInternal, mvProtected,
     mvInternalProtected, mvPublic, mvPublished);
-
-  {*
-    Statut dynamique d'une méthode
-  *}
-  TSepiMethodOverrideState = (osNone, osVirtual, osDynamic, osOverride);
-
-  {*
-    Convention d'appel d'une méthode
-  *}
-  TSepiCallConvention = (ccRegister, ccStdCall, ccPascal, ccCDecl);
-
-  {*
-    Type d'accesseur d'une propriété
-  *}
-  TSepiPropertyAccessKind = (pakNone, pakVariable, pakMethod);
 
   {*
     Déclenchée lorsque la recherche d'un meta s'est soldée par un échec
@@ -48,10 +33,6 @@ type
   TSepiMeta = class;
   TSepiMetaRoot = class;
   TSepiMetaUnit = class;
-  TSepiMetaVariable = class;
-  TSepiMetaMethod = class;
-  TSepiMetaOverloadedMethod = class;
-  TSepiMetaProperty = class;
   TSepiConstant = class;
   TSepiTypeAlias = class;
 
@@ -88,16 +69,19 @@ type
   *}
   TSepiMeta = class
   private
-    FState : TSepiMetaState;             /// État
-    FOwner : TSepiMeta;                  /// Propriétaire
-    FRoot : TSepiMetaRoot;               /// Racine
-    FOwningUnit : TSepiMetaUnit;         /// Unité contenante
-    FName : string;                      /// Nom
-    FVisibility : TSepiMemberVisibility; /// Visibilité
-    FChildren : TSepiMetaList;           /// Liste des enfants
+    FState : TSepiMetaState;         /// État
+    FOwner : TSepiMeta;              /// Propriétaire
+    FRoot : TSepiMetaRoot;           /// Racine
+    FOwningUnit : TSepiMetaUnit;     /// Unité contenante
+    FName : string;                  /// Nom
+    FVisibility : TMemberVisibility; /// Visibilité
+    FChildren : TSepiMetaList;       /// Liste des enfants
 
     procedure AddChild(Child : TSepiMeta);
     procedure RemoveChild(Child : TSepiMeta);
+
+    function GetChildCount : integer;
+    function GetChildren(Index : integer) : TSepiMeta;
   protected
     procedure LoadChildren(Stream : TStream);
 
@@ -121,8 +105,10 @@ type
     property Root : TSepiMetaRoot read FRoot;
     property OwningUnit : TSepiMetaUnit read FOwningUnit;
     property Name : string read FName;
-    property Visibility : TSepiMemberVisibility
-      read FVisibility write FVisibility;
+    property Visibility : TMemberVisibility read FVisibility write FVisibility;
+
+    property ChildCount : integer read GetChildCount;
+    property Children[index : integer] : TSepiMeta read GetChildren;
   end;
 
   {*
@@ -195,10 +181,10 @@ type
   TSepiMetaUnit = class(TSepiType)
   private
     { TODO 2 -cMetaunités : Ajouter des champs concernant les en-tête d'unité }
-    FCurrentVisibility : TSepiMemberVisibility;
-    FLoadingReferences : TStrings;
+    FCurrentVisibility : TMemberVisibility; /// Visibilité courante
+    FLoadingReferences : TStrings;          /// Références en chargement
 
-    procedure SetCurrentVisibility(Value : TSepiMemberVisibility);
+    procedure SetCurrentVisibility(Value : TMemberVisibility);
   protected
     procedure Loaded; override;
   public
@@ -207,7 +193,7 @@ type
 
     procedure LoadRef(var Ref);
 
-    property CurrentVisibility : TSepiMemberVisibility
+    property CurrentVisibility : TMemberVisibility
       read FCurrentVisibility write SetCurrentVisibility;
   end;
 
@@ -218,7 +204,7 @@ type
   *}
   TSepiTypeAlias = class(TSepiMeta)
   private
-    FDest : TSepiType;
+    FDest : TSepiType; /// Type destination
   protected
     procedure Loaded; override;
   public
@@ -236,8 +222,8 @@ type
   *}
   TSepiConstant = class(TSepiMeta)
   private
-    FType : TSepiType;
-    FValue : TMemoryStream;
+    FType : TSepiType;      /// Type de la constante
+    FValue : TMemoryStream; /// Valeur
   protected
     procedure Loaded; override;
   public
@@ -247,201 +233,6 @@ type
 
     property ConstType : TSepiType read FType;
     property Value : TMemoryStream read FValue;
-  end;
-
-  {*
-    Meta-variable
-    @author Sébastien Jean Robert Doeraene
-    @version 1.0
-  *}
-  TSepiMetaVariable = class(TSepiMeta)
-  private
-    FType : TSepiType;
-  protected
-    procedure Loaded; override;
-  public
-    constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
-    constructor Create(AOwner : TSepiMeta; const AName : string;
-      AType : TSepiType);
-
-    property VarType : TSepiType read FType;
-  end;
-
-  {*
-    Meta-paramètre de méthode
-    @author Sébastien Jean Robert Doeraene
-    @version 1.0
-  *}
-  TSepiMetaParam = class(TSepiMetaVariable)
-  private
-    FParamKind : TParamFlags;
-  public
-    constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
-    constructor Create(AOwner : TSepiMeta; const AName : string;
-      AType : TSepiType; AParamKind : TParamFlags = []);
-
-    function CompatibleWith(AVariable : TSepiMetaVariable) : boolean;
-
-    property ParamKind : TParamFlags read FParamKind;
-  end;
-
-  {*
-    Signature d'une méthode
-    @author Sébastien Jean Robert Doeraene
-    @version 1.0
-  *}
-  TSepiMethodSignature = class
-  private
-    FOwner : TSepiMeta;
-    FParams : TSepiMetaList;
-    FReturnType : TSepiType;
-
-    procedure Loaded;
-
-    function GetParamCount : integer;
-    function GetParams(Index : integer) : TSepiMetaParam;
-  public
-    constructor Create(AOwner : TSepiMeta);
-    destructor Destroy; override;
-
-    procedure Load(Stream : TStream);
-
-    function CompatibleWith(ASignature : TSepiMethodSignature) : boolean;
-
-    property ParamCount : integer read GetParamCount;
-    property Params[index : integer] : TSepiMetaParam read GetParams;
-    property ReturnType : TSepiType read FReturnType;
-  end;
-
-  {*
-    Meta-méthode
-    @author Sébastien Jean Robert Doeraene
-    @version 1.0
-  *}
-  TSepiMetaMethod = class(TSepiMeta)
-  private
-    { TODO 2 -cMetaunités : Ajouter des champs concernant les directives de
-      méthodes }
-    FSignature : TSepiMethodSignature;
-    FKind : TMethodKind;
-    FOverrideState : TSepiMethodOverrideState;
-    FAbstract : boolean;
-    FInherited : TSepiMetaMethod;
-
-    procedure FindInherited;
-  protected
-    procedure Loaded; override;
-  public
-    constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
-    constructor Create(AOwner : TSepiMeta; const AName : string;
-      AKind : TMethodKind = mkProcedure;
-      AOverrideState : TSepiMethodOverrideState = osNone;
-      AAbstract : boolean = False);
-    destructor Destroy; override;
-
-    property Signature : TSepiMethodSignature read FSignature;
-    property OverrideState : TSepiMethodOverrideState read FOverrideState;
-    property IsAbstract : boolean read FAbstract;
-  end;
-
-  {*
-    Meta-méthode managée Sepi
-    @author Sébastien Jean Robert Doeraene
-    @version 1.0
-  *}
-  TSepiMetaSepiMethod = class(TSepiMetaMethod)
-  private
-    FVariables : TSepiMetaList;
-    FCode : TStream;
-
-    function GetVariableCount : integer;
-    function GetVariables(Index : integer) : TSepiMetaVariable;
-  public
-    constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
-    constructor Create(AOwner : TSepiMeta; const AName : string;
-      AKind : TMethodKind = mkProcedure;
-      AOverrideState : TSepiMethodOverrideState = osNone;
-      AAbstract : boolean = False);
-    destructor Destroy; override;
-
-    property VariableCount : integer read GetVariableCount;
-    property Variables[index : integer] : TSepiMetaVariable read GetVariables;
-    property Code : TStream read FCode;
-  end;
-
-  {*
-    Meta-méthode native Delphi
-    @author Sébastien Jean Robert Doeraene
-    @version 1.0
-  *}
-  TSepiMetaDelphiMethod = class(TSepiMetaMethod)
-  private
-    FCallConvention : TSepiCallConvention;
-    FCode : Pointer;
-  public
-    constructor Create(AOwner : TSepiMeta; const AName : string;
-      ACode : Pointer; AKind : TMethodKind = mkProcedure;
-      AOverrideState : TSepiMethodOverrideState = osNone;
-      AAbstract : boolean = False;
-      ACallConvention : TSepiCallConvention = ccRegister);
-
-    property CallConvention : TSepiCallConvention read FCallConvention;
-    property Code : Pointer read FCode;
-  end;
-
-  {*
-    Meta-méthode surchargée
-    @author Sébastien Jean Robert Doeraene
-    @version 1.0
-  *}
-  TSepiMetaOverloadedMethod = class(TSepiMeta)
-  private
-    FMethodCount : integer;
-  public
-    constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
-    constructor Create(AOwner : TSepiMeta; const AName : string);
-
-    function NextID : integer;
-    function FindMethod(Signature : TSepiMethodSignature) : TSepiMetaMethod;
-  end;
-
-  {*
-    Meta-propriété
-    @author Sébastien Jean Robert Doeraene
-    @version 1.0
-  *}
-  TSepiMetaProperty = class(TSepiMeta)
-  private
-    FSignature : TSepiMethodSignature;
-
-    FReadAccess : TSepiMeta;
-    FReadAccessKind : TSepiPropertyAccessKind;
-    FReadVariableAccess : TSepiMetaVariable;
-    FReadMethodAccess : TSepiMetaMethod;
-
-    FWriteAccess : TSepiMeta;
-    FWriteAccessKind : TSepiPropertyAccessKind;
-    FWriteVariableAccess : TSepiMetaVariable;
-    FWriteMethodAccess : TSepiMetaMethod;
-
-    procedure DevelopAccess;
-  protected
-    procedure Loaded; override;
-  public
-    constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
-    constructor Create(AOwner : TSepiMeta; const AName : string;
-      AReadAccess : TSepiMeta; AWriteAccess : TSepiMeta);
-    destructor Destroy; override;
-
-    property Signature : TSepiMethodSignature read FSignature;
-
-    property ReadAccessKind : TSepiPropertyAccessKind read FReadAccessKind;
-    property ReadVariableAccess : TSepiMetaVariable read FReadVariableAccess;
-    property ReadMethodAccess : TSepiMetaMethod read FReadMethodAccess;
-
-    property WriteAccessKind : TSepiPropertyAccessKind read FWriteAccessKind;
-    property WriteVariableAccess : TSepiMetaVariable read FWriteVariableAccess;
-    property WriteMethodKind : TSepiMetaMethod read FWriteMethodAccess;
   end;
 
   {*
@@ -737,6 +528,25 @@ begin
 end;
 
 {*
+  Nombre d'enfants
+  @return Nombre d'enfants
+*}
+function TSepiMeta.GetChildCount : integer;
+begin
+  Result := FChildren.Count;
+end;
+
+{*
+  Tableau zero-based des enfants
+  @param Index   Index de l'enfant à récupérer
+  @return Enfant à l'index spécifié
+*}
+function TSepiMeta.GetChildren(Index : integer) : TSepiMeta;
+begin
+  Result := TSepiMeta(FChildren[Index]);
+end;
+
+{*
   Charge les enfants depuis un flux
   @param Stream   Flux depuis lequel charger les enfants
 *}
@@ -996,22 +806,38 @@ end;
 { Classe TSepiMetaRoot }
 {----------------------}
 
+{*
+  Crée une instance de TSepiMetaRoot
+*}
 constructor TSepiMetaRoot.Create;
 begin
   inherited Create(nil, '');
   FRoot := Self;
 end;
 
+{*
+  Nombre d'unités
+  @return Nombre d'unités
+*}
 function TSepiMetaRoot.GetUnitCount : integer;
 begin
   Result := FChildren.Count;
 end;
 
+{*
+  Tableau zero-based des unités
+  @param Index   Index de l'unité à récupérer
+  @return Unité à l'index spécifié
+*}
 function TSepiMetaRoot.GetUnits(Index : integer) : TSepiMetaUnit;
 begin
   Result := TSepiMetaUnit(FChildren.Objects[Index]);
 end;
 
+{*
+  Charge une unité
+  @param UnitName   Nom de l'unité à charger
+*}
 procedure TSepiMetaRoot.LoadUnit(UnitName : string);
 begin
   { TODO 2 -cMetaunités : Charger une unité par son nom (ce peut être une unité
@@ -1048,12 +874,17 @@ end;
 { Classe TSepiMetaUnit }
 {----------------------}
 
+{*
+  Charge une unité depuis un flux
+*}
 constructor TSepiMetaUnit.Load(AOwner : TSepiMeta; Stream : TStream);
 var Str : string;
 begin
   inherited;
+
   FOwningUnit := Self;
   FCurrentVisibility := mvPublic;
+
   FLoadingReferences := TStringList.Create;
   FLoadingReferences.Add(''); // 0 is nil
   while True do
@@ -1064,15 +895,25 @@ begin
   end;
 end;
 
+{*
+  Crée une nouvelle unité
+  @param AOwner   Propriétaire de l'unité (la racine)
+  @param AName    Nom de l'unité
+*}
 constructor TSepiMetaUnit.Create(AOwner : TSepiMeta; const AName : string);
 begin
   inherited Create(AOwner, AName, tkUnknown);
+
   FOwningUnit := Self;
   FCurrentVisibility := mvPublic;
   FLoadingReferences := nil;
 end;
 
-procedure TSepiMetaUnit.SetCurrentVisibility(Value : TSepiMemberVisibility);
+{*
+  Change la visibilité courante
+  @param Value   Nouvelle visibilité
+*}
+procedure TSepiMetaUnit.SetCurrentVisibility(Value : TMemberVisibility);
 begin
   if Value in [mvPublic, mvPublished] then
     FCurrentVisibility := mvPublic
@@ -1080,20 +921,30 @@ begin
     FCurrentVisibility := mvPrivate;
 end;
 
+{*
+  [@inheritDoc]
+*}
 procedure TSepiMetaUnit.Loaded;
 var I : integer;
 begin
   for I := 1 to FLoadingReferences.Count-1 do // 0 is nil
     FLoadingReferences.Objects[I] := Root.FindMeta(FLoadingReferences[I]);
+
   inherited;
+
   FLoadingReferences.Free;
   FLoadingReferences := nil;
 end;
 
+{*
+  Transforme une référence numérique en une référence au meta correspondant
+  Cette méthode ne peut être appelée que depuis la méthode Loaded des metas
+  contenus dans cette unité. À tout autre moment, c'est la violation d'accès
+  assurée.
+  @param Ref   Référence à transformer
+*}
 procedure TSepiMetaUnit.LoadRef(var Ref);
 begin
-  { This method may only be called from the Loaded method of the items
-    contained in this unit. }
   TObject(Ref) := FLoadingReferences.Objects[integer(Ref)];
 end;
 
@@ -1101,12 +952,21 @@ end;
 { Classe TSepiTypeAlias }
 {-----------------------}
 
+{*
+  Charge un alias de type depuis un flux
+*}
 constructor TSepiTypeAlias.Load(AOwner : TSepiMeta; Stream : TStream);
 begin
   inherited;
   Stream.ReadBuffer(FDest, 4);
 end;
 
+{*
+  Crée un nouvel alias de type
+  @param AOwner   Propriétaire de l'alias de type
+  @param AName    Nom de l'alias de type
+  @param ADest    Destination de l'alias
+*}
 constructor TSepiTypeAlias.Create(AOwner : TSepiMeta; const AName : string;
   ADest : TSepiType);
 begin
@@ -1114,6 +974,9 @@ begin
   FDest := ADest;
 end;
 
+{*
+  [@inheritDoc]
+*}
 procedure TSepiTypeAlias.Loaded;
 begin
   inherited;
@@ -1124,6 +987,9 @@ end;
 { Classe TSepiConstant }
 {----------------------}
 
+{*
+  Charge une constante depuis un flux
+*}
 constructor TSepiConstant.Load(AOwner : TSepiMeta; Stream : TStream);
 var ValueLength : integer;
 begin
@@ -1140,6 +1006,12 @@ begin
     and check for a null ValueLength. }
 end;
 
+{*
+  Crée une nouvelle constante
+  @param AOwner   Propriétaire de la constante
+  @param AName    Nom de la constante
+  @param AType    Type de la constante
+*}
 constructor TSepiConstant.Create(AOwner : TSepiMeta; const AName : string;
   AType : TSepiType);
 begin
@@ -1148,372 +1020,18 @@ begin
   FValue := TMemoryStream.Create;
 end;
 
+{*
+  [@inheritDoc]
+*}
 procedure TSepiConstant.Loaded;
 begin
   inherited;
   OwningUnit.LoadRef(FType);
 end;
 
-{--------------------------}
-{ Classe TSepiMetaVariable }
-{--------------------------}
-
-constructor TSepiMetaVariable.Load(AOwner : TSepiMeta; Stream : TStream);
-begin
-  inherited;
-  Stream.ReadBuffer(FType, 4);
-end;
-
-constructor TSepiMetaVariable.Create(AOwner : TSepiMeta; const AName : string;
-  AType : TSepiType);
-begin
-  inherited Create(AOwner, AName);
-  FType := AType;
-end;
-
-procedure TSepiMetaVariable.Loaded;
-begin
-  OwningUnit.LoadRef(FType);
-end;
-
-{-----------------------}
-{ Classe TSepiMetaParam }
-{-----------------------}
-
-constructor TSepiMetaParam.Load(AOwner : TSepiMeta; Stream : TStream);
-begin
-  inherited;
-  Stream.ReadBuffer(FParamKind, 1);
-end;
-
-constructor TSepiMetaParam.Create(AOwner : TSepiMeta; const AName : string;
-  AType : TSepiType; AParamKind : TParamFlags = []);
-begin
-  inherited Create(AOwner, AName, AType);
-  FParamKind := AParamKind;
-end;
-
-function TSepiMetaParam.CompatibleWith(AVariable : TSepiMetaVariable) : boolean;
-begin
-  if (AVariable is TSepiMetaParam) and
-     (TSepiMetaParam(AVariable).FParamKind <> FParamKind) then
-    Result := False
-  else if FParamKind - [pfConst] = [] then
-    Result := FType.CompatibleWith(AVariable.FType)
-  else
-    Result := FType = AVariable.FType;
-end;
-
-{-----------------------------}
-{ Classe TSepiMethodSignature }
-{-----------------------------}
-
-constructor TSepiMethodSignature.Create(AOwner : TSepiMeta);
-begin
-  inherited Create;
-  FOwner := AOwner;
-  FParams := TSepiMetaList.Create;
-  FReturnType := nil;
-end;
-
-destructor TSepiMethodSignature.Destroy;
-begin
-  FParams.Free;
-  inherited Destroy;
-end;
-
-procedure TSepiMethodSignature.Load(Stream : TStream);
-var ParamCount : integer;
-begin
-  Stream.ReadBuffer(ParamCount, 4);
-  while ParamCount > 0 do
-  begin
-    FParams.AddMeta(TSepiMetaParam.Load(FOwner, Stream));
-    dec(ParamCount);
-  end;
-  Stream.ReadBuffer(FReturnType, 4);
-end;
-
-procedure TSepiMethodSignature.Loaded;
-begin
-  inherited;
-  FOwner.OwningUnit.LoadRef(FReturnType);
-end;
-
-function TSepiMethodSignature.GetParamCount : integer;
-begin
-  Result := FParams.Count;
-end;
-
-function TSepiMethodSignature.GetParams(Index : integer) : TSepiMetaParam;
-begin
-  Result := TSepiMetaParam(FParams.Objects[Index]);
-end;
-
-function TSepiMethodSignature.CompatibleWith(
-  ASignature : TSepiMethodSignature) : boolean;
-var I : integer;
-begin
-  Result := False;
-
-  if FParams.Count <> ASignature.FParams.Count then exit;
-  for I := 0 to FParams.Count-1 do
-    if not Params[I].CompatibleWith(ASignature.Params[I]) then exit;
-
-  if FReturnType <> ASignature.FReturnType then exit;
-
-  Result := True;
-end;
-
-{------------------------}
-{ Classe TSepiMetaMethod }
-{------------------------}
-
-constructor TSepiMetaMethod.Load(AOwner : TSepiMeta; Stream : TStream);
-begin
-  inherited;
-  FSignature := TSepiMethodSignature.Create(Self);
-  FSignature.Load(Stream);
-  Stream.ReadBuffer(FKind, 1);
-  Stream.ReadBuffer(FOverrideState, 1);
-  Stream.ReadBuffer(FAbstract, 1);
-  FInherited := nil;
-end;
-
-constructor TSepiMetaMethod.Create(AOwner : TSepiMeta; const AName : string;
-  AKind : TMethodKind = mkProcedure;
-  AOverrideState : TSepiMethodOverrideState = osNone;
-  AAbstract : boolean = False);
-begin
-  inherited Create(AOwner, AName);
-  FSignature := TSepiMethodSignature.Create(Self);
-  FKind := AKind;
-  FOverrideState := AOverrideState;
-  FAbstract := AAbstract and (FOverrideState in [osVirtual, osDynamic]);
-  FindInherited;
-end;
-
-destructor TSepiMetaMethod.Destroy;
-begin
-  FSignature.Free;
-  inherited Destroy;
-end;
-
-procedure TSepiMetaMethod.FindInherited;
-var Overloaded : boolean;
-    LookFor : string;
-begin
-  LookFor := FName;
-
-  Overloaded := Copy(FName, 1, 3) = 'OL$';
-  if Overloaded then
-  begin
-    Delete(LookFor, 1, 3);
-    Delete(LookFor, Pos('$', LookFor), Length(LookFor));
-  end;
-
-  FInherited := nil;
-  { TODO 3 -cMetaunités : Trouver la méthode héritée }
-end;
-
-procedure TSepiMetaMethod.Loaded;
-begin
-  inherited;
-  FSignature.Loaded;
-  FindInherited;
-end;
-
-{----------------------------}
-{ Classe TSepiMetaSepiMethod }
-{----------------------------}
-
-constructor TSepiMetaSepiMethod.Load(AOwner : TSepiMeta; Stream : TStream);
-var Count : integer;
-begin
-  inherited;
-  FVariables := TSepiMetaList.Create;
-  FCode := TMemoryStream.Create;
-
-  Stream.ReadBuffer(Count, 4);
-  while Count > 0 do
-  begin
-    FVariables.AddMeta(TSepiMetaVariable.Load(Self, Stream));
-    dec(Count);
-  end;
-
-  Stream.ReadBuffer(Count, 4);
-  if Count > 0 then // To prevent a CopyFrom(0)
-    FCode.CopyFrom(Stream, Count);
-end;
-
-constructor TSepiMetaSepiMethod.Create(AOwner : TSepiMeta; const AName : string;
-  AKind : TMethodKind = mkProcedure;
-  AOverrideState : TSepiMethodOverrideState = osNone;
-  AAbstract : boolean = False);
-begin
-  inherited Create(AOwner, AName, AKind, AOverrideState, AAbstract);
-  FCode := TMemoryStream.Create;
-end;
-
-destructor TSepiMetaSepiMethod.Destroy;
-begin
-  FCode.Free;
-  inherited Destroy;
-end;
-
-function TSepiMetaSepiMethod.GetVariableCount : integer;
-begin
-  Result := FVariables.Count;
-end;
-
-function TSepiMetaSepiMethod.GetVariables(Index : integer) : TSepiMetaVariable;
-begin
-  Result := TSepiMetaVariable(FVariables.Objects[Index]);
-end;
-
-{------------------------------}
-{ Classe TSepiMetaDelphiMethod }
-{------------------------------}
-
-constructor TSepiMetaDelphiMethod.Create(AOwner : TSepiMeta;
-  const AName : string; ACode : Pointer; AKind : TMethodKind = mkProcedure;
-  AOverrideState : TSepiMethodOverrideState = osNone;
-  AAbstract : boolean = False;
-  ACallConvention : TSepiCallConvention = ccRegister);
-begin
-  inherited Create(AOwner, AName, AKind, AOverrideState, AAbstract);
-  FCallConvention := ACallConvention;
-  FCode := ACode;
-end;
-
-{----------------------------------}
-{ Classe TSepiMetaOverloadedMethod }
-{----------------------------------}
-
-constructor TSepiMetaOverloadedMethod.Load(AOwner : TSepiMeta;
-  Stream : TStream);
-begin
-  inherited;
-  Stream.ReadBuffer(FMethodCount, 4);
-end;
-
-constructor TSepiMetaOverloadedMethod.Create(AOwner : TSepiMeta;
-  const AName : string);
-begin
-  inherited Create(AOwner, AName);
-  FMethodCount := 0;
-end;
-
-function TSepiMetaOverloadedMethod.NextID : integer;
-begin
-  Result := FMethodCount;
-  inc(FMethodCount);
-end;
-
-function TSepiMetaOverloadedMethod.FindMethod(
-  Signature : TSepiMethodSignature) : TSepiMetaMethod;
-var I : integer;
-begin
-  for I := 0 to FMethodCount-1 do
-  begin
-    Result := TSepiMetaMethod(FOwner.FindMeta(Format('OL$%s$%d', [FName, I])));
-    if Result.FSignature.CompatibleWith(Signature) then exit;
-  end;
-  Result := nil;
-end;
-
-{--------------------------}
-{ Classe TSepiMetaProperty }
-{--------------------------}
-
-constructor TSepiMetaProperty.Load(AOwner : TSepiMeta; Stream : TStream);
-begin
-  inherited;
-  FSignature := TSepiMethodSignature.Create(Self);
-  FSignature.Load(Stream);
-
-  Stream.ReadBuffer(FReadAccess, 4);
-  FReadAccessKind := pakNone;
-  FReadVariableAccess := nil;
-  FReadMethodAccess := nil;
-
-  Stream.ReadBuffer(FWriteAccess, 4);
-  FWriteAccessKind := pakNone;
-  FWriteVariableAccess := nil;
-  FWriteMethodAccess := nil;
-end;
-
-constructor TSepiMetaProperty.Create(AOwner : TSepiMeta; const AName : string;
-  AReadAccess : TSepiMeta; AWriteAccess : TSepiMeta);
-begin
-  inherited Create(AOwner, AName);
-  FSignature := TSepiMethodSignature.Create(Self);
-
-  FReadAccess := AReadAccess;
-  FReadAccessKind := pakNone;
-  FReadVariableAccess := nil;
-  FReadMethodAccess := nil;
-
-  FWriteAccess := AWriteAccess;
-  FWriteAccessKind := pakNone;
-  FWriteVariableAccess := nil;
-  FWriteMethodAccess := nil;
-
-  DevelopAccess;
-end;
-
-destructor TSepiMetaProperty.Destroy;
-begin
-  FSignature.Free;
-  inherited;
-end;
-
-procedure TSepiMetaProperty.DevelopAccess;
-begin
-  if Assigned(FReadAccess) then
-  begin
-    if FReadAccess is TSepiMetaVariable then
-    begin
-      FReadAccessKind := pakVariable;
-      FReadVariableAccess := TSepiMetaVariable(FReadAccess);
-    end else
-    if FReadAccess is TSepiMetaMethod then
-    begin
-      FReadAccessKind := pakMethod;
-      FReadMethodAccess := TSepiMetaMethod(FReadAccess);
-    end else
-    FReadAccess := nil;
-  end;
-
-  if Assigned(FWriteAccess) then
-  begin
-    if FWriteAccess is TSepiMetaVariable then
-    begin
-      FWriteAccessKind := pakVariable;
-      FWriteVariableAccess := TSepiMetaVariable(FWriteAccess);
-    end else
-    if FWriteAccess is TSepiMetaMethod then
-    begin
-      FWriteAccessKind := pakMethod;
-      FReadMethodAccess := TSepiMetaMethod(FWriteAccess);
-    end else
-    FWriteAccess := nil;
-  end;
-end;
-
-procedure TSepiMetaProperty.Loaded;
-begin
-  inherited;
-  OwningUnit.LoadRef(FReadAccess);
-  OwningUnit.LoadRef(FWriteAccess);
-  DevelopAccess;
-end;
-
 initialization
   SepiRegisterMetaClasses([
-    TSepiMetaUnit, TSepiTypeAlias, TSepiConstant, TSepiMetaVariable,
-    TSepiMetaParam, TSepiMetaSepiMethod, TSepiMetaDelphiMethod,
-    TSepiMetaOverloadedMethod, TSepiMetaProperty
+    TSepiMetaUnit, TSepiTypeAlias, TSepiConstant
   ]);
 finalization
   SepiMetaClasses.Free;

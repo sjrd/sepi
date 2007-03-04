@@ -9,7 +9,7 @@ interface
 
 uses
   TypInfo, SepiMetaUnits, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
-  SepiCompTypes;
+  SepiMetaMembers, SepiCompTypes;
 
 implementation
 
@@ -32,7 +32,7 @@ var I : integer;
 
     HRESULTType : TSepiIntegerType;
 
-    RecordType : TSepiRecordType;
+    //RecordType : TSepiRecordType;
 
     {ObjectType : TSepiObjectType;
     ClassType : TSepiClassType;}
@@ -57,14 +57,18 @@ begin
   TSepiIntegerType.Create(Result, 'THandle');
 
   { TGUID record }
-  RecordType := TSepiRecordType.Create(Result, 'TGUID');
-  for I := 1 to 4 do
-    TSepiMetaVariable.Create(RecordType, 'D'+Chr(I+48), IntegerType);
+  with TSepiRecordType.Create(Result, 'TGUID') do
+  begin
+    for I := 1 to 4 do
+      AddField('D'+Chr(I+48), IntegerType);
+  end;
 
   { TMethod record }
-  RecordType := TSepiRecordType.Create(Result, 'TMethod');
-  TSepiMetaVariable.Create(RecordType, 'Code', PointerType);
-  TSepiMetaVariable.Create(RecordType, 'Data', PointerType);
+  with TSepiRecordType.Create(Result, 'TMethod') do
+  begin
+    AddField('Code', PointerType);
+    AddField('Data', PointerType);
+  end;
 
   { TObject class }
   {TObjectClass := ...}

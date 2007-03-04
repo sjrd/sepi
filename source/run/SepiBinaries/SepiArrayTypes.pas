@@ -233,6 +233,7 @@ begin
   TypeData.elType := nil;
   TypeData.varType := 0;
   TypeData.elType2 := @FElementTypeInfo;
+  Move(UnitName[0], TypeData.DynUnitName[0], Length(UnitName)+1);
 end;
 
 {*

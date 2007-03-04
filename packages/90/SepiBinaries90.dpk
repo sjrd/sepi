@@ -37,7 +37,8 @@ contains
   SepiStrTypes in '..\..\source\run\SepiBinaries\SepiStrTypes.pas',
   SepiArrayTypes in '..\..\source\run\SepiBinaries\SepiArrayTypes.pas',
   SepiCompTypes in '..\..\source\run\SepiBinaries\SepiCompTypes.pas',
-  SepiOrdTypes in '..\..\source\run\SepiBinaries\SepiOrdTypes.pas';
+  SepiOrdTypes in '..\..\source\run\SepiBinaries\SepiOrdTypes.pas',
+  SepiMetaMembers in '..\..\source\run\SepiBinaries\SepiMetaMembers.pas';
 
 end.
 

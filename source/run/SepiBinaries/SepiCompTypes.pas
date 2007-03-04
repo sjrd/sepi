@@ -8,7 +8,8 @@ unit SepiCompTypes;
 interface
 
 uses
-  Classes, SysUtils, ScUtils, SepiMetaUnits, SysConst, TypInfo, ScLists;
+  Classes, SysUtils, ScUtils, SepiMetaUnits, SepiMetaMembers, SysConst, TypInfo,
+  ScLists;
 
 type
   {*
@@ -20,6 +21,11 @@ type
   public
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
     constructor Create(AOwner : TSepiMeta; const AName : string);
+
+    procedure AddField(const FieldName : string;
+      FieldType : TSepiType); overload;
+    procedure AddField(const FieldName : string;
+      FieldTypeInfo : PTypeInfo); overload;
 
     function CompatibleWith(AType : TSepiType) : boolean; override;
   end;
@@ -92,8 +98,11 @@ type
   private
     FSignature : TSepiMethodSignature; /// Signature
   public
+    constructor RegisterTypeInfo(AOwner : TSepiMeta;
+      ATypeInfo : PTypeInfo); override;
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
-    constructor Create(AOwner : TSepiMeta; const AName : string);
+    constructor Create(AOwner : TSepiMeta; const AName, ASignature : string;
+      ACallConvention : TCallConvention = ccRegister);
     destructor Destroy; override;
 
     function CompatibleWith(AType : TSepiType) : boolean; override;
@@ -114,16 +123,51 @@ const
 { Classe TSepiRecordType }
 {------------------------}
 
+{*
+  Charge un type record depuis un flux
+*}
 constructor TSepiRecordType.Load(AOwner : TSepiMeta; Stream : TStream);
 begin
   inherited;
+
+  LoadChildren(Stream);
 end;
 
+{*
+  Crée un nouveau type record
+  @param AOwner   Propriétaire du type
+  @param AName    Nom du type
+*}
 constructor TSepiRecordType.Create(AOwner : TSepiMeta; const AName : string);
 begin
   inherited Create(AOwner, AName, tkRecord);
 end;
 
+{*
+  Ajoute un champ au record
+  @param FieldName   Nom du champ
+  @param FieldType   Type du champ
+*}
+procedure TSepiRecordType.AddField(const FieldName : string;
+  FieldType : TSepiType);
+begin
+  TSepiMetaField.Create(Self, FieldName, FieldType);
+end;
+
+{*
+  Ajoute un champ au record
+  @param FieldName   Nom du champ
+  @param FieldType   RTTI du type du champ
+*}
+procedure TSepiRecordType.AddField(const FieldName : string;
+  FieldTypeInfo : PTypeInfo);
+begin
+  AddField(FieldName, Root.FindTypeByTypeInfo(FieldTypeInfo));
+end;
+
+{*
+  [@inheritDoc]
+*}
 function TSepiRecordType.CompatibleWith(AType : TSepiType) : boolean;
 begin
   Result := Self = AType;
@@ -230,29 +274,57 @@ end;*)
 { Classe TSepiMethodRefType }
 {---------------------------}
 
+{*
+  Recense un type référence de méthode natif
+*}
+constructor TSepiMethodRefType.RegisterTypeInfo(AOwner : TSepiMeta;
+  ATypeInfo : PTypeInfo);
+begin
+  inherited;
+
+  { TODO 2 : Recenser un type référence de méthode natif }
+end;
+
+{*
+  Charge un type référence de méthode depuis un flux
+*}
 constructor TSepiMethodRefType.Load(AOwner : TSepiMeta; Stream : TStream);
 begin
   inherited;
-  FSignature := TSepiMethodSignature.Create(Self);
-  FSignature.Load(Stream);
+  FSignature := TSepiMethodSignature.Load(Self, Stream);
 end;
 
-constructor TSepiMethodRefType.Create(AOwner : TSepiMeta; const AName : string);
+{*
+  Crée un nouveau type référence de méthode
+  @param AOwner            Propriétaire du type
+  @param AName             Nom du type
+  @param ASignature        Signature
+  @param ACallConvention   Convention d'appel
+*}
+constructor TSepiMethodRefType.Create(AOwner : TSepiMeta;
+  const AName, ASignature : string;
+  ACallConvention : TCallConvention = ccRegister);
 begin
   inherited Create(AOwner, AName, tkMethod);
-  FSignature := TSepiMethodSignature.Create(Self);
+  FSignature := TSepiMethodSignature.Create(Self, ASignature, ACallConvention);
 end;
 
+{*
+  Détruit l'instance
+*}
 destructor TSepiMethodRefType.Destroy;
 begin
   FSignature.Free;
   inherited Destroy;
 end;
 
+{*
+  [@inheritDoc]
+*}
 function TSepiMethodRefType.CompatibleWith(AType : TSepiType) : boolean;
 begin
   Result := (AType.Kind = tkMethod) and
-    FSignature.CompatibleWith(TSepiMethodRefType(AType).FSignature);
+    FSignature.Equals(TSepiMethodRefType(AType).FSignature);
 end;
 
 initialization
