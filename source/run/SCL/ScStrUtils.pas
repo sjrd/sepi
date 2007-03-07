@@ -25,6 +25,8 @@ type
   *}
   TCompareStrOptions = set of TCompareStrOption;
 
+function RightPos(C : Char; const Str : string) : integer;
+
 function NberSubStr(const SubStr, Str : string) : integer;
 function NberCharInStr(C : Char; const Str : string) : integer;
 
@@ -35,6 +37,8 @@ function CompareStringEx(const S1, S2 : string;
 
 function GetFirstToken(const S : string; Token : Char) : string;
 function GetLastToken(const S : string; Token : Char) : string;
+function SplitToken(const S : string; Token : Char;
+  out LeftStr, RightStr : string) : boolean;
 
 function GetXToken(const S : string; Token : Char; X : integer) : string;
 function GetXWord(const S : string; X : integer) : string;
@@ -48,6 +52,19 @@ uses
   Windows,
 {$ENDIF}
   StrUtils;
+
+{*
+  Cherche un caractère dans une chaîne à partir de la fin de celle-ci
+  @param C     Caractère à rechercher
+  @param Str   Chaîne dans laquelle rechercher C
+  @return Index de la dernière occurence de C dans Str, ou 0 si non trouvé
+*}
+function RightPos(C : Char; const Str : string) : integer;
+begin
+  Result := Length(Str);
+  while Result > 0 do
+    if Str[Result] = C then exit else dec(Result);
+end;
 
 {*
   Calcule le nombre d'occurences d'une sous-chaîne dans une chaîne
@@ -132,7 +149,42 @@ begin
   // On parcourt la chaîne à l'envers jusqu'à trouver un caractère Token
   while (I > 0) and (S[I] <> Token) do dec(I);
   // On copie la chaîne depuis le caractère après Token jusqu'à la fin
-  Result := Copy(S, I+1, Length(S));
+  Result := Copy(S, I+1, MaxInt);
+end;
+
+{*
+  Découpe une chaîne en deux selon un délimiteur
+  Si plusieurs délimiteurs consécutifs sont trouvés, ils sont considérés comme
+  un seul. Mais s'ils sont séparés, seul le premier groupe prendra effet.
+  @param S          Chaîne à découper
+  @param Token      Délimiteur
+  @param LeftStr    Sous-chaîne de gauche (ou S si non trouvé)
+  @param RightStr   Sous-chaîne de droite (ou S si non trouvé)
+  @return True si la chaîne a été séparée, False si Token n'est pas trouvé
+*}
+function SplitToken(const S : string; Token : Char;
+  out LeftStr, RightStr : string) : boolean;
+var Len, I : integer;
+begin
+  Len := Length(S);
+
+  // Recherche de la première occurence de Token
+  I := 1;
+  while (I <= Len) and (S[I] <> Token) do inc(I);
+  Result := I <= Len;
+
+  if Result then
+  begin
+    // Trouvé : séparer LeftStr et RightStr
+    LeftStr := Copy(S, 1, I-1);
+    while (I <= Len) and (S[I] = Token) do inc(I);
+    RightStr := Copy(S, I, MaxInt);
+  end else
+  begin
+    // Non trouvé : LeftStr = RightStr = S
+    LeftStr := S;
+    RightStr := S;
+  end;
 end;
 
 {*

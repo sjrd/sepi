@@ -71,6 +71,6 @@
     </FilesExcludeList>
     <AllowHtmlInDescription>FALSE</AllowHtmlInDescription>
     <PropertyCommentFromAssessors>TRUE</PropertyCommentFromAssessors>
-    <DisplayHiddenItems>TRUE</DisplayHiddenItems>
+    <DisplayHiddenItems>FALSE</DisplayHiddenItems>
   </TDOCOptions>
 </DelphiCodeToDoc_Project>
