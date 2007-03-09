@@ -777,7 +777,7 @@ begin
     end;
   end else
   begin
-    FBaseType := Root.FindTypeByTypeInfo(FBaseTypeInfo) as TSepiEnumType;
+    FBaseType := Root.FindType(FBaseTypeInfo) as TSepiEnumType;
     FValueCount := BaseType.ValueCount;
   end;
 end;
@@ -804,7 +804,7 @@ begin
   inherited;
 
   FCompTypeInfo := TypeData.CompType^;
-  FCompType := Root.FindTypeByTypeInfo(FCompTypeInfo) as TSepiOrdType;
+  FCompType := Root.FindType(FCompTypeInfo) as TSepiOrdType;
 
   ExtractTypeData;
 end;
@@ -858,7 +858,7 @@ constructor TSepiSetType.Create(AOwner : TSepiMeta; const AName : string;
   ACompType : PTypeInfo);
 begin
   Create(AOwner, AName,
-    AOwner.Root.FindTypeByTypeInfo(ACompType) as TSepiOrdType);
+    AOwner.Root.FindType(ACompType) as TSepiOrdType);
 end;
 
 {*

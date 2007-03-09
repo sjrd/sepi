@@ -8,7 +8,7 @@ unit SepiMetaMembers;
 interface
 
 uses
-  SysUtils, Classes, StrUtils, TypInfo, SepiMetaUnits;
+  SysUtils, Classes, StrUtils, TypInfo, ScStrUtils, SepiMetaUnits;
 
 type
   {*
@@ -34,14 +34,16 @@ type
   TSepiMetaField = class(TSepiMeta)
   private
     FType : TSepiType; /// Type du champ
+    FOffset : integer; /// Offset
   protected
     procedure Loaded; override;
   public
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
     constructor Create(AOwner : TSepiMeta; const AName : string;
-      AType : TSepiType);
+      AType : TSepiType; AOffset : integer);
 
     property FieldType : TSepiType read FType;
+    property Offset : integer read FOffset;
   end;
 
   {*
@@ -53,6 +55,9 @@ type
   private
     FType : TSepiType;    /// Type du paramètre
     FFlags : TParamFlags; /// Flags du paramètre
+
+    constructor RegisterParamData(AOwner : TSepiMeta; var ParamData : Pointer);
+    constructor CreateFromString(AOwner : TSepiMeta; const Definition : string);
   protected
     procedure Loaded; override;
   public
@@ -84,6 +89,7 @@ type
     function GetParamCount : integer;
     function GetParams(Index : integer) : TSepiMetaParam;
   public
+    constructor RegisterTypeData(AOwner : TSepiMeta; ATypeData : PTypeData);
     constructor Load(AOwner : TSepiMeta; Stream : TStream);
     constructor Create(AOwner : TSepiMeta; const ASignature : string;
       ACallConvention : TCallConvention = ccRegister);
@@ -187,9 +193,18 @@ type
   end;
 
 const
-  MethodKindStrings : array[mkProcedure..mkClassConstructor] of string = (
+  /// Procédure d'unité
+  mkUnitProcedure = TMethodKind(integer(High(TMethodKind))+1);
+  /// Fonction d'unité
+  mkUnitFunction = TMethodKind(integer(High(TMethodKind))+2);
+  /// Propriété
+  mkProperty = TMethodKind(integer(High(TMethodKind))+3);
+
+  /// Chaînes des types de méthode
+  MethodKindStrings : array[mkProcedure..mkProperty] of string = (
     'procedure', 'function', 'constructor', 'destructor',
-    'class procedure', 'class function', 'class constructor'
+    'class procedure', 'class function', 'class constructor',
+    '', '', '', 'unit procedure', 'unit function', 'property'
   );
 
 implementation
@@ -214,10 +229,11 @@ end;
   @param AType    Type du champ
 *}
 constructor TSepiMetaField.Create(AOwner : TSepiMeta; const AName : string;
-  AType : TSepiType);
+  AType : TSepiType; AOffset : integer);
 begin
   inherited Create(AOwner, AName);
   FType := AType;
+  FOffset := AOffset;
 end;
 
 {*
@@ -232,6 +248,61 @@ end;
 {-----------------------}
 { Classe TSepiMetaParam }
 {-----------------------}
+
+{*
+  Crée un paramètre depuis les données de type d'une référence de méthode
+  En sortie, le pointeur ParamData a avancé jusqu'au paramètre suivant
+  @param AOwner      Propriétaire du paramètre
+  @param ParamData   Pointeur vers les données du paramètre
+*}
+constructor TSepiMetaParam.RegisterParamData(AOwner : TSepiMeta;
+  var ParamData : Pointer);
+var AFlags : TParamFlags;
+    AName, ATypeStr : string;
+begin
+  AFlags := TParamFlags(ParamData^);
+  inc(LongInt(ParamData), sizeof(TParamFlags));
+  AName := PShortString(ParamData)^;
+  inc(LongInt(ParamData), PByte(ParamData)^ + 1);
+  ATypeStr := PShortString(ParamData)^;
+  inc(LongInt(ParamData), PByte(ParamData)^ + 1);
+
+  Create(AOwner, AName, AOwner.Root.FindType(ATypeStr), AFlags);
+end;
+
+{*
+  Crée un paramètre depuis sa définition Delphi
+  @param AOwner       Propriétaire du paramètre
+  @param Definition   Définition Delphi du paramètre
+*}
+constructor TSepiMetaParam.CreateFromString(AOwner : TSepiMeta;
+  const Definition : string);
+var AFlags : TParamFlags;
+    NamePart, TypePart, FlagStr, AName, ATypeStr : string;
+begin
+  AFlags := [];
+  SplitToken(Definition, ':', NamePart, TypePart);
+
+  // Partie du nom - à gauche du :
+  if SplitToken(Trim(NamePart), ' ', FlagStr, AName) then
+  begin
+    case AnsiIndexText(FlagStr, ['var', 'const', 'out']) of {don't localize}
+      0 : Include(AFlags, pfVar);
+      1 : Include(AFlags, pfConst);
+      2 : Include(AFlags, pfOut);
+    end;
+  end;
+
+  // Partie du type - à droite du :
+  TypePart := Trim(TypePart);
+  if AnsiStartsText('array of ', TypePart) then {don't localize}
+  begin
+    Include(AFlags, pfArray);
+    ATypeStr := TrimLeft(Copy(TypePart, 10, MaxInt)); // 10 is 'array of |'
+  end else ATypeStr := TypePart;
+
+  Create(AOwner, AName, AOwner.Root.FindType(ATypeStr), AFlags);
+end;
 
 {*
   Charge un paramètre depuis un flux
@@ -294,6 +365,29 @@ end;
 {-----------------------------}
 
 {*
+  Crée une signature à partir des données de type d'un type méthode
+  @param AOwner      Propriétaire de la signature
+  @param ATypeData   Données de type
+*}
+constructor TSepiMethodSignature.RegisterTypeData(AOwner : TSepiMeta;
+  ATypeData : PTypeData);
+var ParamData : Pointer;
+    I : integer;
+begin
+  inherited Create;
+
+  FOwner := AOwner;
+  FKind := ATypeData.MethodKind;
+  ParamData := @ATypeData.ParamList;
+
+  for I := 1 to ATypeData.ParamCount do
+    TSepiMetaParam.RegisterParamData(FOwner, ParamData);
+
+  FReturnType := FOwner.Root.FindType(PShortString(ParamData)^);
+  FCallConvention := ccRegister;
+end;
+
+{*
   Charge une signature depuis un flux
   @param AOwner   Propriétaire de la signature
   @param Stream   Flux depuis lequel charger la signature
@@ -312,12 +406,26 @@ end;
 
 {*
   Crée une signature de méthode
-  @param AOwner       Propriétaire de la signature
-  @param ASignature   Signature Delphi
+  @param AOwner            Propriétaire de la signature
+  @param ASignature        Signature Delphi
+  @param ACallConvention   Convention d'appel
 *}
 constructor TSepiMethodSignature.Create(AOwner : TSepiMeta;
   const ASignature : string; ACallConvention : TCallConvention = ccRegister);
-var I : integer;
+
+  function MultiPos(const Chars : array of Char; const Str : string;
+    Offset : integer = 1) : integer;
+  var I : integer;
+  begin
+    for I := Low(Chars) to High(Chars) do
+    begin
+      Result := PosEx(Chars[I], Str, Offset);
+      if Result > 0 then exit;
+    end;
+    Result := Length(Str)+1;
+  end;
+
+var ParamPos, ReturnTypePos, ParamEnd : integer;
 begin
   inherited Create;
 
@@ -326,11 +434,31 @@ begin
   FReturnType := nil;
   FCallConvention := ACallConvention;
 
-  I := Pos('(', ASignature);
-  if I = 0 then I := Length(ASignature)+1;
-
+  // Type de méthode
+  ParamPos := MultiPos(['(', '[', ':'], ASignature);
   FKind := TMethodKind(AnsiIndexText(
-    Copy(ASignature, 1, I-1), MethodKindStrings));
+    Trim(Copy(ASignature, 1, ParamPos-1)), MethodKindStrings));
+
+  // Type de retour
+  if (Kind = mkFunction) or (Kind = mkUnitFunction) or (Kind = mkProperty) then
+  begin
+    ReturnTypePos := RightPos(':', ASignature);
+    FReturnType := FOwner.Root.FindType(
+      Trim(Copy(ASignature, ReturnTypePos+1, MaxInt)));
+  end;
+
+  // Paramètres
+  if ParamPos <= Length(ASignature) then
+  begin
+    while not (ASignature[ParamPos] in [')', ']', ':']) do
+    begin
+      inc(ParamPos);
+      ParamEnd := MultiPos([';', ')', ']', ':'], ASignature, ParamPos);
+      TSepiMetaParam.CreateFromString(FOwner,
+        Copy(ASignature, ParamPos, ParamEnd-ParamPos));
+      ParamPos := ParamEnd;
+    end;
+  end;
 end;
 
 {*
@@ -374,6 +502,7 @@ var I : integer;
 begin
   Result := False;
 
+  if Kind <> ASignature.Kind then exit;
   if ParamCount <> ASignature.ParamCount then exit;
   for I := 0 to ParamCount-1 do
     if not Params[I].Equals(ASignature.Params[I]) then exit;

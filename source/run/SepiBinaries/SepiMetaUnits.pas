@@ -167,7 +167,8 @@ type
 
     procedure LoadUnit(UnitName : string);
 
-    function FindTypeByTypeInfo(TypeInfo : PTypeInfo) : TSepiType;
+    function FindType(TypeInfo : PTypeInfo) : TSepiType; overload;
+    function FindType(const TypeName : string) : TSepiType; overload;
 
     property UnitCount : integer read GetUnitCount;
     property Units[index : integer] : TSepiMetaUnit read GetUnits;
@@ -850,24 +851,53 @@ end;
   @return Le type correspondant aux informations de type données
   @throw ESepiMetaNotFoundError Aucun type enregistré correspondant
 *}
-function TSepiMetaRoot.FindTypeByTypeInfo(TypeInfo : PTypeInfo) : TSepiType;
-var AnsiTypeName : string;
+function TSepiMetaRoot.FindType(TypeInfo : PTypeInfo) : TSepiType;
+var TypeName : string;
     I : integer;
     Meta : TSepiMeta;
 begin
-  AnsiTypeName := TypeInfo.Name;
+  TypeName := TypeInfo.Name;
   for I := 0 to UnitCount-1 do
   begin
-    Meta := Units[I].GetMeta(AnsiTypeName);
-    if Assigned(Meta) and (Meta is TSepiType) and
-       (TSepiType(Meta).TypeInfo = TypeInfo) then
+    Meta := Units[I].GetMeta(TypeName);
+    if (Meta is TSepiType) and (TSepiType(Meta).TypeInfo = TypeInfo) then
     begin
       Result := TSepiType(Meta);
       exit;
     end;
   end;
 
-  raise ESepiMetaNotFoundError.CreateFmt(SSepiObjectNotFound, [Name]);
+  raise ESepiMetaNotFoundError.CreateFmt(SSepiObjectNotFound, [TypeName]);
+end;
+
+{*
+  Trouve un type enregistré à partir de son nom
+  @param TypeName   Nom du type recherché
+  @return Le type correspondant au nom donné
+  @throw ESepiMetaNotFoundError Aucun type enregistré correspondant
+*}
+function TSepiMetaRoot.FindType(const TypeName : string) : TSepiType;
+var I : integer;
+    Meta : TSepiMeta;
+begin
+  Meta := GetMeta(TypeName);
+  if Meta is TSepiType then
+  begin
+    Result := TSepiType(Meta);
+    exit;
+  end;
+
+  for I := 0 to UnitCount-1 do
+  begin
+    Meta := Units[I].GetMeta(TypeName);
+    if Meta is TSepiType then
+    begin
+      Result := TSepiType(Meta);
+      exit;
+    end;
+  end;
+
+  raise ESepiMetaNotFoundError.CreateFmt(SSepiObjectNotFound, [TypeName]);
 end;
 
 {----------------------}

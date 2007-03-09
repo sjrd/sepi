@@ -257,7 +257,7 @@ begin
   FSize := 4;
 
   FElementTypeInfo := TypeData.elType^;
-  FElementType := Root.FindTypeByTypeInfo(FElementTypeInfo);
+  FElementType := Root.FindType(FElementTypeInfo);
 end;
 
 {*

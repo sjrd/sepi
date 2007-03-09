@@ -18,16 +18,29 @@ type
     @version 1.0
   *}
   TSepiRecordType = class(TSepiType)
+  private
+    FPacked : boolean;
+
+    function NextOffset(Field : TSepiMetaField) : integer;
+    function AddField(const FieldName : string; FieldType : TSepiType;
+      After : TSepiMetaField) : TSepiMetaField; overload;
   public
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
-    constructor Create(AOwner : TSepiMeta; const AName : string);
+    constructor Create(AOwner : TSepiMeta; const AName : string;
+      APacked : boolean = False);
 
-    procedure AddField(const FieldName : string;
-      FieldType : TSepiType); overload;
-    procedure AddField(const FieldName : string;
-      FieldTypeInfo : PTypeInfo); overload;
+    function AddField(const FieldName : string;
+      FieldType : TSepiType) : TSepiMetaField; overload;
+    function AddField(const FieldName : string; FieldType : TSepiType;
+      const After : string) : TSepiMetaField; overload;
+    function AddField(const FieldName : string;
+      FieldTypeInfo : PTypeInfo) : TSepiMetaField; overload;
+    function AddField(const FieldName : string; FieldTypeInfo : PTypeInfo;
+      const After : string) : TSepiMetaField; overload;
 
     function CompatibleWith(AType : TSepiType) : boolean; override;
+
+    property IsPacked : boolean read FPacked;
   end;
 
   TSepiObjectType = class end;
@@ -102,6 +115,7 @@ type
       ATypeInfo : PTypeInfo); override;
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
     constructor Create(AOwner : TSepiMeta; const AName, ASignature : string;
+      AOfObject : boolean = False;
       ACallConvention : TCallConvention = ccRegister);
     destructor Destroy; override;
 
@@ -130,6 +144,7 @@ constructor TSepiRecordType.Load(AOwner : TSepiMeta; Stream : TStream);
 begin
   inherited;
 
+  Stream.ReadBuffer(FPacked, 1);
   LoadChildren(Stream);
 end;
 
@@ -138,31 +153,97 @@ end;
   @param AOwner   Propriétaire du type
   @param AName    Nom du type
 *}
-constructor TSepiRecordType.Create(AOwner : TSepiMeta; const AName : string);
+constructor TSepiRecordType.Create(AOwner : TSepiMeta; const AName : string;
+  APacked : boolean = False);
 begin
   inherited Create(AOwner, AName, tkRecord);
+  FPacked := APacked;
+end;
+
+{*
+  Détermine l'offset d'un champ suivant un champ donné en mémoire
+  @param Field   Champ déjà existant, précédent le nouveau
+  @return Offset du nouveau champ
+*}
+function TSepiRecordType.NextOffset(Field : TSepiMetaField) : integer;
+begin
+  Result := Field.Offset + Field.FieldType.Size;
+  { TODO 2 : Aligner les champs dans un record non packed }
 end;
 
 {*
   Ajoute un champ au record
   @param FieldName   Nom du champ
   @param FieldType   Type du champ
+  @param After       Champ précédent en mémoire
+  @return Champ nouvellement ajouté
 *}
-procedure TSepiRecordType.AddField(const FieldName : string;
-  FieldType : TSepiType);
+function TSepiRecordType.AddField(const FieldName : string;
+  FieldType : TSepiType; After : TSepiMetaField) : TSepiMetaField;
+var Offset : integer;
 begin
-  TSepiMetaField.Create(Self, FieldName, FieldType);
+  if After = nil then Offset := 0 else
+    Offset := NextOffset(After);
+
+  Result := TSepiMetaField.Create(Self, FieldName, FieldType, Offset);
+
+  if Offset + FieldType.Size > FSize then
+    FSize := Offset + FieldType.Size;
 end;
 
 {*
   Ajoute un champ au record
   @param FieldName   Nom du champ
-  @param FieldType   RTTI du type du champ
+  @param FieldType   Type du champ
+  @return Champ nouvellement ajouté
 *}
-procedure TSepiRecordType.AddField(const FieldName : string;
-  FieldTypeInfo : PTypeInfo);
+function TSepiRecordType.AddField(const FieldName : string;
+  FieldType : TSepiType) : TSepiMetaField;
+var LastField : TSepiMetaField;
 begin
-  AddField(FieldName, Root.FindTypeByTypeInfo(FieldTypeInfo));
+  if ChildCount = 0 then LastField := nil else
+    LastField := TSepiMetaField(Children[ChildCount-1]);
+
+  Result := AddField(FieldName, FieldType, LastField);
+end;
+
+{*
+  Ajoute un champ au record après un champ donné en mémoire
+  @param FieldName   Nom du champ
+  @param FieldType   Type du champ
+  @param After       Nom du champ précédent en mémoire (vide pour le début)
+  @return Champ nouvellement ajouté
+*}
+function TSepiRecordType.AddField(const FieldName : string;
+  FieldType : TSepiType; const After : string) : TSepiMetaField;
+begin
+  Result := AddField(FieldName, FieldType, TSepiMetaField(FindMeta(After)));
+end;
+
+{*
+  Ajoute un champ au record
+  @param FieldName       Nom du champ
+  @param FieldTypeInto   RTTI du type du champ
+  @return Champ nouvellement ajouté
+*}
+function TSepiRecordType.AddField(const FieldName : string;
+  FieldTypeInfo : PTypeInfo) : TSepiMetaField;
+begin
+  Result := AddField(FieldName, Root.FindType(FieldTypeInfo));
+end;
+
+{*
+  Ajoute un champ au record après un champ donné en mémoire
+  @param FieldName       Nom du champ
+  @param FieldTypeInfo   RTTI du type du champ
+  @param After           Nom du champ précédent en mémoire (vide pour le début)
+  @return Champ nouvellement ajouté
+*}
+function TSepiRecordType.AddField(const FieldName : string;
+  FieldTypeInfo : PTypeInfo; const After : string) : TSepiMetaField;
+begin
+  Result := AddField(FieldName, Root.FindType(FieldTypeInfo),
+    TSepiMetaField(FindMeta(After)));
 end;
 
 {*
@@ -281,8 +362,7 @@ constructor TSepiMethodRefType.RegisterTypeInfo(AOwner : TSepiMeta;
   ATypeInfo : PTypeInfo);
 begin
   inherited;
-
-  { TODO 2 : Recenser un type référence de méthode natif }
+  FSignature := TSepiMethodSignature.RegisterTypeData(Self, TypeData);
 end;
 
 {*
@@ -299,14 +379,19 @@ end;
   @param AOwner            Propriétaire du type
   @param AName             Nom du type
   @param ASignature        Signature
+  @param AOfObject         Indique s'il s'agit d'une méthode
   @param ACallConvention   Convention d'appel
 *}
 constructor TSepiMethodRefType.Create(AOwner : TSepiMeta;
-  const AName, ASignature : string;
+  const AName, ASignature : string; AOfObject : boolean = False;
   ACallConvention : TCallConvention = ccRegister);
+var Prefix : string;
 begin
   inherited Create(AOwner, AName, tkMethod);
-  FSignature := TSepiMethodSignature.Create(Self, ASignature, ACallConvention);
+
+  if AOfObject then Prefix := '' else Prefix := 'unit ';
+  FSignature := TSepiMethodSignature.Create(Self,
+    Prefix + ASignature, ACallConvention);
 end;
 
 {*
