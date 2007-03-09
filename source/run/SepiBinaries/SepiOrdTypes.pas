@@ -927,11 +927,13 @@ begin
   inherited;
 
   AllocateTypeInfo;
+  FSize := 4;
+
   Stream.ReadBuffer(FPointTo, 4);
 end;
 
 {*
-  Crée un nouveau type ensemble
+  Crée un nouveau type pointeur
   @param AOwner     Propriétaire du type
   @param AName      Nom du type
   @param APointTo   Type vers lequel pointe le pointeur
@@ -942,11 +944,13 @@ begin
   inherited Create(AOwner, AName, tkUnknown);
 
   AllocateTypeInfo;
+  FSize := 4;
+
   FPointTo := APointTo;
 end;
 
 {*
-  Crée un nouveau type ensemble
+  Crée un nouveau type pointeur
   @param AOwner     Propriétaire du type
   @param AName      Nom du type
   @param APointTo   RTTI tu type vers lequel pointe le pointeur
