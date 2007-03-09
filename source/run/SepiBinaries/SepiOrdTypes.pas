@@ -220,6 +220,26 @@ type
     property CompType : TSepiOrdType read FCompType;
   end;
 
+  {*
+    Type pointeur
+    @author Sébastien Jean Robert Doeraene
+    @version 1.0
+  *}
+  TSepiPointerType = class(TSepiOrdType)
+  private
+    FPointTo : TSepiType; /// Type vers lequel pointe le pointeur
+  protected
+    procedure Loaded; override;
+  public
+    constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
+    constructor Create(AOwner : TSepiMeta; const AName : string;
+      APointTo : TSepiType); overload;
+    constructor Create(AOwner : TSepiMeta; const AName : string;
+      APointTo : PTypeInfo); overload;
+
+    property PointTo : TSepiType read FPointTo;
+  end;
+
 implementation
 
 const
@@ -895,10 +915,61 @@ begin
     FCompType.CompatibleWith(TSepiSetType(AType).FCompType);
 end;
 
+{-------------------------}
+{ Classe TSepiPointerType }
+{-------------------------}
+
+{*
+  Charge un type pointeur depuis un flux
+*}
+constructor TSepiPointerType.Load(AOwner : TSepiMeta; Stream : TStream);
+begin
+  inherited;
+
+  AllocateTypeInfo;
+  Stream.ReadBuffer(FPointTo, 4);
+end;
+
+{*
+  Crée un nouveau type ensemble
+  @param AOwner     Propriétaire du type
+  @param AName      Nom du type
+  @param APointTo   Type vers lequel pointe le pointeur
+*}
+constructor TSepiPointerType.Create(AOwner : TSepiMeta; const AName : string;
+  APointTo : TSepiType);
+begin
+  inherited Create(AOwner, AName, tkUnknown);
+
+  AllocateTypeInfo;
+  FPointTo := APointTo;
+end;
+
+{*
+  Crée un nouveau type ensemble
+  @param AOwner     Propriétaire du type
+  @param AName      Nom du type
+  @param APointTo   RTTI tu type vers lequel pointe le pointeur
+*}
+constructor TSepiPointerType.Create(AOwner : TSepiMeta; const AName : string;
+  APointTo : PTypeInfo);
+begin
+  Create(AOwner, AName, AOwner.Root.FindType(APointTo));
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiPointerType.Loaded;
+begin
+  inherited;
+  OwningUnit.LoadRef(FPointTo);
+end;
+
 initialization
   SepiRegisterMetaClasses([
     TSepiIntegerType, TSepiCharType, TSepiInt64Type, TSepiFloatType,
-    TSepiBooleanType, TSepiEnumType, TSepiSetType
+    TSepiBooleanType, TSepiEnumType, TSepiSetType, TSepiPointerType
   ]);
 end.
 

@@ -135,6 +135,7 @@ constructor TSepiRecordType.Load(AOwner : TSepiMeta; Stream : TStream);
 begin
   inherited;
 
+  AllocateTypeInfo;
   Stream.ReadBuffer(FPacked, 1);
   LoadChildren(Stream);
 end;
@@ -148,6 +149,8 @@ constructor TSepiRecordType.Create(AOwner : TSepiMeta; const AName : string;
   APacked : boolean = False);
 begin
   inherited Create(AOwner, AName, tkRecord);
+
+  AllocateTypeInfo;
   FPacked := APacked;
 end;
 
