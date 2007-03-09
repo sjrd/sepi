@@ -19,7 +19,7 @@ type
   *}
   TSepiRecordType = class(TSepiType)
   private
-    FPacked : boolean;
+    FPacked : boolean; /// Indique si le record est packed
 
     function NextOffset(Field : TSepiMetaField) : integer;
     function AddField(const FieldName : string; FieldType : TSepiType;
@@ -43,64 +43,55 @@ type
     property IsPacked : boolean read FPacked;
   end;
 
-  TSepiObjectType = class end;
-
   {*
-    Type classe
+    Classe (type objet)
     @author Sébastien Jean Robert Doeraene
     @version 1.0
   *}
-  TSepiClassType = class(TSepiType)
+  TSepiClass = class(TSepiType)
   private
-    FAncestor : TSepiClassType;    /// Ancêtre
-    FDelphiClass : TClass;         /// Classe Delphi d'importation
-    FObjectType : TSepiObjectType; /// Type objet correspondant
+    FDelphiClass : TClass;   /// Classe Delphi
+    FParent : TSepiClass;    /// Classe parent
+    FParentInfo : PTypeInfo; /// RTTI de la classe parent
+    FCompleted : boolean;    /// Indique si la classe est entièrement définie
   protected
-    procedure ChildAdded(Child : TSepiMeta); override;
-
     procedure Loaded; override;
   public
+    constructor RegisterTypeInfo(AOwner : TSepiMeta;
+      ATypeInfo : PTypeInfo); override;
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
     constructor Create(AOwner : TSepiMeta; const AName : string;
-      AAncestor : TSepiClassType; ADelphiClass : TClass;
-      AObjectType : TSepiObjectType);
+      AParent : TSepiClass);
+
+    procedure Complete;
 
     function CompatibleWith(AType : TSepiType) : boolean; override;
-    function InheritsFrom(AParent : TSepiClassType) : boolean;
+    function InheritsFrom(AParent : TSepiClass) : boolean;
 
-    property Ancestor : TSepiClassType read FAncestor;
     property DelphiClass : TClass read FDelphiClass;
-    property ObjectType : TSepiObjectType read FObjectType;
+    property Parent : TSepiClass read FParent;
+    property Completed : boolean read FCompleted;
   end;
 
-  (*{*
-    Type objet
+  {*
+    Meta-classe (type classe)
     @author Sébastien Jean Robert Doeraene
     @version 1.0
   *}
-  TSepiObjectType = class(TSepiMetaMemberContainer)
+  TSepiMetaClass = class(TSepiType)
   private
-    FAncestor : TSepiObjectType;                /// Ancêtre
-    FDelphiClass : TClass;                      /// Classe Delphi d'importation
-    FClassType : TSepiClassType;                /// Type classe correspondant
-    FCurrentVisibility : TSepiMemberVisibility; /// Visibilité courante
+    FClass : TSepiClass; /// Classe correspondante
   protected
-    procedure ChildAdded(Child : TSepiMeta); override;
-
     procedure Loaded; override;
   public
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
     constructor Create(AOwner : TSepiMeta; const AName : string;
-      AAncestor : TSepiObjectType; ADelphiClass : TClass);
+      AClass : TSepiClass);
 
     function CompatibleWith(AType : TSepiType) : boolean; override;
-    function InheritsFrom(AParent : TSepiObjectType) : boolean;
 
-    property Ancestor : TSepiObjectType read FAncestor;
-    property ObjClassType : TSepiClassType read FClassType;
-    property CurrentVisibility : TSepiMemberVisibility
-      read FCurrentVisibility write FCurrentVisibility;
-  end;*)
+    property SepiClass : TSepiClass read FClass;
+  end;
 
   {*
     Type référence de méthode
@@ -254,102 +245,145 @@ begin
   Result := Self = AType;
 end;
 
-{-----------------------}
-{ Classe TSepiClassType }
-{-----------------------}
+{-------------------}
+{ Classe TSepiClass }
+{-------------------}
 
-constructor TSepiClassType.Load(AOwner : TSepiMeta; Stream : TStream);
+{*
+  Recense une classe native
+*}
+constructor TSepiClass.RegisterTypeInfo(AOwner : TSepiMeta;
+  ATypeInfo : PTypeInfo);
 begin
   inherited;
-  Stream.ReadBuffer(FAncestor, 4);
-  FDelphiClass := nil;
-  Stream.ReadBuffer(FObjectType, 4);
+
+  FDelphiClass := TypeData.ClassType;
+  FParentInfo := TypeData.ParentInfo^;
+  if Assigned(FParentInfo) then
+    FParent := TSepiClass(Root.FindType(FParentInfo))
+  else
+    FParent := nil;
+  FCompleted := False;
 end;
 
-constructor TSepiClassType.Create(AOwner : TSepiMeta; const AName : string;
-  AAncestor : TSepiClassType; ADelphiClass : TClass;
-  AObjectType : TSepiObjectType);
+{*
+  Charge une classe depuis un flux
+*}
+constructor TSepiClass.Load(AOwner : TSepiMeta; Stream : TStream);
+begin
+  inherited;
+
+  FDelphiClass := nil;
+  Stream.ReadBuffer(FParent, 4);
+  FParentInfo := nil;
+  FCompleted := False;
+
+  LoadChildren(Stream);
+end;
+
+{*
+  Crée une nouvelle classe
+  @param AOwner    Propriétaire du type
+  @param AName     Nom du type
+  @param AParent   Classe parent
+*}
+constructor TSepiClass.Create(AOwner : TSepiMeta; const AName : string;
+  AParent : TSepiClass);
 begin
   inherited Create(AOwner, AName, tkClass);
-  FAncestor := AAncestor;
-  FDelphiClass := ADelphiClass;
-  FObjectType := AObjectType;
-end;
 
-procedure TSepiClassType.ChildAdded(Child : TSepiMeta);
-begin
-  inherited;
-  //Child.Visibility := FObjectType.FCurrentVisibility;
-end;
-
-procedure TSepiClassType.Loaded;
-begin
-  inherited;
-  OwningUnit.LoadRef(FAncestor);
-  FDelphiClass := FAncestor.DelphiClass;
-  OwningUnit.LoadRef(FObjectType);
-end;
-
-function TSepiClassType.CompatibleWith(AType : TSepiType) : boolean;
-begin
-  Result := (AType.Kind = tkClass) and
-    TSepiClassType(AType).InheritsFrom(Self);
-end;
-
-function TSepiClassType.InheritsFrom(AParent : TSepiClassType) : boolean;
-begin
-  Result := (AParent = Self) or
-    (Assigned(FAncestor) and FAncestor.InheritsFrom(AParent));
-end;
-
-(*{------------------------}
-{ Classe TSepiObjectType }
-{------------------------}
-
-constructor TSepiObjectType.Load(AOwner : TSepiMeta; Stream : TStream);
-begin
-  inherited;
-  Stream.ReadBuffer(FAncestor, 4);
   FDelphiClass := nil;
-  Stream.ReadBuffer(FClassType, 4);
-  FCurrentVisibility := mvPrivate;
+  if Assigned(AParent) then FParent := AParent else
+    FParent := TSepiClass(Root.FindType(System.TypeInfo(TObject)));
+  FParentInfo := Parent.TypeInfo;
+  FCompleted := False;
 end;
 
-constructor TSepiObjectType.Create(AOwner : TSepiMeta; const AName : string;
-  AAncestor : TSepiObjectType; ADelphiClass : TClass);
-begin
-  inherited Create(AOwner, AName, tkUnknown);
-  FAncestor := AAncestor;
-  FDelphiClass := ADelphiClass;
-  FClassType := TSepiClassType.Create(AOwner, 'CLASS$'+AName,
-    AAncestor.ObjClassType, ADelphiClass, Self);
-  FCurrentVisibility := mvPrivate;
-end;
-
-procedure TSepiObjectType.ChildAdded(Child : TSepiMeta);
+{*
+  [@inheritDoc]
+*}
+procedure TSepiClass.Loaded;
 begin
   inherited;
-  Child.Visibility := FCurrentVisibility;
+
+  OwningUnit.LoadRef(FParent);
+  FParentInfo := Parent.TypeInfo;
+
+  Complete;
 end;
 
-procedure TSepiObjectType.Loaded;
+{*
+  Termine la classe et construit ses RTTI si ce n'est pas déjà fait
+*}
+procedure TSepiClass.Complete;
 begin
-  OwningUnit.LoadRef(FAncestor);
-  OwningUnit.LoadRef(FClassType);
-  FDelphiClass := FClassType.DelphiClass;
+  FCompleted := True;
+  if Assigned(TypeInfo) then exit;
 end;
 
-function TSepiObjectType.CompatibleWith(AType : TSepiType) : boolean;
+{*
+  [@inheritDoc]
+*}
+function TSepiClass.CompatibleWith(AType : TSepiType) : boolean;
 begin
-  Result := (AType.Kind = tkObject) and
-    TSepiObjectType(AType).InheritsFrom(Self);
+  Result := (AType is TSepiClass) and
+    TSepiClass(AType).InheritsFrom(Self);
 end;
 
-function TSepiObjectType.InheritsFrom(AParent : TSepiObjectType) : boolean;
+{*
+  Détermine si la classe hérite d'une classe donnée
+  @param AParent   Ancêtre à tester
+  @return True si la classe hérite de AParent, False sinon
+*}
+function TSepiClass.InheritsFrom(AParent : TSepiClass) : boolean;
 begin
   Result := (AParent = Self) or
-    (Assigned(FAncestor) and FAncestor.InheritsFrom(AParent));
-end;*)
+    (Assigned(FParent) and FParent.InheritsFrom(AParent));
+end;
+
+{-----------------------}
+{ Classe TSepiMetaClass }
+{-----------------------}
+
+{*
+  Charge une classe depuis un flux
+*}
+constructor TSepiMetaClass.Load(AOwner : TSepiMeta; Stream : TStream);
+begin
+  inherited;
+  Stream.ReadBuffer(FClass, 4);
+end;
+
+{*
+  Crée une nouvelle classe
+  @param AOwner   Propriétaire du type
+  @param AName    Nom du type
+  @param AClass   Classe correspondante
+*}
+constructor TSepiMetaClass.Create(AOwner : TSepiMeta; const AName : string;
+  AClass : TSepiClass);
+begin
+  inherited Create(AOwner, AName, tkClass);
+  FClass := AClass;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiMetaClass.Loaded;
+begin
+  inherited;
+  OwningUnit.LoadRef(FClass);
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiMetaClass.CompatibleWith(AType : TSepiType) : boolean;
+begin
+  Result := (AType is TSepiMetaClass) and
+    TSepiMetaClass(AType).SepiClass.InheritsFrom(SepiClass);
+end;
 
 {---------------------------}
 { Classe TSepiMethodRefType }
@@ -414,7 +448,7 @@ end;
 
 initialization
   SepiRegisterMetaClasses([
-    TSepiRecordType, TSepiClassType, TSepiMethodRefType
+    TSepiRecordType, TSepiClass, TSepiMethodRefType
   ]);
 end.
 

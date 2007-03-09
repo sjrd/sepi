@@ -496,7 +496,7 @@ destructor TSepiMeta.Destroy;
 var I : integer;
 begin
   for I := 0 to FChildren.Count-1 do
-    FChildren.Objects[I].Free; // a bit faster than using Metas[I]
+    FChildren.Objects[I].Free;
   FChildren.Free;
   if Assigned(FOwner) then
     FOwner.RemoveChild(Self);
@@ -738,7 +738,7 @@ end;
 {*
   Alloue une zone mémoire pour les RTTI
   Alloue une zone mémoire adaptée au nom du type et à la taille des données de
-  type, et rempli les champs de TypeInfo (TypeData reste non initialisé).
+  type, et remplit les champs de TypeInfo (TypeData reste non initialisé).
   La zone mémoire ainsi allouée sera automatiquement libérée à la destruction du
   type.
   @param TypeDataLength   Taille des données de type
