@@ -13,7 +13,7 @@ uses
 
 const
   MonomsChars = ['0'..'9', '­', 'x', 'e', 'E', ',', '.'];
-  BinaryOperators = ['+', '-', '*', '/', '%', '^', 'r'];
+  BinaryOperators = ['+', '-', '*', '/', '%', '^', 'r', 'o', '|'];
   UnaryOperators  = ['­', 'a', 's', 'c', 't', 'S', 'C', 'T',
                      '²', '\', '!', 'v', 'w'];
   VarsListsCount = 2;
@@ -210,6 +210,7 @@ type
 {$ENDREGION}
 
   TTestIsAbortedProc = procedure of object;
+  TScalarProdFunc = function(Left, Right : TPolynom) : Extended;
 
   TComplexList = class(TScList)
   // Liste de nombres complexes
@@ -272,6 +273,8 @@ type
     procedure Modulo(Source : TPolynom);
     procedure Power(Source : TPolynom);
     procedure Root(Source : TPolynom);
+    procedure Insert(Source : TPolynom);
+    procedure ScalarProd(Source : TPolynom);
     procedure Oppose;
     procedure Reverse;
     procedure Abs;
@@ -289,6 +292,8 @@ type
     class function ModuloOf      (Val1, Val2 : TPolynom; ReleaseVals : boolean = False) : TPolynom;
     class function PowerOf       (Val1, Val2 : TPolynom; ReleaseVals : boolean = False) : TPolynom;
     class function RootOf        (Val1, Val2 : TPolynom; ReleaseVals : boolean = False) : TPolynom;
+    class function InsertOf      (Val1, Val2 : TPolynom; ReleaseVals : boolean = False) : TPolynom;
+    class function ScalarProdOf  (Val1, Val2 : TPolynom; ReleaseVals : boolean = False) : TPolynom;
     class function OpposedOf   (Value : TPolynom; ReleaseValue : boolean = False) : TPolynom;
     class function ReversedOf  (Value : TPolynom; ReleaseValue : boolean = False) : TPolynom;
     class function AbsOf       (Value : TPolynom; ReleaseValue : boolean = False) : TPolynom;
@@ -363,11 +368,15 @@ function Factorial(X : Int64) : Int64;
 function IntPower(Base, Exponent : LongWord) : LongWord;
 // Renvoie Base^Exponent
 
+function DefaultScalarProd(Left, Right : TPolynom) : Extended;
+// Produit scalaire canonique
+
 function Eval(Expression : string; TestIsAborted : TTestIsAbortedProc = nil) : TPolynom;
 // Evalue l'expression mathématique Expression
 
 var
   VarsLists : array[0..VarsListsCount-1] of TPolynomList;
+  ScalarProdFunc : TScalarProdFunc;
 
 implementation
 
@@ -639,6 +648,17 @@ begin
     Result := Result*Base;
     dec(Exponent);
   end;
+end;
+
+function DefaultScalarProd(Left, Right : TPolynom) : Extended;
+var FromDeg, ToDeg, Deg : integer;
+begin
+  Result := 0.0;
+  FromDeg := Max(Left.MinDegree, Right.MinDegree);
+  ToDeg := Min(Left.MaxDegree, Right.MaxDegree);
+
+  for Deg := FromDeg to ToDeg do
+    Result := Result + Left[Deg]*Right[Deg];
 end;
 
 {$ENDREGION}
@@ -1093,10 +1113,28 @@ begin
   end;
 end;
 
+procedure TPolynom.Insert(Source : TPolynom);
+var Deg : integer;
+    SourceValue, Value : Extended;
+begin
+  SourceValue := Source.AsExtended;
+  Value := 0.0;
+
+  for Deg := MinDegree to MaxDegree do
+    Value := Value + Coefficients[Deg] * Math.Power(SourceValue, Deg);
+
+  AsExtended := Value;
+end;
+
+procedure TPolynom.ScalarProd(Source : TPolynom);
+begin
+  AsExtended := ScalarProdFunc(Self, Source);
+end;
+
 procedure TPolynom.Oppose;
 var I : integer;
 begin
-  for I := MinDegree to MaxDegree do
+  for I := 0 to FCoefficients.Count-1 do
     FCoefficients[I] := -FCoefficients[I];
 end;
 
@@ -1210,6 +1248,24 @@ class function TPolynom.RootOf(Val1, Val2 : TPolynom; ReleaseVals : boolean = Fa
 begin
   Result := CreateAssign(Val1);
   Result.Root(Val2);
+  if not ReleaseVals then exit;
+  Val1.Free;
+  Val2.Free;
+end;
+
+class function TPolynom.InsertOf(Val1, Val2 : TPolynom; ReleaseVals : boolean = False) : TPolynom;
+begin
+  Result := CreateAssign(Val1);
+  Result.Insert(Val2);
+  if not ReleaseVals then exit;
+  Val1.Free;
+  Val2.Free;
+end;
+
+class function TPolynom.ScalarProdOf(Val1, Val2 : TPolynom; ReleaseVals : boolean = False) : TPolynom;
+begin
+  Result := CreateAssign(Val1);
+  Result.ScalarProd(Val2);
   if not ReleaseVals then exit;
   Val1.Free;
   Val2.Free;
@@ -1416,6 +1472,8 @@ begin
       '%' : Result := TPolynom.ModuloOf      (Operande1, Operande2, True);
       '^' : Result := TPolynom.PowerOf       (Operande1, Operande2, True);
       'r' : Result := TPolynom.RootOf        (Operande1, Operande2, True);
+      'o' : Result := TPolynom.InsertOf      (Operande1, Operande2, True);
+      '|' : Result := TPolynom.ScalarProdOf  (Operande1, Operande2, True);
       else raise EOpNotExistsError.CreateOpNotExists(Operation);
     end;
   except
@@ -1471,9 +1529,10 @@ end;
 function Priorite(Operation : Char) : Byte;
 begin
   case Operation of
+    '|' : Result := 5;
     '+', '-' : Result := 4;
     '*', '/', '%' : Result := 3;
-    '^', 'r' : Result := 2;
+    '^', 'r', 'o' : Result := 2;
     '­', 'a', 's', 'c', 't', 'S', 'C', 'T', '²', '\', '!', 'v', 'w' : Result := 1;
     else Result := 0;
   end;
@@ -1613,6 +1672,7 @@ initialization
     VarsLists[I] := TPolynomList.Create;
     inc(I);
   end;
+  ScalarProdFunc := DefaultScalarProd;
 finalization
   I := 0;
   while I < VarsListsCount do
