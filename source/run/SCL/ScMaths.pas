@@ -374,6 +374,9 @@ function DefaultScalarProd(Left, Right : TPolynom) : Extended;
 function Eval(Expression : string; TestIsAborted : TTestIsAbortedProc = nil) : TPolynom;
 // Evalue l'expression mathématique Expression
 
+const
+  MinValueEver = 1e-16;
+
 var
   VarsLists : array[0..VarsListsCount-1] of TPolynomList;
   ScalarProdFunc : TScalarProdFunc;
@@ -874,6 +877,8 @@ end;
 
 procedure TPolynom.SetCoefficients(Exponent : integer; New : Extended);
 begin
+  if (New < MinValueEver) and (New > -MinValueEver) then New := 0.0;
+
   // Si New a déjà la valeur de cet exposant, on termine
   if New = Coefficients[Exponent] then exit;
   if New = 0 then
@@ -920,7 +925,9 @@ end;
 
 procedure TPolynom.SetAsExtended(New : Extended);
 begin
-  if New = 0 then FCoefficients.Count := 0 else
+  if (New < MinValueEver) and (New > -MinValueEver) then
+    FCoefficients.Count := 0
+  else
   begin
     FCoefficients.Clear;
     FCoefficients.Add(New);
@@ -1115,15 +1122,37 @@ end;
 
 procedure TPolynom.Insert(Source : TPolynom);
 var Deg : integer;
-    SourceValue, Value : Extended;
+    Coeff : Extended;
+    Result, Temp, Scalar : TPolynom;
 begin
-  SourceValue := Source.AsExtended;
-  Value := 0.0;
+  Result := TPolynom.Create;
+  try
+    Temp := TPolynom.Create;
+    try
+      Scalar := TPolynom.Create;
+      try
+        for Deg := MinDegree to MaxDegree do
+        begin
+          Coeff := Coefficients[Deg];
+          if Coeff = 0 then Continue;
+          Temp.Assign(Source);
+          Scalar.AsInteger := Deg;
+          Temp.Power(Scalar);
+          Scalar.AsExtended := Coeff;
+          Temp.Multiply(Scalar);
+          Result.Add(Temp);
+        end;
+      finally
+        Scalar.Free;
+      end;
+    finally
+      Temp.Free;
+    end;
 
-  for Deg := MinDegree to MaxDegree do
-    Value := Value + Coefficients[Deg] * Math.Power(SourceValue, Deg);
-
-  AsExtended := Value;
+    Assign(Result);
+  finally
+    Result.Free;
+  end;
 end;
 
 procedure TPolynom.ScalarProd(Source : TPolynom);
