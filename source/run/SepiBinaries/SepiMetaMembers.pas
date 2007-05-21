@@ -13,8 +13,12 @@ uses
 type
   {*
     Type de liaison d'une méthode
+    - mlkStatic : méthode statique (ni virtuelle ni dynamique)
+    - mlkVirtual : méthode à liaison virtuelle (par la VMT)
+    - mlkDynamic : méthode à liaison dynamique (par la DMT)
+    - mlkOverride : détermine le type de liaison depuis la méthode héritée
   *}
-  TMethodLinkKind = (mlkStatic, mlkVirtual, mlkDynamic);
+  TMethodLinkKind = (mlkStatic, mlkVirtual, mlkDynamic, mlkOverride);
 
   {*
     Convention d'appel d'une méthode
@@ -116,8 +120,11 @@ type
     FCode : Pointer;                   /// Adresse de code natif
     FSignature : TSepiMethodSignature; /// Signature de la méthode
     FLinkKind : TMethodLinkKind;       /// Type de liaison d'appel
+    FFirstDeclaration : boolean;       /// Faux uniquement quand 'override'
     FAbstract : boolean;               /// Indique si la méthode est abstraite
     FInherited : TSepiMetaMethod;      /// Méthode héritée
+
+    FLinkIndex : integer; /// Offset de VMT ou index de DMT, selon la liaison
 
     procedure FindInherited;
   protected
@@ -130,9 +137,15 @@ type
       ALinkKind : TMethodLinkKind = mlkStatic; AAbstract : boolean = False);
     destructor Destroy; override;
 
+    property Code : Pointer read FCode;
     property Signature : TSepiMethodSignature read FSignature;
     property LinkKind : TMethodLinkKind read FLinkKind;
+    property FirstDecleration : boolean read FFirstDeclaration;
     property IsAbstract : boolean read FAbstract;
+    property InheritedMethod : TSepiMetaMethod read FInherited;
+
+    property VMTOffset : integer read FLinkIndex;
+    property DMTIndex : integer read FLinkIndex;
   end;
 
   {*
@@ -148,7 +161,10 @@ type
     constructor Create(AOwner : TSepiMeta; const AName : string);
 
     function NextID : integer;
-    function FindMethod(const ATypes : array of TSepiType) : TSepiMetaMethod;
+    function FindMethod(
+      ASignature : TSepiMethodSignature) : TSepiMetaMethod; overload;
+    function FindMethod(
+      const ATypes : array of TSepiType) : TSepiMetaMethod; overload;
   end;
 
   {*
@@ -208,6 +224,9 @@ const
   );
 
 implementation
+
+uses
+  SepiCompTypes;
 
 {-----------------------}
 { Classe TSepiMetaField }
@@ -545,7 +564,10 @@ begin
   LoadChildren(Stream);
   Stream.ReadBuffer(FLinkKind, 1);
   Stream.ReadBuffer(FAbstract, 1);
+  Stream.ReadBuffer(FFirstDeclaration, 1);
   FInherited := nil;
+
+  FLinkIndex := 0;
 end;
 
 {*
@@ -566,8 +588,14 @@ begin
   FCode := ACode;
   FSignature := TSepiMethodSignature.Create(Self, ASignature, ACallConvention);
   FLinkKind := ALinkKind;
-  FAbstract := AAbstract and (FLinkKind <> mlkStatic);
+  FFirstDeclaration := FLinkKind <> mlkOverride;
+  FAbstract := AAbstract and (FLinkKind in [mlkVirtual, mlkDynamic]);
+
+  FLinkIndex := 0;
+
   FindInherited;
+  if FLinkKind = mlkOverride then
+    FLinkKind := FInherited.LinkKind;
 end;
 
 {*
@@ -581,22 +609,37 @@ end;
 
 {*
   Trouve la méthode héritée de même nom
+  La seule vraie méthode héritée est celle qui peut être invoquée par un
+  simple appel 'inherited;', tout court.
 *}
 procedure TSepiMetaMethod.FindInherited;
-var Overloaded : boolean;
+var ClassParent : TSepiClass;
+    Overloaded : boolean;
     LookFor : string;
+    Meta : TSepiMeta;
 begin
+  FInherited := nil;
+  if not (Owner is TSepiClass) then exit;
+  ClassParent := TSepiClass(Owner).Parent;
+  if ClassParent = nil then exit;
+
   LookFor := Name;
 
   Overloaded := Copy(Name, 1, 3) = 'OL$';
   if Overloaded then
   begin
     Delete(LookFor, 1, 3);
-    Delete(LookFor, Pos('$', LookFor), Length(LookFor));
+    Delete(LookFor, Pos('$', LookFor), MaxInt);
   end;
 
-  FInherited := nil;
-  { TODO 3 -cMetaunités : Trouver la méthode héritée }
+  Meta := ClassParent.LookForMember(LookFor, OwningUnit, TSepiClass(Owner));
+  if Meta is TSepiMetaMethod then
+  begin
+    if TSepiMetaMethod(Meta).Signature.Equals(Signature) then
+      FInherited := TSepiMetaMethod(Meta);
+  end else
+  if Meta is TSepiMetaOverloadedMethod then
+    FInherited := TSepiMetaOverloadedMethod(Meta).FindMethod(Signature);
 end;
 
 {*
@@ -643,6 +686,23 @@ function TSepiMetaOverloadedMethod.NextID : integer;
 begin
   Result := FMethodCount;
   inc(FMethodCount);
+end;
+
+{*
+  Trouve la méthode effective qui correspond à une signature donnée
+  @param ASignature   Signature à rechercher
+  @return Méthode effective correspondante
+*}
+function TSepiMetaOverloadedMethod.FindMethod(
+  ASignature : TSepiMethodSignature) : TSepiMetaMethod;
+var I : integer;
+begin
+  for I := 0 to FMethodCount-1 do
+  begin
+    Result := TSepiMetaMethod(Owner.FindMeta(Format('OL$%s$%d', [Name, I])));
+    if Result.Signature.Equals(ASignature) then exit;
+  end;
+  Result := nil;
 end;
 
 {*

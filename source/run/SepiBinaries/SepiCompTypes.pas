@@ -44,6 +44,27 @@ type
   end;
 
   {*
+    Interface
+    @author Sébastien Jean Robert Doeraene
+    @version 1.0
+  *}
+  TSepiInterface = class(TSepiType)
+  private
+    FParent : TSepiInterface; /// Interface parent (ou nil - IInterface)
+    FParentInfo : PTypeInfo;  /// RTTI de l'interface parent (ou nil)
+    FCompleted : boolean;     /// Indique si l'interface est entièrement définie
+  public
+    constructor RegisterTypeInfo(AOwner : TSepiMeta;
+      ATypeInfo : PTypeInfo); override;
+    constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
+    constructor Create(AOwner : TSepiMeta; const AName : string;
+      AParent : TSepiInterface);
+
+    property Parent : TSepiInterface read FParent;
+    property Completed : boolean read FCompleted;
+  end;
+
+  {*
     Classe (type objet)
     @author Sébastien Jean Robert Doeraene
     @version 1.0
@@ -51,11 +72,22 @@ type
   TSepiClass = class(TSepiType)
   private
     FDelphiClass : TClass;   /// Classe Delphi
-    FParent : TSepiClass;    /// Classe parent
-    FParentInfo : PTypeInfo; /// RTTI de la classe parent
+    FParent : TSepiClass;    /// Classe parent (nil si n'existe pas - TObject)
+    FParentInfo : PTypeInfo; /// RTTI de la classe parent (nil si n'existe pas)
     FCompleted : boolean;    /// Indique si la classe est entièrement définie
+
+    FOwnVMT : boolean;  /// Indique si la VMT a été créée par Sepi
+    FVMTSize : integer; /// Taille de la VMT dans les index positifs
+
+    procedure PrepareVMT;
+
+    function GetVMTEntries(Index : integer) : Pointer;
+    procedure SetVMTEntries(Index : integer; Value : Pointer);
   protected
     procedure Loaded; override;
+
+    property VMTEntries[index : integer] : Pointer
+      read GetVMTEntries write SetVMTEntries;
   public
     constructor RegisterTypeInfo(AOwner : TSepiMeta;
       ATypeInfo : PTypeInfo); override;
@@ -68,9 +100,14 @@ type
     function CompatibleWith(AType : TSepiType) : boolean; override;
     function InheritsFrom(AParent : TSepiClass) : boolean;
 
+    function LookForMember(const MemberName : string; FromUnit : TSepiMetaUnit;
+      FromClass : TSepiClass = nil) : TSepiMeta;
+
     property DelphiClass : TClass read FDelphiClass;
     property Parent : TSepiClass read FParent;
     property Completed : boolean read FCompleted;
+
+    property VMTSize : integer read FVMTSize;
   end;
 
   {*
@@ -248,6 +285,60 @@ begin
   Result := Self = AType;
 end;
 
+{-----------------------}
+{ Classe TSepiInterface }
+{-----------------------}
+
+{*
+  Recense une interface native
+*}
+constructor TSepiInterface.RegisterTypeInfo(AOwner : TSepiMeta;
+  ATypeInfo : PTypeInfo);
+begin
+  inherited;
+
+  FSize := 4;
+  FParentInfo := TypeData.ParentInfo^;
+  if Assigned(FParentInfo) then
+    FParent := TSepiInterface(Root.FindType(FParentInfo))
+  else
+    FParent := nil; // This is IInterface
+  FCompleted := False;
+end;
+
+{*
+  Charge une interface depuis un flux
+*}
+constructor TSepiInterface.Load(AOwner : TSepiMeta; Stream : TStream);
+begin
+  inherited;
+
+  FSize := 4;
+  FParent := TSepiInterface(Root.FindMeta(ReadStrFromStream(Stream)));
+  FParentInfo := Parent.TypeInfo;
+  FCompleted := False;
+
+  LoadChildren(Stream);
+end;
+
+{*
+  Crée une nouvelle interface
+  @param AOwner    Propriétaire du type
+  @param AName     Nom du type
+  @param AParent   Classe parent
+*}
+constructor TSepiInterface.Create(AOwner : TSepiMeta; const AName : string;
+  AParent : TSepiInterface);
+begin
+  inherited Create(AOwner, AName, tkInterface);
+
+  FSize := 4;
+  if Assigned(AParent) then FParent := AParent else
+    FParent := TSepiInterface(Root.FindType(System.TypeInfo(IInterface)));
+  FParentInfo := Parent.TypeInfo;
+  FCompleted := False;
+end;
+
 {-------------------}
 { Classe TSepiClass }
 {-------------------}
@@ -260,13 +351,22 @@ constructor TSepiClass.RegisterTypeInfo(AOwner : TSepiMeta;
 begin
   inherited;
 
+  FSize := 4;
   FDelphiClass := TypeData.ClassType;
   FParentInfo := TypeData.ParentInfo^;
   if Assigned(FParentInfo) then
-    FParent := TSepiClass(Root.FindType(FParentInfo))
-  else
+  begin
+    FParent := TSepiClass(Root.FindType(FParentInfo));
+    FVMTSize := Parent.VMTSize;
+  end else
+  begin
+    // This is TObject
     FParent := nil;
+    FVMTSize := vmtParent + 4; // vmtParent is the last non-method VMT entry
+  end;
   FCompleted := False;
+
+  FOwnVMT := False;
 end;
 
 {*
@@ -276,10 +376,14 @@ constructor TSepiClass.Load(AOwner : TSepiMeta; Stream : TStream);
 begin
   inherited;
 
+  FSize := 4;
   FDelphiClass := nil;
-  Stream.ReadBuffer(FParent, 4);
-  FParentInfo := nil;
+  FParent := TSepiClass(Root.FindMeta(ReadStrFromStream(Stream)));
+  FParentInfo := Parent.TypeInfo;
   FCompleted := False;
+
+  FOwnVMT := True;
+  FVMTSize := Parent.VMTSize;
 
   LoadChildren(Stream);
 end;
@@ -295,11 +399,15 @@ constructor TSepiClass.Create(AOwner : TSepiMeta; const AName : string;
 begin
   inherited Create(AOwner, AName, tkClass);
 
+  FSize := 4;
   FDelphiClass := nil;
   if Assigned(AParent) then FParent := AParent else
     FParent := TSepiClass(Root.FindType(System.TypeInfo(TObject)));
   FParentInfo := Parent.TypeInfo;
   FCompleted := False;
+
+  FOwnVMT := True;
+  FVMTSize := Parent.VMTSize;
 end;
 
 {*
@@ -309,10 +417,50 @@ procedure TSepiClass.Loaded;
 begin
   inherited;
 
-  OwningUnit.LoadRef(FParent);
-  FParentInfo := Parent.TypeInfo;
-
   Complete;
+end;
+
+{*
+  Détermine la taille de la VMT et de ses composantes et les alloue si besoin
+*}
+procedure TSepiClass.PrepareVMT;
+var I : integer;
+    Child : TSepiMeta;
+    Method : TSepiMetaMethod;
+begin
+  for I := 0 to ChildCount-1 do
+  begin
+    Child := Children[I];
+    if Child is TSepiMetaMethod then
+    begin
+      Method := TSepiMetaMethod(Child);
+      if (Method.LinkKind = mlkVirtual) and (Method.InheritedMethod = nil) then
+        inc(FVMTSize, 4);
+    end;
+  end;
+end;
+
+{*
+  VMT de la classe, indexée par les constantes vmtXXX
+  @param Index   Index dans la VMT
+  @return Information contenue dans la VMT à l'index spécifié
+*}
+function TSepiClass.GetVMTEntries(Index : integer) : Pointer;
+begin
+  Result := PPointer(Integer(FDelphiClass) + Index)^;
+end;
+
+{*
+  Modifie la VMT de la classe, indexée par les constantes vmtXXX
+  Cette méthode ne fonctionne que pour des VMT créées par Sepi. Dans le cas où
+  la VMT serait créée à la compilation, cette méthode provoquera une violation
+  d'accès.
+  @param Index   Index dans la VMT
+  @param Value   Information à stocker dans la VMT à l'index spécifié
+*}
+procedure TSepiClass.SetVMTEntries(Index : integer; Value : Pointer);
+begin
+  PPointer(Integer(FDelphiClass) + Index)^ := Value;
 end;
 
 {*
@@ -322,6 +470,8 @@ procedure TSepiClass.Complete;
 begin
   FCompleted := True;
   if Assigned(TypeInfo) then exit;
+
+  PrepareVMT;
 end;
 
 {*
@@ -342,6 +492,37 @@ function TSepiClass.InheritsFrom(AParent : TSepiClass) : boolean;
 begin
   Result := (AParent = Self) or
     (Assigned(FParent) and FParent.InheritsFrom(AParent));
+end;
+
+{*
+  Recherche un membre dans la classe, en tenant compte des visibilités
+  @param MemberName   Nom du membre recherché
+  @param FromUnit     Unité d'où l'on cherche
+  @param FromClass    Classe d'où l'on cherche (ou nil si pas de classe)
+  @return Le membre correspondant, ou nil si non trouvé
+*}
+function TSepiClass.LookForMember(const MemberName : string;
+  FromUnit : TSepiMetaUnit; FromClass : TSepiClass = nil) : TSepiMeta;
+begin
+  Result := GetMeta(MemberName);
+
+  if Result <> nil then
+  begin
+    case Result.Visibility of
+      mvPrivate  : if FromClass <> Self then Result := nil;
+      mvInternal : if FromUnit <> OwningUnit then Result := nil;
+      mvProtected :
+        if (FromClass = nil) or (not FromClass.InheritsFrom(Self)) then
+          Result := nil;
+      mvInternalProtected :
+        if (FromUnit <> OwningUnit) and
+           ((FromClass = nil) or (not FromClass.InheritsFrom(Self))) then
+          Result := nil;
+    end;
+  end;
+
+  if (Result = nil) and (Parent <> nil) then
+    Result := Parent.LookForMember(MemberName, FromUnit, FromClass);
 end;
 
 {-----------------------}
