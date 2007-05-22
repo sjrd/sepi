@@ -124,6 +124,7 @@ type
   TSepiType = class(TSepiMeta)
   private
     FKind : TTypeKind;         /// Type de type
+    FNative : boolean;         /// Indique si le type est un type natif Delphi
     FTypeInfoLength : integer; /// Taille des RTTI créées (ou 0 si non créées)
     FTypeInfo : PTypeInfo;     /// RTTI (Runtime Type Information)
     FTypeData : PTypeData;     /// RTTD (Runtime Type Data)
@@ -148,6 +149,7 @@ type
     function CompatibleWith(AType : TSepiType) : boolean; virtual;
 
     property Kind : TTypeKind read FKind;
+    property Native : boolean read FNative;
     property TypeInfo : PTypeInfo read FTypeInfo;
     property TypeData : PTypeData read FTypeData;
     property Size : integer read FSize;
@@ -666,6 +668,7 @@ begin
   inherited Create(AOwner, ATypeInfo.Name);
 
   FKind := ATypeInfo.Kind;
+  FNative := True;
   FTypeInfoLength := 0;
   FTypeInfo := ATypeInfo;
   FTypeData := GetTypeData(FTypeInfo);
@@ -684,6 +687,7 @@ begin
   inherited Create(AOwner, AName);
 
   FKind := Source.Kind;
+  FNative := False;
   FTypeInfoLength := 0;
   FTypeInfo := nil;
   FTypeData := nil;
@@ -700,6 +704,7 @@ begin
   inherited;
 
   Stream.ReadBuffer(FKind, sizeof(TTypeKind));
+  FNative := False;
   FTypeInfoLength := 0;
   FTypeInfo := nil;
   FTypeData := nil;
@@ -718,6 +723,7 @@ begin
   inherited Create(AOwner, AName);
 
   FKind := AKind;
+  FNative := False;
   FTypeInfoLength := 0;
   FTypeInfo := nil;
   FTypeData := nil;
