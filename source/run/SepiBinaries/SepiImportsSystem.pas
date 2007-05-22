@@ -9,7 +9,7 @@ interface
 
 uses
   TypInfo, SepiMetaUnits, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
-  SepiMetaMembers, SepiCompTypes;
+  SepiCompTypes;
 
 implementation
 

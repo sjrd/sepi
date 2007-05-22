@@ -8,7 +8,7 @@ unit SepiCompTypes;
 interface
 
 uses
-  Classes, SysUtils, ScUtils, SepiMetaUnits, SepiMetaMembers, SysConst, TypInfo,
+  Classes, SysUtils, ScUtils, SepiMetaUnits, SysConst, TypInfo, Contnrs,
   ScLists, StrUtils, ScStrUtils;
 
 type
@@ -283,7 +283,8 @@ type
 
     FShortClassName : ShortString; /// Nom de classe pour la VMT
 
-    procedure PrepareVMT;
+    procedure MakeDMT;
+    procedure MakeVMT;
 
     function GetVMTEntries(Index : integer) : Pointer;
     procedure SetVMTEntries(Index : integer; Value : Pointer);
@@ -1180,11 +1181,13 @@ begin
   begin
     FParent := TSepiClass(Root.FindType(FParentInfo));
     FVMTSize := Parent.VMTSize;
+    FDMTNextIndex := Parent.FDMTNextIndex;
   end else
   begin
     // This is TObject
     FParent := nil;
     FVMTSize := vmtMinMethodIndex;
+    FDMTNextIndex := -1;
   end;
   FCompleted := False;
 end;
@@ -1203,6 +1206,7 @@ begin
   FCompleted := False;
 
   FVMTSize := Parent.VMTSize;
+  FDMTNextIndex := Parent.FDMTNextIndex;
 
   LoadChildren(Stream);
 end;
@@ -1226,36 +1230,79 @@ begin
   FCompleted := False;
 
   FVMTSize := Parent.VMTSize;
+  FDMTNextIndex := Parent.FDMTNextIndex;
 end;
 
 {*
   Détruit l'instance
 *}
 destructor TSepiClass.Destroy;
-var PVMT : Pointer;
+var PTable : Pointer;
 begin
   if (not Native) and (FDelphiClass <> nil) then
   begin
-    PVMT := Pointer(Integer(FDelphiClass) + vmtMinIndex);
-    FreeMem(PVMT, FVMTSize);
+    // Destroying the DMT
+    PTable := VMTEntries[vmtDynamicTable];
+    FreeMem(PTable, 2 + 6*PWord(PTable)^);
+
+    // Destroying the VMT
+    PTable := Pointer(Integer(FDelphiClass) + vmtMinIndex);
+    FreeMem(PTable, FVMTSize);
   end;
 
   inherited;
 end;
 
 {*
-  Détermine la taille de la VMT et de ses composantes et les alloue si besoin
+  Construit la DMT
+  Range également l'adresse de la DMT à l'emplacement prévu de la VMT
 *}
-procedure TSepiClass.PrepareVMT;
+procedure TSepiClass.MakeDMT;
+var PDMT : Pointer;
+    I, Count : integer;
+    IndexList, CodeList : integer;
+    Methods : TObjectList;
+begin
+  Methods := TObjectList.Create(False);
+  try
+    // Listing dynamic methods
+    for I := 0 to ChildCount-1 do if Children[I] is TSepiMetaMethod then
+      Methods.Add(TSepiMetaMethod(Children[I]));
+    Count := Methods.Count;
+
+    // Creating the DMT
+    GetMem(PDMT, 2 + 6*Count);
+    VMTEntries[vmtDynamicTable] := PDMT;
+    PWord(PDMT)^ := Count;
+    IndexList := Integer(PDMT) + 2;
+    CodeList := IndexList + 2*Count;
+
+    // Filling the DMT
+    for I := 0 to Count-1 do with TSepiMetaMethod(Methods[I]) do
+    begin
+      PWord(IndexList + 2*I)^ := DMTIndex;
+      PPointer(CodeList + 4*I)^ := Code;
+    end;
+  finally
+    Methods.Free;
+  end;
+end;
+
+{*
+  Construit la VMT
+*}
+procedure TSepiClass.MakeVMT;
 var PVMT : Pointer;
     I : integer;
     Method : TSepiMetaMethod;
 begin
+  // Creating the VMT
   GetMem(PVMT, FVMTSize - vmtMinIndex);
-  FillChar(PVMT^, vmtMinMethodIndex - vmtMinIndex, 0);
+  FillChar(PVMT^, FVMTSize - vmtMinIndex, 0);
   dec(integer(PVMT), vmtMinIndex);
   FDelphiClass := TClass(PVMT);
 
+  // Setting class properties
   FShortClassName := Name;
 
   if FVMTSize > 0 then
@@ -1278,6 +1325,9 @@ begin
     if Method.LinkKind = mlkVirtual then
       VMTEntries[Method.VMTOffset] := Method.Code;
   end;
+
+  // Making the other tables
+  MakeDMT;
 end;
 
 {*
@@ -1321,7 +1371,7 @@ begin
   FCompleted := True;
   if Assigned(TypeInfo) then exit;
 
-  PrepareVMT;
+  MakeVMT;
 end;
 
 {*
