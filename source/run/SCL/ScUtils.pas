@@ -117,6 +117,8 @@ const
   NoPoint : TPoint = (X : MaxInt; Y : MaxInt);
   /// Point 3D nul
   No3DPoint : T3DPoint = (X : MaxInt; Y : MaxInt; Z : MaxInt);
+  /// GUID nul
+  NoGUID : TGUID = (D1 : 0; D2 : 0; D3 : 0; D4 : (0, 0, 0, 0, 0, 0, 0, 0));
 
 function Dir : string;
 
@@ -162,6 +164,8 @@ function CorrectFileName(const FileName : string;
 
 function IsNoPoint(const Point : TPoint) : boolean;
 function IsNo3DPoint(const Point3D : T3DPoint) : boolean;
+
+function IsNoGUID(const GUID : TGUID) : boolean;
 
 function Point3D(X, Y, Z : integer) : T3DPoint;
 
@@ -679,6 +683,25 @@ function IsNo3DPoint(const Point3D : T3DPoint) : boolean;
 begin
   Result := (Point3D.X = No3DPoint.X) and (Point3D.Y = No3DPoint.Y) and
     (Point3D.Z = No3DPoint.Z);
+end;
+
+{*
+  Détermine si un GUID est nul
+  @param GUID   GUID à tester
+  @return True si le GUID est nul, False sinon
+*}
+function IsNoGUID(const GUID : TGUID) : boolean;
+var Int : PLongInt;
+    I : integer;
+begin
+  Int := PLongInt(@GUID);
+  Result := False;
+  for I := 0 to 3 do
+  begin
+    if Int^ <> 0 then exit;
+    inc(integer(Int), 4);
+  end;
+  Result := True;
 end;
 
 {*
