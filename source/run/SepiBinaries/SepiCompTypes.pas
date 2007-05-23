@@ -302,6 +302,7 @@ type
 
     FShortClassName : ShortString; /// Nom de classe pour la VMT
 
+    procedure MakeTypeInfo;
     procedure MakeDMT;
     procedure MakeVMT;
 
@@ -399,7 +400,10 @@ const
   RecordTypeDataLength = 0;
   IntfTypeDataLengthBase =
     sizeof(Pointer) + sizeof(TIntfFlagsBase) + sizeof(TGUID) + 2*sizeof(Word);
-  ClassTypeDataLengthBase = sizeof(TClass) + sizeof(Pointer) + sizeof(SmallInt);
+  ClassTypeDataLengthBase =
+    sizeof(TClass) + sizeof(Pointer) + sizeof(SmallInt) + sizeof(Word);
+
+  PropInfoLengthBase = sizeof(TPropInfo) - sizeof(ShortString);
 
   vmtMinIndex = vmtSelfPtr;
   vmtMinMethodIndex = vmtParent + 4;
@@ -1203,26 +1207,31 @@ end;
 procedure TSepiInterface.MakeTypeInfo;
 var Flags : TIntfFlags;
     OwningUnitName : ShortString;
-    Count : ^Word;
+    Count : PWord;
 begin
+  // Creating the RTTI
   AllocateTypeInfo(IntfTypeDataLengthBase + Length(OwningUnit.Name) + 1);
   TypeData.IntfParent := @FParentInfo;
 
+  // Interface flags
   Flags := [];
   if FHasGUID then Include(Flags, ifHasGuid);
   if FIsDispInterface then Include(Flags, ifDispInterface);
   if FIsDispatch then Include(Flags, ifDispatch);
   TypeData.IntfFlags := Flags;
 
+  // GUID
   TypeData.Guid := FGUID;
 
+  // Owning unit name
   OwningUnitName := OwningUnit.Name;
   Move(OwningUnitName[0], TypeData.IntfUnit[0], Length(OwningUnitName)+1);
 
+  // Method count in the interface
   Count := SkipPackedShortString(@TypeData.IntfUnit);
   Count^ := ChildCount;
   inc(Integer(Count), 2);
-  Count^ := $FFFF;
+  Count^ := $FFFF; // no more information available
 end;
 
 {*
@@ -1350,6 +1359,65 @@ begin
 end;
 
 {*
+  Construit les RTTI
+*}
+procedure TSepiClass.MakeTypeInfo;
+var OwningUnitName, PropName : ShortString;
+    TypeDataLength, I : integer;
+    Props : TObjectList;
+    Prop : TSepiMetaProperty;
+    PropCount : PWord;
+    PropInfo : PPropInfo;
+begin
+  OwningUnitName := OwningUnit.Name;
+  Props := TObjectList.Create(False);
+  try
+    TypeDataLength := ClassTypeDataLengthBase;
+    inc(TypeDataLength, Length(OwningUnitName));
+    inc(TypeDataLength);
+
+    // Listing the published properties, and computing the type data length
+    for I := 0 to ChildCount-1 do if Children[I] is TSepiMetaProperty then
+    begin
+      Prop := TSepiMetaProperty(Children[I]);
+      if Prop.Visibility <> mvPublished then Continue;
+
+      Props.Add(Prop);
+      inc(TypeDataLength, PropInfoLengthBase);
+      inc(TypeDataLength, Length(Prop.Name));
+      inc(TypeDataLength);
+    end;
+
+    // Creating the RTTI
+    AllocateTypeInfo(TypeDataLength);
+
+    // Basic information
+    TypeData.ClassType := DelphiClass;
+    TypeData.ParentInfo := @FParentInfo;
+    TypeData.PropCount := Props.Count;
+    Move(OwningUnitName[0], TypeData.UnitName[0], Length(OwningUnitName)+1);
+
+    // Property count
+    PropCount := SkipPackedShortString(@TypeData.UnitName);
+    PropCount^ := Props.Count;
+
+    // Property information
+    PropInfo := PPropInfo(Integer(PropCount) + 2);
+    for I := 0 to Props.Count-1 do
+    begin
+      Prop := TSepiMetaProperty(Props[I]);
+
+      PropName := Prop.Name;
+      Move(PropName[0], PropInfo.Name[0], Length(PropName)+1);
+
+      PropInfo := SkipPackedShortString(@PropInfo.Name);
+    end;
+  finally
+    Props.Free;
+  end;
+end;
+
+{*
   Construit la DMT
   Range également l'adresse de la DMT à l'emplacement prévu de la VMT
 *}
@@ -1398,15 +1466,18 @@ begin
   dec(integer(PVMT), vmtMinIndex);
   FDelphiClass := TClass(PVMT);
 
+  // Creating the RTTI
+  MakeTypeInfo;
+
   // Setting class properties
   FShortClassName := Name;
 
   if FVMTSize > 0 then
     VMTEntries[vmtSelfPtr] := PVMT
   else
-    VMTEntries[vmtSelfPtr] := @FShortClassName;
+    VMTEntries[vmtSelfPtr] := @TypeInfo.Name;
 
-  VMTEntries[vmtClassName] := @FShortClassName;
+  VMTEntries[vmtClassName] := @TypeInfo.Name;
   VMTEntries[vmtParent] := Pointer(Parent.DelphiClass);
 
   // Copy the parent VMT
