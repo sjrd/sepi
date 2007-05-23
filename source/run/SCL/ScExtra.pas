@@ -50,6 +50,8 @@ function StrToCharSet(Str : string) : TSysCharSet;
 function EnumSetToStr(const EnumSet; TypeInfo : PTypeInfo) : string;
 procedure StrToEnumSet(const Str : string; TypeInfo : PTypeInfo; out EnumSet);
 
+function SkipPackedShortString(Value : PShortstring) : Pointer;
+
 {$IFDEF MSWINDOWS}
 procedure CreateShellLink(const Source, Dest : string;
                           const Description : string = '';
