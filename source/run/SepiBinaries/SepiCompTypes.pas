@@ -9,7 +9,7 @@ interface
 
 uses
   Classes, SysUtils, ScUtils, SepiMetaUnits, SysConst, TypInfo, Contnrs,
-  ScLists, StrUtils, ScStrUtils;
+  ScLists, StrUtils, ScStrUtils, ScExtra;
 
 type
   {*
@@ -255,15 +255,34 @@ type
     FParent : TSepiInterface; /// Interface parent (ou nil - IInterface)
     FParentInfo : PTypeInfo;  /// RTTI de l'interface parent (ou nil)
     FCompleted : boolean;     /// Indique si l'interface est entièrement définie
+
+    FHasGUID : boolean;         /// Indique si l'interface possède un GUID
+    FIsDispInterface : boolean; /// Indique si c'est une disp interface
+    FIsDispatch : boolean;      /// Indique si c'est une IDispatch
+    FGUID : TGUID;              /// GUID de l'interface, si elle en a un
+
+    procedure MakeTypeInfo;
+  protected
+    procedure Loaded; override;
   public
     constructor RegisterTypeInfo(AOwner : TSepiMeta;
       ATypeInfo : PTypeInfo); override;
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
     constructor Create(AOwner : TSepiMeta; const AName : string;
-      AParent : TSepiInterface);
+      AParent : TSepiInterface; const AGUID : TGUID;
+      AIsDispInterface : boolean = False);
+
+    procedure Complete;
+
+    function IntfInheritsFrom(AParent : TSepiInterface) : boolean;
 
     property Parent : TSepiInterface read FParent;
     property Completed : boolean read FCompleted;
+
+    property HasGUID : boolean read FHasGUID;
+    property IsDispInterface : boolean read FIsDispInterface;
+    property IsDispatch : boolean read FIsDispatch;
+    property GUID : TGUID read FGUID;
   end;
 
   {*
@@ -304,7 +323,7 @@ type
     procedure Complete;
 
     function CompatibleWith(AType : TSepiType) : boolean; override;
-    function InheritsFrom(AParent : TSepiClass) : boolean;
+    function ClassInheritsFrom(AParent : TSepiClass) : boolean;
 
     function LookForMember(const MemberName : string; FromUnit : TSepiMetaUnit;
       FromClass : TSepiClass = nil) : TSepiMeta;
@@ -378,9 +397,9 @@ implementation
 const
   // Tailles de structure TTypeData en fonction des types
   RecordTypeDataLength = 0;
-  ClassTypeDataLengthBase = sizeof(TClass) + sizeof(Pointer) + sizeof(SmallInt);
   IntfTypeDataLengthBase =
-    sizeof(Pointer) + sizeof(TIntfFlagsBase) + sizeof(TGUID);
+    sizeof(Pointer) + sizeof(TIntfFlagsBase) + sizeof(TGUID) + 2*sizeof(Word);
+  ClassTypeDataLengthBase = sizeof(TClass) + sizeof(Pointer) + sizeof(SmallInt);
 
   vmtMinIndex = vmtSelfPtr;
   vmtMinMethodIndex = vmtParent + 4;
@@ -1117,16 +1136,25 @@ end;
 *}
 constructor TSepiInterface.RegisterTypeInfo(AOwner : TSepiMeta;
   ATypeInfo : PTypeInfo);
+var Flags : TIntfFlags;
 begin
   inherited;
 
   FSize := 4;
-  FParentInfo := TypeData.ParentInfo^;
+  FParentInfo := TypeData.IntfParent^;
   if Assigned(FParentInfo) then
     FParent := TSepiInterface(Root.FindType(FParentInfo))
   else
     FParent := nil; // This is IInterface
   FCompleted := False;
+
+  Flags := TypeData.IntfFlags;
+  FHasGUID := ifHasGuid in Flags;
+  FIsDispInterface := ifDispInterface in Flags;
+  FIsDispatch := ifDispatch in Flags;
+
+  if not FHasGUID then FGUID := NoGUID else
+    FGUID := TypeData.Guid;
 end;
 
 {*
@@ -1151,7 +1179,8 @@ end;
   @param AParent   Classe parent
 *}
 constructor TSepiInterface.Create(AOwner : TSepiMeta; const AName : string;
-  AParent : TSepiInterface);
+  AParent : TSepiInterface; const AGUID : TGUID;
+  AIsDispInterface : boolean = False);
 begin
   inherited Create(AOwner, AName, tkInterface);
 
@@ -1160,6 +1189,73 @@ begin
     FParent := TSepiInterface(Root.FindType(System.TypeInfo(IInterface)));
   FParentInfo := Parent.TypeInfo;
   FCompleted := False;
+
+  FHasGUID := not IsNoGUID(AGUID);
+  FIsDispInterface := AIsDispInterface;
+  FIsDispatch := IntfInheritsFrom(
+    TSepiInterface(Root.FindType(System.TypeInfo(IDispatch))));
+  FGUID := AGUID;
+end;
+
+{*
+  Construit les RTTI
+*}
+procedure TSepiInterface.MakeTypeInfo;
+var Flags : TIntfFlags;
+    OwningUnitName : ShortString;
+    Count : ^Word;
+begin
+  AllocateTypeInfo(IntfTypeDataLengthBase + Length(OwningUnit.Name) + 1);
+  TypeData.IntfParent := @FParentInfo;
+
+  Flags := [];
+  if FHasGUID then Include(Flags, ifHasGuid);
+  if FIsDispInterface then Include(Flags, ifDispInterface);
+  if FIsDispatch then Include(Flags, ifDispatch);
+  TypeData.IntfFlags := Flags;
+
+  TypeData.Guid := FGUID;
+
+  OwningUnitName := OwningUnit.Name;
+  Move(OwningUnitName[0], TypeData.IntfUnit[0], Length(OwningUnitName)+1);
+
+  Count := SkipPackedShortString(@TypeData.IntfUnit);
+  Count^ := ChildCount;
+  inc(Integer(Count), 2);
+  Count^ := $FFFF;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiInterface.Loaded;
+begin
+  inherited;
+
+  Complete;
+end;
+
+{*
+  Termine l'interface et construit ses RTTI si ce n'est pas déjà fait
+*}
+procedure TSepiInterface.Complete;
+begin
+  if FCompleted then exit;
+
+  FCompleted := True;
+  if not Native then
+    MakeTypeInfo;
+end;
+
+{*
+  Détermine si l'interface hérite d'une interface donnée
+  @param AParent   Ancêtre à tester
+  @return True si l'interface hérite de AParent, False sinon
+*}
+function TSepiInterface.IntfInheritsFrom(AParent : TSepiInterface) : boolean;
+begin
+  Result := (AParent = Self) or
+    (Assigned(FParent) and FParent.IntfInheritsFrom(AParent));
 end;
 
 {-------------------}
@@ -1368,10 +1464,11 @@ end;
 *}
 procedure TSepiClass.Complete;
 begin
-  FCompleted := True;
-  if Assigned(TypeInfo) then exit;
+  if FCompleted then exit;
 
-  MakeVMT;
+  FCompleted := True;
+  if not Native then
+    MakeVMT;
 end;
 
 {*
@@ -1380,7 +1477,7 @@ end;
 function TSepiClass.CompatibleWith(AType : TSepiType) : boolean;
 begin
   Result := (AType is TSepiClass) and
-    TSepiClass(AType).InheritsFrom(Self);
+    TSepiClass(AType).ClassInheritsFrom(Self);
 end;
 
 {*
@@ -1388,10 +1485,10 @@ end;
   @param AParent   Ancêtre à tester
   @return True si la classe hérite de AParent, False sinon
 *}
-function TSepiClass.InheritsFrom(AParent : TSepiClass) : boolean;
+function TSepiClass.ClassInheritsFrom(AParent : TSepiClass) : boolean;
 begin
   Result := (AParent = Self) or
-    (Assigned(FParent) and FParent.InheritsFrom(AParent));
+    (Assigned(FParent) and FParent.ClassInheritsFrom(AParent));
 end;
 
 {*
@@ -1412,11 +1509,11 @@ begin
       mvPrivate  : if FromClass <> Self then Result := nil;
       mvInternal : if FromUnit <> OwningUnit then Result := nil;
       mvProtected :
-        if (FromClass = nil) or (not FromClass.InheritsFrom(Self)) then
+        if (FromClass = nil) or (not FromClass.ClassInheritsFrom(Self)) then
           Result := nil;
       mvInternalProtected :
         if (FromUnit <> OwningUnit) and
-           ((FromClass = nil) or (not FromClass.InheritsFrom(Self))) then
+           ((FromClass = nil) or (not FromClass.ClassInheritsFrom(Self))) then
           Result := nil;
     end;
   end;
@@ -1466,7 +1563,7 @@ end;
 function TSepiMetaClass.CompatibleWith(AType : TSepiType) : boolean;
 begin
   Result := (AType is TSepiMetaClass) and
-    TSepiMetaClass(AType).SepiClass.InheritsFrom(SepiClass);
+    TSepiMetaClass(AType).SepiClass.ClassInheritsFrom(SepiClass);
 end;
 
 {---------------------------}
