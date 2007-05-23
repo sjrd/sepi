@@ -728,6 +728,23 @@ begin
   end;
 end;
 
+{*
+  Renvoie un pointeur vers le champ suivant un ShortString compactée (des RTTI)
+  Cette routine peut être utilisée pour passer « au-dessus » d'une ShortString
+  compactée, telle qu'on peut en trouver dans les record extra-compactés des
+  RTTI.
+  @param Value    Adresse de la ShortString compactée
+  @return Adresse du champ suivant
+*}
+function SkipPackedShortString(Value : PShortstring) : Pointer;
+asm
+        { ->    EAX Pointer to type info }
+        { <-    EAX Pointer to type data }
+        XOR     EDX,EDX
+        MOV     DL,[EAX]
+        LEA     EAX,[EAX].Byte[EDX+1]
+end;
+
 {$IFDEF MSWINDOWS}
 {*
   Crée un raccourci Windows
