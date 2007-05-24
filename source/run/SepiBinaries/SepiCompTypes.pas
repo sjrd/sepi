@@ -788,9 +788,10 @@ end;
   Par extension, recherche aussi la méthode héritée.
 *}
 procedure TSepiMetaMethod.MakeLink;
-var OwningClass : TSepiClass;
+var OwningClass, Ancestor : TSepiClass;
     LookFor : string;
     Meta : TSepiMeta;
+    I : integer;
 begin
   FInherited := nil;
 
@@ -806,23 +807,47 @@ begin
 
   if OwningClass.Parent <> nil then
   begin
-    // Setting the inherited method name
-    LookFor := Name;
-    if Copy(Name, 1, 3) = 'OL$' then // overloaded
+    if FLinkKind <> mlkMessage then
     begin
-      Delete(LookFor, 1, 3);
-      Delete(LookFor, Pos('$', LookFor), MaxInt);
-    end;
+      // Setting the inherited method name
+      LookFor := Name;
+      if Copy(Name, 1, 3) = 'OL$' then // overloaded
+      begin
+        Delete(LookFor, 1, 3);
+        Delete(LookFor, Pos('$', LookFor), MaxInt);
+      end;
 
-    // Looking for the inherited method
-    Meta := OwningClass.Parent.LookForMember(LookFor, OwningUnit, OwningClass);
-    if Meta is TSepiMetaMethod then
-    begin
-      if TSepiMetaMethod(Meta).Signature.Equals(Signature) then
-        FInherited := TSepiMetaMethod(Meta);
+      // Looking for the inherited method
+      Meta := OwningClass.Parent.LookForMember(LookFor,
+        OwningUnit, OwningClass);
+      if Meta is TSepiMetaMethod then
+      begin
+        if TSepiMetaMethod(Meta).Signature.Equals(Signature) then
+          FInherited := TSepiMetaMethod(Meta);
+      end else
+      if Meta is TSepiMetaOverloadedMethod then
+        FInherited := TSepiMetaOverloadedMethod(Meta).FindMethod(Signature);
     end else
-    if Meta is TSepiMetaOverloadedMethod then
-      FInherited := TSepiMetaOverloadedMethod(Meta).FindMethod(Signature);
+    begin
+      // Looking for an ancestor method which intercept the same message ID
+      Ancestor := OwningClass.Parent;
+      while (FInherited = nil) and (Ancestor <> nil) do
+      begin
+        for I := 0 to Ancestor.ChildCount-1 do
+        begin
+          Meta := Ancestor.Children[I];
+          if (Meta is TSepiMetaMethod) and
+             (TSepiMetaMethod(Meta).LinkKind = mlkMessage) and
+             (TSepiMetaMethod(Meta).MsgID = FLinkIndex) then
+          begin
+            FInherited := TSepiMetaMethod(Meta);
+            Break;
+          end;
+        end;
+
+        Ancestor := Ancestor.Parent;
+      end;
+    end;
   end;
 
   // Setting up link kind and index
@@ -838,7 +863,7 @@ begin
       FLinkIndex := OwningClass.FDMTNextIndex;
       dec(OwningClass.FDMTNextIndex);
     end;
-    mlkMessage : ; // nothing to do, FLinkKind already set
+    mlkMessage : ; // nothing to do, FLinkIndex already set
     mlkOverride :
     begin
       FLinkKind := FInherited.LinkKind;
@@ -1416,14 +1441,20 @@ end;
 procedure TSepiClass.MakeDMT;
 var PDMT : Pointer;
     I, Count : integer;
+    Meta : TSepiMeta;
     IndexList, CodeList : integer;
     Methods : TObjectList;
 begin
   Methods := TObjectList.Create(False);
   try
     // Listing dynamic methods
-    for I := 0 to ChildCount-1 do if Children[I] is TSepiMetaMethod then
-      Methods.Add(TSepiMetaMethod(Children[I]));
+    for I := 0 to ChildCount-1 do
+    begin
+      Meta := Children[I];
+      if (Meta is TSepiMetaMethod) and
+         (TSepiMetaMethod(Meta).LinkKind in [mlkDynamic, mlkMessage]) then
+        Methods.Add(Meta);
+    end;
     Count := Methods.Count;
 
     // Creating the DMT
@@ -1436,7 +1467,7 @@ begin
     // Filling the DMT
     for I := 0 to Count-1 do with TSepiMetaMethod(Methods[I]) do
     begin
-      PWord(IndexList + 2*I)^ := DMTIndex;
+      PSmallInt(IndexList + 2*I)^ := DMTIndex; // alias MsgID
       PPointer(CodeList + 4*I)^ := Code;
     end;
   finally
