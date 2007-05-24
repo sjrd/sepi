@@ -166,6 +166,7 @@ begin
   inherited;
 
   FSize := 4;
+  FNeedInit := True;
   FIsUnicode := Kind = tkWString;
 end;
 

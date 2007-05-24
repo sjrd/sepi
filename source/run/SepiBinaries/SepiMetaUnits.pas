@@ -130,8 +130,10 @@ type
     FTypeData : PTypeData;     /// RTTD (Runtime Type Data)
     FTypeInfoRef : PPTypeInfo; /// Référence aux RTTI
   protected
-    FSize : integer; /// Taille d'une variable de ce type
+    FSize : integer;     /// Taille d'une variable de ce type
+    FNeedInit : boolean; /// Indique si ce type requiert une initialisation
 
+    procedure ForceNative(ATypeInfo : PTypeInfo = nil);
     procedure AllocateTypeInfo(TypeDataLength : integer = 0);
     procedure ExtractTypeData; virtual;
 
@@ -156,6 +158,7 @@ type
     property TypeInfo : PTypeInfo read FTypeInfo;
     property TypeData : PTypeData read FTypeData;
     property Size : integer read FSize;
+    property NeedInit : boolean read FNeedInit;
   end;
 
   {*
@@ -696,6 +699,7 @@ begin
   FTypeData := nil;
   FTypeInfoRef := @FTypeInfo;
   FSize := 0;
+  FNeedInit := False;
 end;
 
 {*
@@ -714,6 +718,7 @@ begin
   FTypeData := nil;
   FTypeInfoRef := @FTypeInfo;
   FSize := 0;
+  FNeedInit := False;
 end;
 
 {*
@@ -734,6 +739,7 @@ begin
   FTypeData := nil;
   FTypeInfoRef := @FTypeInfo;
   FSize := 0;
+  FNeedInit := False;
 end;
 
 {*
@@ -745,6 +751,22 @@ begin
     FreeMem(FTypeInfo, FTypeInfoLength);
 
   inherited Destroy;
+end;
+
+{*
+  Force le type comme étant natif, en modifiant également les RTTI
+  Cette méthode est utilisée par les types record et tableau statique, qui n'ont
+  pas toujours, même natifs, de RTTI.
+  @param ATypeInfo   RTTI à fixer (peut être nil)
+*}
+procedure TSepiType.ForceNative(ATypeInfo : PTypeInfo = nil);
+begin
+  FNative := True;
+  FTypeInfo := ATypeInfo;
+  if FTypeInfo = nil then
+    FTypeData := nil
+  else
+    FTypeData := GetTypeData(FTypeInfo);
 end;
 
 {*

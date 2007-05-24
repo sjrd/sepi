@@ -33,6 +33,7 @@ type
     FElementType : TSepiType;        /// Type des éléments
 
     procedure MakeSize;
+    procedure MakeTypeInfo;
 
     function GetDimensions(Kind, Index : integer) : integer;
   protected
@@ -40,7 +41,8 @@ type
   public
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
     constructor Create(AOwner : TSepiMeta; const AName : string;
-      const ADimensions : array of integer; AElementType : TSepiType);
+      const ADimensions : array of integer; AElementType : TSepiType;
+      AIsNative : boolean = False; ATypeInfo : PTypeInfo = nil);
 
     function CompatibleWith(AType : TSepiType) : boolean; override;
 
@@ -83,8 +85,18 @@ type
 
 implementation
 
+type
+  PArrayTypeData = ^TArrayTypeData;
+  TArrayTypeData = packed record
+    Size : Cardinal;
+    Count : Cardinal;
+    ElemType : PPTypeInfo;
+    ElemOffset : Cardinal; // always 0
+  end;
+
 const
   // Tailles de structure TTypeData en fonction des types
+  ArrayTypeDataLength = sizeof(TArrayTypeData);
   DynArrayTypeDataLengthBase =
     sizeof(Longint) + 2*sizeof(Pointer) + sizeof(integer);
 
@@ -98,8 +110,6 @@ const
 constructor TSepiArrayType.Load(AOwner : TSepiMeta; Stream : TStream);
 begin
   inherited;
-
-  AllocateTypeInfo;
 
   FDimCount := 0;
   Stream.ReadBuffer(FDimCount, 1);
@@ -117,7 +127,8 @@ end;
   @param AElementType   Type des éléments
 *}
 constructor TSepiArrayType.Create(AOwner : TSepiMeta; const AName : string;
-  const ADimensions : array of integer; AElementType : TSepiType);
+  const ADimensions : array of integer; AElementType : TSepiType;
+  AIsNative : boolean = False; ATypeInfo : PTypeInfo = nil);
 begin
   inherited Create(AOwner, AName, tkArray);
 
@@ -131,6 +142,12 @@ begin
   FElementType := AElementType;
 
   MakeSize;
+  FNeedInit := FElementType.NeedInit;
+
+  if AIsNative then
+    ForceNative(ATypeInfo)
+  else
+    MakeTypeInfo;
 end;
 
 {*
@@ -142,6 +159,23 @@ begin
   FSize := FElementType.Size;
   for I := 0 to DimCount-1 do
     FSize := FSize * Dimensions[I];
+end;
+
+{*
+  Construit les RTTI (si besoin)
+*}
+procedure TSepiArrayType.MakeTypeInfo;
+begin
+  if not NeedInit then exit;
+
+  AllocateTypeInfo(ArrayTypeDataLength);
+  with PArrayTypeData(TypeData)^ do
+  begin
+    Size := FSize;
+    Count := FSize div FElementType.Size;
+    ElemType := TSepiArrayType(FElementType).TypeInfoRef;
+    ElemOffset := 0;
+  end;
 end;
 
 {*
@@ -165,6 +199,9 @@ begin
 
   OwningUnit.LoadRef(FElementType);
   MakeSize;
+  FNeedInit := FElementType.NeedInit;
+
+  MakeTypeInfo;
 end;
 
 {*
@@ -226,11 +263,30 @@ begin
   AllocateTypeInfo(TypeDataLength);
 
   FSize := 4;
+  FNeedInit := True;
 
+  // Element size
   TypeData.elSize := FElementType.Size;
-  TypeData.elType := nil;
-  TypeData.varType := 0;
-  TypeData.elType2 := TSepiDynArrayType(FElementType).TypeInfoRef;
+
+  // Element RTTI, if need initialization
+  // Types which need initialization always have got RTTI
+  if FElementType.NeedInit then
+    TypeData.elType := TSepiDynArrayType(FElementType).TypeInfoRef
+  else
+    TypeData.elType := nil;
+
+  // OLE Variant equivalent - always set to -1 at the moment
+  { TODO 1 -cMetaunités : OLE Variant dans les RTTI des dyn array }
+  TypeData.varType := -1;
+
+  // Element RTTI, independant of cleanup
+  // Whe have to check for nul-RTTI, because of records and static arrays
+  if Assigned(FElementType.TypeInfo) then
+    TypeData.elType2 := TSepiDynArrayType(FElementType).TypeInfoRef
+  else
+    TypeData.elType2 := nil;
+
+  // Unit name
   Move(UnitName[0], TypeData.DynUnitName[0], Length(UnitName)+1);
 end;
 
@@ -253,8 +309,9 @@ begin
   inherited;
 
   FSize := 4;
+  FNeedInit := True;
 
-  FElementType := Root.FindType(TypeData.elType^);
+  FElementType := Root.FindType(TypeData.elType2^);
 end;
 
 {*

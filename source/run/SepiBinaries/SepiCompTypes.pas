@@ -221,15 +221,21 @@ type
   *}
   TSepiRecordType = class(TSepiType)
   private
-    FPacked : boolean; /// Indique si le record est packed
+    FPacked : boolean;    /// Indique si le record est packed
+    FCompleted : boolean; /// Indique si le record est entièrement défini
 
     function NextOffset(Field : TSepiMetaField) : integer;
     function AddField(const FieldName : string; FieldType : TSepiType;
       After : TSepiMetaField) : TSepiMetaField; overload;
+
+    procedure MakeTypeInfo;
+  protected
+    procedure Loaded; override;
   public
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
     constructor Create(AOwner : TSepiMeta; const AName : string;
-      APacked : boolean = False);
+      APacked : boolean = False; AIsNative : boolean = False;
+      ATypeInfo : PTypeInfo = nil);
 
     function AddField(const FieldName : string;
       FieldType : TSepiType) : TSepiMetaField; overload;
@@ -240,9 +246,12 @@ type
     function AddField(const FieldName : string; FieldTypeInfo : PTypeInfo;
       const After : string) : TSepiMetaField; overload;
 
+    procedure Complete;
+
     function CompatibleWith(AType : TSepiType) : boolean; override;
 
     property IsPacked : boolean read FPacked;
+    property Completed : boolean read FCompleted;
   end;
 
   {*
@@ -298,9 +307,8 @@ type
     FVMTSize : integer;      /// Taille de la VMT dans les index positifs
     FDMTNextIndex : integer; /// Prochain index à utiliser dans la DMT
 
-    FShortClassName : ShortString; /// Nom de classe pour la VMT
-
     procedure MakeTypeInfo;
+    procedure MakeInitTable;
     procedure MakeDMT;
     procedure MakeVMT;
 
@@ -393,13 +401,27 @@ const
 
 implementation
 
+type
+  TFieldInfo = packed record
+    TypeInfo : PPTypeInfo;
+    Offset : Cardinal;
+  end;
+
+  PFieldTable = ^TFieldTable;
+  TFieldTable = packed record
+    Size : Cardinal;
+    Count : Cardinal;
+    Fields : array[0..0] of TFieldInfo;
+  end;
+
 const
   // Tailles de structure TTypeData en fonction des types
-  RecordTypeDataLength = 0;
+  RecordTypeDataLengthBase = 2*sizeof(Cardinal);
   IntfTypeDataLengthBase =
     sizeof(Pointer) + sizeof(TIntfFlagsBase) + sizeof(TGUID) + 2*sizeof(Word);
   ClassTypeDataLengthBase =
     sizeof(TClass) + sizeof(Pointer) + sizeof(SmallInt) + sizeof(Word);
+  InitTableLengthBase = 2*sizeof(Byte) + 2*sizeof(Cardinal);
 
   PropInfoLengthBase = sizeof(TPropInfo) - sizeof(ShortString);
 
@@ -1041,7 +1063,6 @@ constructor TSepiRecordType.Load(AOwner : TSepiMeta; Stream : TStream);
 begin
   inherited;
 
-  AllocateTypeInfo;
   Stream.ReadBuffer(FPacked, 1);
   LoadChildren(Stream);
 end;
@@ -1052,12 +1073,15 @@ end;
   @param AName    Nom du type
 *}
 constructor TSepiRecordType.Create(AOwner : TSepiMeta; const AName : string;
-  APacked : boolean = False);
+  APacked : boolean = False; AIsNative : boolean = False;
+  ATypeInfo : PTypeInfo = nil);
 begin
   inherited Create(AOwner, AName, tkRecord);
 
-  AllocateTypeInfo;
   FPacked := APacked;
+
+  if AIsNative then
+    ForceNative(ATypeInfo);
 end;
 
 {*
@@ -1087,8 +1111,61 @@ begin
 
   Result := TSepiMetaField.Create(Self, FieldName, FieldType, Offset);
 
+  if FieldType.NeedInit then
+    FNeedInit := True;
   if Offset + FieldType.Size > FSize then
     FSize := Offset + FieldType.Size;
+end;
+
+{*
+  Construit les RTTI, si besoin
+*}
+procedure TSepiRecordType.MakeTypeInfo;
+var Fields : TObjectList;
+    I : integer;
+    FieldTable : PFieldTable;
+begin
+  if (not Native) or (not NeedInit) then exit;
+
+  Fields := TObjectList.Create(False);
+  try
+    // Listings the fields which need initialization
+    for I := 0 to ChildCount-1 do
+      if TSepiMetaField(Children[I]).FieldType.NeedInit then
+        Fields.Add(Children[I]);
+
+    // Creating the RTTI
+    AllocateTypeInfo(
+      RecordTypeDataLengthBase + Fields.Count*sizeof(TFieldInfo));
+    FieldTable := PFieldTable(TypeData);
+
+    // Basic information
+    FieldTable.Size := FSize;
+    FieldTable.Count := Fields.Count;
+
+    // Field information
+    for I := 0 to Fields.Count-1 do
+    begin
+      with TSepiMetaField(Fields[I]) do
+      begin
+        FieldTable.Fields[I].TypeInfo :=
+          TSepiRecordType(FieldType).TypeInfoRef;
+        FieldTable.Fields[I].Offset := Offset;
+      end;
+    end;
+  finally
+    Fields.Free;
+  end;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiRecordType.Loaded;
+begin
+  inherited;
+
+  Complete;
 end;
 
 {*
@@ -1147,6 +1224,18 @@ begin
 end;
 
 {*
+  Termine le record et construit ses RTTI si ce n'est pas déjà fait
+*}
+procedure TSepiRecordType.Complete;
+begin
+  if FCompleted then exit;
+
+  FCompleted := True;
+  if not Native then
+    MakeTypeInfo;
+end;
+
+{*
   [@inheritDoc]
 *}
 function TSepiRecordType.CompatibleWith(AType : TSepiType) : boolean;
@@ -1168,6 +1257,8 @@ begin
   inherited;
 
   FSize := 4;
+  FNeedInit := True;
+
   if Assigned(TypeData.IntfParent^) then
     FParent := TSepiInterface(Root.FindType(TypeData.IntfParent^))
   else
@@ -1191,6 +1282,8 @@ begin
   inherited;
 
   FSize := 4;
+  FNeedInit := True;
+
   FParent := TSepiInterface(Root.FindMeta(ReadStrFromStream(Stream)));
   FCompleted := False;
 
@@ -1210,6 +1303,8 @@ begin
   inherited Create(AOwner, AName, tkInterface);
 
   FSize := 4;
+  FNeedInit := True;
+
   if Assigned(AParent) then FParent := AParent else
     FParent := TSepiInterface(Root.FindType(System.TypeInfo(IInterface)));
   FCompleted := False;
@@ -1435,8 +1530,54 @@ begin
 end;
 
 {*
+  Construit la table d'initialisation
+  Range également l'adresse de cette table à l'emplacement prévu de la VMT.
+*}
+procedure TSepiClass.MakeInitTable;
+var Fields : TObjectList;
+    I : integer;
+    Meta : TSepiMeta;
+    InitTable : PFieldTable;
+begin
+  Fields := TObjectList.Create(False);
+  try
+    // Listing the fields which need initialization
+    for I := 0 to ChildCount-1 do
+    begin
+      Meta := Children[I];
+      if (Meta is TSepiMetaField) and
+         TSepiMetaField(Meta).FieldType.NeedInit then
+        Fields.Add(Meta);
+    end;
+
+    // Creating the init table
+    GetMem(InitTable, InitTableLengthBase + Fields.Count*sizeof(TFieldInfo));
+    VMTEntries[vmtInitTable] := InitTable;
+
+    // Basic information
+    PWord(InitTable)^ := 0;
+    inc(Integer(InitTable), 2);
+    InitTable.Size := 0;
+    InitTable.Count := Fields.Count;
+
+    // Field information
+    for I := 0 to Fields.Count-1 do
+    begin
+      with TSepiMetaField(Fields[I]) do
+      begin
+        InitTable.Fields[I].TypeInfo :=
+          TSepiRecordType(FieldType).TypeInfoRef;
+        InitTable.Fields[I].Offset := Offset;
+      end;
+    end;
+  finally
+    Fields.Free;
+  end;
+end;
+
+{*
   Construit la DMT
-  Range également l'adresse de la DMT à l'emplacement prévu de la VMT
+  Range également l'adresse de la DMT à l'emplacement prévu de la VMT.
 *}
 procedure TSepiClass.MakeDMT;
 var PDMT : Pointer;
@@ -1493,13 +1634,12 @@ begin
   MakeTypeInfo;
 
   // Setting class properties
-  FShortClassName := Name;
-
   if FVMTSize > 0 then
     VMTEntries[vmtSelfPtr] := PVMT
   else
     VMTEntries[vmtSelfPtr] := @TypeInfo.Name;
 
+  VMTEntries[vmtTypeInfo] := TypeInfo;
   VMTEntries[vmtClassName] := @TypeInfo.Name;
   VMTEntries[vmtParent] := Pointer(Parent.DelphiClass);
 
@@ -1517,6 +1657,7 @@ begin
   end;
 
   // Making the other tables
+  MakeInitTable;
   MakeDMT;
 end;
 
