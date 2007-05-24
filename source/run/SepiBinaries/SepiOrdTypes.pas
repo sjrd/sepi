@@ -168,7 +168,6 @@ type
   TSepiEnumType = class(TSepiOrdType)
   private
     FBaseType : TSepiEnumType;       /// Type de base (peut être Self)
-    FBaseTypeInfo : PTypeInfo;       /// TypeInfo du type de base
     FValueCount : integer;           /// Nombre de valeurs
     FValues : array of PShortString; /// Noms des valeurs
 
@@ -201,7 +200,6 @@ type
   TSepiSetType = class(TSepiType)
   private
     FCompType : TSepiOrdType;  /// Type des éléments
-    FCompTypeInfo : PTypeInfo; /// TypeInfo du type des éléments
   protected
     procedure Loaded; override;
 
@@ -702,7 +700,6 @@ begin
   AllocateTypeInfo(TypeDataLength);
 
   // Initialisation des variables privées
-  FBaseTypeInfo := TypeInfo;
   FValueCount := Length(AValues);
   SetLength(FValues, ValueCount);
 
@@ -710,7 +707,7 @@ begin
   TypeData.OrdType := otUByte;
   TypeData.MinValue := 0;
   TypeData.MaxValue := ValueCount-1;
-  TypeData.BaseType := @FBaseTypeInfo;
+  TypeData.BaseType := FBaseType.TypeInfoRef;
   inherited ExtractTypeData;
 
   // Enregistrement des noms d'énumération dans les données de type
@@ -765,8 +762,7 @@ begin
 
   FBaseType := TSepiEnumType(TypeData.BaseType);
   OwningUnit.LoadRef(FBaseType);
-  FBaseTypeInfo := FBaseType.FBaseTypeInfo;
-  TypeData.BaseType := @FBaseTypeInfo;
+  TypeData.BaseType := FBaseType.TypeInfoRef;
 
   ExtractTypeData;
 end;
@@ -780,9 +776,7 @@ var Current : PShortString;
 begin
   inherited;
 
-  FBaseTypeInfo := TypeData.BaseType^;
-
-  if FBaseTypeInfo = TypeInfo then
+  if TypeData.BaseType^ = TypeInfo then
   begin
     FBaseType := Self;
     FValueCount := MaxValue+1;
@@ -797,7 +791,7 @@ begin
     end;
   end else
   begin
-    FBaseType := Root.FindType(FBaseTypeInfo) as TSepiEnumType;
+    FBaseType := Root.FindType(TypeData.BaseType^) as TSepiEnumType;
     FValueCount := BaseType.ValueCount;
   end;
 end;
@@ -823,8 +817,7 @@ constructor TSepiSetType.RegisterTypeInfo(AOwner : TSepiMeta;
 begin
   inherited;
 
-  FCompTypeInfo := TypeData.CompType^;
-  FCompType := Root.FindType(FCompTypeInfo) as TSepiOrdType;
+  FCompType := Root.FindType(TypeData.CompType^) as TSepiOrdType;
 
   ExtractTypeData;
 end;
@@ -852,7 +845,6 @@ begin
   inherited Create(AOwner, AName, tkSet);
 
   FCompType := ACompType;
-  FCompTypeInfo := FCompType.TypeInfo;
 
   AllocateTypeInfo(SetTypeDataLength);
 
@@ -863,7 +855,7 @@ begin
     else TypeData.OrdType := otUnknown;
   end;
 
-  TypeData.CompType := @FCompType;
+  TypeData.CompType := FCompType.TypeInfoRef;
 
   ExtractTypeData;
 end;
@@ -889,8 +881,7 @@ begin
   inherited;
 
   OwningUnit.LoadRef(FCompType);
-  FCompTypeInfo := FCompType.TypeInfo;
-  TypeData.CompType := @FCompTypeInfo;
+  TypeData.CompType := FCompType.TypeInfoRef;
 
   ExtractTypeData;
 end;

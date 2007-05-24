@@ -128,11 +128,14 @@ type
     FTypeInfoLength : integer; /// Taille des RTTI créées (ou 0 si non créées)
     FTypeInfo : PTypeInfo;     /// RTTI (Runtime Type Information)
     FTypeData : PTypeData;     /// RTTD (Runtime Type Data)
+    FTypeInfoRef : PPTypeInfo; /// Référence aux RTTI
   protected
     FSize : integer; /// Taille d'une variable de ce type
 
     procedure AllocateTypeInfo(TypeDataLength : integer = 0);
     procedure ExtractTypeData; virtual;
+
+    property TypeInfoRef : PPTypeInfo read FTypeInfoRef;
   public
     constructor RegisterTypeInfo(AOwner : TSepiMeta;
       ATypeInfo : PTypeInfo); virtual;
@@ -691,6 +694,7 @@ begin
   FTypeInfoLength := 0;
   FTypeInfo := nil;
   FTypeData := nil;
+  FTypeInfoRef := @FTypeInfo;
   FSize := 0;
 end;
 
@@ -708,6 +712,7 @@ begin
   FTypeInfoLength := 0;
   FTypeInfo := nil;
   FTypeData := nil;
+  FTypeInfoRef := @FTypeInfo;
   FSize := 0;
 end;
 
@@ -727,6 +732,7 @@ begin
   FTypeInfoLength := 0;
   FTypeInfo := nil;
   FTypeData := nil;
+  FTypeInfoRef := @FTypeInfo;
   FSize := 0;
 end;
 

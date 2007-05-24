@@ -253,7 +253,6 @@ type
   TSepiInterface = class(TSepiType)
   private
     FParent : TSepiInterface; /// Interface parent (ou nil - IInterface)
-    FParentInfo : PTypeInfo;  /// RTTI de l'interface parent (ou nil)
     FCompleted : boolean;     /// Indique si l'interface est entièrement définie
 
     FHasGUID : boolean;         /// Indique si l'interface possède un GUID
@@ -294,7 +293,6 @@ type
   private
     FDelphiClass : TClass;   /// Classe Delphi
     FParent : TSepiClass;    /// Classe parent (nil si n'existe pas - TObject)
-    FParentInfo : PTypeInfo; /// RTTI de la classe parent (nil si n'existe pas)
     FCompleted : boolean;    /// Indique si la classe est entièrement définie
 
     FVMTSize : integer;      /// Taille de la VMT dans les index positifs
@@ -1145,9 +1143,8 @@ begin
   inherited;
 
   FSize := 4;
-  FParentInfo := TypeData.IntfParent^;
-  if Assigned(FParentInfo) then
-    FParent := TSepiInterface(Root.FindType(FParentInfo))
+  if Assigned(TypeData.IntfParent^) then
+    FParent := TSepiInterface(Root.FindType(TypeData.IntfParent^))
   else
     FParent := nil; // This is IInterface
   FCompleted := False;
@@ -1170,7 +1167,6 @@ begin
 
   FSize := 4;
   FParent := TSepiInterface(Root.FindMeta(ReadStrFromStream(Stream)));
-  FParentInfo := Parent.TypeInfo;
   FCompleted := False;
 
   LoadChildren(Stream);
@@ -1191,7 +1187,6 @@ begin
   FSize := 4;
   if Assigned(AParent) then FParent := AParent else
     FParent := TSepiInterface(Root.FindType(System.TypeInfo(IInterface)));
-  FParentInfo := Parent.TypeInfo;
   FCompleted := False;
 
   FHasGUID := not IsNoGUID(AGUID);
@@ -1211,7 +1206,7 @@ var Flags : TIntfFlags;
 begin
   // Creating the RTTI
   AllocateTypeInfo(IntfTypeDataLengthBase + Length(OwningUnit.Name) + 1);
-  TypeData.IntfParent := @FParentInfo;
+  TypeData.IntfParent := FParent.TypeInfoRef;
 
   // Interface flags
   Flags := [];
@@ -1281,10 +1276,9 @@ begin
 
   FSize := 4;
   FDelphiClass := TypeData.ClassType;
-  FParentInfo := TypeData.ParentInfo^;
-  if Assigned(FParentInfo) then
+  if Assigned(TypeData.ParentInfo^) then
   begin
-    FParent := TSepiClass(Root.FindType(FParentInfo));
+    FParent := TSepiClass(Root.FindType(TypeData.ParentInfo^));
     FVMTSize := Parent.VMTSize;
     FDMTNextIndex := Parent.FDMTNextIndex;
   end else
@@ -1307,7 +1301,6 @@ begin
   FSize := 4;
   FDelphiClass := nil;
   FParent := TSepiClass(Root.FindMeta(ReadStrFromStream(Stream)));
-  FParentInfo := Parent.TypeInfo;
   FCompleted := False;
 
   FVMTSize := Parent.VMTSize;
@@ -1331,7 +1324,6 @@ begin
   FDelphiClass := nil;
   if Assigned(AParent) then FParent := AParent else
     FParent := TSepiClass(Root.FindType(System.TypeInfo(TObject)));
-  FParentInfo := Parent.TypeInfo;
   FCompleted := False;
 
   FVMTSize := Parent.VMTSize;
@@ -1393,7 +1385,7 @@ begin
 
     // Basic information
     TypeData.ClassType := DelphiClass;
-    TypeData.ParentInfo := @FParentInfo;
+    TypeData.ParentInfo := FParent.TypeInfoRef;
     TypeData.PropCount := Props.Count;
     Move(OwningUnitName[0], TypeData.UnitName[0], Length(OwningUnitName)+1);
 

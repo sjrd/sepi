@@ -64,7 +64,6 @@ type
   TSepiDynArrayType = class(TSepiType)
   private
     FElementType : TSepiType;     /// Type des éléments
-    FElementTypeInfo : PTypeInfo; /// RTTI des éléments
 
     procedure MakeTypeInfo;
   protected
@@ -227,12 +226,11 @@ begin
   AllocateTypeInfo(TypeDataLength);
 
   FSize := 4;
-  FElementTypeInfo := FElementType.TypeInfo;
 
   TypeData.elSize := FElementType.Size;
   TypeData.elType := nil;
   TypeData.varType := 0;
-  TypeData.elType2 := @FElementTypeInfo;
+  TypeData.elType2 := TSepiDynArrayType(FElementType).TypeInfoRef;
   Move(UnitName[0], TypeData.DynUnitName[0], Length(UnitName)+1);
 end;
 
@@ -256,8 +254,7 @@ begin
 
   FSize := 4;
 
-  FElementTypeInfo := TypeData.elType^;
-  FElementType := Root.FindType(FElementTypeInfo);
+  FElementType := Root.FindType(TypeData.elType^);
 end;
 
 {*
