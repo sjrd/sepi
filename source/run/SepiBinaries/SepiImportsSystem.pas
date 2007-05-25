@@ -20,73 +20,70 @@ implementation
 {-------------}
 
 function ImportUnit(Root : TSepiMetaRoot) : TSepiMetaUnit;
-var I : integer;
-
-    IntegerType : TSepiIntegerType;
-    PointerType : TSepiIntegerType;
-{    DoubleType : TSepiDoubleType;
-    StringType : TSepiStringType;
-    ShortStringType : TSepiStringType;
-    PCharType : TSepiStringType;
-    BooleanType : TSepiEnumType;}
-
-    HRESULTType : TSepiIntegerType;
-
-    //RecordType : TSepiRecordType;
-
-    {ObjectType : TSepiObjectType;
-    ClassType : TSepiClassType;}
-
-    //TObjectClass : TSepiObjectType;
+var PointerType : TSepiPointerType;
+    TGUIDRecord : TSepiRecordType;
 begin
   Result := TSepiMetaUnit.Create(Root, 'System');
 
-  { Base types }
-  IntegerType     := TSepiIntegerType.RegisterTypeInfo(
-    Result, TypeInfo(integer));
-  PointerType     := TSepiIntegerType.Create(Result, 'Pointer');
-  {DoubleType      :=} TSepiFloatType .Create(Result, 'double');
-  {StringType      :=} TSepiStringType .Create(Result, 'string');
-  {ShortStringType :=} TSepiShortStringType .Create(Result, 'ShortString');
-  {PCharType       :=} TSepiStringType .Create(Result, 'PChar');
-  {BooleanType     :=} TSepiEnumType.Create(Result, 'Boolean', BooleanIdents);
+  // Integer types
+  TSepiType.LoadFromTypeInfo(Result, TypeInfo(Integer));
+  TSepiType.LoadFromTypeInfo(Result, TypeInfo(Cardinal));
+  TSepiType.LoadFromTypeInfo(Result, TypeInfo(ShortInt));
+  TSepiType.LoadFromTypeInfo(Result, TypeInfo(SmallInt));
+  TSepiType.LoadFromTypeInfo(Result, TypeInfo(LongInt));
+  TSepiType.LoadFromTypeInfo(Result, TypeInfo(Int64));
+  TSepiType.LoadFromTypeInfo(Result, TypeInfo(Byte));
+  TSepiType.LoadFromTypeInfo(Result, TypeInfo(Word));
+  TSepiType.LoadFromTypeInfo(Result, TypeInfo(LongWord));
+
+  // Character types
+  TSepiType.LoadFromTypeInfo(Result, TypeInfo(Char));
+  TSepiType.LoadFromTypeInfo(Result, TypeInfo(AnsiChar));
+  TSepiType.LoadFromTypeInfo(Result, TypeInfo(WideChar));
+
+  // Boolean types
+  TSepiType.LoadFromTypeInfo(Result, TypeInfo(Boolean));
+  TSepiType.LoadFromTypeInfo(Result, TypeInfo(ByteBool));
+  TSepiType.LoadFromTypeInfo(Result, TypeInfo(WordBool));
+  TSepiType.LoadFromTypeInfo(Result, TypeInfo(LongBool));
+
+  // Float types
+  TSepiType.LoadFromTypeInfo(Result, TypeInfo(Single));
+  TSepiType.LoadFromTypeInfo(Result, TypeInfo(Double));
+  TSepiType.LoadFromTypeInfo(Result, TypeInfo(Extended));
+  TSepiType.LoadFromTypeInfo(Result, TypeInfo(Currency));
+
+  // String types
+  TSepiType.LoadFromTypeInfo(Result, TypeInfo(string));
+  TSepiType.LoadFromTypeInfo(Result, TypeInfo(ShortString));
+  TSepiType.LoadFromTypeInfo(Result, TypeInfo(AnsiString));
+  TSepiType.LoadFromTypeInfo(Result, TypeInfo(WideString));
+
+  // Pointer types
+  PointerType := TSepiPointerType.Create(Result, 'Pointer', nil);
+  TSepiPointerType.Create(Result, 'PChar', TypeInfo(Char));
 
   { Types declared in System.pas }
-  HRESULTType := TSepiIntegerType.Create(Result, 'HRESULT');
-  TSepiFloatType.Create(Result, 'TDateTime');
-  TSepiIntegerType.Create(Result, 'THandle');
+  TSepiType.LoadFromTypeInfo(Result, TypeInfo(HRESULT));
 
   { TGUID record }
-  with TSepiRecordType.Create(Result, 'TGUID') do
+  TGUIDRecord := TSepiRecordType.Create(Result, 'TGUID', True, True);
+  with TGUIDRecord do
   begin
-    for I := 1 to 4 do
-      AddField('D'+Chr(I+48), IntegerType);
+    AddField('D1', System.TypeInfo(LongWord));
+    AddField('D2', System.TypeInfo(Word));
+    AddField('D3', System.TypeInfo(Word));
+    AddField('D4', TSepiArrayType.Create(Result, 'TGUID$D4$TYPE', [0, 7],
+      Root.FindType(System.TypeInfo(Byte))));
   end;
+  TSepiPointerType.Create(Result, 'PGUID', TGUIDRecord);
 
   { TMethod record }
-  with TSepiRecordType.Create(Result, 'TMethod') do
+  with TSepiRecordType.Create(Result, 'TMethod', False, True) do
   begin
     AddField('Code', PointerType);
     AddField('Data', PointerType);
   end;
-
-  { TObject class }
-  {TObjectClass := ...}
-
-  { Result constants }
-  I := S_OK;
-  TSepiConstant.Create(Result, 'S_OK', IntegerType).Value.WriteBuffer(I, 4);
-  I := S_FALSE;
-  TSepiConstant.Create(Result, 'S_FALSE', IntegerType).Value.WriteBuffer(I, 4);
-  I := E_NOINTERFACE;
-  TSepiConstant.Create(Result, 'E_NOINTERFACE',
-    HRESULTType).Value.WriteBuffer(I, 4);
-  I := E_UNEXPECTED;
-  TSepiConstant.Create(Result, 'E_UNEXPECTED',
-    HRESULTType).Value.WriteBuffer(I, 4);
-  I := E_NOTIMPL;
-  TSepiConstant.Create(Result, 'E_NOTIMPL',
-    HRESULTType).Value.WriteBuffer(I, 4);
 
   { ... }
 end;

@@ -1092,7 +1092,7 @@ end;
 function TSepiRecordType.NextOffset(Field : TSepiMetaField) : integer;
 begin
   Result := Field.Offset + Field.FieldType.Size;
-  { TODO 2 : Aligner les champs dans un record non packed }
+  { TODO 2 -cMétaunités : Aligner les champs dans un record non packed }
 end;
 
 {*

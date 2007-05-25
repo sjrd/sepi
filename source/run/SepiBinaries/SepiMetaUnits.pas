@@ -162,6 +162,11 @@ type
   end;
 
   {*
+    Classe de TSepiType
+  *}
+  TSepiTypeClass = class of TSepiType;
+
+  {*
     Meta-racine
     @author Sébastien Jean Robert Doeraene
     @version 1.0
@@ -173,7 +178,7 @@ type
   public
     constructor Create;
 
-    procedure LoadUnit(UnitName : string);
+    procedure LoadUnit(const UnitName : string);
 
     function FindType(TypeInfo : PTypeInfo) : TSepiType; overload;
     function FindType(const TypeName : string) : TSepiType; overload;
@@ -249,7 +254,7 @@ type
   *}
   TSepiImportUnitFunc = function(Root : TSepiMetaRoot) : TSepiMetaUnit;
 
-procedure SepiRegisterMetaClasses(MetaClasses : array of TSepiMetaClass);
+procedure SepiRegisterMetaClasses(const MetaClasses : array of TSepiMetaClass);
 
 procedure SepiRegisterImportedUnit(const UnitName : string;
   ImportFunc : TSepiImportUnitFunc);
@@ -268,7 +273,7 @@ var
   Recense des classes de meta
   @param MetaClasses   Classes de meta à recenser
 *}
-procedure SepiRegisterMetaClasses(MetaClasses : array of TSepiMetaClass);
+procedure SepiRegisterMetaClasses(const MetaClasses : array of TSepiMetaClass);
 var I : integer;
 begin
   if not Assigned(SepiMetaClasses) then
@@ -807,22 +812,20 @@ end;
 *}
 class function TSepiType.LoadFromTypeInfo(AOwner : TSepiMeta;
   ATypeInfo : PTypeInfo) : TSepiType;
+const
+  TypeClasses : array[TTypeKind] of TSepiTypeClass = (
+    nil, TSepiIntegerType, TSepiCharType, TSepiEnumType, TSepiFloatType,
+    TSepiShortStringType, TSepiSetType, TSepiClass, TSepiMethodRefType,
+    TSepiCharType, TSepiStringType, TSepiStringType, nil, nil, nil,
+    TSepiInterface, TSepiInt64Type, TSepiDynArrayType
+  );
+var TypeClass : TSepiTypeClass;
 begin
-  case ATypeInfo.Kind of
-    tkInteger :
-      Result := TSepiIntegerType.RegisterTypeInfo(AOwner, ATypeInfo);
-{    tkInt64       : Result := TSepiInt64Type    .Load(AOwner, ATypeInfo);
-    tkFloat       : Result := TSepiDoubleType   .Load(AOwner, ATypeInfo);
-    tkString      : Result := TSepiStringType   .Load(AOwner, ATypeInfo);
-    tkEnumeration : Result := TSepiEnumType     .Load(AOwner, ATypeInfo);
-    tkSet         : Result := TSepiSetType      .Load(AOwner, ATypeInfo);
-    tkRecord      : Result := TSepiRecordType   .Load(AOwner, ATypeInfo);
-    tkClass       : Result := TSepiClassType    .Load(AOwner, ATypeInfo);
-    tkArray       : Result := TSepiArrayType    .Load(AOwner, ATypeInfo);
-    tkDynArray    : Result := TSepiDynArrayType .Load(AOwner, ATypeInfo);
-    tkMethod      : Result := TSepiMethodRefType.Load(AOwner, ATypeInfo);}
-    else Result := nil;
-  end;
+  TypeClass := TypeClasses[ATypeInfo.Kind];
+  if Assigned(TypeClass) then
+    Result := TypeClass.RegisterTypeInfo(AOwner, ATypeInfo)
+  else
+    raise EAbstractError.Create(SSepiNoRegisterTypeInfo);
 end;
 
 {*
@@ -873,10 +876,16 @@ end;
   Charge une unité
   @param UnitName   Nom de l'unité à charger
 *}
-procedure TSepiMetaRoot.LoadUnit(UnitName : string);
+procedure TSepiMetaRoot.LoadUnit(const UnitName : string);
+var ImportFunc : TSepiImportUnitFunc;
 begin
-  { TODO 2 -cMetaunités : Charger une unité par son nom (ce peut être une unité
-    "système" ou non) }
+  if GetMeta(UnitName) <> nil then exit;
+
+  ImportFunc := SepiImportedUnit(UnitName);
+  if Assigned(ImportFunc) then
+    ImportFunc(Self);
+
+  { TODO 2 -cMetaunités : Charger une unité non système par son nom }
 end;
 
 {*
