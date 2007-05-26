@@ -706,6 +706,7 @@ begin
   FTypeInfoLength := 0;
   FTypeInfo := ATypeInfo;
   FTypeData := GetTypeData(FTypeInfo);
+  FTypeInfoRef := @FTypeInfo;
   FSize := 0;
 end;
 
