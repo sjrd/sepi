@@ -47,6 +47,9 @@ type
     procedure SetMetas(Index : integer; Value : TSepiMeta);
     function GetMetaFromName(const Name : string) : TSepiMeta;
     procedure SetMetaFromName(const Name : string; Value : TSepiMeta);
+  protected
+    procedure InsertItem(Index : Integer; const S : string;
+      AObject : TObject); override;
   public
     constructor Create;
 
@@ -224,7 +227,9 @@ type
   public
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
     constructor Create(AOwner : TSepiMeta; const AName : string;
-      ADest : TSepiType);
+      ADest : TSepiType); overload;
+    constructor Create(AOwner : TSepiMeta; const AName : string;
+      ADest : PTypeInfo); overload;
 
     property Dest : TSepiType read FDest;
   end;
@@ -375,7 +380,6 @@ constructor TSepiMetaList.Create;
 begin
   inherited;
   CaseSensitive := False;
-  Duplicates := dupError;
 end;
 
 {*
@@ -428,6 +432,20 @@ begin
   Index := IndexOf(Name);
   if Index < 0 then AddObject(Name, Value) else
     Metas[Index] := Value;
+end;
+
+{*
+  Ajoute un élément dans la liste de metas
+  @param Index     Index où ajouter l'élément
+  @param S         Chaîne à ajouter
+  @param AObject   Objet à ajouter
+*}
+procedure TSepiMetaList.InsertItem(Index : Integer; const S : string;
+  AObject : TObject);
+begin
+  if IndexOf(S) >= 0 then
+    raise EListError.CreateFmt(SSepiMetaAlreadyExists, [S]);
+  inherited;
 end;
 
 {*
@@ -488,6 +506,9 @@ begin
   FState := msConstructing;
   FOwner := AOwner;
   FName := AName;
+  FVisibility := mvPublic;
+  FChildren := TSepiMetaList.Create;
+
   if Assigned(FOwner) then
   begin
     FRoot := FOwner.Root;
@@ -498,8 +519,6 @@ begin
     FRoot := nil;
     FOwningUnit := nil;
   end;
-  FVisibility := mvPublic;
-  FChildren := TSepiMetaList.Create;
 end;
 
 {*
@@ -1065,6 +1084,18 @@ constructor TSepiTypeAlias.Create(AOwner : TSepiMeta; const AName : string;
 begin
   inherited Create(AOwner, AName);
   FDest := ADest;
+end;
+
+{*
+  Crée un nouvel alias de type
+  @param AOwner   Propriétaire de l'alias de type
+  @param AName    Nom de l'alias de type
+  @param ADest    RTTI de la destination de l'alias
+*}
+constructor TSepiTypeAlias.Create(AOwner : TSepiMeta; const AName : string;
+  ADest : PTypeInfo);
+begin
+  Create(AOwner, AName, AOwner.Root.FindType(ADest));
 end;
 
 {*

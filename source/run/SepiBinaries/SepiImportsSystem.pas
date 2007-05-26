@@ -28,17 +28,17 @@ begin
   // Integer types
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(Integer));
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(Cardinal));
-  TSepiType.LoadFromTypeInfo(Result, TypeInfo(ShortInt));
-  TSepiType.LoadFromTypeInfo(Result, TypeInfo(SmallInt));
-  TSepiType.LoadFromTypeInfo(Result, TypeInfo(LongInt));
+  TSepiType.LoadFromTypeInfo(Result, TypeInfo(Shortint));
+  TSepiType.LoadFromTypeInfo(Result, TypeInfo(Smallint));
+  TSepiTypeAlias.Create(Result, 'Longint', TypeInfo(Longint));
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(Int64));
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(Byte));
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(Word));
-  TSepiType.LoadFromTypeInfo(Result, TypeInfo(LongWord));
+  TSepiTypeAlias.Create(Result, 'Longword', TypeInfo(Longword));
 
   // Character types
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(Char));
-  TSepiType.LoadFromTypeInfo(Result, TypeInfo(AnsiChar));
+  TSepiTypeAlias.Create(Result, 'AnsiChar', TypeInfo(AnsiChar));
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(WideChar));
 
   // Boolean types
@@ -56,7 +56,7 @@ begin
   // String types
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(string));
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(ShortString));
-  TSepiType.LoadFromTypeInfo(Result, TypeInfo(AnsiString));
+  TSepiTypeAlias.Create(Result, 'AnsiString', TypeInfo(AnsiString));
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(WideString));
 
   // Pointer types
