@@ -11,9 +11,38 @@ uses
   TypInfo, SepiMetaUnits, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
   SepiCompTypes;
 
+type
+  TSepiImportsTObject = class(TObject)
+  private
+    class function SepiImportTObject(Owner : TSepiMetaUnit) : TSepiClass;
+  end;
+
 implementation
 
 { You must not localize any of the strings this unit contains! }
+
+{----------------}
+{ TObject import }
+{----------------}
+
+class function TSepiImportsTObject.SepiImportTObject(
+  Owner : TSepiMetaUnit) : TSepiClass;
+//var TClassType : TSepiMetaClass;
+begin
+  Result := TSepiClass.RegisterTypeInfo(Owner, TypeInfo(TObject));
+  {TClassType :=} TSepiMetaClass.Create(Owner, 'TClass', Result);
+
+  TSepiMetaMethod.Create(Result, 'Create', @TObject.Create, 'constructor');
+  TSepiMetaMethod.Create(Result, 'Free', @TObject.Free, 'procedure');
+  TSepiMetaMethod.Create(Result, 'InitInstance', @TObject.InitInstance,
+    'class function(Instance: Pointer): TObject');
+  TSepiMetaMethod.Create(Result, 'CleanupInstance', @TObject.CleanupInstance,
+    'procedure');
+  TSepiMetaMethod.Create(Result, 'ClassType', @TObject.ClassType,
+    'function: TClass');
+  TSepiMetaMethod.Create(Result, 'ClassName', @TObject.ClassName,
+    'class function: ShortString');
+end;
 
 {-------------}
 { Unit import }
@@ -87,6 +116,9 @@ begin
     AddField('Data', PointerType);
     Complete;
   end;
+
+  { TObject class }
+  TSepiImportsTObject.SepiImportTObject(Result);
 
   { ... }
 end;

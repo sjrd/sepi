@@ -659,15 +659,16 @@ begin
     Trim(Copy(ASignature, 1, ParamPos-1)), MethodKindStrings));
 
   // Type de retour
-  if (Kind = mkFunction) or (Kind = mkUnitFunction) or (Kind = mkProperty) then
+  if (Kind = mkFunction) or (Kind = mkClassFunction) or
+     (Kind = mkUnitFunction) or (Kind = mkProperty) then
   begin
     ReturnTypePos := RightPos(':', ASignature);
     FReturnType := FOwner.Root.FindType(
       Trim(Copy(ASignature, ReturnTypePos+1, MaxInt)));
-  end;
+  end else ReturnTypePos := Length(ASignature);
 
   // Paramètres
-  if ParamPos <= Length(ASignature) then
+  if ParamPos < ReturnTypePos then
   begin
     while not (ASignature[ParamPos] in [')', ']', ':']) do
     begin
@@ -1396,7 +1397,7 @@ begin
 
   FSize := 4;
   FDelphiClass := TypeData.ClassType;
-  if Assigned(TypeData.ParentInfo^) then
+  if Assigned(TypeData.ParentInfo) then
   begin
     FParent := TSepiClass(Root.FindType(TypeData.ParentInfo^));
     FVMTSize := Parent.VMTSize;
