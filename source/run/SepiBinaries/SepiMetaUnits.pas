@@ -899,6 +899,12 @@ var TypeName : string;
     I : integer;
     Meta : TSepiMeta;
 begin
+  if TypeInfo = nil then
+  begin
+    Result := nil;
+    exit;
+  end;
+
   TypeName := TypeInfo.Name;
   for I := 0 to UnitCount-1 do
   begin
@@ -923,6 +929,12 @@ function TSepiMetaRoot.FindType(const TypeName : string) : TSepiType;
 var I : integer;
     Meta : TSepiMeta;
 begin
+  if TypeName = '' then
+  begin
+    Result := nil;
+    exit;
+  end;
+
   Meta := GetMeta(TypeName);
   if Meta is TSepiType then
   begin

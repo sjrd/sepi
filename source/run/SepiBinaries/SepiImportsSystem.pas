@@ -74,7 +74,8 @@ begin
     AddField('D2', System.TypeInfo(Word));
     AddField('D3', System.TypeInfo(Word));
     AddField('D4', TSepiArrayType.Create(Result, 'TGUID$D4$TYPE', [0, 7],
-      Root.FindType(System.TypeInfo(Byte))));
+      Root.FindType(System.TypeInfo(Byte)), True));
+    Complete;
   end;
   TSepiPointerType.Create(Result, 'PGUID', TGUIDRecord);
 
@@ -83,6 +84,7 @@ begin
   begin
     AddField('Code', PointerType);
     AddField('Data', PointerType);
+    Complete;
   end;
 
   { ... }

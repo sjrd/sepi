@@ -35,7 +35,7 @@ type
     procedure MakeSize;
     procedure MakeTypeInfo;
 
-    function GetDimensions(Kind, Index : integer) : integer;
+    function GetDimensions(Index, Kind : integer) : integer;
   protected
     procedure Loaded; override;
   public
@@ -132,8 +132,6 @@ constructor TSepiArrayType.Create(AOwner : TSepiMeta; const AName : string;
 begin
   inherited Create(AOwner, AName, tkArray);
 
-  AllocateTypeInfo;
-
   FDimCount := Length(ADimensions) div 2;
   SetLength(FDimensions, FDimCount);
   Move(ADimensions[Low(ADimensions)], FDimensions[0],
@@ -181,7 +179,7 @@ end;
 {*
   Récupère une information sur une dimension
 *}
-function TSepiArrayType.GetDimensions(Kind, Index : integer) : integer;
+function TSepiArrayType.GetDimensions(Index, Kind : integer) : integer;
 begin
   with FDimensions[Index] do case Kind of
     1 : Result := MinValue;
