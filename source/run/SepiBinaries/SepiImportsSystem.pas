@@ -31,59 +31,62 @@ begin
   Result := TSepiClass.RegisterTypeInfo(Owner, TypeInfo(TObject));
   TSepiMetaClass.Create(Owner, 'TClass', Result, True);
 
-  TSepiMetaMethod.Create(Result, 'Create', @TObject.Create, 'constructor');
-  TSepiMetaMethod.Create(Result, 'Free', @TObject.Free, 'procedure');
-  TSepiMetaMethod.Create(Result, 'InitInstance', @TObject.InitInstance,
-    'class function(Instance: Pointer): TObject');
-  TSepiMetaMethod.Create(Result, 'CleanupInstance', @TObject.CleanupInstance,
-    'procedure');
-  TSepiMetaMethod.Create(Result, 'ClassType', @TObject.ClassType,
-    'function: TClass');
-  TSepiMetaMethod.Create(Result, 'ClassName', @TObject.ClassName,
-    'class function: ShortString');
-  TSepiMetaMethod.Create(Result, 'ClassNameIs', @TObject.ClassNameIs,
-    'class function(const Name: string): Boolean');
-  TSepiMetaMethod.Create(Result, 'ClassParent', @TObject.ClassParent,
-    'class function: TClass');
-  TSepiMetaMethod.Create(Result, 'ClassInfo', @TObject.ClassInfo,
-    'class function: Pointer');
-  TSepiMetaMethod.Create(Result, 'InstanceSize', @TObject.InstanceSize,
-    'class function: Longint');
-  TSepiMetaMethod.Create(Result, 'InheritsFrom', @TObject.InheritsFrom,
-    'class function(AClass: TClass): Boolean');
-  TSepiMetaMethod.Create(Result, 'MethodAddress', @TObject.MethodAddress,
-    'class function(const Name: ShortString): Pointer');
-  TSepiMetaMethod.Create(Result, 'MethodName', @TObject.MethodName,
-    'class function(Address: Pointer): ShortString');
-  TSepiMetaMethod.Create(Result, 'FieldAddress', @TObject.FieldAddress,
-    'function(const Name: ShortString): Pointer');
-  TSepiMetaMethod.Create(Result, 'GetInterface', @TObject.GetInterface,
-    'function(const IID: TGUID; out Obj): Boolean');
-  TSepiMetaMethod.Create(Result, 'GetInterfaceEntry',
-    @TObject.GetInterfaceEntry,
-    'class function(const IID: TGUID): PInterfaceEntry');
-  TSepiMetaMethod.Create(Result, 'GetInterfaceTable',
-    @TObject.GetInterfaceTable, 'class function: PInterfaceTable');
-  TSepiMetaMethod.Create(Result, 'SafeCallException',
-    @TObject.SafeCallException,
-    'function(ExceptObject: TObject; ExceptAddr: Pointer): HResult',
-    mlkVirtual);
-  TSepiMetaMethod.Create(Result, 'AfterConstruction',
-    @TObject.AfterConstruction, 'procedure', mlkVirtual);
-  TSepiMetaMethod.Create(Result, 'BeforeDestruction',
-    @TObject.BeforeDestruction, 'procedure', mlkVirtual);
-  TSepiMetaMethod.Create(Result, 'Dispatch', @TObject.Dispatch,
-    'procedure(var Message)', mlkVirtual);
-  TSepiMetaMethod.Create(Result, 'DefaultHandler', @TObject.DefaultHandler,
-    'procedure(var Message)', mlkVirtual);
-  TSepiMetaMethod.Create(Result, 'NewInstance', @TObject.NewInstance,
-    'class function: TObject', mlkVirtual);
-  TSepiMetaMethod.Create(Result, 'FreeInstance', @TObject.FreeInstance,
-    'procedure', mlkVirtual);
-  TSepiMetaMethod.Create(Result, 'Destroy', @TObject.Destroy,
-    'destructor', mlkVirtual);
+  with Result do
+  begin
+    AddMethod('Create', @TObject.Create,
+      'constructor');
+    AddMethod('Free', @TObject.Free,
+      'procedure');
+    AddMethod('InitInstance', @TObject.InitInstance,
+      'class function(Instance: Pointer): TObject');
+    AddMethod('CleanupInstance', @TObject.CleanupInstance,
+      'procedure');
+    AddMethod('ClassType', @TObject.ClassType,
+      'function: TClass');
+    AddMethod('ClassName', @TObject.ClassName,
+      'class function: ShortString');
+    AddMethod('ClassNameIs', @TObject.ClassNameIs,
+      'class function(const Name: string): Boolean');
+    AddMethod('ClassParent', @TObject.ClassParent,
+      'class function: TClass');
+    AddMethod('ClassInfo', @TObject.ClassInfo,
+      'class function: Pointer');
+    AddMethod('InstanceSize', @TObject.InstanceSize,
+      'class function: Longint');
+    AddMethod('InheritsFrom', @TObject.InheritsFrom,
+      'class function(AClass: TClass): Boolean');
+    AddMethod('MethodAddress', @TObject.MethodAddress,
+      'class function(const Name: ShortString): Pointer');
+    AddMethod('MethodName', @TObject.MethodName,
+      'class function(Address: Pointer): ShortString');
+    AddMethod('FieldAddress', @TObject.FieldAddress,
+      'function(const Name: ShortString): Pointer');
+    AddMethod('GetInterface', @TObject.GetInterface,
+      'function(const IID: TGUID; out Obj): Boolean');
+    AddMethod('GetInterfaceEntry', @TObject.GetInterfaceEntry,
+      'class function(const IID: TGUID): PInterfaceEntry');
+    AddMethod('GetInterfaceTable', @TObject.GetInterfaceTable,
+      'class function: PInterfaceTable');
+    AddMethod('SafeCallException', @TObject.SafeCallException,
+      'function(ExceptObject: TObject; ExceptAddr: Pointer): HResult',
+      mlkVirtual);
+    AddMethod('AfterConstruction', @TObject.AfterConstruction,
+      'procedure', mlkVirtual);
+    AddMethod('BeforeDestruction', @TObject.BeforeDestruction,
+      'procedure', mlkVirtual);
+    AddMethod('Dispatch', @TObject.Dispatch,
+      'procedure(var Message)', mlkVirtual);
+    AddMethod('DefaultHandler', @TObject.DefaultHandler,
+      'procedure(var Message)', mlkVirtual);
+    AddMethod('NewInstance', @TObject.NewInstance,
+      'class function: TObject', mlkVirtual);
+    AddMethod('FreeInstance', @TObject.FreeInstance,
+      'procedure', mlkVirtual);
+    AddMethod('Destroy', @TObject.Destroy,
+      'destructor', mlkVirtual);
 
-  Result.Complete;
+    Complete;
+  end;
 end;
 
 {-------------}

@@ -244,6 +244,10 @@ type
       FieldTypeInfo : PTypeInfo) : TSepiMetaField; overload;
     function AddField(const FieldName : string; FieldTypeInfo : PTypeInfo;
       const After : string) : TSepiMetaField; overload;
+    function AddField(
+      const FieldName, FieldTypeName : string) : TSepiMetaField; overload;
+    function AddField(const FieldName, FieldTypeName : string;
+      const After : string) : TSepiMetaField; overload;
 
     procedure Complete;
 
@@ -303,6 +307,7 @@ type
     FParent : TSepiClass;    /// Classe parent (nil si n'existe pas - TObject)
     FCompleted : boolean;    /// Indique si la classe est entièrement définie
 
+    FInstSize : integer;     /// Taille d'une instance de la classe
     FVMTSize : integer;      /// Taille de la VMT dans les index positifs
     FDMTNextIndex : integer; /// Prochain index à utiliser dans la DMT
 
@@ -326,6 +331,18 @@ type
       AParent : TSepiClass);
     destructor Destroy; override;
 
+    function AddField(const FieldName : string;
+      FieldType : TSepiType) : TSepiMetaField; overload;
+    function AddField(const FieldName : string;
+      FieldTypeInfo : PTypeInfo) : TSepiMetaField; overload;
+    function AddField(
+      const FieldName, FieldTypeName : string) : TSepiMetaField; overload;
+
+    function AddMethod(const MethodName : string; ACode: Pointer;
+      const ASignature : string; ALinkKind : TMethodLinkKind = mlkStatic;
+      AAbstract : boolean = False; AMsgID : integer = 0;
+      ACallConvention : TCallConvention = ccRegister) : TSepiMetaMethod;
+
     procedure Complete;
 
     function CompatibleWith(AType : TSepiType) : boolean; override;
@@ -338,6 +355,7 @@ type
     property Parent : TSepiClass read FParent;
     property Completed : boolean read FCompleted;
 
+    property InstSize : integer read FInstSize;
     property VMTSize : integer read FVMTSize;
   end;
 
@@ -776,11 +794,14 @@ end;
 
 {*
   Crée une nouvelle meta-méthode
-  @param AOwner       Propriétaire de la méthode
-  @param AName        Nom de la méthode
-  @param ASignature   Signature Delphi de la méthode
-  @param ALinkKind    Type de liaison
-  @param AAbstract    Indique si la méthode est abstraite
+  @param AOwner            Propriétaire de la méthode
+  @param AName             Nom de la méthode
+  @param ACode             Pointeur sur le code de la méthode
+  @param ASignature        Signature Delphi de la méthode
+  @param ALinkKind         Type de liaison
+  @param AAbstract         Indique si la méthode est abstraite
+  @param AMsgID            Pour les méthodes de message, le message intercepté
+  @param ACallConvention   Convention d'appel de la méthode
 *}
 constructor TSepiMetaMethod.Create(AOwner : TSepiMeta; const AName : string;
   ACode : Pointer; const ASignature : string;
@@ -1227,6 +1248,32 @@ begin
 end;
 
 {*
+  Ajoute un champ au record
+  @param FieldName       Nom du champ
+  @param FieldTypeName   Nom du type du champ
+  @return Champ nouvellement ajouté
+*}
+function TSepiRecordType.AddField(
+  const FieldName, FieldTypeName : string) : TSepiMetaField;
+begin
+  Result := AddField(FieldName, Root.FindType(FieldTypeName));
+end;
+
+{*
+  Ajoute un champ au record après un champ donné en mémoire
+  @param FieldName       Nom du champ
+  @param FieldTypeName   Nom du type du champ
+  @param After           Nom du champ précédent en mémoire (vide pour le début)
+  @return Champ nouvellement ajouté
+*}
+function TSepiRecordType.AddField(
+  const FieldName, FieldTypeName, After : string) : TSepiMetaField;
+begin
+  Result := AddField(FieldName, Root.FindType(FieldTypeName),
+    TSepiMetaField(FindMeta(After)));
+end;
+
+{*
   Termine le record et construit ses RTTI si ce n'est pas déjà fait
 *}
 procedure TSepiRecordType.Complete;
@@ -1644,6 +1691,7 @@ begin
 
   VMTEntries[vmtTypeInfo] := TypeInfo;
   VMTEntries[vmtClassName] := @TypeInfo.Name;
+  VMTEntries[vmtInstanceSize] := Pointer(InstSize);
   VMTEntries[vmtParent] := Pointer(Parent.DelphiClass);
 
   // Copy the parent VMT
@@ -1695,6 +1743,62 @@ begin
   inherited;
 
   Complete;
+end;
+
+{*
+  Ajoute un champ à la classe
+  @param FieldName   Nom du champ
+  @param FieldType   Type du champ
+  @return Champ nouvellement ajouté
+*}
+function TSepiClass.AddField(const FieldName : string;
+  FieldType : TSepiType) : TSepiMetaField;
+begin
+  Result := TSepiMetaField.Create(Self, FieldName, FieldType, InstSize);
+  inc(FInstSize, FieldType.Size);
+end;
+
+{*
+  Ajoute un champ à la classe
+  @param FieldName       Nom du champ
+  @param FieldTypeInto   RTTI du type du champ
+  @return Champ nouvellement ajouté
+*}
+function TSepiClass.AddField(const FieldName : string;
+  FieldTypeInfo : PTypeInfo) : TSepiMetaField;
+begin
+  Result := AddField(FieldName, Root.FindType(FieldTypeInfo));
+end;
+
+{*
+  Ajoute un champ à la classe
+  @param FieldName       Nom du champ
+  @param FieldTypeName   Nom du type du champ
+  @return Champ nouvellement ajouté
+*}
+function TSepiClass.AddField(
+  const FieldName, FieldTypeName : string) : TSepiMetaField;
+begin
+  Result := AddField(FieldName, Root.FindType(FieldTypeName));
+end;
+
+{*
+  Ajoute une méthode à la classe
+  @param MethodName        Nom de la méthode
+  @param ACode             Pointeur sur le code de la méthode
+  @param ASignature        Signature Delphi de la méthode
+  @param ALinkKind         Type de liaison
+  @param AAbstract         Indique si la méthode est abstraite
+  @param AMsgID            Pour les méthodes de message, le message intercepté
+  @param ACallConvention   Convention d'appel de la méthode
+*}
+function TSepiClass.AddMethod(const MethodName : string; ACode: Pointer;
+  const ASignature : string; ALinkKind : TMethodLinkKind = mlkStatic;
+  AAbstract : boolean = False; AMsgID : integer = 0;
+  ACallConvention : TCallConvention = ccRegister) : TSepiMetaMethod;
+begin
+  Result := TSepiMetaMethod.Create(Self, MethodName, ACode, ASignature,
+    ALinkKind, AAbstract, AMsgID, ACallConvention);
 end;
 
 {*
