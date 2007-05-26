@@ -527,9 +527,13 @@ end;
 destructor TSepiMeta.Destroy;
 var I : integer;
 begin
-  for I := 0 to FChildren.Count-1 do
-    FChildren.Objects[I].Free;
-  FChildren.Free;
+  if Assigned(FChildren) then
+  begin
+    for I := 0 to FChildren.Count-1 do
+      FChildren.Objects[I].Free;
+    FChildren.Free;
+  end;
+
   if Assigned(FOwner) then
     FOwner.RemoveChild(Self);
   inherited Destroy;

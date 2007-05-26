@@ -136,9 +136,8 @@ type
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
     constructor Create(AOwner : TSepiMeta; const AName : string;
       ACode : Pointer; const ASignature : string;
-      ACallConvention : TCallConvention = ccRegister;
       ALinkKind : TMethodLinkKind = mlkStatic; AAbstract : boolean = False;
-      AMsgID : integer = 0);
+      AMsgID : integer = 0; ACallConvention : TCallConvention = ccRegister);
     destructor Destroy; override;
 
     property Code : Pointer read FCode;
@@ -355,7 +354,7 @@ type
   public
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
     constructor Create(AOwner : TSepiMeta; const AName : string;
-      AClass : TSepiClass);
+      AClass : TSepiClass; AIsNative : boolean = False);
 
     function CompatibleWith(AType : TSepiType) : boolean; override;
 
@@ -391,6 +390,9 @@ const
   mkUnitFunction = TMethodKind(integer(High(TMethodKind))+2);
   /// Propriété
   mkProperty = TMethodKind(integer(High(TMethodKind))+3);
+
+  /// Types de méthodes d'objet
+  mkOfObject = [mkProcedure..mkClassConstructor];
 
   /// Chaînes des types de méthode
   MethodKindStrings : array[mkProcedure..mkProperty] of string = (
@@ -781,9 +783,8 @@ end;
 *}
 constructor TSepiMetaMethod.Create(AOwner : TSepiMeta; const AName : string;
   ACode : Pointer; const ASignature : string;
-  ACallConvention : TCallConvention = ccRegister;
   ALinkKind : TMethodLinkKind = mlkStatic; AAbstract : boolean = False;
-  AMsgID : integer = 0);
+  AMsgID : integer = 0; ACallConvention : TCallConvention = ccRegister);
 begin
   inherited Create(AOwner, AName);
 
@@ -1768,6 +1769,7 @@ end;
 constructor TSepiMetaClass.Load(AOwner : TSepiMeta; Stream : TStream);
 begin
   inherited;
+  FSize := 4;
   Stream.ReadBuffer(FClass, 4);
 end;
 
@@ -1778,10 +1780,14 @@ end;
   @param AClass   Classe correspondante
 *}
 constructor TSepiMetaClass.Create(AOwner : TSepiMeta; const AName : string;
-  AClass : TSepiClass);
+  AClass : TSepiClass; AIsNative : boolean = False);
 begin
   inherited Create(AOwner, AName, tkClass);
+  FSize := 4;
   FClass := AClass;
+
+  if AIsNative then
+    ForceNative;
 end;
 
 {*
@@ -1814,6 +1820,11 @@ constructor TSepiMethodRefType.RegisterTypeInfo(AOwner : TSepiMeta;
 begin
   inherited;
   FSignature := TSepiMethodSignature.RegisterTypeData(Self, TypeData);
+
+  if Signature.Kind in mkOfObject then
+    FSize := 8
+  else
+    FSize := 4;
 end;
 
 {*
@@ -1823,6 +1834,11 @@ constructor TSepiMethodRefType.Load(AOwner : TSepiMeta; Stream : TStream);
 begin
   inherited;
   FSignature := TSepiMethodSignature.Load(Self, Stream);
+
+  if Signature.Kind in mkOfObject then
+    FSize := 8
+  else
+    FSize := 4;
 end;
 
 {*
@@ -1843,6 +1859,11 @@ begin
   if AOfObject then Prefix := '' else Prefix := 'unit ';
   FSignature := TSepiMethodSignature.Create(Self,
     Prefix + ASignature, ACallConvention);
+
+  if Signature.Kind in mkOfObject then
+    FSize := 8
+  else
+    FSize := 4;
 end;
 
 {*

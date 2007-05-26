@@ -27,10 +27,9 @@ implementation
 
 class function TSepiImportsTObject.SepiImportTObject(
   Owner : TSepiMetaUnit) : TSepiClass;
-//var TClassType : TSepiMetaClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(Owner, TypeInfo(TObject));
-  {TClassType :=} TSepiMetaClass.Create(Owner, 'TClass', Result);
+  TSepiMetaClass.Create(Owner, 'TClass', Result, True);
 
   TSepiMetaMethod.Create(Result, 'Create', @TObject.Create, 'constructor');
   TSepiMetaMethod.Create(Result, 'Free', @TObject.Free, 'procedure');
@@ -42,6 +41,49 @@ begin
     'function: TClass');
   TSepiMetaMethod.Create(Result, 'ClassName', @TObject.ClassName,
     'class function: ShortString');
+  TSepiMetaMethod.Create(Result, 'ClassNameIs', @TObject.ClassNameIs,
+    'class function(const Name: string): Boolean');
+  TSepiMetaMethod.Create(Result, 'ClassParent', @TObject.ClassParent,
+    'class function: TClass');
+  TSepiMetaMethod.Create(Result, 'ClassInfo', @TObject.ClassInfo,
+    'class function: Pointer');
+  TSepiMetaMethod.Create(Result, 'InstanceSize', @TObject.InstanceSize,
+    'class function: Longint');
+  TSepiMetaMethod.Create(Result, 'InheritsFrom', @TObject.InheritsFrom,
+    'class function(AClass: TClass): Boolean');
+  TSepiMetaMethod.Create(Result, 'MethodAddress', @TObject.MethodAddress,
+    'class function(const Name: ShortString): Pointer');
+  TSepiMetaMethod.Create(Result, 'MethodName', @TObject.MethodName,
+    'class function(Address: Pointer): ShortString');
+  TSepiMetaMethod.Create(Result, 'FieldAddress', @TObject.FieldAddress,
+    'function(const Name: ShortString): Pointer');
+  {TSepiMetaMethod.Create(Result, 'GetInterface', @TObject.GetInterface,
+    'function(const IID: TGUID; out Obj): Boolean');}
+  TSepiMetaMethod.Create(Result, 'GetInterfaceEntry',
+    @TObject.GetInterfaceEntry,
+    'class function(const IID: TGUID): PInterfaceEntry');
+  TSepiMetaMethod.Create(Result, 'GetInterfaceTable',
+    @TObject.GetInterfaceTable, 'class function: PInterfaceTable');
+  TSepiMetaMethod.Create(Result, 'SafeCallException',
+    @TObject.SafeCallException,
+    'function(ExceptObject: TObject; ExceptAddr: Pointer): HResult',
+    mlkVirtual);
+  TSepiMetaMethod.Create(Result, 'AfterConstruction',
+    @TObject.AfterConstruction, 'procedure', mlkVirtual);
+  TSepiMetaMethod.Create(Result, 'BeforeDestruction',
+    @TObject.BeforeDestruction, 'procedure', mlkVirtual);
+  TSepiMetaMethod.Create(Result, 'Dispatch', @TObject.Dispatch,
+    'procedure(var Message: TDispatchMessage)', mlkVirtual);
+  TSepiMetaMethod.Create(Result, 'DefaultHandler', @TObject.DefaultHandler,
+    'procedure(var Message: TDispatchMessage)', mlkVirtual);
+  TSepiMetaMethod.Create(Result, 'NewInstance', @TObject.NewInstance,
+    'class function: TObject', mlkVirtual);
+  TSepiMetaMethod.Create(Result, 'FreeInstance', @TObject.FreeInstance,
+    'procedure', mlkVirtual);
+  TSepiMetaMethod.Create(Result, 'Destroy', @TObject.Destroy,
+    'destructor', mlkVirtual);
+
+  Result.Complete;
 end;
 
 {-------------}
@@ -50,7 +92,7 @@ end;
 
 function ImportUnit(Root : TSepiMetaRoot) : TSepiMetaUnit;
 var PointerType : TSepiPointerType;
-    TGUIDRecord : TSepiRecordType;
+    TGUIDRecord, TIntfEntryRecord, TIntfTableRecord : TSepiRecordType;
 begin
   Result := TSepiMetaUnit.Create(Root, 'System');
 
@@ -103,17 +145,49 @@ begin
     AddField('D1', System.TypeInfo(LongWord));
     AddField('D2', System.TypeInfo(Word));
     AddField('D3', System.TypeInfo(Word));
-    AddField('D4', TSepiArrayType.Create(Result, 'TGUID$D4$TYPE', [0, 7],
+    AddField('D4', TSepiArrayType.Create(Result, 'TGUID$D4$Type', [0, 7],
       Root.FindType(System.TypeInfo(Byte)), True));
     Complete;
   end;
   TSepiPointerType.Create(Result, 'PGUID', TGUIDRecord, True);
+
+  { TInterfaceEntry record }
+  TIntfEntryRecord := TSepiRecordType.Create(Result, 'TInterfaceEntry',
+    True, True);
+  with TIntfEntryRecord do
+  begin
+    AddField('IID', TGUIDRecord);
+    AddField('VTable', PointerType);
+    AddField('IOffset', System.TypeInfo(Integer));
+    AddField('ImplGetter', System.TypeInfo(Integer));
+    Complete;
+  end;
+  TSepiPointerType.Create(Result, 'PInterfaceEntry', TIntfEntryRecord, True);
+
+  { TInterfaceTable record }
+  TIntfTableRecord := TSepiRecordType.Create(Result, 'TInterfaceTable',
+    True, True);
+  with TIntfTableRecord do
+  begin
+    AddField('EntryCount', System.TypeInfo(Integer));
+    AddField('Entries', TSepiArrayType.Create(Result,
+      'TInterfaceTable$Entries$Type', [0, 9999], TIntfEntryRecord, True));
+    Complete;
+  end;
+  TSepiPointerType.Create(Result, 'PInterfaceTable', TIntfTableRecord, True);
 
   { TMethod record }
   with TSepiRecordType.Create(Result, 'TMethod', False, True) do
   begin
     AddField('Code', PointerType);
     AddField('Data', PointerType);
+    Complete;
+  end;
+
+  { TDispatchMessage record }
+  with TSepiRecordType.Create(Result, 'TDispatchMessage', False, True) do
+  begin
+    AddField('MsgID', System.TypeInfo(Word));
     Complete;
   end;
 
