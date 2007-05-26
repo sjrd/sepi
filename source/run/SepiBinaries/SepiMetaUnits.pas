@@ -823,9 +823,17 @@ var TypeClass : TSepiTypeClass;
 begin
   TypeClass := TypeClasses[ATypeInfo.Kind];
   if Assigned(TypeClass) then
+  begin
+    if TypeClass = TSepiEnumType then
+    begin
+      with GetTypeData(ATypeInfo)^ do
+        if (BaseType^ = System.TypeInfo(Boolean)) or
+           (GetTypeData(BaseType^).MinValue < 0) then
+          TypeClass := TSepiBooleanType;
+    end;
+
     Result := TypeClass.RegisterTypeInfo(AOwner, ATypeInfo)
-  else
-    raise EAbstractError.Create(SSepiNoRegisterTypeInfo);
+  end else raise EAbstractError.Create(SSepiNoRegisterTypeInfo);
 end;
 
 {*

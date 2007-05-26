@@ -168,7 +168,6 @@ type
   TSepiEnumType = class(TSepiOrdType)
   private
     FBaseType : TSepiEnumType;       /// Type de base (peut être Self)
-    FIsBoolean : boolean;            /// Indique si c'est un type booléen
     FValueCount : integer;           /// Nombre de valeurs
     FValues : array of PShortString; /// Noms des valeurs
 
@@ -188,7 +187,6 @@ type
     function CompatibleWith(AType : TSepiType) : boolean; override;
 
     property BaseType : TSepiEnumType read FBaseType;
-    property IsBoolean : boolean read FIsBoolean;
     property ValueCount : integer read FValueCount;
     property Names[Value : integer] : string read GetNames;
     property Values[const Name : string] : integer read GetValues;
@@ -702,7 +700,6 @@ begin
   AllocateTypeInfo(TypeDataLength);
 
   // Initialisation des variables privées
-  FIsBoolean := False;
   FValueCount := Length(AValues);
   SetLength(FValues, ValueCount);
 
@@ -743,10 +740,7 @@ end;
 *}
 function TSepiEnumType.GetNames(Value : integer) : string;
 begin
-  if IsBoolean then
-    Result := BooleanIdents[Value <> 0]
-  else
-    Result := BaseType.FValues[Value]^;
+  Result := BaseType.FValues[Value]^;
 end;
 
 {*
@@ -785,28 +779,19 @@ begin
   if TypeData.BaseType^ = TypeInfo then
   begin
     FBaseType := Self;
-    FIsBoolean :=
-      (TypeInfo = System.TypeInfo(Boolean)) or (TypeData.MinValue < 0);
+    FValueCount := MaxValue+1;
 
-    // Setting up the names table
-    if FIsBoolean then
-      FValueCount := 2
-    else
+    // Mise au point du tableau des références vers les noms
+    SetLength(FValues, ValueCount);
+    Current := @TypeData.NameList;
+    for I := 0 to ValueCount-1 do
     begin
-      FValueCount := MaxValue+1;
-      SetLength(FValues, ValueCount);
-      Current := @TypeData.NameList;
-
-      for I := 0 to ValueCount-1 do
-      begin
-        FValues[I] := Current;
-        inc(Current, Length(Current^)+1);
-      end;
+      FValues[I] := Current;
+      inc(Current, Length(Current^)+1);
     end;
   end else
   begin
     FBaseType := Root.FindType(TypeData.BaseType^) as TSepiEnumType;
-    FIsBoolean := FBaseType.IsBoolean;
     FValueCount := BaseType.ValueCount;
   end;
 end;
