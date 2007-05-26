@@ -60,8 +60,9 @@ begin
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(WideString));
 
   // Pointer types
-  PointerType := TSepiPointerType.Create(Result, 'Pointer', nil);
-  TSepiPointerType.Create(Result, 'PChar', TypeInfo(Char));
+  PointerType := TSepiPointerType.Create(Result, 'Pointer',
+    TSepiType(nil), True);
+  TSepiPointerType.Create(Result, 'PChar', TypeInfo(Char), True);
 
   { Types declared in System.pas }
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(HRESULT));
@@ -77,7 +78,7 @@ begin
       Root.FindType(System.TypeInfo(Byte)), True));
     Complete;
   end;
-  TSepiPointerType.Create(Result, 'PGUID', TGUIDRecord);
+  TSepiPointerType.Create(Result, 'PGUID', TGUIDRecord, True);
 
   { TMethod record }
   with TSepiRecordType.Create(Result, 'TMethod', False, True) do

@@ -231,9 +231,9 @@ type
   public
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
     constructor Create(AOwner : TSepiMeta; const AName : string;
-      APointTo : TSepiType); overload;
+      APointTo : TSepiType; AIsNative : boolean = False); overload;
     constructor Create(AOwner : TSepiMeta; const AName : string;
-      APointTo : PTypeInfo); overload;
+      APointTo : PTypeInfo; AIsNative : boolean = False); overload;
 
     property PointTo : TSepiType read FPointTo;
   end;
@@ -917,9 +917,7 @@ constructor TSepiPointerType.Load(AOwner : TSepiMeta; Stream : TStream);
 begin
   inherited;
 
-  AllocateTypeInfo;
   FSize := 4;
-
   Stream.ReadBuffer(FPointTo, 4);
 end;
 
@@ -930,14 +928,15 @@ end;
   @param APointTo   Type vers lequel pointe le pointeur
 *}
 constructor TSepiPointerType.Create(AOwner : TSepiMeta; const AName : string;
-  APointTo : TSepiType);
+  APointTo : TSepiType; AIsNative : boolean = False);
 begin
   inherited Create(AOwner, AName, tkUnknown);
 
-  AllocateTypeInfo;
   FSize := 4;
-
   FPointTo := APointTo;
+
+  if AIsNative then
+    ForceNative;
 end;
 
 {*
@@ -947,9 +946,9 @@ end;
   @param APointTo   RTTI tu type vers lequel pointe le pointeur
 *}
 constructor TSepiPointerType.Create(AOwner : TSepiMeta; const AName : string;
-  APointTo : PTypeInfo);
+  APointTo : PTypeInfo; AIsNative : boolean = False);
 begin
-  Create(AOwner, AName, AOwner.Root.FindType(APointTo));
+  Create(AOwner, AName, AOwner.Root.FindType(APointTo), AIsNative);
 end;
 
 {*
