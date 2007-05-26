@@ -1449,12 +1449,14 @@ begin
   if Assigned(TypeData.ParentInfo) then
   begin
     FParent := TSepiClass(Root.FindType(TypeData.ParentInfo^));
+    FInstSize := Parent.InstSize;
     FVMTSize := Parent.VMTSize;
     FDMTNextIndex := Parent.FDMTNextIndex;
   end else
   begin
     // This is TObject
     FParent := nil;
+    FInstSize := 4; // pointer to VMT
     FVMTSize := vmtMinMethodIndex;
     FDMTNextIndex := -1;
   end;
@@ -1473,6 +1475,7 @@ begin
   FParent := TSepiClass(Root.FindMeta(ReadStrFromStream(Stream)));
   FCompleted := False;
 
+  FInstSize := Parent.InstSize;
   FVMTSize := Parent.VMTSize;
   FDMTNextIndex := Parent.FDMTNextIndex;
 
@@ -1496,6 +1499,7 @@ begin
     FParent := TSepiClass(Root.FindType(System.TypeInfo(TObject)));
   FCompleted := False;
 
+  FInstSize := Parent.InstSize;
   FVMTSize := Parent.VMTSize;
   FDMTNextIndex := Parent.FDMTNextIndex;
 end;
@@ -1600,6 +1604,9 @@ begin
         Fields.Add(Meta);
     end;
 
+    // If no field to be finalized, then exit
+    if Fields.Count = 0 then exit;
+
     // Creating the init table
     GetMem(InitTable, InitTableLengthBase + Fields.Count*sizeof(TFieldInfo));
     VMTEntries[vmtInitTable] := InitTable;
@@ -1692,7 +1699,7 @@ begin
   VMTEntries[vmtTypeInfo] := TypeInfo;
   VMTEntries[vmtClassName] := @TypeInfo.Name;
   VMTEntries[vmtInstanceSize] := Pointer(InstSize);
-  VMTEntries[vmtParent] := Pointer(Parent.DelphiClass);
+  VMTEntries[vmtParent] := @Parent.FDelphiClass;
 
   // Copy the parent VMT
   Move(Pointer(Integer(Parent.DelphiClass) + vmtMinMethodIndex)^,

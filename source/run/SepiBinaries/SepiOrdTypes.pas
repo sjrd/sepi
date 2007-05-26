@@ -691,6 +691,8 @@ var TypeDataLength, I, Len : integer;
 begin
   inherited Create(AOwner, AName, tkEnumeration);
 
+  FBaseType := Self;
+
   // Calcul de la taille des données de type et allocation de celles-ci
   TypeDataLength := EnumTypeDataLength;
   for I := Low(AValues) to High(AValues) do
@@ -707,7 +709,7 @@ begin
   TypeData.OrdType := otUByte;
   TypeData.MinValue := 0;
   TypeData.MaxValue := ValueCount-1;
-  TypeData.BaseType := FBaseType.TypeInfoRef;
+  TypeData.BaseType := TypeInfoRef;
   inherited ExtractTypeData;
 
   // Enregistrement des noms d'énumération dans les données de type
@@ -893,8 +895,7 @@ procedure TSepiSetType.ExtractTypeData;
 begin
   inherited;
 
-  if FSize = 0 then
-    FSize := (FCompType.MaxValue - FCompType.MinValue + 1) div 8;
+  FSize := (FCompType.MaxValue - FCompType.MinValue) div 8 + 1;
 end;
 
 {*
