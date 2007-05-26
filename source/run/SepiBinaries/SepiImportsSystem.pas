@@ -57,8 +57,8 @@ begin
     'class function(Address: Pointer): ShortString');
   TSepiMetaMethod.Create(Result, 'FieldAddress', @TObject.FieldAddress,
     'function(const Name: ShortString): Pointer');
-  {TSepiMetaMethod.Create(Result, 'GetInterface', @TObject.GetInterface,
-    'function(const IID: TGUID; out Obj): Boolean');}
+  TSepiMetaMethod.Create(Result, 'GetInterface', @TObject.GetInterface,
+    'function(const IID: TGUID; out Obj): Boolean');
   TSepiMetaMethod.Create(Result, 'GetInterfaceEntry',
     @TObject.GetInterfaceEntry,
     'class function(const IID: TGUID): PInterfaceEntry');
@@ -73,9 +73,9 @@ begin
   TSepiMetaMethod.Create(Result, 'BeforeDestruction',
     @TObject.BeforeDestruction, 'procedure', mlkVirtual);
   TSepiMetaMethod.Create(Result, 'Dispatch', @TObject.Dispatch,
-    'procedure(var Message: TDispatchMessage)', mlkVirtual);
+    'procedure(var Message)', mlkVirtual);
   TSepiMetaMethod.Create(Result, 'DefaultHandler', @TObject.DefaultHandler,
-    'procedure(var Message: TDispatchMessage)', mlkVirtual);
+    'procedure(var Message)', mlkVirtual);
   TSepiMetaMethod.Create(Result, 'NewInstance', @TObject.NewInstance,
     'class function: TObject', mlkVirtual);
   TSepiMetaMethod.Create(Result, 'FreeInstance', @TObject.FreeInstance,

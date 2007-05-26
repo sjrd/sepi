@@ -60,7 +60,7 @@ type
   *}
   TSepiMetaParam = class(TSepiMeta)
   private
-    FType : TSepiType;    /// Type du paramètre
+    FType : TSepiType;    /// Type du paramètre (peut être nil)
     FFlags : TParamFlags; /// Flags du paramètre
 
     constructor RegisterParamData(AOwner : TSepiMeta; var ParamData : Pointer);
@@ -502,7 +502,8 @@ var AFlags : TParamFlags;
     NamePart, TypePart, FlagStr, AName, ATypeStr : string;
 begin
   AFlags := [];
-  SplitToken(Definition, ':', NamePart, TypePart);
+  if not SplitToken(Definition, ':', NamePart, TypePart) then
+    TypePart := '';
 
   // Partie du nom - à gauche du :
   if SplitToken(Trim(NamePart), ' ', FlagStr, AName) then
