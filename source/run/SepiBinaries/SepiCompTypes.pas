@@ -311,14 +311,20 @@ type
     FVMTSize : integer;      /// Taille de la VMT dans les index positifs
     FDMTNextIndex : integer; /// Prochain index à utiliser dans la DMT
 
+    FCurrentVisibility : TMemberVisibility; /// Visibilité courante des enfants
+
     procedure MakeTypeInfo;
     procedure MakeInitTable;
+    procedure MakeFieldTable;
+    procedure MakeMethodTable;
     procedure MakeDMT;
     procedure MakeVMT;
 
     function GetVMTEntries(Index : integer) : Pointer;
     procedure SetVMTEntries(Index : integer; Value : Pointer);
   protected
+    procedure ChildAdded(Child : TSepiMeta); override;
+
     procedure Loaded; override;
 
     property VMTEntries[index : integer] : Pointer
@@ -357,6 +363,9 @@ type
 
     property InstSize : integer read FInstSize;
     property VMTSize : integer read FVMTSize;
+
+    property CurrentVisibility : TMemberVisibility
+      read FCurrentVisibility write FCurrentVisibility;
   end;
 
   {*
@@ -422,16 +431,43 @@ const
 implementation
 
 type
-  TFieldInfo = packed record
+  TInitInfo = packed record
     TypeInfo : PPTypeInfo;
     Offset : Cardinal;
   end;
 
-  PFieldTable = ^TFieldTable;
-  TFieldTable = packed record
+  PInitTable = ^TInitTable;
+  TInitTable = packed record
     Size : Cardinal;
     Count : Cardinal;
-    Fields : array[0..0] of TFieldInfo;
+    Fields : array[0..0] of TInitInfo;
+  end;
+
+  PFieldInfo = ^TFieldInfo;
+  TFieldInfo = packed record
+    Offset : Cardinal;
+    Index : Word;
+    Name : ShortString;
+  end;
+
+  PFieldTable = ^TFieldTable;
+  TFieldTable = packed record
+    FieldCount : Word;
+    Unknown : Pointer;
+    {Fields : array[1..FieldCount] of TFieldInfo;}
+  end;
+
+  PMethodInfo = ^TMethodInfo;
+  TMethodInfo = packed record
+    Size : Word;
+    Code : Pointer;
+    Name : ShortString;
+  end;
+
+  PMethodTable = ^TMethodTable;
+  TMethodTable = packed record
+    MethodCount : Word;
+    {Methods : array[1..MethodCount] of TMethodInfo;}
   end;
 
 const
@@ -442,6 +478,8 @@ const
   ClassTypeDataLengthBase =
     sizeof(TClass) + sizeof(Pointer) + sizeof(SmallInt) + sizeof(Word);
   InitTableLengthBase = 2*sizeof(Byte) + 2*sizeof(Cardinal);
+  FieldTableLengthBase = sizeof(TFieldTable);
+  MethodTableLengthBase = sizeof(TMethodTable);
 
   PropInfoLengthBase = sizeof(TPropInfo) - sizeof(ShortString);
 
@@ -1147,7 +1185,7 @@ end;
 procedure TSepiRecordType.MakeTypeInfo;
 var Fields : TObjectList;
     I : integer;
-    FieldTable : PFieldTable;
+    FieldTable : PInitTable;
 begin
   if (not Native) or (not NeedInit) then exit;
 
@@ -1160,8 +1198,8 @@ begin
 
     // Creating the RTTI
     AllocateTypeInfo(
-      RecordTypeDataLengthBase + Fields.Count*sizeof(TFieldInfo));
-    FieldTable := PFieldTable(TypeData);
+      RecordTypeDataLengthBase + Fields.Count*sizeof(TInitInfo));
+    FieldTable := PInitTable(TypeData);
 
     // Basic information
     FieldTable.Size := FSize;
@@ -1461,6 +1499,8 @@ begin
     FDMTNextIndex := -1;
   end;
   FCompleted := False;
+
+  FCurrentVisibility := mvPublic;
 end;
 
 {*
@@ -1478,6 +1518,8 @@ begin
   FInstSize := Parent.InstSize;
   FVMTSize := Parent.VMTSize;
   FDMTNextIndex := Parent.FDMTNextIndex;
+
+  FCurrentVisibility := mvPublic;
 
   LoadChildren(Stream);
 end;
@@ -1502,19 +1544,30 @@ begin
   FInstSize := Parent.InstSize;
   FVMTSize := Parent.VMTSize;
   FDMTNextIndex := Parent.FDMTNextIndex;
+
+  FCurrentVisibility := mvPublic;
 end;
 
 {*
   Détruit l'instance
 *}
 destructor TSepiClass.Destroy;
-var PTable : Pointer;
+const
+  Tables : array[0..3] of integer = (
+    vmtDynamicTable, vmtMethodTable, vmtFieldTable, vmtInitTable
+  );
+var I : integer;
+    PTable : Pointer;
 begin
   if (not Native) and (FDelphiClass <> nil) then
   begin
-    // Destroying the DMT
-    PTable := VMTEntries[vmtDynamicTable];
-    FreeMem(PTable, 2 + 6*PWord(PTable)^);
+    // Destroying the tables
+    for I := Low(Tables) to High(Tables) do
+    begin
+      PTable := VMTEntries[Tables[I]];
+      if Assigned(PTable) then
+        FreeMem(PTable);
+    end;
 
     // Destroying the VMT
     PTable := Pointer(Integer(FDelphiClass) + vmtMinIndex);
@@ -1591,7 +1644,7 @@ procedure TSepiClass.MakeInitTable;
 var Fields : TObjectList;
     I : integer;
     Meta : TSepiMeta;
-    InitTable : PFieldTable;
+    InitTable : PInitTable;
 begin
   Fields := TObjectList.Create(False);
   try
@@ -1608,7 +1661,7 @@ begin
     if Fields.Count = 0 then exit;
 
     // Creating the init table
-    GetMem(InitTable, InitTableLengthBase + Fields.Count*sizeof(TFieldInfo));
+    GetMem(InitTable, InitTableLengthBase + Fields.Count*sizeof(TInitInfo));
     VMTEntries[vmtInitTable] := InitTable;
 
     // Basic information
@@ -1629,6 +1682,110 @@ begin
     end;
   finally
     Fields.Free;
+  end;
+end;
+
+{*
+  Construit la table des champs publiés
+  Range également l'adresse de cette table à l'emplacement prévu de la VMT.
+*}
+procedure TSepiClass.MakeFieldTable;
+var Fields : TObjectList;
+    I : integer;
+    Meta : TSepiMeta;
+    FieldTable : PFieldTable;
+    FieldInfo : PFieldInfo;
+    ShortName : ShortString;
+begin
+  Fields := TObjectList.Create(False);
+  try
+    // Listing the published fields
+    for I := 0 to ChildCount-1 do
+    begin
+      Meta := Children[I];
+      if (Meta is TSepiMetaField) and (Meta.Visibility = mvPublished) then
+        Fields.Add(Meta);
+    end;
+
+    // If no published field, then exit
+    if Fields.Count = 0 then exit;
+
+    // Creating the field table
+    GetMem(FieldTable, FieldTableLengthBase + Fields.Count*sizeof(TFieldInfo));
+    VMTEntries[vmtFieldTable] := FieldTable;
+
+    // Basic information
+    FieldTable.FieldCount := Fields.Count;
+    FieldTable.Unknown := nil;
+
+    // Field information
+    FieldInfo := PFieldInfo(Integer(FieldTable) + sizeof(TFieldTable));
+    for I := 0 to Fields.Count-1 do
+    begin
+      with TSepiMetaField(Fields[I]) do
+      begin
+        FieldInfo.Offset := Offset;
+        FieldInfo.Index := I;
+        ShortName := Name;
+        Move(ShortName[0], FieldInfo.Name[0], Length(ShortName)+1);
+
+        inc(Integer(FieldInfo), 7 + Length(ShortName));
+      end;
+    end;
+  finally
+    Fields.Free;
+  end;
+end;
+
+{*
+  Construit la table des méthodes publiées
+  Range également l'adresse de cette table à l'emplacement prévu de la VMT.
+*}
+procedure TSepiClass.MakeMethodTable;
+var Methods : TObjectList;
+    I : integer;
+    Meta : TSepiMeta;
+    MethodTable : PMethodTable;
+    MethodInfo : PMethodInfo;
+    ShortName : ShortString;
+begin
+  Methods := TObjectList.Create(False);
+  try
+    // Listing the published methods
+    for I := 0 to ChildCount-1 do
+    begin
+      Meta := Children[I];
+      if (Meta is TSepiMetaMethod) and (Meta.Visibility = mvPublished) then
+        Methods.Add(Meta);
+    end;
+
+    // If no published method, then exit
+    if Methods.Count = 0 then exit;
+
+    // Creating the method table
+    GetMem(MethodTable, MethodTableLengthBase +
+      Methods.Count*sizeof(TMethodInfo));
+    VMTEntries[vmtMethodTable] := MethodTable;
+
+    // Basic information
+    MethodTable.MethodCount := Methods.Count;
+
+    // Field information
+    MethodInfo := PMethodInfo(Integer(MethodTable) + sizeof(TMethodTable));
+    for I := 0 to Methods.Count-1 do
+    begin
+      with TSepiMetaMethod(Methods[I]) do
+      begin
+        ShortName := Name;
+        MethodInfo.Size := 7 + Length(ShortName);
+        MethodInfo.Code := Code;
+        Move(ShortName[0], MethodInfo.Name[0], Length(ShortName)+1);
+
+        inc(Integer(MethodInfo), MethodInfo.Size);
+      end;
+    end;
+  finally
+    Methods.Free;
   end;
 end;
 
@@ -1716,6 +1873,8 @@ begin
 
   // Making the other tables
   MakeInitTable;
+  MakeFieldTable;
+  MakeMethodTable;
   MakeDMT;
 end;
 
@@ -1740,6 +1899,15 @@ end;
 procedure TSepiClass.SetVMTEntries(Index : integer; Value : Pointer);
 begin
   PPointer(Integer(FDelphiClass) + Index)^ := Value;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiClass.ChildAdded(Child : TSepiMeta);
+begin
+  inherited;
+  TSepiClass(Child).FVisibility := FCurrentVisibility;
 end;
 
 {*

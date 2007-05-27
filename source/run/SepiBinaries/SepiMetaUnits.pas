@@ -72,13 +72,12 @@ type
   *}
   TSepiMeta = class
   private
-    FState : TSepiMetaState;         /// État
-    FOwner : TSepiMeta;              /// Propriétaire
-    FRoot : TSepiMetaRoot;           /// Racine
-    FOwningUnit : TSepiMetaUnit;     /// Unité contenante
-    FName : string;                  /// Nom
-    FVisibility : TMemberVisibility; /// Visibilité
-    FChildren : TSepiMetaList;       /// Liste des enfants
+    FState : TSepiMetaState;     /// État
+    FOwner : TSepiMeta;          /// Propriétaire
+    FRoot : TSepiMetaRoot;       /// Racine
+    FOwningUnit : TSepiMetaUnit; /// Unité contenante
+    FName : string;              /// Nom
+    FChildren : TSepiMetaList;   /// Liste des enfants
 
     procedure AddChild(Child : TSepiMeta);
     procedure RemoveChild(Child : TSepiMeta);
@@ -86,6 +85,8 @@ type
     function GetChildCount : integer;
     function GetChildren(Index : integer) : TSepiMeta;
   protected
+    FVisibility : TMemberVisibility; /// Visibilité
+
     procedure LoadChildren(Stream : TStream);
 
     procedure ChildAdded(Child : TSepiMeta); virtual;
