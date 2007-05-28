@@ -9,7 +9,7 @@ interface
 
 uses
   Classes, SysUtils, ScUtils, SepiMetaUnits, SysConst, TypInfo, Contnrs,
-  ScLists, StrUtils, ScStrUtils, ScExtra;
+  ScLists, StrUtils, ScStrUtils, ScExtra, SepiBinariesConsts, SepiCore;
 
 type
   {*
@@ -18,10 +18,11 @@ type
     - mlkVirtual : méthode à liaison virtuelle (via VMT)
     - mlkDynamic : méthode à liaison dynamique (via DMT)
     - mlkMessage : méthode d'interception de message (via DMT)
+    - mlkInterface : méthode à liaison d'interface (via IMT)
     - mlkOverride : détermine le type de liaison depuis la méthode héritée
   *}
   TMethodLinkKind = (mlkStatic, mlkVirtual, mlkDynamic, mlkMessage,
-    mlkOverride);
+    mlkInterface, mlkOverride);
 
   {*
     Convention d'appel d'une méthode
@@ -272,6 +273,8 @@ type
     FIsDispatch : boolean;      /// Indique si c'est une IDispatch
     FGUID : TGUID;              /// GUID de l'interface, si elle en a un
 
+    FIMTSize : integer; /// Taille de l'IMT
+
     procedure MakeTypeInfo;
   protected
     procedure Loaded; override;
@@ -282,6 +285,9 @@ type
     constructor Create(AOwner : TSepiMeta; const AName : string;
       AParent : TSepiInterface; const AGUID : TGUID;
       AIsDispInterface : boolean = False);
+
+    function AddMethod(const MethodName, ASignature : string;
+      ACallConvention : TCallConvention = ccRegister) : TSepiMetaMethod;
 
     procedure Complete;
 
@@ -294,6 +300,25 @@ type
     property IsDispInterface : boolean read FIsDispInterface;
     property IsDispatch : boolean read FIsDispatch;
     property GUID : TGUID read FGUID;
+
+    property IMTSize : integer read FIMTSize;
+  end;
+
+  {*
+    Pointeur vers TSepiInterfaceEntry
+  *}
+  PSepiInterfaceEntry = ^TSepiInterfaceEntry;
+
+  {*
+    Entrée d'interface pour les classes Sepi
+    Chaque classe a, pour chaque interface qu'elle implémente, une entrée de
+    type TSepiInterfaceEntry.
+  *}
+  TSepiInterfaceEntry = record
+    IntfRef : TSepiInterface; /// Interface implémentée
+    Relocates : Pointer;      /// Thunks de relocalisation
+    IMT : Pointer;            /// Interface Method Table
+    Offset : integer;         /// Offset du champ interface dans l'objet
   end;
 
   {*
@@ -303,9 +328,12 @@ type
   *}
   TSepiClass = class(TSepiType)
   private
-    FDelphiClass : TClass;   /// Classe Delphi
-    FParent : TSepiClass;    /// Classe parent (nil si n'existe pas - TObject)
-    FCompleted : boolean;    /// Indique si la classe est entièrement définie
+    FDelphiClass : TClass; /// Classe Delphi
+    FParent : TSepiClass;  /// Classe parent (nil si n'existe pas - TObject)
+    FCompleted : boolean;  /// Indique si la classe est entièrement définie
+
+    /// Interfaces supportées par la classe
+    FInterfaces : array of TSepiInterfaceEntry;
 
     FInstSize : integer;     /// Taille d'une instance de la classe
     FVMTSize : integer;      /// Taille de la VMT dans les index positifs
@@ -313,12 +341,19 @@ type
 
     FCurrentVisibility : TMemberVisibility; /// Visibilité courante des enfants
 
+    procedure MakeIMT(IntfEntry : PSepiInterfaceEntry);
+    procedure MakeIMTs;
+
     procedure MakeTypeInfo;
+    procedure MakeIntfTable;
     procedure MakeInitTable;
     procedure MakeFieldTable;
     procedure MakeMethodTable;
     procedure MakeDMT;
     procedure MakeVMT;
+
+    function GetInterfaceCount : integer;
+    function GetInterfaces(Index : integer) : TSepiInterface;
 
     function GetVMTEntries(Index : integer) : Pointer;
     procedure SetVMTEntries(Index : integer; Value : Pointer);
@@ -336,6 +371,10 @@ type
     constructor Create(AOwner : TSepiMeta; const AName : string;
       AParent : TSepiClass);
     destructor Destroy; override;
+
+    procedure AddInterface(AInterface : TSepiInterface); overload;
+    procedure AddInterface(AIntfTypeInfo : PTypeInfo); overload;
+    procedure AddInterface(const AIntfName : string); overload;
 
     function AddField(const FieldName : string;
       FieldType : TSepiType) : TSepiMetaField; overload;
@@ -360,6 +399,9 @@ type
     property DelphiClass : TClass read FDelphiClass;
     property Parent : TSepiClass read FParent;
     property Completed : boolean read FCompleted;
+
+    property InterfaceCount : integer read GetInterfaceCount;
+    property Interfaces[index : integer] : TSepiInterface read GetInterfaces;
 
     property InstSize : integer read FInstSize;
     property VMTSize : integer read FVMTSize;
@@ -879,6 +921,15 @@ var OwningClass, Ancestor : TSepiClass;
 begin
   FInherited := nil;
 
+  // If owner is an interface, always an IMT index
+  if Owner is TSepiInterface then
+  begin
+    FLinkKind := mlkInterface;
+    FLinkIndex := TSepiInterface(Owner).FIMTSize;
+    inc(TSepiInterface(Owner).FIMTSize, 4);
+    exit;
+  end;
+
   // If not a method, then nothing to do, but be sure link kind is static
   if not (Owner is TSepiClass) then
   begin
@@ -1347,10 +1398,16 @@ begin
   FSize := 4;
   FNeedInit := True;
 
-  if Assigned(TypeData.IntfParent^) then
-    FParent := TSepiInterface(Root.FindType(TypeData.IntfParent^))
-  else
-    FParent := nil; // This is IInterface
+  if Assigned(TypeData.IntfParent) then
+  begin
+    FParent := TSepiInterface(Root.FindType(TypeData.IntfParent^));
+    FIMTSize := Parent.IMTSize;
+  end else
+  begin
+    // This is IInterface
+    FParent := nil;
+    FIMTSize := 0;
+  end;
   FCompleted := False;
 
   Flags := TypeData.IntfFlags;
@@ -1374,6 +1431,8 @@ begin
 
   FParent := TSepiInterface(Root.FindMeta(ReadStrFromStream(Stream)));
   FCompleted := False;
+
+  FIMTSize := Parent.IMTSize;
 
   LoadChildren(Stream);
 end;
@@ -1402,6 +1461,8 @@ begin
   FIsDispatch := IntfInheritsFrom(
     TSepiInterface(Root.FindType(System.TypeInfo(IDispatch))));
   FGUID := AGUID;
+
+  FIMTSize := Parent.IMTSize;
 end;
 
 {*
@@ -1445,6 +1506,19 @@ begin
   inherited;
 
   Complete;
+end;
+
+{*
+  Ajoute une méthode à l'interface
+  @param MethodName        Nom de la méthode
+  @param ASignature        Signature Delphi de la méthode
+  @param ACallConvention   Convention d'appel de la méthode
+*}
+function TSepiInterface.AddMethod(const MethodName, ASignature : string;
+  ACallConvention : TCallConvention = ccRegister) : TSepiMetaMethod;
+begin
+  Result := TSepiMetaMethod.Create(Self, MethodName, nil, ASignature,
+    mlkInterface, False, 0, ACallConvention);
 end;
 
 {*
@@ -1553,14 +1627,23 @@ end;
 *}
 destructor TSepiClass.Destroy;
 const
-  Tables : array[0..3] of integer = (
-    vmtDynamicTable, vmtMethodTable, vmtFieldTable, vmtInitTable
+  Tables : array[0..4] of integer = (
+    vmtDynamicTable, vmtMethodTable, vmtFieldTable, vmtInitTable, vmtIntfTable
   );
 var I : integer;
     PTable : Pointer;
 begin
   if (not Native) and (FDelphiClass <> nil) then
   begin
+    // Destroying the IMTs
+    for I := 0 to High(FInterfaces) do with FInterfaces[I] do
+    begin
+      if Assigned(Relocates) then
+        FreeMem(Relocates);
+      if Assigned(IMT) then
+        FreeMem(IMT);
+    end;
+
     // Destroying the tables
     for I := Low(Tables) to High(Tables) do
     begin
@@ -1575,6 +1658,157 @@ begin
   end;
 
   inherited;
+end;
+
+{*
+  Construit une IMT non native
+  @param Index   Index de l'IMT à construire (dans le tableau FInterfaces)
+*}
+procedure TSepiClass.MakeIMT(IntfEntry : PSepiInterfaceEntry);
+const
+  AdjustInstrSizes : array[TCallConvention, boolean] of ShortInt = (
+    (3, 5), (5, 9), (-1, -1), (5, 8)
+  );
+  JumpInstrSize = 5;
+var Offset : LongInt;
+    BigOffset : boolean;
+    Methods : TObjectList;
+    Method, RealMethod : TSepiMetaMethod;
+    Intf : TSepiInterface;
+    I, RelocLength, AdjustInstrSize : integer;
+    RelocEntry, IMTEntry : integer;
+begin
+  Offset := IntfEntry.Offset;
+  BigOffset := Offset >= $80;
+  Offset := -Offset;
+
+  Methods := TObjectList.Create(False);
+  try
+    // Computing the relocates thunks length and listing the methods
+    Intf := IntfEntry.IntfRef;
+    RelocLength := 0;
+
+    while Intf <> nil do
+    begin
+      for I := Intf.ChildCount-1 downto 0 do
+      begin
+        if not (Intf.Children[I] is TSepiMetaMethod) then Continue;
+        Method := TSepiMetaMethod(Intf.Children[I]);
+
+        AdjustInstrSize :=
+          AdjustInstrSizes[Method.Signature.CallConvention, BigOffset];
+
+        // Call convention Pascal not supported at the moment
+        { TODO 1 -cMetaunités : Support de ccPascal dans les IMT }
+        if AdjustInstrSize < 0 then
+          raise ESepiUnsupportedFeatureException.CreateFmt(
+            SSepiUnsupportedIntfCallConvention, ['pascal']);
+
+        inc(RelocLength, AdjustInstrSize);
+        inc(RelocLength, JumpInstrSize);
+
+        Methods.Insert(0, Method);
+      end;
+
+      Intf := Intf.Parent;
+    end;
+
+    // Creating the relocates thunks and the IMT
+    GetMem(IntfEntry.Relocates, RelocLength);
+    RelocEntry := integer(IntfEntry.Relocates);
+    GetMem(IntfEntry.IMT, IntfEntry.IntfRef.IMTSize);
+    IMTEntry := integer(IntfEntry.IMT);
+
+    // Filling the relocates thunks and the IMT
+    for I := 0 to Methods.Count-1 do
+    begin
+      Method := TSepiMetaMethod(Methods[I]);
+
+      // IMT entry
+      PLongInt(IMTEntry)^ := RelocEntry;
+      inc(IMTEntry, 4);
+
+      // Adjust instruction
+      case Method.Signature.CallConvention of
+        ccRegister :
+        begin
+          // add eax, Offset
+          if BigOffset then
+          begin
+            // 05 xx xx xx xx
+            PByte(RelocEntry)^ := $05;
+            PLongInt(RelocEntry+1)^ := Offset;
+            inc(RelocEntry, 5);
+          end else
+          begin
+            // 83 C0 xx
+            PWord(RelocEntry)^ := $C083;
+            PShortInt(RelocEntry+2)^ := Offset;
+            inc(RelocEntry, 3);
+          end;
+        end;
+        ccStdCall, ccCDecl :
+        begin
+          // add dwortd ptr [esp+4], Offset
+          if BigOffset then
+          begin
+            // 81 44 24 04 xx xx xx xx
+            PLongWord(RelocEntry)^ := $04244481;
+            PLongInt(RelocEntry+4)^ := Offset;
+            inc(RelocEntry, 8);
+          end else
+          begin
+            // 83 44 24 04 xx
+            PLongWord(RelocEntry)^ := $04244483;
+            PShortInt(RelocEntry+4)^ := Offset;
+            inc(RelocEntry, 5);
+          end;
+        end;
+      end;
+
+      // JumpInstruction
+      RealMethod :=
+        LookforMember(Method.Name, OwningUnit, Self) as TSepiMetaMethod;
+
+      // jmp Method.Code   E9 xx xx xx xx
+      PByte(RelocEntry)^ := $E9;
+      PLongInt(RelocEntry+1)^ := integer(RealMethod.Code) - RelocEntry - 5;
+      inc(RelocEntry, 5);
+    end;
+  finally
+    Methods.Free;
+  end;
+end;
+
+{*
+  Construit les IMTs
+*}
+procedure TSepiClass.MakeIMTs;
+var IntfCount, I : integer;
+    IntfTable : PInterfaceTable;
+begin
+  // If no interface supported, then exit
+  IntfCount := InterfaceCount;
+  if IntfCount = 0 then exit;
+
+  // Fetch native interface table
+  if Native then
+    IntfTable := DelphiClass.GetInterfaceTable
+  else
+    IntfTable := nil;
+
+  for I := 0 to IntfCount-1 do
+  begin
+    FInterfaces[I].Offset := FInstSize;
+    inc(FInstSize, 4);
+
+    // If native, get information from IntfTable; otherwise, create the IMT
+    if Native then
+    begin
+      FInterfaces[I].IMT := IntfTable.Entries[I].VTable;
+      Assert(IntfTable.Entries[I].IOffset = FInterfaces[I].Offset);
+    end else MakeIMT(@FInterfaces[I]);
+  end;
 end;
 
 {*
@@ -1633,6 +1867,35 @@ begin
     end;
   finally
     Props.Free;
+  end;
+end;
+
+{*
+  Construit la table des interfaces
+  Range également l'adresse de cette table à l'emplacement prévu de la VMT.
+*}
+procedure TSepiClass.MakeIntfTable;
+var IntfCount, I : integer;
+    IntfTable : PInterfaceTable;
+begin
+  // If no interface supported, then exit
+  IntfCount := InterfaceCount;
+  if IntfCount = 0 then exit;
+
+  // Creating the interface table
+  GetMem(IntfTable, sizeof(integer) + IntfCount*sizeof(TInterfaceEntry));
+  VMTEntries[vmtIntfTable] := IntfTable;
+
+  // Basic information
+  IntfTable.EntryCount := IntfCount;
+
+  // Interface information
+  for I := 0 to IntfCount-1 do with IntfTable.Entries[I], FInterfaces[I] do
+  begin
+    IID := IntfRef.GUID;
+    VTable := IMT;
+    IOffset := Offset;
+    ImplGetter := 0;
   end;
 end;
 
@@ -1872,10 +2135,30 @@ begin
   end;
 
   // Making the other tables
+  MakeIntfTable;
   MakeInitTable;
   MakeFieldTable;
   MakeMethodTable;
   MakeDMT;
+end;
+
+{*
+  Nombre d'interfaces supportées
+  @return Nombre d'interfaces supportées
+*}
+function TSepiClass.GetInterfaceCount : integer;
+begin
+  Result := Length(FInterfaces);
+end;
+
+{*
+  Tableau zero-based des interfaces supportées
+  @param Index   Index dans le tableau
+  @return Interface supportée à l'index spécifié
+*}
+function TSepiClass.GetInterfaces(Index : integer) : TSepiInterface;
+begin
+  Result := FInterfaces[Index].IntfRef;
 end;
 
 {*
@@ -1918,6 +2201,43 @@ begin
   inherited;
 
   Complete;
+end;
+
+{*
+  Ajoute le support d'une interface
+  @param AInterface   Interface à supporter
+*}
+procedure TSepiClass.AddInterface(AInterface : TSepiInterface);
+var Index : integer;
+begin
+  Index := Length(FInterfaces);
+  SetLength(FInterfaces, Index+1);
+
+  with FInterfaces[Index] do
+  begin
+    IntfRef := AInterface;
+    Relocates := nil;
+    IMT := nil;
+    Offset := 0;
+  end;
+end;
+
+{*
+  Ajoute le support d'une interface
+  @param AIntfTypeInfo   RTTI de l'interface à supporter
+*}
+procedure TSepiClass.AddInterface(AIntfTypeInfo : PTypeInfo);
+begin
+  AddInterface(Root.FindType(AIntfTypeInfo) as TSepiInterface);
+end;
+
+{*
+  Ajoute le support d'une interface
+  @param AIntfName   Nom de l'interface à supporter
+*}
+procedure TSepiClass.AddInterface(const AIntfName : string);
+begin
+  AddInterface(Root.FindType(AIntfName) as TSepiInterface);
 end;
 
 {*
@@ -1984,6 +2304,7 @@ begin
   if FCompleted then exit;
 
   FCompleted := True;
+  MakeIMTs;
   if not Native then
     MakeVMT;
 end;

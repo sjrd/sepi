@@ -13,6 +13,9 @@ resourcestring
   SSepiObjectNotFound = 'Objet %s non trouvé';
   SSepiNoRegisterTypeInfo = 'Ce type n''implémente pas RegisterTypeInfo';
 
+  SSepiUnsupportedIntfCallConvention =
+    'La convention d''appel %s n''est pas encore supportée pour les interfaces';
+
 implementation
 
 end.

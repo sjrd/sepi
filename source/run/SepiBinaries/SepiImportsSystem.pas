@@ -11,15 +11,21 @@ uses
   TypInfo, SepiMetaUnits, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
   SepiCompTypes;
 
+implementation
+
+{ You must not localize any of the strings this unit contains! }
+
 type
   TSepiImportsTObject = class(TObject)
   private
     class function SepiImportTObject(Owner : TSepiMetaUnit) : TSepiClass;
   end;
 
-implementation
-
-{ You must not localize any of the strings this unit contains! }
+  TSepiImportsTInterfacedObject = class(TInterfacedObject)
+  private
+    class function SepiImportTInterfacedObject(
+      Owner : TSepiMetaUnit) : TSepiClass;
+  end;
 
 {----------------}
 { TObject import }
@@ -84,6 +90,102 @@ begin
       'procedure', mlkVirtual);
     AddMethod('Destroy', @TObject.Destroy,
       'destructor', mlkVirtual);
+
+    Complete;
+  end;
+end;
+
+{-------------------}
+{ IInterface import }
+{-------------------}
+
+function SepiImportIInterface(Owner : TSepiMetaUnit) : TSepiInterface;
+begin
+  Result := TSepiInterface.RegisterTypeInfo(Owner, TypeInfo(IInterface));
+
+  with Result do
+  begin
+    AddMethod('QueryInterface',
+      'function(const IID: TGUID; out Obj): HResult', ccStdCall);
+    AddMethod('_AddRef',
+      'function: Integer', ccStdCall);
+    AddMethod('_Release',
+      'function: Integer', ccStdCall);
+
+    Complete;
+  end;
+end;
+
+{-------------------}
+{ IInvokable import }
+{-------------------}
+
+function SepiImportIInvokable(Owner : TSepiMetaUnit) : TSepiInterface;
+begin
+  Result := TSepiInterface.RegisterTypeInfo(Owner, TypeInfo(IInvokable));
+  Result.Complete;
+end;
+
+{-----------------}
+{ IDipatch import }
+{-----------------}
+
+function SepiImportIDispatch(Owner : TSepiMetaUnit) : TSepiInterface;
+begin
+  Result := TSepiInterface.RegisterTypeInfo(Owner, TypeInfo(IDispatch));
+
+  with Result do
+  begin
+    AddMethod('GetTypeInfoCount',
+      'function(out Count: Integer): HResult', ccStdCall);
+    AddMethod('GetTypeInfo',
+      'function(Index, LocaleID: Integer; out TypeInfo): HResult', ccStdCall);
+    AddMethod('GetIDsOfNames',
+      'function(const IID: TGUID; Names: Pointer;'+
+      '  NameCount, LocaleID: Integer; DispIDs: Pointer): HResult', ccStdCall);
+    AddMethod('Invoke',
+      'function(DispID: Integer; const IID: TGUID; LocaleID: Integer;'+
+      '  Flags: Word; var Params;'+
+      '  VarResult, ExcepInfo, ArgErr: Pointer): HResult', ccStdCall);
+
+    Complete;
+  end;
+end;
+
+{--------------------------}
+{ TInterfacedObject import }
+{--------------------------}
+
+class function TSepiImportsTInterfacedObject.SepiImportTInterfacedObject(
+  Owner : TSepiMetaUnit) : TSepiClass;
+begin
+  Result := TSepiClass.RegisterTypeInfo(Owner, TypeInfo(TInterfacedObject));
+  TSepiMetaClass.Create(Owner, 'TInterfacedClass', Result, True);
+
+  with Result do
+  begin
+    CurrentVisibility := mvProtected;
+
+    AddField('FRefCount', System.TypeInfo(Integer));
+
+    AddMethod('QueryInterface', @TSepiImportsTInterfacedObject.QueryInterface,
+      'function(const IID: TGUID; out Obj): HResult', mlkStatic,
+      False, 0, ccStdCall);
+    AddMethod('_AddRef', @TSepiImportsTInterfacedObject._AddRef,
+      'function: Integer', mlkStatic, False, 0, ccStdCall);
+    AddMethod('_Release', @TSepiImportsTInterfacedObject._Release,
+      'function: Integer', mlkStatic, False, 0, ccStdCall);
+
+    CurrentVisibility := mvPublic;
+
+    AddMethod('AfterConstruction', @TInterfacedObject.AfterConstruction,
+      'procedure', mlkOverride);
+    AddMethod('BeforeDestruction', @TInterfacedObject.BeforeDestruction,
+      'procedure', mlkOverride);
+    AddMethod('NewInstance', @TInterfacedObject.NewInstance,
+      'class function: TObject', mlkOverride);
+
+    { TODO 1 -Metaunités : Importer les propriétés de TInterfacedObject }
 
     Complete;
   end;
@@ -196,6 +298,21 @@ begin
 
   { TObject class }
   TSepiImportsTObject.SepiImportTObject(Result);
+
+  { IInterface interface }
+  SepiImportIInterface(Result);
+
+  { IUnknown interface }
+  TSepiTypeAlias.Create(Result, 'IUnknown', TypeInfo(IUnknown));
+
+  { IIvokable interface }
+  SepiImportIInvokable(Result);
+
+  { IDispatch interface }
+  SepiImportIDispatch(Result);
+
+  { TInterfacedObject class }
+  TSepiImportsTInterfacedObject.SepiImportTInterfacedObject(Result);
 
   { ... }
 end;

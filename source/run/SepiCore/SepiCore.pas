@@ -17,6 +17,11 @@ type
   ESepiError = class(Exception);
 
   {*
+    Générée lorsqu'une opération requise n'est pas encore implémentée
+  *}
+  ESepiUnsupportedFeatureException = class(ESepiError);
+
+  {*
     Version Sepi
     @author Sébastien Jean Robert Doeraene
     @version 1.0
