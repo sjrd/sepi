@@ -11,6 +11,13 @@ uses
   Classes, SysUtils, ScUtils, SepiMetaUnits, SysConst, TypInfo, Contnrs,
   ScLists, StrUtils, ScStrUtils, ScExtra, SepiBinariesConsts, SepiCore;
 
+const
+  /// Pas d'index
+  NoIndex = integer($80000000);
+
+  /// Pas de valeur par défaut
+  NoDefaultValue = integer($80000000);
+
 type
   {*
     Type de liaison d'une méthode
@@ -193,18 +200,29 @@ type
   *}
   TSepiMetaProperty = class(TSepiMeta)
   private
-    FSignature : TSepiMethodSignature;  /// Signature
+    FSignature : TSepiMethodSignature; /// Signature
 
     FReadAccess : TSepiPropertyAccess;  /// Accès en lecture
     FWriteAccess : TSepiPropertyAccess; /// Accès en écriture
+    FIndex : integer;                   /// Index d'accès
+    FDefaultValue : integer;            /// Valeur par défaut
+
+    FIsDefault : boolean; /// Indique si c'est la propriété par défaut
+
+    procedure MakePropInfo(PropInfo : PPropInfo);
 
     function GetPropType : TSepiType;
   protected
     procedure Loaded; override;
   public
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
-    constructor Create(AOwner : TSepiMeta; const AName, ASignature : string;
-      AReadAccess, AWriteAccess : TSepiMeta);
+    constructor Create(AOwner : TSepiMeta;
+      const AName, ASignature, AReadAccess, AWriteAccess : string;
+      AIndex : integer = NoIndex; ADefaultValue : integer = NoDefaultValue;
+      AIsDefault : boolean = False); overload;
+    constructor Create(AOwner : TSepiMeta;
+      const AName, ASignature, AReadAccess, AWriteAccess : string;
+      AIsDefault : boolean); overload;
     destructor Destroy; override;
 
     property Signature : TSepiMethodSignature read FSignature;
@@ -212,6 +230,8 @@ type
 
     property ReadAccess : TSepiPropertyAccess read FReadAccess;
     property WriteAccess : TSepiPropertyAccess read FWriteAccess;
+    property Index : integer read FIndex;
+    property DefaultValue : integer read FIndex;
   end;
 
   {*
@@ -289,9 +309,19 @@ type
     function AddMethod(const MethodName, ASignature : string;
       ACallConvention : TCallConvention = ccRegister) : TSepiMetaMethod;
 
+    function AddProperty(
+      const AName, ASignature, AReadAccess, AWriteAccess : string;
+      AIndex : integer = NoIndex;
+      AIsDefault : boolean = False) : TSepiMetaProperty; overload;
+    function AddProperty(
+      const AName, ASignature, AReadAccess, AWriteAccess : string;
+      AIsDefault : boolean) : TSepiMetaProperty; overload;
+
     procedure Complete;
 
     function IntfInheritsFrom(AParent : TSepiInterface) : boolean;
+
+    function LookForMember(const MemberName : string) : TSepiMeta;
 
     property Parent : TSepiInterface read FParent;
     property Completed : boolean read FCompleted;
@@ -387,6 +417,14 @@ type
       const ASignature : string; ALinkKind : TMethodLinkKind = mlkStatic;
       AAbstract : boolean = False; AMsgID : integer = 0;
       ACallConvention : TCallConvention = ccRegister) : TSepiMetaMethod;
+
+    function AddProperty(
+      const AName, ASignature, AReadAccess, AWriteAccess : string;
+      AIndex : integer = NoIndex; ADefaultValue : integer = NoDefaultValue;
+      AIsDefault : boolean = False) : TSepiMetaProperty; overload;
+    function AddProperty(
+      const AName, ASignature, AReadAccess, AWriteAccess : string;
+      AIsDefault : boolean) : TSepiMetaProperty; overload;
 
     procedure Complete;
 
@@ -519,11 +557,10 @@ const
     sizeof(Pointer) + sizeof(TIntfFlagsBase) + sizeof(TGUID) + 2*sizeof(Word);
   ClassTypeDataLengthBase =
     sizeof(TClass) + sizeof(Pointer) + sizeof(SmallInt) + sizeof(Word);
+  PropInfoLengthBase = sizeof(TPropInfo) - sizeof(ShortString);
   InitTableLengthBase = 2*sizeof(Byte) + 2*sizeof(Cardinal);
   FieldTableLengthBase = sizeof(TFieldTable);
   MethodTableLengthBase = sizeof(TMethodTable);
-
-  PropInfoLengthBase = sizeof(TPropInfo) - sizeof(ShortString);
 
   vmtMinIndex = vmtSelfPtr;
   vmtMinMethodIndex = vmtParent + 4;
@@ -1102,6 +1139,61 @@ begin
 
   Stream.ReadBuffer(FReadAccess, sizeof(TSepiPropertyAccess));
   Stream.ReadBuffer(FWriteAccess, sizeof(TSepiPropertyAccess));
+
+  Stream.ReadBuffer(FIndex, 4);
+  Stream.ReadBuffer(FDefaultValue, 4);
+  Stream.ReadBuffer(FIsDefault, 1);
+end;
+
+{*
+  Crée une nouvelle propriété
+  @param AOwner          Propriétaire de la propriété
+  @param AName           Nom de la propriété
+  @param ASignature      Signature
+  @param AReadAccess     Accès en lecture à la propriété (peut être vide)
+  @param AWriteAccess    Accès en écriture à la propriété (peut être vide)
+  @param AIndex          Index d'accès
+  @param ADefaultValue   Valeur par défaut de la propriété
+  @param AIsDefault      Indique si c'est la propriété tableau par défaut
+*}
+constructor TSepiMetaProperty.Create(AOwner : TSepiMeta;
+  const AName, ASignature, AReadAccess, AWriteAccess : string;
+  AIndex : integer = NoIndex; ADefaultValue : integer = NoDefaultValue;
+  AIsDefault : boolean = False);
+
+  function FindAccess(const AAccess : string) : TSepiMeta;
+  begin
+    if Owner is TSepiClass then
+      Result := TSepiClass(Owner).LookForMember(
+        AAccess, OwningUnit, TSepiClass(Owner))
+    else
+      Result := TSepiInterface(Owner).LookForMember(AAccess);
+  end;
+begin
+  inherited Create(AOwner, AName);
+
+  FSignature := TSepiMethodSignature.Create(Self, ASignature);
+
+  FReadAccess.Meta := FindAccess(AReadAccess);
+  if FReadAccess.Meta is TSepiMetaField then
+    FReadAccess.Kind := pakField
+  else if FReadAccess.Meta is TSepiMetaMethod then
+    FReadAccess.Kind := pakMethod
+  else
+    FReadAccess.Kind := pakNone;
+
+  FWriteAccess.Meta := FindAccess(AWriteAccess);
+  if FWriteAccess.Meta is TSepiMetaField then
+    FWriteAccess.Kind := pakField
+  else if FWriteAccess.Meta is TSepiMetaMethod then
+    FWriteAccess.Kind := pakMethod
+  else
+    FWriteAccess.Kind := pakNone;
+
+  FIndex := AIndex;
+  FDefaultValue := ADefaultValue;
+
+  FIsDefault := AIsDefault and (Signature.ParamCount > 0);
 end;
 
 {*
@@ -1109,31 +1201,16 @@ end;
   @param AOwner         Propriétaire de la propriété
   @param AName          Nom de la propriété
   @param ASignature     Signature
-  @param AReadAccess    Accès en lecture à la propriété (peut être nul)
-  @param AWriteAccess   Accès en écriture à la propriété (peut être nul)
+  @param AReadAccess    Accès en lecture à la propriété (peut être vide)
+  @param AWriteAccess   Accès en écriture à la propriété (peut être vide)
+  @param AIsDefault     Indique si c'est la propriété tableau par défaut
 *}
 constructor TSepiMetaProperty.Create(AOwner : TSepiMeta;
-  const AName, ASignature : string; AReadAccess, AWriteAccess : TSepiMeta);
+  const AName, ASignature, AReadAccess, AWriteAccess : string;
+  AIsDefault : boolean);
 begin
-  inherited Create(AOwner, AName);
-
-  FSignature := TSepiMethodSignature.Create(Self, ASignature);
-
-  FReadAccess.Meta := AReadAccess;
-  if AReadAccess is TSepiMetaField then
-    FReadAccess.Kind := pakField
-  else if AReadAccess is TSepiMetaMethod then
-    FReadAccess.Kind := pakMethod
-  else
-    FReadAccess.Kind := pakNone;
-
-  FWriteAccess.Meta := AWriteAccess;
-  if AWriteAccess is TSepiMetaField then
-    FWriteAccess.Kind := pakField
-  else if AWriteAccess is TSepiMetaMethod then
-    FWriteAccess.Kind := pakMethod
-  else
-    FWriteAccess.Kind := pakNone;
+  Create(AOwner, AName, ASignature, AReadAccess, AWriteAccess,
+    NoIndex, NoDefaultValue, AIsDefault);
 end;
 
 {*
@@ -1143,6 +1220,62 @@ destructor TSepiMetaProperty.Destroy;
 begin
   FSignature.Free;
   inherited;
+end;
+
+{*
+  Construit les informations de propriétés pour les RTTI
+  Cette méthode ne doit être appelée que pour des propriétés de classe, pas pour
+  des propriétés d'interface.
+  @param PropInfo   Destination des informations
+*}
+procedure TSepiMetaProperty.MakePropInfo(PropInfo : PPropInfo);
+var ShortName : ShortString;
+begin
+  // Property type RTTI
+  PropInfo.PropType := TSepiMetaClass(PropType).TypeInfoRef;
+
+  // Read access
+  with PropInfo^, ReadAccess do
+  begin
+    case Kind of
+      pakNone : GetProc := nil;
+      pakField : GetProc := Pointer($FF000000 or Field.Offset);
+      pakMethod :
+      begin
+        if Method.LinkKind = mlkStatic then
+          GetProc := Method.Code
+        else
+          GetProc := Pointer($FE000000 or Method.VMTOffset);
+      end;
+    end;
+  end;
+
+  // Write access
+  with PropInfo^, WriteAccess do
+  begin
+    case Kind of
+      pakNone : SetProc := nil;
+      pakField : SetProc := Pointer($FF000000 or Field.Offset);
+      pakMethod :
+      begin
+        if Method.LinkKind = mlkStatic then
+          SetProc := Method.Code
+        else
+          SetProc := Pointer($FE000000 or Method.VMTOffset);
+      end;
+    end;
+  end;
+
+  // Some information
+  { TODO 1 -Metaunités : Renseigner convenablement PropInfo.StoredProc }
+  PropInfo.StoredProc := nil;
+  PropInfo.Index := Index;
+  PropInfo.Default := DefaultValue;
+  PropInfo.NameIndex := 0; // Unknown, give 0 and pray...
+
+  // Property name
+  ShortName := Name;
+  Move(ShortName[0], PropInfo.Name[0], Length(ShortName)+1);
 end;
 
 {*
@@ -1522,6 +1655,39 @@ begin
 end;
 
 {*
+  Ajoute une propriété à l'interface
+  @param AName           Nom de la propriété
+  @param ASignature      Signature
+  @param AReadAccess     Accès en lecture à la propriété (peut être vide)
+  @param AWriteAccess    Accès en écriture à la propriété (peut être vide)
+  @param AIndex          Index d'accès
+  @param AIsDefault      Indique si c'est la propriété tableau par défaut
+*}
+function TSepiInterface.AddProperty(
+  const AName, ASignature, AReadAccess, AWriteAccess : string;
+  AIndex : integer = NoIndex; AIsDefault : boolean = False) : TSepiMetaProperty;
+begin
+  Result := TSepiMetaProperty.Create(Self, AName, ASignature,
+    AReadAccess, AWriteAccess, AIndex, NoDefaultValue, AIsDefault);
+end;
+
+{*
+  Ajoute une propriété à l'interface
+  @param AName           Nom de la propriété
+  @param ASignature      Signature
+  @param AReadAccess     Accès en lecture à la propriété (peut être vide)
+  @param AWriteAccess    Accès en écriture à la propriété (peut être vide)
+  @param AIsDefault      Indique si c'est la propriété tableau par défaut
+*}
+function TSepiInterface.AddProperty(
+  const AName, ASignature, AReadAccess, AWriteAccess : string;
+  AIsDefault : boolean) : TSepiMetaProperty;
+begin
+  Result := TSepiMetaProperty.Create(Self, AName, ASignature,
+    AReadAccess, AWriteAccess, AIsDefault);
+end;
+
+{*
   Termine l'interface et construit ses RTTI si ce n'est pas déjà fait
 *}
 procedure TSepiInterface.Complete;
@@ -1542,6 +1708,24 @@ function TSepiInterface.IntfInheritsFrom(AParent : TSepiInterface) : boolean;
 begin
   Result := (AParent = Self) or
     (Assigned(FParent) and FParent.IntfInheritsFrom(AParent));
+end;
+
+{*
+  Recherche un membre dans l'interface
+  @param MemberName   Nom du membre recherché
+  @return Le membre correspondant, ou nil si non trouvé
+*}
+function TSepiInterface.LookForMember(const MemberName : string) : TSepiMeta;
+begin
+  if MemberName = '' then
+  begin
+    Result := nil;
+    exit;
+  end;
+
+  Result := GetMeta(MemberName);
+  if (Result = nil) and (Parent <> nil) then
+    Result := Parent.LookForMember(MemberName);
 end;
 
 {-------------------}
@@ -1815,7 +1999,7 @@ end;
   Construit les RTTI
 *}
 procedure TSepiClass.MakeTypeInfo;
-var OwningUnitName, PropName : ShortString;
+var OwningUnitName : ShortString;
     TypeDataLength, I : integer;
     Props : TObjectList;
     Prop : TSepiMetaProperty;
@@ -1858,11 +2042,7 @@ begin
     PropInfo := PPropInfo(Integer(PropCount) + 2);
     for I := 0 to Props.Count-1 do
     begin
-      Prop := TSepiMetaProperty(Props[I]);
-
-      PropName := Prop.Name;
-      Move(PropName[0], PropInfo.Name[0], Length(PropName)+1);
-
+      TSepiMetaProperty(Props[I]).MakePropInfo(PropInfo);
       PropInfo := SkipPackedShortString(@PropInfo.Name);
     end;
   finally
@@ -2297,6 +2477,41 @@ begin
 end;
 
 {*
+  Ajoute une propriété à la classe
+  @param AName           Nom de la propriété
+  @param ASignature      Signature
+  @param AReadAccess     Accès en lecture à la propriété (peut être vide)
+  @param AWriteAccess    Accès en écriture à la propriété (peut être vide)
+  @param AIndex          Index d'accès
+  @param ADefaultValue   Valeur par défaut de la propriété
+  @param AIsDefault      Indique si c'est la propriété tableau par défaut
+*}
+function TSepiClass.AddProperty(
+  const AName, ASignature, AReadAccess, AWriteAccess : string;
+  AIndex : integer = NoIndex; ADefaultValue : integer = NoDefaultValue;
+  AIsDefault : boolean = False) : TSepiMetaProperty;
+begin
+  Result := TSepiMetaProperty.Create(Self, AName, ASignature,
+    AReadAccess, AWriteAccess, AIndex, ADefaultValue, AIsDefault);
+end;
+
+{*
+  Ajoute une propriété à la classe
+  @param AName           Nom de la propriété
+  @param ASignature      Signature
+  @param AReadAccess     Accès en lecture à la propriété (peut être vide)
+  @param AWriteAccess    Accès en écriture à la propriété (peut être vide)
+  @param AIsDefault      Indique si c'est la propriété tableau par défaut
+*}
+function TSepiClass.AddProperty(
+  const AName, ASignature, AReadAccess, AWriteAccess : string;
+  AIsDefault : boolean) : TSepiMetaProperty;
+begin
+  Result := TSepiMetaProperty.Create(Self, AName, ASignature,
+    AReadAccess, AWriteAccess, AIsDefault);
+end;
+
+{*
   Termine la classe et construit ses RTTI si ce n'est pas déjà fait
 *}
 procedure TSepiClass.Complete;
@@ -2339,6 +2554,12 @@ end;
 function TSepiClass.LookForMember(const MemberName : string;
   FromUnit : TSepiMetaUnit; FromClass : TSepiClass = nil) : TSepiMeta;
 begin
+  if MemberName = '' then
+  begin
+    Result := nil;
+    exit;
+  end;
+
   Result := GetMeta(MemberName);
 
   if Result <> nil then

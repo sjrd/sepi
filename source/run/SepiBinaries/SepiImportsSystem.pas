@@ -164,6 +164,8 @@ begin
 
   with Result do
   begin
+    AddInterface(System.TypeInfo(IInterface));
+
     CurrentVisibility := mvProtected;
 
     AddField('FRefCount', System.TypeInfo(Integer));
@@ -185,7 +187,7 @@ begin
     AddMethod('NewInstance', @TInterfacedObject.NewInstance,
       'class function: TObject', mlkOverride);
 
-    { TODO 1 -Metaunités : Importer les propriétés de TInterfacedObject }
+    AddProperty('RefCount', 'property: Integer', 'FRefCount', '');
 
     Complete;
   end;
