@@ -32,6 +32,13 @@ type
     var Code : Pointer) of object;
 
   {*
+    Déclenchée si l'on tente de recréer un meta (second appel au constructeur)
+    @author Sébastien Jean Robert Doeraene
+    @version 1.0
+  *}
+  ESepiMetaAlreadyCreated = class(ESepiError);
+
+  {*
     Déclenchée lorsque la recherche d'un meta s'est soldée par un échec
     @author Sébastien Jean Robert Doeraene
     @version 1.0
@@ -80,6 +87,7 @@ type
   *}
   TSepiMeta = class
   private
+    FIsForward : boolean;        /// True tant que le meta n'a pas été construit
     FState : TSepiMetaState;     /// État
     FOwner : TSepiMeta;          /// Propriétaire
     FRoot : TSepiMetaRoot;       /// Racine
@@ -116,10 +124,13 @@ type
     procedure AfterConstruction; override;
     procedure BeforeDestruction; override;
 
+    class function NewInstance : TObject; override;
+
     function GetFullName : string;
     function GetMeta(const Name : string) : TSepiMeta;
     function FindMeta(const Name : string) : TSepiMeta;
 
+    property IsForward : boolean read FIsForward;
     property Owner : TSepiMeta read FOwner;
     property Root : TSepiMetaRoot read FRoot;
     property OwningUnit : TSepiMetaUnit read FOwningUnit;
@@ -168,6 +179,8 @@ type
     constructor Create(AOwner : TSepiMeta; const AName : string;
       AKind : TTypeKind);
     destructor Destroy; override;
+
+    class function NewInstance : TObject; override;
 
     class function LoadFromTypeInfo(AOwner : TSepiMeta;
       ATypeInfo : PTypeInfo) : TSepiType;
@@ -539,7 +552,11 @@ end;
 *}
 constructor TSepiMeta.Create(AOwner : TSepiMeta; const AName : string);
 begin
+  if not IsForward then
+    raise ESepiMetaAlreadyCreated.CreateFmt(SSepiMetaAlreadyCreated, [Name]);
+
   inherited Create;
+  FIsForward := False;
   FState := msConstructing;
   FOwner := AOwner;
   FName := AName;
@@ -773,6 +790,16 @@ begin
 end;
 
 {*
+  Crée une nouvelle instance de TSepiMeta
+  @return Instance créée
+*}
+class function TSepiMeta.NewInstance : TObject;
+begin
+  Result := inherited NewInstance;
+  TSepiMeta(Result).FIsForward := True;
+end;
+
+{*
   Nom qualifié du meta, depuis l'unité contenante
   @return Nom qualifié du meta
 *}
@@ -843,7 +870,6 @@ begin
   FTypeInfoLength := 0;
   FTypeInfo := ATypeInfo;
   FTypeData := GetTypeData(FTypeInfo);
-  FTypeInfoRef := @FTypeInfo;
   FSize := 0;
 end;
 
@@ -863,7 +889,6 @@ begin
   FTypeInfoLength := 0;
   FTypeInfo := nil;
   FTypeData := nil;
-  FTypeInfoRef := @FTypeInfo;
   FSize := 0;
   FNeedInit := False;
 end;
@@ -882,7 +907,6 @@ begin
   FTypeInfoLength := 0;
   FTypeInfo := nil;
   FTypeData := nil;
-  FTypeInfoRef := @FTypeInfo;
   FSize := 0;
   FNeedInit := False;
 end;
@@ -903,7 +927,6 @@ begin
   FTypeInfoLength := 0;
   FTypeInfo := nil;
   FTypeData := nil;
-  FTypeInfoRef := @FTypeInfo;
   FSize := 0;
   FNeedInit := False;
 end;
@@ -923,6 +946,16 @@ procedure TSepiType.Save(Stream : TStream);
 begin
   inherited;
   Stream.WriteBuffer(FKind, 1);
+end;
+
+{*
+  Crée une nouvelle instance de TSepiType
+  @return Instance créée
+*}
+class function TSepiType.NewInstance : TObject;
+begin
+  Result := inherited NewInstance;
+  TSepiType(Result).FTypeInfoRef := @TSepiType(Result).FTypeInfo;
 end;
 
 {*

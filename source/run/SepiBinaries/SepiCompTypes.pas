@@ -1475,7 +1475,7 @@ var Fields : TObjectList;
     I : integer;
     FieldTable : PInitTable;
 begin
-  if (not Native) or (not NeedInit) then exit;
+  if not NeedInit then exit;
 
   Fields := TObjectList.Create(False);
   try
@@ -2593,7 +2593,7 @@ class function TSepiClass.NewInstance : TObject;
 begin
   Result := inherited NewInstance;
   TSepiClass(Result).FSize := 4;
-  TSepiClass(Result).FNeedInit := True;
+  TSepiClass(Result).FNeedInit := False;
 end;
 
 {*
