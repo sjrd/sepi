@@ -245,6 +245,10 @@ type
     constructor Create(AOwner : TSepiMeta; const AName : string;
       APointTo : PTypeInfo; AIsNative : boolean = False); overload;
 
+    class function NewInstance : TObject; override;
+    class function ForwardDecl(AOwner : TSepiMeta;
+      const AName : string) : TSepiPointerType;
+
     property PointTo : TSepiType read FPointTo;
   end;
 
@@ -1045,6 +1049,29 @@ procedure TSepiPointerType.Save(Stream : TStream);
 begin
   inherited;
   OwningUnit.WriteRef(Stream, FPointTo);
+end;
+
+{*
+  Crée une nouvelle instance de TSepiPointerType
+  @return Instance créée
+*}
+class function TSepiPointerType.NewInstance : TObject;
+begin
+  Result := inherited NewInstance;
+  TSepiPointerType(Result).FSize := 4;
+  TSepiPointerType(Result).FNeedInit := False;
+end;
+
+{*
+  Déclare un type pointeur en forward
+  @param AOwner   Propriétaire du type
+  @param AName    Nom du type
+*}
+class function TSepiPointerType.ForwardDecl(AOwner : TSepiMeta;
+  const AName : string) : TSepiPointerType;
+begin
+  Result := TSepiPointerType(NewInstance);
+  TSepiPointerType(AOwner).AddForward(AName, Result);
 end;
 
 initialization

@@ -9,7 +9,7 @@ interface
 
 uses
   SysUtils, Classes, Contnrs, RTLConsts, SepiCore, ScUtils, IniFiles, TypInfo,
-  ScLists, SepiBinariesConsts;
+  ScLists, ScStrUtils, SepiBinariesConsts;
 
 type
   {*
@@ -85,6 +85,7 @@ type
     FRoot : TSepiMetaRoot;       /// Racine
     FOwningUnit : TSepiMetaUnit; /// Unité contenante
     FName : string;              /// Nom
+    FForwards : TStrings;        /// Liste des enfants forwards
     FChildren : TSepiMetaList;   /// Liste des enfants
 
     procedure AddChild(Child : TSepiMeta);
@@ -98,6 +99,7 @@ type
     procedure LoadChildren(Stream : TStream);
     procedure SaveChildren(Stream : TStream);
 
+    procedure AddForward(const ChildName : string; Child : TObject);
     procedure ChildAdded(Child : TSepiMeta); virtual;
     procedure ChildRemoving(Child : TSepiMeta); virtual;
 
@@ -542,6 +544,7 @@ begin
   FOwner := AOwner;
   FName := AName;
   FVisibility := mvPublic;
+  FForwards := THashedStringList.Create;
   FChildren := TSepiMetaList.Create;
 
   if Assigned(FOwner) then
@@ -568,6 +571,7 @@ begin
       FChildren.Objects[I].Free;
     FChildren.Free;
   end;
+  FForwards.Free;
 
   if Assigned(FOwner) then
     FOwner.RemoveChild(Self);
@@ -592,9 +596,15 @@ end;
   @param Child   Enfant à supprimer
 *}
 procedure TSepiMeta.RemoveChild(Child : TSepiMeta);
+var Index : integer;
 begin
   if State <> msDestroying then
+  begin
     FChildren.Remove(Child);
+
+    Index := FForwards.IndexOfObject(Child);
+    if Index >= 0 then FForwards.Delete(Index);
+  end;
 end;
 
 {*
@@ -622,10 +632,27 @@ end;
 *}
 procedure TSepiMeta.LoadChildren(Stream : TStream);
 var Count, I : integer;
+    ForwardChild : TObject;
+    IsForward : boolean;
 begin
+  // Forwards
   Stream.ReadBuffer(Count, 4);
   for I := 0 to Count-1 do
-    SepiFindMetaClass(ReadStrFromStream(Stream)).Load(Self, Stream);
+  begin
+    ForwardChild := SepiFindMetaClass(ReadStrFromStream(Stream)).NewInstance;
+    AddForward(ReadStrFromStream(Stream), ForwardChild);
+  end;
+
+  // Actual loading
+  Stream.ReadBuffer(Count, 4);
+  for I := 0 to Count-1 do
+  begin
+    Stream.ReadBuffer(IsForward, 1);
+    if IsForward then
+      FindMeta(ReadStrFromStream(Stream)).Load(Self, Stream)
+    else
+      SepiFindMetaClass(ReadStrFromStream(Stream)).Load(Self, Stream);
+  end;
 end;
 
 {*
@@ -634,15 +661,45 @@ end;
 *}
 procedure TSepiMeta.SaveChildren(Stream : TStream);
 var Count, I : integer;
+    Child : TSepiMeta;
+    IsForward : boolean;
 begin
+  // Forwards
+  Count := FForwards.Count;
+  Stream.WriteBuffer(Count, 4);
+  for I := 0 to Count-1 do
+  begin
+    WriteStrToStream(Stream, FForwards.Objects[I].ClassName);
+    WriteStrToStream(Stream, FForwards[I]);
+  end;
+
+  // Actual saving
   Count := FChildren.Count;
   Stream.WriteBuffer(Count, 4);
-
-  for I := 0 to Count-1 do with FChildren[I] do
+  for I := 0 to Count-1 do
   begin
-    WriteStrToStream(Stream, ClassName);
-    Save(Stream);
+    Child := FChildren[I];
+
+    IsForward := FForwards.IndexOfObject(Child) >= 0;
+    Stream.WriteBuffer(IsForward, 1);
+
+    if IsForward then
+      WriteStrToStream(Stream, Child.Name)
+    else
+      WriteStrToStream(Stream, Child.ClassName);
+
+    Child.Save(Stream);
   end;
+end;
+
+{*
+  Ajoute un enfant forward
+  @param ChildName   Nom de l'enfant
+  @param Child       Enfant à ajouter
+*}
+procedure TSepiMeta.AddForward(const ChildName : string; Child : TObject);
+begin
+  FForwards.AddObject(ChildName, Child);
 end;
 
 {*
@@ -736,18 +793,16 @@ function TSepiMeta.GetMeta(const Name : string) : TSepiMeta;
 var I : integer;
     MetaName, Field : string;
 begin
-  I := Pos('.', Name);
-  if I > 0 then
-  begin
-    MetaName := Copy(Name, 1, I-1);
-    Field := Copy(Name, I+1, Length(Name));
-  end else
-  begin
-    MetaName := Name;
+  if not SplitToken(Name, '.', MetaName, Field) then
     Field := '';
-  end;
-
   Result := FChildren.MetaFromName[MetaName];
+
+  if (Result = nil) and (Field = '') then
+  begin
+    I := FForwards.IndexOf(MetaName);
+    if I >= 0 then
+      Result := TSepiMeta(FForwards.Objects[I]);
+  end;
 
   if not Assigned(Result) then exit;
   while Result is TSepiTypeAlias do

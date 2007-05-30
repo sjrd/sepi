@@ -315,6 +315,10 @@ type
       AParent : TSepiInterface; const AGUID : TGUID;
       AIsDispInterface : boolean = False);
 
+    class function NewInstance : TObject; override;
+    class function ForwardDecl(AOwner : TSepiMeta;
+      const AName : string) : TSepiInterface;
+
     function AddMethod(const MethodName, ASignature : string;
       ACallConvention : TCallConvention = ccRegister) : TSepiMetaMethod;
 
@@ -411,6 +415,10 @@ type
     constructor Create(AOwner : TSepiMeta; const AName : string;
       AParent : TSepiClass);
     destructor Destroy; override;
+
+    class function NewInstance : TObject; override;
+    class function ForwardDecl(AOwner : TSepiMeta;
+      const AName : string) : TSepiClass;
 
     procedure AddInterface(AInterface : TSepiInterface); overload;
     procedure AddInterface(AIntfTypeInfo : PTypeInfo); overload;
@@ -1777,6 +1785,29 @@ begin
 end;
 
 {*
+  Crée une nouvelle instance de TSepiInterface
+  @return Instance créée
+*}
+class function TSepiInterface.NewInstance : TObject;
+begin
+  Result := inherited NewInstance;
+  TSepiInterface(Result).FSize := 4;
+  TSepiInterface(Result).FNeedInit := True;
+end;
+
+{*
+  Déclare un type interface en forward
+  @param AOwner   Propriétaire du type
+  @param AName    Nom du type
+*}
+class function TSepiInterface.ForwardDecl(AOwner : TSepiMeta;
+  const AName : string) : TSepiInterface;
+begin
+  Result := TSepiInterface(NewInstance);
+  TSepiInterface(AOwner).AddForward(AName, Result);
+end;
+
+{*
   Ajoute une méthode à l'interface
   @param MethodName        Nom de la méthode
   @param ASignature        Signature Delphi de la méthode
@@ -2552,6 +2583,29 @@ begin
     OwningUnit.WriteRef(Stream, Interfaces[I]);
 
   SaveChildren(Stream);
+end;
+
+{*
+  Crée une nouvelle instance de TSepiClass
+  @return Instance créée
+*}
+class function TSepiClass.NewInstance : TObject;
+begin
+  Result := inherited NewInstance;
+  TSepiClass(Result).FSize := 4;
+  TSepiClass(Result).FNeedInit := True;
+end;
+
+{*
+  Déclare un type classe en forward
+  @param AOwner   Propriétaire du type
+  @param AName    Nom du type
+*}
+class function TSepiClass.ForwardDecl(AOwner : TSepiMeta;
+  const AName : string) : TSepiClass;
+begin
+  Result := TSepiClass(NewInstance);
+  TSepiClass(AOwner).AddForward(AName, Result);
 end;
 
 {*
