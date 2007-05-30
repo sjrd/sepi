@@ -37,7 +37,8 @@ type
 
     function GetDimensions(Index, Kind : integer) : integer;
   protected
-    procedure Loaded; override;
+    procedure ListReferences; override;
+    procedure Save(Stream : TStream); override;
   public
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
     constructor Create(AOwner : TSepiMeta; const AName : string;
@@ -69,7 +70,9 @@ type
 
     procedure MakeTypeInfo;
   protected
-    procedure Loaded; override;
+    procedure ListReferences; override;
+    procedure Save(Stream : TStream); override;
+
     procedure ExtractTypeData; override;
   public
     constructor RegisterTypeInfo(AOwner : TSepiMeta;
@@ -116,7 +119,12 @@ begin
 
   SetLength(FDimensions, FDimCount);
   Stream.ReadBuffer(FDimensions[0], FDimCount*sizeof(TDimInfo));
-  Stream.ReadBuffer(FElementType, 4);
+  OwningUnit.ReadRef(Stream, FElementType);
+
+  MakeSize;
+  FNeedInit := FElementType.NeedInit;
+
+  MakeTypeInfo;
 end;
 
 {*
@@ -191,15 +199,21 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiArrayType.Loaded;
+procedure TSepiArrayType.ListReferences;
 begin
   inherited;
+  OwningUnit.AddRef(FElementType);
+end;
 
-  OwningUnit.LoadRef(FElementType);
-  MakeSize;
-  FNeedInit := FElementType.NeedInit;
-
-  MakeTypeInfo;
+{*
+  [@inheritDoc]
+*}
+procedure TSepiArrayType.Save(Stream : TStream);
+begin
+  inherited;
+  Stream.WriteBuffer(FDimCount, 1);
+  Stream.WriteBuffer(FDimensions[0], FDimCount*sizeof(TDimInfo));
+  OwningUnit.WriteRef(Stream, FElementType);
 end;
 
 {*
@@ -231,7 +245,9 @@ constructor TSepiDynArrayType.Load(AOwner : TSepiMeta; Stream : TStream);
 begin
   inherited;
 
-  Stream.ReadBuffer(FElementType, 4);
+  OwningUnit.ReadRef(Stream, FElementType);
+
+  MakeTypeInfo;
 end;
 
 {*
@@ -291,12 +307,19 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiDynArrayType.Loaded;
+procedure TSepiDynArrayType.ListReferences;
 begin
   inherited;
+  OwningUnit.AddRef(FElementType);
+end;
 
-  OwningUnit.LoadRef(FElementType);
-  MakeTypeInfo;
+{*
+  [@inheritDoc]
+*}
+procedure TSepiDynArrayType.Save(Stream : TStream);
+begin
+  inherited;
+  OwningUnit.WriteRef(Stream, FElementType);
 end;
 
 {*

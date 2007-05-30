@@ -24,6 +24,14 @@ type
     mvInternalProtected, mvPublic, mvPublished);
 
   {*
+    Type de l'événement OnGetMethodCode de TSepiMetaRoot
+    @param Sender   Méthode déclenchant l'événement (toujours TSepiMetaMethod)
+    @param Code     Adresse de code de la méthode
+  *}
+  TGetMethodCodeEvent = procedure(Sender : TObject;
+    var Code : Pointer) of object;
+
+  {*
     Déclenchée lorsque la recherche d'un meta s'est soldée par un échec
     @author Sébastien Jean Robert Doeraene
     @version 1.0
@@ -88,17 +96,22 @@ type
     FVisibility : TMemberVisibility; /// Visibilité
 
     procedure LoadChildren(Stream : TStream);
+    procedure SaveChildren(Stream : TStream);
 
     procedure ChildAdded(Child : TSepiMeta); virtual;
     procedure ChildRemoving(Child : TSepiMeta); virtual;
 
     procedure Loaded; virtual;
 
+    procedure ListReferences; virtual;
+    procedure Save(Stream : TStream); virtual;
+
     property State : TSepiMetaState read FState;
   public
     constructor Load(AOwner : TSepiMeta; Stream : TStream); virtual;
     constructor Create(AOwner : TSepiMeta; const AName : string);
     destructor Destroy; override;
+    procedure AfterConstruction; override;
     procedure BeforeDestruction; override;
 
     function GetFullName : string;
@@ -136,6 +149,8 @@ type
   protected
     FSize : integer;     /// Taille d'une variable de ce type
     FNeedInit : boolean; /// Indique si ce type requiert une initialisation
+
+    procedure Save(Stream : TStream); override;
 
     procedure ForceNative(ATypeInfo : PTypeInfo = nil);
     procedure AllocateTypeInfo(TypeDataLength : integer = 0);
@@ -177,18 +192,24 @@ type
   *}
   TSepiMetaRoot = class(TSepiMeta)
   private
+    /// Déclenché pour chaque méthode au chargement, pour obtenir son code
+    FOnGetMethodCode : TGetMethodCodeEvent;
+
     function GetUnitCount : integer;
     function GetUnits(Index : integer) : TSepiMetaUnit;
   public
     constructor Create;
 
-    procedure LoadUnit(const UnitName : string);
+    function LoadUnit(const UnitName : string) : TSepiMetaUnit;
 
     function FindType(TypeInfo : PTypeInfo) : TSepiType; overload;
     function FindType(const TypeName : string) : TSepiType; overload;
 
     property UnitCount : integer read GetUnitCount;
     property Units[index : integer] : TSepiMetaUnit read GetUnits;
+
+    property OnGetMethodCode : TGetMethodCodeEvent
+      read FOnGetMethodCode write FOnGetMethodCode;
   end;
 
   {*
@@ -199,17 +220,28 @@ type
   TSepiMetaUnit = class(TSepiType)
   private
     { TODO 2 -cMetaunités : Ajouter des champs concernant les en-tête d'unité }
+    FUsesList : TStrings;                   /// Liste des uses
     FCurrentVisibility : TMemberVisibility; /// Visibilité courante
-    FLoadingReferences : TStrings;          /// Références en chargement
+
+    FReferences : array of TStrings; /// Références en chargement/sauvegarde
+
+    function AddUses(AUnit : TSepiMetaUnit) : integer; overload;
 
     procedure SetCurrentVisibility(Value : TMemberVisibility);
   protected
-    procedure Loaded; override;
+    procedure Save(Stream : TStream); override;
   public
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
     constructor Create(AOwner : TSepiMeta; const AName : string);
+    destructor Destroy; override;
 
-    procedure LoadRef(var Ref);
+    function AddUses(const UnitName : string) : TSepiMetaUnit; overload;
+
+    procedure SaveToStream(Stream : TStream);
+
+    procedure ReadRef(Stream : TStream; out Ref);
+    procedure AddRef(Ref : TSepiMeta);
+    procedure WriteRef(Stream : TStream; Ref : TSepiMeta);
 
     property CurrentVisibility : TMemberVisibility
       read FCurrentVisibility write SetCurrentVisibility;
@@ -224,7 +256,8 @@ type
   private
     FDest : TSepiType; /// Type destination
   protected
-    procedure Loaded; override;
+    procedure ListReferences; override;
+    procedure Save(Stream : TStream); override;
   public
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
     constructor Create(AOwner : TSepiMeta; const AName : string;
@@ -245,7 +278,8 @@ type
     FType : TSepiType;      /// Type de la constante
     FValue : TMemoryStream; /// Valeur
   protected
-    procedure Loaded; override;
+    procedure ListReferences; override;
+    procedure Save(Stream : TStream); override;
   public
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
     constructor Create(AOwner : TSepiMeta; const AName : string;
@@ -549,7 +583,6 @@ end;
 procedure TSepiMeta.AddChild(Child : TSepiMeta);
 begin
   FChildren.AddMeta(Child);
-  ChildAdded(Child);
 end;
 
 {*
@@ -560,9 +593,8 @@ end;
 *}
 procedure TSepiMeta.RemoveChild(Child : TSepiMeta);
 begin
-  if State = msDestroying then exit;
-  ChildRemoving(Child);
-  FChildren.Remove(Child);
+  if State <> msDestroying then
+    FChildren.Remove(Child);
 end;
 
 {*
@@ -597,6 +629,23 @@ begin
 end;
 
 {*
+  Enregistre les enfants dans un flux
+  @param Stream   Flux dans lequel enregistrer les enfants
+*}
+procedure TSepiMeta.SaveChildren(Stream : TStream);
+var Count, I : integer;
+begin
+  Count := FChildren.Count;
+  Stream.WriteBuffer(Count, 4);
+
+  for I := 0 to Count-1 do with FChildren[I] do
+  begin
+    WriteStrToStream(Stream, ClassName);
+    Save(Stream);
+  end;
+end;
+
+{*
   Appelé lorsqu'un enfant vient d'être ajouté
   @param Child   Enfant qui vient d'être ajouté
 *}
@@ -626,12 +675,44 @@ begin
 end;
 
 {*
+  Liste les références auprès de l'unité contenante, pour préparer la sauvegarde
+*}
+procedure TSepiMeta.ListReferences;
+var I : integer;
+begin
+  for I := 0 to FChildren.Count-1 do
+    FChildren[I].ListReferences;
+end;
+
+{*
+  Enregistre le meta dans un flux
+  @param Stream   Flux dans lequel enregistrer le meta
+*}
+procedure TSepiMeta.Save(Stream : TStream);
+begin
+  WriteStrToStream(Stream, Name);
+  Stream.WriteBuffer(FVisibility, 1);
+end;
+
+{*
+  Appelé juste après l'exécution du dernier constructeur
+*}
+procedure TSepiMeta.AfterConstruction;
+begin
+  inherited;
+  if Assigned(Owner) then
+    Owner.ChildAdded(Self);
+end;
+
+{*
   Appelé juste avant l'exécution du premier destructeur
 *}
 procedure TSepiMeta.BeforeDestruction;
 begin
   inherited;
   FState := msDestroying;
+  if Assigned(Owner) then
+    Owner.ChildRemoving(Self);
 end;
 
 {*
@@ -783,6 +864,12 @@ begin
   inherited Destroy;
 end;
 
+procedure TSepiType.Save(Stream : TStream);
+begin
+  inherited;
+  Stream.WriteBuffer(FKind, 1);
+end;
+
 {*
   Force le type comme étant natif, en modifiant également les RTTI
   Cette méthode est utilisée par les types record et tableau statique, qui n'ont
@@ -884,6 +971,7 @@ constructor TSepiMetaRoot.Create;
 begin
   inherited Create(nil, '');
   FRoot := Self;
+  FOnGetMethodCode := nil;
 end;
 
 {*
@@ -908,15 +996,17 @@ end;
 {*
   Charge une unité
   @param UnitName   Nom de l'unité à charger
+  @return Unité chargée
 *}
-procedure TSepiMetaRoot.LoadUnit(const UnitName : string);
+function TSepiMetaRoot.LoadUnit(const UnitName : string) : TSepiMetaUnit;
 var ImportFunc : TSepiImportUnitFunc;
 begin
-  if GetMeta(UnitName) <> nil then exit;
+  Result := TSepiMetaUnit(GetMeta(UnitName));
+  if Result <> nil then exit;
 
   ImportFunc := SepiImportedUnit(UnitName);
   if Assigned(ImportFunc) then
-    ImportFunc(Self);
+    Result := ImportFunc(Self);
 
   { TODO 2 -cMetaunités : Charger une unité non système par son nom }
 end;
@@ -996,20 +1086,42 @@ end;
   Charge une unité depuis un flux
 *}
 constructor TSepiMetaUnit.Load(AOwner : TSepiMeta; Stream : TStream);
-var Str : string;
+var UsesCount, RefCount, I, J : integer;
+    Str : string;
 begin
-  inherited;
+  Stream.ReadBuffer(UsesCount, 4);
+  SetLength(FReferences, UsesCount+1);
+  FillChar(FReferences[0], 4*(UsesCount+1), 0);
 
-  FOwningUnit := Self;
-  FCurrentVisibility := mvPublic;
+  try
+    // Loading uses and setting up the references lists
+    FUsesList := TStringList.Create;
+    for I := 0 to UsesCount do
+    begin
+      if I > 0 then
+      begin
+        Str := ReadStrFromStream(Stream);
+        FUsesList.AddObject(Str, TSepiMetaRoot(AOwner).LoadUnit(Str));
+      end;
 
-  FLoadingReferences := TStringList.Create;
-  FLoadingReferences.Add(''); // 0 is nil
-  while True do
-  begin
-    Str := ReadStrFromStream(Stream);
-    if Str = '' then break;
-    FLoadingReferences.Add(Str);
+      FReferences[I] := TStringList.Create;
+      Stream.ReadBuffer(RefCount, 4);
+      for J := 0 to RefCount-1 do
+        FReferences[I].Add(ReadStrFromStream(Stream));
+    end;
+
+    // Now, you can add yourself to the root children
+    inherited;
+
+    FOwningUnit := Self;
+    FCurrentVisibility := mvPublic;
+
+    LoadChildren(Stream);
+  finally
+    for I := 0 to UsesCount do
+      if Assigned(FReferences[I]) then
+        FReferences[I].Free;
+    SetLength(FReferences, 0);
   end;
 end;
 
@@ -1023,8 +1135,41 @@ begin
   inherited Create(AOwner, AName, tkUnknown);
 
   FOwningUnit := Self;
+  FUsesList := TStringList.Create;
   FCurrentVisibility := mvPublic;
-  FLoadingReferences := nil;
+end;
+
+{*
+  [@inheritDoc]
+*}
+destructor TSepiMetaUnit.Destroy;
+begin
+  FUsesList.Free;
+  inherited;
+end;
+
+{*
+  Ajoute une unité aux uses de cette unité
+  @param AUnit   Unité à ajouter aux uses
+  @return Index de la nouvelle unité dans les uses
+*}
+function TSepiMetaUnit.AddUses(AUnit : TSepiMetaUnit) : integer;
+begin
+  if AUnit = Self then Result := -1 else
+  begin
+    Result := FUsesList.IndexOfObject(AUnit);
+    if Result < 0 then
+    begin
+      Result := FUsesList.AddObject(AUnit.Name, AUnit);
+
+      if Length(FReferences) > 0 then // saving
+      begin
+        // Yes, this is ugly programming, sorry :-(
+        SetLength(FReferences, Result+2);
+        FReferences[Result+1] := TStringList.Create;
+      end;
+    end;
+  end;
 end;
 
 {*
@@ -1042,28 +1187,150 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiMetaUnit.Loaded;
-var I : integer;
+procedure TSepiMetaUnit.Save(Stream : TStream);
 begin
-  for I := 1 to FLoadingReferences.Count-1 do // 0 is nil
-    FLoadingReferences.Objects[I] := Root.FindMeta(FLoadingReferences[I]);
-
   inherited;
-
-  FLoadingReferences.Free;
-  FLoadingReferences := nil;
+  SaveChildren(Stream);
 end;
 
 {*
-  Transforme une référence numérique en une référence au meta correspondant
-  Cette méthode ne peut être appelée que depuis la méthode Loaded des metas
+  Ajoute une unité aux uses de cette unité
+  @param UnitName   Nom de l'unité à ajouter aux uses
+  @return Nouvelle unité dans les uses
+*}
+function TSepiMetaUnit.AddUses(const UnitName : string) : TSepiMetaUnit;
+begin
+  Result := Root.LoadUnit(UnitName);
+  AddUses(Result);
+end;
+
+{*
+  Enregistre l'unité dans un flux
+*}
+procedure TSepiMetaUnit.SaveToStream(Stream : TStream);
+var UsesCount, RefCount, I, J : integer;
+    RefList : TStrings;
+begin
+  UsesCount := FUsesList.Count;
+  SetLength(FReferences, UsesCount+1);
+  FillChar(FReferences[0], 4*(UsesCount+1), 0);
+  try
+    // Listing the references
+    for I := 0 to UsesCount do
+      FReferences[I] := TStringList.Create;
+    ListReferences;
+
+    // Writing the references lists to stream
+    UsesCount := FUsesList.Count; // this could have changed meanwhile
+    Stream.WriteBuffer(UsesCount, 4);
+    for I := 0 to UsesCount do
+    begin
+      if I > 0 then
+        WriteStrToStream(Stream, FUsesList[I-1]);
+
+      RefList := FReferences[I];
+      RefCount := RefList.Count;
+      Stream.WriteBuffer(RefCount, 4);
+
+      for J := 0 to RefCount-1 do
+        WriteStrToStream(Stream, RefList[J]);
+    end;
+
+    // Actually saving the unit
+    Save(Stream);
+  finally
+    for I := 0 to UsesCount do
+      if Assigned(FReferences[I]) then
+        FReferences[I].Free;
+    SetLength(FReferences, 0);
+  end;
+end;
+
+{*
+  Lit une référence depuis un flux
+  Cette méthode ne peut être appelée que depuis le constructeur Load des metas
   contenus dans cette unité. À tout autre moment, c'est la violation d'accès
   assurée.
-  @param Ref   Référence à transformer
+  @param Stream   Flux dans lequel écrire la référence
+  @param Ref      Variable de type TSepiMeta où stocker la référence lue
 *}
-procedure TSepiMetaUnit.LoadRef(var Ref);
+procedure TSepiMetaUnit.ReadRef(Stream : TStream; out Ref);
+var UnitIndex, RefIndex : integer;
+    RefList : TStrings;
 begin
-  TObject(Ref) := FLoadingReferences.Objects[integer(Ref)];
+  // Reading unit index and checking for nil reference
+  UnitIndex := 0;
+  Stream.ReadBuffer(UnitIndex, 2);
+  if UnitIndex = $FFFF then
+  begin
+    TObject(Ref) := nil;
+    exit;
+  end;
+
+  // Reading reference index
+  Stream.ReadBuffer(RefIndex, 4);
+  RefList := FReferences[UnitIndex];
+
+  TObject(Ref) := RefList.Objects[RefIndex];
+
+  if TObject(Ref) = nil then
+  begin
+    if UnitIndex = 0 then // local reference
+      TObject(Ref) := FindMeta(RefList[RefIndex])
+    else // remote reference
+      TObject(Ref) := TSepiMetaUnit(FUsesList.Objects[UnitIndex-1])
+        .FindMeta(RefList[RefIndex]);
+    RefList.Objects[RefIndex] := TObject(Ref);
+  end;
+end;
+
+{*
+  Ajoute une référence qui va devoir être enregistrée
+  Cette méthode ne peut être appelée que depuis la méthode ListReferences des
+  metas contenus dans cette unité. À tout autre moment, c'est la violation
+  d'accès assurée.
+  @param Ref   Référence à ajouter
+*}
+procedure TSepiMetaUnit.AddRef(Ref : TSepiMeta);
+var UnitIndex : integer;
+    RefList : TStrings;
+begin
+  if Ref = nil then exit;
+
+  UnitIndex := AddUses(Ref.OwningUnit)+1;
+  RefList := FReferences[UnitIndex];
+
+  if RefList.IndexOfObject(Ref) < 0 then
+    RefList.AddObject(Copy(
+      Ref.GetFullName, Length(Ref.OwningUnit.Name)+2, MaxInt), Ref);
+end;
+
+{*
+  Écrit une référence dans un flux
+  Toute référence à écrire doit être ajoutée au moyen de la méthode AddRef dans
+  la méthode ListReferences de son référenceur.
+  Cette méthode ne peut être appelée que depuis la méthode Save des metas
+  contenus dans cette unité. À tout autre moment, c'est la violation d'accès
+  assurée.
+  @param Stream   Flux dans lequel écrire la référence
+  @param Ref      Référence à écrire
+*}
+procedure TSepiMetaUnit.WriteRef(Stream : TStream; Ref : TSepiMeta);
+var UnitIndex, RefIndex : integer;
+begin
+  if Ref = nil then
+  begin
+    UnitIndex := $FFFF;
+    Stream.WriteBuffer(UnitIndex, 2);
+  end else
+  begin
+    UnitIndex := FUsesList.IndexOfObject(Ref.OwningUnit)+1;
+    RefIndex := FReferences[UnitIndex].IndexOfObject(Ref);
+    Assert(RefIndex >= 0);
+
+    Stream.WriteBuffer(UnitIndex, 2);
+    Stream.WriteBuffer(RefIndex, 4);
+  end;
 end;
 
 {-----------------------}
@@ -1076,7 +1343,7 @@ end;
 constructor TSepiTypeAlias.Load(AOwner : TSepiMeta; Stream : TStream);
 begin
   inherited;
-  Stream.ReadBuffer(FDest, 4);
+  OwningUnit.ReadRef(Stream, FDest);
 end;
 
 {*
@@ -1107,10 +1374,19 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiTypeAlias.Loaded;
+procedure TSepiTypeAlias.ListReferences;
 begin
   inherited;
-  OwningUnit.LoadRef(FDest);
+  OwningUnit.AddRef(FDest);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiTypeAlias.Save(Stream : TStream);
+begin
+  inherited;
+  OwningUnit.WriteRef(Stream, FDest);
 end;
 
 {----------------------}
@@ -1124,7 +1400,7 @@ constructor TSepiConstant.Load(AOwner : TSepiMeta; Stream : TStream);
 var ValueLength : integer;
 begin
   inherited;
-  Stream.ReadBuffer(FType, 4);
+  OwningUnit.ReadRef(Stream, FType);
   FValue := TMemoryStream.Create;
 
   Stream.ReadBuffer(ValueLength, 4);
@@ -1153,10 +1429,19 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiConstant.Loaded;
+procedure TSepiConstant.ListReferences;
 begin
   inherited;
-  OwningUnit.LoadRef(FType);
+  OwningUnit.AddRef(FType);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiConstant.Save(Stream : TStream);
+begin
+  inherited;
+  OwningUnit.WriteRef(Stream, FType);
 end;
 
 initialization

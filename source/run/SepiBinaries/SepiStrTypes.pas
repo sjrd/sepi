@@ -20,6 +20,8 @@ type
   private
     FMaxLength : integer; /// Longueur maximale
   protected
+    procedure Save(Stream : TStream); override;
+
     procedure ExtractTypeData; override;
   public
     constructor RegisterTypeInfo(AOwner : TSepiMeta;
@@ -40,6 +42,8 @@ type
   private
     FIsUnicode : boolean; /// Indique si la chaîne est Unicode ou non
   protected
+    procedure Save(Stream : TStream); override;
+
     procedure ExtractTypeData; override;
   public
     constructor RegisterTypeInfo(AOwner : TSepiMeta;
@@ -103,6 +107,15 @@ begin
 end;
 
 {*
+  [@inheritDoc]
+*}
+procedure TSepiShortStringType.Save(Stream : TStream);
+begin
+  inherited;
+  Stream.WriteBuffer(TypeData^, ShortStringTypeDataLength);
+end;
+
+{*
   [@inheritedDoc]
 *}
 procedure TSepiShortStringType.ExtractTypeData;
@@ -156,6 +169,15 @@ begin
   AllocateTypeInfo(StringTypeDataLength);
 
   ExtractTypeData;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiStringType.Save(Stream : TStream);
+begin
+  inherited;
+  Stream.WriteBuffer(TypeData^, StringTypeDataLength);
 end;
 
 {*

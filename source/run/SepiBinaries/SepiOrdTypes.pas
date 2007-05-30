@@ -8,7 +8,8 @@ unit SepiOrdTypes;
 interface
 
 uses
-  Classes, SysUtils, ScUtils, SepiMetaUnits, SysConst, TypInfo, ScLists;
+  Classes, SysUtils, ScUtils, SepiMetaUnits, SysConst, TypInfo, ScLists,
+  ScExtra;
 
 const
   MinInt64 = Int64($FFFFFFFFFFFFFFFF);
@@ -21,11 +22,6 @@ type
     Type de booléen
   *}
   TBooleanKind = (bkBoolean, bkByteBool, bkWordBool, bkLongBool);
-
-  {*
-    Pointeur sur ShortString
-  *}
-  PShortString = ^ShortString;
 
   TSepiOrdType = class(TSepiType)
   private
@@ -48,6 +44,8 @@ type
     FSigned : boolean;         /// Indique si l'entier est signé ou non
     FNeedRangeCheck : boolean; /// Indique s'il faut vérifier les étendues
   protected
+    procedure Save(Stream : TStream); override;
+
     procedure ExtractTypeData; override;
   public
     constructor RegisterTypeInfo(AOwner : TSepiMeta;
@@ -72,10 +70,12 @@ type
   TSepiCharType = class(TSepiOrdType)
   private
     FIsUnicode : boolean;      /// Indique si le caractère est Unicode
-    FChrMinValue : WideChar;      /// Valeur minimale
-    FChrMaxValue : WideChar;      /// Valeur maximale
+    FChrMinValue : WideChar;   /// Valeur minimale
+    FChrMaxValue : WideChar;   /// Valeur maximale
     FNeedRangeCheck : boolean; /// Indique s'il faut vérifier les étendues
   protected
+    procedure Save(Stream : TStream); override;
+
     procedure ExtractTypeData; override;
   public
     constructor RegisterTypeInfo(AOwner : TSepiMeta;
@@ -105,6 +105,8 @@ type
     FMaxValue : Int64;         /// Valeur maximale
     FNeedRangeCheck : boolean; /// Indique s'il faut vérifier les étendues
   protected
+    procedure Save(Stream : TStream); override;
+
     procedure ExtractTypeData; override;
   public
     constructor RegisterTypeInfo(AOwner : TSepiMeta;
@@ -130,6 +132,8 @@ type
   private
     FFloatType : TFloatType; /// Type de flottant
   protected
+    procedure Save(Stream : TStream); override;
+
     procedure ExtractTypeData; override;
   public
     constructor RegisterTypeInfo(AOwner : TSepiMeta;
@@ -151,6 +155,8 @@ type
   private
     FBooleanKind : TBooleanKind;
   protected
+    procedure Save(Stream : TStream); override;
+
     procedure ExtractTypeData; override;
   public
     constructor RegisterTypeInfo(AOwner : TSepiMeta;
@@ -167,6 +173,7 @@ type
   *}
   TSepiEnumType = class(TSepiOrdType)
   private
+    TypeDataLength : integer;        /// Taille des données de type (non natif)
     FBaseType : TSepiEnumType;       /// Type de base (peut être Self)
     FValueCount : integer;           /// Nombre de valeurs
     FValues : array of PShortString; /// Noms des valeurs
@@ -174,7 +181,8 @@ type
     function GetNames(Value : integer) : string;
     function GetValues(const Name : string) : integer;
   protected
-    procedure Loaded; override;
+    procedure ListReferences; override;
+    procedure Save(Stream : TStream); override;
 
     procedure ExtractTypeData; override;
   public
@@ -201,7 +209,8 @@ type
   private
     FCompType : TSepiOrdType;  /// Type des éléments
   protected
-    procedure Loaded; override;
+    procedure ListReferences; override;
+    procedure Save(Stream : TStream); override;
 
     procedure ExtractTypeData; override;
   public
@@ -227,7 +236,8 @@ type
   private
     FPointTo : TSepiType; /// Type vers lequel pointe le pointeur
   protected
-    procedure Loaded; override;
+    procedure ListReferences; override;
+    procedure Save(Stream : TStream); override;
   public
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
     constructor Create(AOwner : TSepiMeta; const AName : string;
@@ -340,6 +350,15 @@ end;
 {*
   [@inheritDoc]
 *}
+procedure TSepiIntegerType.Save(Stream : TStream);
+begin
+  inherited;
+  Stream.WriteBuffer(TypeData^, IntegerTypeDataLength);
+end;
+
+{*
+  [@inheritDoc]
+*}
 procedure TSepiIntegerType.ExtractTypeData;
 begin
   inherited;
@@ -429,6 +448,15 @@ begin
 end;
 
 {*
+  [@inheritDoc]
+*}
+procedure TSepiCharType.Save(Stream : TStream);
+begin
+  inherited;
+  Stream.WriteBuffer(TypeData^, CharTypeDataLength);
+end;
+
+{*
   [@inheritedDoc]
 *}
 procedure TSepiCharType.ExtractTypeData;
@@ -514,6 +542,15 @@ begin
 end;
 
 {*
+  [@inheritDoc]
+*}
+procedure TSepiInt64Type.Save(Stream : TStream);
+begin
+  inherited;
+  Stream.WriteBuffer(TypeData^, Int64TypeDataLength);
+end;
+
+{*
   [@inheritedDoc]
 *}
 procedure TSepiInt64Type.ExtractTypeData;
@@ -593,6 +630,15 @@ begin
 end;
 
 {*
+  [@inheritDoc]
+*}
+procedure TSepiFloatType.Save(Stream : TStream);
+begin
+  inherited;
+  Stream.WriteBuffer(TypeData^, FloatTypeDataLength);
+end;
+
+{*
   [@inheritedDoc]
 *}
 procedure TSepiFloatType.ExtractTypeData;
@@ -636,6 +682,15 @@ begin
 end;
 
 {*
+  [@inheritDoc]
+*}
+procedure TSepiBooleanType.Save(Stream : TStream);
+begin
+  inherited;
+  Stream.WriteBuffer(TypeData^, EnumTypeDataLength);
+end;
+
+{*
   [@inheritedDoc]
 *}
 procedure TSepiBooleanType.ExtractTypeData;
@@ -661,6 +716,7 @@ constructor TSepiEnumType.RegisterTypeInfo(AOwner : TSepiMeta;
   ATypeInfo : PTypeInfo);
 begin
   inherited;
+  TypeDataLength := 0; // not used
   ExtractTypeData;
 end;
 
@@ -668,13 +724,17 @@ end;
   Charge un type énuméré depuis un flux
 *}
 constructor TSepiEnumType.Load(AOwner : TSepiMeta; Stream : TStream);
-var TypeDataLength : integer;
 begin
   inherited;
 
   Stream.ReadBuffer(TypeDataLength, 4);
   AllocateTypeInfo(TypeDataLength);
   Stream.ReadBuffer(TypeData^, TypeDataLength);
+
+  OwningUnit.ReadRef(Stream, FBaseType);
+  TypeData.BaseType := FBaseType.TypeInfoRef;
+
+  ExtractTypeData;
 end;
 
 {*
@@ -685,7 +745,7 @@ end;
 *}
 constructor TSepiEnumType.Create(AOwner : TSepiMeta; const AName : string;
   const AValues : array of string);
-var TypeDataLength, I, Len : integer;
+var I, Len : integer;
     Current : PChar;
     OwningUnitName : ShortString;
 begin
@@ -758,15 +818,21 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiEnumType.Loaded;
+procedure TSepiEnumType.ListReferences;
 begin
   inherited;
+  OwningUnit.AddRef(FBaseType);
+end;
 
-  FBaseType := TSepiEnumType(TypeData.BaseType);
-  OwningUnit.LoadRef(FBaseType);
-  TypeData.BaseType := FBaseType.TypeInfoRef;
-
-  ExtractTypeData;
+{*
+  [@inheritDoc]
+*}
+procedure TSepiEnumType.Save(Stream : TStream);
+begin
+  inherited;
+  Stream.WriteBuffer(TypeDataLength, 4);
+  Stream.WriteBuffer(TypeData^, TypeDataLength);
+  OwningUnit.WriteRef(Stream, FBaseType);
 end;
 
 {*
@@ -789,7 +855,7 @@ begin
     for I := 0 to ValueCount-1 do
     begin
       FValues[I] := Current;
-      inc(Current, Length(Current^)+1);
+      Current := SkipPackedShortString(Current);
     end;
   end else
   begin
@@ -833,6 +899,11 @@ begin
 
   AllocateTypeInfo(SetTypeDataLength);
   Stream.ReadBuffer(TypeData^, SetTypeDataLength);
+
+  OwningUnit.ReadRef(Stream, FCompType);
+  TypeData.CompType := FCompType.TypeInfoRef;
+
+  ExtractTypeData;
 end;
 
 {*
@@ -878,14 +949,20 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiSetType.Loaded;
+procedure TSepiSetType.ListReferences;
 begin
   inherited;
+  OwningUnit.AddRef(FCompType);
+end;
 
-  OwningUnit.LoadRef(FCompType);
-  TypeData.CompType := FCompType.TypeInfoRef;
-
-  ExtractTypeData;
+{*
+  [@inheritDoc]
+*}
+procedure TSepiSetType.Save(Stream : TStream);
+begin
+  inherited;
+  Stream.WriteBuffer(TypeData^, SetTypeDataLength);
+  OwningUnit.WriteRef(Stream, FCompType);
 end;
 
 {*
@@ -919,7 +996,7 @@ begin
   inherited;
 
   FSize := 4;
-  Stream.ReadBuffer(FPointTo, 4);
+  OwningUnit.ReadRef(Stream, FPointTo);
 end;
 
 {*
@@ -955,10 +1032,19 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiPointerType.Loaded;
+procedure TSepiPointerType.ListReferences;
 begin
   inherited;
-  OwningUnit.LoadRef(FPointTo);
+  OwningUnit.AddRef(FPointTo);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiPointerType.Save(Stream : TStream);
+begin
+  inherited;
+  OwningUnit.WriteRef(Stream, FPointTo);
 end;
 
 initialization

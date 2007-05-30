@@ -51,7 +51,8 @@ type
     FType : TSepiType; /// Type du champ
     FOffset : integer; /// Offset
   protected
-    procedure Loaded; override;
+    procedure ListReferences; override;
+    procedure Save(Stream : TStream); override;
   public
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
     constructor Create(AOwner : TSepiMeta; const AName : string;
@@ -74,7 +75,8 @@ type
     constructor RegisterParamData(AOwner : TSepiMeta; var ParamData : Pointer);
     constructor CreateFromString(AOwner : TSepiMeta; const Definition : string);
   protected
-    procedure Loaded; override;
+    procedure ListReferences; override;
+    procedure Save(Stream : TStream); override;
   public
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
     constructor Create(AOwner : TSepiMeta; const AName : string;
@@ -99,10 +101,11 @@ type
     FReturnType : TSepiType;           /// Type de retour
     FCallConvention : TCallConvention; /// Convention d'appel
 
-    procedure Loaded;
-
     function GetParamCount : integer;
     function GetParams(Index : integer) : TSepiMetaParam;
+  protected
+    procedure ListReferences;
+    procedure Save(Stream : TStream);
   public
     constructor RegisterTypeData(AOwner : TSepiMeta; ATypeData : PTypeData);
     constructor Load(AOwner : TSepiMeta; Stream : TStream);
@@ -112,6 +115,7 @@ type
     function Equals(ASignature : TSepiMethodSignature) : boolean;
     function CompatibleWith(const ATypes : array of TSepiType) : boolean;
 
+    property Owner : TSepiMeta read FOwner;
     property Kind : TMethodKind read FKind;
     property ParamCount : integer read GetParamCount;
     property Params[index : integer] : TSepiMetaParam read GetParams;
@@ -126,8 +130,6 @@ type
   *}
   TSepiMetaMethod = class(TSepiMeta)
   private
-    { TODO 2 -cMetaunités : Ajouter des champs concernant les directives de
-      méthodes }
     FCode : Pointer;                   /// Adresse de code natif
     FSignature : TSepiMethodSignature; /// Signature de la méthode
     FLinkKind : TMethodLinkKind;       /// Type de liaison d'appel
@@ -139,7 +141,8 @@ type
 
     procedure MakeLink;
   protected
-    procedure Loaded; override;
+    procedure ListReferences; override;
+    procedure Save(Stream : TStream); override;
   public
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
     constructor Create(AOwner : TSepiMeta; const AName : string;
@@ -169,6 +172,8 @@ type
   TSepiMetaOverloadedMethod = class(TSepiMeta)
   private
     FMethodCount : integer; /// Nombre de méthodes de même nom
+  protected
+    procedure Save(Stream : TStream); override;
   public
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
     constructor Create(AOwner : TSepiMeta; const AName : string);
@@ -213,7 +218,8 @@ type
 
     function GetPropType : TSepiType;
   protected
-    procedure Loaded; override;
+    procedure ListReferences; override;
+    procedure Save(Stream : TStream); override;
   public
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
     constructor Create(AOwner : TSepiMeta;
@@ -250,7 +256,9 @@ type
 
     procedure MakeTypeInfo;
   protected
-    procedure Loaded; override;
+    procedure ChildAdded(Child : TSepiMeta); override;
+
+    procedure Save(Stream : TStream); override;
   public
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
     constructor Create(AOwner : TSepiMeta; const AName : string;
@@ -297,7 +305,8 @@ type
 
     procedure MakeTypeInfo;
   protected
-    procedure Loaded; override;
+    procedure ListReferences; override;
+    procedure Save(Stream : TStream); override;
   public
     constructor RegisterTypeInfo(AOwner : TSepiMeta;
       ATypeInfo : PTypeInfo); override;
@@ -390,7 +399,8 @@ type
   protected
     procedure ChildAdded(Child : TSepiMeta); override;
 
-    procedure Loaded; override;
+    procedure ListReferences; override;
+    procedure Save(Stream : TStream); override;
 
     property VMTEntries[index : integer] : Pointer
       read GetVMTEntries write SetVMTEntries;
@@ -457,7 +467,8 @@ type
   private
     FClass : TSepiClass; /// Classe correspondante
   protected
-    procedure Loaded; override;
+    procedure ListReferences; override;
+    procedure Save(Stream : TStream); override;
   public
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
     constructor Create(AOwner : TSepiMeta; const AName : string;
@@ -476,6 +487,9 @@ type
   TSepiMethodRefType = class(TSepiType)
   private
     FSignature : TSepiMethodSignature; /// Signature
+  protected
+    procedure ListReferences; override;
+    procedure Save(Stream : TStream); override;
   public
     constructor RegisterTypeInfo(AOwner : TSepiMeta;
       ATypeInfo : PTypeInfo); override;
@@ -565,6 +579,19 @@ const
   vmtMinIndex = vmtSelfPtr;
   vmtMinMethodIndex = vmtParent + 4;
 
+procedure MakePropertyAccessKind(var Access : TSepiPropertyAccess);
+begin
+  with Access do
+  begin
+    if Meta is TSepiMetaField then
+      Kind := pakField
+    else if Meta is TSepiMetaMethod then
+      Kind := pakMethod
+    else
+      Kind := pakNone;
+  end;
+end;
+
 {-----------------------}
 { Classe TSepiMetaField }
 {-----------------------}
@@ -575,7 +602,9 @@ const
 constructor TSepiMetaField.Load(AOwner : TSepiMeta; Stream : TStream);
 begin
   inherited;
-  Stream.ReadBuffer(FType, 4);
+
+  OwningUnit.ReadRef(Stream, FType);
+  Stream.ReadBuffer(FOffset, 4);
 end;
 
 {*
@@ -595,10 +624,20 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiMetaField.Loaded;
+procedure TSepiMetaField.ListReferences;
 begin
   inherited;
-  OwningUnit.LoadRef(FType);
+  OwningUnit.AddRef(FType);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiMetaField.Save(Stream : TStream);
+begin
+  inherited;
+  OwningUnit.WriteRef(Stream, FType);
+  Stream.WriteBuffer(FOffset, 4);
 end;
 
 {-----------------------}
@@ -668,7 +707,7 @@ constructor TSepiMetaParam.Load(AOwner : TSepiMeta; Stream : TStream);
 begin
   inherited;
 
-  Stream.ReadBuffer(FType, 4);
+  OwningUnit.ReadRef(Stream, FType);
   Stream.ReadBuffer(FFlags, 1);
 end;
 
@@ -691,10 +730,20 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiMetaParam.Loaded;
+procedure TSepiMetaParam.ListReferences;
 begin
   inherited;
-  OwningUnit.LoadRef(FType);
+  OwningUnit.AddRef(FType);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiMetaParam.Save(Stream : TStream);
+begin
+  inherited;
+  OwningUnit.WriteRef(Stream, FType);
+  Stream.WriteBuffer(FFlags, 1);
 end;
 
 {*
@@ -755,7 +804,7 @@ begin
 
   FOwner := AOwner;
   Stream.ReadBuffer(FKind, 1);
-  Stream.ReadBuffer(FReturnType, 4);
+  FOwner.OwningUnit.ReadRef(Stream, FReturnType);
   Stream.ReadBuffer(FCallConvention, 1);
 
   // Parameters should be loaded by the owner, for they are children of it
@@ -820,15 +869,6 @@ begin
 end;
 
 {*
-  [@inheritDoc]
-*}
-procedure TSepiMethodSignature.Loaded;
-begin
-  inherited;
-  FOwner.OwningUnit.LoadRef(FReturnType);
-end;
-
-{*
   Nombre de paramètres
   @return Nombre de paramètres
 *}
@@ -847,6 +887,26 @@ begin
   { Here, we can't guarantee that all children are TSepiMetaParam, so we
     check it with an as operator. }
   Result := FOwner.Children[Index] as TSepiMetaParam;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiMethodSignature.ListReferences;
+begin
+  Owner.OwningUnit.AddRef(FReturnType);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiMethodSignature.Save(Stream : TStream);
+begin
+  Stream.WriteBuffer(FKind, 1);
+  Owner.OwningUnit.WriteRef(Stream, FReturnType);
+  Stream.WriteBuffer(FCallConvention, 1);
+
+  // Parameters should be saved by the owner, for they are children of it
 end;
 
 {*
@@ -905,6 +965,9 @@ begin
   Stream.ReadBuffer(FFirstDeclaration, 1);
   Stream.ReadBuffer(FAbstract, 1);
   Stream.ReadBuffer(FLinkIndex, 2); // only for messages
+
+  if Assigned(Root.OnGetMethodCode) then
+    Root.OnGetMethodCode(Self, FCode);
 
   MakeLink;
 end;
@@ -1047,10 +1110,25 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiMetaMethod.Loaded;
+procedure TSepiMetaMethod.ListReferences;
 begin
   inherited;
-  FSignature.Loaded;
+  Signature.ListReferences;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiMetaMethod.Save(Stream : TStream);
+begin
+  inherited;
+
+  Signature.Save(Stream);
+  SaveChildren(Stream);
+  Stream.WriteBuffer(FLinkKind, 1);
+  Stream.WriteBuffer(FFirstDeclaration, 1);
+  Stream.WriteBuffer(FAbstract, 1);
+  Stream.WriteBuffer(FLinkIndex, 2); // only for messages
 end;
 
 {----------------------------------}
@@ -1077,6 +1155,15 @@ constructor TSepiMetaOverloadedMethod.Create(AOwner : TSepiMeta;
 begin
   inherited Create(AOwner, AName);
   FMethodCount := 0;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiMetaOverloadedMethod.Save(Stream : TStream);
+begin
+  inherited;
+  Stream.WriteBuffer(FMethodCount, 4);
 end;
 
 {*
@@ -1137,8 +1224,11 @@ begin
   FSignature := TSepiMethodSignature.Load(AOwner, Stream);
   LoadChildren(Stream);
 
-  Stream.ReadBuffer(FReadAccess, sizeof(TSepiPropertyAccess));
-  Stream.ReadBuffer(FWriteAccess, sizeof(TSepiPropertyAccess));
+  OwningUnit.ReadRef(Stream, FReadAccess.Meta);
+  MakePropertyAccessKind(FReadAccess);
+
+  OwningUnit.ReadRef(Stream, FWriteAccess.Meta);
+  MakePropertyAccessKind(FWriteAccess);
 
   Stream.ReadBuffer(FIndex, 4);
   Stream.ReadBuffer(FDefaultValue, 4);
@@ -1169,26 +1259,17 @@ constructor TSepiMetaProperty.Create(AOwner : TSepiMeta;
     else
       Result := TSepiInterface(Owner).LookForMember(AAccess);
   end;
+
 begin
   inherited Create(AOwner, AName);
 
   FSignature := TSepiMethodSignature.Create(Self, ASignature);
 
   FReadAccess.Meta := FindAccess(AReadAccess);
-  if FReadAccess.Meta is TSepiMetaField then
-    FReadAccess.Kind := pakField
-  else if FReadAccess.Meta is TSepiMetaMethod then
-    FReadAccess.Kind := pakMethod
-  else
-    FReadAccess.Kind := pakNone;
+  MakePropertyAccessKind(FReadAccess);
 
   FWriteAccess.Meta := FindAccess(AWriteAccess);
-  if FWriteAccess.Meta is TSepiMetaField then
-    FWriteAccess.Kind := pakField
-  else if FWriteAccess.Meta is TSepiMetaMethod then
-    FWriteAccess.Kind := pakMethod
-  else
-    FWriteAccess.Kind := pakNone;
+  MakePropertyAccessKind(FWriteAccess);
 
   FIndex := AIndex;
   FDefaultValue := ADefaultValue;
@@ -1290,12 +1371,30 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiMetaProperty.Loaded;
+procedure TSepiMetaProperty.ListReferences;
+begin
+  inherited;
+  Signature.ListReferences;
+  OwningUnit.AddRef(FReadAccess.Meta);
+  OwningUnit.AddRef(FWriteAccess.Meta);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiMetaProperty.Save(Stream : TStream);
 begin
   inherited;
 
-  OwningUnit.LoadRef(FReadAccess.Meta);
-  OwningUnit.LoadRef(FWriteAccess.Meta);
+  Signature.Save(Stream);
+  SaveChildren(Stream);
+
+  OwningUnit.WriteRef(Stream, FReadAccess.Meta);
+  OwningUnit.WriteRef(Stream, FWriteAccess.Meta);
+
+  Stream.WriteBuffer(FIndex, 4);
+  Stream.WriteBuffer(FDefaultValue, 4);
+  Stream.WriteBuffer(FIsDefault, 1);
 end;
 
 {------------------------}
@@ -1311,6 +1410,8 @@ begin
 
   Stream.ReadBuffer(FPacked, 1);
   LoadChildren(Stream);
+
+  Complete;
 end;
 
 {*
@@ -1338,7 +1439,7 @@ end;
 function TSepiRecordType.NextOffset(Field : TSepiMetaField) : integer;
 begin
   Result := Field.Offset + Field.FieldType.Size;
-  { TODO 2 -cMétaunités : Aligner les champs dans un record non packed }
+  { TODO 3 -cMétaunités : Aligner les champs dans un record non packed }
 end;
 
 {*
@@ -1356,11 +1457,6 @@ begin
     Offset := NextOffset(After);
 
   Result := TSepiMetaField.Create(Self, FieldName, FieldType, Offset);
-
-  if FieldType.NeedInit then
-    FNeedInit := True;
-  if Offset + FieldType.Size > FSize then
-    FSize := Offset + FieldType.Size;
 end;
 
 {*
@@ -1407,11 +1503,27 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiRecordType.Loaded;
+procedure TSepiRecordType.ChildAdded(Child : TSepiMeta);
 begin
   inherited;
 
-  Complete;
+  if Child is TSepiMetaField then with TSepiMetaField(Child) do
+  begin
+    if FieldType.NeedInit then
+      FNeedInit := True;
+    if Offset + FieldType.Size > FSize then
+      FSize := Offset + FieldType.Size;
+  end;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiRecordType.Save(Stream : TStream);
+begin
+  inherited;
+  Stream.WriteBuffer(FPacked, 1);
+  SaveChildren(Stream);
 end;
 
 {*
@@ -1562,12 +1674,19 @@ begin
   FSize := 4;
   FNeedInit := True;
 
-  FParent := TSepiInterface(Root.FindMeta(ReadStrFromStream(Stream)));
+  OwningUnit.ReadRef(Stream, FParent);
   FCompleted := False;
+
+  Stream.ReadBuffer(FHasGUID, 1);
+  Stream.ReadBuffer(FIsDispInterface, 1);
+  Stream.ReadBuffer(FIsDispatch, 1);
+  Stream.ReadBuffer(FGUID, sizeof(TGUID));
 
   FIMTSize := Parent.IMTSize;
 
   LoadChildren(Stream);
+
+  Complete;
 end;
 
 {*
@@ -1634,11 +1753,27 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiInterface.Loaded;
+procedure TSepiInterface.ListReferences;
+begin
+  inherited;
+  OwningUnit.AddRef(FParent);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiInterface.Save(Stream : TStream);
 begin
   inherited;
 
-  Complete;
+  OwningUnit.WriteRef(Stream, FParent);
+
+  Stream.WriteBuffer(FHasGUID, 1);
+  Stream.WriteBuffer(FIsDispInterface, 1);
+  Stream.WriteBuffer(FIsDispatch, 1);
+  Stream.WriteBuffer(FGUID, sizeof(TGUID));
+
+  SaveChildren(Stream);
 end;
 
 {*
@@ -1765,13 +1900,20 @@ end;
   Charge une classe depuis un flux
 *}
 constructor TSepiClass.Load(AOwner : TSepiMeta; Stream : TStream);
+var IntfCount, I : integer;
 begin
   inherited;
 
   FSize := 4;
   FDelphiClass := nil;
-  FParent := TSepiClass(Root.FindMeta(ReadStrFromStream(Stream)));
+  OwningUnit.ReadRef(Stream, FParent);
   FCompleted := False;
+
+  Stream.ReadBuffer(IntfCount, 4);
+  SetLength(FInterfaces, IntfCount);
+  FillChar(FInterfaces[0], IntfCount*sizeof(TSepiInterfaceEntry), 0);
+  for I := 0 to IntfCount-1 do
+    OwningUnit.ReadRef(Stream, FInterfaces[I].IntfRef);
 
   FInstSize := Parent.InstSize;
   FVMTSize := Parent.VMTSize;
@@ -1780,6 +1922,8 @@ begin
   FCurrentVisibility := mvPublic;
 
   LoadChildren(Stream);
+
+  Complete;
 end;
 
 {*
@@ -2370,17 +2514,44 @@ end;
 procedure TSepiClass.ChildAdded(Child : TSepiMeta);
 begin
   inherited;
-  TSepiClass(Child).FVisibility := FCurrentVisibility;
+
+  if State = msConstructing then
+    TSepiClass(Child).FVisibility := FCurrentVisibility;
+
+  if Child is TSepiMetaField then with TSepiMetaField(Child) do
+  begin
+    FOffset := FInstSize;
+    inc(FInstSize, FieldType.Size);
+  end;
 end;
 
 {*
   [@inheritDoc]
 *}
-procedure TSepiClass.Loaded;
+procedure TSepiClass.ListReferences;
+var I : integer;
 begin
   inherited;
+  OwningUnit.AddRef(FParent);
+  for I := 0 to InterfaceCount-1 do
+    OwningUnit.AddRef(Interfaces[I]);
+end;
 
-  Complete;
+{*
+  [@inheritDoc]
+*}
+procedure TSepiClass.Save(Stream : TStream);
+var IntfCount, I : integer;
+begin
+  inherited;
+  OwningUnit.WriteRef(Stream, FParent);
+
+  IntfCount := InterfaceCount;
+  Stream.WriteBuffer(IntfCount, 4);
+  for I := 0 to IntfCount-1 do
+    OwningUnit.WriteRef(Stream, Interfaces[I]);
+
+  SaveChildren(Stream);
 end;
 
 {*
@@ -2430,7 +2601,6 @@ function TSepiClass.AddField(const FieldName : string;
   FieldType : TSepiType) : TSepiMetaField;
 begin
   Result := TSepiMetaField.Create(Self, FieldName, FieldType, InstSize);
-  inc(FInstSize, FieldType.Size);
 end;
 
 {*
@@ -2592,7 +2762,7 @@ constructor TSepiMetaClass.Load(AOwner : TSepiMeta; Stream : TStream);
 begin
   inherited;
   FSize := 4;
-  Stream.ReadBuffer(FClass, 4);
+  OwningUnit.ReadRef(Stream, FClass);
 end;
 
 {*
@@ -2615,10 +2785,19 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiMetaClass.Loaded;
+procedure TSepiMetaClass.ListReferences;
 begin
   inherited;
-  OwningUnit.LoadRef(FClass);
+  OwningUnit.AddRef(FClass);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiMetaClass.Save(Stream : TStream);
+begin
+  inherited;
+  OwningUnit.WriteRef(Stream, FClass);
 end;
 
 {*
@@ -2656,6 +2835,7 @@ constructor TSepiMethodRefType.Load(AOwner : TSepiMeta; Stream : TStream);
 begin
   inherited;
   FSignature := TSepiMethodSignature.Load(Self, Stream);
+  LoadChildren(Stream);
 
   if Signature.Kind in mkOfObject then
     FSize := 8
@@ -2695,6 +2875,25 @@ destructor TSepiMethodRefType.Destroy;
 begin
   FSignature.Free;
   inherited Destroy;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiMethodRefType.ListReferences;
+begin
+  inherited;
+  Signature.ListReferences;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiMethodRefType.Save(Stream : TStream);
+begin
+  inherited;
+  Signature.Save(Stream);
+  SaveChildren(Stream);
 end;
 
 {*
