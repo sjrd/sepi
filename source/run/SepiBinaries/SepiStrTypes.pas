@@ -23,6 +23,8 @@ type
     procedure Save(Stream : TStream); override;
 
     procedure ExtractTypeData; override;
+
+    function GetAlignment : integer; override;
   public
     constructor RegisterTypeInfo(AOwner : TSepiMeta;
       ATypeInfo : PTypeInfo); override;
@@ -124,6 +126,14 @@ begin
 
   FMaxLength := TypeData.MaxLength;
   FSize := FMaxLength + 1;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiShortStringType.GetAlignment : integer;
+begin
+  Result := 1;
 end;
 
 {------------------------}

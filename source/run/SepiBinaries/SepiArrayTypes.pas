@@ -39,6 +39,8 @@ type
   protected
     procedure ListReferences; override;
     procedure Save(Stream : TStream); override;
+
+    function GetAlignment : integer; override;
   public
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
     constructor Create(AOwner : TSepiMeta; const AName : string;
@@ -214,6 +216,14 @@ begin
   Stream.WriteBuffer(FDimCount, 1);
   Stream.WriteBuffer(FDimensions[0], FDimCount*sizeof(TDimInfo));
   OwningUnit.WriteRef(Stream, FElementType);
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiArrayType.GetAlignment : integer;
+begin
+  Result := ElementType.Alignment;
 end;
 
 {*

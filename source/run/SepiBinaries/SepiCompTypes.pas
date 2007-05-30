@@ -154,7 +154,7 @@ type
     property Code : Pointer read FCode;
     property Signature : TSepiMethodSignature read FSignature;
     property LinkKind : TMethodLinkKind read FLinkKind;
-    property FirstDecleration : boolean read FFirstDeclaration;
+    property FirstDeclaration : boolean read FFirstDeclaration;
     property IsAbstract : boolean read FAbstract;
     property InheritedMethod : TSepiMetaMethod read FInherited;
 
@@ -248,35 +248,41 @@ type
   TSepiRecordType = class(TSepiType)
   private
     FPacked : boolean;    /// Indique si le record est packed
+    FAlignment : integer; /// Alignement
     FCompleted : boolean; /// Indique si le record est entièrement défini
 
-    function NextOffset(Field : TSepiMetaField) : integer;
     function AddField(const FieldName : string; FieldType : TSepiType;
-      After : TSepiMetaField) : TSepiMetaField; overload;
+      After : TSepiMetaField;
+      ForcePack : boolean = False) : TSepiMetaField; overload;
 
     procedure MakeTypeInfo;
   protected
     procedure ChildAdded(Child : TSepiMeta); override;
 
     procedure Save(Stream : TStream); override;
+
+    function GetAlignment : integer; override;
   public
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
     constructor Create(AOwner : TSepiMeta; const AName : string;
       APacked : boolean = False; AIsNative : boolean = False;
       ATypeInfo : PTypeInfo = nil);
 
-    function AddField(const FieldName : string;
-      FieldType : TSepiType) : TSepiMetaField; overload;
     function AddField(const FieldName : string; FieldType : TSepiType;
-      const After : string) : TSepiMetaField; overload;
-    function AddField(const FieldName : string;
-      FieldTypeInfo : PTypeInfo) : TSepiMetaField; overload;
+      ForcePack : boolean = False) : TSepiMetaField; overload;
+    function AddField(const FieldName : string; FieldType : TSepiType;
+      const After : string;
+      ForcePack : boolean = False) : TSepiMetaField; overload;
     function AddField(const FieldName : string; FieldTypeInfo : PTypeInfo;
-      const After : string) : TSepiMetaField; overload;
-    function AddField(
-      const FieldName, FieldTypeName : string) : TSepiMetaField; overload;
+      ForcePack : boolean = False) : TSepiMetaField; overload;
+    function AddField(const FieldName : string; FieldTypeInfo : PTypeInfo;
+      const After : string;
+      ForcePack : boolean = False) : TSepiMetaField; overload;
     function AddField(const FieldName, FieldTypeName : string;
-      const After : string) : TSepiMetaField; overload;
+      ForcePack : boolean = False) : TSepiMetaField; overload;
+    function AddField(const FieldName, FieldTypeName : string;
+      const After : string;
+      ForcePack : boolean = False) : TSepiMetaField; overload;
 
     procedure Complete;
 
@@ -424,12 +430,12 @@ type
     procedure AddInterface(AIntfTypeInfo : PTypeInfo); overload;
     procedure AddInterface(const AIntfName : string); overload;
 
-    function AddField(const FieldName : string;
-      FieldType : TSepiType) : TSepiMetaField; overload;
-    function AddField(const FieldName : string;
-      FieldTypeInfo : PTypeInfo) : TSepiMetaField; overload;
-    function AddField(
-      const FieldName, FieldTypeName : string) : TSepiMetaField; overload;
+    function AddField(const FieldName : string; FieldType : TSepiType;
+      ForcePack : boolean = False) : TSepiMetaField; overload;
+    function AddField(const FieldName : string; FieldTypeInfo : PTypeInfo;
+      ForcePack : boolean = False) : TSepiMetaField; overload;
+    function AddField(const FieldName, FieldTypeName : string;
+      ForcePack : boolean = False) : TSepiMetaField; overload;
 
     function AddMethod(const MethodName : string; ACode: Pointer;
       const ASignature : string; ALinkKind : TMethodLinkKind = mlkStatic;
@@ -970,7 +976,7 @@ begin
   FSignature := TSepiMethodSignature.Load(Self, Stream);
   LoadChildren(Stream);
   Stream.ReadBuffer(FLinkKind, 1);
-  Stream.ReadBuffer(FFirstDeclaration, 1);
+  FFirstDeclaration := FLinkKind <> mlkOverride;
   Stream.ReadBuffer(FAbstract, 1);
   Stream.ReadBuffer(FLinkIndex, 2); // only for messages
 
@@ -1128,13 +1134,19 @@ end;
   [@inheritDoc]
 *}
 procedure TSepiMetaMethod.Save(Stream : TStream);
+var ALinkKind : TMethodLinkKind;
 begin
   inherited;
 
   Signature.Save(Stream);
   SaveChildren(Stream);
-  Stream.WriteBuffer(FLinkKind, 1);
-  Stream.WriteBuffer(FFirstDeclaration, 1);
+
+  if FirstDeclaration then
+    ALinkKind := FLinkKind
+  else
+    ALinkKind := mlkOverride;
+  Stream.WriteBuffer(ALinkKind, 1);
+
   Stream.WriteBuffer(FAbstract, 1);
   Stream.WriteBuffer(FLinkIndex, 2); // only for messages
 end;
@@ -1417,6 +1429,9 @@ begin
   inherited;
 
   Stream.ReadBuffer(FPacked, 1);
+  FAlignment := 1;
+  FCompleted := False;
+
   LoadChildren(Stream);
 
   Complete;
@@ -1434,20 +1449,11 @@ begin
   inherited Create(AOwner, AName, tkRecord);
 
   FPacked := APacked;
+  FAlignment := 1;
+  FCompleted := False;
 
   if AIsNative then
     ForceNative(ATypeInfo);
-end;
-
-{*
-  Détermine l'offset d'un champ suivant un champ donné en mémoire
-  @param Field   Champ déjà existant, précédent le nouveau
-  @return Offset du nouveau champ
-*}
-function TSepiRecordType.NextOffset(Field : TSepiMetaField) : integer;
-begin
-  Result := Field.Offset + Field.FieldType.Size;
-  { TODO 3 -cMétaunités : Aligner les champs dans un record non packed }
 end;
 
 {*
@@ -1455,14 +1461,18 @@ end;
   @param FieldName   Nom du champ
   @param FieldType   Type du champ
   @param After       Champ précédent en mémoire
+  @param ForcePack   Force un pack sur ce champ si True
   @return Champ nouvellement ajouté
 *}
 function TSepiRecordType.AddField(const FieldName : string;
-  FieldType : TSepiType; After : TSepiMetaField) : TSepiMetaField;
+  FieldType : TSepiType; After : TSepiMetaField;
+  ForcePack : boolean = False) : TSepiMetaField;
 var Offset : integer;
 begin
   if After = nil then Offset := 0 else
-    Offset := NextOffset(After);
+    Offset := After.Offset + After.FieldType.Size;
+  if (not IsPacked) and (not ForcePack) then
+    FieldType.AlignOffset(Offset);
 
   Result := TSepiMetaField.Create(Self, FieldName, FieldType, Offset);
 end;
@@ -1521,6 +1531,8 @@ begin
       FNeedInit := True;
     if Offset + FieldType.Size > FSize then
       FSize := Offset + FieldType.Size;
+    if FieldType.Alignment > FAlignment then
+      FAlignment := FieldType.Alignment;
   end;
 end;
 
@@ -1535,19 +1547,28 @@ begin
 end;
 
 {*
+  [@inheritDoc]
+*}
+function TSepiRecordType.GetAlignment : integer;
+begin
+  Result := FAlignment;
+end;
+
+{*
   Ajoute un champ au record
   @param FieldName   Nom du champ
   @param FieldType   Type du champ
+  @param ForcePack   Force un pack sur ce champ si True
   @return Champ nouvellement ajouté
 *}
 function TSepiRecordType.AddField(const FieldName : string;
-  FieldType : TSepiType) : TSepiMetaField;
+  FieldType : TSepiType; ForcePack : boolean = False) : TSepiMetaField;
 var LastField : TSepiMetaField;
 begin
   if ChildCount = 0 then LastField := nil else
     LastField := TSepiMetaField(Children[ChildCount-1]);
 
-  Result := AddField(FieldName, FieldType, LastField);
+  Result := AddField(FieldName, FieldType, LastField, ForcePack);
 end;
 
 {*
@@ -1555,24 +1576,28 @@ end;
   @param FieldName   Nom du champ
   @param FieldType   Type du champ
   @param After       Nom du champ précédent en mémoire (vide pour le début)
+  @param ForcePack   Force un pack sur ce champ si True
   @return Champ nouvellement ajouté
 *}
 function TSepiRecordType.AddField(const FieldName : string;
-  FieldType : TSepiType; const After : string) : TSepiMetaField;
+  FieldType : TSepiType; const After : string;
+  ForcePack : boolean = False) : TSepiMetaField;
 begin
-  Result := AddField(FieldName, FieldType, TSepiMetaField(FindMeta(After)));
+  Result := AddField(FieldName, FieldType,
+    TSepiMetaField(FindMeta(After)), ForcePack);
 end;
 
 {*
   Ajoute un champ au record
   @param FieldName       Nom du champ
   @param FieldTypeInto   RTTI du type du champ
+  @param ForcePack       Force un pack sur ce champ si True
   @return Champ nouvellement ajouté
 *}
 function TSepiRecordType.AddField(const FieldName : string;
-  FieldTypeInfo : PTypeInfo) : TSepiMetaField;
+  FieldTypeInfo : PTypeInfo; ForcePack : boolean = False) : TSepiMetaField;
 begin
-  Result := AddField(FieldName, Root.FindType(FieldTypeInfo));
+  Result := AddField(FieldName, Root.FindType(FieldTypeInfo), ForcePack);
 end;
 
 {*
@@ -1580,25 +1605,28 @@ end;
   @param FieldName       Nom du champ
   @param FieldTypeInfo   RTTI du type du champ
   @param After           Nom du champ précédent en mémoire (vide pour le début)
+  @param ForcePack       Force un pack sur ce champ si True
   @return Champ nouvellement ajouté
 *}
 function TSepiRecordType.AddField(const FieldName : string;
-  FieldTypeInfo : PTypeInfo; const After : string) : TSepiMetaField;
+  FieldTypeInfo : PTypeInfo; const After : string;
+  ForcePack : boolean = False) : TSepiMetaField;
 begin
   Result := AddField(FieldName, Root.FindType(FieldTypeInfo),
-    TSepiMetaField(FindMeta(After)));
+    TSepiMetaField(FindMeta(After)), ForcePack);
 end;
 
 {*
   Ajoute un champ au record
   @param FieldName       Nom du champ
   @param FieldTypeName   Nom du type du champ
+  @param ForcePack       Force un pack sur ce champ si True
   @return Champ nouvellement ajouté
 *}
-function TSepiRecordType.AddField(
-  const FieldName, FieldTypeName : string) : TSepiMetaField;
+function TSepiRecordType.AddField(const FieldName, FieldTypeName : string;
+  ForcePack : boolean = False) : TSepiMetaField;
 begin
-  Result := AddField(FieldName, Root.FindType(FieldTypeName));
+  Result := AddField(FieldName, Root.FindType(FieldTypeName), ForcePack);
 end;
 
 {*
@@ -1606,13 +1634,15 @@ end;
   @param FieldName       Nom du champ
   @param FieldTypeName   Nom du type du champ
   @param After           Nom du champ précédent en mémoire (vide pour le début)
+  @param ForcePack       Force un pack sur ce champ si True
   @return Champ nouvellement ajouté
 *}
 function TSepiRecordType.AddField(
-  const FieldName, FieldTypeName, After : string) : TSepiMetaField;
+  const FieldName, FieldTypeName, After : string;
+  ForcePack : boolean = False) : TSepiMetaField;
 begin
   Result := AddField(FieldName, Root.FindType(FieldTypeName),
-    TSepiMetaField(FindMeta(After)));
+    TSepiMetaField(FindMeta(After)), ForcePack);
 end;
 
 {*
@@ -1623,6 +1653,7 @@ begin
   if FCompleted then exit;
 
   FCompleted := True;
+  AlignOffset(FSize);
   if not Native then
     MakeTypeInfo;
 end;
@@ -2649,36 +2680,44 @@ end;
   Ajoute un champ à la classe
   @param FieldName   Nom du champ
   @param FieldType   Type du champ
+  @param ForcePack   Force un pack sur ce champ si True
   @return Champ nouvellement ajouté
 *}
-function TSepiClass.AddField(const FieldName : string;
-  FieldType : TSepiType) : TSepiMetaField;
+function TSepiClass.AddField(const FieldName : string; FieldType : TSepiType;
+  ForcePack : boolean = False) : TSepiMetaField;
+var Offset : integer;
 begin
-  Result := TSepiMetaField.Create(Self, FieldName, FieldType, InstSize);
+  Offset := InstSize;
+  if not ForcePack then
+    FieldType.AlignOffset(Offset);
+
+  Result := TSepiMetaField.Create(Self, FieldName, FieldType, Offset);
 end;
 
 {*
   Ajoute un champ à la classe
   @param FieldName       Nom du champ
   @param FieldTypeInto   RTTI du type du champ
+  @param ForcePack       Force un pack sur ce champ si True
   @return Champ nouvellement ajouté
 *}
 function TSepiClass.AddField(const FieldName : string;
-  FieldTypeInfo : PTypeInfo) : TSepiMetaField;
+  FieldTypeInfo : PTypeInfo; ForcePack : boolean = False) : TSepiMetaField;
 begin
-  Result := AddField(FieldName, Root.FindType(FieldTypeInfo));
+  Result := AddField(FieldName, Root.FindType(FieldTypeInfo), ForcePack);
 end;
 
 {*
   Ajoute un champ à la classe
   @param FieldName       Nom du champ
   @param FieldTypeName   Nom du type du champ
+  @param ForcePack       Force un pack sur ce champ si True
   @return Champ nouvellement ajouté
 *}
-function TSepiClass.AddField(
-  const FieldName, FieldTypeName : string) : TSepiMetaField;
+function TSepiClass.AddField(const FieldName, FieldTypeName : string;
+  ForcePack : boolean = False) : TSepiMetaField;
 begin
-  Result := AddField(FieldName, Root.FindType(FieldTypeName));
+  Result := AddField(FieldName, Root.FindType(FieldTypeName), ForcePack);
 end;
 
 {*
@@ -2743,6 +2782,7 @@ begin
   if FCompleted then exit;
 
   FCompleted := True;
+  AlignOffset(FInstSize);
   MakeIMTs;
   if not Native then
     MakeVMT;

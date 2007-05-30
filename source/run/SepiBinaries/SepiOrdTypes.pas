@@ -135,6 +135,8 @@ type
     procedure Save(Stream : TStream); override;
 
     procedure ExtractTypeData; override;
+
+    function GetAlignment : integer; override;
   public
     constructor RegisterTypeInfo(AOwner : TSepiMeta;
       ATypeInfo : PTypeInfo); override;
@@ -213,6 +215,8 @@ type
     procedure Save(Stream : TStream); override;
 
     procedure ExtractTypeData; override;
+
+    function GetAlignment : integer; override;
   public
     constructor RegisterTypeInfo(AOwner : TSepiMeta;
       ATypeInfo : PTypeInfo); override;
@@ -658,6 +662,17 @@ begin
   end;
 end;
 
+{*
+  [@inheritDoc]
+*}
+function TSepiFloatType.GetAlignment : integer;
+begin
+  if FloatType = ftExtended then
+    Result := 8
+  else
+    Result := Size;
+end;
+
 {-------------------------}
 { Classe TSepiBooleanType }
 {-------------------------}
@@ -977,6 +992,18 @@ begin
   inherited;
 
   FSize := (FCompType.MaxValue - FCompType.MinValue) div 8 + 1;
+  if FSize = 3 then FSize := 4;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiSetType.GetAlignment : integer;
+begin
+  if Size <= 4 then
+    Result := Size
+  else
+    Result := 1;
 end;
 
 {*

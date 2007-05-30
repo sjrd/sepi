@@ -169,6 +169,8 @@ type
     procedure AllocateTypeInfo(TypeDataLength : integer = 0);
     procedure ExtractTypeData; virtual;
 
+    function GetAlignment : integer; virtual;
+
     property TypeInfoRef : PPTypeInfo read FTypeInfoRef;
   public
     constructor RegisterTypeInfo(AOwner : TSepiMeta;
@@ -185,6 +187,8 @@ type
     class function LoadFromTypeInfo(AOwner : TSepiMeta;
       ATypeInfo : PTypeInfo) : TSepiType;
 
+    procedure AlignOffset(var Offset : integer);
+
     function CompatibleWith(AType : TSepiType) : boolean; virtual;
 
     property Kind : TTypeKind read FKind;
@@ -193,6 +197,7 @@ type
     property TypeData : PTypeData read FTypeData;
     property Size : integer read FSize;
     property NeedInit : boolean read FNeedInit;
+    property Alignment : integer read GetAlignment;
   end;
 
   {*
@@ -1005,6 +1010,17 @@ begin
 end;
 
 {*
+  Alignement du type
+  Les variables de ce type seront placées en mémoire à un adresse divisible par
+  l'alignement.
+  @return Alignement du type
+*}
+function TSepiType.GetAlignment : integer;
+begin
+  Result := Size;
+end;
+
+{*
   Recense un type natif à partir de ses RTTI
   @param AOwner      Propriétaire du type
   @param ATypeInfo   RTTI du type à recenser
@@ -1034,6 +1050,18 @@ begin
 
     Result := TypeClass.RegisterTypeInfo(AOwner, ATypeInfo)
   end else raise EAbstractError.Create(SSepiNoRegisterTypeInfo);
+end;
+
+{*
+  Aligne l'offset donné conformément à la propriété Alignment
+  @param Offset   Offset à aligner
+*}
+procedure TSepiType.AlignOffset(var Offset : integer);
+var Disalign : integer;
+begin
+  Disalign := Offset mod Alignment;
+  if Disalign > 0 then
+    inc(Offset, Alignment-Disalign);
 end;
 
 {*
