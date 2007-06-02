@@ -9,7 +9,7 @@ interface
 
 uses
   SysUtils, Classes, Contnrs, RTLConsts, SepiCore, ScUtils, IniFiles, TypInfo,
-  ScLists, ScStrUtils, SepiBinariesConsts;
+  ScLists, ScStrUtils, SepiBinariesConsts, Variants;
 
 type
   {*
@@ -44,6 +44,13 @@ type
     @version 1.0
   *}
   ESepiMetaNotFoundError = class(ESepiError);
+
+  {*
+    Déclenchée si l'on tente de créer une constante avec un mauvais type
+    @author Sébastien Jean Robert Doeraene
+    @version 1.0
+  *}
+  ESepiBadConstTypeError = class(ESepiError);
 
   TSepiMeta = class;
   TSepiMetaRoot = class;
@@ -295,18 +302,24 @@ type
   *}
   TSepiConstant = class(TSepiMeta)
   private
-    FType : TSepiType;      /// Type de la constante
-    FValue : TMemoryStream; /// Valeur
+    FType : TSepiType;   /// Type de la constante
+    FValuePtr : Pointer; /// Pointeur sur la valeur
+    FStrValue : string;  /// Contenu de la valeur de type chaîne
   protected
     procedure ListReferences; override;
     procedure Save(Stream : TStream); override;
   public
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
     constructor Create(AOwner : TSepiMeta; const AName : string;
-      AType : TSepiType);
+      const AValue : Variant; AType : TSepiType); overload;
+    constructor Create(AOwner : TSepiMeta; const AName : string;
+      const AValue : Variant; ATypeInfo : PTypeInfo = nil); overload;
+    constructor Create(AOwner : TSepiMeta; const AName : string;
+      const AValue : Variant; const ATypeName : string); overload;
+    destructor Destroy; override;
 
     property ConstType : TSepiType read FType;
-    property Value : TMemoryStream read FValue;
+    property ValuePtr : Pointer read FValuePtr;
   end;
 
   {*
@@ -1513,33 +1526,100 @@ end;
   Charge une constante depuis un flux
 *}
 constructor TSepiConstant.Load(AOwner : TSepiMeta; Stream : TStream);
-var ValueLength : integer;
 begin
   inherited;
+
   OwningUnit.ReadRef(Stream, FType);
-  FValue := TMemoryStream.Create;
+  GetMem(FValuePtr, FType.Size);
 
-  Stream.ReadBuffer(ValueLength, 4);
-  if ValueLength > 0 then // to prevent a CopyFrom(0) *
-    FValue.CopyFrom(Stream, ValueLength);
-
-  { * I reckon a null ValueLength shouldn't happen. But as a newly created
-    TSepiConstant has got a null Value, it is more logical and safer to allow
-    and check for a null ValueLength. }
+  if FType is TSepiStringType then
+  begin
+    FStrValue := ReadStrFromStream(Stream);
+    PPointer(FValuePtr)^ := Pointer(FStrValue);
+  end else
+    Stream.ReadBuffer(FValuePtr^, FType.Size);
 end;
 
 {*
-  Crée une nouvelle constante
+  Crée une nouvelle vraie constante
   @param AOwner   Propriétaire de la constante
   @param AName    Nom de la constante
+  @param AValue   Valeur de la constante
   @param AType    Type de la constante
 *}
-constructor TSepiConstant.Create(AOwner : TSepiMeta; const AName : string;
-  AType : TSepiType);
+constructor TSepiConstant.Create(AOwner : TSepiMeta;
+  const AName : string; const AValue : Variant; AType : TSepiType);
 begin
   inherited Create(AOwner, AName);
+
   FType := AType;
-  FValue := TMemoryStream.Create;
+  GetMem(FValuePtr, FType.Size);
+
+  if FType is TSepiStringType then
+  begin
+    FStrValue := AValue;
+    PPointer(FValuePtr)^ := Pointer(FStrValue);
+  end else
+    Move(TVarData(AValue).VAny, FValuePtr^, FType.Size);
+end;
+
+{*
+  Crée une nouvelle vraie constante
+  @param AOwner      Propriétaire de la constante
+  @param AName       Nom de la constante
+  @param AValue      Valeur de la constante
+  @param ATypeInfo   RTTI du type de la constante (déterminé par VType si nil)
+*}
+constructor TSepiConstant.Create(AOwner : TSepiMeta;
+  const AName : string; const AValue : Variant; ATypeInfo : PTypeInfo = nil);
+begin
+  if ATypeInfo = nil then
+  begin
+    case VarType(AValue) of
+      varSmallint : ATypeInfo := System.TypeInfo(Smallint);
+      varInteger  : ATypeInfo := System.TypeInfo(Integer);
+      varSingle   : ATypeInfo := System.TypeInfo(Single);
+      varDouble   : ATypeInfo := System.TypeInfo(Double);
+      varCurrency : ATypeInfo := System.TypeInfo(Currency);
+      varDate     : ATypeInfo := System.TypeInfo(TDateTime);
+      varError    : ATypeInfo := System.TypeInfo(HRESULT);
+      varBoolean  : ATypeInfo := System.TypeInfo(Boolean);
+      varShortInt : ATypeInfo := System.TypeInfo(ShortInt);
+      varByte     : ATypeInfo := System.TypeInfo(Byte);
+      varWord     : ATypeInfo := System.TypeInfo(Word);
+      varLongWord : ATypeInfo := System.TypeInfo(LongWord);
+      varInt64    : ATypeInfo := System.TypeInfo(Int64);
+
+      varOleStr, varStrArg, varString : ATypeInfo := System.TypeInfo(string);
+
+      else raise ESepiBadConstTypeError.CreateFmt(
+        SSepiBadConstType, [VarType(AValue)]);
+    end;
+  end;
+
+  Create(AOwner, AName, AValue, AOwner.Root.FindType(ATypeInfo));
+end;
+
+{*
+  Crée une nouvelle vraie constante
+  @param AOwner      Propriétaire de la constante
+  @param AName       Nom de la constante
+  @param AValue      Valeur de la constante
+  @param ATypeName   Nom du type de la constante
+*}
+constructor TSepiConstant.Create(AOwner : TSepiMeta;
+  const AName : string; const AValue : Variant; const ATypeName : string);
+begin
+  Create(AOwner, AName, AValue, AOwner.Root.FindType(ATypeName));
+end;
+
+{*
+  [@inheritDoc]
+*}
+destructor TSepiConstant.Destroy;
+begin
+  FreeMem(FValuePtr);
+  inherited;
 end;
 
 {*
@@ -1558,6 +1638,11 @@ procedure TSepiConstant.Save(Stream : TStream);
 begin
   inherited;
   OwningUnit.WriteRef(Stream, FType);
+
+  if FType is TSepiStringType then
+    WriteStrToStream(Stream, FStrValue)
+  else
+    Stream.WriteBuffer(FValuePtr^, FType.Size);
 end;
 
 initialization

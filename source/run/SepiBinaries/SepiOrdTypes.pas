@@ -180,6 +180,8 @@ type
     FValueCount : integer;           /// Nombre de valeurs
     FValues : array of PShortString; /// Noms des valeurs
 
+    procedure CreateConstants;
+
     function GetNames(Value : integer) : string;
     function GetValues(const Name : string) : integer;
   protected
@@ -737,6 +739,7 @@ begin
   inherited;
   TypeDataLength := 0; // not used
   ExtractTypeData;
+  CreateConstants;
 end;
 
 {*
@@ -812,6 +815,19 @@ begin
   // Enregistrement du nom de l'unité dans les données de type
   OwningUnitName := OwningUnit.Name;
   Move(OwningUnitName[0], Current[0], Length(OwningUnitName)+1);
+
+  // Créer les constantes énumérées
+  CreateConstants;
+end;
+
+{*
+  Crée les constantes énumérées
+*}
+procedure TSepiEnumType.CreateConstants;
+var Value : integer;
+begin
+  for Value := MinValue to MaxValue do
+    TSepiConstant.Create(Owner, Self.Names[Value], Value, Self);
 end;
 
 {*

@@ -13,6 +13,7 @@ resourcestring
   SSepiMetaAlreadyAssigned = 'L''objet meta à la position %d est déjà assigné';
   SSepiObjectNotFound = 'Objet %s non trouvé';
   SSepiNoRegisterTypeInfo = 'Ce type n''implémente pas RegisterTypeInfo';
+  SSepiBadConstType = 'Impossible de créer une constante de type variant %d';
 
   SSepiUnsupportedIntfCallConvention =
     'La convention d''appel %s n''est pas encore supportée pour les interfaces';

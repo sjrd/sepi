@@ -242,6 +242,79 @@ begin
     TSepiType(nil), True);
   TSepiPointerType.Create(Result, 'PChar', TypeInfo(Char), True);
 
+  { System constants }
+  TSepiConstant.Create(Result, 'RTLVersion', RTLVersion);
+  TSepiConstant.Create(Result, 'CompilerVersion', CompilerVersion);
+  {$IF DECLARED(GPL)}
+    TSepiConstant.Create(Result, 'GPL', GPL);
+  {$IFEND}
+  TSepiConstant.Create(Result, 'True', True);
+  TSepiConstant.Create(Result, 'False', False);
+  { The pseudo-constant nil isn't declared here, for it has many different
+    types, depending on the situation. Each compiler should understand the nil
+    value for what it is: a special value, not a simple constant. }
+
+  { Variant type codes }
+  TSepiConstant.Create(Result, 'varEmpty', varEmpty);
+  TSepiConstant.Create(Result, 'varNull', varNull);
+  TSepiConstant.Create(Result, 'varSmallint', varSmallint);
+  TSepiConstant.Create(Result, 'varInteger', varInteger);
+  TSepiConstant.Create(Result, 'varSingle', varSingle);
+  TSepiConstant.Create(Result, 'varDouble', varDouble);
+  TSepiConstant.Create(Result, 'varCurrency', varCurrency);
+  TSepiConstant.Create(Result, 'varDate', varDate);
+  TSepiConstant.Create(Result, 'varOleStr', varOleStr);
+  TSepiConstant.Create(Result, 'varDispatch', varDispatch);
+  TSepiConstant.Create(Result, 'varError', varError);
+  TSepiConstant.Create(Result, 'varBoolean', varBoolean);
+  TSepiConstant.Create(Result, 'varVariant', varVariant);
+  TSepiConstant.Create(Result, 'varUnknown', varUnknown);
+  TSepiConstant.Create(Result, 'varShortInt', varShortInt);
+  TSepiConstant.Create(Result, 'varByte', varByte);
+  TSepiConstant.Create(Result, 'varWord', varWord);
+  TSepiConstant.Create(Result, 'varLongWord', varLongWord);
+  TSepiConstant.Create(Result, 'varInt64', varInt64);
+
+  TSepiConstant.Create(Result, 'varStrArg', varStrArg);
+  TSepiConstant.Create(Result, 'varString', varString);
+  TSepiConstant.Create(Result, 'varAny', varAny);
+
+  TSepiConstant.Create(Result, 'varTypeMask', varTypeMask);
+  TSepiConstant.Create(Result, 'varArray', varArray);
+  TSepiConstant.Create(Result, 'varByRef', varByRef);
+
+  { TVarRec.VType values }
+  TSepiConstant.Create(Result, 'vtInteger', vtInteger);
+  TSepiConstant.Create(Result, 'vtBoolean', vtBoolean);
+  TSepiConstant.Create(Result, 'vtChar', vtChar);
+  TSepiConstant.Create(Result, 'vtExtended', vtExtended);
+  TSepiConstant.Create(Result, 'vtString', vtString);
+  TSepiConstant.Create(Result, 'vtPointer', vtPointer);
+  TSepiConstant.Create(Result, 'vtPChar', vtPChar);
+  TSepiConstant.Create(Result, 'vtObject', vtObject);
+  TSepiConstant.Create(Result, 'vtClass', vtClass);
+  TSepiConstant.Create(Result, 'vtWideChar', vtWideChar);
+  TSepiConstant.Create(Result, 'vtPWideChar', vtPWideChar);
+  TSepiConstant.Create(Result, 'vtAnsiString', vtAnsiString);
+  TSepiConstant.Create(Result, 'vtCurrency', vtCurrency);
+  TSepiConstant.Create(Result, 'vtVariant', vtVariant);
+  TSepiConstant.Create(Result, 'vtInterface', vtInterface);
+  TSepiConstant.Create(Result, 'vtWideString', vtWideString);
+  TSepiConstant.Create(Result, 'vtInt64', vtInt64);
+
+  { Virtual method table entries }
+  TSepiConstant.Create(Result, 'vmtSelfPtr', vmtSelfPtr);
+  TSepiConstant.Create(Result, 'vmtIntfTable', vmtIntfTable);
+  TSepiConstant.Create(Result, 'vmtAutoTable', vmtAutoTable);
+  TSepiConstant.Create(Result, 'vmtInitTable', vmtInitTable);
+  TSepiConstant.Create(Result, 'vmtTypeInfo', vmtTypeInfo);
+  TSepiConstant.Create(Result, 'vmtFieldTable', vmtFieldTable);
+  TSepiConstant.Create(Result, 'vmtMethodTable', vmtMethodTable);
+  TSepiConstant.Create(Result, 'vmtDynamicTable', vmtDynamicTable);
+  TSepiConstant.Create(Result, 'vmtClassName', vmtClassName);
+  TSepiConstant.Create(Result, 'vmtInstanceSize', vmtInstanceSize);
+  TSepiConstant.Create(Result, 'vmtParent', vmtParent);
+
   { Types declared in System.pas }
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(HRESULT));
 
@@ -300,6 +373,14 @@ begin
 
   { TObject class }
   TSepiImportsTObject.SepiImportTObject(Result);
+
+  { Result code constants }
+  TSepiConstant.Create(Result, 'S_OK', S_OK);
+  TSepiConstant.Create(Result, 'S_FALSE', S_FALSE);
+  TSepiConstant.Create(Result, 'E_NOINTERFACE',
+    E_NOINTERFACE, TypeInfo(HRESULT));
+  TSepiConstant.Create(Result, 'E_UNEXPECTED', E_UNEXPECTED, TypeInfo(HRESULT));
+  TSepiConstant.Create(Result, 'E_NOTIMPL', E_NOTIMPL, TypeInfo(HRESULT));
 
   { IInterface interface }
   SepiImportIInterface(Result);
