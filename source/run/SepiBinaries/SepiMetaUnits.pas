@@ -264,6 +264,8 @@ type
 
     function AddUses(const UnitName : string) : TSepiMetaUnit; overload;
 
+    procedure Complete;
+
     procedure SaveToStream(Stream : TStream);
 
     procedure ReadRef(Stream : TStream; out Ref);
@@ -291,6 +293,8 @@ type
       ADest : TSepiType); overload;
     constructor Create(AOwner : TSepiMeta; const AName : string;
       ADest : PTypeInfo); overload;
+    constructor Create(AOwner : TSepiMeta;
+      const AName, ADest : string); overload;
 
     property Dest : TSepiType read FDest;
   end;
@@ -754,15 +758,21 @@ begin
 end;
 
 {*
-  Appelé lorsque tous les metas ont été chargés
-  Ce n'est qu'à partir de l'appel à Loaded que l'on peut être sûr que les
-  références existent.
+  Appelé lorsque l'unité contenante est complètement chargée/créée
 *}
 procedure TSepiMeta.Loaded;
 var I : integer;
 begin
-  for I := 0 to FChildren.Count do
+  // Already created children
+  for I := 0 to FChildren.Count-1 do
     FChildren[I].Loaded;
+
+  // Forward declarations which have not been created yet
+  for I := 0 to FForwards.Count-1 do
+    with TSepiMeta(FForwards.Objects[I]) do
+      if IsForward then Loaded;
+
+  // Changing the state
   FState := msNormal;
 end;
 
@@ -1100,6 +1110,7 @@ constructor TSepiMetaRoot.Create;
 begin
   inherited Create(nil, '');
   FRoot := Self;
+  FState := msNormal;
   FOnGetMethodCode := nil;
 end;
 
@@ -1246,6 +1257,8 @@ begin
     FCurrentVisibility := mvPublic;
 
     LoadChildren(Stream);
+
+    Loaded;
   finally
     for I := 0 to UsesCount do
       if Assigned(FReferences[I]) then
@@ -1331,6 +1344,15 @@ function TSepiMetaUnit.AddUses(const UnitName : string) : TSepiMetaUnit;
 begin
   Result := Root.LoadUnit(UnitName);
   AddUses(Result);
+end;
+
+{*
+  Complète l'unité créée
+*}
+procedure TSepiMetaUnit.Complete;
+begin
+  Assert(State = msConstructing);
+  Loaded;
 end;
 
 {*
@@ -1496,6 +1518,18 @@ end;
 *}
 constructor TSepiTypeAlias.Create(AOwner : TSepiMeta; const AName : string;
   ADest : PTypeInfo);
+begin
+  Create(AOwner, AName, AOwner.Root.FindType(ADest));
+end;
+
+{*
+  Crée un nouvel alias de type
+  @param AOwner   Propriétaire de l'alias de type
+  @param AName    Nom de l'alias de type
+  @param ADest    Nom de la destination de l'alias
+*}
+constructor TSepiTypeAlias.Create(AOwner : TSepiMeta;
+  const AName, ADest : string);
 begin
   Create(AOwner, AName, AOwner.Root.FindType(ADest));
 end;

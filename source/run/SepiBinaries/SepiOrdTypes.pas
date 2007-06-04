@@ -234,6 +234,20 @@ type
   end;
 
   {*
+    Information sur un pointeur déclaré en forward
+    @author Sébastien Jean Robert Doeraene
+    @version 1.0
+  *}
+  TSepiForwardPointerInfo = record
+    Owner : TSepiMeta;
+    Name : string;
+    PointToTypeInfo : PTypeInfo;
+    PointToName : string;
+    IsNative : boolean;
+  end;
+  PSepiForwardPointerInfo = ^TSepiForwardPointerInfo;
+
+  {*
     Type pointeur
     @author Sébastien Jean Robert Doeraene
     @version 1.0
@@ -241,7 +255,11 @@ type
   TSepiPointerType = class(TSepiOrdType)
   private
     FPointTo : TSepiType; /// Type vers lequel pointe le pointeur
+
+    FForwardInfo : PSepiForwardPointerInfo; /// Infos conservées en forward
   protected
+    procedure Loaded; override;
+
     procedure ListReferences; override;
     procedure Save(Stream : TStream); override;
   public
@@ -250,10 +268,10 @@ type
       APointTo : TSepiType; AIsNative : boolean = False); overload;
     constructor Create(AOwner : TSepiMeta; const AName : string;
       APointTo : PTypeInfo; AIsNative : boolean = False); overload;
+    constructor Create(AOwner : TSepiMeta; const AName, APointTo : string;
+      AIsNative : boolean = False); overload;
 
     class function NewInstance : TObject; override;
-    class function ForwardDecl(AOwner : TSepiMeta;
-      const AName : string) : TSepiPointerType;
 
     property PointTo : TSepiType read FPointTo;
   end;
@@ -1073,7 +1091,63 @@ end;
 constructor TSepiPointerType.Create(AOwner : TSepiMeta; const AName : string;
   APointTo : PTypeInfo; AIsNative : boolean = False);
 begin
-  Create(AOwner, AName, AOwner.Root.FindType(APointTo), AIsNative);
+  try
+    Create(AOwner, AName, AOwner.Root.FindType(APointTo), AIsNative);
+  except
+    on Error : ESepiMetaNotFoundError do
+    begin
+      New(FForwardInfo);
+      FForwardInfo.Owner := AOwner;
+      FForwardInfo.Name := AName;
+      FForwardInfo.PointToTypeInfo := APointTo;
+      Pointer(FForwardInfo.PointToName) := nil;
+      FForwardInfo.IsNative := AIsNative;
+      TSepiPointerType(AOwner).AddForward(AName, Self);
+    end;
+  end;
+end;
+
+{*
+  Crée un nouveau type pointeur
+  @param AOwner     Propriétaire du type
+  @param AName      Nom du type
+  @param APointTo   Nom tu type vers lequel pointe le pointeur
+*}
+constructor TSepiPointerType.Create(AOwner : TSepiMeta;
+  const AName, APointTo : string; AIsNative : boolean = False);
+begin
+  try
+    Create(AOwner, AName, AOwner.Root.FindType(APointTo), AIsNative);
+  except
+    on Error : ESepiMetaNotFoundError do
+    begin
+      New(FForwardInfo);
+      FForwardInfo.Owner := AOwner;
+      FForwardInfo.Name := AName;
+      FForwardInfo.PointToTypeInfo := nil;
+      Pointer(FForwardInfo.PointToName) := nil;
+      FForwardInfo.PointToName := APointTo;
+      FForwardInfo.IsNative := AIsNative;
+      TSepiPointerType(AOwner).AddForward(AName, Self);
+    end;
+  end;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiPointerType.Loaded;
+begin
+  if IsForward and (FForwardInfo <> nil) then with FForwardInfo^ do
+  begin
+    if PointToTypeInfo <> nil then
+      Create(Owner, Name, PointToTypeInfo, IsNative)
+    else
+      Create(Owner, Name, PointToName, IsNative);
+    Dispose(FForwardInfo);
+  end;
+
+  inherited;
 end;
 
 {*
@@ -1103,18 +1177,6 @@ begin
   Result := inherited NewInstance;
   TSepiPointerType(Result).FSize := 4;
   TSepiPointerType(Result).FNeedInit := False;
-end;
-
-{*
-  Déclare un type pointeur en forward
-  @param AOwner   Propriétaire du type
-  @param AName    Nom du type
-*}
-class function TSepiPointerType.ForwardDecl(AOwner : TSepiMeta;
-  const AName : string) : TSepiPointerType;
-begin
-  Result := TSepiPointerType(NewInstance);
-  TSepiPointerType(AOwner).AddForward(AName, Result);
 end;
 
 initialization

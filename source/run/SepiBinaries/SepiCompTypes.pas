@@ -692,6 +692,7 @@ begin
   AFlags := [];
   if not SplitToken(Definition, ':', NamePart, TypePart) then
     TypePart := '';
+  TypePart := GetFirstToken(TypePart, '=');
 
   // Partie du nom - à gauche du :
   if SplitToken(Trim(NamePart), ' ', FlagStr, AName) then

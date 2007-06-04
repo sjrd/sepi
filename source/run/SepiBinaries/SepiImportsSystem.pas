@@ -398,6 +398,8 @@ begin
   TSepiImportsTInterfacedObject.SepiImportTInterfacedObject(Result);
 
   { ... }
+
+  Result.Complete;
 end;
 
 initialization
