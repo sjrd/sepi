@@ -56,6 +56,7 @@
       <ocMethods>TRUE</ocMethods>
       <ocProperties>TRUE</ocProperties>
       <ocEvents>TRUE</ocEvents>
+      <ocRecords>TRUE</ocRecords>
     </OutputFilteringCategory>
     <SkipFirstTAGLine>TRUE</SkipFirstTAGLine>
     <SkipLastTAGLine>TRUE</SkipLastTAGLine>
@@ -72,5 +73,6 @@
     <AllowHtmlInDescription>FALSE</AllowHtmlInDescription>
     <PropertyCommentFromAssessors>TRUE</PropertyCommentFromAssessors>
     <DisplayHiddenItems>FALSE</DisplayHiddenItems>
+    <MethodCommentFromAncestor>TRUE</MethodCommentFromAncestor>
   </TDOCOptions>
 </DelphiCodeToDoc_Project>
