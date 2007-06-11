@@ -9,7 +9,7 @@ interface
 
 uses
   SysUtils, Classes, Contnrs, RTLConsts, SepiCore, ScUtils, IniFiles, TypInfo,
-  ScLists, ScStrUtils, SepiBinariesConsts, Variants;
+  ScLists, ScStrUtils, ScExtra, SepiBinariesConsts, Variants;
 
 type
   {*
@@ -122,6 +122,8 @@ type
 
     procedure ListReferences; virtual;
     procedure Save(Stream : TStream); virtual;
+
+    procedure Destroying; virtual;
 
     property State : TSepiMetaState read FState;
   public
@@ -340,6 +342,8 @@ type
   protected
     procedure ListReferences; override;
     procedure Save(Stream : TStream); override;
+
+    procedure Destroying; override;
   public
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
 
@@ -837,6 +841,17 @@ begin
 end;
 
 {*
+  Appelé lorsque l'environnement Sepi est sur le point d'être détruit
+*}
+procedure TSepiMeta.Destroying;
+var I : integer;
+begin
+  FState := msDestroying;
+  for I := 0 to ChildCount-1 do
+    Children[I].Destroying;
+end;
+
+{*
   Appelé juste après l'exécution du dernier constructeur
 *}
 procedure TSepiMeta.AfterConstruction;
@@ -851,8 +866,11 @@ end;
 *}
 procedure TSepiMeta.BeforeDestruction;
 begin
+  if FState <> msDestroying then
+    Destroying;
+
   inherited;
-  FState := msDestroying;
+
   if Assigned(Owner) then
     Owner.ChildRemoving(Self);
 end;
@@ -1844,11 +1862,7 @@ end;
 destructor TSepiVariable.Destroy;
 begin
   if FOwnValue then
-  begin
-    if FType is TSepiStringType then
-      string(FValue^) := '';
     FreeMem(FValue);
-  end;
 
   inherited;
 end;
@@ -1874,6 +1888,17 @@ begin
     WriteStrToStream(Stream, string(FValue^))
   else
     Stream.WriteBuffer(FValue^, FType.Size);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiVariable.Destroying;
+begin
+  inherited;
+
+  if FOwnValue and FType.NeedInit then
+    ExplicitFinalize(FValue^, FType.TypeInfo);
 end;
 
 initialization
