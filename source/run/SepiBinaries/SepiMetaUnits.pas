@@ -1055,8 +1055,8 @@ const
   TypeClasses : array[TTypeKind] of TSepiTypeClass = (
     nil, TSepiIntegerType, TSepiCharType, TSepiEnumType, TSepiFloatType,
     TSepiShortStringType, TSepiSetType, TSepiClass, TSepiMethodRefType,
-    TSepiCharType, TSepiStringType, TSepiStringType, nil, nil, nil,
-    TSepiInterface, TSepiInt64Type, TSepiDynArrayType
+    TSepiCharType, TSepiStringType, TSepiStringType, TSepiVariantType,
+    nil, nil, TSepiInterface, TSepiInt64Type, TSepiDynArrayType
   );
 var TypeClass : TSepiTypeClass;
 begin

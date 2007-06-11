@@ -526,6 +526,21 @@ type
     property Signature : TSepiMethodSignature read FSignature;
   end;
 
+  {*
+    Type variant
+    Note : il est impossible de créer un nouveau type variant.
+    @author Sébastien Jean Robert Doeraene
+    @version 1.0
+  *}
+  TSepiVariantType = class(TSepiType)
+  protected
+    function GetAlignment : integer; override;
+  public
+    constructor RegisterTypeInfo(AOwner : TSepiMeta;
+      ATypeInfo : PTypeInfo); override;
+    constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
+  end;
+
 const
   /// Procédure d'unité
   mkUnitProcedure = TMethodKind(integer(High(TMethodKind))+1);
@@ -3049,11 +3064,48 @@ begin
     FSignature.Equals(TSepiMethodRefType(AType).FSignature);
 end;
 
+{-------------------------}
+{ Classe TSepiVariantType }
+{-------------------------}
+
+{*
+  Recense un type variant natif
+*}
+constructor TSepiVariantType.RegisterTypeInfo(AOwner : TSepiMeta;
+  ATypeInfo : PTypeInfo);
+begin
+  inherited;
+
+  FSize := 16;
+  FNeedInit := True;
+end;
+
+{*
+  Charge un type variant depuis un flux
+*}
+constructor TSepiVariantType.Load(AOwner : TSepiMeta; Stream : TStream);
+begin
+  inherited;
+
+  AllocateTypeInfo;
+
+  FSize := 16;
+  FNeedInit := True;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiVariantType.GetAlignment : integer;
+begin
+  Result := 8;
+end;
+
 initialization
   SepiRegisterMetaClasses([
     TSepiMetaField, TSepiMetaParam, TSepiMetaMethod, TSepiMetaOverloadedMethod,
     TSepiMetaProperty, TSepiRecordType, TSepiInterface, TSepiClass,
-    TSepiMethodRefType
+    TSepiMethodRefType, TSepiVariantType
   ]);
 end.
 
