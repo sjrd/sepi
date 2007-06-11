@@ -1112,6 +1112,8 @@ begin
   FRoot := Self;
   FState := msNormal;
   FOnGetMethodCode := nil;
+
+  LoadUnit('System'); {don't localize}
 end;
 
 {*

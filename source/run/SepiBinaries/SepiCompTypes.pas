@@ -2604,11 +2604,8 @@ begin
   if State = msConstructing then
     TSepiClass(Child).FVisibility := FCurrentVisibility;
 
-  if Child is TSepiMetaField then with TSepiMetaField(Child) do
-  begin
-    FOffset := FInstSize;
-    inc(FInstSize, FieldType.Size);
-  end;
+  if Child is TSepiMetaField then
+    inc(FInstSize, TSepiMetaField(Child).FieldType.Size);
 end;
 
 {*
