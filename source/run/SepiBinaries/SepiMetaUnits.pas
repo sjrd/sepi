@@ -20,8 +20,8 @@ type
   {*
     Visibilité d'un membre d'une classe, d'un objet, ou d'une unité
   *}
-  TMemberVisibility = (mvPrivate, mvInternal, mvProtected,
-    mvInternalProtected, mvPublic, mvPublished);
+  TMemberVisibility = (mvStrictPrivate, mvPrivate, mvStrictProtected,
+    mvProtected, mvPublic, mvPublished);
 
   {*
     Type de l'événement OnGetMethodCode de TSepiMetaRoot
@@ -875,7 +875,7 @@ end;
 function TSepiMeta.FindMeta(const Name : string) : TSepiMeta;
 begin
   Result := GetMeta(Name);
-  if Result = nil then
+  if (Result = nil) and (Name <> '') then
     raise ESepiMetaNotFoundError.CreateFmt(SSepiObjectNotFound, [Name]);
 end;
 

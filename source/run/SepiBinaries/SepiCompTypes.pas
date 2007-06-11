@@ -441,6 +441,10 @@ type
       const ASignature : string; ALinkKind : TMethodLinkKind = mlkStatic;
       AAbstract : boolean = False; AMsgID : integer = 0;
       ACallConvention : TCallConvention = ccRegister) : TSepiMetaMethod;
+      overload;
+    function AddMethod(const MethodName : string; ACode: Pointer;
+      const ASignature : string;
+      ACallConvention : TCallConvention) : TSepiMetaMethod; overload;
 
     function AddProperty(
       const AName, ASignature, AReadAccess, AWriteAccess : string;
@@ -486,7 +490,11 @@ type
   public
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
     constructor Create(AOwner : TSepiMeta; const AName : string;
-      AClass : TSepiClass; AIsNative : boolean = False);
+      AClass : TSepiClass; AIsNative : boolean = False); overload;
+    constructor Create(AOwner : TSepiMeta; const AName : string;
+      AClassInfo : PTypeInfo; AIsNative : boolean = False); overload;
+    constructor Create(AOwner : TSepiMeta; const AName, AClassName : string;
+      AIsNative : boolean = False); overload;
 
     function CompatibleWith(AType : TSepiType) : boolean; override;
 
@@ -2741,6 +2749,21 @@ begin
 end;
 
 {*
+  Ajoute une méthode à la classe
+  @param MethodName        Nom de la méthode
+  @param ACode             Pointeur sur le code de la méthode
+  @param ASignature        Signature Delphi de la méthode
+  @param ACallConvention   Convention d'appel de la méthode
+*}
+function TSepiClass.AddMethod(const MethodName : string; ACode: Pointer;
+  const ASignature : string;
+  ACallConvention : TCallConvention) : TSepiMetaMethod;
+begin
+  Result := TSepiMetaMethod.Create(Self, MethodName, ACode, ASignature,
+    mlkStatic, False, 0, ACallConvention);
+end;
+
+{*
   Ajoute une propriété à la classe
   @param AName           Nom de la propriété
   @param ASignature      Signature
@@ -2830,12 +2853,12 @@ begin
   if Result <> nil then
   begin
     case Result.Visibility of
-      mvPrivate  : if FromClass <> Self then Result := nil;
-      mvInternal : if FromUnit <> OwningUnit then Result := nil;
-      mvProtected :
+      mvStrictPrivate  : if FromClass <> Self then Result := nil;
+      mvPrivate : if FromUnit <> OwningUnit then Result := nil;
+      mvStrictProtected :
         if (FromClass = nil) or (not FromClass.ClassInheritsFrom(Self)) then
           Result := nil;
-      mvInternalProtected :
+      mvProtected :
         if (FromUnit <> OwningUnit) and
            ((FromClass = nil) or (not FromClass.ClassInheritsFrom(Self))) then
           Result := nil;
@@ -2851,7 +2874,7 @@ end;
 {-----------------------}
 
 {*
-  Charge une classe depuis un flux
+  Charge une meta-classe depuis un flux
 *}
 constructor TSepiMetaClass.Load(AOwner : TSepiMeta; Stream : TStream);
 begin
@@ -2861,7 +2884,7 @@ begin
 end;
 
 {*
-  Crée une nouvelle classe
+  Crée une nouvelle meta-classe
   @param AOwner   Propriétaire du type
   @param AName    Nom du type
   @param AClass   Classe correspondante
@@ -2875,6 +2898,32 @@ begin
 
   if AIsNative then
     ForceNative;
+end;
+
+{*
+  Crée une nouvelle meta-classe
+  @param AOwner       Propriétaire du type
+  @param AName        Nom du type
+  @param AClassInfo   RTTI de la classe correspondante
+*}
+constructor TSepiMetaClass.Create(AOwner : TSepiMeta; const AName : string;
+  AClassInfo : PTypeInfo; AIsNative : boolean = False);
+begin
+  Create(AOwner, AName, AOwner.Root.FindType(AClassInfo) as TSepiClass,
+    AIsNative);
+end;
+
+{*
+  Crée une nouvelle meta-classe
+  @param AOwner       Propriétaire du type
+  @param AName        Nom du type
+  @param AClassName   Nom de la classe correspondante
+*}
+constructor TSepiMetaClass.Create(AOwner : TSepiMeta;
+  const AName, AClassName : string; AIsNative : boolean = False);
+begin
+  Create(AOwner, AName, AOwner.Root.FindType(AClassName) as TSepiClass,
+    AIsNative);
 end;
 
 {*

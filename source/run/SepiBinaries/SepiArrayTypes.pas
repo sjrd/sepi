@@ -45,7 +45,13 @@ type
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
     constructor Create(AOwner : TSepiMeta; const AName : string;
       const ADimensions : array of integer; AElementType : TSepiType;
-      AIsNative : boolean = False; ATypeInfo : PTypeInfo = nil);
+      AIsNative : boolean = False; ATypeInfo : PTypeInfo = nil); overload;
+    constructor Create(AOwner : TSepiMeta; const AName : string;
+      const ADimensions : array of integer; AElementTypeInfo : PTypeInfo;
+      AIsNative : boolean = False; ATypeInfo : PTypeInfo = nil); overload;
+    constructor Create(AOwner : TSepiMeta; const AName : string;
+      const ADimensions : array of integer; const AElementTypeName : string;
+      AIsNative : boolean = False; ATypeInfo : PTypeInfo = nil); overload;
 
     function CompatibleWith(AType : TSepiType) : boolean; override;
 
@@ -135,6 +141,8 @@ end;
   @param AName          Nom du type
   @param ADimensions    Dimensions du tableau [Min1, Max1, Min2, Max2, ...]
   @param AElementType   Type des éléments
+  @param AIsNative      Indique si le type tableau est natif
+  @param ATypeInfo      RTTI du type tableau natif
 *}
 constructor TSepiArrayType.Create(AOwner : TSepiMeta; const AName : string;
   const ADimensions : array of integer; AElementType : TSepiType;
@@ -156,6 +164,40 @@ begin
     ForceNative(ATypeInfo)
   else
     MakeTypeInfo;
+end;
+
+{*
+  Crée un nouveau type tableau
+  @param AOwner             Propriétaire du type
+  @param AName              Nom du type
+  @param ADimensions        Dimensions du tableau [Min1, Max1, Min2, Max2, ...]
+  @param AElementTypeInfo   RTTI du type des éléments
+  @param AIsNative          Indique si le type tableau est natif
+  @param ATypeInfo          RTTI du type tableau natif
+*}
+constructor TSepiArrayType.Create(AOwner : TSepiMeta; const AName : string;
+  const ADimensions : array of integer; AElementTypeInfo : PTypeInfo;
+  AIsNative : boolean = False; ATypeInfo : PTypeInfo = nil);
+begin
+  Create(AOwner, AName, ADimensions, AOwner.Root.FindType(AElementTypeInfo),
+    AIsNative, ATypeInfo);
+end;
+
+{*
+  Crée un nouveau type tableau
+  @param AOwner             Propriétaire du type
+  @param AName              Nom du type
+  @param ADimensions        Dimensions du tableau [Min1, Max1, Min2, Max2, ...]
+  @param AElementTypeName   Nom du type des éléments
+  @param AIsNative          Indique si le type tableau est natif
+  @param ATypeInfo          RTTI du type tableau natif
+*}
+constructor TSepiArrayType.Create(AOwner : TSepiMeta; const AName : string;
+  const ADimensions : array of integer; const AElementTypeName : string;
+  AIsNative : boolean = False; ATypeInfo : PTypeInfo = nil);
+begin
+  Create(AOwner, AName, ADimensions, AOwner.Root.FindType(AElementTypeName),
+    AIsNative, ATypeInfo);
 end;
 
 {*
