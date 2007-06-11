@@ -327,6 +327,46 @@ type
   end;
 
   {*
+    Variable (ou constante typée)
+    @author Sébastien Jean Robert Doeraene
+    @version 1.0
+  *}
+  TSepiVariable = class(TSepiMeta)
+  private
+    FIsConst : boolean;  /// Indique si la variable est une constante typée
+    FType : TSepiType;   /// Type de la constante
+    FValue : Pointer;    /// Pointeur sur la variable
+    FOwnValue : boolean; /// Indique si Sepi a alloué la variable
+  protected
+    procedure ListReferences; override;
+    procedure Save(Stream : TStream); override;
+  public
+    constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
+
+    constructor Create(AOwner : TSepiMeta; const AName : string;
+      const AValue; AType : TSepiType; AIsConst : boolean = False); overload;
+    constructor Create(AOwner : TSepiMeta; const AName : string;
+      const AValue; ATypeInfo : PTypeInfo;
+      AIsConst : boolean = False); overload;
+    constructor Create(AOwner : TSepiMeta; const AName : string;
+      const AValue; const ATypeName : string;
+      AIsConst : boolean = False); overload;
+
+    constructor Create(AOwner : TSepiMeta; const AName : string;
+      AType : TSepiType; AIsConst : boolean = False); overload;
+    constructor Create(AOwner : TSepiMeta; const AName : string;
+      ATypeInfo : PTypeInfo; AIsConst : boolean = False); overload;
+    constructor Create(AOwner : TSepiMeta; const AName : string;
+      const ATypeName : string; AIsConst : boolean = False); overload;
+
+    destructor Destroy; override;
+
+    property IsConst : boolean read FIsConst;
+    property VarType : TSepiType read FType;
+    property Value : Pointer read FValue;
+  end;
+
+  {*
     Type de routine call-back pour l'import d'une unité sous Sepi
   *}
   TSepiImportUnitFunc = function(Root : TSepiMetaRoot) : TSepiMetaUnit;
@@ -1681,9 +1721,164 @@ begin
     Stream.WriteBuffer(FValuePtr^, FType.Size);
 end;
 
+{----------------------}
+{ Classe TSepiVariable }
+{----------------------}
+
+{*
+  Charge une variable ou une constante typée depuis un flux
+*}
+constructor TSepiVariable.Load(AOwner : TSepiMeta; Stream : TStream);
+begin
+  inherited;
+
+  OwningUnit.ReadRef(Stream, FType);
+
+  GetMem(FValue, FType.Size);
+  FOwnValue := True;
+
+  if FType is TSepiStringType then
+  begin
+    Pointer(FValue^) := nil;
+    string(FValue^) := ReadStrFromStream(Stream);
+  end else
+    Stream.ReadBuffer(FValue^, FType.Size);
+end;
+
+{*
+  Importe une variable ou constante typée native
+  @param AOwner     Propriétaire de la variable
+  @param AName      Nom de la variable
+  @param AValue     Valeur de la variable
+  @param AType      Type de la variable
+  @param AIsConst   Indique si c'est une constante typée
+*}
+constructor TSepiVariable.Create(AOwner : TSepiMeta; const AName : string;
+  const AValue; AType : TSepiType; AIsConst : boolean = False);
+begin
+  inherited Create(AOwner, AName);
+
+  FIsConst := AIsConst;
+  FType := AType;
+  FValue := @AValue;
+  FOwnValue := False;
+end;
+
+{*
+  Importe une variable ou constante typée native
+  @param AOwner      Propriétaire de la variable
+  @param AName       Nom de la variable
+  @param AValue      Valeur de la variable
+  @param ATypeInfo   RTTI du type de la variable
+  @param AIsConst    Indique si c'est une constante typée
+*}
+constructor TSepiVariable.Create(AOwner : TSepiMeta; const AName : string;
+  const AValue; ATypeInfo : PTypeInfo; AIsConst : boolean = False);
+begin
+  Create(AOwner, AName, AValue, AOwner.Root.FindType(ATypeInfo), AIsConst);
+end;
+
+{*
+  Importe une variable ou constante typée native
+  @param AOwner      Propriétaire de la variable
+  @param AName       Nom de la variable
+  @param AValue      Valeur de la variable
+  @param ATypeName   Nom du type de la variable
+  @param AIsConst    Indique si c'est une constante typée
+*}
+constructor TSepiVariable.Create(AOwner : TSepiMeta; const AName : string;
+  const AValue; const ATypeName : string; AIsConst : boolean = False);
+begin
+  Create(AOwner, AName, AValue, AOwner.Root.FindType(ATypeName), AIsConst);
+end;
+
+{*
+  Crée une nouvelle variable ou constante typée
+  @param AOwner     Propriétaire de la variable
+  @param AName      Nom de la variable
+  @param AType      Type de la variable
+  @param AIsConst   Indique si c'est une constante typée
+*}
+constructor TSepiVariable.Create(AOwner : TSepiMeta; const AName : string;
+  AType : TSepiType; AIsConst : boolean = False);
+begin
+  inherited Create(AOwner, AName);
+
+  FIsConst := AIsConst;
+  FType := AType;
+
+  GetMem(FValue, FType.Size);
+  FillChar(FValue^, FType.Size, 0);
+  FOwnValue := True;
+end;
+
+{*
+  Crée une nouvelle variable ou constante typée
+  @param AOwner      Propriétaire de la variable
+  @param AName       Nom de la variable
+  @param ATypeInfo   RTTI du type de la variable
+  @param AIsConst    Indique si c'est une constante typée
+*}
+constructor TSepiVariable.Create(AOwner : TSepiMeta; const AName : string;
+  ATypeInfo : PTypeInfo; AIsConst : boolean = False);
+begin
+  Create(AOwner, AName, AOwner.Root.FindType(ATypeInfo), AIsConst);
+end;
+
+{*
+  Crée une nouvelle variable ou constante typée
+  @param AOwner      Propriétaire de la variable
+  @param AName       Nom de la variable
+  @param ATypeName   Nom du type de la variable
+  @param AIsConst    Indique si c'est une constante typée
+*}
+constructor TSepiVariable.Create(AOwner : TSepiMeta; const AName : string;
+  const ATypeName : string; AIsConst : boolean = False);
+begin
+  Create(AOwner, AName, AOwner.Root.FindType(ATypeName), AIsConst);
+end;
+
+{*
+  [@inheritDoc]
+*}
+destructor TSepiVariable.Destroy;
+begin
+  if FOwnValue then
+  begin
+    if FType is TSepiStringType then
+      string(FValue^) := '';
+    FreeMem(FValue);
+  end;
+
+  inherited;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiVariable.ListReferences;
+begin
+  inherited;
+  OwningUnit.AddRef(FType);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiVariable.Save(Stream : TStream);
+begin
+  inherited;
+  OwningUnit.WriteRef(Stream, FType);
+
+  if FType is TSepiStringType then
+    WriteStrToStream(Stream, string(FValue^))
+  else
+    Stream.WriteBuffer(FValue^, FType.Size);
+end;
+
 initialization
   SepiRegisterMetaClasses([
-    TSepiMetaUnit, TSepiTypeAlias, TSepiConstant
+    TSepiMetaUnit, TSepiTypeAlias, TSepiConstant, TSepiVariable
   ]);
 finalization
   SepiMetaClasses.Free;
