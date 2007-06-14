@@ -9,7 +9,7 @@ interface
 
 uses
   SysUtils, Classes, Contnrs, RTLConsts, SepiCore, ScUtils, IniFiles, TypInfo,
-  ScLists, ScStrUtils, ScExtra, SepiBinariesConsts, Variants;
+  StrUtils, ScLists, ScStrUtils, ScExtra, SepiBinariesConsts, Variants;
 
 type
   {*
@@ -354,6 +354,16 @@ type
       AIsConst : boolean = False); overload;
     constructor Create(AOwner : TSepiMeta; const AName : string;
       const AValue; const ATypeName : string;
+      AIsConst : boolean = False); overload;
+
+    constructor Create(AOwner : TSepiMeta; const AName : string;
+      AValueAddress : Pointer; AType : TSepiType;
+      AIsConst : boolean = False); overload;
+    constructor Create(AOwner : TSepiMeta; const AName : string;
+      AValueAddress : Pointer; ATypeInfo : PTypeInfo;
+      AIsConst : boolean = False); overload;
+    constructor Create(AOwner : TSepiMeta; const AName : string;
+      AValueAddress : Pointer; const ATypeName : string;
       AIsConst : boolean = False); overload;
 
     constructor Create(AOwner : TSepiMeta; const AName : string;
@@ -949,7 +959,7 @@ end;
 constructor TSepiType.RegisterTypeInfo(AOwner : TSepiMeta;
   ATypeInfo : PTypeInfo);
 begin
-  inherited Create(AOwner, ATypeInfo.Name);
+  inherited Create(AOwner, AnsiReplaceStr(ATypeInfo.Name, '.', '$$'));
 
   FKind := ATypeInfo.Kind;
   FNative := True;
@@ -1228,7 +1238,7 @@ begin
     exit;
   end;
 
-  TypeName := TypeInfo.Name;
+  TypeName := AnsiReplaceStr(TypeInfo.Name, '.', '$$');
   for I := 0 to UnitCount-1 do
   begin
     Meta := Units[I].GetMeta(TypeName);
@@ -1808,6 +1818,56 @@ constructor TSepiVariable.Create(AOwner : TSepiMeta; const AName : string;
   const AValue; const ATypeName : string; AIsConst : boolean = False);
 begin
   Create(AOwner, AName, AValue, AOwner.Root.FindType(ATypeName), AIsConst);
+end;
+
+{*
+  Importe une variable ou constante typée native
+  @param AOwner          Propriétaire de la variable
+  @param AName           Nom de la variable
+  @param AValueAddress   Adresse de la variable
+  @param AType           Type de la variable
+  @param AIsConst        Indique si c'est une constante typée
+*}
+constructor TSepiVariable.Create(AOwner : TSepiMeta; const AName : string;
+  AValueAddress : Pointer; AType : TSepiType; AIsConst : boolean = False);
+begin
+  inherited Create(AOwner, AName);
+
+  FIsConst := AIsConst;
+  FType := AType;
+  FValue := AValueAddress;
+  FOwnValue := False;
+end;
+
+{*
+  Importe une variable ou constante typée native
+  @param AOwner          Propriétaire de la variable
+  @param AName           Nom de la variable
+  @param AValueAddress   Adresse de la variable
+  @param ATypeInfo       RTTI du type de la variable
+  @param AIsConst        Indique si c'est une constante typée
+*}
+constructor TSepiVariable.Create(AOwner : TSepiMeta; const AName : string;
+  AValueAddress : Pointer; ATypeInfo : PTypeInfo; AIsConst : boolean = False);
+begin
+  Create(AOwner, AName, AValueAddress,
+    AOwner.Root.FindType(ATypeInfo), AIsConst);
+end;
+
+{*
+  Importe une variable ou constante typée native
+  @param AOwner          Propriétaire de la variable
+  @param AName           Nom de la variable
+  @param AValueAddress   Adresse de la variable
+  @param ATypeName       Nom du type de la variable
+  @param AIsConst        Indique si c'est une constante typée
+*}
+constructor TSepiVariable.Create(AOwner : TSepiMeta; const AName : string;
+  AValueAddress : Pointer; const ATypeName : string;
+  AIsConst : boolean = False);
+begin
+  Create(AOwner, AName, AValueAddress,
+    AOwner.Root.FindType(ATypeName), AIsConst);
 end;
 
 {*

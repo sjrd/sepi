@@ -8,8 +8,8 @@ unit SepiCompTypes;
 interface
 
 uses
-  Classes, SysUtils, ScUtils, SepiMetaUnits, SysConst, TypInfo, Contnrs,
-  ScLists, StrUtils, ScStrUtils, ScExtra, SepiBinariesConsts, SepiCore;
+  Windows, Classes, SysUtils, ScUtils, SepiMetaUnits, SysConst, TypInfo,
+  Contnrs, ScLists, StrUtils, ScStrUtils, ScExtra, SepiBinariesConsts, SepiCore;
 
 const
   /// Pas d'index
@@ -735,6 +735,9 @@ begin
   begin
     Include(AFlags, pfArray);
     ATypeStr := TrimLeft(Copy(TypePart, 10, MaxInt)); // 10 is 'array of |'
+
+    if AnsiSameText(ATypeStr, 'const') then {don't localize}
+      ATypeStr := '';
   end else ATypeStr := TypePart;
 
   Create(AOwner, AName, AOwner.Root.FindType(ATypeStr), AFlags);

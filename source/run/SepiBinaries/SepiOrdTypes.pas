@@ -936,6 +936,10 @@ end;
 constructor TSepiSetType.RegisterTypeInfo(AOwner : TSepiMeta;
   ATypeInfo : PTypeInfo);
 begin
+  with GetTypeData(ATypeInfo)^ do
+    if CompType^.Name[1] = '.' then
+      TSepiType.LoadFromTypeInfo(AOwner, CompType^);
+
   inherited;
 
   FCompType := Root.FindType(TypeData.CompType^) as TSepiOrdType;

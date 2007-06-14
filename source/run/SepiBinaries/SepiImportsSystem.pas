@@ -28,6 +28,7 @@ type
 
   TSepiImportsTAggregatedObject = class(TAggregatedObject)
   private
+    function GetController: IInterface;
     class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
   end;
 
@@ -306,7 +307,8 @@ begin
       'class function: TObject',
       mlkOverride);
 
-    AddProperty('RefCount', 'property: Integer', 'FRefCount', '');
+    AddProperty('RefCount', 'property: Integer',
+      'FRefCount', '');
 
     Complete;
   end;
@@ -315,6 +317,11 @@ end;
 {--------------------------}
 { TAggregatedObject import }
 {--------------------------}
+
+function TSepiImportsTAggregatedObject.GetController: IInterface;
+begin
+  Result := Controller;
+end;
 
 class function TSepiImportsTAggregatedObject.SepiImport(
   Owner : TSepiMetaUnit) : TSepiClass;
@@ -328,7 +335,7 @@ begin
 
     AddField('FController', 'Pointer');
 
-    AddMethod('GetController', nil,
+    AddMethod('GetController', @TSepiImportsTAggregatedObject.GetController,
       'function: IInterface');
 
     CurrentVisibility := mvProtected;
@@ -348,7 +355,8 @@ begin
     AddMethod('Create', @TSepiImportsTAggregatedObject.Create,
       'constructor(const Controller: IInterface)');
 
-    AddProperty('Controller', 'property: IInterface', 'GetController', '');
+    AddProperty('Controller', 'property: IInterface',
+      'GetController', '');
 
     Complete;
   end;
@@ -484,9 +492,165 @@ begin
   end;
 end;
 
+{-----------------}
+{ TFileRec import }
+{-----------------}
+
+function SepiImportTFileRec(Owner : TSepiMetaUnit) : TSepiRecordType;
+begin
+  Result := TSepiRecordType.Create(Owner, 'TFileRec', True, True);
+
+  with Result do
+  begin
+    AddField('Handle', System.TypeInfo(Integer));
+    AddField('Mode', System.TypeInfo(Word));
+    AddField('Flags', System.TypeInfo(Word));
+    AddField('RecSize', System.TypeInfo(Cardinal), 'Flags');
+    AddField('BufSize', System.TypeInfo(Cardinal), 'Flags');
+    AddField('BufPos', System.TypeInfo(Cardinal), 'BufSize');
+    AddField('BufEnd', System.TypeInfo(Cardinal), 'BufPos');
+    AddField('BufPtr', 'PChar', 'BufEnd');
+    AddField('OpenFunc', 'Pointer', 'BufPtr');
+    AddField('InOutFunc', 'Pointer', 'OpenFunc');
+    AddField('FlushFunc', 'Pointer', 'InOutFunc');
+    AddField('CloseFunc', 'Pointer', 'FlushFunc');
+    AddField('UserData', '$7', 'CloseFunc');
+    AddField('Name', '$8', 'UserData');
+
+    Complete;
+  end;
+end;
+
+{-----------------}
+{ TTextRec import }
+{-----------------}
+
+function SepiImportTTextRec(Owner : TSepiMetaUnit) : TSepiRecordType;
+begin
+  Result := TSepiRecordType.Create(Owner, 'TTextRec', True, True);
+
+  with Result do
+  begin
+    AddField('Handle', System.TypeInfo(Integer));
+    AddField('Mode', System.TypeInfo(Word));
+    AddField('Flags', System.TypeInfo(Word));
+    AddField('BufSize', System.TypeInfo(Cardinal));
+    AddField('BufPos', System.TypeInfo(Cardinal));
+    AddField('BufEnd', System.TypeInfo(Cardinal));
+    AddField('BufPtr', 'PChar');
+    AddField('OpenFunc', 'Pointer');
+    AddField('InOutFunc', 'Pointer');
+    AddField('FlushFunc', 'Pointer');
+    AddField('CloseFunc', 'Pointer');
+    AddField('UserData', '$9');
+    AddField('Name', '$10');
+    AddField('Buffer', 'TTextBuf');
+
+    Complete;
+  end;
+end;
+
+{----------------------}
+{ TResStringRec import }
+{----------------------}
+
+function SepiImportTResStringRec(Owner : TSepiMetaUnit) : TSepiRecordType;
+begin
+  Result := TSepiRecordType.Create(Owner, 'TResStringRec', True, True);
+
+  with Result do
+  begin
+    AddField('Module', '$11');
+    AddField('Identifier', System.TypeInfo(Integer));
+
+    Complete;
+  end;
+end;
+
 {-------------}
 { Unit import }
 {-------------}
+
+procedure ChDir_0(const S: string);
+begin
+  ChDir(S);
+end;
+
+procedure ChDir_1(P: PChar);
+begin
+  ChDir(P);
+end;
+
+
+
+
+
+
+
+procedure MkDir_0(const S: string);
+begin
+  MkDir(S);
+end;
+
+procedure MkDir_1(P: PChar);
+begin
+  MkDir(P);
+end;
+
+
+procedure RmDir_0(const S: string);
+begin
+  RmDir(S);
+end;
+
+
+
+procedure RmDir_1(P: PChar);
+begin
+  RmDir(P);
+end;
+
+
+function Random_0(const ARange: Integer): Integer;
+begin
+  Result := Random(ARange);
+end;
+
+function Random_1: Extended;
+begin
+  Result := Random;
+end;
+
+
+function UnicodeToUtf8_0(Dest: PChar; MaxDestBytes: Cardinal; Source: PWideChar; SourceChars: Cardinal): Cardinal;
+begin
+  Result := UnicodeToUtf8(Dest, MaxDestBytes, Source, SourceChars);
+end;
+
+function Utf8ToUnicode_0(Dest: PWideChar; MaxDestChars: Cardinal; Source: PChar; SourceBytes: Cardinal): Cardinal;
+begin
+  Result := Utf8ToUnicode(Dest, MaxDestChars, Source, SourceBytes);
+end;
+
+function Pos_0(const substr, str: AnsiString): Integer;
+begin
+  Result := Pos(substr, str);
+end;
+
+function Pos_1(const substr, str: WideString): Integer;
+begin
+  Result := Pos(substr, str);
+end;
+
+function StringOfChar_0(ch: AnsiChar; Count: Integer): AnsiString;
+begin
+  Result := StringOfChar(ch, Count);
+end;
+
+function StringOfChar_1(ch: WideChar; Count: Integer): WideString;
+begin
+  Result := StringOfChar(ch, Count);
+end;
 
 function ImportUnit(Root : TSepiMetaRoot) : TSepiMetaUnit;
 begin
@@ -746,6 +910,163 @@ begin
   TSepiConstant.Create(Result, 'opCmpLE', opCmpLE);
   TSepiConstant.Create(Result, 'opCmpGT', opCmpGT);
   TSepiConstant.Create(Result, 'opCmpGE', opCmpGE);
+
+  // Routines
+  TSepiMetaMethod.Create(Result, 'AcquireExceptionObject', @AcquireExceptionObject,
+    'function: Pointer');
+  TSepiMetaMethod.Create(Result, 'ReleaseExceptionObject', @ReleaseExceptionObject,
+    'procedure');
+  TSepiMetaMethod.Create(Result, 'ExceptObject', @ExceptObject,
+    'function: TObject');
+  TSepiMetaMethod.Create(Result, 'ExceptAddr', @ExceptAddr,
+    'function: Pointer');
+
+  // Types
+  TSepiType.LoadFromTypeInfo(Result, TypeInfo(TTextLineBreakStyle));
+
+  // Global variables
+  TSepiVariable.Create(Result, 'DefaultTextLineBreakStyle',
+     DefaultTextLineBreakStyle, TypeInfo(TTextLineBreakStyle));
+
+  // Constants
+  TSepiConstant.Create(Result, 'sLineBreak', sLineBreak);
+
+  // Types
+  TSepiTypeAlias.Create(Result, 'HRSRC', TypeInfo(THandle));
+  TSepiTypeAlias.Create(Result, 'TResourceHandle', TypeInfo(HRSRC));
+  TSepiTypeAlias.Create(Result, 'HINST', TypeInfo(THandle));
+  TSepiTypeAlias.Create(Result, 'HMODULE', TypeInfo(HINST));
+  TSepiTypeAlias.Create(Result, 'HGLOBAL', TypeInfo(THandle));
+
+  // Constants
+  TSepiConstant.Create(Result, 'fmClosed', fmClosed);
+  TSepiConstant.Create(Result, 'fmInput', fmInput);
+  TSepiConstant.Create(Result, 'fmOutput', fmOutput);
+  TSepiConstant.Create(Result, 'fmInOut', fmInOut);
+
+  // Types
+  TSepiArrayType.Create(Result, '$7',
+    [1, 32], TypeInfo(Byte), True);
+  TSepiArrayType.Create(Result, '$8',
+    [0, 259], TypeInfo(Char), True);
+  SepiImportTFileRec(Result);
+  TSepiPointerType.Create(Result, 'PTextBuf', 'TTextBuf', True);
+  TSepiArrayType.Create(Result, 'TTextBuf',
+    [0, 127], TypeInfo(Char), True);
+  TSepiArrayType.Create(Result, '$9',
+    [1, 32], TypeInfo(Byte), True);
+  TSepiArrayType.Create(Result, '$10',
+    [0, 259], TypeInfo(Char), True);
+  SepiImportTTextRec(Result);
+  TSepiMethodRefType.Create(Result, 'TTextIOFunc',
+    'function(var F: TTextRec): Integer');
+  TSepiMethodRefType.Create(Result, 'TFileIOFunc',
+    'function(var F: TFileRec): Integer');
+
+  // Routines
+  TSepiMetaOverloadedMethod.Create(Result, 'ChDir');
+  TSepiMetaMethod.Create(Result, 'OL$ChDir$0', @ChDir_0,
+    'procedure(const S: string)');
+  TSepiMetaMethod.Create(Result, 'OL$ChDir$1', @ChDir_1,
+    'procedure(P: PChar)');
+  TSepiMetaMethod.Create(Result, 'IOResult', @IOResult,
+    'function: Integer');
+  TSepiMetaOverloadedMethod.Create(Result, 'MkDir');
+  TSepiMetaMethod.Create(Result, 'OL$MkDir$0', @MkDir_0,
+    'procedure(const S: string)');
+  TSepiMetaMethod.Create(Result, 'OL$MkDir$1', @MkDir_1,
+    'procedure(P: PChar)');
+  TSepiMetaMethod.Create(Result, 'Move', @Move,
+    'procedure(const Source; var Dest; Count: Integer)');
+  TSepiMetaMethod.Create(Result, 'ParamCount', @ParamCount,
+    'function: Integer');
+  TSepiMetaMethod.Create(Result, 'ParamStr', @ParamStr,
+    'function(Index: Integer): string');
+  TSepiMetaOverloadedMethod.Create(Result, 'RmDir');
+  TSepiMetaMethod.Create(Result, 'OL$RmDir$0', @RmDir_0,
+    'procedure(const S: string)');
+  TSepiMetaMethod.Create(Result, 'OL$RmDir$1', @RmDir_1,
+    'procedure(P: PChar)');
+  TSepiMetaMethod.Create(Result, 'UpCase', @UpCase,
+    'function(Ch: Char): Char');
+  TSepiMetaMethod.Create(Result, 'Randomize', @Randomize,
+    'procedure');
+  TSepiMetaOverloadedMethod.Create(Result, 'Random');
+  TSepiMetaMethod.Create(Result, 'OL$Random$0', @Random_0,
+    'function(const ARange: Integer): Integer');
+  TSepiMetaMethod.Create(Result, 'OL$Random$1', @Random_1,
+    'function: Extended');
+  TSepiMetaMethod.Create(Result, 'WideCharToString', @WideCharToString,
+    'function(Source: PWideChar): string');
+  TSepiMetaMethod.Create(Result, 'WideCharLenToString', @WideCharLenToString,
+    'function(Source: PWideChar; SourceLen: Integer): string');
+  TSepiMetaMethod.Create(Result, 'WideCharToStrVar', @WideCharToStrVar,
+    'procedure(Source: PWideChar; var Dest: string)');
+  TSepiMetaMethod.Create(Result, 'WideCharLenToStrVar', @WideCharLenToStrVar,
+    'procedure(Source: PWideChar; SourceLen: Integer; var Dest: string )');
+  TSepiMetaMethod.Create(Result, 'StringToWideChar', @StringToWideChar,
+    'function(const Source: string; Dest: PWideChar; DestSize: Integer ) : PWideChar');
+  TSepiMetaMethod.Create(Result, 'PUCS4Chars', @PUCS4Chars,
+    'function(const S: UCS4String): PUCS4Char');
+  TSepiMetaMethod.Create(Result, 'WideStringToUCS4String', @WideStringToUCS4String,
+    'function(const S: WideString): UCS4String');
+  TSepiMetaMethod.Create(Result, 'UCS4StringToWideString', @UCS4StringToWideString,
+    'function(const S: UCS4String): WideString');
+  TSepiMetaOverloadedMethod.Create(Result, 'UnicodeToUtf8');
+  TSepiMetaMethod.Create(Result, 'OL$UnicodeToUtf8$0', @UnicodeToUtf8_0,
+    'function(Dest: PChar; MaxDestBytes: Cardinal; Source: PWideChar; SourceChars: Cardinal): Cardinal');
+  TSepiMetaOverloadedMethod.Create(Result, 'Utf8ToUnicode');
+  TSepiMetaMethod.Create(Result, 'OL$Utf8ToUnicode$0', @Utf8ToUnicode_0,
+    'function(Dest: PWideChar; MaxDestChars: Cardinal; Source: PChar; SourceBytes: Cardinal): Cardinal');
+  TSepiMetaMethod.Create(Result, 'UTF8Encode', @UTF8Encode,
+    'function(const WS: WideString): UTF8String');
+  TSepiMetaMethod.Create(Result, 'UTF8Decode', @UTF8Decode,
+    'function(const S: UTF8String): WideString');
+  TSepiMetaMethod.Create(Result, 'AnsiToUtf8', @AnsiToUtf8,
+    'function(const S: string): UTF8String');
+  TSepiMetaMethod.Create(Result, 'Utf8ToAnsi', @Utf8ToAnsi,
+    'function(const S: UTF8String): string');
+  TSepiMetaMethod.Create(Result, 'OleStrToString', @OleStrToString,
+    'function(Source: PWideChar): string');
+  TSepiMetaMethod.Create(Result, 'OleStrToStrVar', @OleStrToStrVar,
+    'procedure(Source: PWideChar; var Dest: string)');
+  TSepiMetaMethod.Create(Result, 'StringToOleStr', @StringToOleStr,
+    'function(const Source: string): PWideChar');
+
+  // Types
+  TSepiPointerType.Create(Result, 'PResStringRec', 'TResStringRec', True);
+  TSepiPointerType.Create(Result, '$11', TypeInfo(Cardinal), True);
+  SepiImportTResStringRec(Result);
+
+  // Routines
+  TSepiMetaMethod.Create(Result, 'LoadResString', @LoadResString,
+    'function(ResStringRec: PResStringRec): string');
+  TSepiMetaMethod.Create(Result, 'Int', @Int,
+    'function(const X: Extended): Extended');
+  TSepiMetaMethod.Create(Result, 'Frac', @Frac,
+    'function(const X: Extended): Extended');
+  TSepiMetaMethod.Create(Result, 'Exp', @Exp,
+    'function(const X: Extended): Extended');
+  TSepiMetaMethod.Create(Result, 'Cos', @Cos,
+    'function(const X: Extended): Extended');
+  TSepiMetaMethod.Create(Result, 'Sin', @Sin,
+    'function(const X: Extended): Extended');
+  TSepiMetaMethod.Create(Result, 'Ln', @Ln,
+    'function(const X: Extended): Extended');
+  TSepiMetaMethod.Create(Result, 'ArcTan', @ArcTan,
+    'function(const X: Extended): Extended');
+  TSepiMetaMethod.Create(Result, 'Sqrt', @Sqrt,
+    'function(const X: Extended): Extended');
+  TSepiMetaOverloadedMethod.Create(Result, 'Pos');
+  TSepiMetaMethod.Create(Result, 'OL$Pos$0', @Pos_0,
+    'function(const substr, str: AnsiString): Integer');
+  TSepiMetaMethod.Create(Result, 'OL$Pos$1', @Pos_1,
+    'function(const substr, str: WideString): Integer');
+  TSepiMetaOverloadedMethod.Create(Result, 'StringOfChar');
+  TSepiMetaMethod.Create(Result, 'OL$StringOfChar$0', @StringOfChar_0,
+    'function(ch: AnsiChar; Count: Integer): AnsiString');
+  TSepiMetaMethod.Create(Result, 'OL$StringOfChar$1', @StringOfChar_1,
+    'function(ch: WideChar; Count: Integer): WideString');
 
   Result.Complete;
 end;
