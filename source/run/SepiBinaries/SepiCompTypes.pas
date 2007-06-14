@@ -1025,11 +1025,18 @@ constructor TSepiMetaMethod.Create(AOwner : TSepiMeta; const AName : string;
   ACode : Pointer; const ASignature : string;
   ALinkKind : TMethodLinkKind = mlkStatic; AAbstract : boolean = False;
   AMsgID : integer = 0; ACallConvention : TCallConvention = ccRegister);
+var SignPrefix : string;
 begin
   inherited Create(AOwner, AName);
 
+  if Owner is TSepiMetaUnit then
+    SignPrefix := 'unit '
+  else
+    SignPrefix := '';
+
   FCode := ACode;
-  FSignature := TSepiMethodSignature.Create(Self, ASignature, ACallConvention);
+  FSignature := TSepiMethodSignature.Create(Self,
+    SignPrefix + ASignature, ACallConvention);
   FLinkKind := ALinkKind;
   FFirstDeclaration := FLinkKind <> mlkOverride;
   FAbstract := AAbstract and (FLinkKind in [mlkVirtual, mlkDynamic]);
