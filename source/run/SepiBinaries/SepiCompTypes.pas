@@ -140,6 +140,7 @@ type
     FLinkIndex : integer; /// Offset de VMT ou index de DMT, selon la liaison
 
     procedure MakeLink;
+    procedure FindNativeCode;
   protected
     procedure ListReferences; override;
     procedure Save(Stream : TStream); override;
@@ -238,6 +239,7 @@ type
     property WriteAccess : TSepiPropertyAccess read FWriteAccess;
     property Index : integer read FIndex;
     property DefaultValue : integer read FIndex;
+    property IsDefault : boolean read FIsDefault;
   end;
 
   {*
@@ -1043,6 +1045,9 @@ begin
   FLinkIndex := AMsgID; // only for messages
 
   MakeLink;
+
+  if (Code = nil) and (Owner as TSepiType).Native then
+    FindNativeCode;
 end;
 
 {*
@@ -1109,7 +1114,7 @@ begin
         FInherited := TSepiMetaOverloadedMethod(Meta).FindMethod(Signature);
     end else
     begin
-      // Looking for an ancestor method which intercept the same message ID
+      // Looking for an ancestor method which intercepts the same message ID
       Ancestor := OwningClass.Parent;
       while (FInherited = nil) and (Ancestor <> nil) do
       begin
@@ -1148,6 +1153,33 @@ begin
     begin
       FLinkKind := FInherited.LinkKind;
       FLinkIndex := FInherited.FLinkIndex;
+    end;
+  end;
+end;
+
+{*
+  Cherche le code d'une méthode native
+*}
+procedure TSepiMetaMethod.FindNativeCode;
+
+  function GetDynamicCode(AClass : TClass; DMTIndex : integer) : Pointer;
+  asm
+        { ->    EAX     Pointer to class        }
+        {       EDX     DMTIndex                }
+        { <-    EAX     Pointer to method       }
+        PUSH    ECX
+        CALL    System.@FindDynaClass
+        POP     ECX
+  end;
+
+begin
+  case LinkKind of
+    mlkVirtual : FCode := TSepiClass(Owner).VMTEntries[VMTOffset];
+    mlkDynamic, mlkMessage :
+    try
+      FCode := GetDynamicCode(TSepiClass(Owner).DelphiClass, DMTIndex);
+    except
+      on Error : EAbstractError do;
     end;
   end;
 end;
@@ -1272,7 +1304,7 @@ constructor TSepiMetaProperty.Load(AOwner : TSepiMeta; Stream : TStream);
 begin
   inherited;
 
-  FSignature := TSepiMethodSignature.Load(AOwner, Stream);
+  FSignature := TSepiMethodSignature.Load(Self, Stream);
   LoadChildren(Stream);
 
   OwningUnit.ReadRef(Stream, FReadAccess.Meta);
