@@ -342,6 +342,9 @@ begin
     begin
       if Str[I] in ExcludedChars then
       begin
+        if I mod 256 = 0 then
+          Result := Result+'+';
+
         Result := Result+'#'+IntToStr(Byte(Str[I]));
         inc(I);
       end else
@@ -349,6 +352,9 @@ begin
         Result := Result+'''';
         while (I <= Length(Str)) and (not (Str[I] in ExcludedChars)) do
         begin
+          if I mod 256 = 0 then
+            Result := Result+'''+''';
+
           if Str[I] = '''' then Result := Result + '''''' else
             Result := Result + Str[I];
           inc(I);
@@ -376,45 +382,49 @@ begin
   Result := '';
   Str := Trim(Str);
   I := 1;
-  while (I <= Length(Str)) and ((Str[I] = '''') or (Str[I] = '#')) do
-  begin
-    if Str[I] = '''' then
+  repeat
+    while (I <= Length(Str)) and ((Str[I] = '''') or (Str[I] = '#')) do
     begin
-      inc(I);
-      while True do
+      if Str[I] = '''' then
       begin
+        inc(I);
+        while True do
+        begin
+          if I > Length(Str) then
+            raise EConvertError.CreateFmt(sScWrongString, [Str]);
+          if Str[I] = '''' then
+          begin
+            inc(I);
+            if (I <= Length(Str)) and (Str[I] = '''') then
+            begin
+              Result := Result+'''';
+              inc(I);
+            end else Break;
+          end else
+          begin
+            Result := Result+Str[I];
+            inc(I);
+          end;
+        end;
+      end else
+      begin
+        inc(I);
         if I > Length(Str) then
           raise EConvertError.CreateFmt(sScWrongString, [Str]);
-        if Str[I] = '''' then
+        CharStr := '';
+        while (I <= Length(Str)) and (Str[I] in ['0'..'9']) do
         begin
-          inc(I);
-          if (I <= Length(Str)) and (Str[I] = '''') then
-          begin
-            Result := Result+'''';
-            inc(I);
-          end else Break;
-        end else
-        begin
-          Result := Result+Str[I];
+          CharStr := CharStr+Str[I];
           inc(I);
         end;
+        IntChar := StrToIntDef(CharStr, -1);
+        if (IntChar >= 0) and (IntChar <= 255) then
+          Result := Result+Char(IntChar)
+        else
+          raise EConvertError.CreateFmt(sScWrongString, [Str]);
       end;
-    end else
-    begin
-      inc(I);
-      if I > Length(Str) then
-        raise EConvertError.CreateFmt(sScWrongString, [Str]);
-      CharStr := '';
-      while (I <= Length(Str)) and (Str[I] in ['0'..'9']) do
-      begin
-        CharStr := CharStr+Str[I];
-        inc(I);
-      end;
-      IntChar := StrToIntDef(CharStr, -1);
-      if (IntChar >= 0) and (IntChar <= 255) then Result := Result+Char(IntChar) else
-        raise EConvertError.CreateFmt(sScWrongString, [Str]);
     end;
-  end;
+  until (I <= Length(Str)) and (Str[I] = '+');
   if I <= Length(Str) then
     raise EConvertError.CreateFmt(sScWrongString, [Str]);
 end;
