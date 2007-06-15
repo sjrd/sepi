@@ -177,7 +177,8 @@ type
     procedure Save(Stream : TStream); override;
   public
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
-    constructor Create(AOwner : TSepiMeta; const AName : string);
+    constructor Create(AOwner : TSepiMeta; const AName : string;
+      AMethodCount : integer = 0);
 
     function NextID : integer;
     function FindMethod(
@@ -324,8 +325,11 @@ type
       AIsDispInterface : boolean = False);
 
     class function NewInstance : TObject; override;
+
     class function ForwardDecl(AOwner : TSepiMeta;
-      const AName : string) : TSepiInterface;
+      ATypeInfo : PTypeInfo) : TSepiInterface; overload;
+    class function ForwardDecl(AOwner : TSepiMeta;
+      const AName : string) : TSepiInterface; overload;
 
     function AddMethod(const MethodName, ASignature : string;
       ACallConvention : TCallConvention = ccRegister) : TSepiMetaMethod;
@@ -425,8 +429,11 @@ type
     destructor Destroy; override;
 
     class function NewInstance : TObject; override;
+
     class function ForwardDecl(AOwner : TSepiMeta;
-      const AName : string) : TSepiClass;
+      ATypeInfo : PTypeInfo) : TSepiClass; overload;
+    class function ForwardDecl(AOwner : TSepiMeta;
+      const AName : string) : TSepiClass; overload;
 
     procedure AddInterface(AInterface : TSepiInterface); overload;
     procedure AddInterface(AIntfTypeInfo : PTypeInfo); overload;
@@ -1237,10 +1244,10 @@ end;
   @param AName    Nom de la méthode
 *}
 constructor TSepiMetaOverloadedMethod.Create(AOwner : TSepiMeta;
-  const AName : string);
+  const AName : string; AMethodCount : integer = 0);
 begin
   inherited Create(AOwner, AName);
-  FMethodCount := 0;
+  FMethodCount := AMethodCount;
 end;
 
 {*
@@ -1894,8 +1901,21 @@ end;
 
 {*
   Déclare un type interface en forward
+  @param AOwner      Propriétaire du type
+  @param ATypeName   RTTI de l'interface
+*}
+class function TSepiInterface.ForwardDecl(AOwner : TSepiMeta;
+  ATypeInfo : PTypeInfo) : TSepiInterface;
+begin
+  Result := TSepiInterface(NewInstance);
+  TSepiInterface(Result).TypeInfoRef^ := ATypeInfo;
+  TSepiInterface(AOwner).AddForward(ATypeInfo.Name, Result);
+end;
+
+{*
+  Déclare un type interface en forward
   @param AOwner   Propriétaire du type
-  @param AName    Nom du type
+  @param AName    Nom de l'interface
 *}
 class function TSepiInterface.ForwardDecl(AOwner : TSepiMeta;
   const AName : string) : TSepiInterface;
@@ -2262,7 +2282,7 @@ begin
     if Native then
     begin
       FInterfaces[I].IMT := IntfTable.Entries[I].VTable;
-      Assert(IntfTable.Entries[I].IOffset = FInterfaces[I].Offset);
+      FInterfaces[I].Offset := IntfTable.Entries[I].IOffset;
     end else MakeIMT(@FInterfaces[I]);
   end;
 end;
@@ -2692,8 +2712,21 @@ end;
 
 {*
   Déclare un type classe en forward
+  @param AOwner      Propriétaire du type
+  @param ATypeInfo   RTTI de la classe
+*}
+class function TSepiClass.ForwardDecl(AOwner : TSepiMeta;
+  ATypeInfo : PTypeInfo) : TSepiClass;
+begin
+  Result := TSepiClass(NewInstance);
+  TSepiClass(Result).TypeInfoRef^ := ATypeInfo;
+  TSepiClass(AOwner).AddForward(ATypeInfo.Name, Result);
+end;
+
+{*
+  Déclare un type classe en forward
   @param AOwner   Propriétaire du type
-  @param AName    Nom du type
+  @param AName    Nom de la classe
 *}
 class function TSepiClass.ForwardDecl(AOwner : TSepiMeta;
   const AName : string) : TSepiClass;

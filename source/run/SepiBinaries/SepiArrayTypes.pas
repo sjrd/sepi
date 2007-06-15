@@ -74,7 +74,7 @@ type
   *}
   TSepiDynArrayType = class(TSepiType)
   private
-    FElementType : TSepiType;     /// Type des éléments
+    FElementType : TSepiType; /// Type des éléments
 
     procedure MakeTypeInfo;
   protected
@@ -88,6 +88,9 @@ type
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
     constructor Create(AOwner : TSepiMeta; const AName : string;
       AElementType : TSepiType);
+
+    procedure SetElementType(AElementType : TSepiType); overload;
+    procedure SetElementType(const AElementTypeName : string); overload;
 
     function CompatibleWith(AType : TSepiType) : boolean; override;
 
@@ -384,7 +387,34 @@ begin
   FSize := 4;
   FNeedInit := True;
 
-  FElementType := Root.FindType(TypeData.elType2^);
+  if Assigned(TypeData.elType2) then
+    FElementType := Root.FindType(TypeData.elType2^);
+  // Otherwise, the element type should be set with SetElementType
+end;
+
+{*
+  Renseigne le type des éléments
+  Cette méthode ne doit être appelée que pour un tableau dynamique natif, dont
+  les éléments n'ont pas de RTTI, et juste après le constructeur
+  RegisterTypeInfo.
+  @param AElementType   Type des éléments
+*}
+procedure TSepiDynArrayType.SetElementType(AElementType : TSepiType);
+begin
+  Assert(Native and (FElementType = nil));
+  FElementType := AElementType;
+end;
+
+{*
+  Renseigne le type des éléments
+  Cette méthode ne doit être appelée que pour un tableau dynamique natif, dont
+  les éléments n'ont pas de RTTI, et juste après le constructeur
+  RegisterTypeInfo.
+  @param AElementTypeName   Nom du type des éléments
+*}
+procedure TSepiDynArrayType.SetElementType(const AElementTypeName : string);
+begin
+  SetElementType(Root.FindType(AElementTypeName));
 end;
 
 {*

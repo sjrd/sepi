@@ -8,8 +8,9 @@ unit SepiMetaUnits;
 interface
 
 uses
-  Windows, SysUtils, Classes, Contnrs, RTLConsts, SepiCore, ScUtils, IniFiles,
-  TypInfo, Variants, StrUtils, ScLists, ScStrUtils, ScExtra, SepiBinariesConsts;
+  Windows, SysUtils, Classes, Contnrs, SysConst, RTLConsts, SepiCore, ScUtils,
+  IniFiles, TypInfo, Variants, StrUtils, ScLists, ScStrUtils, ScExtra,
+  SepiBinariesConsts;
 
 type
   {*
@@ -663,6 +664,9 @@ end;
 destructor TSepiMeta.Destroy;
 var I : integer;
 begin
+  if State <> msDestroying then // only if an error as occured in constructor
+    Destroying;
+
   if Assigned(FChildren) then
   begin
     for I := 0 to FChildren.Count-1 do
@@ -862,8 +866,9 @@ procedure TSepiMeta.Destroying;
 var I : integer;
 begin
   FState := msDestroying;
-  for I := 0 to ChildCount-1 do
-    Children[I].Destroying;
+  if Assigned(FChildren) then // could not be if an error occured in constructor
+    for I := 0 to ChildCount-1 do
+      Children[I].Destroying;
 end;
 
 {*
@@ -1050,16 +1055,6 @@ begin
 end;
 
 {*
-  Crée une nouvelle instance de TSepiType
-  @return Instance créée
-*}
-class function TSepiType.NewInstance : TObject;
-begin
-  Result := inherited NewInstance;
-  TSepiType(Result).FTypeInfoRef := @TSepiType(Result).FTypeInfo;
-end;
-
-{*
   Force le type comme étant natif, en modifiant également les RTTI
   Cette méthode est utilisée par les types record et tableau statique, qui n'ont
   pas toujours, même natifs, de RTTI.
@@ -1114,6 +1109,16 @@ end;
 function TSepiType.GetAlignment : integer;
 begin
   Result := Size;
+end;
+
+{*
+  Crée une nouvelle instance de TSepiType
+  @return Instance créée
+*}
+class function TSepiType.NewInstance : TObject;
+begin
+  Result := inherited NewInstance;
+  TSepiType(Result).FTypeInfoRef := @TSepiType(Result).FTypeInfo;
 end;
 
 {*
@@ -1255,6 +1260,9 @@ begin
     Result := ImportFunc(Self);
 
   { TODO 2 -cMetaunités : Charger une unité non système par son nom }
+
+  if Result = nil then
+    raise EInOutError.Create(SFileNotFound);
 end;
 
 {*

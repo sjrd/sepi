@@ -492,6 +492,43 @@ begin
   end;
 end;
 
+{------------------}
+{ TCallDesc import }
+{------------------}
+
+function SepiImportTCallDesc(Owner : TSepiMetaUnit) : TSepiRecordType;
+begin
+  Result := TSepiRecordType.Create(Owner, 'TCallDesc', True, True);
+
+  with Result do
+  begin
+    AddField('CallType', System.TypeInfo(Byte));
+    AddField('ArgCount', System.TypeInfo(Byte));
+    AddField('NamedArgCount', System.TypeInfo(Byte));
+    AddField('ArgTypes', '$7');
+
+    Complete;
+  end;
+end;
+
+{------------------}
+{ TDispDesc import }
+{------------------}
+
+function SepiImportTDispDesc(Owner : TSepiMetaUnit) : TSepiRecordType;
+begin
+  Result := TSepiRecordType.Create(Owner, 'TDispDesc', True, True);
+
+  with Result do
+  begin
+    AddField('DispID', System.TypeInfo(Integer));
+    AddField('ResType', System.TypeInfo(Byte));
+    AddField('CallDesc', 'TCallDesc');
+
+    Complete;
+  end;
+end;
+
 {-----------------}
 { TFileRec import }
 {-----------------}
@@ -514,8 +551,8 @@ begin
     AddField('InOutFunc', 'Pointer', 'OpenFunc');
     AddField('FlushFunc', 'Pointer', 'InOutFunc');
     AddField('CloseFunc', 'Pointer', 'FlushFunc');
-    AddField('UserData', '$7', 'CloseFunc');
-    AddField('Name', '$8', 'UserData');
+    AddField('UserData', '$8', 'CloseFunc');
+    AddField('Name', '$9', 'UserData');
 
     Complete;
   end;
@@ -542,8 +579,8 @@ begin
     AddField('InOutFunc', 'Pointer');
     AddField('FlushFunc', 'Pointer');
     AddField('CloseFunc', 'Pointer');
-    AddField('UserData', '$9');
-    AddField('Name', '$10');
+    AddField('UserData', '$10');
+    AddField('Name', '$11');
     AddField('Buffer', 'TTextBuf');
 
     Complete;
@@ -560,7 +597,7 @@ begin
 
   with Result do
   begin
-    AddField('Module', '$11');
+    AddField('Module', '$12');
     AddField('Identifier', System.TypeInfo(Integer));
 
     Complete;
@@ -581,12 +618,6 @@ begin
   ChDir(P);
 end;
 
-
-
-
-
-
-
 procedure MkDir_0(const S: string);
 begin
   MkDir(S);
@@ -597,19 +628,15 @@ begin
   MkDir(P);
 end;
 
-
 procedure RmDir_0(const S: string);
 begin
   RmDir(S);
 end;
 
-
-
 procedure RmDir_1(P: PChar);
 begin
   RmDir(P);
 end;
-
 
 function Random_0(const ARange: Integer): Integer;
 begin
@@ -620,7 +647,6 @@ function Random_1: Extended;
 begin
   Result := Random;
 end;
-
 
 function UnicodeToUtf8_0(Dest: PChar; MaxDestBytes: Cardinal; Source: PWideChar; SourceChars: Cardinal): Cardinal;
 begin
@@ -911,6 +937,14 @@ begin
   TSepiConstant.Create(Result, 'opCmpGT', opCmpGT);
   TSepiConstant.Create(Result, 'opCmpGE', opCmpGE);
 
+  // Types
+  TSepiPointerType.Create(Result, 'PCallDesc', 'TCallDesc', True);
+  TSepiArrayType.Create(Result, '$7',
+    [0, 255], TypeInfo(Byte), True);
+  SepiImportTCallDesc(Result);
+  TSepiPointerType.Create(Result, 'PDispDesc', 'TDispDesc', True);
+  SepiImportTDispDesc(Result);
+
   // Routines
   TSepiMetaMethod.Create(Result, 'AcquireExceptionObject', @AcquireExceptionObject,
     'function: Pointer');
@@ -945,17 +979,17 @@ begin
   TSepiConstant.Create(Result, 'fmInOut', fmInOut);
 
   // Types
-  TSepiArrayType.Create(Result, '$7',
-    [1, 32], TypeInfo(Byte), True);
   TSepiArrayType.Create(Result, '$8',
+    [1, 32], TypeInfo(Byte), True);
+  TSepiArrayType.Create(Result, '$9',
     [0, 259], TypeInfo(Char), True);
   SepiImportTFileRec(Result);
   TSepiPointerType.Create(Result, 'PTextBuf', 'TTextBuf', True);
   TSepiArrayType.Create(Result, 'TTextBuf',
     [0, 127], TypeInfo(Char), True);
-  TSepiArrayType.Create(Result, '$9',
-    [1, 32], TypeInfo(Byte), True);
   TSepiArrayType.Create(Result, '$10',
+    [1, 32], TypeInfo(Byte), True);
+  TSepiArrayType.Create(Result, '$11',
     [0, 259], TypeInfo(Char), True);
   SepiImportTTextRec(Result);
   TSepiMethodRefType.Create(Result, 'TTextIOFunc',
@@ -1035,7 +1069,7 @@ begin
 
   // Types
   TSepiPointerType.Create(Result, 'PResStringRec', 'TResStringRec', True);
-  TSepiPointerType.Create(Result, '$11', TypeInfo(Cardinal), True);
+  TSepiPointerType.Create(Result, '$12', TypeInfo(Cardinal), True);
   SepiImportTResStringRec(Result);
 
   // Routines

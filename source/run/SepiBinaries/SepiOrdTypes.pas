@@ -844,6 +844,7 @@ end;
 procedure TSepiEnumType.CreateConstants;
 var Value : integer;
 begin
+  if BaseType <> Self then exit;
   for Value := MinValue to MaxValue do
     TSepiConstant.Create(Owner, Self.Names[Value], Value, Self);
 end;
@@ -1100,6 +1101,9 @@ begin
   except
     on Error : ESepiMetaNotFoundError do
     begin
+      if FForwardInfo <> nil then
+        raise;
+
       New(FForwardInfo);
       FForwardInfo.Owner := AOwner;
       FForwardInfo.Name := AName;
@@ -1125,6 +1129,9 @@ begin
   except
     on Error : ESepiMetaNotFoundError do
     begin
+      if FForwardInfo <> nil then
+        raise;
+        
       New(FForwardInfo);
       FForwardInfo.Owner := AOwner;
       FForwardInfo.Name := AName;
