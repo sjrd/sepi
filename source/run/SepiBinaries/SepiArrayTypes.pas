@@ -161,8 +161,8 @@ begin
   FNeedInit := FElementType.NeedInit;
 
   if AIsNative then
-    ForceNative(ATypeInfo)
-  else
+    ForceNative(ATypeInfo);
+  if ATypeInfo = nil then
     MakeTypeInfo;
 end;
 

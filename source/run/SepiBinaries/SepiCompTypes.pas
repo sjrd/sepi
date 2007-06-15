@@ -1720,7 +1720,7 @@ begin
 
   FCompleted := True;
   AlignOffset(FSize);
-  if not Native then
+  if TypeInfo = nil then
     MakeTypeInfo;
 end;
 
