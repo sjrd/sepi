@@ -654,7 +654,7 @@ end;
 
 function ImportUnit(Root : TSepiMetaRoot) : TSepiMetaUnit;
 begin
-  Result := TSepiMetaUnit.Create(Root, 'System');
+  Result := TSepiMetaUnit.Create(Root, SystemUnitName, []);
 
   // Integer types
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(Integer));

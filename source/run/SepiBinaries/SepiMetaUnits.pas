@@ -8,8 +8,8 @@ unit SepiMetaUnits;
 interface
 
 uses
-  SysUtils, Classes, Contnrs, RTLConsts, SepiCore, ScUtils, IniFiles, TypInfo,
-  StrUtils, ScLists, ScStrUtils, ScExtra, SepiBinariesConsts, Variants;
+  Windows, SysUtils, Classes, Contnrs, RTLConsts, SepiCore, ScUtils, IniFiles,
+  TypInfo, Variants, StrUtils, ScLists, ScStrUtils, ScExtra, SepiBinariesConsts;
 
 type
   {*
@@ -55,8 +55,6 @@ type
   TSepiMeta = class;
   TSepiMetaRoot = class;
   TSepiMetaUnit = class;
-  TSepiConstant = class;
-  TSepiTypeAlias = class;
 
   {*
     Liste de meta
@@ -224,10 +222,15 @@ type
     /// Déclenché pour chaque méthode au chargement, pour obtenir son code
     FOnGetMethodCode : TGetMethodCodeEvent;
 
+    FSearchOrder : TObjectList;
+
     function GetUnitCount : integer;
     function GetUnits(Index : integer) : TSepiMetaUnit;
+  protected
+    procedure ChildAdded(Child : TSepiMeta); override;
   public
     constructor Create;
+    destructor Destroy; override;
 
     function LoadUnit(const UnitName : string) : TSepiMetaUnit;
 
@@ -254,17 +257,16 @@ type
 
     FReferences : array of TStrings; /// Références en chargement/sauvegarde
 
-    function AddUses(AUnit : TSepiMetaUnit) : integer; overload;
+    function AddUses(AUnit : TSepiMetaUnit) : integer;
 
     procedure SetCurrentVisibility(Value : TMemberVisibility);
   protected
     procedure Save(Stream : TStream); override;
   public
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
-    constructor Create(AOwner : TSepiMeta; const AName : string);
+    constructor Create(AOwner : TSepiMeta; const AName : string;
+      const AUses : array of string);
     destructor Destroy; override;
-
-    function AddUses(const UnitName : string) : TSepiMetaUnit; overload;
 
     procedure Complete;
 
@@ -390,6 +392,9 @@ procedure SepiRegisterMetaClasses(const MetaClasses : array of TSepiMetaClass);
 procedure SepiRegisterImportedUnit(const UnitName : string;
   ImportFunc : TSepiImportUnitFunc);
 procedure SepiUnregisterImportedUnit(const UnitName : string);
+
+const {don't localize}
+  SystemUnitName = 'System'; /// Nom de l'unité System.pas
 
 implementation
 
@@ -1180,8 +1185,18 @@ begin
   FRoot := Self;
   FState := msNormal;
   FOnGetMethodCode := nil;
+  FSearchOrder := TObjectList.Create(False);
 
-  LoadUnit('System'); {don't localize}
+  LoadUnit(SystemUnitName);
+end;
+
+{*
+  [@inheritDoc]
+*}
+destructor TSepiMetaRoot.Destroy;
+begin
+  FSearchOrder.Free;
+  inherited;
 end;
 
 {*
@@ -1201,6 +1216,27 @@ end;
 function TSepiMetaRoot.GetUnits(Index : integer) : TSepiMetaUnit;
 begin
   Result := TSepiMetaUnit(FChildren.Objects[Index]);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiMetaRoot.ChildAdded(Child : TSepiMeta);
+var CurrentUnit : TSepiMetaUnit;
+    I : integer;
+begin
+  inherited;
+
+  CurrentUnit := Child as TSepiMetaUnit;
+  FSearchOrder.Clear;
+  FSearchOrder.Add(Self);
+
+  FSearchOrder.Add(CurrentUnit);
+  for I := 0 to CurrentUnit.FUsesList.Count-1 do
+    FSearchOrder.Add(CurrentUnit.FUsesList.Objects[I]);
+  for I := 0 to ChildCount-1 do
+    if FSearchOrder.IndexOf(Children[I]) < 0 then
+      FSearchOrder.Add(Children[I]);
 end;
 
 {*
@@ -1268,16 +1304,9 @@ begin
     exit;
   end;
 
-  Meta := GetMeta(TypeName);
-  if Meta is TSepiType then
+  for I := 0 to FSearchOrder.Count-1 do
   begin
-    Result := TSepiType(Meta);
-    exit;
-  end;
-
-  for I := 0 to UnitCount-1 do
-  begin
-    Meta := Units[I].GetMeta(TypeName);
+    Meta := TSepiMeta(FSearchOrder[I]).GetMeta(TypeName);
     if Meta is TSepiType then
     begin
       Result := TSepiType(Meta);
@@ -1342,12 +1371,21 @@ end;
   @param AOwner   Propriétaire de l'unité (la racine)
   @param AName    Nom de l'unité
 *}
-constructor TSepiMetaUnit.Create(AOwner : TSepiMeta; const AName : string);
+constructor TSepiMetaUnit.Create(AOwner : TSepiMeta; const AName : string;
+  const AUses : array of string);
+var I : integer;
 begin
+  Assert(AOwner is TSepiMetaRoot);
+
+  FUsesList := TStringList.Create;
+  if not AnsiSameText(AName, SystemUnitName) then
+    AddUses(TSepiMetaRoot(AOwner).LoadUnit(SystemUnitName));
+  for I := Low(AUses) to High(AUses) do
+    AddUses(TSepiMetaRoot(AOwner).LoadUnit(AUses[I]));
+
   inherited Create(AOwner, AName, tkUnknown);
 
   FOwningUnit := Self;
-  FUsesList := TStringList.Create;
   FCurrentVisibility := mvPublic;
 end;
 
@@ -1403,17 +1441,6 @@ procedure TSepiMetaUnit.Save(Stream : TStream);
 begin
   inherited;
   SaveChildren(Stream);
-end;
-
-{*
-  Ajoute une unité aux uses de cette unité
-  @param UnitName   Nom de l'unité à ajouter aux uses
-  @return Nouvelle unité dans les uses
-*}
-function TSepiMetaUnit.AddUses(const UnitName : string) : TSepiMetaUnit;
-begin
-  Result := Root.LoadUnit(UnitName);
-  AddUses(Result);
 end;
 
 {*
