@@ -37,7 +37,6 @@ contains
   ScLOGFile in '..\..\source\run\SCL\ScLOGFile.pas',
   ScMaths in '..\..\source\run\SCL\ScMaths.pas',
   ScMD5 in '..\..\source\run\SCL\ScMD5.pas',
-  ScMusicUtils in '..\..\source\run\SCL\ScMusicUtils.pas',
   ScNoSecretWindow in '..\..\source\run\SCL\ScNoSecretWindow.pas',
   ScStrUtils in '..\..\source\run\SCL\ScStrUtils.pas',
   ScUtils in '..\..\source\run\SCL\ScUtils.pas',
