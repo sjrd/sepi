@@ -1,0 +1,50 @@
+package SepiSCLImport90;
+
+{$R *.res}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO ON}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION ON}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES OFF}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DESCRIPTION 'Sepi importer for SCL units'}
+{$IMPLICITBUILD OFF}
+
+requires
+  rtl,
+  SepiCore90,
+  SepiBinaries90,
+  SCL90,
+  vcl;
+
+contains
+  SepiImportsScConsts in '..\..\source\run\SepiSCLImport\SepiImportsScConsts.pas',
+  SepiImportsScDateTimeUtils in '..\..\source\run\SepiSCLImport\SepiImportsScDateTimeUtils.pas',
+  SepiImportsScLists in '..\..\source\run\SepiSCLImport\SepiImportsScLists.pas',
+  SepiImportsScLOGFile in '..\..\source\run\SepiSCLImport\SepiImportsScLOGFile.pas',
+  SepiImportsScMaths in '..\..\source\run\SepiSCLImport\SepiImportsScMaths.pas',
+  SepiImportsScMD5 in '..\..\source\run\SepiSCLImport\SepiImportsScMD5.pas',
+  SepiImportsScStrUtils in '..\..\source\run\SepiSCLImport\SepiImportsScStrUtils.pas',
+  SepiImportsScUtils in '..\..\source\run\SepiSCLImport\SepiImportsScUtils.pas',
+  SepiImportsScWindows in '..\..\source\run\SepiSCLImport\SepiImportsScWindows.pas',
+  SepiImportsScZLib in '..\..\source\run\SepiSCLImport\SepiImportsScZLib.pas',
+  SepiImportsSCL in '..\..\source\run\SepiSCLImport\SepiImportsSCL.pas',
+  SepiImportsScDelphiLanguage in '..\..\source\run\SepiSCLImport\SepiImportsScDelphiLanguage.pas';
+
+end.
+
