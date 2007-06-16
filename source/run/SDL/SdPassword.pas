@@ -14,7 +14,7 @@ uses
 {$IFDEF LINUX}
   QForms, QStdCtrls, QButtons, QControls,
 {$ENDIF}
-  ScUtils, ScConsts, Classes;
+  Classes;
 
 type
   {*
@@ -39,6 +39,9 @@ type
 implementation
 
 {$R *.dfm}
+
+uses
+  SdDialogs, ScConsts;
 
 {*
   Demande un mot de passe à l'utilisateur

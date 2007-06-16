@@ -9,7 +9,8 @@ interface
 
 uses
   Windows, Classes, SysUtils, ScUtils, SepiMetaUnits, SysConst, TypInfo,
-  Contnrs, ScLists, StrUtils, ScStrUtils, ScExtra, SepiBinariesConsts, SepiCore;
+  Contnrs, ScLists, StrUtils, ScStrUtils, ScDelphiLanguage, SepiBinariesConsts,
+  SepiCore;
 
 const
   /// Pas d'index

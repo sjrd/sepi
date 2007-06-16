@@ -33,7 +33,6 @@ requires
 contains
   ScConsts in '..\..\source\run\SCL\ScConsts.pas',
   ScDateTimeUtils in '..\..\source\run\SCL\ScDateTimeUtils.pas',
-  ScExtra in '..\..\source\run\SCL\ScExtra.pas',
   ScLists in '..\..\source\run\SCL\ScLists.pas',
   ScLOGFile in '..\..\source\run\SCL\ScLOGFile.pas',
   ScMaths in '..\..\source\run\SCL\ScMaths.pas',
@@ -41,7 +40,10 @@ contains
   ScMusicUtils in '..\..\source\run\SCL\ScMusicUtils.pas',
   ScNoSecretWindow in '..\..\source\run\SCL\ScNoSecretWindow.pas',
   ScStrUtils in '..\..\source\run\SCL\ScStrUtils.pas',
-  ScUtils in '..\..\source\run\SCL\ScUtils.pas';
+  ScUtils in '..\..\source\run\SCL\ScUtils.pas',
+  ScDelphiLanguage in '..\..\source\run\SCL\ScDelphiLanguage.pas',
+  ScWindows in '..\..\source\run\SCL\ScWindows.pas',
+  ScZLib in '..\..\source\run\SCL\ScZLib.pas';
 
 end.
 

@@ -3,38 +3,22 @@
   @author Sébastien Jean Robert Doeraene
   @version 1.0
 *}
-unit ScExtra;
+unit ScDelphiLanguage;
 
 interface
 
 uses
-{$IFDEF MSWINDOWS}
-  Windows, ComObj, ShlObj, ActiveX,
-{$ENDIF}
-  SysUtils, Classes, TypInfo, ZLib, ScUtils, ScConsts;
-
-type
-  {$IFDEF MSWINDOWS}
-  {*
-    Type de son
-    stFileName : Nom de fichier
-    stResource : Nom d'une ressource
-    stSysSound : Nom d'un son système
-  *}
-  TSoundType = (stFileName, stResource, stSysSound);
-  {$ENDIF}
+  SysUtils, TypInfo, ScUtils;
 
 function CorrectIdentifier(const Ident : string) : boolean;
 
-function IntToBase(Value : integer; Base : Byte = 10) : string;
-function BaseToInt(const Value : string; Base : Byte = 10) : integer;
-function BaseToIntDef(const Value : string; Default : integer = 0;
-  Base : Byte = 10) : integer;
+procedure SetBit(var Value : integer; const Bit : Byte); register;
+procedure ClearBit(var Value : integer; const Bit : Byte); register;
+procedure ToggleBit(var Value : integer; const Bit : Byte); register;
+function TestBit(const Value : integer; const Bit : Byte) : boolean; register;
 
-function GetMethodFromName(Obj : TObject; MethodName : ShortString) : TMethod;
-
-function ConvertDoubleToInt64(Value : Double) : Int64;
-function ConvertInt64ToDouble(Value : Int64) : Double;
+function GetMethodFromName(Obj : TObject;
+  const MethodName : ShortString) : TMethod;
 
 function StrToStrRepres(const Str : string;
   ExcludedChars : TSysCharSet = []) : string;
@@ -44,7 +28,7 @@ function CharToCharRepres(Chr : Char;
   ExcludedChars : TSysCharSet = []) : string;
 function CharRepresToChar(Str : string) : Char;
 
-function CharSetToStr(CharSet : TSysCharSet) : string;
+function CharSetToStr(const CharSet : TSysCharSet) : string;
 function StrToCharSet(Str : string) : TSysCharSet;
 
 function EnumSetToStr(const EnumSet; TypeInfo : PTypeInfo) : string;
@@ -57,61 +41,10 @@ procedure ExplicitFinalize(var Value; TypeInfo : PTypeInfo;
 
 function SkipPackedShortString(Value : PShortstring) : Pointer;
 
-{$IFDEF MSWINDOWS}
-procedure CreateShellLink(const Source, Dest : string;
-                          const Description : string = '';
-                          const IconLocation : string = '';
-                          IconIndex : integer = 0;
-                          const Arguments : string = '';
-                          const WorkDir : string = '';
-                          ShowCommand : integer = SW_SHOW); platform;
-{$ENDIF}
-
-{$IFDEF MSWINDOWS}
-function ExecuteSound(const Sound : string; SoundType : TSoundType = stFileName;
-                      Synchronous : boolean = False; Module : HMODULE = 0;
-                      AddFlags : LongWord = 0) : boolean; platform;
-{$ENDIF}
-
-{$REGION 'Modification des ressources'}
-
-{$IFDEF MSWINDOWS}
-function BeginUpdateRes(const FileName : string) : integer; platform;
-procedure AddResource(ResHandle : integer; const ResName : string;
-  Resource : TStream; const ResType : string = 'RCDATA'); platform;
-procedure DelResource(ResHandle : integer; const ResName : string); platform;
-procedure EndUpdateRes(ResHandle : integer; Cancel : boolean = False); platform;
-procedure AddResToFile(const FileName, ResName : string; Resource : TStream;
-  const ResType : string = 'RCDATA'); platform;
-procedure DelResInFile(const FileName, ResName : string); platform;
-{$ENDIF}
-
-{$ENDREGION}
-
-{$REGION 'Compression/décompression'}
-
-const
-  clNoComp      = ZLib.clNone;    /// pas de compression
-  clFastestComp = ZLib.clFastest; /// compression la plus rapide
-  clDefaultComp = ZLib.clDefault; /// compression par défaut
-  clMaxComp     = ZLib.clMax;     /// compression maximale
-
-procedure CompressStream(Stream : TStream; Dest : TStream = nil;
-  CompressionLevel : TCompressionLevel = clDefaultComp);
-procedure DecompressStream(Stream : TStream; Dest : TStream = nil);
-
-{$ENDREGION}
-
 implementation
 
 uses
-{$IFDEF MSWINDOWS}
-  MMSystem;
-{$ENDIF}
-
-const
-  NumbersStr = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'; /// Chiffres des bases
-  MaxBase = 36;                                        /// Base maximale
+  ScConsts;
 
 {*
   Vérifie si une chaîne de caractères est un identificateur Pascal correct
@@ -130,24 +63,13 @@ begin
     ce n'est pas un identificateur correct }
   if not (Ident[1] in ['A'..'Z', '_', 'a'..'z']) then exit;
 
-  { Si l'un des caractères suivant n'est pas alphanumérique,
+  { Si l'un des caractères suivants n'est pas alphanumérique,
     ce n'est pas un identificateur correct }
   for I := 2 to Length(Ident) do
     if not (Ident[I] in ['0'..'9', 'A'..'Z', '_', 'a'..'z']) then exit;
 
   // Dans les autres cas, ça l'est
   Result := True;
-end;
-
-{*
-  Vérifie qu'une base est valide
-  @param Base   Base à tester
-  @raise EConvertError Base incorrecte
-*}
-procedure VerifyBase(Base : Byte);
-begin
-  if (Base < 2) or (Base > MaxBase) then
-    raise EConvertError.CreateFmt(sScWrongBase, [Base]);
 end;
 
 {*
@@ -158,7 +80,7 @@ end;
 *}
 procedure SetBit(var Value : integer; const Bit : Byte); register;
 asm
-  BTS [eax], edx
+        BTS     [EAX],EDX
 end;
 
 {*
@@ -169,7 +91,7 @@ end;
 *}
 procedure ClearBit(var Value : integer; const Bit : Byte); register;
 asm
-  BTR [eax], edx
+        BTR     [EAX],EDX
 end;
 
 {*
@@ -180,7 +102,7 @@ end;
 *}
 procedure ToggleBit(var Value : integer; const Bit : Byte); register;
 asm
-  BTC [eax], edx
+        BTC     [EAX],EDX
 end;
 
 {*
@@ -192,92 +114,8 @@ end;
 *}
 function TestBit(const Value : integer; const Bit : Byte) : boolean; register;
 asm
-  BT   eax, edx
-  setb al
-end;
-
-{*
-  Convertit un entier dans une base donnée
-  @param Value   Entier à convertir
-  @param Base    Base de destination
-  @return Représentation en chaîne de Value exprimé dans la base Base
-  @raise EConvertError Base incorrecte
-*}
-function IntToBase(Value : integer; Base : Byte = 10) : string;
-var Negative : boolean;
-begin
-  VerifyBase(Base);
-
-  if Value = 0 then Result := NumbersStr[1] else
-  begin
-    Negative := Value < 0;
-    if Negative then Value := -Value;
-    Result := '';
-    while Value > 0 do
-    begin
-      Result := NumbersStr[Value mod Base + 1] + Result;
-      Value := Value div Base;
-    end;
-    if Negative then Result := '-'+Result;
-  end;
-end;
-
-{*
-  Convertit un nombre exprimé dans une base donnée en sa représentation décimale
-  @param Value   Chaîne de caractère représentant le nombre
-  @param Base    Base dans laquelle est exprimée le nombre
-  @return Valeur décimale du nombre
-  @raise EConvertError Base incorrecte
-  @raise EConvertError Entier incorrect
-*}
-function BaseToInt(const Value : string; Base : Byte = 10) : integer;
-  procedure RaiseUncorrectInteger;
-  begin
-    raise EConvertError.CreateFmt(sScWrongInteger, [Value]);
-  end;
-var Negative : boolean;
-    ResultCopy, Num : integer;
-    Val : string;
-begin
-  Val := Value;
-  VerifyBase(Base);
-  if (Val = '') or (Val = '-') then
-    RaiseUncorrectInteger;
-  Negative := Val[1] = '-';
-  if Negative then Delete(Val, 1, 1);
-  Result := 0;
-  while Val <> '' do
-  begin
-    Num := Pos(Val[1], NumbersStr);
-    if (Num = 0) or (Num > Base) then
-      RaiseUncorrectInteger;
-    dec(Num);
-    ResultCopy := Result;
-    Result := Result * Base + Num;
-    if Result < ResultCopy then
-      RaiseUncorrectInteger;
-    Delete(Val, 1, 1);
-  end;
-  if Negative then Result := -Result;
-end;
-
-{*
-  Convertit un nombre exprimé dans une base donnée en sa représentation décimale
-  Lorsque la chaîne n'est pas un entier valide, une valeur par défaut est
-  renvoyée.
-  @param Value     Chaîne de caractère représentant le nombre
-  @param Default   Valeur par défaut
-  @param Base      Base dans laquelle est exprimée le nombre
-  @return Valeur décimale du nombre
-*}
-function BaseToIntDef(const Value : string; Default : integer = 0;
-  Base : Byte = 10) : integer;
-begin
-  try
-    Result := BaseToInt(Value, Base);
-  except
-    on Error : EConvertError do Result := Default;
-  end;
+        BT      EAX,EDX
+        SETB    AL
 end;
 
 {*
@@ -287,36 +125,11 @@ end;
   @param MethodName   Nom de la méthode
   @return Une référence à la méthode recherchée pour l'objet Obj
 *}
-function GetMethodFromName(Obj : TObject; MethodName : ShortString) : TMethod;
+function GetMethodFromName(Obj : TObject;
+  const MethodName : ShortString) : TMethod;
 begin
   Result.Code := Obj.MethodAddress(MethodName);
   Result.Data := Obj;
-end;
-
-{*
-  Convertit une valeur Double en la valeur Int64 ayant les mêmes bits
-  Attention ! Il n'y a aucune correspondance entre Value et Result ! Cette
-  fonction est totalement empirique.
-  @param Value   Valeur double à convertir
-  @return Valeur entière dont les bits sont identiques à Value
-*}
-function ConvertDoubleToInt64(Value : Double) : Int64;
-var IntValue : Int64 absolute Value;
-begin
-  Result := IntValue;
-end;
-
-{*
-  Convertit une valeur Int64 en la valeur Double ayant les mêmes bits
-  Attention ! Il n'y a aucune correspondance entre Value et Result ! Cette
-  fonction est totalement empirique.
-  @param Value   Valeur entière à convertir
-  @return Valeur double dont les bits sont identiques à Value
-*}
-function ConvertInt64ToDouble(Value : Int64) : Double;
-var DoubleValue : Double absolute Value;
-begin
-  Result := DoubleValue;
 end;
 
 {*
@@ -491,7 +304,7 @@ end;
   @param CharSet   Ensemble de caractères à traiter
   @return Représentation Pascal de CharSet
 *}
-function CharSetToStr(CharSet : TSysCharSet) : string;
+function CharSetToStr(const CharSet : TSysCharSet) : string;
 var I, From : Word;
 begin
   Result := '';
@@ -789,280 +602,6 @@ asm
         MOV     DL,[EAX]
         LEA     EAX,[EAX].Byte[EDX+1]
 end;
-
-{$IFDEF MSWINDOWS}
-{*
-  Crée un raccourci Windows
-  Seuls les paramètres Source et Dest sont obligatoires.
-  @param Source         Nom du fichier raccourci
-  @param Dest           Destination du raccourci
-  @param Description    Description
-  @param IconLocation   Nom du fichier contenant l'icône du raccourci
-  @param IconIndex      Index de l'icône dans le fichier
-  @param Arguments      Arguments appliqués à la destination du raccourci
-  @param WorkDir        Répertoire de travail pour l'exécution du raccourci
-  @param ShowCommand    Commande d'affichage de la destination
-*}
-procedure CreateShellLink(const Source, Dest : string;
-                          const Description : string = '';
-                          const IconLocation : string = '';
-                          IconIndex : integer = 0;
-                          const Arguments : string = '';
-                          const WorkDir : string = '';
-                          ShowCommand : integer = SW_SHOW);
-var Link : IShellLink;
-begin
-  // Création de l'objet ShellLink
-  Link := CreateComObject(CLSID_ShellLink) as IShellLink;
-  // Fichier source
-  Link.SetPath(PChar(Source));
-  // Description
-  if Description <> '' then
-    Link.SetDescription(PChar(Description));
-  // Emplacement de l'icône
-  if IconLocation <> '' then
-    Link.SetIconLocation(PChar(IconLocation), IconIndex);
-  // Arguments
-  if Arguments <> '' then
-    Link.SetArguments(PChar(Arguments));
-  // Dossier de travail
-  if WorkDir <> '' then
-    Link.SetWorkingDirectory(PChar(WorkDir));
-  // Type de lancement
-  Link.SetShowCmd(ShowCommand);
-  // Enregistrement
-  (Link as IPersistFile).Save(StringToOleStr(Dest), True);
-end;
-{$ENDIF}
-
-{*
-  Exécute un son à partir d'un fichier, d'une ressource ou d'un son système
-  @param Sound         Nom du son (selon le type de son)
-  @param SoundType     Type de son
-  @param Synchronous   True pour exécuter le son de façon synchrône
-  @param Module        Dans le cas d'une ressource, le module la contenant
-  @param AddFlags      Flags additionnels à passer à MMSystem.PlaySound
-  @return True si le son a été correctement exécuté, False sinon
-*}
-function ExecuteSound(const Sound : string; SoundType : TSoundType = stFileName;
-  Synchronous : boolean = False; Module : HMODULE = 0;
-  AddFlags : LongWord = 0) : boolean;
-var Flags : LongWord;
-begin
-  Flags := AddFlags;
-  case SoundType of
-    stFileName : Flags := Flags or SND_FILENAME; // Fichier son
-    stResource : Flags := Flags or SND_RESOURCE; // Ressource son
-    stSysSound : Flags := Flags or SND_ALIAS;    // Alias son système
-  end;
-  if not Synchronous then Flags := Flags or SND_ASYNC; // Asynchrône ?
-  if SoundType <> stResource then Module := 0;
-  // Appel de PlaySound et renvoi de la valeur renvoyée par celle-ci
-  Result := PlaySound(PChar(Sound), Module, Flags);
-end;
-
-{$REGION 'Modification des ressources'}
-
-{---------------------------------}
-{ Ajout-suppression de ressources }
-{---------------------------------}
-{$IFDEF MSWINDOWS}
-
-{*
-  Débute la mise à jour des ressources d'un fichier module
-  Tout appel à BeginUpdateRes doit être compensé par un appel à EndUpdateRes.
-  @param FileName   Nom du fichier module
-  @return Handle de ressources
-*}
-function BeginUpdateRes(const FileName : string) : integer;
-begin
-  // Appel de Windows.BeginUpdateResource
-  Result := BeginUpdateResource(PChar(FileName), False);
-  // Si Result = 0, il y a eu une erreur API
-  if Result = 0 then
-    RaiseLastOSError;
-end;
-
-{*
-  Ajoute une ressource
-  @param ResHandle   Handle de ressources obtenu par BeginUpdateRes
-  @param ResName     Nom de la ressource à ajouter
-  @param Resource    Flux contenant la ressource
-  @param ResType     Type de ressource
-*}
-procedure AddResource(ResHandle : integer; const ResName : string;
-  Resource : TStream; const ResType : string = 'RCDATA');
-var MemRes : TMemoryStream;
-    MustFreeRes, OK : boolean;
-begin
-  MustFreeRes := False;
-  // On met dans MemRes un flux mémoire qui contient les données de la ressource
-  if Resource is TMemoryStream then MemRes := Resource as TMemoryStream else
-  begin
-    MemRes := TMemoryStream.Create;
-    MemRes.LoadFromStream(Resource);
-    MustFreeRes := True;
-  end;
-  // Appel de Windows.UpdateResource
-  OK := UpdateResource(ResHandle, PChar(ResType), PChar(ResName), 0,
-                       MemRes.Memory, MemRes.Size);
-  // On supprime le flux mémoire si on l'a créé
-  if MustFreeRes then MemRes.Free;
-  // Si UpdateResource a renvoyé False, il y a eu une erreur
-  if not OK then RaiseLastOSError;
-end;
-
-{*
-  Supprime une ressource
-  @param ResHandle   Handle de ressources obtenu par BeginUpdateRes
-  @param ResName     Nom de la ressource à supprimer
-*}
-procedure DelResource(ResHandle : integer; const ResName : string);
-begin
-  // Appel de Windows.UpdateResource
-  if not UpdateResource(ResHandle, '', PChar(ResName), 0, nil, 0) then
-  // Si UpdateResource a renvoyé False, il y a eu une erreur
-    RaiseLastOSError;
-end;
-
-{*
-  Termine la mise à jour des ressources d'un fichier module
-  @param ResHandle   Handle de ressources obtenu par BeginUpdateRes
-  @param Cancel      Indique s'il faut annuler les modifications faites
-*}
-procedure EndUpdateRes(ResHandle : integer; Cancel : boolean = False);
-begin
-  // Appel de Windows.EndUpdateResource
-  if not EndUpdateResource(ResHandle, Cancel) then
-  // Si EndUpdateResource a renvoyé False, il y a eu une erreur
-    RaiseLastOSError;
-end;
-
-{*
-  Ajoute une ressources à un fichier module
-  @param FileName   Nom du fichier module
-  @param ResName    Nom de la ressource à ajouter
-  @param Resource   Flux contenant la ressource
-  @param ResType    Type de ressource
-*}
-procedure AddResToFile(const FileName, ResName : string; Resource : TStream;
-  const ResType : string = 'RCDATA');
-var ResHandle : integer;
-begin
-  ResHandle := BeginUpdateRes(FileName);
-  try
-    AddResource(ResHandle, ResName, Resource, ResType);
-    EndUpdateRes(ResHandle);
-  except
-    try EndUpdateRes(ResHandle, True) except end;
-    raise;
-  end;
-end;
-
-{*
-  Supprime une ressources d'un fichier module
-  @param FileName   Nom du fichier module
-  @param ResName    Nom de la ressource à supprimer
-*}
-procedure DelResInFile(const FileName, ResName : string);
-var ResHandle : integer;
-begin
-  ResHandle := BeginUpdateRes(FileName);
-  try
-    DelResource(ResHandle, ResName);
-    EndUpdateRes(ResHandle);
-  except
-    try EndUpdateRes(ResHandle, True) except end;
-    raise;
-  end;
-end;
-
-{$ENDIF}
-
-{$ENDREGION}
-
-{$REGION 'Compression/décompression'}
-
-{*
-  Compresse un flux avec la bibliothèque ZLib
-  @param Stream             Flux à compresser
-  @param Dest               Flux de destination (ou nil pour Stream, plus lent)
-  @param CompressionLevel   Niveau de compression
-*}
-procedure CompressStream(Stream : TStream; Dest : TStream = nil;
-  CompressionLevel : TCompressionLevel = clDefaultComp);
-var Destination : TStream;
-begin
-  if Dest = Stream then Dest := nil;
-
-  // Si Dest vaut nil, on crée un flux temporaire de destination
-  if Dest = nil then Destination := TMemoryStream.Create else
-  begin
-    Destination := Dest;
-    Destination.Position := 0;
-    Destination.Size := 0;
-  end;
-
-  // Création, utilisation et libération du flux de compression
-  with TCompressionStream.Create(CompressionLevel, Destination) do
-  try
-    CopyFrom(Stream, 0);
-  finally
-    Free;
-  end;
-
-  // Si Dest vaut nil, on recopie Destination dans Stream
-  if Dest = nil then
-  begin
-    Stream.Position := 0;
-    Stream.Size := 0;
-    Stream.CopyFrom(Destination, 0);
-    Destination.Free;
-  end;
-end;
-
-{*
-  Décompresse un flux avec la bibliothèque ZLib
-  @param Stream   Flux à décompresser
-  @param Dest     Flux de destination (ou nil pour Stream, plus lent)
-*}
-procedure DecompressStream(Stream : TStream; Dest : TStream = nil);
-var Destination : TStream;
-    Buffer : array [0..1023] of Byte;
-    Copied : integer;
-begin
-  if Dest = Stream then Dest := nil;
-
-  // Si Dest vaut nil, on crée un flux temporaire de destination
-  if Dest = nil then Destination := TMemoryStream.Create else
-  begin
-    Destination := Dest;
-    Destination.Position := 0;
-    Destination.Size := 0;
-  end;
-
-  // Création, utilisation et libération du flux de décompression
-  with TDecompressionStream.Create(Stream) do
-  try
-    Position := 0;
-    repeat
-      Copied := Read(Buffer, 1024);
-      Destination.Write(Buffer, Copied);
-    until Copied < 1024;
-  finally
-    Free;
-  end;
-
-  // Si Dest vaut nil, on recopie Destination dans Stream
-  if Dest = nil then
-  begin
-    Stream.Position := 0;
-    Stream.Size := 0;
-    Stream.CopyFrom(Destination, 0);
-  end;
-end;
-
-{$ENDREGION}
 
 end.
 

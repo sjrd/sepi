@@ -9,7 +9,7 @@ interface
 
 uses
   Classes, SysUtils, ScUtils, SepiMetaUnits, SysConst, TypInfo, ScLists,
-  ScExtra;
+  ScDelphiLanguage;
 
 const
   MinInt64 = Int64($FFFFFFFFFFFFFFFF);

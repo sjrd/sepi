@@ -8,36 +8,7 @@ unit ScUtils;
 interface
 
 uses
-{$IFDEF MSWINDOWS}
-  Windows, Dialogs, Controls, StdCtrls,
-{$ELSE}
-  QDialogs, QControls, QStdCtrls, QGraphics,
-{$ENDIF}
-  SysUtils, Classes, Math;
-
-{$IFDEF LINUX}
-const
-  dtCustom = mtCustom;
-  dtInformation = mtInformation;
-  dtWarning = mtWarning;
-  dtError = mtError;
-  dtConfirmation = mtConfirmation;
-
-  dbOK = [mbOK];
-  dbOKCancel = mbOKCancel;
-  dbYesNo = [mbYes, mbNo];
-  dbYesNoCancel = mbYesNoCancel;
-  dbRetryCancel = [mbRetry, mbCancel];
-  dbAbortRetryIgnore = mbAbortRetryIgnore;
-
-  drOK = mrOK;
-  drYes = mrYes;
-  drNo = mrNo;
-  drCancel = mrCancel;
-  drAbort = mrAbort;
-  drRetry = mrRetry;
-  drIgnore = mrIgnore;
-{$ENDIF}
+  Types, SysUtils, Classes;
 
 type
   {*
@@ -48,52 +19,6 @@ type
     Y : integer; /// Coordonnée Y du point
     Z : integer; /// Coordonnée Z du point
   end;
-
-  {*
-    Type d'une boîte de dialogue
-    dtCustom       : Type générique
-    dtInformation  : Information
-    dtWarning      : Avertissement
-    dtError        : Erreur
-    dtConfirmation : Confirmation
-  *}
-  {$IFDEF MSWINDOWS}
-    TDialogType = (dtCustom, dtInformation, dtWarning, dtError, dtConfirmation);
-  {$ELSE}
-    TDialogType = type TMsgDlgType;
-  {$ENDIF}
-
-  {*
-    Boutons présents dans une boîte de dialogue
-    dbOK               : OK
-    dbOKCancel         : OK et Annuler
-    dbYesNo            : Oui et Non
-    dbYesNoCancel      : Oui, Non et Annuler
-    dbRetryCancel      : Réessayer et Annuler
-    dbAbortRetryIgnore : Abandonner, Réessayer et Ignorer
-  *}
-  {$IFDEF MSWINDOWS}
-    TDialogButtons = (dbOK, dbOKCancel, dbYesNo, dbYesNoCancel, dbRetryCancel,
-                      dbAbortRetryIgnore);
-  {$ELSE}
-    TDialogButtons = type TMsgDlgButtons;
-  {$ENDIF}
-
-  {*
-    Résultat de l'affichage d'une boîte de dialogue
-    drOK     : OK
-    drYes    : Oui
-    drNo     : Non
-    drCancel : Annuler
-    drAbort  : Abandonner
-    drRetry  : Réessayer
-    drIgnore : Ignorer
-  *}
-  {$IFDEF MSWINDOWS}
-    TDialogResult = (drOK, drYes, drNo, drCancel, drAbort, drRetry, drIgnore);
-  {$ELSE}
-    TDialogResult = type Word;
-  {$ENDIF}
 
   {*
     Ensemble de Byte
@@ -136,19 +61,13 @@ function MinMax(Value, Min, Max : integer) : integer;
 function IntDiv(Op1, Op2 : integer) : integer;
 function IntMod(Op1, Op2 : integer) : integer;
 
-{$IFDEF MSWINDOWS}
-function ShowMes(const Title, Text : string;
-  Flags : LongWord) : integer; platform;
-{$ENDIF}
+function IntToBase(Value : integer; Base : Byte = 10) : string;
+function BaseToInt(const Value : string; Base : Byte = 10) : integer;
+function BaseToIntDef(const Value : string; Default : integer = 0;
+  Base : Byte = 10) : integer;
 
-function ShowDialog(const Title, Text : string;
-  DlgType : TDialogType = dtInformation; DlgButtons : TDialogButtons = dbOK;
-  DefButton : Byte = 1; AddFlags : LongWord = 0) : TDialogResult;
-
-function ShowDialogRadio(const Title, Text : string; DlgType : TMsgDlgType;
-  DlgButtons : TMsgDlgButtons; DefButton : TModalResult;
-  const RadioTitles : array of string; var Selected : integer;
-  OverButtons : boolean = False) : Word;
+function ConvertDoubleToInt64(Value : Double) : Int64;
+function ConvertInt64ToDouble(Value : Int64) : Double;
 
 procedure Wait(Milliseconds : integer); deprecated;
 procedure WaitProcessMessages(Milliseconds : integer);
@@ -182,9 +101,13 @@ implementation
 
 uses
 {$IFDEF MSWINDOWS}
-  ShellAPI,
+  Windows, ShellAPI,
 {$ENDIF}
-  DateUtils, Forms;
+  Math, DateUtils, Forms, ScConsts;
+
+const
+  NumbersStr = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'; /// Chiffres des bases
+  MaxBase = 36;                                        /// Base maximale
 
 {----------------------------------}
 { Procédures et fonctions globales }
@@ -325,248 +248,126 @@ begin
   Result := Op1 - IntDiv(Op1, Op2) * Op2;
 end;
 
-{$REGION 'Fonctions de boîtes de dialogue'}
-
-{$IFDEF MSWINDOWS}
 {*
-  Affiche une boîte de dialogue modale Windows
-  @param Title   Titre de la boîte de dialogue
-  @param Text    Texte de la boîte de dialogue
-  @param Flags   Flags contrôlant le style de boîte de dialogue
-  @return Code de résultat du bouton sur lequel a cliqué l'utilisateur
+  Vérifie qu'une base est valide
+  @param Base   Base à tester
+  @raise EConvertError Base incorrecte
 *}
-function ShowMes(const Title, Text : string; Flags : LongWord) : integer;
-var AText, ATitle : PChar;
-    AFlags : LongWord;
+procedure VerifyBase(Base : Byte);
 begin
-  AText  := PChar(Text);
-  ATitle := PChar(Title);
-  AFlags := Flags or MB_APPLMODAL; // Ajout du style Modal
-  Result := MessageBox(Application.Handle, AText, ATitle, AFlags);
+  if (Base < 2) or (Base > MaxBase) then
+    raise EConvertError.CreateFmt(sScWrongBase, [Base]);
 end;
-{$ENDIF}
 
 {*
-  Affiche une boîte de dialogue modale Windows ou QT (selon la VCL utilisée)
-  @param Title        Titre de la boîte de dialogue
-  @param Text         Texte de la boîte de dialogue
-  @param DlgType      Type de boîte de dialogue
-  @param DlgButtons   Boutons à placer dans la boîte de dialogue
-  @param DefButton    Numéro du bouton sélectionné par défaut (à partir de 1)
-  @param AddFlags     Flags additionnels contrôlant de style de boîte (Win32)
-  @return Bouton sur lequel a cliqué l'utilisateur
+  Convertit un entier dans une base donnée
+  @param Value   Entier à convertir
+  @param Base    Base de destination
+  @return Représentation en chaîne de Value exprimé dans la base Base
+  @raise EConvertError Base incorrecte
 *}
-
-{$IFDEF MSWINDOWS}
-function ShowDialog(const Title, Text : string;
-  DlgType : TDialogType = dtInformation; DlgButtons : TDialogButtons = dbOK;
-  DefButton : Byte = 1; AddFlags : LongWord = 0) : TDialogResult;
-var TypeFlags, BtnsFlags, DefBtnFlags, Flags : LongWord;
+function IntToBase(Value : integer; Base : Byte = 10) : string;
+var Negative : boolean;
 begin
-  // Transformation du paramètre DlgType en flag de type
-  case DlgType of
-    dtCustom       : TypeFlags := 0;
-    dtInformation  : TypeFlags := MB_ICONINFORMATION;
-    dtWarning      : TypeFlags := MB_ICONEXCLAMATION;
-    dtError        : TypeFlags := MB_ICONERROR;
-    dtConfirmation : TypeFlags := MB_ICONQUESTION;
-    else TypeFlags := 0;
-  end;
+  VerifyBase(Base);
 
-  // Transformation du paramètre DlgButtons en flag de boutons
-  case DlgButtons of
-    dbOK               : BtnsFlags := MB_OK;
-    dbOKCancel         : BtnsFlags := MB_OKCANCEL;
-    dbYesNo            : BtnsFlags := MB_YESNO;
-    dbYesNoCancel      : BtnsFlags := MB_YESNOCANCEL;
-    dbRetryCancel      : BtnsFlags := MB_RETRYCANCEL;
-    dbAbortRetryIgnore : BtnsFlags := MB_AbortRetryIgnore;
-    else BtnsFlags := MB_OK;
-  end;
-
-  // Transformation du paramètre DefButton en flag de bouton par défaut
-  case DefButton of
-    1 : DefBtnFlags := MB_DEFBUTTON1;
-    2 : DefBtnFlags := MB_DEFBUTTON2;
-    3 : DefBtnFlags := MB_DEFBUTTON3;
-    else DefBtnFlags := 0;
-  end;
-
-  // Appel de ShowMes et transformation du retour Word en TDialogResult
-  Flags := TypeFlags or BtnsFlags or DefBtnFlags or AddFlags;
-  case ShowMes(Title, Text, Flags) of
-    IDOK     : Result := drOK;
-    IDYES    : Result := drYes;
-    IDNO     : Result := drNo;
-    IDCANCEL : Result := drCancel;
-    IDABORT  : Result := drAbort;
-    IDRETRY  : Result := drRetry;
-    IDIGNORE : Result := drIgnore;
-    else Result := drCancel;
+  if Value = 0 then Result := NumbersStr[1] else
+  begin
+    Negative := Value < 0;
+    if Negative then Value := -Value;
+    Result := '';
+    while Value > 0 do
+    begin
+      Result := NumbersStr[Value mod Base + 1] + Result;
+      Value := Value div Base;
+    end;
+    if Negative then Result := '-'+Result;
   end;
 end;
-{$ENDIF}
-
-{$IFDEF LINUX}
-function ShowDialog(const Title, Text : string;
-  DlgType : TDialogType = dtInformation; DlgButtons : TDialogButtons = dbOK;
-  DefButton : Byte = 1; AddFlags : LongWord = 0) : TDialogResult;
-var NbBtns : integer;
-    MsgDefButton : TMsgDlgBtn;
-begin
-  // Détermination du nombre de boutons
-  case DlgButtons of
-    dbOK               : NbBtns := 1;
-    dbOKCancel         : NbBtns := 2;
-    dbYesNo            : NbBtns := 2;
-    dbYesNoCancel      : NbBtns := 3;
-    dbRetryCancel      : NbBtns := 2;
-    dbAbortRetryIgnore : NbBtns := 3;
-    else begin NbBtns := 1 end;
-  end;
-
-  MsgDefButton := mbNone;
-  if (DefButton < 1) or (DefButton > NbBtns) then DefButton := 1;
-
-  // Détermination du bouton par défaut
-  case DefButton of
-    1 :
-    begin
-      if DlgButtons = [dbOK, dbOKCancel] then
-        MsgDefButton := mbOK else
-      if DlgButtons = [dbYesNo, dbYesNoCancel] then
-        MsgDefButton := mbYes else
-      if DlgButtons = dbRetryCancel then
-        MsgDefButton := mbRetry else
-      if DlgButtons = dbAbortRetryIgnore then
-        MsgDefButton := mbAbort;
-    end;
-    2 :
-    begin
-      if DlgButtons = [dbOKCancel, dbRetryCancel] then
-        MsgDefButton := mbCancel else
-      if DlgButtons = [dbYesNo, dbYesNoCancel]
-        then MsgDefButton := mbNo else
-      if DlgButtons = dbAbortRetryIgnore then
-        MsgDefButton := mbRetry;
-    end;
-    3 :
-    begin
-      if DlgButtons = dbYesNoCancel then
-        MsgDefButton := mbCancel else
-      if DlgButtons = dbAbortRetryIgnore then
-        MsgDefButton := mbIgnore;
-    end;
-  end;
-
-  // Appel de MessageDlg et renvoi de la valeur renvoyée par celle-ci
-  Result := MessageDlg(Title, Text, DlgType, DlgButtons, 0, MsgDefBtn);
-end;
-{$ENDIF}
 
 {*
-  Affiche une boîte de dialogue avec des boutons radio
-  ShowDialogRadio est une variante de ShowDialog qui affiche des boutons radio
-  pour chaque choix possible.
-  @param Title         Titre de la boîte de dialogue
-  @param Text          Texte de la boîte de dialogue
-  @param DlgType       Type de boîte de dialogue
-  @param DlgButtons    Boutons présents dans la boîte de dialogue
-  @param DefButton     Bouton sélectionné par défaut
-  @param RadioTitles   Libellés des différents boutons radio
-  @param Selected      Bouton radio sélectionné
-  @param OverButtons   Boutons radio placés au-dessus des boutons si True
-  @return Bouton sur lequel a cliqué l'utilisateur
+  Convertit un nombre exprimé dans une base donnée en sa représentation décimale
+  @param Value   Chaîne de caractère représentant le nombre
+  @param Base    Base dans laquelle est exprimée le nombre
+  @return Valeur décimale du nombre
+  @raise EConvertError Base incorrecte
+  @raise EConvertError Entier incorrect
 *}
-function ShowDialogRadio(const Title, Text : string; DlgType : TMsgDlgType;
-  DlgButtons : TMsgDlgButtons; DefButton : TModalResult;
-  const RadioTitles : array of string; var Selected : integer;
-  OverButtons : boolean = False) : Word;
-var Form : TForm;
-    I, MaxWidth, OldWidth : integer;
-    Button : TButton;
+function BaseToInt(const Value : string; Base : Byte = 10) : integer;
+  procedure RaiseUncorrectInteger;
+  begin
+    raise EConvertError.CreateFmt(sScWrongInteger, [Value]);
+  end;
+var Negative : boolean;
+    ResultCopy, Num : integer;
+    Val : string;
 begin
-  // Création de la boîte de dialogue
-  Form := CreateMessageDialog(Text, DlgType, DlgButtons);
+  Val := Value;
+  VerifyBase(Base);
+  if (Val = '') or (Val = '-') then
+    RaiseUncorrectInteger;
+  Negative := Val[1] = '-';
+  if Negative then Delete(Val, 1, 1);
+  Result := 0;
+  while Val <> '' do
+  begin
+    Num := Pos(Val[1], NumbersStr);
+    if (Num = 0) or (Num > Base) then
+      RaiseUncorrectInteger;
+    dec(Num);
+    ResultCopy := Result;
+    Result := Result * Base + Num;
+    if Result < ResultCopy then
+      RaiseUncorrectInteger;
+    Delete(Val, 1, 1);
+  end;
+  if Negative then Result := -Result;
+end;
 
-  with Form do
+{*
+  Convertit un nombre exprimé dans une base donnée en sa représentation décimale
+  Lorsque la chaîne n'est pas un entier valide, une valeur par défaut est
+  renvoyée.
+  @param Value     Chaîne de caractère représentant le nombre
+  @param Default   Valeur par défaut
+  @param Base      Base dans laquelle est exprimée le nombre
+  @return Valeur décimale du nombre
+*}
+function BaseToIntDef(const Value : string; Default : integer = 0;
+  Base : Byte = 10) : integer;
+begin
   try
-    Caption := Title;
-    // On augmente la taille de la boîte de dialogue
-    Height := Height + Length(RadioTitles) * 25;
-
-    // Création des boutons radio et détermination de la largeur minimale
-    MaxWidth := 0;
-    for I := High(RadioTitles) downto Low(RadioTitles) do
-    with TRadioButton.Create(Form) do
-    begin
-      FreeNotification(Form);
-      Parent := Form;
-      Width := Canvas.TextWidth(RadioTitles[I]) + 20;
-      MaxWidth := Max(MaxWidth, Width-20);
-      Caption := RadioTitles[I];
-      Checked := I = Selected;
-      Tag := I;
-      Left := 8;
-
-      // OverButtons indique si les RadioBox sont au-dessus ou en-dessous des
-      // boutons
-      if OverButtons then
-        Top := Form.Height - 90 - (High(RadioTitles) - I) * 25
-      else
-        Top := Form.Height - 50 - (High(RadioTitles) - I) * 25;
-    end;
-
-    // Il faut aussi vérifier que la fiche peut afficher les textes des RadioBox
-    // en entier
-    OldWidth := 0;
-    if (MaxWidth + 40) > Width then
-    begin
-      OldWidth := Width;
-      Width := MaxWidth +40;
-    end;
-
-    for I := 0 to ComponentCount-1 do
-    begin
-      // On récupère chaque bouton
-      if Components[I] is TButton then
-      begin
-        Button := TButton(Components[I]);
-
-        // On met le bon bouton par défaut et on le sélectionne
-        Button.Default := Button.ModalResult = DefButton;
-        if Button.Default then ActiveControl := Button;
-
-        // S'il le faut, décaler tous les boutons vers le bas
-        if OverButtons then
-          Button.Top := Button.Top + Length(RadioTitles) * 25;
-
-        // S'il le faut, décaler tous les boutons vers la droite
-        if OldWidth > 0 then
-          Button.Left := Button.Left + (Width - OldWidth) div 2;
-      end;
-    end;
-
-    // On centre la boîte de dialogue
-    Position := poScreenCenter;
-
-    // Affichage de la boîte de dialogue
-    Result := ShowModal;
-
-    // Récupération du choix de l'utilisateur
-    Selected := -1;
-    for I := 0 to ControlCount-1 do
-    begin
-      if (Controls[I] is TRadioButton) and
-         TRadioButton(Controls[I]).Checked then
-        Selected := Controls[I].Tag;
-    end;
-  finally
-    Free;
+    Result := BaseToInt(Value, Base);
+  except
+    on Error : EConvertError do Result := Default;
   end;
 end;
 
-{$ENDREGION}
+{*
+  Convertit une valeur Double en la valeur Int64 ayant les mêmes bits
+  Attention ! Il n'y a aucune correspondance entre Value et Result ! Cette
+  fonction est totalement empirique.
+  @param Value   Valeur double à convertir
+  @return Valeur entière dont les bits sont identiques à Value
+*}
+function ConvertDoubleToInt64(Value : Double) : Int64;
+var IntValue : Int64 absolute Value;
+begin
+  Result := IntValue;
+end;
+
+{*
+  Convertit une valeur Int64 en la valeur Double ayant les mêmes bits
+  Attention ! Il n'y a aucune correspondance entre Value et Result ! Cette
+  fonction est totalement empirique.
+  @param Value   Valeur entière à convertir
+  @return Valeur double dont les bits sont identiques à Value
+*}
+function ConvertInt64ToDouble(Value : Int64) : Double;
+var DoubleValue : Double absolute Value;
+begin
+  Result := DoubleValue;
+end;
 
 {*
   Met en pause l'exécution pendant un temps défini

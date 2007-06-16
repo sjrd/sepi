@@ -9,7 +9,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, Contnrs, SysConst, RTLConsts, SepiCore, ScUtils,
-  IniFiles, TypInfo, Variants, StrUtils, ScLists, ScStrUtils, ScExtra,
+  IniFiles, TypInfo, Variants, StrUtils, ScLists, ScStrUtils, ScDelphiLanguage,
   SepiBinariesConsts;
 
 type
@@ -45,6 +45,13 @@ type
     @version 1.0
   *}
   ESepiMetaNotFoundError = class(ESepiError);
+
+  {*
+    Déclenchée lorsque la recherche d'une unité s'est soldée par un échec
+    @author Sébastien Jean Robert Doeraene
+    @version 1.0
+  *}
+  ESepiUnitNotFoundError = class(ESepiMetaNotFoundError);
 
   {*
     Déclenchée si l'on tente de créer une constante avec un mauvais type
@@ -1262,7 +1269,7 @@ begin
   { TODO 2 -cMetaunités : Charger une unité non système par son nom }
 
   if Result = nil then
-    raise EInOutError.Create(SFileNotFound);
+    raise ESepiUnitNotFoundError.CreateFmt(SSepiUnitNotFound, [UnitName]);
 end;
 
 {*

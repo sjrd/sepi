@@ -8,9 +8,79 @@ unit SdDialogs;
 interface
 
 uses
-  Classes, Graphics, SdPassword, SdAbout, SdNumber, ScConsts;
+  Classes, Dialogs, Controls, Graphics;
+
+{$IFDEF LINUX}
+const
+  dtCustom = mtCustom;
+  dtInformation = mtInformation;
+  dtWarning = mtWarning;
+  dtError = mtError;
+  dtConfirmation = mtConfirmation;
+
+  dbOK = [mbOK];
+  dbOKCancel = mbOKCancel;
+  dbYesNo = [mbYes, mbNo];
+  dbYesNoCancel = mbYesNoCancel;
+  dbRetryCancel = [mbRetry, mbCancel];
+  dbAbortRetryIgnore = mbAbortRetryIgnore;
+
+  drOK = mrOK;
+  drYes = mrYes;
+  drNo = mrNo;
+  drCancel = mrCancel;
+  drAbort = mrAbort;
+  drRetry = mrRetry;
+  drIgnore = mrIgnore;
+{$ENDIF}
 
 type
+  {*
+    Type d'une boîte de dialogue
+    dtCustom       : Type générique
+    dtInformation  : Information
+    dtWarning      : Avertissement
+    dtError        : Erreur
+    dtConfirmation : Confirmation
+  *}
+  {$IFDEF MSWINDOWS}
+    TDialogType = (dtCustom, dtInformation, dtWarning, dtError, dtConfirmation);
+  {$ELSE}
+    TDialogType = type TMsgDlgType;
+  {$ENDIF}
+
+  {*
+    Boutons présents dans une boîte de dialogue
+    dbOK               : OK
+    dbOKCancel         : OK et Annuler
+    dbYesNo            : Oui et Non
+    dbYesNoCancel      : Oui, Non et Annuler
+    dbRetryCancel      : Réessayer et Annuler
+    dbAbortRetryIgnore : Abandonner, Réessayer et Ignorer
+  *}
+  {$IFDEF MSWINDOWS}
+    TDialogButtons = (dbOK, dbOKCancel, dbYesNo, dbYesNoCancel, dbRetryCancel,
+                      dbAbortRetryIgnore);
+  {$ELSE}
+    TDialogButtons = type TMsgDlgButtons;
+  {$ENDIF}
+
+  {*
+    Résultat de l'affichage d'une boîte de dialogue
+    drOK     : OK
+    drYes    : Oui
+    drNo     : Non
+    drCancel : Annuler
+    drAbort  : Abandonner
+    drRetry  : Réessayer
+    drIgnore : Ignorer
+  *}
+  {$IFDEF MSWINDOWS}
+    TDialogResult = (drOK, drYes, drNo, drCancel, drAbort, drRetry, drIgnore);
+  {$ELSE}
+    TDialogResult = type Word;
+  {$ENDIF}
+
   {*
     Gère une boîte de dialogue d'introduction de mot de passe
     @author Sébastien Jean Robert Doeraene
@@ -105,6 +175,20 @@ type
     property Max : integer read FMax write FMax;
   end;
 
+{$IFDEF MSWINDOWS}
+function ShowMes(const Title, Text : string;
+  Flags : LongWord) : integer; platform;
+{$ENDIF}
+
+function ShowDialog(const Title, Text : string;
+  DlgType : TDialogType = dtInformation; DlgButtons : TDialogButtons = dbOK;
+  DefButton : Byte = 1; AddFlags : LongWord = 0) : TDialogResult;
+
+function ShowDialogRadio(const Title, Text : string; DlgType : TMsgDlgType;
+  DlgButtons : TMsgDlgButtons; DefButton : TModalResult;
+  const RadioTitles : array of string; var Selected : integer;
+  OverButtons : boolean = False) : Word;
+
 function QueryPassword : string; overload;
 
 function QueryPassWord(Password : string;
@@ -119,9 +203,251 @@ function QueryNumber(const Title, Prompt : string;
 
 implementation
 
+uses
+  Windows, Forms, StdCtrls, Math, SdPassword, SdAbout, SdNumber, ScConsts;
+
 {-------------------}
 { Routines globales }
 {-------------------}
+
+{$IFDEF MSWINDOWS}
+{*
+  Affiche une boîte de dialogue modale Windows
+  @param Title   Titre de la boîte de dialogue
+  @param Text    Texte de la boîte de dialogue
+  @param Flags   Flags contrôlant le style de boîte de dialogue
+  @return Code de résultat du bouton sur lequel a cliqué l'utilisateur
+*}
+function ShowMes(const Title, Text : string; Flags : LongWord) : integer;
+var AText, ATitle : PChar;
+    AFlags : LongWord;
+begin
+  AText  := PChar(Text);
+  ATitle := PChar(Title);
+  AFlags := Flags or MB_APPLMODAL; // Ajout du style Modal
+  Result := MessageBox(Application.Handle, AText, ATitle, AFlags);
+end;
+{$ENDIF}
+
+{*
+  Affiche une boîte de dialogue modale Windows ou QT (selon la VCL utilisée)
+  @param Title        Titre de la boîte de dialogue
+  @param Text         Texte de la boîte de dialogue
+  @param DlgType      Type de boîte de dialogue
+  @param DlgButtons   Boutons à placer dans la boîte de dialogue
+  @param DefButton    Numéro du bouton sélectionné par défaut (à partir de 1)
+  @param AddFlags     Flags additionnels contrôlant de style de boîte (Win32)
+  @return Bouton sur lequel a cliqué l'utilisateur
+*}
+
+{$IFDEF MSWINDOWS}
+function ShowDialog(const Title, Text : string;
+  DlgType : TDialogType = dtInformation; DlgButtons : TDialogButtons = dbOK;
+  DefButton : Byte = 1; AddFlags : LongWord = 0) : TDialogResult;
+var TypeFlags, BtnsFlags, DefBtnFlags, Flags : LongWord;
+begin
+  // Transformation du paramètre DlgType en flag de type
+  case DlgType of
+    dtCustom       : TypeFlags := 0;
+    dtInformation  : TypeFlags := MB_ICONINFORMATION;
+    dtWarning      : TypeFlags := MB_ICONEXCLAMATION;
+    dtError        : TypeFlags := MB_ICONERROR;
+    dtConfirmation : TypeFlags := MB_ICONQUESTION;
+    else TypeFlags := 0;
+  end;
+
+  // Transformation du paramètre DlgButtons en flag de boutons
+  case DlgButtons of
+    dbOK               : BtnsFlags := MB_OK;
+    dbOKCancel         : BtnsFlags := MB_OKCANCEL;
+    dbYesNo            : BtnsFlags := MB_YESNO;
+    dbYesNoCancel      : BtnsFlags := MB_YESNOCANCEL;
+    dbRetryCancel      : BtnsFlags := MB_RETRYCANCEL;
+    dbAbortRetryIgnore : BtnsFlags := MB_AbortRetryIgnore;
+    else BtnsFlags := MB_OK;
+  end;
+
+  // Transformation du paramètre DefButton en flag de bouton par défaut
+  case DefButton of
+    1 : DefBtnFlags := MB_DEFBUTTON1;
+    2 : DefBtnFlags := MB_DEFBUTTON2;
+    3 : DefBtnFlags := MB_DEFBUTTON3;
+    else DefBtnFlags := 0;
+  end;
+
+  // Appel de ShowMes et transformation du retour Word en TDialogResult
+  Flags := TypeFlags or BtnsFlags or DefBtnFlags or AddFlags;
+  case ShowMes(Title, Text, Flags) of
+    IDOK     : Result := drOK;
+    IDYES    : Result := drYes;
+    IDNO     : Result := drNo;
+    IDCANCEL : Result := drCancel;
+    IDABORT  : Result := drAbort;
+    IDRETRY  : Result := drRetry;
+    IDIGNORE : Result := drIgnore;
+    else Result := drCancel;
+  end;
+end;
+{$ENDIF}
+
+{$IFDEF LINUX}
+function ShowDialog(const Title, Text : string;
+  DlgType : TDialogType = dtInformation; DlgButtons : TDialogButtons = dbOK;
+  DefButton : Byte = 1; AddFlags : LongWord = 0) : TDialogResult;
+var NbBtns : integer;
+    MsgDefButton : TMsgDlgBtn;
+begin
+  // Détermination du nombre de boutons
+  case DlgButtons of
+    dbOK               : NbBtns := 1;
+    dbOKCancel         : NbBtns := 2;
+    dbYesNo            : NbBtns := 2;
+    dbYesNoCancel      : NbBtns := 3;
+    dbRetryCancel      : NbBtns := 2;
+    dbAbortRetryIgnore : NbBtns := 3;
+    else begin NbBtns := 1 end;
+  end;
+
+  MsgDefButton := mbNone;
+  if (DefButton < 1) or (DefButton > NbBtns) then DefButton := 1;
+
+  // Détermination du bouton par défaut
+  case DefButton of
+    1 :
+    begin
+      if DlgButtons = [dbOK, dbOKCancel] then
+        MsgDefButton := mbOK else
+      if DlgButtons = [dbYesNo, dbYesNoCancel] then
+        MsgDefButton := mbYes else
+      if DlgButtons = dbRetryCancel then
+        MsgDefButton := mbRetry else
+      if DlgButtons = dbAbortRetryIgnore then
+        MsgDefButton := mbAbort;
+    end;
+    2 :
+    begin
+      if DlgButtons = [dbOKCancel, dbRetryCancel] then
+        MsgDefButton := mbCancel else
+      if DlgButtons = [dbYesNo, dbYesNoCancel]
+        then MsgDefButton := mbNo else
+      if DlgButtons = dbAbortRetryIgnore then
+        MsgDefButton := mbRetry;
+    end;
+    3 :
+    begin
+      if DlgButtons = dbYesNoCancel then
+        MsgDefButton := mbCancel else
+      if DlgButtons = dbAbortRetryIgnore then
+        MsgDefButton := mbIgnore;
+    end;
+  end;
+
+  // Appel de MessageDlg et renvoi de la valeur renvoyée par celle-ci
+  Result := MessageDlg(Title, Text, DlgType, DlgButtons, 0, MsgDefBtn);
+end;
+{$ENDIF}
+
+{*
+  Affiche une boîte de dialogue avec des boutons radio
+  ShowDialogRadio est une variante de ShowDialog qui affiche des boutons radio
+  pour chaque choix possible.
+  @param Title         Titre de la boîte de dialogue
+  @param Text          Texte de la boîte de dialogue
+  @param DlgType       Type de boîte de dialogue
+  @param DlgButtons    Boutons présents dans la boîte de dialogue
+  @param DefButton     Bouton sélectionné par défaut
+  @param RadioTitles   Libellés des différents boutons radio
+  @param Selected      Bouton radio sélectionné
+  @param OverButtons   Boutons radio placés au-dessus des boutons si True
+  @return Bouton sur lequel a cliqué l'utilisateur
+*}
+function ShowDialogRadio(const Title, Text : string; DlgType : TMsgDlgType;
+  DlgButtons : TMsgDlgButtons; DefButton : TModalResult;
+  const RadioTitles : array of string; var Selected : integer;
+  OverButtons : boolean = False) : Word;
+var Form : TForm;
+    I, MaxWidth, OldWidth : integer;
+    Button : TButton;
+begin
+  // Création de la boîte de dialogue
+  Form := CreateMessageDialog(Text, DlgType, DlgButtons);
+
+  with Form do
+  try
+    Caption := Title;
+    // On augmente la taille de la boîte de dialogue
+    Height := Height + Length(RadioTitles) * 25;
+
+    // Création des boutons radio et détermination de la largeur minimale
+    MaxWidth := 0;
+    for I := High(RadioTitles) downto Low(RadioTitles) do
+    with TRadioButton.Create(Form) do
+    begin
+      FreeNotification(Form);
+      Parent := Form;
+      Width := Canvas.TextWidth(RadioTitles[I]) + 20;
+      MaxWidth := Max(MaxWidth, Width-20);
+      Caption := RadioTitles[I];
+      Checked := I = Selected;
+      Tag := I;
+      Left := 8;
+
+      // OverButtons indique si les RadioBox sont au-dessus ou en-dessous des
+      // boutons
+      if OverButtons then
+        Top := Form.Height - 90 - (High(RadioTitles) - I) * 25
+      else
+        Top := Form.Height - 50 - (High(RadioTitles) - I) * 25;
+    end;
+
+    // Il faut aussi vérifier que la fiche peut afficher les textes des RadioBox
+    // en entier
+    OldWidth := 0;
+    if (MaxWidth + 40) > Width then
+    begin
+      OldWidth := Width;
+      Width := MaxWidth +40;
+    end;
+
+    for I := 0 to ComponentCount-1 do
+    begin
+      // On récupère chaque bouton
+      if Components[I] is TButton then
+      begin
+        Button := TButton(Components[I]);
+
+        // On met le bon bouton par défaut et on le sélectionne
+        Button.Default := Button.ModalResult = DefButton;
+        if Button.Default then ActiveControl := Button;
+
+        // S'il le faut, décaler tous les boutons vers le bas
+        if OverButtons then
+          Button.Top := Button.Top + Length(RadioTitles) * 25;
+
+        // S'il le faut, décaler tous les boutons vers la droite
+        if OldWidth > 0 then
+          Button.Left := Button.Left + (Width - OldWidth) div 2;
+      end;
+    end;
+
+    // On centre la boîte de dialogue
+    Position := poScreenCenter;
+
+    // Affichage de la boîte de dialogue
+    Result := ShowModal;
+
+    // Récupération du choix de l'utilisateur
+    Selected := -1;
+    for I := 0 to ControlCount-1 do
+    begin
+      if (Controls[I] is TRadioButton) and
+         TRadioButton(Controls[I]).Checked then
+        Selected := Controls[I].Tag;
+    end;
+  finally
+    Free;
+  end;
+end;
 
 {*
   Demande un mot de passe à l'utilisateur

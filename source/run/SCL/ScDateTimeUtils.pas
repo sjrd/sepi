@@ -7,12 +7,12 @@ unit ScDateTimeUtils;
 
 interface
 
-uses
-  ScConsts;
-
 function GetMonthName(Month : integer; Maj : boolean = True) : string;
 
 implementation
+
+uses
+  ScConsts;
 
 {*
   Renvoie le nom d'un mois
