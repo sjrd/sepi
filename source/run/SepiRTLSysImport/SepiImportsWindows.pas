@@ -279,6 +279,74 @@ begin
   end;
 end;
 
+{------------------}
+{ tagBITMAP import }
+{------------------}
+
+function SepiImporttagBITMAP(Owner : TSepiMetaUnit) : TSepiRecordType;
+begin
+  Result := TSepiRecordType.Create(Owner, 'tagBITMAP', True, True);
+
+  with Result do
+  begin
+    AddField('bmType', System.TypeInfo(Longint));
+    AddField('bmWidth', System.TypeInfo(Longint));
+    AddField('bmHeight', System.TypeInfo(Longint));
+    AddField('bmWidthBytes', System.TypeInfo(Longint));
+    AddField('bmPlanes', System.TypeInfo(Word));
+    AddField('bmBitsPixel', System.TypeInfo(Word));
+    AddField('bmBits', 'Pointer');
+
+    Complete;
+  end;
+end;
+
+{----------------------------}
+{ tagBITMAPINFOHEADER import }
+{----------------------------}
+
+function SepiImporttagBITMAPINFOHEADER(Owner : TSepiMetaUnit) : TSepiRecordType;
+begin
+  Result := TSepiRecordType.Create(Owner, 'tagBITMAPINFOHEADER', True, True);
+
+  with Result do
+  begin
+    AddField('biSize', System.TypeInfo(DWORD));
+    AddField('biWidth', System.TypeInfo(Longint));
+    AddField('biHeight', System.TypeInfo(Longint));
+    AddField('biPlanes', System.TypeInfo(Word));
+    AddField('biBitCount', System.TypeInfo(Word));
+    AddField('biCompression', System.TypeInfo(DWORD));
+    AddField('biSizeImage', System.TypeInfo(DWORD));
+    AddField('biXPelsPerMeter', System.TypeInfo(Longint));
+    AddField('biYPelsPerMeter', System.TypeInfo(Longint));
+    AddField('biClrUsed', System.TypeInfo(DWORD));
+    AddField('biClrImportant', System.TypeInfo(DWORD));
+
+    Complete;
+  end;
+end;
+
+{----------------------------}
+{ tagBITMAPFILEHEADER import }
+{----------------------------}
+
+function SepiImporttagBITMAPFILEHEADER(Owner : TSepiMetaUnit) : TSepiRecordType;
+begin
+  Result := TSepiRecordType.Create(Owner, 'tagBITMAPFILEHEADER', True, True);
+
+  with Result do
+  begin
+    AddField('bfType', System.TypeInfo(Word));
+    AddField('bfSize', System.TypeInfo(DWORD));
+    AddField('bfReserved1', System.TypeInfo(Word));
+    AddField('bfReserved2', System.TypeInfo(Word));
+    AddField('bfOffBits', System.TypeInfo(DWORD));
+
+    Complete;
+  end;
+end;
+
 {-------------------------}
 { tagFONTSIGNATURE import }
 {-------------------------}
@@ -533,6 +601,26 @@ begin
   end;
 end;
 
+{----------------------}
+{ tagDIBSECTION import }
+{----------------------}
+
+function SepiImporttagDIBSECTION(Owner : TSepiMetaUnit) : TSepiRecordType;
+begin
+  Result := TSepiRecordType.Create(Owner, 'tagDIBSECTION', True, True);
+
+  with Result do
+  begin
+    AddField('dsBm', 'TBitmap');
+    AddField('dsBmih', 'TBitmapInfoHeader');
+    AddField('dsBitfields', '$10');
+    AddField('dshSection', System.TypeInfo(THandle));
+    AddField('dsOffset', System.TypeInfo(DWORD));
+
+    Complete;
+  end;
+end;
+
 {---------------}
 { tagMSG import }
 {---------------}
@@ -724,6 +812,18 @@ begin
   TSepiTypeAlias.Create(Result, 'WIN32_FILE_ATTRIBUTE_DATA', '_WIN32_FILE_ATTRIBUTE_DATA');
 
   // Types
+  TSepiPointerType.Create(Result, 'PBitmap', 'TBitmap', True);
+  SepiImporttagBITMAP(Result);
+  TSepiTypeAlias.Create(Result, 'TBitmap', 'tagBITMAP');
+  TSepiTypeAlias.Create(Result, 'BITMAP', 'tagBITMAP');
+  TSepiPointerType.Create(Result, 'PBitmapInfoHeader', 'TBitmapInfoHeader', True);
+  SepiImporttagBITMAPINFOHEADER(Result);
+  TSepiTypeAlias.Create(Result, 'TBitmapInfoHeader', 'tagBITMAPINFOHEADER');
+  TSepiTypeAlias.Create(Result, 'BITMAPINFOHEADER', 'tagBITMAPINFOHEADER');
+  TSepiPointerType.Create(Result, 'PBitmapFileHeader', 'TBitmapFileHeader', True);
+  SepiImporttagBITMAPFILEHEADER(Result);
+  TSepiTypeAlias.Create(Result, 'TBitmapFileHeader', 'tagBITMAPFILEHEADER');
+  TSepiTypeAlias.Create(Result, 'BITMAPFILEHEADER', 'tagBITMAPFILEHEADER');
   TSepiPointerType.Create(Result, 'PFontSignature', 'TFontSignature', True);
   TSepiArrayType.Create(Result, '$6',
     [0, 3], TypeInfo(DWORD), True);
@@ -732,12 +832,6 @@ begin
   SepiImporttagFONTSIGNATURE(Result);
   TSepiTypeAlias.Create(Result, 'TFontSignature', 'tagFONTSIGNATURE');
   TSepiTypeAlias.Create(Result, 'FONTSIGNATURE', 'tagFONTSIGNATURE');
-
-  // Constants
-  TSepiConstant.Create(Result, 'TMPF_FIXED_PITCH', TMPF_FIXED_PITCH);
-  TSepiConstant.Create(Result, 'TMPF_VECTOR', TMPF_VECTOR);
-  TSepiConstant.Create(Result, 'TMPF_DEVICE', TMPF_DEVICE);
-  TSepiConstant.Create(Result, 'TMPF_TRUETYPE', TMPF_TRUETYPE);
 
   // Types
   TSepiPointerType.Create(Result, 'PTextMetricA', 'TTextMetricA', True);
@@ -794,6 +888,14 @@ begin
   TSepiArrayType.Create(Result, '$9',
     [Integer(Low(Byte)), Integer(High(Byte))], 'TPaletteEntry', True);
   SepiImportTMaxLogPalette(Result);
+
+  // Types
+  TSepiPointerType.Create(Result, 'PDIBSection', 'TDIBSection', True);
+  TSepiArrayType.Create(Result, '$10',
+    [0, 2], TypeInfo(DWORD), True);
+  SepiImporttagDIBSECTION(Result);
+  TSepiTypeAlias.Create(Result, 'TDIBSection', 'tagDIBSECTION');
+  TSepiTypeAlias.Create(Result, 'DIBSECTION', 'tagDIBSECTION');
   TSepiPointerType.Create(Result, 'PMsg', 'TMsg', True);
   SepiImporttagMSG(Result);
   TSepiTypeAlias.Create(Result, 'TMsg', 'tagMSG');

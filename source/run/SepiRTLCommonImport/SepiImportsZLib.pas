@@ -153,6 +153,7 @@ begin
 
     AddProperty('CompressionRate', 'property: Single',
       'GetCompressionRate', '');
+    RedefineProperty('OnProgress');
 
     Complete;
   end;
@@ -186,6 +187,8 @@ begin
     AddMethod('Seek', @TSepiImportsTDecompressionStream.Seek,
       'function(Offset: Longint; Origin: Word): Longint',
       mlkOverride);
+
+    RedefineProperty('OnProgress');
 
     Complete;
   end;

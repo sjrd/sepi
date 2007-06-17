@@ -1095,23 +1095,23 @@ end;
 *}
 constructor TSepiPointerType.Create(AOwner : TSepiMeta; const AName : string;
   APointTo : PTypeInfo; AIsNative : boolean = False);
+var APointToType : TSepiType;
 begin
-  try
-    Create(AOwner, AName, AOwner.Root.FindType(APointTo), AIsNative);
-  except
-    on Error : ESepiMetaNotFoundError do
-    begin
-      if FForwardInfo <> nil then
-        raise;
+  if FForwardInfo = nil then
+    APointToType := AOwner.Root.GetType(APointTo)
+  else
+    APointToType := AOwner.Root.FindType(APointTo);
 
-      New(FForwardInfo);
-      FForwardInfo.Owner := AOwner;
-      FForwardInfo.Name := AName;
-      FForwardInfo.PointToTypeInfo := APointTo;
-      Pointer(FForwardInfo.PointToName) := nil;
-      FForwardInfo.IsNative := AIsNative;
-      TSepiPointerType(AOwner).AddForward(AName, Self);
-    end;
+  if (APointTo = nil) or (APointToType <> nil) then
+    Create(AOwner, AName, APointToType, AIsNative) else
+  begin
+    New(FForwardInfo);
+    FForwardInfo.Owner := AOwner;
+    FForwardInfo.Name := AName;
+    FForwardInfo.PointToTypeInfo := APointTo;
+    Pointer(FForwardInfo.PointToName) := nil;
+    FForwardInfo.IsNative := AIsNative;
+    TSepiPointerType(AOwner).AddForward(AName, Self);
   end;
 end;
 
@@ -1123,24 +1123,24 @@ end;
 *}
 constructor TSepiPointerType.Create(AOwner : TSepiMeta;
   const AName, APointTo : string; AIsNative : boolean = False);
+var APointToType : TSepiType;
 begin
-  try
-    Create(AOwner, AName, AOwner.Root.FindType(APointTo), AIsNative);
-  except
-    on Error : ESepiMetaNotFoundError do
-    begin
-      if FForwardInfo <> nil then
-        raise;
-        
-      New(FForwardInfo);
-      FForwardInfo.Owner := AOwner;
-      FForwardInfo.Name := AName;
-      FForwardInfo.PointToTypeInfo := nil;
-      Pointer(FForwardInfo.PointToName) := nil;
-      FForwardInfo.PointToName := APointTo;
-      FForwardInfo.IsNative := AIsNative;
-      TSepiPointerType(AOwner).AddForward(AName, Self);
-    end;
+  if FForwardInfo = nil then
+    APointToType := AOwner.Root.GetType(APointTo)
+  else
+    APointToType := AOwner.Root.FindType(APointTo);
+
+  if (APointTo = '') or (APointToType <> nil) then
+    Create(AOwner, AName, APointToType, AIsNative) else
+  begin
+    New(FForwardInfo);
+    FForwardInfo.Owner := AOwner;
+    FForwardInfo.Name := AName;
+    FForwardInfo.PointToTypeInfo := nil;
+    Pointer(FForwardInfo.PointToName) := nil;
+    FForwardInfo.PointToName := APointTo;
+    FForwardInfo.IsNative := AIsNative;
+    TSepiPointerType(AOwner).AddForward(AName, Self);
   end;
 end;
 

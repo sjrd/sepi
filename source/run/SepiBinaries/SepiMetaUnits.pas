@@ -242,6 +242,9 @@ type
 
     function LoadUnit(const UnitName : string) : TSepiMetaUnit;
 
+    function GetType(TypeInfo : PTypeInfo) : TSepiType; overload;
+    function GetType(const TypeName : string) : TSepiType; overload;
+
     function FindType(TypeInfo : PTypeInfo) : TSepiType; overload;
     function FindType(const TypeName : string) : TSepiType; overload;
 
@@ -1273,12 +1276,11 @@ begin
 end;
 
 {*
-  Trouve un type enregistré à partir de ses informations de type
+  Cherche un type enregistré à partir de ses informations de type
   @param TypeInfo   Informations de type du type recherché
-  @return Le type correspondant aux informations de type données
-  @throw ESepiMetaNotFoundError Aucun type enregistré correspondant
+  @return Le type correspondant (nil si non trouvé)
 *}
-function TSepiMetaRoot.FindType(TypeInfo : PTypeInfo) : TSepiType;
+function TSepiMetaRoot.GetType(TypeInfo : PTypeInfo) : TSepiType;
 var TypeName : string;
     I : integer;
     Meta : TSepiMeta;
@@ -1300,16 +1302,15 @@ begin
     end;
   end;
 
-  raise ESepiMetaNotFoundError.CreateFmt(SSepiObjectNotFound, [TypeName]);
+  Result := nil;
 end;
 
 {*
-  Trouve un type enregistré à partir de son nom
+  Cherche un type enregistré à partir de son nom
   @param TypeName   Nom du type recherché
-  @return Le type correspondant au nom donné
-  @throw ESepiMetaNotFoundError Aucun type enregistré correspondant
+  @return Le type correspondant (ou nil si non trouvé)
 *}
-function TSepiMetaRoot.FindType(const TypeName : string) : TSepiType;
+function TSepiMetaRoot.GetType(const TypeName : string) : TSepiType;
 var I : integer;
     Meta : TSepiMeta;
 begin
@@ -1329,7 +1330,40 @@ begin
     end;
   end;
 
-  raise ESepiMetaNotFoundError.CreateFmt(SSepiObjectNotFound, [TypeName]);
+  Result := nil;
+end;
+
+{*
+  Trouve un type enregistré à partir de ses informations de type
+  @param TypeInfo   Informations de type du type recherché
+  @return Le type correspondant aux informations de type données
+  @throw ESepiMetaNotFoundError Aucun type enregistré correspondant
+*}
+function TSepiMetaRoot.FindType(TypeInfo : PTypeInfo) : TSepiType;
+begin
+  if TypeInfo = nil then Result := nil else
+  begin
+    Result := GetType(TypeInfo);
+    if Result = nil then
+      raise ESepiMetaNotFoundError.CreateFmt(SSepiObjectNotFound,
+        [TypeInfo.Name]);
+  end;
+end;
+
+{*
+  Trouve un type enregistré à partir de son nom
+  @param TypeName   Nom du type recherché
+  @return Le type correspondant au nom donné
+  @throw ESepiMetaNotFoundError Aucun type enregistré correspondant
+*}
+function TSepiMetaRoot.FindType(const TypeName : string) : TSepiType;
+begin
+  if TypeName = '' then Result := nil else
+  begin
+    Result := GetType(TypeName);
+    if Result = nil then
+      raise ESepiMetaNotFoundError.CreateFmt(SSepiObjectNotFound, [TypeName]);
+  end;
 end;
 
 {----------------------}

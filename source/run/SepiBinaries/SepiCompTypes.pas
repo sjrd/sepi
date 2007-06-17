@@ -43,6 +43,11 @@ type
   TPropertyAccessKind = (pakNone, pakField, pakMethod);
 
   {*
+    Type de stockage d'une propriété
+  *}
+  TPropertyStorageKind = (pskConstant, pskField, pskMethod);
+
+  {*
     Meta-variable
     @author Sébastien Jean Robert Doeraene
     @version 1.0
@@ -202,6 +207,20 @@ type
   end;
 
   {*
+    Stockage de propriété
+    @author Sébastien Jean Robert Doeraene
+    @version 1.0
+  *}
+  TSepiPropertyStorage = record
+    Kind : TPropertyStorageKind;              /// Type de stockage
+    Stored : boolean;                         /// Constante de stockage
+    case TPropertyStorageKind of
+      pskConstant : (Meta : TSepiMeta);       /// Meta de stockage (neutre)
+      pskField : (Field : TSepiMetaField);    /// Meta-champ de stockage
+      pskMethod : (Method : TSepiMetaMethod); /// Meta-méthode de stockage
+  end;
+
+  {*
     Meta-propriété
     @author Sébastien Jean Robert Doeraene
     @version 1.0
@@ -213,7 +232,9 @@ type
     FReadAccess : TSepiPropertyAccess;  /// Accès en lecture
     FWriteAccess : TSepiPropertyAccess; /// Accès en écriture
     FIndex : integer;                   /// Index d'accès
-    FDefaultValue : integer;            /// Valeur par défaut
+
+    FDefaultValue : integer;         /// Valeur par défaut
+    FStorage : TSepiPropertyStorage; /// Spécificateur de stockage
 
     FIsDefault : boolean; /// Indique si c'est la propriété par défaut
 
@@ -223,15 +244,26 @@ type
   protected
     procedure ListReferences; override;
     procedure Save(Stream : TStream); override;
+
+    procedure Destroying; override;
   public
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
+
     constructor Create(AOwner : TSepiMeta;
       const AName, ASignature, AReadAccess, AWriteAccess : string;
       AIndex : integer = NoIndex; ADefaultValue : integer = NoDefaultValue;
-      AIsDefault : boolean = False); overload;
+      const AStorage : string = ''; AIsDefault : boolean = False); overload;
     constructor Create(AOwner : TSepiMeta;
       const AName, ASignature, AReadAccess, AWriteAccess : string;
       AIsDefault : boolean); overload;
+
+    constructor Redefine(AOwner : TSepiMeta; const AName : string;
+      const AReadAccess : string = ''; const AWriteAccess : string = '';
+      const AStorage : string = ''); overload;
+    constructor Redefine(AOwner : TSepiMeta;
+      const AName, AReadAccess, AWriteAccess : string; ADefaultValue : integer;
+      const AStorage : string = ''); overload;
+
     destructor Destroy; override;
 
     property Signature : TSepiMethodSignature read FSignature;
@@ -240,7 +272,10 @@ type
     property ReadAccess : TSepiPropertyAccess read FReadAccess;
     property WriteAccess : TSepiPropertyAccess read FWriteAccess;
     property Index : integer read FIndex;
+
     property DefaultValue : integer read FIndex;
+    property Storage : TSepiPropertyStorage read FStorage;
+
     property IsDefault : boolean read FIsDefault;
   end;
 
@@ -459,10 +494,18 @@ type
     function AddProperty(
       const AName, ASignature, AReadAccess, AWriteAccess : string;
       AIndex : integer = NoIndex; ADefaultValue : integer = NoDefaultValue;
+      const AStorage : string = '';
       AIsDefault : boolean = False) : TSepiMetaProperty; overload;
     function AddProperty(
       const AName, ASignature, AReadAccess, AWriteAccess : string;
       AIsDefault : boolean) : TSepiMetaProperty; overload;
+
+    function RedefineProperty(const AName : string;
+      const AReadAccess : string = ''; const AWriteAccess : string = '';
+      const AStorage : string = '') : TSepiMetaProperty; overload;
+    function RedefineProperty(
+      const AName, AReadAccess, AWriteAccess : string; ADefaultValue : integer;
+      const AStorage : string = '') : TSepiMetaProperty; overload;
 
     procedure Complete;
 
@@ -636,6 +679,32 @@ begin
       Kind := pakMethod
     else
       Kind := pakNone;
+  end;
+end;
+
+procedure MakePropertyStorage(out Storage : TSepiPropertyStorage;
+  const AStorage : string; Owner : TSepiClass);
+begin
+  if (AStorage = '') or AnsiSameText(AStorage, BooleanIdents[True]) then
+  begin
+    Storage.Kind := pskConstant;
+    Storage.Stored := True;
+    Storage.Meta := nil;
+  end else
+  if AnsiSameText(AStorage, BooleanIdents[False]) then
+  begin
+    Storage.Kind := pskConstant;
+    Storage.Stored := False;
+    Storage.Meta := nil;
+  end else
+  begin
+    Storage.Stored := False;
+    Storage.Meta := Owner.LookForMember(AStorage, Owner.OwningUnit, Owner);
+
+    if Storage.Meta is TSepiMetaField then
+      Storage.Kind := pskField
+    else
+      Storage.Kind := pskMethod;
   end;
 end;
 
@@ -1338,12 +1407,13 @@ end;
   @param AWriteAccess    Accès en écriture à la propriété (peut être vide)
   @param AIndex          Index d'accès
   @param ADefaultValue   Valeur par défaut de la propriété
+  @param AStorage        Spécificateur de stockage
   @param AIsDefault      Indique si c'est la propriété tableau par défaut
 *}
 constructor TSepiMetaProperty.Create(AOwner : TSepiMeta;
   const AName, ASignature, AReadAccess, AWriteAccess : string;
   AIndex : integer = NoIndex; ADefaultValue : integer = NoDefaultValue;
-  AIsDefault : boolean = False);
+  const AStorage : string = ''; AIsDefault : boolean = False);
 
   function FindAccess(const AAccess : string) : TSepiMeta;
   begin
@@ -1366,7 +1436,9 @@ begin
   MakePropertyAccessKind(FWriteAccess);
 
   FIndex := AIndex;
+
   FDefaultValue := ADefaultValue;
+  MakePropertyStorage(FStorage, AStorage, TSepiClass(Owner));
 
   FIsDefault := AIsDefault and (Signature.ParamCount > 0);
 end;
@@ -1385,7 +1457,66 @@ constructor TSepiMetaProperty.Create(AOwner : TSepiMeta;
   AIsDefault : boolean);
 begin
   Create(AOwner, AName, ASignature, AReadAccess, AWriteAccess,
-    NoIndex, NoDefaultValue, AIsDefault);
+    NoIndex, NoDefaultValue, '', AIsDefault);
+end;
+
+{*
+  Redéfinit une propriété héritée
+  @param AOwner         Propriétaire de la propriété
+  @param AName          Nom de la propriété
+  @param AReadAccess    Accès en lecture à la propriété
+  @param AWriteAccess   Accès en écriture à la propriété
+  @param AStorage       Spécificateur de stockage
+*}
+constructor TSepiMetaProperty.Redefine(AOwner : TSepiMeta;
+  const AName : string; const AReadAccess : string = '';
+  const AWriteAccess : string = ''; const AStorage : string = '');
+var Previous : TSepiMetaProperty;
+begin
+  Previous := (AOwner as TSepiClass).Parent.LookForMember(
+    AName, AOwner.OwningUnit, TSepiClass(AOwner)) as TSepiMetaProperty;
+
+  inherited Create(AOwner, AName);
+
+  FSignature := Previous.Signature;
+  FIndex := Previous.Index;
+  FDefaultValue := Previous.FDefaultValue;
+  FIsDefault := Previous.IsDefault;
+
+  if AReadAccess = '' then FReadAccess := Previous.ReadAccess else
+  begin
+    FReadAccess.Meta := TSepiClass(Owner).LookForMember(
+      AReadAccess, OwningUnit, TSepiClass(Owner));
+    MakePropertyAccessKind(FReadAccess);
+  end;
+
+  if AWriteAccess = '' then FWriteAccess := Previous.WriteAccess else
+  begin
+    FWriteAccess.Meta := TSepiClass(Owner).LookForMember(
+      AWriteAccess, OwningUnit, TSepiClass(Owner));
+    MakePropertyAccessKind(FWriteAccess);
+  end;
+
+  if AStorage = '' then FStorage := Previous.Storage else
+    MakePropertyStorage(FStorage, AStorage, TSepiClass(Owner));
+end;
+
+{*
+  Redéfinit une propriété héritée
+  @param AOwner          Propriétaire de la propriété
+  @param AName           Nom de la propriété
+  @param AReadAccess     Accès en lecture à la propriété (peut être vide)
+  @param AWriteAccess    Accès en écriture à la propriété (peut être vide)
+  @param ADefaultValue   Valeur par défaut de la propriété
+  @param AStorage        Spécificateur de stockage
+*}
+constructor TSepiMetaProperty.Redefine(AOwner : TSepiMeta;
+  const AName, AReadAccess, AWriteAccess : string; ADefaultValue : integer;
+  const AStorage : string = '');
+begin
+  Redefine(AOwner, AName, AReadAccess, AWriteAccess, AStorage);
+
+  FDefaultValue := ADefaultValue;
 end;
 
 {*
@@ -1441,9 +1572,23 @@ begin
     end;
   end;
 
+  // Storage
+  with PropInfo^, Storage do
+  begin
+    case Kind of
+      pskConstant : StoredProc := Pointer($FFFFFF00 or LongWord(Stored));
+      pskField : StoredProc := Pointer($FF000000 or Field.Offset);
+      pskMethod :
+      begin
+        if Method.LinkKind = mlkStatic then
+          StoredProc := Method.Code
+        else
+          StoredProc := Pointer($FE000000 or Method.VMTOffset);
+      end;
+    end;
+  end;
+
   // Some information
-  { TODO 1 -Metaunités : Renseigner convenablement PropInfo.StoredProc }
-  PropInfo.StoredProc := nil;
   PropInfo.Index := Index;
   PropInfo.Default := DefaultValue;
   PropInfo.NameIndex := 0; // Unknown, give 0 and pray...
@@ -1489,6 +1634,17 @@ begin
   Stream.WriteBuffer(FIndex, 4);
   Stream.WriteBuffer(FDefaultValue, 4);
   Stream.WriteBuffer(FIsDefault, 1);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiMetaProperty.Destroying;
+begin
+  inherited;
+
+  if FSignature.Owner <> Self then
+    FSignature := nil;
 end;
 
 {------------------------}
@@ -1952,7 +2108,7 @@ function TSepiInterface.AddProperty(
   AIndex : integer = NoIndex; AIsDefault : boolean = False) : TSepiMetaProperty;
 begin
   Result := TSepiMetaProperty.Create(Self, AName, ASignature,
-    AReadAccess, AWriteAccess, AIndex, NoDefaultValue, AIsDefault);
+    AReadAccess, AWriteAccess, AIndex, NoDefaultValue, '', AIsDefault);
 end;
 
 {*
@@ -2864,10 +3020,11 @@ end;
 function TSepiClass.AddProperty(
   const AName, ASignature, AReadAccess, AWriteAccess : string;
   AIndex : integer = NoIndex; ADefaultValue : integer = NoDefaultValue;
+  const AStorage : string = '';
   AIsDefault : boolean = False) : TSepiMetaProperty;
 begin
   Result := TSepiMetaProperty.Create(Self, AName, ASignature,
-    AReadAccess, AWriteAccess, AIndex, ADefaultValue, AIsDefault);
+    AReadAccess, AWriteAccess, AIndex, ADefaultValue, AStorage, AIsDefault);
 end;
 
 {*
@@ -2884,6 +3041,37 @@ function TSepiClass.AddProperty(
 begin
   Result := TSepiMetaProperty.Create(Self, AName, ASignature,
     AReadAccess, AWriteAccess, AIsDefault);
+end;
+
+{*
+  Redéfinit une propriété héritée
+  @param AName          Nom de la propriété
+  @param AReadAccess    Accès en lecture à la propriété
+  @param AWriteAccess   Accès en écriture à la propriété
+  @param AStorage       Spécificateur de stockage
+*}
+function TSepiClass.RedefineProperty(const AName : string;
+  const AReadAccess : string = ''; const AWriteAccess : string = '';
+  const AStorage : string = '') : TSepiMetaProperty;
+begin
+  Result := TSepiMetaProperty.Redefine(Self, AName,
+    AReadAccess, AWriteAccess, AStorage);
+end;
+
+{*
+  Redéfinit une propriété héritée
+  @param AName           Nom de la propriété
+  @param AReadAccess     Accès en lecture à la propriété
+  @param AWriteAccess    Accès en écriture à la propriété
+  @param ADefaultValue   Valeur par défaut
+  @param AStorage        Spécificateur de stockage
+*}
+function TSepiClass.RedefineProperty(
+  const AName, AReadAccess, AWriteAccess : string; ADefaultValue : integer;
+  const AStorage : string = '') : TSepiMetaProperty;
+begin
+  Result := TSepiMetaProperty.Redefine(Self, AName,
+    AReadAccess, AWriteAccess, ADefaultValue, AStorage);
 end;
 
 {*

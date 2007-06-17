@@ -3538,7 +3538,8 @@ begin
     CurrentVisibility := mvPublished;
 
     AddProperty('Name', 'property: TComponentName',
-      'FName', 'SetName');
+      'FName', 'SetName',
+      NoIndex, NoDefaultValue, 'False');
     AddProperty('Tag', 'property: Longint',
       'FTag', 'FTag',
       NoIndex, 0);
