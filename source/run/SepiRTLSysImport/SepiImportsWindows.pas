@@ -601,6 +601,64 @@ begin
   end;
 end;
 
+{--------------------}
+{ tagLOGFONTA import }
+{--------------------}
+
+function SepiImporttagLOGFONTA(Owner : TSepiMetaUnit) : TSepiRecordType;
+begin
+  Result := TSepiRecordType.Create(Owner, 'tagLOGFONTA', True, True);
+
+  with Result do
+  begin
+    AddField('lfHeight', System.TypeInfo(Longint));
+    AddField('lfWidth', System.TypeInfo(Longint));
+    AddField('lfEscapement', System.TypeInfo(Longint));
+    AddField('lfOrientation', System.TypeInfo(Longint));
+    AddField('lfWeight', System.TypeInfo(Longint));
+    AddField('lfItalic', System.TypeInfo(Byte));
+    AddField('lfUnderline', System.TypeInfo(Byte));
+    AddField('lfStrikeOut', System.TypeInfo(Byte));
+    AddField('lfCharSet', System.TypeInfo(Byte));
+    AddField('lfOutPrecision', System.TypeInfo(Byte));
+    AddField('lfClipPrecision', System.TypeInfo(Byte));
+    AddField('lfQuality', System.TypeInfo(Byte));
+    AddField('lfPitchAndFamily', System.TypeInfo(Byte));
+    AddField('lfFaceName', '$10');
+
+    Complete;
+  end;
+end;
+
+{--------------------}
+{ tagLOGFONTW import }
+{--------------------}
+
+function SepiImporttagLOGFONTW(Owner : TSepiMetaUnit) : TSepiRecordType;
+begin
+  Result := TSepiRecordType.Create(Owner, 'tagLOGFONTW', True, True);
+
+  with Result do
+  begin
+    AddField('lfHeight', System.TypeInfo(Longint));
+    AddField('lfWidth', System.TypeInfo(Longint));
+    AddField('lfEscapement', System.TypeInfo(Longint));
+    AddField('lfOrientation', System.TypeInfo(Longint));
+    AddField('lfWeight', System.TypeInfo(Longint));
+    AddField('lfItalic', System.TypeInfo(Byte));
+    AddField('lfUnderline', System.TypeInfo(Byte));
+    AddField('lfStrikeOut', System.TypeInfo(Byte));
+    AddField('lfCharSet', System.TypeInfo(Byte));
+    AddField('lfOutPrecision', System.TypeInfo(Byte));
+    AddField('lfClipPrecision', System.TypeInfo(Byte));
+    AddField('lfQuality', System.TypeInfo(Byte));
+    AddField('lfPitchAndFamily', System.TypeInfo(Byte));
+    AddField('lfFaceName', '$11');
+
+    Complete;
+  end;
+end;
+
 {----------------------}
 { tagDIBSECTION import }
 {----------------------}
@@ -616,6 +674,56 @@ begin
     AddField('dsBitfields', '$10');
     AddField('dshSection', System.TypeInfo(THandle));
     AddField('dsOffset', System.TypeInfo(DWORD));
+
+    Complete;
+  end;
+end;
+
+{---------------------}
+{ tagWNDCLASSA import }
+{---------------------}
+
+function SepiImporttagWNDCLASSA(Owner : TSepiMetaUnit) : TSepiRecordType;
+begin
+  Result := TSepiRecordType.Create(Owner, 'tagWNDCLASSA', True, True);
+
+  with Result do
+  begin
+    AddField('style', System.TypeInfo(UINT));
+    AddField('lpfnWndProc', 'TFNWndProc');
+    AddField('cbClsExtra', System.TypeInfo(Integer));
+    AddField('cbWndExtra', System.TypeInfo(Integer));
+    AddField('hInstance', System.TypeInfo(HINST));
+    AddField('hIcon', System.TypeInfo(HICON));
+    AddField('hCursor', System.TypeInfo(HCURSOR));
+    AddField('hbrBackground', System.TypeInfo(HBRUSH));
+    AddField('lpszMenuName', 'PAnsiChar');
+    AddField('lpszClassName', 'PAnsiChar');
+
+    Complete;
+  end;
+end;
+
+{---------------------}
+{ tagWNDCLASSW import }
+{---------------------}
+
+function SepiImporttagWNDCLASSW(Owner : TSepiMetaUnit) : TSepiRecordType;
+begin
+  Result := TSepiRecordType.Create(Owner, 'tagWNDCLASSW', True, True);
+
+  with Result do
+  begin
+    AddField('style', System.TypeInfo(UINT));
+    AddField('lpfnWndProc', 'TFNWndProc');
+    AddField('cbClsExtra', System.TypeInfo(Integer));
+    AddField('cbWndExtra', System.TypeInfo(Integer));
+    AddField('hInstance', System.TypeInfo(HINST));
+    AddField('hIcon', System.TypeInfo(HICON));
+    AddField('hCursor', System.TypeInfo(HCURSOR));
+    AddField('hbrBackground', System.TypeInfo(HBRUSH));
+    AddField('lpszMenuName', 'PWideChar');
+    AddField('lpszClassName', 'PWideChar');
 
     Complete;
   end;
@@ -890,12 +998,49 @@ begin
   SepiImportTMaxLogPalette(Result);
 
   // Types
-  TSepiPointerType.Create(Result, 'PDIBSection', 'TDIBSection', True);
+  TSepiPointerType.Create(Result, 'PLogFontA', 'TLogFontA', True);
+  TSepiPointerType.Create(Result, 'PLogFontW', 'TLogFontW', True);
+  TSepiTypeAlias.Create(Result, 'PLogFont', 'PLogFontA');
   TSepiArrayType.Create(Result, '$10',
+    [0, LF_FACESIZE - 1], TypeInfo(AnsiChar), True);
+  SepiImporttagLOGFONTA(Result);
+  TSepiArrayType.Create(Result, '$11',
+    [0, LF_FACESIZE - 1], TypeInfo(WideChar), True);
+  SepiImporttagLOGFONTW(Result);
+  TSepiTypeAlias.Create(Result, 'tagLOGFONT', 'tagLOGFONTA');
+  TSepiTypeAlias.Create(Result, 'TLogFontA', 'tagLOGFONTA');
+  TSepiTypeAlias.Create(Result, 'TLogFontW', 'tagLOGFONTW');
+  TSepiTypeAlias.Create(Result, 'TLogFont', 'TLogFontA');
+  TSepiTypeAlias.Create(Result, 'LOGFONTA', 'tagLOGFONTA');
+  TSepiTypeAlias.Create(Result, 'LOGFONTW', 'tagLOGFONTW');
+  TSepiTypeAlias.Create(Result, 'LOGFONT', 'LOGFONTA');
+
+  // Types
+  TSepiPointerType.Create(Result, 'PDIBSection', 'TDIBSection', True);
+  TSepiArrayType.Create(Result, '$12',
     [0, 2], TypeInfo(DWORD), True);
   SepiImporttagDIBSECTION(Result);
   TSepiTypeAlias.Create(Result, 'TDIBSection', 'tagDIBSECTION');
   TSepiTypeAlias.Create(Result, 'DIBSECTION', 'tagDIBSECTION');
+  TSepiTypeAlias.Create(Result, 'TFNWndProc', 'TFarProc');
+  TSepiTypeAlias.Create(Result, 'TFNDlgProc', 'TFarProc');
+  TSepiTypeAlias.Create(Result, 'TFNTimerProc', 'TFarProc');
+  TSepiTypeAlias.Create(Result, 'TFNGrayStringProc', 'TFarProc');
+  TSepiTypeAlias.Create(Result, 'TFNWndEnumProc', 'TFarProc');
+  TSepiTypeAlias.Create(Result, 'TFNSendAsyncProc', 'TFarProc');
+  TSepiTypeAlias.Create(Result, 'TFNDrawStateProc', 'TFarProc');
+  TSepiPointerType.Create(Result, 'PWndClassA', 'TWndClassA', True);
+  TSepiPointerType.Create(Result, 'PWndClassW', 'TWndClassW', True);
+  TSepiTypeAlias.Create(Result, 'PWndClass', 'PWndClassA');
+  SepiImporttagWNDCLASSA(Result);
+  SepiImporttagWNDCLASSW(Result);
+  TSepiTypeAlias.Create(Result, 'tagWNDCLASS', 'tagWNDCLASSA');
+  TSepiTypeAlias.Create(Result, 'TWndClassA', 'tagWNDCLASSA');
+  TSepiTypeAlias.Create(Result, 'TWndClassW', 'tagWNDCLASSW');
+  TSepiTypeAlias.Create(Result, 'TWndClass', 'TWndClassA');
+  TSepiTypeAlias.Create(Result, 'WNDCLASSA', 'tagWNDCLASSA');
+  TSepiTypeAlias.Create(Result, 'WNDCLASSW', 'tagWNDCLASSW');
+  TSepiTypeAlias.Create(Result, 'WNDCLASS', 'WNDCLASSA');
   TSepiPointerType.Create(Result, 'PMsg', 'TMsg', True);
   SepiImporttagMSG(Result);
   TSepiTypeAlias.Create(Result, 'TMsg', 'tagMSG');
@@ -914,6 +1059,11 @@ begin
     'function(l, h: Word): LRESULT');
 
   // Types
+  TSepiPointerType.Create(Result, 'PKeyboardState', 'TKeyboardState', True);
+  TSepiArrayType.Create(Result, 'TKeyboardState',
+    [0, 255], TypeInfo(Byte), True);
+
+  // Types
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(HKEY));
   TSepiPointerType.Create(Result, 'PHKEY', TypeInfo(HKEY), True);
 
@@ -925,6 +1075,9 @@ begin
   TSepiConstant.Create(Result, 'HKEY_PERFORMANCE_DATA', HKEY_PERFORMANCE_DATA);
   TSepiConstant.Create(Result, 'HKEY_CURRENT_CONFIG', HKEY_CURRENT_CONFIG);
   TSepiConstant.Create(Result, 'HKEY_DYN_DATA', HKEY_DYN_DATA);
+
+  // Types
+  TSepiType.LoadFromTypeInfo(Result, TypeInfo(TOwnerDrawState));
 
   Result.Complete;
 end;

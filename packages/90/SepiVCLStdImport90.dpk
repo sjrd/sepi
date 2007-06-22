@@ -36,7 +36,12 @@ contains
   SepiImportsGraphics in '..\..\source\run\SepiVCLStdImport\SepiImportsGraphics.pas',
   SepiImportsVCLStd in '..\..\source\run\SepiVCLStdImport\SepiImportsVCLStd.pas',
   SepiImportsImgList in '..\..\source\run\SepiVCLStdImport\SepiImportsImgList.pas',
-  SepiImportsActnList in '..\..\source\run\SepiVCLStdImport\SepiImportsActnList.pas';
+  SepiImportsActnList in '..\..\source\run\SepiVCLStdImport\SepiImportsActnList.pas',
+  SepiImportsMenus in '..\..\source\run\SepiVCLStdImport\SepiImportsMenus.pas',
+  SepiImportsControls in '..\..\source\run\SepiVCLStdImport\SepiImportsControls.pas',
+  SepiImportsImmTypes in '..\..\source\run\SepiVCLStdImport\SepiImportsImmTypes.pas',
+  SepiImportsForms in '..\..\source\run\SepiVCLStdImport\SepiImportsForms.pas',
+  SepiImportsMultiMon in '..\..\source\run\SepiVCLStdImport\SepiImportsMultiMon.pas';
 
 end.
 

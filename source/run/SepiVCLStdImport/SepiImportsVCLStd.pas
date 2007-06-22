@@ -3,7 +3,9 @@ unit SepiImportsVCLStd;
 interface
 
 uses
-  SepiImportsGraphics, SepiImportsImgList, SepiImportsActnList;
+  SepiImportsGraphics, SepiImportsImgList, SepiImportsActnList,
+  SepiImportsMenus, SepiImportsImmTypes, SepiImportsControls,
+  SepiImportsMultiMon, SepiImportsForms;
 
 implementation
 

@@ -13,7 +13,8 @@
       <Projects Name="SepiRTLCommonImport90.bpl">packages\90\SepiRTLCommonImport90.bdsproj</Projects>
       <Projects Name="SepiSCLImport90.bpl">packages\90\SepiSCLImport90.bdsproj</Projects>
       <Projects Name="SepiVCLStdImport90.bpl">packages\90\SepiVCLStdImport90.bdsproj</Projects>
-      <Projects Name="Targets">SepiRTLSysImport90.bpl SepiRTLCommonImport90.bpl SepiSCLImport90.bpl SepiVCLStdImport90.bpl</Projects>
+      <Projects Name="EssaisSepi.exe">..\EssaisSepi\EssaisSepi.bdsproj</Projects>
+      <Projects Name="Targets">SepiRTLSysImport90.bpl SepiRTLCommonImport90.bpl SepiSCLImport90.bpl SepiVCLStdImport90.bpl EssaisSepi.exe</Projects>
     </Projects>
     <Dependencies/>
   </Default.Personality>

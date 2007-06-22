@@ -127,7 +127,7 @@
 		</Directories>
 		<Parameters>
 			<Parameters Name="RunParams"></Parameters>
-			<Parameters Name="HostApplication">C:\Documents and Settings\Sébastien\Mes documents\Projets Borland Studio\FunLabyrinthe\Labyrinthe.exe</Parameters>
+			<Parameters Name="HostApplication"></Parameters>
 			<Parameters Name="Launcher"></Parameters>
 			<Parameters Name="UseLauncher">False</Parameters>
 			<Parameters Name="DebugCWD"></Parameters>
@@ -162,7 +162,7 @@
 			<VersionInfoKeys Name="FileDescription">Sepi importer for VCL standart units</VersionInfoKeys>
 			<VersionInfoKeys Name="FileVersion">1.0.0.0</VersionInfoKeys>
 			<VersionInfoKeys Name="InternalName">SepiVCLStdImport90</VersionInfoKeys>
-			<VersionInfoKeys Name="LegalCopyright">Copyright (c) 2000-2006 SÃ©bastien Doeraene</VersionInfoKeys>
+			<VersionInfoKeys Name="LegalCopyright">Copyright (c) 2000-2006 SÃƒÂ©bastien Doeraene</VersionInfoKeys>
 			<VersionInfoKeys Name="OriginalFilename">SepiVCLStdImport90.bpl</VersionInfoKeys>
 			<VersionInfoKeys Name="ProductName">Sepi</VersionInfoKeys>
 			<VersionInfoKeys Name="ProductVersion">1.0</VersionInfoKeys>
