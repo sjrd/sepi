@@ -42,7 +42,8 @@ contains
   SepiImportsForms in '..\..\source\run\SepiVCLStdImport\SepiImportsForms.pas',
   SepiImportsStdCtrls in '..\..\source\run\SepiVCLStdImport\SepiImportsStdCtrls.pas',
   SepiImportsDialogs in '..\..\source\run\SepiVCLStdImport\SepiImportsDialogs.pas',
-  SepiImportsPrinters in '..\..\source\run\SepiVCLStdImport\SepiImportsPrinters.pas';
+  SepiImportsPrinters in '..\..\source\run\SepiVCLStdImport\SepiImportsPrinters.pas',
+  SepiImportsExtCtrls in '..\..\source\run\SepiVCLStdImport\SepiImportsExtCtrls.pas';
 
 end.
 

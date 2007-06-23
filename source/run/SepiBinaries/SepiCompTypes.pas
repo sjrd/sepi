@@ -79,7 +79,8 @@ type
     FFlags : TParamFlags; /// Flags du paramètre
 
     constructor RegisterParamData(AOwner : TSepiMeta; var ParamData : Pointer);
-    constructor CreateFromString(AOwner : TSepiMeta; const Definition : string);
+    class procedure CreateFromString(AOwner : TSepiMeta;
+      const Definition : string);
   protected
     procedure ListReferences; override;
     procedure Save(Stream : TStream); override;
@@ -782,14 +783,15 @@ begin
 end;
 
 {*
-  Crée un paramètre depuis sa définition Delphi
-  @param AOwner       Propriétaire du paramètre
-  @param Definition   Définition Delphi du paramètre
+  Crée un ou plusieurs paramètre(s) depuis sa définition Delphi
+  @param AOwner       Propriétaire du ou des paramètre(s)
+  @param Definition   Définition Delphi du ou des paramètre(s)
 *}
-constructor TSepiMetaParam.CreateFromString(AOwner : TSepiMeta;
+class procedure TSepiMetaParam.CreateFromString(AOwner : TSepiMeta;
   const Definition : string);
 var AFlags : TParamFlags;
-    NamePart, TypePart, FlagStr, AName, ATypeStr : string;
+    NamePart, NamePart2, TypePart, FlagStr, AName, ATypeStr : string;
+    AType : TSepiType;
 begin
   AFlags := [];
   if not SplitToken(Definition, ':', NamePart, TypePart) then
@@ -797,14 +799,16 @@ begin
   TypePart := GetFirstToken(TypePart, '=');
 
   // Partie du nom - à gauche du :
-  if SplitToken(Trim(NamePart), ' ', FlagStr, AName) then
+  if SplitToken(Trim(NamePart), ' ', FlagStr, NamePart2) then
   begin
     case AnsiIndexText(FlagStr, ['var', 'const', 'out']) of {don't localize}
       0 : Include(AFlags, pfVar);
       1 : Include(AFlags, pfConst);
       2 : Include(AFlags, pfOut);
+      else NamePart2 := FlagStr + ' ' + NamePart2;
     end;
   end;
+  NamePart := NamePart2;
 
   // Partie du type - à droite du :
   TypePart := Trim(TypePart);
@@ -816,8 +820,14 @@ begin
     if AnsiSameText(ATypeStr, 'const') then {don't localize}
       ATypeStr := '';
   end else ATypeStr := TypePart;
+  AType := AOwner.Root.FindType(ATypeStr);
 
-  Create(AOwner, AName, AOwner.Root.FindType(ATypeStr), AFlags);
+  while SplitToken(NamePart, ',', AName, NamePart2) do
+  begin
+    Create(AOwner, Trim(AName), AType, AFlags);
+    NamePart := NamePart2;
+  end;
+  Create(AOwner, Trim(AName), AType, AFlags);
 end;
 
 {*
