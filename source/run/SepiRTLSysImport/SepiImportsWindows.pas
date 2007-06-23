@@ -68,6 +68,48 @@ begin
   end;
 end;
 
+{-------------}
+{ _ACL import }
+{-------------}
+
+function SepiImport_ACL(Owner : TSepiMetaUnit) : TSepiRecordType;
+begin
+  Result := TSepiRecordType.Create(Owner, '_ACL', False, True);
+
+  with Result do
+  begin
+    AddField('AclRevision', System.TypeInfo(Byte));
+    AddField('Sbz1', System.TypeInfo(Byte));
+    AddField('AclSize', System.TypeInfo(Word));
+    AddField('AceCount', System.TypeInfo(Word));
+    AddField('Sbz2', System.TypeInfo(Word));
+
+    Complete;
+  end;
+end;
+
+{-----------------------------}
+{ _SECURITY_DESCRIPTOR import }
+{-----------------------------}
+
+function SepiImport_SECURITY_DESCRIPTOR(Owner : TSepiMetaUnit) : TSepiRecordType;
+begin
+  Result := TSepiRecordType.Create(Owner, '_SECURITY_DESCRIPTOR', False, True);
+
+  with Result do
+  begin
+    AddField('Revision', System.TypeInfo(Byte));
+    AddField('Sbz1', System.TypeInfo(Byte));
+    AddField('Control', System.TypeInfo(SECURITY_DESCRIPTOR_CONTROL));
+    AddField('Owner', 'PSID');
+    AddField('Group', 'PSID');
+    AddField('Sacl', 'PACL');
+    AddField('Dacl', 'PACL');
+
+    Complete;
+  end;
+end;
+
 {------------------------------------}
 { _RTL_CRITICAL_SECTION_DEBUG import }
 {------------------------------------}
@@ -106,6 +148,23 @@ begin
     AddField('OwningThread', System.TypeInfo(THandle));
     AddField('LockSemaphore', System.TypeInfo(THandle));
     AddField('Reserved', System.TypeInfo(DWORD));
+
+    Complete;
+  end;
+end;
+
+{----------------}
+{ _POINTL import }
+{----------------}
+
+function SepiImport_POINTL(Owner : TSepiMetaUnit) : TSepiRecordType;
+begin
+  Result := TSepiRecordType.Create(Owner, '_POINTL', True, True);
+
+  with Result do
+  begin
+    AddField('x', System.TypeInfo(Longint));
+    AddField('y', System.TypeInfo(Longint));
 
     Complete;
   end;
@@ -659,6 +718,104 @@ begin
   end;
 end;
 
+{---------------------}
+{ _devicemodeA import }
+{---------------------}
+
+function SepiImport_devicemodeA(Owner : TSepiMetaUnit) : TSepiRecordType;
+begin
+  Result := TSepiRecordType.Create(Owner, '_devicemodeA', True, True);
+
+  with Result do
+  begin
+    AddField('dmDeviceName', '$12');
+    AddField('dmSpecVersion', System.TypeInfo(Word));
+    AddField('dmDriverVersion', System.TypeInfo(Word));
+    AddField('dmSize', System.TypeInfo(Word));
+    AddField('dmDriverExtra', System.TypeInfo(Word));
+    AddField('dmFields', System.TypeInfo(DWORD));
+    AddField('dmOrientation', System.TypeInfo(SHORT));
+    AddField('dmPaperSize', System.TypeInfo(SHORT));
+    AddField('dmPaperLength', System.TypeInfo(SHORT));
+    AddField('dmPaperWidth', System.TypeInfo(SHORT));
+    AddField('dmScale', System.TypeInfo(SHORT));
+    AddField('dmCopies', System.TypeInfo(SHORT));
+    AddField('dmDefaultSource', System.TypeInfo(SHORT));
+    AddField('dmPrintQuality', System.TypeInfo(SHORT));
+    AddField('dmColor', System.TypeInfo(SHORT));
+    AddField('dmDuplex', System.TypeInfo(SHORT));
+    AddField('dmYResolution', System.TypeInfo(SHORT));
+    AddField('dmTTOption', System.TypeInfo(SHORT));
+    AddField('dmCollate', System.TypeInfo(SHORT));
+    AddField('dmFormName', '$13');
+    AddField('dmLogPixels', System.TypeInfo(Word));
+    AddField('dmBitsPerPel', System.TypeInfo(DWORD));
+    AddField('dmPelsWidth', System.TypeInfo(DWORD));
+    AddField('dmPelsHeight', System.TypeInfo(DWORD));
+    AddField('dmDisplayFlags', System.TypeInfo(DWORD));
+    AddField('dmDisplayFrequency', System.TypeInfo(DWORD));
+    AddField('dmICMMethod', System.TypeInfo(DWORD));
+    AddField('dmICMIntent', System.TypeInfo(DWORD));
+    AddField('dmMediaType', System.TypeInfo(DWORD));
+    AddField('dmDitherType', System.TypeInfo(DWORD));
+    AddField('dmICCManufacturer', System.TypeInfo(DWORD));
+    AddField('dmICCModel', System.TypeInfo(DWORD));
+    AddField('dmPanningWidth', System.TypeInfo(DWORD));
+    AddField('dmPanningHeight', System.TypeInfo(DWORD));
+
+    Complete;
+  end;
+end;
+
+{---------------------}
+{ _devicemodeW import }
+{---------------------}
+
+function SepiImport_devicemodeW(Owner : TSepiMetaUnit) : TSepiRecordType;
+begin
+  Result := TSepiRecordType.Create(Owner, '_devicemodeW', True, True);
+
+  with Result do
+  begin
+    AddField('dmDeviceName', '$14');
+    AddField('dmSpecVersion', System.TypeInfo(Word));
+    AddField('dmDriverVersion', System.TypeInfo(Word));
+    AddField('dmSize', System.TypeInfo(Word));
+    AddField('dmDriverExtra', System.TypeInfo(Word));
+    AddField('dmFields', System.TypeInfo(DWORD));
+    AddField('dmOrientation', System.TypeInfo(SHORT));
+    AddField('dmPaperSize', System.TypeInfo(SHORT));
+    AddField('dmPaperLength', System.TypeInfo(SHORT));
+    AddField('dmPaperWidth', System.TypeInfo(SHORT));
+    AddField('dmScale', System.TypeInfo(SHORT));
+    AddField('dmCopies', System.TypeInfo(SHORT));
+    AddField('dmDefaultSource', System.TypeInfo(SHORT));
+    AddField('dmPrintQuality', System.TypeInfo(SHORT));
+    AddField('dmColor', System.TypeInfo(SHORT));
+    AddField('dmDuplex', System.TypeInfo(SHORT));
+    AddField('dmYResolution', System.TypeInfo(SHORT));
+    AddField('dmTTOption', System.TypeInfo(SHORT));
+    AddField('dmCollate', System.TypeInfo(SHORT));
+    AddField('dmFormName', '$15');
+    AddField('dmLogPixels', System.TypeInfo(Word));
+    AddField('dmBitsPerPel', System.TypeInfo(DWORD));
+    AddField('dmPelsWidth', System.TypeInfo(DWORD));
+    AddField('dmPelsHeight', System.TypeInfo(DWORD));
+    AddField('dmDisplayFlags', System.TypeInfo(DWORD));
+    AddField('dmDisplayFrequency', System.TypeInfo(DWORD));
+    AddField('dmICMMethod', System.TypeInfo(DWORD));
+    AddField('dmICMIntent', System.TypeInfo(DWORD));
+    AddField('dmMediaType', System.TypeInfo(DWORD));
+    AddField('dmDitherType', System.TypeInfo(DWORD));
+    AddField('dmICCManufacturer', System.TypeInfo(DWORD));
+    AddField('dmICCModel', System.TypeInfo(DWORD));
+    AddField('dmPanningWidth', System.TypeInfo(DWORD));
+    AddField('dmPanningHeight', System.TypeInfo(DWORD));
+
+    Complete;
+  end;
+end;
+
 {----------------------}
 { tagDIBSECTION import }
 {----------------------}
@@ -750,6 +907,92 @@ begin
   end;
 end;
 
+{---------------------}
+{ tagWINDOWPOS import }
+{---------------------}
+
+function SepiImporttagWINDOWPOS(Owner : TSepiMetaUnit) : TSepiRecordType;
+begin
+  Result := TSepiRecordType.Create(Owner, 'tagWINDOWPOS', True, True);
+
+  with Result do
+  begin
+    AddField('hwnd', System.TypeInfo(HWND));
+    AddField('hwndInsertAfter', System.TypeInfo(HWND));
+    AddField('x', System.TypeInfo(Integer));
+    AddField('y', System.TypeInfo(Integer));
+    AddField('cx', System.TypeInfo(Integer));
+    AddField('cy', System.TypeInfo(Integer));
+    AddField('flags', System.TypeInfo(UINT));
+
+    Complete;
+  end;
+end;
+
+{-----------------}
+{ tagNMHDR import }
+{-----------------}
+
+function SepiImporttagNMHDR(Owner : TSepiMetaUnit) : TSepiRecordType;
+begin
+  Result := TSepiRecordType.Create(Owner, 'tagNMHDR', True, True);
+
+  with Result do
+  begin
+    AddField('hwndFrom', System.TypeInfo(HWND));
+    AddField('idFrom', System.TypeInfo(UINT));
+    AddField('code', System.TypeInfo(Integer));
+
+    Complete;
+  end;
+end;
+
+{----------------------}
+{ _NETRESOURCEA import }
+{----------------------}
+
+function SepiImport_NETRESOURCEA(Owner : TSepiMetaUnit) : TSepiRecordType;
+begin
+  Result := TSepiRecordType.Create(Owner, '_NETRESOURCEA', True, True);
+
+  with Result do
+  begin
+    AddField('dwScope', System.TypeInfo(DWORD));
+    AddField('dwType', System.TypeInfo(DWORD));
+    AddField('dwDisplayType', System.TypeInfo(DWORD));
+    AddField('dwUsage', System.TypeInfo(DWORD));
+    AddField('lpLocalName', 'PAnsiChar');
+    AddField('lpRemoteName', 'PAnsiChar');
+    AddField('lpComment', 'PAnsiChar');
+    AddField('lpProvider', 'PAnsiChar');
+
+    Complete;
+  end;
+end;
+
+{----------------------}
+{ _NETRESOURCEW import }
+{----------------------}
+
+function SepiImport_NETRESOURCEW(Owner : TSepiMetaUnit) : TSepiRecordType;
+begin
+  Result := TSepiRecordType.Create(Owner, '_NETRESOURCEW', True, True);
+
+  with Result do
+  begin
+    AddField('dwScope', System.TypeInfo(DWORD));
+    AddField('dwType', System.TypeInfo(DWORD));
+    AddField('dwDisplayType', System.TypeInfo(DWORD));
+    AddField('dwUsage', System.TypeInfo(DWORD));
+    AddField('lpLocalName', 'PWideChar');
+    AddField('lpRemoteName', 'PWideChar');
+    AddField('lpComment', 'PWideChar');
+    AddField('lpProvider', 'PWideChar');
+
+    Complete;
+  end;
+end;
+
 {-------------}
 { Unit import }
 {-------------}
@@ -809,6 +1052,21 @@ begin
   TSepiTypeAlias.Create(Result, 'LIST_ENTRY', '_LIST_ENTRY');
 
   // Types
+  TSepiTypeAlias.Create(Result, 'PSECURITY_DESCRIPTOR', 'Pointer');
+  TSepiPointerType.Create(Result, 'PACL', 'TACL', True);
+  SepiImport_ACL(Result);
+  TSepiTypeAlias.Create(Result, 'TACL', '_ACL');
+  TSepiTypeAlias.Create(Result, 'ACL', '_ACL');
+
+  // Types
+  TSepiTypeAlias.Create(Result, 'SECURITY_DESCRIPTOR_CONTROL', TypeInfo(Word));
+  TSepiPointerType.Create(Result, 'PSECURITY_DESCRIPTOR_CONTROL', TypeInfo(WORD), True);
+  TSepiPointerType.Create(Result, 'PSecurityDescriptor', 'TSecurityDescriptor', True);
+  SepiImport_SECURITY_DESCRIPTOR(Result);
+  TSepiTypeAlias.Create(Result, 'TSecurityDescriptor', '_SECURITY_DESCRIPTOR');
+  TSepiTypeAlias.Create(Result, 'SECURITY_DESCRIPTOR', '_SECURITY_DESCRIPTOR');
+
+  // Types
   TSepiPointerType.Create(Result, 'PRTLCriticalSection', 'TRTLCriticalSection', True);
   TSepiPointerType.Create(Result, 'PRTLCriticalSectionDebug', 'TRTLCriticalSectionDebug', True);
   TSepiArrayType.Create(Result, '$1',
@@ -862,6 +1120,23 @@ begin
   TSepiTypeAlias.Create(Result, 'HCURSOR', TypeInfo(HICON));
   TSepiTypeAlias.Create(Result, 'COLORREF', TypeInfo(DWORD));
   TSepiTypeAlias.Create(Result, 'TColorRef', TypeInfo(DWORD));
+
+  // Types
+  TSepiTypeAlias.Create(Result, 'PPoint', 'Types.PPoint');
+  TSepiTypeAlias.Create(Result, 'TPoint', 'Types.TPoint');
+  TSepiTypeAlias.Create(Result, 'tagPoint', 'Types.tagPoint');
+  TSepiTypeAlias.Create(Result, 'PRect', 'Types.PRect');
+  TSepiTypeAlias.Create(Result, 'TRect', 'Types.TRect');
+
+  // Types
+  SepiImport_POINTL(Result);
+  TSepiPointerType.Create(Result, 'PPointL', 'TPointL', True);
+  TSepiTypeAlias.Create(Result, 'TPointL', '_POINTL');
+  TSepiTypeAlias.Create(Result, 'PSize', 'Types.PSize');
+  TSepiTypeAlias.Create(Result, 'TSize', 'Types.TSize');
+  TSepiTypeAlias.Create(Result, 'SIZE', 'Types.SIZE');
+  TSepiTypeAlias.Create(Result, 'PSmallPoint', 'Types.PSmallPoint');
+  TSepiTypeAlias.Create(Result, 'TSmallPoint', 'Types.TSmallPoint');
 
   // Routines
   TSepiMetaMethod.Create(Result, 'MoveMemory', @MoveMemory,
@@ -1016,8 +1291,30 @@ begin
   TSepiTypeAlias.Create(Result, 'LOGFONT', 'LOGFONTA');
 
   // Types
-  TSepiPointerType.Create(Result, 'PDIBSection', 'TDIBSection', True);
+  TSepiPointerType.Create(Result, 'PDeviceModeA', 'TDeviceModeA', True);
+  TSepiPointerType.Create(Result, 'PDeviceModeW', 'TDeviceModeW', True);
+  TSepiTypeAlias.Create(Result, 'PDeviceMode', 'PDeviceModeA');
   TSepiArrayType.Create(Result, '$12',
+    [0, CCHDEVICENAME - 1], TypeInfo(AnsiChar), True);
+  TSepiArrayType.Create(Result, '$13',
+    [0, CCHFORMNAME - 1], TypeInfo(AnsiChar), True);
+  SepiImport_devicemodeA(Result);
+  TSepiArrayType.Create(Result, '$14',
+    [0, CCHDEVICENAME - 1], TypeInfo(WideChar), True);
+  TSepiArrayType.Create(Result, '$15',
+    [0, CCHFORMNAME - 1], TypeInfo(WideChar), True);
+  SepiImport_devicemodeW(Result);
+  TSepiTypeAlias.Create(Result, '_devicemode', '_devicemodeA');
+  TSepiTypeAlias.Create(Result, 'TDeviceModeA', '_devicemodeA');
+  TSepiTypeAlias.Create(Result, 'TDeviceModeW', '_devicemodeW');
+  TSepiTypeAlias.Create(Result, 'TDeviceMode', 'TDeviceModeA');
+  TSepiTypeAlias.Create(Result, 'DEVMODEA', '_devicemodeA');
+  TSepiTypeAlias.Create(Result, 'DEVMODEW', '_devicemodeW');
+  TSepiTypeAlias.Create(Result, 'DEVMODE', 'DEVMODEA');
+
+  // Types
+  TSepiPointerType.Create(Result, 'PDIBSection', 'TDIBSection', True);
+  TSepiArrayType.Create(Result, '$16',
     [0, 2], TypeInfo(DWORD), True);
   SepiImporttagDIBSECTION(Result);
   TSepiTypeAlias.Create(Result, 'TDIBSection', 'tagDIBSECTION');
@@ -1059,6 +1356,14 @@ begin
     'function(l, h: Word): LRESULT');
 
   // Types
+  TSepiPointerType.Create(Result, 'PWindowPos', 'TWindowPos', True);
+  SepiImporttagWINDOWPOS(Result);
+  TSepiTypeAlias.Create(Result, 'TWindowPos', 'tagWINDOWPOS');
+  TSepiTypeAlias.Create(Result, 'WINDOWPOS', 'tagWINDOWPOS');
+  TSepiPointerType.Create(Result, 'PNMHdr', 'TNMHdr', True);
+  SepiImporttagNMHDR(Result);
+  TSepiTypeAlias.Create(Result, 'TNMHdr', 'tagNMHDR');
+  TSepiTypeAlias.Create(Result, 'NMHDR', 'tagNMHDR');
   TSepiPointerType.Create(Result, 'PKeyboardState', 'TKeyboardState', True);
   TSepiArrayType.Create(Result, 'TKeyboardState',
     [0, 255], TypeInfo(Byte), True);
@@ -1078,6 +1383,20 @@ begin
 
   // Types
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(TOwnerDrawState));
+
+  // Types
+  TSepiPointerType.Create(Result, 'PNetResourceA', 'TNetResourceA', True);
+  TSepiPointerType.Create(Result, 'PNetResourceW', 'TNetResourceW', True);
+  TSepiTypeAlias.Create(Result, 'PNetResource', 'PNetResourceA');
+  SepiImport_NETRESOURCEA(Result);
+  SepiImport_NETRESOURCEW(Result);
+  TSepiTypeAlias.Create(Result, '_NETRESOURCE', '_NETRESOURCEA');
+  TSepiTypeAlias.Create(Result, 'TNetResourceA', '_NETRESOURCEA');
+  TSepiTypeAlias.Create(Result, 'TNetResourceW', '_NETRESOURCEW');
+  TSepiTypeAlias.Create(Result, 'TNetResource', 'TNetResourceA');
+  TSepiTypeAlias.Create(Result, 'NETRESOURCEA', '_NETRESOURCEA');
+  TSepiTypeAlias.Create(Result, 'NETRESOURCEW', '_NETRESOURCEW');
+  TSepiTypeAlias.Create(Result, 'NETRESOURCE', 'NETRESOURCEA');
 
   Result.Complete;
 end;

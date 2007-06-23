@@ -1,0 +1,46 @@
+package SepiWinTypesImport90;
+
+{$R *.res}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO ON}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION ON}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES OFF}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DESCRIPTION 'Sepi importer for types in Windows standart units'}
+{$IMPLICITBUILD OFF}
+
+requires
+  rtl,
+  vcl,
+  SepiCompiler90,
+  SepiBinaries90;
+
+contains
+  SepiImportsActiveXTypes in '..\..\source\run\SepiWinTypesImport\SepiImportsActiveXTypes.pas',
+  SepiImportsWinTypes in '..\..\source\run\SepiWinTypesImport\SepiImportsWinTypes.pas',
+  SepiImportsMultiMonTypes in '..\..\source\run\SepiWinTypesImport\SepiImportsMultiMonTypes.pas',
+  SepiImportsCommDlgTypes in '..\..\source\run\SepiWinTypesImport\SepiImportsCommDlgTypes.pas',
+  SepiImportsImmTypes in '..\..\source\run\SepiWinTypesImport\SepiImportsImmTypes.pas',
+  SepiImportsShlObjTypes in '..\..\source\run\SepiWinTypesImport\SepiImportsShlObjTypes.pas',
+  SepiImportsCommCtrlTypes in '..\..\source\run\SepiWinTypesImport\SepiImportsCommCtrlTypes.pas',
+  SepiImportsShellAPITypes in '..\..\source\run\SepiWinTypesImport\SepiImportsShellAPITypes.pas',
+  SepiImportsWinSpoolTypes in '..\..\source\run\SepiWinTypesImport\SepiImportsWinSpoolTypes.pas';
+
+end.
+

@@ -4,8 +4,8 @@ interface
 
 uses
   SepiImportsGraphics, SepiImportsImgList, SepiImportsActnList,
-  SepiImportsMenus, SepiImportsImmTypes, SepiImportsControls,
-  SepiImportsMultiMon, SepiImportsForms;
+  SepiImportsMenus, SepiImportsControls, SepiImportsForms, SepiImportsStdCtrls,
+  SepiImportsPrinters, SepiImportsDialogs;
 
 implementation
 

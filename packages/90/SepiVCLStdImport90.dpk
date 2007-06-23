@@ -39,9 +39,10 @@ contains
   SepiImportsActnList in '..\..\source\run\SepiVCLStdImport\SepiImportsActnList.pas',
   SepiImportsMenus in '..\..\source\run\SepiVCLStdImport\SepiImportsMenus.pas',
   SepiImportsControls in '..\..\source\run\SepiVCLStdImport\SepiImportsControls.pas',
-  SepiImportsImmTypes in '..\..\source\run\SepiVCLStdImport\SepiImportsImmTypes.pas',
   SepiImportsForms in '..\..\source\run\SepiVCLStdImport\SepiImportsForms.pas',
-  SepiImportsMultiMon in '..\..\source\run\SepiVCLStdImport\SepiImportsMultiMon.pas';
+  SepiImportsStdCtrls in '..\..\source\run\SepiVCLStdImport\SepiImportsStdCtrls.pas',
+  SepiImportsDialogs in '..\..\source\run\SepiVCLStdImport\SepiImportsDialogs.pas',
+  SepiImportsPrinters in '..\..\source\run\SepiVCLStdImport\SepiImportsPrinters.pas';
 
 end.
 

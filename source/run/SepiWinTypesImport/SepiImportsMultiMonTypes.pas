@@ -3,7 +3,7 @@
   @author Sébastien Jean Robert Doeraene
   @version 1.0
 *}
-unit SepiImportsMultiMon;
+unit SepiImportsMultiMonTypes;
 
 interface
 
@@ -99,29 +99,11 @@ end;
 
 function ImportUnit(Root : TSepiMetaRoot) : TSepiMetaUnit;
 begin
-  Result := TSepiMetaUnit.Create(Root, 'MultiMon',
+  Result := TSepiMetaUnit.Create(Root, 'MultiMonTypes',
     ['Windows']);
-
-  // Constants
-  TSepiConstant.Create(Result, 'SM_XVIRTUALSCREEN', SM_XVIRTUALSCREEN);
-  TSepiConstant.Create(Result, 'SM_YVIRTUALSCREEN', SM_YVIRTUALSCREEN);
-  TSepiConstant.Create(Result, 'SM_CXVIRTUALSCREEN', SM_CXVIRTUALSCREEN);
-  TSepiConstant.Create(Result, 'SM_CYVIRTUALSCREEN', SM_CYVIRTUALSCREEN);
-  TSepiConstant.Create(Result, 'SM_CMONITORS', SM_CMONITORS);
-  TSepiConstant.Create(Result, 'SM_SAMEDISPLAYFORMAT', SM_SAMEDISPLAYFORMAT);
-  TSepiConstant.Create(Result, 'SM_CMETRICS', SM_CMETRICS);
 
   // Types
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(HMONITOR));
-
-  // Constants
-  TSepiConstant.Create(Result, 'MONITOR_DEFAULTTONULL', MONITOR_DEFAULTTONULL);
-  TSepiConstant.Create(Result, 'MONITOR_DEFAULTTOPRIMARY', MONITOR_DEFAULTTOPRIMARY);
-  TSepiConstant.Create(Result, 'MONITOR_DEFAULTTONEAREST', MONITOR_DEFAULTTONEAREST);
-  TSepiConstant.Create(Result, 'MONITORINFOF_PRIMARY', MONITORINFOF_PRIMARY);
-
-  // Constants
-  TSepiConstant.Create(Result, 'CCHDEVICENAME', CCHDEVICENAME);
 
   // Types
   SepiImporttagMONITORINFOA(Result);
@@ -176,28 +158,10 @@ begin
   TSepiMethodRefType.Create(Result, 'TEnumDisplayMonitors',
     'function(hdc: HDC; lprcIntersect: PRect; lpfnEnumProc: TMonitorEnumProc; lData: LPARAM ) : Boolean', False, ccStdCall);
 
-  // Global variables
-  TSepiVariable.Create(Result, 'GetSystemMetrics',
-     @GetSystemMetrics, 'TGetSystemMetrics');
-  TSepiVariable.Create(Result, 'MonitorFromWindow',
-     @MonitorFromWindow, 'TMonitorFromWindow');
-  TSepiVariable.Create(Result, 'MonitorFromRect',
-     @MonitorFromRect, 'TMonitorFromRect');
-  TSepiVariable.Create(Result, 'MonitorFromPoint',
-     @MonitorFromPoint, 'TMonitorFromPoint');
-  TSepiVariable.Create(Result, 'GetMonitorInfo',
-     @GetMonitorInfo, 'TGetMonitorInfo');
-  TSepiVariable.Create(Result, 'GetMonitorInfoA',
-     @GetMonitorInfoA, 'TGetMonitorInfoA');
-  TSepiVariable.Create(Result, 'GetMonitorInfoW',
-     @GetMonitorInfoW, 'TGetMonitorInfoW');
-  TSepiVariable.Create(Result, 'EnumDisplayMonitors',
-     @EnumDisplayMonitors, 'TEnumDisplayMonitors');
-
   Result.Complete;
 end;
 
 initialization
-  SepiRegisterImportedUnit('MultiMon', ImportUnit);
+  SepiRegisterImportedUnit('MultiMonTypes', ImportUnit);
 end.
 

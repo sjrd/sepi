@@ -33,7 +33,6 @@ requires
   SepiBinaries90;
 
 contains
-  SepiImportsActiveXTypes in '..\..\source\run\SepiRTLCommonImport\SepiImportsActiveXTypes.pas',
   SepiImportsClasses in '..\..\source\run\SepiRTLCommonImport\SepiImportsClasses.pas',
   SepiImportsComConst in '..\..\source\run\SepiRTLCommonImport\SepiImportsComConst.pas',
   SepiImportsComObj in '..\..\source\run\SepiRTLCommonImport\SepiImportsComObj.pas',

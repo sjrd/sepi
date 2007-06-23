@@ -10,11 +10,11 @@
 	</PersonalityInfo>
 	<Default.Personality>  <Projects>
       <Projects Name="SepiRTLSysImport90.bpl">packages\90\SepiRTLSysImport90.bdsproj</Projects>
+      <Projects Name="SepiWinTypesImport90.bpl">packages\90\SepiWinTypesImport90.bdsproj</Projects>
       <Projects Name="SepiRTLCommonImport90.bpl">packages\90\SepiRTLCommonImport90.bdsproj</Projects>
       <Projects Name="SepiSCLImport90.bpl">packages\90\SepiSCLImport90.bdsproj</Projects>
       <Projects Name="SepiVCLStdImport90.bpl">packages\90\SepiVCLStdImport90.bdsproj</Projects>
-      <Projects Name="EssaisSepi.exe">..\EssaisSepi\EssaisSepi.bdsproj</Projects>
-      <Projects Name="Targets">SepiRTLSysImport90.bpl SepiRTLCommonImport90.bpl SepiSCLImport90.bpl SepiVCLStdImport90.bpl EssaisSepi.exe</Projects>
+      <Projects Name="Targets">SepiRTLSysImport90.bpl SepiWinTypesImport90.bpl SepiRTLCommonImport90.bpl SepiSCLImport90.bpl SepiVCLStdImport90.bpl</Projects>
     </Projects>
     <Dependencies/>
   </Default.Personality>

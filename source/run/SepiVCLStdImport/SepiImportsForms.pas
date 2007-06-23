@@ -3013,7 +3013,7 @@ function ImportUnit(Root : TSepiMetaRoot) : TSepiMetaUnit;
 begin
   Result := TSepiMetaUnit.Create(Root, 'Forms',
     ['Messages', 'Windows', 'SysUtils', 'Classes', 'Graphics', 'Menus',
-    'Controls', 'ImmTypes', 'ActnList', 'MultiMon', 'HelpIntfs']);
+    'Controls', 'ImmTypes', 'ActnList', 'MultiMonTypes', 'HelpIntfs']);
 
   // Types
   TSepiClass.ForwardDecl(Result, TypeInfo(TScrollingWinControl));
@@ -3035,7 +3035,8 @@ begin
   SepiImportIDesignerHook(Result);
   SepiImportIOleForm(Result);
   SepiImportTPopupWnd(Result);
-  TSepiType.LoadFromTypeInfo(Result, TypeInfo(TPopupWndArray));
+  TSepiDynArrayType(TSepiType.LoadFromTypeInfo(
+    Result, TypeInfo(TPopupWndArray))).SetElementType('TPopupWnd');
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(TFormStyle));
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(TBorderIcon));
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(TBorderIcons));
@@ -3069,7 +3070,8 @@ begin
   SepiImportTCMHintShow(Result);
   SepiImportTCMHintShowPause(Result);
   SepiImportTPopupForm(Result);
-  TSepiType.LoadFromTypeInfo(Result, TypeInfo(TPopupFormArray));
+  TSepiDynArrayType(TSepiType.LoadFromTypeInfo(
+    Result, TypeInfo(TPopupFormArray))).SetElementType('TPopupForm');
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(TMessageEvent));
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(TExceptionEvent));
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(TGetHandleEvent));

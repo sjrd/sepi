@@ -369,13 +369,13 @@ type
       const AValue; const ATypeName : string;
       AIsConst : boolean = False); overload;
 
-    constructor Create(AOwner : TSepiMeta; const AName : string;
+    constructor CreateProc(AOwner : TSepiMeta; const AName : string;
       AValueAddress : Pointer; AType : TSepiType;
       AIsConst : boolean = False); overload;
-    constructor Create(AOwner : TSepiMeta; const AName : string;
+    constructor CreateProc(AOwner : TSepiMeta; const AName : string;
       AValueAddress : Pointer; ATypeInfo : PTypeInfo;
       AIsConst : boolean = False); overload;
-    constructor Create(AOwner : TSepiMeta; const AName : string;
+    constructor CreateProc(AOwner : TSepiMeta; const AName : string;
       AValueAddress : Pointer; const ATypeName : string;
       AIsConst : boolean = False); overload;
 
@@ -1904,7 +1904,7 @@ end;
   @param AType           Type de la variable
   @param AIsConst        Indique si c'est une constante typée
 *}
-constructor TSepiVariable.Create(AOwner : TSepiMeta; const AName : string;
+constructor TSepiVariable.CreateProc(AOwner : TSepiMeta; const AName : string;
   AValueAddress : Pointer; AType : TSepiType; AIsConst : boolean = False);
 begin
   inherited Create(AOwner, AName);
@@ -1923,7 +1923,7 @@ end;
   @param ATypeInfo       RTTI du type de la variable
   @param AIsConst        Indique si c'est une constante typée
 *}
-constructor TSepiVariable.Create(AOwner : TSepiMeta; const AName : string;
+constructor TSepiVariable.CreateProc(AOwner : TSepiMeta; const AName : string;
   AValueAddress : Pointer; ATypeInfo : PTypeInfo; AIsConst : boolean = False);
 begin
   Create(AOwner, AName, AValueAddress,
@@ -1938,7 +1938,7 @@ end;
   @param ATypeName       Nom du type de la variable
   @param AIsConst        Indique si c'est une constante typée
 *}
-constructor TSepiVariable.Create(AOwner : TSepiMeta; const AName : string;
+constructor TSepiVariable.CreateProc(AOwner : TSepiMeta; const AName : string;
   AValueAddress : Pointer; const ATypeName : string;
   AIsConst : boolean = False);
 begin

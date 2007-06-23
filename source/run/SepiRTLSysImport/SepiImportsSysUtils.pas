@@ -9,7 +9,7 @@ interface
 
 uses
   TypInfo, SepiMetaUnits, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
-  SepiCompTypes, SysUtils, Windows;
+  SepiCompTypes, Windows, SysUtils;
 
 implementation
 
@@ -2959,8 +2959,8 @@ begin
   // Global variables
   TSepiMethodRefType.Create(Result, '$24',
     'function(Directory: PChar; var FreeAvailable, TotalSpace : TLargeInteger ; TotalFree: PLargeInteger ) : Bool', False, ccStdCall);
-  TSepiVariable.Create(Result, 'GetDiskFreeSpaceEx',
-     @GetDiskFreeSpaceEx, '$24');
+  TSepiVariable.CreateProc(Result, 'GetDiskFreeSpaceEx',
+     @@GetDiskFreeSpaceEx, '$24');
 
   // Routines
   TSepiMetaMethod.Create(Result, 'SafeLoadLibrary', @SafeLoadLibrary,
