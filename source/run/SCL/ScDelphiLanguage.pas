@@ -196,6 +196,8 @@ begin
   Str := Trim(Str);
   I := 1;
   repeat
+    if I > 1 then inc(I);
+    
     while (I <= Length(Str)) and ((Str[I] = '''') or (Str[I] = '#')) do
     begin
       if Str[I] = '''' then
@@ -237,7 +239,7 @@ begin
           raise EConvertError.CreateFmt(sScWrongString, [Str]);
       end;
     end;
-  until (I <= Length(Str)) and (Str[I] = '+');
+  until (I > Length(Str)) or (Str[I] <> '+');
   if I <= Length(Str) then
     raise EConvertError.CreateFmt(sScWrongString, [Str]);
 end;
