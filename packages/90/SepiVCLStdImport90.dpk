@@ -43,7 +43,8 @@ contains
   SepiImportsStdCtrls in '..\..\source\run\SepiVCLStdImport\SepiImportsStdCtrls.pas',
   SepiImportsDialogs in '..\..\source\run\SepiVCLStdImport\SepiImportsDialogs.pas',
   SepiImportsPrinters in '..\..\source\run\SepiVCLStdImport\SepiImportsPrinters.pas',
-  SepiImportsExtCtrls in '..\..\source\run\SepiVCLStdImport\SepiImportsExtCtrls.pas';
+  SepiImportsExtCtrls in '..\..\source\run\SepiVCLStdImport\SepiImportsExtCtrls.pas',
+  SepiImportsClipBrd in '..\..\source\run\SepiVCLStdImport\SepiImportsClipBrd.pas';
 
 end.
 

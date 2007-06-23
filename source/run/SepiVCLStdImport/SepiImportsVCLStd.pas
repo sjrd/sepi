@@ -5,7 +5,8 @@ interface
 uses
   SepiImportsGraphics, SepiImportsImgList, SepiImportsActnList,
   SepiImportsMenus, SepiImportsControls, SepiImportsForms, SepiImportsStdCtrls,
-  SepiImportsPrinters, SepiImportsDialogs, SepiImportsExtCtrls;
+  SepiImportsPrinters, SepiImportsDialogs, SepiImportsExtCtrls,
+  SepiImportsClipBrd;
 
 implementation
 

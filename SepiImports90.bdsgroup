@@ -8,13 +8,19 @@
 			<Option Name="GUID">{E348700B-D94E-4BEA-A0D8-822FB749E343}</Option>
 		</Option>
 	</PersonalityInfo>
-	<Default.Personality>  <Projects>
+	<Default.Personality>  
+    
+    
+    
+    <Projects>
       <Projects Name="SepiRTLSysImport90.bpl">packages\90\SepiRTLSysImport90.bdsproj</Projects>
       <Projects Name="SepiWinTypesImport90.bpl">packages\90\SepiWinTypesImport90.bdsproj</Projects>
       <Projects Name="SepiRTLCommonImport90.bpl">packages\90\SepiRTLCommonImport90.bdsproj</Projects>
       <Projects Name="SepiSCLImport90.bpl">packages\90\SepiSCLImport90.bdsproj</Projects>
       <Projects Name="SepiVCLStdImport90.bpl">packages\90\SepiVCLStdImport90.bdsproj</Projects>
-      <Projects Name="Targets">SepiRTLSysImport90.bpl SepiWinTypesImport90.bpl SepiRTLCommonImport90.bpl SepiSCLImport90.bpl SepiVCLStdImport90.bpl</Projects>
+      <Projects Name="SepiSVCLImport90.bpl">packages\90\SepiSVCLImport90.bdsproj</Projects>
+      <Projects Name="SepiSDLImport90.bpl">packages\90\SepiSDLImport90.bdsproj</Projects>
+      <Projects Name="Targets">SepiRTLSysImport90.bpl SepiWinTypesImport90.bpl SepiRTLCommonImport90.bpl SepiSCLImport90.bpl SepiVCLStdImport90.bpl SepiSVCLImport90.bpl SepiSDLImport90.bpl</Projects>
     </Projects>
     <Dependencies/>
   </Default.Personality>
