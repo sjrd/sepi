@@ -44,7 +44,11 @@ contains
   SepiImportsDialogs in '..\..\source\run\SepiVCLStdImport\SepiImportsDialogs.pas',
   SepiImportsPrinters in '..\..\source\run\SepiVCLStdImport\SepiImportsPrinters.pas',
   SepiImportsExtCtrls in '..\..\source\run\SepiVCLStdImport\SepiImportsExtCtrls.pas',
-  SepiImportsClipBrd in '..\..\source\run\SepiVCLStdImport\SepiImportsClipBrd.pas';
+  SepiImportsClipBrd in '..\..\source\run\SepiVCLStdImport\SepiImportsClipBrd.pas',
+  SepiImportsComCtrls in '..\..\source\run\SepiVCLStdImport\SepiImportsComCtrls.pas',
+  SepiImportsToolWin in '..\..\source\run\SepiVCLStdImport\SepiImportsToolWin.pas',
+  SepiImportsListActns in '..\..\source\run\SepiVCLStdImport\SepiImportsListActns.pas',
+  SepiImportsRichEdit in '..\..\source\run\SepiVCLStdImport\SepiImportsRichEdit.pas';
 
 end.
 
