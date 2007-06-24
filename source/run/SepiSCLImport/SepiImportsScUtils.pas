@@ -133,6 +133,10 @@ begin
     'procedure(Stream : TStream; const Str : string)');
   TSepiMetaMethod.Create(Result, 'CorrectFileName', @CorrectFileName,
     'function(const FileName : string; AcceptPathDelim : boolean = False ; AcceptDriveDelim : boolean = False ) : boolean');
+  TSepiMetaMethod.Create(Result, 'SamePoint', @SamePoint,
+    'function(const Point1, Point2 : TPoint) : boolean');
+  TSepiMetaMethod.Create(Result, 'Same3DPoint', @Same3DPoint,
+    'function(const Point1, Point2 : T3DPoint) : boolean');
   TSepiMetaMethod.Create(Result, 'IsNoPoint', @IsNoPoint,
     'function(const Point : TPoint) : boolean');
   TSepiMetaMethod.Create(Result, 'IsNo3DPoint', @IsNo3DPoint,
@@ -141,8 +145,6 @@ begin
     'function(const GUID : TGUID) : boolean');
   TSepiMetaMethod.Create(Result, 'Point3D', @Point3D,
     'function(X, Y, Z : integer) : T3DPoint');
-  TSepiMetaMethod.Create(Result, 'Same3DPoint', @Same3DPoint,
-    'function(const Point1, Point2 : T3DPoint) : boolean');
   TSepiMetaMethod.Create(Result, 'Point3DToString', @Point3DToString,
     'function(const Point3D : T3DPoint; const Delim : string = '' '' ) : string');
   TSepiMetaMethod.Create(Result, 'RunURL', @RunURL,

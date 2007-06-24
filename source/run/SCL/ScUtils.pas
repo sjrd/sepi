@@ -81,14 +81,15 @@ function CorrectFileName(const FileName : string;
   AcceptPathDelim : boolean = False;
   AcceptDriveDelim : boolean = False) : boolean;
 
+function SamePoint(const Point1, Point2 : TPoint) : boolean;
+function Same3DPoint(const Point1, Point2 : T3DPoint) : boolean;
+
 function IsNoPoint(const Point : TPoint) : boolean;
 function IsNo3DPoint(const Point3D : T3DPoint) : boolean;
 
 function IsNoGUID(const GUID : TGUID) : boolean;
 
 function Point3D(X, Y, Z : integer) : T3DPoint;
-
-function Same3DPoint(const Point1, Point2 : T3DPoint) : boolean;
 
 function Point3DToString(const Point3D : T3DPoint;
   const Delim : string = ' ') : string;
@@ -466,13 +467,36 @@ begin
 end;
 
 {*
+  Compare deux points
+  @param Point1   Premier point
+  @param Point2   Second point
+  @return True si Point1 et Point2 sont identiques, False sinon
+*}
+function SamePoint(const Point1, Point2 : TPoint) : boolean;
+begin
+  Result := (Point1.X = Point2.X) and (Point1.Y = Point2.Y);
+end;
+
+{*
+  Compare deux points 3D
+  @param Point1   Premier point
+  @param Point2   Second point
+  @return True si Point1 et Point2 sont identiques, False sinon
+*}
+function Same3DPoint(const Point1, Point2 : T3DPoint) : boolean;
+begin
+  Result := (Point1.X = Point2.X) and (Point1.Y = Point2.Y) and
+    (Point1.Z = Point2.Z);
+end;
+
+{*
   Détermine si un point est nul
   @param Point   Point à tester
   @return True si le point Point est nul, False sinon
 *}
 function IsNoPoint(const Point : TPoint) : boolean;
 begin
-  Result := (Point.X = NoPoint.X) and (Point.Y = NoPoint.Y);
+  Result := SamePoint(Point, NoPoint);
 end;
 
 {*
@@ -482,8 +506,7 @@ end;
 *}
 function IsNo3DPoint(const Point3D : T3DPoint) : boolean;
 begin
-  Result := (Point3D.X = No3DPoint.X) and (Point3D.Y = No3DPoint.Y) and
-    (Point3D.Z = No3DPoint.Z);
+  Result := Same3DPoint(Point3D, No3DPoint);
 end;
 
 {*
@@ -517,18 +540,6 @@ begin
   Result.X := X;
   Result.Y := Y;
   Result.Z := Z;
-end;
-
-{*
-  Compare deux points 3D
-  @param Point1   Premier point
-  @param Point2   Second point
-  @return True si Point1 et Point2 sont identiques, False sinon
-*}
-function Same3DPoint(const Point1, Point2 : T3DPoint) : boolean;
-begin
-  Result := (Point1.X = Point2.X) and (Point1.Y = Point2.Y) and
-    (Point1.Z = Point2.Z);
 end;
 
 {*
