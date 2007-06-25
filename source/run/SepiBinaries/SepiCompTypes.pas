@@ -35,7 +35,7 @@ type
   {*
     Convention d'appel d'une méthode
   *}
-  TCallConvention = (ccRegister, ccStdCall, ccPascal, ccCDecl);
+  TCallingConvention = (ccRegister, ccCdecl, ccPascal, ccStdCall, ccSafeCall);
 
   {*
     Type d'accesseur d'une propriété
@@ -103,10 +103,10 @@ type
   *}
   TSepiMethodSignature = class
   private
-    FOwner : TSepiMeta;                /// Propriétaire de la signature
-    FKind : TMethodKind;               /// Type de méthode
-    FReturnType : TSepiType;           /// Type de retour
-    FCallConvention : TCallConvention; /// Convention d'appel
+    FOwner : TSepiMeta;                      /// Propriétaire de la signature
+    FKind : TMethodKind;                     /// Type de méthode
+    FReturnType : TSepiType;                 /// Type de retour
+    FCallingConvention : TCallingConvention; /// Convention d'appel
 
     function GetParamCount : integer;
     function GetParams(Index : integer) : TSepiMetaParam;
@@ -117,7 +117,7 @@ type
     constructor RegisterTypeData(AOwner : TSepiMeta; ATypeData : PTypeData);
     constructor Load(AOwner : TSepiMeta; Stream : TStream);
     constructor Create(AOwner : TSepiMeta; const ASignature : string;
-      ACallConvention : TCallConvention = ccRegister);
+      ACallingConvention : TCallingConvention = ccRegister);
 
     function Equals(ASignature : TSepiMethodSignature) : boolean;
     function CompatibleWith(const ATypes : array of TSepiType) : boolean;
@@ -127,7 +127,7 @@ type
     property ParamCount : integer read GetParamCount;
     property Params[index : integer] : TSepiMetaParam read GetParams;
     property ReturnType : TSepiType read FReturnType;
-    property CallConvention : TCallConvention read FCallConvention;
+    property CallingConvention : TCallingConvention read FCallingConvention;
   end;
 
   {*
@@ -156,7 +156,8 @@ type
     constructor Create(AOwner : TSepiMeta; const AName : string;
       ACode : Pointer; const ASignature : string;
       ALinkKind : TMethodLinkKind = mlkStatic; AAbstract : boolean = False;
-      AMsgID : integer = 0; ACallConvention : TCallConvention = ccRegister);
+      AMsgID : integer = 0;
+      ACallingConvention : TCallingConvention = ccRegister);
     destructor Destroy; override;
 
     property Code : Pointer read FCode;
@@ -369,7 +370,7 @@ type
       const AName : string) : TSepiInterface; overload;
 
     function AddMethod(const MethodName, ASignature : string;
-      ACallConvention : TCallConvention = ccRegister) : TSepiMetaMethod;
+      ACallingConvention : TCallingConvention = ccRegister) : TSepiMetaMethod;
 
     function AddProperty(
       const AName, ASignature, AReadAccess, AWriteAccess : string;
@@ -486,11 +487,11 @@ type
     function AddMethod(const MethodName : string; ACode: Pointer;
       const ASignature : string; ALinkKind : TMethodLinkKind = mlkStatic;
       AAbstract : boolean = False; AMsgID : integer = 0;
-      ACallConvention : TCallConvention = ccRegister) : TSepiMetaMethod;
+      ACallingConvention : TCallingConvention = ccRegister) : TSepiMetaMethod;
       overload;
     function AddMethod(const MethodName : string; ACode: Pointer;
       const ASignature : string;
-      ACallConvention : TCallConvention) : TSepiMetaMethod; overload;
+      ACallingConvention : TCallingConvention) : TSepiMetaMethod; overload;
 
     function AddProperty(
       const AName, ASignature, AReadAccess, AWriteAccess : string;
@@ -572,7 +573,7 @@ type
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
     constructor Create(AOwner : TSepiMeta; const AName, ASignature : string;
       AOfObject : boolean = False;
-      ACallConvention : TCallConvention = ccRegister);
+      ACallingConvention : TCallingConvention = ccRegister);
     destructor Destroy; override;
 
     function CompatibleWith(AType : TSepiType) : boolean; override;
@@ -920,7 +921,7 @@ begin
     TSepiMetaParam.RegisterParamData(FOwner, ParamData);
 
   FReturnType := FOwner.Root.FindType(PShortString(ParamData)^);
-  FCallConvention := ccRegister;
+  FCallingConvention := ccRegister;
 end;
 
 {*
@@ -935,19 +936,20 @@ begin
   FOwner := AOwner;
   Stream.ReadBuffer(FKind, 1);
   FOwner.OwningUnit.ReadRef(Stream, FReturnType);
-  Stream.ReadBuffer(FCallConvention, 1);
+  Stream.ReadBuffer(FCallingConvention, 1);
 
   // Parameters should be loaded by the owner, for they are children of it
 end;
 
 {*
   Crée une signature de méthode
-  @param AOwner            Propriétaire de la signature
-  @param ASignature        Signature Delphi
-  @param ACallConvention   Convention d'appel
+  @param AOwner               Propriétaire de la signature
+  @param ASignature           Signature Delphi
+  @param ACallingConvention   Convention d'appel
 *}
 constructor TSepiMethodSignature.Create(AOwner : TSepiMeta;
-  const ASignature : string; ACallConvention : TCallConvention = ccRegister);
+  const ASignature : string;
+  ACallingConvention : TCallingConvention = ccRegister);
 
   function MultiPos(const Chars : array of Char; const Str : string;
     Offset : integer = 1) : integer;
@@ -968,7 +970,7 @@ begin
   FOwner := AOwner;
   FKind := mkProcedure;
   FReturnType := nil;
-  FCallConvention := ACallConvention;
+  FCallingConvention := ACallingConvention;
 
   // Type de méthode
   ParamPos := MultiPos(['(', '[', ':'], ASignature);
@@ -1034,7 +1036,7 @@ procedure TSepiMethodSignature.Save(Stream : TStream);
 begin
   Stream.WriteBuffer(FKind, 1);
   Owner.OwningUnit.WriteRef(Stream, FReturnType);
-  Stream.WriteBuffer(FCallConvention, 1);
+  Stream.WriteBuffer(FCallingConvention, 1);
 
   // Parameters should be saved by the owner, for they are children of it
 end;
@@ -1104,19 +1106,19 @@ end;
 
 {*
   Crée une nouvelle meta-méthode
-  @param AOwner            Propriétaire de la méthode
-  @param AName             Nom de la méthode
-  @param ACode             Pointeur sur le code de la méthode
-  @param ASignature        Signature Delphi de la méthode
-  @param ALinkKind         Type de liaison
-  @param AAbstract         Indique si la méthode est abstraite
-  @param AMsgID            Pour les méthodes de message, le message intercepté
-  @param ACallConvention   Convention d'appel de la méthode
+  @param AOwner       Propriétaire de la méthode
+  @param AName        Nom de la méthode
+  @param ACode        Pointeur sur le code de la méthode
+  @param ASignature   Signature Delphi de la méthode
+  @param ALinkKind    Type de liaison
+  @param AAbstract    Indique si la méthode est abstraite
+  @param AMsgID       Pour les méthodes de message, le message intercepté
+  @param ACallingConvention   Convention d'appel de la méthode
 *}
 constructor TSepiMetaMethod.Create(AOwner : TSepiMeta; const AName : string;
   ACode : Pointer; const ASignature : string;
   ALinkKind : TMethodLinkKind = mlkStatic; AAbstract : boolean = False;
-  AMsgID : integer = 0; ACallConvention : TCallConvention = ccRegister);
+  AMsgID : integer = 0; ACallingConvention : TCallingConvention = ccRegister);
 var SignPrefix : string;
 begin
   inherited Create(AOwner, AName);
@@ -1128,7 +1130,7 @@ begin
 
   FCode := ACode;
   FSignature := TSepiMethodSignature.Create(Self,
-    SignPrefix + ASignature, ACallConvention);
+    SignPrefix + ASignature, ACallingConvention);
   FLinkKind := ALinkKind;
   FFirstDeclaration := FLinkKind <> mlkOverride;
   FAbstract := AAbstract and (FLinkKind in [mlkVirtual, mlkDynamic]);
@@ -2093,15 +2095,15 @@ end;
 
 {*
   Ajoute une méthode à l'interface
-  @param MethodName        Nom de la méthode
-  @param ASignature        Signature Delphi de la méthode
-  @param ACallConvention   Convention d'appel de la méthode
+  @param MethodName           Nom de la méthode
+  @param ASignature           Signature Delphi de la méthode
+  @param ACallingConvention   Convention d'appel de la méthode
 *}
 function TSepiInterface.AddMethod(const MethodName, ASignature : string;
-  ACallConvention : TCallConvention = ccRegister) : TSepiMetaMethod;
+  ACallingConvention : TCallingConvention = ccRegister) : TSepiMetaMethod;
 begin
   Result := TSepiMetaMethod.Create(Self, MethodName, nil, ASignature,
-    mlkInterface, False, 0, ACallConvention);
+    mlkInterface, False, 0, ACallingConvention);
 end;
 
 {*
@@ -2309,8 +2311,8 @@ end;
 *}
 procedure TSepiClass.MakeIMT(IntfEntry : PSepiInterfaceEntry);
 const
-  AdjustInstrSizes : array[TCallConvention, boolean] of ShortInt = (
-    (3, 5), (5, 9), (-1, -1), (5, 8)
+  AdjustInstrSizes : array[TCallingConvention, boolean] of ShortInt = (
+    (3, 5), (5, 8), (-1, -1), (5, 8), (5, 8)
   );
   JumpInstrSize = 5;
 var Offset : LongInt;
@@ -2339,9 +2341,9 @@ begin
         Method := TSepiMetaMethod(Intf.Children[I]);
 
         AdjustInstrSize :=
-          AdjustInstrSizes[Method.Signature.CallConvention, BigOffset];
+          AdjustInstrSizes[Method.Signature.CallingConvention, BigOffset];
 
-        // Call convention Pascal not supported at the moment
+        // Calling convention Pascal not supported at the moment
         { TODO 1 -cMetaunités : Support de ccPascal dans les IMT }
         if AdjustInstrSize < 0 then
           raise ESepiUnsupportedFeatureException.CreateFmt(
@@ -2372,7 +2374,7 @@ begin
       inc(IMTEntry, 4);
 
       // Adjust instruction
-      case Method.Signature.CallConvention of
+      case Method.Signature.CallingConvention of
         ccRegister :
         begin
           // add eax, Offset
@@ -2390,7 +2392,7 @@ begin
             inc(RelocEntry, 3);
           end;
         end;
-        ccStdCall, ccCDecl :
+        ccCDecl, ccStdCall, ccSafeCall :
         begin
           // add dwortd ptr [esp+4], Offset
           if BigOffset then
@@ -2985,36 +2987,36 @@ end;
 
 {*
   Ajoute une méthode à la classe
-  @param MethodName        Nom de la méthode
-  @param ACode             Pointeur sur le code de la méthode
-  @param ASignature        Signature Delphi de la méthode
-  @param ALinkKind         Type de liaison
-  @param AAbstract         Indique si la méthode est abstraite
-  @param AMsgID            Pour les méthodes de message, le message intercepté
-  @param ACallConvention   Convention d'appel de la méthode
+  @param MethodName   Nom de la méthode
+  @param ACode        Pointeur sur le code de la méthode
+  @param ASignature   Signature Delphi de la méthode
+  @param ALinkKind    Type de liaison
+  @param AAbstract    Indique si la méthode est abstraite
+  @param AMsgID       Pour les méthodes de message, le message intercepté
+  @param ACallingConvention   Convention d'appel de la méthode
 *}
 function TSepiClass.AddMethod(const MethodName : string; ACode: Pointer;
   const ASignature : string; ALinkKind : TMethodLinkKind = mlkStatic;
   AAbstract : boolean = False; AMsgID : integer = 0;
-  ACallConvention : TCallConvention = ccRegister) : TSepiMetaMethod;
+  ACallingConvention : TCallingConvention = ccRegister) : TSepiMetaMethod;
 begin
   Result := TSepiMetaMethod.Create(Self, MethodName, ACode, ASignature,
-    ALinkKind, AAbstract, AMsgID, ACallConvention);
+    ALinkKind, AAbstract, AMsgID, ACallingConvention);
 end;
 
 {*
   Ajoute une méthode à la classe
-  @param MethodName        Nom de la méthode
-  @param ACode             Pointeur sur le code de la méthode
-  @param ASignature        Signature Delphi de la méthode
-  @param ACallConvention   Convention d'appel de la méthode
+  @param MethodName           Nom de la méthode
+  @param ACode                Pointeur sur le code de la méthode
+  @param ASignature           Signature Delphi de la méthode
+  @param ACallingConvention   Convention d'appel de la méthode
 *}
 function TSepiClass.AddMethod(const MethodName : string; ACode: Pointer;
   const ASignature : string;
-  ACallConvention : TCallConvention) : TSepiMetaMethod;
+  ACallingConvention : TCallingConvention) : TSepiMetaMethod;
 begin
   Result := TSepiMetaMethod.Create(Self, MethodName, ACode, ASignature,
-    mlkStatic, False, 0, ACallConvention);
+    mlkStatic, False, 0, ACallingConvention);
 end;
 
 {*
@@ -3279,18 +3281,18 @@ end;
   @param AName             Nom du type
   @param ASignature        Signature
   @param AOfObject         Indique s'il s'agit d'une méthode
-  @param ACallConvention   Convention d'appel
+  @param ACallingConvention   Convention d'appel
 *}
 constructor TSepiMethodRefType.Create(AOwner : TSepiMeta;
   const AName, ASignature : string; AOfObject : boolean = False;
-  ACallConvention : TCallConvention = ccRegister);
+  ACallingConvention : TCallingConvention = ccRegister);
 var Prefix : string;
 begin
   inherited Create(AOwner, AName, tkMethod);
 
   if AOfObject then Prefix := '' else Prefix := 'unit ';
   FSignature := TSepiMethodSignature.Create(Self,
-    Prefix + ASignature, ACallConvention);
+    Prefix + ASignature, ACallingConvention);
 
   if Signature.Kind in mkOfObject then
     FSize := 8
