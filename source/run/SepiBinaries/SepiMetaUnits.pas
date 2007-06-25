@@ -10,7 +10,7 @@ interface
 uses
   Windows, SysUtils, Classes, Contnrs, SysConst, RTLConsts, SepiCore, ScUtils,
   IniFiles, TypInfo, Variants, StrUtils, ScLists, ScStrUtils, ScDelphiLanguage,
-  SepiBinariesConsts;
+  SyncObjs, SepiBinariesConsts;
 
 type
   {*
@@ -230,7 +230,7 @@ type
     /// Déclenché pour chaque méthode au chargement, pour obtenir son code
     FOnGetMethodCode : TGetMethodCodeEvent;
 
-    FSearchOrder : TObjectList;
+    FSearchOrder : TObjectList; /// Ordre de recherche
 
     function GetUnitCount : integer;
     function GetUnits(Index : integer) : TSepiMetaUnit;
@@ -241,6 +241,7 @@ type
     destructor Destroy; override;
 
     function LoadUnit(const UnitName : string) : TSepiMetaUnit;
+    procedure UnloadUnit(const UnitName : string);
 
     function GetType(TypeInfo : PTypeInfo) : TSepiType; overload;
     function GetType(const TypeName : string) : TSepiType; overload;
@@ -263,6 +264,7 @@ type
   TSepiMetaUnit = class(TSepiType)
   private
     { TODO 2 -cMetaunités : Ajouter des champs concernant les en-tête d'unité }
+    FRefCount : integer;                    /// Compteur de références
     FUsesList : TStrings;                   /// Liste des uses
     FCurrentVisibility : TMemberVisibility; /// Visibilité courante
 
@@ -391,6 +393,32 @@ type
     property IsConst : boolean read FIsConst;
     property VarType : TSepiType read FType;
     property Value : Pointer read FValue;
+  end;
+
+  {*
+    Gestionnaire asynchrone de racine Sepi
+    @author Sébastien Jean Robert Doeraene
+    @version 1.0
+  *}
+  TSepiAsynchronousRootManager = class(TThread)
+  private
+    FOwnsRoot : boolean;                 /// Indique si l'on possède la racine
+    FRoot : TSepiMetaRoot;               /// Meta-racine gérée
+    FActionList : TStrings;              /// Liste d'actions à effectuer
+    FCriticalSection : TCriticalSection; /// Section critique sur la liste
+
+    function GetReady : boolean;
+  protected
+    procedure Execute; override;
+  public
+    constructor Create(ARoot : TSepiMetaRoot = nil);
+    destructor Destroy; override;
+
+    procedure LoadUnit(const UnitName : string);
+    procedure UnloadUnit(const UnitName : string);
+
+    property Root : TSepiMetaRoot read FRoot;
+    property Ready : boolean read GetReady;
   end;
 
   {*
@@ -674,7 +702,7 @@ end;
 destructor TSepiMeta.Destroy;
 var I : integer;
 begin
-  if State <> msDestroying then // only if an error as occured in constructor
+  if State <> msDestroying then // only if an error has occured in constructor
     Destroying;
 
   if Assigned(FChildren) then
@@ -1263,16 +1291,41 @@ function TSepiMetaRoot.LoadUnit(const UnitName : string) : TSepiMetaUnit;
 var ImportFunc : TSepiImportUnitFunc;
 begin
   Result := TSepiMetaUnit(GetMeta(UnitName));
-  if Result <> nil then exit;
 
-  ImportFunc := SepiImportedUnit(UnitName);
-  if Assigned(ImportFunc) then
-    Result := ImportFunc(Self);
+  if Result = nil then
+  begin
+    ImportFunc := SepiImportedUnit(UnitName);
+    if Assigned(ImportFunc) then
+      Result := ImportFunc(Self);
 
-  { TODO 2 -cMetaunités : Charger une unité non système par son nom }
+    { TODO 2 -cMetaunités : Charger une unité non système par son nom }
+  end;
 
   if Result = nil then
     raise ESepiUnitNotFoundError.CreateFmt(SSepiUnitNotFound, [UnitName]);
+
+  inc(Result.FRefCount);
+end;
+
+{*
+  Décharge une unité
+  @param UnitName   Nom de l'unité à charger
+*}
+procedure TSepiMetaRoot.UnloadUnit(const UnitName : string);
+var MetaUnit : TSepiMetaUnit;
+begin
+  if State = msDestroying then exit;
+
+  MetaUnit := TSepiMetaUnit(GetMeta(UnitName));
+  if MetaUnit = nil then
+    raise ESepiUnitNotFoundError.CreateFmt(SSepiUnitNotFound, [UnitName]);
+
+  dec(MetaUnit.FRefCount);
+  if MetaUnit.FRefCount = 0 then
+  begin
+    Assert(FChildren.IndexOfObject(MetaUnit) = FChildren.Count-1);
+    MetaUnit.Free;
+  end;
 end;
 
 {*
@@ -1426,6 +1479,8 @@ var I : integer;
 begin
   Assert(AOwner is TSepiMetaRoot);
 
+  FRefCount := 0;
+
   FUsesList := TStringList.Create;
   if not AnsiSameText(AName, SystemUnitName) then
     AddUses(TSepiMetaRoot(AOwner).LoadUnit(SystemUnitName));
@@ -1442,9 +1497,16 @@ end;
   [@inheritDoc]
 *}
 destructor TSepiMetaUnit.Destroy;
+var I : integer;
 begin
-  FUsesList.Free;
   inherited;
+
+  if Assigned(FUsesList) and Assigned(Root) then
+  begin
+    for I := FUsesList.Count-1 downto 0 do
+      Root.UnloadUnit(FUsesList[I]);
+    FUsesList.Free;
+  end;
 end;
 
 {*
@@ -2035,6 +2097,123 @@ begin
 
   if FOwnValue and FType.NeedInit then
     ExplicitFinalize(FValue^, FType.TypeInfo);
+end;
+
+{-------------------------------------}
+{ Classe TSepiAsynchronousRootManager }
+{-------------------------------------}
+
+{*
+  Crée un nouveau gestionnaire de racine
+  @param ARoot   Racine à gérer (si nil, la racine est créée et libérée)
+*}
+constructor TSepiAsynchronousRootManager.Create(ARoot : TSepiMetaRoot = nil);
+begin
+  inherited Create(True);
+
+  FOwnsRoot := ARoot = nil;
+  if FOwnsRoot then
+    FRoot := TSepiMetaRoot.Create
+  else
+    FRoot := ARoot;
+
+  FActionList := TStringList.Create;
+  FCriticalSection := TCriticalSection.Create;
+end;
+
+{*
+  [@inheritDoc]
+*}
+destructor TSepiAsynchronousRootManager.Destroy;
+begin
+  if FatalException = nil then
+  begin
+    Terminate;
+    if Suspended then
+      Resume;
+    WaitFor;
+  end;
+
+  FCriticalSection.Free;
+  FActionList.Free;
+  if FOwnsRoot then
+    FRoot.Free;
+
+  inherited;
+end;
+
+{*
+  Indique si la racine est utilisable
+  @return True si la racine est utilisable, False sinon
+*}
+function TSepiAsynchronousRootManager.GetReady : boolean;
+begin
+  Result := (FatalException <> nil) or Suspended;
+end;
+
+{*
+  Exécution du thread
+*}
+procedure TSepiAsynchronousRootManager.Execute;
+var Unload : boolean;
+    UnitName : string;
+begin
+  Unload := False;
+
+  while not Terminated do
+  begin
+    FCriticalSection.Acquire;
+    try
+      if FActionList.Count = 0 then UnitName := '' else
+      begin
+        Unload := boolean(integer(FActionList.Objects[0]));
+        UnitName := FActionList[0];
+        FActionList.Delete(0);
+      end;
+    finally
+      FCriticalSection.Release;
+    end;
+
+    if UnitName = '' then Suspend else
+    begin
+      if Unload then
+        FRoot.UnloadUnit(UnitName)
+      else
+        FRoot.LoadUnit(UnitName);
+    end;
+  end;
+end;
+
+{*
+  Demande le chargement d'une unité
+  @param UnitName   Unité à charger
+*}
+procedure TSepiAsynchronousRootManager.LoadUnit(const UnitName : string);
+begin
+  FCriticalSection.Acquire;
+  try
+    FActionList.AddObject(UnitName, TObject(0));
+    if Suspended then
+      Resume;
+  finally
+    FCriticalSection.Release;
+  end;
+end;
+
+{*
+  Demande le déchargement d'une unité
+  @param UnitName   Unité à charger
+*}
+procedure TSepiAsynchronousRootManager.UnloadUnit(const UnitName : string);
+begin
+  FCriticalSection.Acquire;
+  try
+    FActionList.AddObject(UnitName, TObject(1));
+    if Suspended then
+      Resume;
+  finally
+    FCriticalSection.Release;
+  end;
 end;
 
 initialization
