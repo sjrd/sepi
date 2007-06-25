@@ -1247,7 +1247,7 @@ begin
   FSearchOrder.Add(Self);
 
   FSearchOrder.Add(CurrentUnit);
-  for I := 0 to CurrentUnit.FUsesList.Count-1 do
+  for I := CurrentUnit.FUsesList.Count-1 downto 0 do
     FSearchOrder.Add(CurrentUnit.FUsesList.Objects[I]);
   for I := 0 to ChildCount-1 do
     if FSearchOrder.IndexOf(Children[I]) < 0 then

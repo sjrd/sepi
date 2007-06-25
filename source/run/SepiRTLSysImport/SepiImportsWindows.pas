@@ -828,7 +828,7 @@ begin
   begin
     AddField('dsBm', 'TBitmap');
     AddField('dsBmih', 'TBitmapInfoHeader');
-    AddField('dsBitfields', '$10');
+    AddField('dsBitfields', '$16');
     AddField('dshSection', System.TypeInfo(THandle));
     AddField('dsOffset', System.TypeInfo(DWORD));
 

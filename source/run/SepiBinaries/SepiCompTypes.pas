@@ -1895,7 +1895,8 @@ begin
   if FCompleted then exit;
 
   FCompleted := True;
-  AlignOffset(FSize);
+  if not IsPacked then
+    AlignOffset(FSize);
   if TypeInfo = nil then
     MakeTypeInfo;
 end;
