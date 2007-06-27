@@ -1,5 +1,5 @@
 {*
-  Définit quelques routines d'utilisation plus rare ou avancée
+  Définit des routines en lien avec le langage Delphi lui-même
   @author Sébastien Jean Robert Doeraene
   @version 1.0
 *}
@@ -41,10 +41,51 @@ procedure ExplicitFinalize(var Value; TypeInfo : PTypeInfo;
 
 function SkipPackedShortString(Value : PShortstring) : Pointer;
 
+function JmpArgument(JmpAddress, JmpDest : Pointer) : integer;
+
+function MakeProcOfRegisterMethod(const Method : TMethod;
+  UsedRegCount : Byte) : Pointer;
+function MakeProcOfStdCallMethod(const Method : TMethod) : Pointer;
+function MakeProcOfPascalMethod(const Method : TMethod;
+  ArgStackSize : Byte) : Pointer;
+function MakeProcOfCDeclMethod(const Method : TMethod) : Pointer;
+procedure FreeProcOfMethod(Proc : Pointer);
+
 implementation
 
 uses
   ScConsts;
+
+var
+  /// Liste des adresses de retour des procédures cdecl issues de méthodes
+  CDeclReturnAddresses : array of Pointer;
+  /// Nombre d'adresse de retour réellement stockées dans CDeclReturnAddresses
+  CDeclReturnAddressCount : integer = 0;
+
+{*
+  Ajoute une adresse de retour
+  @param ReturnAddress   Adresse à ajouter
+*}
+procedure PushCDeclReturnAddress(ReturnAddress : Pointer); register;
+const
+  AllocBy = $10;
+begin
+  if CDeclReturnAddressCount >= Length(CDeclReturnAddresses) then
+    SetLength(CDeclReturnAddresses, CDeclReturnAddressCount + AllocBy);
+  CDeclReturnAddresses[CDeclReturnAddressCount] := ReturnAddress;
+  inc(CDeclReturnAddressCount);
+end;
+
+{*
+  Récupère une adresse de retour
+  @return L'adresse de retour qui a été ajoutée en dernier
+*}
+function PopCDeclReturnAddress : Pointer; register;
+begin
+  Assert(CDeclReturnAddressCount > 0);
+  dec(CDeclReturnAddressCount);
+  Result := CDeclReturnAddresses[CDeclReturnAddressCount];
+end;
 
 {*
   Vérifie si une chaîne de caractères est un identificateur Pascal correct
@@ -603,6 +644,205 @@ asm
         XOR     EDX,EDX
         MOV     DL,[EAX]
         LEA     EAX,[EAX].Byte[EDX+1]
+end;
+
+{*
+  Calcule l'argument d'une instruction JMP
+  @param JmpAddress   Adresse de l'instruction JMP
+  @param JmpDest      Destination du JMP
+  @return Argument à donner au JMP
+*}
+function JmpArgument(JmpAddress, JmpDest : Pointer) : integer;
+begin
+  Result := integer(JmpDest) - integer(JmpAddress) - 5;
+end;
+
+{*
+  Construit une routine équivalente à une méthode register
+  MakeProcOfMethod permet d'obtenir un pointeur sur une routine, construite
+  dynamiquement, qui équivaut à une méthode. Ce qui signifie que la routine
+  renvoyée commence par ajouter un paramètre supplémentaire, avant d'appeler
+  la méthode initiale.
+  La procédure devra être libérée avec FreeProcOfMethod une fois utilisée.
+  @param Method         Méthode à convertir
+  @param UsedRegCount   Nombre de registres utilisés dans l'appel de *procédure*
+*}
+function MakeProcOfRegisterMethod(const Method : TMethod;
+  UsedRegCount : Byte) : Pointer;
+const
+  Preparation : array[0..7] of Byte = (
+    $87, $0C, $24, // XCHG    ECX,[ESP]
+    $51,           // PUSH    ECX
+    $8B, $CA,      // MOV     ECX,EDX
+    $8B, $D0       // MOV     EDX,EAX
+  );
+type
+  PRegisterRedirector = ^TRegisterRedirector;
+  TRegisterRedirector = packed record
+    MovEAXObj : Byte;
+    ObjAddress : Pointer;
+    Jump : Byte;
+    JumpArg : integer;
+  end;
+var PreparationSize : integer;
+begin
+  if UsedRegCount >= 3 then
+    UsedRegCount := 4;
+  PreparationSize := 2*UsedRegCount;
+
+  GetMem(Result, sizeof(TRegisterRedirector) + PreparationSize);
+
+  with PRegisterRedirector(Integer(Result) + PreparationSize)^ do
+  begin
+    MovEAXObj := $B8;
+    ObjAddress := Method.Data;
+    Jump := $E9;
+    JumpArg := JmpArgument(@Jump, Method.Code);
+  end;
+
+  Move(Preparation[8 - PreparationSize], Result^, PreparationSize);
+end;
+
+{*
+  Construit une routine équivalente à une méthode stdcall
+  MakeProcOfMethod permet d'obtenir un pointeur sur une routine, construite
+  dynamiquement, qui équivaut à une méthode. Ce qui signifie que la routine
+  renvoyée commence par ajouter un paramètre supplémentaire, avant d'appeler
+  la méthode initiale.
+  La procédure devra être libérée avec FreeProcOfMethod une fois utilisée.
+  @param Method   Méthode à convertir
+*}
+function MakeProcOfStdCallMethod(const Method : TMethod) : Pointer;
+type
+  PStdCallRedirector = ^TStdCallRedirector;
+  TStdCallRedirector = packed record
+    PopEAX : Byte;
+    PushObj : Byte;
+    ObjAddress : Pointer;
+    PushEAX : Byte;
+    Jump : Byte;
+    JumpArg : integer;
+  end;
+begin
+  GetMem(Result, sizeof(TStdCallRedirector));
+  with PStdCallRedirector(Result)^ do
+  begin
+    PopEAX := $58;
+    PushObj := $68;
+    ObjAddress := Method.Data;
+    PushEAX := $50;
+    Jump := $E9;
+    JumpArg := JmpArgument(@Jump, Method.Code);
+  end;
+end;
+
+{*
+  Construit une routine équivalente à une méthode pascal
+  MakeProcOfMethod permet d'obtenir un pointeur sur une routine, construite
+  dynamiquement, qui équivaut à une méthode. Ce qui signifie que la routine
+  renvoyée commence par ajouter un paramètre supplémentaire, avant d'appeler
+  la méthode initiale.
+  La procédure devra être libérée avec FreeProcOfMethod une fois utilisée.
+  @param Method         Méthode à convertir
+  @param ArgStackSize   Taille de la pile des arguments
+*}
+function MakeProcOfPascalMethod(const Method : TMethod;
+  ArgStackSize : Byte) : Pointer;
+const
+  Code : array[0..30] of Byte = (
+    $51,                     // PUSH    ECX
+    $56,                     // PUSH    ESI
+    $57,                     // PUSH    EDI
+    $B9, $FF, $00, $00, $00, // MOV     ECX,StackSize
+    $8B, $F4,                // MOV     ESI,ESP
+    $51,                     // PUSH    ECX - just increasing the stack size
+    $8B, $FC,                // MOV     EDI,ESP
+    $F3, $A4,                // REP     MOVSB
+    $C7, $44, $24, $FF, $EE, $EE, $EE, $EE,
+                             // MOV     DWORD PTR [ESP+StackSize],ObjAddress
+    $5F,                     // POP     EDI
+    $5E,                     // POP     ESI
+    $59,                     // POP     ECX
+    $E9, $DD, $DD, $DD, $DD  // JMP     JmpDest
+  );
+  StackSizeOffset1 = 4;
+  StackSizeOffset2 = 18;
+  ObjAddressOffset = 19;
+  JmpOffset = 26;
+  JmpDestOffset = 27;
+begin
+  GetMem(Result, sizeof(Code));
+  Move(Code[0], Result^, sizeof(Code));
+
+  inc(ArgStackSize, 12); // because of ECX, ESI and EDI
+
+  PByte(Integer(Result) + StackSizeOffset1)^ := ArgStackSize;
+  PByte(Integer(Result) + StackSizeOffset2)^ := ArgStackSize;
+  PPointer(Integer(Result) + ObjAddressOffset)^ := Method.Data;
+  PInteger(Integer(Result) + JmpDestOffset)^ :=
+    JmpArgument(Pointer(Integer(Result) + JmpOffset), Method.Code);
+end;
+
+{*
+  Construit une routine équivalente à une méthode cdecl
+  MakeProcOfMethod permet d'obtenir un pointeur sur une routine, construite
+  dynamiquement, qui équivaut à une méthode. Ce qui signifie que la routine
+  renvoyée commence par ajouter un paramètre supplémentaire, avant d'appeler
+  la méthode initiale.
+  La procédure devra être libérée avec FreeProcOfMethod une fois utilisée.
+  @param Method         Méthode à convertir
+*}
+function MakeProcOfCDeclMethod(const Method : TMethod) : Pointer;
+
+type
+  PCDeclRedirector = ^TCDeclRedirector;
+  TCDeclRedirector = packed record
+    PopEAX : Byte;
+    CallPushAddress : Byte;
+    PushAddressOffset : integer;
+    PushObj : Byte;
+    ObjAddress : Pointer;
+    CallMethod : Byte;
+    MethodCodeOffset : integer;
+    MovESPEAX : array[0..2] of Byte;
+    CallPopAddress : Byte;
+    PopAddressOffset : integer;
+    Xchg : array[0..2] of Byte;
+    Ret : Byte;
+  end;
+
+const
+  Code : array[0..27] of Byte = (
+    $58,                     // POP     EAX
+    $E8, $FF, $FF, $FF, $FF, // CALL    PushCDeclReturnAddress
+    $68, $EE, $EE, $EE, $EE, // PUSH    ObjAddress
+    $E8, $DD, $DD, $DD, $DD, // CALL    MethodCode
+    $89, $04, $24,           // MOV     [ESP],EAX
+    $E8, $CC, $CC, $CC, $CC, // CALL    PopCDeclReturnAddress
+    $87, $04, $24,           // XCHG    EAX,[ESP]
+    $C3                      // RET
+  );
+
+begin
+  GetMem(Result, sizeof(Code));
+  Move(Code[0], Result^, sizeof(Code));
+
+  with PCDeclRedirector(Result)^ do
+  begin
+    PushAddressOffset := JmpArgument(@CallPushAddress, @PushCDeclReturnAddress);
+    ObjAddress := Method.Data;
+    MethodCodeOffset := JmpArgument(@CallMethod, Method.Code);
+    PopAddressOffset := JmpArgument(@CallPopAddress, @PopCDeclReturnAddress);
+  end;
+end;
+
+{*
+  Libère une routine construite avec une des MakeProcOfMethod
+  @param Proc   Routine à libérer
+*}
+procedure FreeProcOfMethod(Proc : Pointer);
+begin
+  FreeMem(Proc);
 end;
 
 end.
