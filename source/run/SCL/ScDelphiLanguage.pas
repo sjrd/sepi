@@ -10,6 +10,17 @@ interface
 uses
   SysUtils, TypInfo, ScUtils;
 
+type
+  {*
+    Instruction JMP ou CALL
+    @author Sébastien Jean Robert Doeraene
+    @version 1.0
+  *}
+  TJmpInstruction = packed record
+    OpCode : Byte;      /// OpCode
+    Argument : integer; /// Destination
+  end;
+
 function CorrectIdentifier(const Ident : string) : boolean;
 
 procedure SetBit(var Value : integer; const Bit : Byte); register;
@@ -42,6 +53,8 @@ procedure ExplicitFinalize(var Value; TypeInfo : PTypeInfo;
 function SkipPackedShortString(Value : PShortstring) : Pointer;
 
 function JmpArgument(JmpAddress, JmpDest : Pointer) : integer;
+procedure MakeJmp(var Instruction; Dest : Pointer);
+procedure MakeCall(var Instruction; Dest : Pointer);
 
 function MakeProcOfRegisterMethod(const Method : TMethod;
   UsedRegCount : Byte) : Pointer;
@@ -703,14 +716,52 @@ asm
 end;
 
 {*
-  Calcule l'argument d'une instruction JMP
+  Calcule l'argument d'une instruction JMP ou CALL
   @param JmpAddress   Adresse de l'instruction JMP
   @param JmpDest      Destination du JMP
   @return Argument à donner au JMP
 *}
 function JmpArgument(JmpAddress, JmpDest : Pointer) : integer;
-begin
-  Result := integer(JmpDest) - integer(JmpAddress) - 5;
+asm
+        { -> EAX Address of the jump instruction }
+        { -> EDX Pointer to destination          }
+        { -> Return value = EDX - EAX - 5        }
+
+        NEG     EAX
+        ADD     EAX,EDX
+        SUB     EAX,5
+end;
+
+{*
+  Construit une instruction JMP
+  @param Instruction   Instruction (minimum 5 octets)
+  @param Dest          Destination du JMP
+*}
+procedure MakeJmp(var Instruction; Dest : Pointer);
+asm
+        { -> EAX Pointer to a TJmpInstruction record }
+        { -> EDX Pointer to destination              }
+
+        MOV     BYTE PTR [EAX],$E9
+        SUB     EDX,EAX
+        SUB     EDX,5
+        MOV     [EAX+1],EDX
+end;
+
+{*
+  Construit une instruction CALL
+  @param Instruction   Instruction (minimum 5 octets)
+  @param Dest          Destination du CALL
+*}
+procedure MakeCall(var Instruction; Dest : Pointer);
+asm
+        { -> EAX Pointer to a TJmpInstruction record }
+        { -> EDX Pointer to destination              }
+
+        MOV     BYTE PTR [EAX],$E8
+        SUB     EDX,EAX
+        SUB     EDX,5
+        MOV     [EAX+1],EDX
 end;
 
 {*
@@ -737,8 +788,7 @@ type
   TRegisterRedirector = packed record
     MovEAXObj : Byte;
     ObjAddress : Pointer;
-    Jump : Byte;
-    JumpArg : integer;
+    Jump : TJmpInstruction;
   end;
 var PreparationSize : integer;
 begin
@@ -752,8 +802,7 @@ begin
   begin
     MovEAXObj := $B8;
     ObjAddress := Method.Data;
-    Jump := $E9;
-    JumpArg := JmpArgument(@Jump, Method.Code);
+    MakeJmp(Jump, Method.Code);
   end;
 
   Move(Preparation[8 - PreparationSize], Result^, PreparationSize);
@@ -776,8 +825,7 @@ type
     PushObj : Byte;
     ObjAddress : Pointer;
     PushEAX : Byte;
-    Jump : Byte;
-    JumpArg : integer;
+    Jump : TJmpInstruction;
   end;
 begin
   GetMem(Result, sizeof(TStdCallRedirector));
@@ -787,8 +835,7 @@ begin
     PushObj := $68;
     ObjAddress := Method.Data;
     PushEAX := $50;
-    Jump := $E9;
-    JumpArg := JmpArgument(@Jump, Method.Code);
+    MakeJmp(Jump, Method.Code);
   end;
 end;
 
@@ -821,16 +868,13 @@ type
   PCDeclRedirector = ^TCDeclRedirector;
   TCDeclRedirector = packed record
     PushESP : Byte;
-    CallStoreAddress : Byte;
-    StoreAddressOffset : integer;
+    CallStoreAddress : TJmpInstruction;
     PushObj : Byte;
     ObjAddress : Pointer;
-    CallMethod : Byte;
-    MethodCodeOffset : integer;
+    CallMethod : TJmpInstruction;
     MovESPEAX : array[0..2] of Byte;
     PushESP2 : Byte;
-    CallGetAddress : Byte;
-    GetAddressOffset : integer;
+    CallGetAddress : TJmpInstruction;
     Xchg : array[0..2] of Byte;
     Ret : Byte;
   end;
@@ -854,11 +898,10 @@ begin
 
   with PCDeclRedirector(Result)^ do
   begin
-    StoreAddressOffset := JmpArgument(@CallStoreAddress,
-      @StoreCDeclReturnAddress);
+    MakeCall(CallStoreAddress, @StoreCDeclReturnAddress);
     ObjAddress := Method.Data;
-    MethodCodeOffset := JmpArgument(@CallMethod, Method.Code);
-    GetAddressOffset := JmpArgument(@CallGetAddress, @GetCDeclReturnAddress);
+    MakeCall(CallMethod, Method.Code);
+    MakeCall(CallGetAddress, @GetCDeclReturnAddress);
   end;
 end;
 
