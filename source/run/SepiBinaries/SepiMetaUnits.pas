@@ -227,9 +227,6 @@ type
   *}
   TSepiMetaRoot = class(TSepiMeta)
   private
-    /// Déclenché pour chaque méthode au chargement, pour obtenir son code
-    FOnGetMethodCode : TGetMethodCodeEvent;
-
     FSearchOrder : TObjectList; /// Ordre de recherche
 
     function GetUnitCount : integer;
@@ -251,9 +248,6 @@ type
 
     property UnitCount : integer read GetUnitCount;
     property Units[index : integer] : TSepiMetaUnit read GetUnits;
-
-    property OnGetMethodCode : TGetMethodCodeEvent
-      read FOnGetMethodCode write FOnGetMethodCode;
   end;
 
   {*
@@ -263,7 +257,9 @@ type
   *}
   TSepiMetaUnit = class(TSepiType)
   private
-    { TODO 2 -cMetaunités : Ajouter des champs concernant les en-tête d'unité }
+    /// Déclenché pour chaque méthode au chargement, pour obtenir son code
+    FOnGetMethodCode : TGetMethodCodeEvent;
+
     FRefCount : integer;                    /// Compteur de références
     FUsesList : TStrings;                   /// Liste des uses
     FCurrentVisibility : TMemberVisibility; /// Visibilité courante
@@ -284,6 +280,8 @@ type
     procedure Complete;
 
     procedure SaveToStream(Stream : TStream);
+    class function LoadFromStream(AOwner : TSepiMeta; Stream : TStream;
+      const AOnGetMethodCode : TGetMethodCodeEvent) : TSepiMetaUnit;
 
     procedure ReadRef(Stream : TStream; out Ref);
     procedure AddRef(Ref : TSepiMeta);
@@ -291,6 +289,8 @@ type
 
     property CurrentVisibility : TMemberVisibility
       read FCurrentVisibility write SetCurrentVisibility;
+
+    property OnGetMethodCode : TGetMethodCodeEvent read FOnGetMethodCode;
   end;
 
   {*
@@ -1227,7 +1227,6 @@ begin
   inherited Create(nil, '');
   FRoot := Self;
   FState := msNormal;
-  FOnGetMethodCode := nil;
   FSearchOrder := TObjectList.Create(False);
 
   LoadUnit(SystemUnitName);
@@ -1603,6 +1602,23 @@ begin
         FReferences[I].Free;
     SetLength(FReferences, 0);
   end;
+end;
+
+{*
+  Charge l'unité depuis un flux
+  @param AOwner             Propriétaire de l'unité
+  @param Stream             Flux depuis lequel charger l'unité
+  @param AOnGetMethodCode   Méthode de call-back pour récupérer le code d'une
+                            méthode
+*}
+class function TSepiMetaUnit.LoadFromStream(AOwner : TSepiMeta;
+  Stream : TStream;
+  const AOnGetMethodCode : TGetMethodCodeEvent) : TSepiMetaUnit;
+begin
+  Result := TSepiMetaUnit(NewInstance);
+  Result.FOnGetMethodCode := AOnGetMethodCode;
+  Result.Load(AOwner, Stream);
+  Result.FOnGetMethodCode := nil;
 end;
 
 {*

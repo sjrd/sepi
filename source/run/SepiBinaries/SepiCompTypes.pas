@@ -138,6 +138,7 @@ type
   TSepiMetaMethod = class(TSepiMeta)
   private
     FCode : Pointer;                   /// Adresse de code natif
+    FCodeJumper : TJmpInstruction;     /// Jumper sur le code, si chargement
     FSignature : TSepiMethodSignature; /// Signature de la méthode
     FLinkKind : TMethodLinkKind;       /// Type de liaison d'appel
     FFirstDeclaration : boolean;       /// Faux uniquement quand 'override'
@@ -159,6 +160,8 @@ type
       AMsgID : integer = 0;
       ACallingConvention : TCallingConvention = ccRegister);
     destructor Destroy; override;
+
+    procedure SetCode(ACode : Pointer);
 
     property Code : Pointer read FCode;
     property Signature : TSepiMethodSignature read FSignature;
@@ -1098,10 +1101,12 @@ begin
   Stream.ReadBuffer(FAbstract, 1);
   Stream.ReadBuffer(FLinkIndex, 2); // only for messages
 
-  if Assigned(Root.OnGetMethodCode) then
-    Root.OnGetMethodCode(Self, FCode);
-
   MakeLink;
+
+  if Assigned(OwningUnit.OnGetMethodCode) then
+    OwningUnit.OnGetMethodCode(Self, FCode);
+  if not Assigned(FCode) then
+    FCode := @FCodeJumper;
 end;
 
 {*
@@ -1304,6 +1309,19 @@ begin
 
   Stream.WriteBuffer(FAbstract, 1);
   Stream.WriteBuffer(FLinkIndex, 2); // only for messages
+end;
+
+{*
+  Donne l'adresse de début du code de la méthode
+  Cette méthode ne peut être appelée qu'une seule fois par méthode, et
+  seulement pour les méthodes chargées.
+  @param ACode   Nouvelle adresse de code
+*}
+procedure TSepiMetaMethod.SetCode(ACode : Pointer);
+begin
+  Assert(FCode = @FCodeJumper);
+  Assert(FCodeJumper.OpCode = 0);
+  MakeJmp(FCodeJumper, ACode);
 end;
 
 {----------------------------------}

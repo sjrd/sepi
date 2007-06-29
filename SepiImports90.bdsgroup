@@ -16,7 +16,8 @@
       <Projects Name="SepiVCLStdImport90.bpl">packages\90\SepiVCLStdImport90.bdsproj</Projects>
       <Projects Name="SepiSVCLImport90.bpl">packages\90\SepiSVCLImport90.bdsproj</Projects>
       <Projects Name="SepiSDLImport90.bpl">packages\90\SepiSDLImport90.bdsproj</Projects>
-      <Projects Name="Targets">SepiRTLSysImport90.bpl SepiWinTypesImport90.bpl SepiRTLCommonImport90.bpl SepiSCLImport90.bpl SepiVCLStdImport90.bpl SepiSVCLImport90.bpl SepiSDLImport90.bpl</Projects>
+      <Projects Name="EssaisSepi.exe">..\EssaisSepi\EssaisSepi.bdsproj</Projects>
+      <Projects Name="Targets">SepiRTLSysImport90.bpl SepiWinTypesImport90.bpl SepiRTLCommonImport90.bpl SepiSCLImport90.bpl SepiVCLStdImport90.bpl SepiSVCLImport90.bpl SepiSDLImport90.bpl EssaisSepi.exe</Projects>
     </Projects>
     <Dependencies/>
   </Default.Personality>
