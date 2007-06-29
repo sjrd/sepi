@@ -48,42 +48,99 @@ function MakeProcOfRegisterMethod(const Method : TMethod;
 function MakeProcOfStdCallMethod(const Method : TMethod) : Pointer;
 function MakeProcOfPascalMethod(const Method : TMethod) : Pointer;
 function MakeProcOfCDeclMethod(const Method : TMethod) : Pointer;
+procedure ClearCDeclCallInfo;
 procedure FreeProcOfMethod(Proc : Pointer);
 
 implementation
 
 uses
-  ScConsts;
+  Windows, ScConsts;
+
+type
+  PCDeclCallInfo = ^TCDeclCallInfo;
+  TCDeclCallInfo = packed record
+    Previous : PCDeclCallInfo;
+    StackPointer : Pointer;
+    ReturnAddress : Pointer;
+  end;
 
 var
-  /// Liste des adresses de retour des procédures cdecl issues de méthodes
-  CDeclReturnAddresses : array of Pointer;
-  /// Nombre d'adresse de retour réellement stockées dans CDeclReturnAddresses
-  CDeclReturnAddressCount : integer = 0;
+  /// Index de TLS pour les infos sur les appels cdecl dans le thread
+  CDeclCallInfoTLSIndex : Cardinal = 0;
+
+{*
+  Trouve la dernière info de routine cdecl valide
+  @param StackPointer   Valeur du registre esp au moment de l'appel
+  @param AllowSame      True pour permettre un StackPointer égal, False sinon
+  @return Pointeur sur la dernière info de routine cdecl valide
+*}
+function GetLastValidCDeclCallInfo(StackPointer : Pointer;
+  AllowSame : boolean) : PCDeclCallInfo;
+var Previous : PCDeclCallInfo;
+begin
+  Result := TlsGetValue(CDeclCallInfoTLSIndex);
+  while (Result <> nil) and
+    (Cardinal(Result.StackPointer) <= Cardinal(StackPointer)) do
+  begin
+    if AllowSame and (Result.StackPointer = StackPointer) then
+      Break;
+    Previous := Result.Previous;
+    Dispose(Result);
+    Result := Previous;
+  end;
+end;
+
+{*
+  S'assure que toutes les informations de routines cdecl sont supprimées
+  Cette routine devrait être appelée à la fin de chaque thread susceptible
+  d'utiliser des routines issues de méthodes cdecl.
+  Si ce n'est pas possible, ce n'est pas dramatique, mais l'application
+  s'expose à de légères fuites mémoire en cas d'exception à l'intérieur de
+  telles méthodes.
+  Pour le thread principal, ce n'est pas nécessaire, le code de finalisation de
+  ScDelphiLanguage.pas s'en charge.
+*}
+procedure ClearCDeclCallInfo;
+begin
+  GetLastValidCDeclCallInfo(Pointer($FFFFFFFF), False);
+  TlsSetValue(CDeclCallInfoTLSIndex, nil);
+end;
 
 {*
   Ajoute une adresse de retour
   @param ReturnAddress   Adresse à ajouter
 *}
-procedure PushCDeclReturnAddress(ReturnAddress : Pointer); register;
-const
-  AllocBy = $10;
+procedure StoreCDeclReturnAddress(
+  StackPointer, ReturnAddress : Pointer); stdcall;
+var LastInfo, CurInfo : PCDeclCallInfo;
 begin
-  if CDeclReturnAddressCount >= Length(CDeclReturnAddresses) then
-    SetLength(CDeclReturnAddresses, CDeclReturnAddressCount + AllocBy);
-  CDeclReturnAddresses[CDeclReturnAddressCount] := ReturnAddress;
-  inc(CDeclReturnAddressCount);
+  LastInfo := GetLastValidCDeclCallInfo(StackPointer, False);
+
+  New(CurInfo);
+  CurInfo.Previous := LastInfo;
+  CurInfo.StackPointer := StackPointer;
+  CurInfo.ReturnAddress := ReturnAddress;
+  TlsSetValue(CDeclCallInfoTLSIndex, CurInfo);
 end;
 
 {*
   Récupère une adresse de retour
   @return L'adresse de retour qui a été ajoutée en dernier
 *}
-function PopCDeclReturnAddress : Pointer; register;
+function GetCDeclReturnAddress(StackPointer : Pointer) : Pointer; stdcall;
+var LastInfo : PCDeclCallInfo;
 begin
-  Assert(CDeclReturnAddressCount > 0);
-  dec(CDeclReturnAddressCount);
-  Result := CDeclReturnAddresses[CDeclReturnAddressCount];
+  LastInfo := GetLastValidCDeclCallInfo(StackPointer, True);
+
+  if (LastInfo = nil) or (LastInfo.StackPointer <> StackPointer) then
+  begin
+    TlsSetValue(CDeclCallInfoTLSIndex, LastInfo);
+    Assert(False);
+  end;
+
+  TlsSetValue(CDeclCallInfoTLSIndex, LastInfo.Previous);
+  Result := LastInfo.ReturnAddress;
+  Dispose(LastInfo);
 end;
 
 {*
@@ -763,27 +820,29 @@ function MakeProcOfCDeclMethod(const Method : TMethod) : Pointer;
 type
   PCDeclRedirector = ^TCDeclRedirector;
   TCDeclRedirector = packed record
-    PopEAX : Byte;
-    CallPushAddress : Byte;
-    PushAddressOffset : integer;
+    PushESP : Byte;
+    CallStoreAddress : Byte;
+    StoreAddressOffset : integer;
     PushObj : Byte;
     ObjAddress : Pointer;
     CallMethod : Byte;
     MethodCodeOffset : integer;
     MovESPEAX : array[0..2] of Byte;
-    CallPopAddress : Byte;
-    PopAddressOffset : integer;
+    PushESP2 : Byte;
+    CallGetAddress : Byte;
+    GetAddressOffset : integer;
     Xchg : array[0..2] of Byte;
     Ret : Byte;
   end;
 
 const
-  Code : array[0..27] of Byte = (
-    $58,                     // POP     EAX
-    $E8, $FF, $FF, $FF, $FF, // CALL    PushCDeclReturnAddress
+  Code : array[0..28] of Byte = (
+    $54,                     // PUSH    ESP
+    $E8, $FF, $FF, $FF, $FF, // CALL    StoreCDeclReturnAddress
     $68, $EE, $EE, $EE, $EE, // PUSH    ObjAddress
     $E8, $DD, $DD, $DD, $DD, // CALL    MethodCode
     $89, $04, $24,           // MOV     [ESP],EAX
+    $54,                     // PUSH    ESP
     $E8, $CC, $CC, $CC, $CC, // CALL    PopCDeclReturnAddress
     $87, $04, $24,           // XCHG    EAX,[ESP]
     $C3                      // RET
@@ -795,10 +854,11 @@ begin
 
   with PCDeclRedirector(Result)^ do
   begin
-    PushAddressOffset := JmpArgument(@CallPushAddress, @PushCDeclReturnAddress);
+    StoreAddressOffset := JmpArgument(@CallStoreAddress,
+      @StoreCDeclReturnAddress);
     ObjAddress := Method.Data;
     MethodCodeOffset := JmpArgument(@CallMethod, Method.Code);
-    PopAddressOffset := JmpArgument(@CallPopAddress, @PopCDeclReturnAddress);
+    GetAddressOffset := JmpArgument(@CallGetAddress, @GetCDeclReturnAddress);
   end;
 end;
 
@@ -811,5 +871,10 @@ begin
   FreeMem(Proc);
 end;
 
+initialization
+  CDeclCallInfoTLSIndex := TlsAlloc;
+finalization
+  ClearCDeclCallInfo;
+  TlsFree(CDeclCallInfoTLSIndex);
 end.
 
