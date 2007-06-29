@@ -46,8 +46,7 @@ function JmpArgument(JmpAddress, JmpDest : Pointer) : integer;
 function MakeProcOfRegisterMethod(const Method : TMethod;
   UsedRegCount : Byte) : Pointer;
 function MakeProcOfStdCallMethod(const Method : TMethod) : Pointer;
-function MakeProcOfPascalMethod(const Method : TMethod;
-  ArgStackSize : Byte) : Pointer;
+function MakeProcOfPascalMethod(const Method : TMethod) : Pointer;
 function MakeProcOfCDeclMethod(const Method : TMethod) : Pointer;
 procedure FreeProcOfMethod(Proc : Pointer);
 
@@ -743,44 +742,11 @@ end;
   renvoyée commence par ajouter un paramètre supplémentaire, avant d'appeler
   la méthode initiale.
   La procédure devra être libérée avec FreeProcOfMethod une fois utilisée.
-  @param Method         Méthode à convertir
-  @param ArgStackSize   Taille de la pile des arguments
+  @param Method   Méthode à convertir
 *}
-function MakeProcOfPascalMethod(const Method : TMethod;
-  ArgStackSize : Byte) : Pointer;
-const
-  Code : array[0..30] of Byte = (
-    $51,                     // PUSH    ECX
-    $56,                     // PUSH    ESI
-    $57,                     // PUSH    EDI
-    $B9, $FF, $00, $00, $00, // MOV     ECX,StackSize
-    $8B, $F4,                // MOV     ESI,ESP
-    $51,                     // PUSH    ECX - just increasing the stack size
-    $8B, $FC,                // MOV     EDI,ESP
-    $F3, $A4,                // REP     MOVSB
-    $C7, $44, $24, $FF, $EE, $EE, $EE, $EE,
-                             // MOV     DWORD PTR [ESP+StackSize],ObjAddress
-    $5F,                     // POP     EDI
-    $5E,                     // POP     ESI
-    $59,                     // POP     ECX
-    $E9, $DD, $DD, $DD, $DD  // JMP     JmpDest
-  );
-  StackSizeOffset1 = 4;
-  StackSizeOffset2 = 18;
-  ObjAddressOffset = 19;
-  JmpOffset = 26;
-  JmpDestOffset = 27;
+function MakeProcOfPascalMethod(const Method : TMethod) : Pointer;
 begin
-  GetMem(Result, sizeof(Code));
-  Move(Code[0], Result^, sizeof(Code));
-
-  inc(ArgStackSize, 12); // because of ECX, ESI and EDI
-
-  PByte(Integer(Result) + StackSizeOffset1)^ := ArgStackSize;
-  PByte(Integer(Result) + StackSizeOffset2)^ := ArgStackSize;
-  PPointer(Integer(Result) + ObjAddressOffset)^ := Method.Data;
-  PInteger(Integer(Result) + JmpDestOffset)^ :=
-    JmpArgument(Pointer(Integer(Result) + JmpOffset), Method.Code);
+  Result := MakeProcOfStdCallMethod(Method);
 end;
 
 {*
