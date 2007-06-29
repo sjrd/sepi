@@ -2312,8 +2312,8 @@ end;
 *}
 procedure TSepiClass.MakeIMT(IntfEntry : PSepiInterfaceEntry);
 const
-  AdjustInstrSizes : array[TCallingConvention, boolean] of ShortInt = (
-    (3, 5), (5, 8), (-1, -1), (5, 8), (5, 8)
+  AdjustInstrSizes : array[boolean, boolean] of ShortInt = (
+    (5, 8), (3, 5)
   );
   JumpInstrSize = 5;
 var Offset : LongInt;
@@ -2341,14 +2341,8 @@ begin
         if not (Intf.Children[I] is TSepiMetaMethod) then Continue;
         Method := TSepiMetaMethod(Intf.Children[I]);
 
-        AdjustInstrSize :=
-          AdjustInstrSizes[Method.Signature.CallingConvention, BigOffset];
-
-        // Calling convention Pascal not supported at the moment
-        { TODO 1 -cMetaunités : Support de ccPascal dans les IMT }
-        if AdjustInstrSize < 0 then
-          raise ESepiUnsupportedFeatureException.CreateFmt(
-            SSepiUnsupportedIntfCallConvention, ['pascal']);
+        AdjustInstrSize := AdjustInstrSizes[
+          Method.Signature.CallingConvention = ccRegister, BigOffset];
 
         inc(RelocLength, AdjustInstrSize);
         inc(RelocLength, JumpInstrSize);
@@ -2375,40 +2369,37 @@ begin
       inc(IMTEntry, 4);
 
       // Adjust instruction
-      case Method.Signature.CallingConvention of
-        ccRegister :
+      if Method.Signature.CallingConvention = ccRegister then
+      begin
+        // add eax, Offset
+        if BigOffset then
         begin
-          // add eax, Offset
-          if BigOffset then
-          begin
-            // 05 xx xx xx xx
-            PByte(RelocEntry)^ := $05;
-            PLongInt(RelocEntry+1)^ := Offset;
-            inc(RelocEntry, 5);
-          end else
-          begin
-            // 83 C0 xx
-            PWord(RelocEntry)^ := $C083;
-            PShortInt(RelocEntry+2)^ := Offset;
-            inc(RelocEntry, 3);
-          end;
+          // 05 xx xx xx xx
+          PByte(RelocEntry)^ := $05;
+          PLongInt(RelocEntry+1)^ := Offset;
+          inc(RelocEntry, 5);
+        end else
+        begin
+          // 83 C0 xx
+          PWord(RelocEntry)^ := $C083;
+          PShortInt(RelocEntry+2)^ := Offset;
+          inc(RelocEntry, 3);
         end;
-        ccCDecl, ccStdCall, ccSafeCall :
+      end else
+      begin
+        // add dwortd ptr [esp+4], Offset
+        if BigOffset then
         begin
-          // add dwortd ptr [esp+4], Offset
-          if BigOffset then
-          begin
-            // 81 44 24 04 xx xx xx xx
-            PLongWord(RelocEntry)^ := $04244481;
-            PLongInt(RelocEntry+4)^ := Offset;
-            inc(RelocEntry, 8);
-          end else
-          begin
-            // 83 44 24 04 xx
-            PLongWord(RelocEntry)^ := $04244483;
-            PShortInt(RelocEntry+4)^ := Offset;
-            inc(RelocEntry, 5);
-          end;
+          // 81 44 24 04 xx xx xx xx
+          PLongWord(RelocEntry)^ := $04244481;
+          PLongInt(RelocEntry+4)^ := Offset;
+          inc(RelocEntry, 8);
+        end else
+        begin
+          // 83 44 24 04 xx
+          PLongWord(RelocEntry)^ := $04244483;
+          PShortInt(RelocEntry+4)^ := Offset;
+          inc(RelocEntry, 5);
         end;
       end;
 
