@@ -31,6 +31,18 @@ function TestBit(const Value : integer; const Bit : Byte) : boolean; register;
 function GetMethodFromName(Obj : TObject;
   const MethodName : ShortString) : TMethod;
 
+function GetClassVirtualCode(AClass : TClass; VMTOffset : integer) : Pointer;
+function GetClassVirtualMethod(AClass : TClass; VMTOffset : integer) : TMethod;
+function GetObjectVirtualCode(AObject : TObject; VMTOffset : integer) : Pointer;
+function GetObjectVirtualMethod(AObject : TObject;
+  VMTOffset : integer) : TMethod;
+
+function GetClassDynamicCode(AClass : TClass; DMTIndex : integer) : Pointer;
+function GetClassDynamicMethod(AClass : TClass; DMTIndex : integer) : TMethod;
+function GetObjectDynamicCode(AObject : TObject; DMTIndex : integer) : Pointer;
+function GetObjectDynamicMethod(AObject : TObject;
+  DMTIndex : integer) : TMethod;
+
 function StrToStrRepres(const Str : string;
   ExcludedChars : TSysCharSet = []) : string;
 function StrRepresToStr(Str : string) : string;
@@ -240,6 +252,118 @@ function GetMethodFromName(Obj : TObject;
 begin
   Result.Code := Obj.MethodAddress(MethodName);
   Result.Data := Obj;
+end;
+
+{*
+  Trouve le code d'une méthode virtuelle, pour une classe
+  @param AClass      Classe concernée
+  @param VMTOffset   VMT offset de la méthode
+  @return Pointeur sur le code de la méthode
+*}
+function GetClassVirtualCode(AClass : TClass; VMTOffset : integer) : Pointer;
+asm
+        { ->    EAX     Pointer to class  }
+        {       EDX     DMTIndex          }
+        { <-    EAX     Pointer to method }
+        MOV     EAX,[EAX+EDX]
+end;
+
+{*
+  Trouve une méthode virtuelle, pour une classe
+  @param AClass      Classe concernée
+  @param VMTOffset   VMT offset de la méthode
+  @return Méthode correspondante
+*}
+function GetClassVirtualMethod(AClass : TClass; VMTOffset : integer) : TMethod;
+begin
+  Result.Data := AClass;
+  Result.Code := GetClassVirtualCode(AClass, VMTOffset);
+end;
+
+{*
+  Trouve le code d'une méthode virtuelle, pour un objet
+  @param AObject     Objet concerné
+  @param VMTOffset   VMT offset de la méthode
+  @return Pointeur sur le code de la méthode
+*}
+function GetObjectVirtualCode(AObject : TObject; VMTOffset : integer) : Pointer;
+asm
+        { ->    EAX     Pointer to object }
+        {       EDX     DMTIndex          }
+        { <-    EAX     Pointer to method }
+        MOV     EAX,[EAX]
+        MOV     EAX,[EAX+EDX]
+end;
+
+{*
+  Trouve une virtuelle dynamique, pour un objet
+  @param AObject     Objet concerné
+  @param VMTOffset   VMT offset de la méthode
+  @return Méthode correspondante
+*}
+function GetObjectVirtualMethod(AObject : TObject;
+  VMTOffset : integer) : TMethod;
+begin
+  Result.Data := AObject;
+  Result.Code := GetObjectVirtualCode(AObject, VMTOffset);
+end;
+
+{*
+  Trouve le code d'une méthode dynamique, pour une classe
+  @param AClass     Classe concernée
+  @param DMTIndex   DMT index de la méthode
+  @return Pointeur sur le code de la méthode
+  @raise EAbstractError La classe n'implémente pas la méthode recherchée
+*}
+function GetClassDynamicCode(AClass : TClass; DMTIndex : integer) : Pointer;
+asm
+        { ->    EAX     Pointer to class  }
+        {       EDX     DMTIndex          }
+        { <-    EAX     Pointer to method }
+        CALL    System.@FindDynaClass
+end;
+
+{*
+  Trouve une méthode dynamique, pour une classe
+  @param AClass     Classe concernée
+  @param DMTIndex   DMT index de la méthode
+  @return Méthode correspondante
+  @raise EAbstractError La classe n'implémente pas la méthode recherchée
+*}
+function GetClassDynamicMethod(AClass : TClass; DMTIndex : integer) : TMethod;
+begin
+  Result.Data := AClass;
+  Result.Code := GetClassDynamicCode(AClass, DMTIndex);
+end;
+
+{*
+  Trouve le code d'une méthode dynamique, pour un objet
+  @param AObject    Objet concerné
+  @param DMTIndex   DMT index de la méthode
+  @return Pointeur sur le code de la méthode
+  @raise EAbstractError La classe n'implémente pas la méthode recherchée
+*}
+function GetObjectDynamicCode(AObject : TObject; DMTIndex : integer) : Pointer;
+asm
+        { ->    EAX     Pointer to object }
+        {       EDX     DMTIndex          }
+        { <-    EAX     Pointer to method }
+        MOV     EAX,[EAX]
+        CALL    System.@FindDynaClass
+end;
+
+{*
+  Trouve une méthode dynamique, pour un objet
+  @param AObject    Objet concerné
+  @param DMTIndex   DMT index de la méthode
+  @return Méthode correspondante
+  @raise EAbstractError La classe n'implémente pas la méthode recherchée
+*}
+function GetObjectDynamicMethod(AObject : TObject;
+  DMTIndex : integer) : TMethod;
+begin
+  Result.Data := AObject;
+  Result.Code := GetObjectDynamicCode(AObject, DMTIndex);
 end;
 
 {*

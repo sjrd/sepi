@@ -36,7 +36,9 @@ function CompareStringEx(const S1, S2 : string;
 {$ENDIF}
 
 function GetFirstToken(const S : string; Token : Char) : string;
+function ExtractFirstToken(var S : string; Token : Char) : string;
 function GetLastToken(const S : string; Token : Char) : string;
+function ExtractLastToken(var S : string; Token : Char) : string;
 function SplitToken(const S : string; Token : Char;
   out LeftStr, RightStr : string) : boolean;
 
@@ -137,6 +139,18 @@ begin
 end;
 
 {*
+  Extrait la première sous-chaîne d'une chaîne et la supprime de l'originale
+  @param S       Chaîne à découper
+  @param Token   Délimiteur
+  @return La première sous-chaîne de S délimitée par Token (ou S si non trouvé)
+*}
+function ExtractFirstToken(var S : string; Token : Char) : string;
+begin
+  Result := GetFirstToken(S, Token);
+  Delete(S, 1, Length(Result)+1);
+end;
+
+{*
   Découpe une chaîne selon un délimiteur et récupère la dernière sous-chaîne
   @param S       Chaîne à découper
   @param Token   Délimiteur
@@ -150,6 +164,18 @@ begin
   while (I > 0) and (S[I] <> Token) do dec(I);
   // On copie la chaîne depuis le caractère après Token jusqu'à la fin
   Result := Copy(S, I+1, MaxInt);
+end;
+
+{*
+  Extrait la dernière sous-chaîne d'une chaîne et la supprime de l'originale
+  @param S       Chaîne à découper
+  @param Token   Délimiteur
+  @return La dernière sous-chaîne de S délimitée par Token (ou S si non trouvé)
+*}
+function ExtractLastToken(var S : string; Token : Char) : string;
+begin
+  Result := GetLastToken(S, Token);
+  Delete(S, Length(S)-Length(Result)-1, MaxInt);
 end;
 
 {*

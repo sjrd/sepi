@@ -38,8 +38,12 @@ begin
     'function(const S1, S2 : string; CompareOptions : TCompareStrOptions = [] ) : integer');
   TSepiMetaMethod.Create(Result, 'GetFirstToken', @GetFirstToken,
     'function(const S : string; Token : Char) : string');
+  TSepiMetaMethod.Create(Result, 'ExtractFirstToken', @ExtractFirstToken,
+    'function(var S : string; Token : Char) : string');
   TSepiMetaMethod.Create(Result, 'GetLastToken', @GetLastToken,
     'function(const S : string; Token : Char) : string');
+  TSepiMetaMethod.Create(Result, 'ExtractLastToken', @ExtractLastToken,
+    'function(var S : string; Token : Char) : string');
   TSepiMetaMethod.Create(Result, 'SplitToken', @SplitToken,
     'function(const S : string; Token : Char; out LeftStr, RightStr : string ) : boolean');
   TSepiMetaMethod.Create(Result, 'GetXToken', @GetXToken,

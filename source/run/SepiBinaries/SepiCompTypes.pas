@@ -1258,23 +1258,12 @@ end;
   Cherche le code d'une méthode native
 *}
 procedure TSepiMetaMethod.FindNativeCode;
-
-  function GetDynamicCode(AClass : TClass; DMTIndex : integer) : Pointer;
-  asm
-        { ->    EAX     Pointer to class        }
-        {       EDX     DMTIndex                }
-        { <-    EAX     Pointer to method       }
-        PUSH    ECX
-        CALL    System.@FindDynaClass
-        POP     ECX
-  end;
-
 begin
   case LinkKind of
     mlkVirtual : FCode := TSepiClass(Owner).VMTEntries[VMTOffset];
     mlkDynamic, mlkMessage :
     try
-      FCode := GetDynamicCode(TSepiClass(Owner).DelphiClass, DMTIndex);
+      FCode := GetClassDynamicCode(TSepiClass(Owner).DelphiClass, DMTIndex);
     except
       on Error : EAbstractError do;
     end;

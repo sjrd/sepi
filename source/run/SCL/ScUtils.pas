@@ -87,6 +87,7 @@ function Same3DPoint(const Point1, Point2 : T3DPoint) : boolean;
 function IsNoPoint(const Point : TPoint) : boolean;
 function IsNo3DPoint(const Point3D : T3DPoint) : boolean;
 
+function SameGUID(const GUID1, GUID2 : TGUID) : boolean;
 function IsNoGUID(const GUID : TGUID) : boolean;
 
 function Point3D(X, Y, Z : integer) : T3DPoint;
@@ -510,22 +511,25 @@ begin
 end;
 
 {*
+  Compare deux GUID
+  @param GUID1   Premier GUID
+  @param GUID2   Second GUID
+  @return True si GUID1 et GUID2 sont identiques, False sinon
+*}
+function SameGUID(const GUID1, GUID2 : TGUID) : boolean;
+begin
+  Result := (PInt64(@GUID1)^ = PInt64(@GUID2)^) and
+    (PInt64(Integer(@GUID1)+8)^ = PInt64(Integer(@GUID2)+8)^);
+end;
+
+{*
   Détermine si un GUID est nul
   @param GUID   GUID à tester
   @return True si le GUID est nul, False sinon
 *}
 function IsNoGUID(const GUID : TGUID) : boolean;
-var Int : PLongInt;
-    I : integer;
 begin
-  Int := PLongInt(@GUID);
-  Result := False;
-  for I := 0 to 3 do
-  begin
-    if Int^ <> 0 then exit;
-    inc(integer(Int), 4);
-  end;
-  Result := True;
+  Result := (PInt64(@GUID)^ = 0) and (PInt64(Integer(@GUID)+8)^ = 0);
 end;
 
 {*

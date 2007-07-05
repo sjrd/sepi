@@ -141,6 +141,8 @@ begin
     'function(const Point : TPoint) : boolean');
   TSepiMetaMethod.Create(Result, 'IsNo3DPoint', @IsNo3DPoint,
     'function(const Point3D : T3DPoint) : boolean');
+  TSepiMetaMethod.Create(Result, 'SameGUID', @SameGUID,
+    'function(const GUID1, GUID2 : TGUID) : boolean');
   TSepiMetaMethod.Create(Result, 'IsNoGUID', @IsNoGUID,
     'function(const GUID : TGUID) : boolean');
   TSepiMetaMethod.Create(Result, 'Point3D', @Point3D,

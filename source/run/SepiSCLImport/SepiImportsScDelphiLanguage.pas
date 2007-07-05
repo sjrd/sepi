@@ -15,6 +15,23 @@ implementation
 
 { You must not localize any of the strings this unit contains! }
 
+{------------------------}
+{ TJmpInstruction import }
+{------------------------}
+
+function SepiImportTJmpInstruction(Owner : TSepiMetaUnit) : TSepiRecordType;
+begin
+  Result := TSepiRecordType.Create(Owner, 'TJmpInstruction', True, True);
+
+  with Result do
+  begin
+    AddField('OpCode', System.TypeInfo(Byte));
+    AddField('Argument', System.TypeInfo(integer));
+
+    Complete;
+  end;
+end;
+
 {-------------}
 { Unit import }
 {-------------}
@@ -23,6 +40,9 @@ function ImportUnit(Root : TSepiMetaRoot) : TSepiMetaUnit;
 begin
   Result := TSepiMetaUnit.Create(Root, 'ScDelphiLanguage',
     ['SysUtils', 'TypInfo', 'ScUtils']);
+
+  // Types
+  SepiImportTJmpInstruction(Result);
 
   // Routines
   TSepiMetaMethod.Create(Result, 'CorrectIdentifier', @CorrectIdentifier,
@@ -37,6 +57,22 @@ begin
     'function(const Value : integer; const Bit : Byte) : boolean');
   TSepiMetaMethod.Create(Result, 'GetMethodFromName', @GetMethodFromName,
     'function(Obj : TObject; const MethodName : ShortString ) : TMethod');
+  TSepiMetaMethod.Create(Result, 'GetClassVirtualCode', @GetClassVirtualCode,
+    'function(AClass : TClass; VMTOffset : integer) : Pointer');
+  TSepiMetaMethod.Create(Result, 'GetClassVirtualMethod', @GetClassVirtualMethod,
+    'function(AClass : TClass; VMTOffset : integer) : TMethod');
+  TSepiMetaMethod.Create(Result, 'GetObjectVirtualCode', @GetObjectVirtualCode,
+    'function(AObject : TObject; VMTOffset : integer) : Pointer');
+  TSepiMetaMethod.Create(Result, 'GetObjectVirtualMethod', @GetObjectVirtualMethod,
+    'function(AObject : TObject; VMTOffset : integer ) : TMethod');
+  TSepiMetaMethod.Create(Result, 'GetClassDynamicCode', @GetClassDynamicCode,
+    'function(AClass : TClass; DMTIndex : integer) : Pointer');
+  TSepiMetaMethod.Create(Result, 'GetClassDynamicMethod', @GetClassDynamicMethod,
+    'function(AClass : TClass; DMTIndex : integer) : TMethod');
+  TSepiMetaMethod.Create(Result, 'GetObjectDynamicCode', @GetObjectDynamicCode,
+    'function(AObject : TObject; DMTIndex : integer) : Pointer');
+  TSepiMetaMethod.Create(Result, 'GetObjectDynamicMethod', @GetObjectDynamicMethod,
+    'function(AObject : TObject; DMTIndex : integer ) : TMethod');
   TSepiMetaMethod.Create(Result, 'StrToStrRepres', @StrToStrRepres,
     'function(const Str : string; ExcludedChars : TSysCharSet = [] ) : string');
   TSepiMetaMethod.Create(Result, 'StrRepresToStr', @StrRepresToStr,
@@ -59,6 +95,24 @@ begin
     'procedure(var Value; TypeInfo : PTypeInfo; Count : Cardinal = 1 )');
   TSepiMetaMethod.Create(Result, 'SkipPackedShortString', @SkipPackedShortString,
     'function(Value : PShortstring) : Pointer');
+  TSepiMetaMethod.Create(Result, 'JmpArgument', @JmpArgument,
+    'function(JmpAddress, JmpDest : Pointer) : integer');
+  TSepiMetaMethod.Create(Result, 'MakeJmp', @MakeJmp,
+    'procedure(var Instruction; Dest : Pointer)');
+  TSepiMetaMethod.Create(Result, 'MakeCall', @MakeCall,
+    'procedure(var Instruction; Dest : Pointer)');
+  TSepiMetaMethod.Create(Result, 'MakeProcOfRegisterMethod', @MakeProcOfRegisterMethod,
+    'function(const Method : TMethod; UsedRegCount : Byte ) : Pointer');
+  TSepiMetaMethod.Create(Result, 'MakeProcOfStdCallMethod', @MakeProcOfStdCallMethod,
+    'function(const Method : TMethod) : Pointer');
+  TSepiMetaMethod.Create(Result, 'MakeProcOfPascalMethod', @MakeProcOfPascalMethod,
+    'function(const Method : TMethod) : Pointer');
+  TSepiMetaMethod.Create(Result, 'MakeProcOfCDeclMethod', @MakeProcOfCDeclMethod,
+    'function(const Method : TMethod) : Pointer');
+  TSepiMetaMethod.Create(Result, 'ClearCDeclCallInfo', @ClearCDeclCallInfo,
+    'procedure');
+  TSepiMetaMethod.Create(Result, 'FreeProcOfMethod', @FreeProcOfMethod,
+    'procedure(Proc : Pointer)');
 
   Result.Complete;
 end;
