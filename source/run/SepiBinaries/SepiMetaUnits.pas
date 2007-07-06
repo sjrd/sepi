@@ -371,16 +371,6 @@ type
       const AValue; const ATypeName : string;
       AIsConst : boolean = False); overload;
 
-    constructor CreateProc(AOwner : TSepiMeta; const AName : string;
-      AValueAddress : Pointer; AType : TSepiType;
-      AIsConst : boolean = False); overload;
-    constructor CreateProc(AOwner : TSepiMeta; const AName : string;
-      AValueAddress : Pointer; ATypeInfo : PTypeInfo;
-      AIsConst : boolean = False); overload;
-    constructor CreateProc(AOwner : TSepiMeta; const AName : string;
-      AValueAddress : Pointer; const ATypeName : string;
-      AIsConst : boolean = False); overload;
-
     constructor Create(AOwner : TSepiMeta; const AName : string;
       AType : TSepiType; AIsConst : boolean = False); overload;
     constructor Create(AOwner : TSepiMeta; const AName : string;
@@ -1972,56 +1962,6 @@ constructor TSepiVariable.Create(AOwner : TSepiMeta; const AName : string;
   const AValue; const ATypeName : string; AIsConst : boolean = False);
 begin
   Create(AOwner, AName, AValue, AOwner.Root.FindType(ATypeName), AIsConst);
-end;
-
-{*
-  Importe une variable ou constante typée native
-  @param AOwner          Propriétaire de la variable
-  @param AName           Nom de la variable
-  @param AValueAddress   Adresse de la variable
-  @param AType           Type de la variable
-  @param AIsConst        Indique si c'est une constante typée
-*}
-constructor TSepiVariable.CreateProc(AOwner : TSepiMeta; const AName : string;
-  AValueAddress : Pointer; AType : TSepiType; AIsConst : boolean = False);
-begin
-  inherited Create(AOwner, AName);
-
-  FIsConst := AIsConst;
-  FType := AType;
-  FValue := AValueAddress;
-  FOwnValue := False;
-end;
-
-{*
-  Importe une variable ou constante typée native
-  @param AOwner          Propriétaire de la variable
-  @param AName           Nom de la variable
-  @param AValueAddress   Adresse de la variable
-  @param ATypeInfo       RTTI du type de la variable
-  @param AIsConst        Indique si c'est une constante typée
-*}
-constructor TSepiVariable.CreateProc(AOwner : TSepiMeta; const AName : string;
-  AValueAddress : Pointer; ATypeInfo : PTypeInfo; AIsConst : boolean = False);
-begin
-  Create(AOwner, AName, AValueAddress,
-    AOwner.Root.FindType(ATypeInfo), AIsConst);
-end;
-
-{*
-  Importe une variable ou constante typée native
-  @param AOwner          Propriétaire de la variable
-  @param AName           Nom de la variable
-  @param AValueAddress   Adresse de la variable
-  @param ATypeName       Nom du type de la variable
-  @param AIsConst        Indique si c'est une constante typée
-*}
-constructor TSepiVariable.CreateProc(AOwner : TSepiMeta; const AName : string;
-  AValueAddress : Pointer; const ATypeName : string;
-  AIsConst : boolean = False);
-begin
-  Create(AOwner, AName, AValueAddress,
-    AOwner.Root.FindType(ATypeName), AIsConst);
 end;
 
 {*

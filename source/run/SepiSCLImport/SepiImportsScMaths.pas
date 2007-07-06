@@ -1304,8 +1304,8 @@ begin
     [0, VarsListsCount-1], TypeInfo(TPolynomList), True);
   TSepiVariable.Create(Result, 'VarsLists',
     VarsLists, '$1');
-  TSepiVariable.CreateProc(Result, 'ScalarProdFunc',
-    @@ScalarProdFunc, 'TScalarProdFunc');
+  TSepiVariable.Create(Result, 'ScalarProdFunc',
+    @ScalarProdFunc, 'TScalarProdFunc');
 
   Result.Complete;
 end;

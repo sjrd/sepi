@@ -833,18 +833,18 @@ begin
     'function:HResult', False, ccStdCall);
 
   // Global variables
-  TSepiVariable.CreateProc(Result, 'CoCreateInstanceEx',
-    @@CoCreateInstanceEx, 'TCoCreateInstanceExProc');
-  TSepiVariable.CreateProc(Result, 'CoInitializeEx',
-    @@CoInitializeEx, 'TCoInitializeExProc');
-  TSepiVariable.CreateProc(Result, 'CoAddRefServerProcess',
-    @@CoAddRefServerProcess, 'TCoAddRefServerProcessProc');
-  TSepiVariable.CreateProc(Result, 'CoReleaseServerProcess',
-    @@CoReleaseServerProcess, 'TCoReleaseServerProcessProc');
-  TSepiVariable.CreateProc(Result, 'CoResumeClassObjects',
-    @@CoResumeClassObjects, 'TCoResumeClassObjectsProc');
-  TSepiVariable.CreateProc(Result, 'CoSuspendClassObjects',
-    @@CoSuspendClassObjects, 'TCoSuspendClassObjectsProc');
+  TSepiVariable.Create(Result, 'CoCreateInstanceEx',
+    @CoCreateInstanceEx, 'TCoCreateInstanceExProc');
+  TSepiVariable.Create(Result, 'CoInitializeEx',
+    @CoInitializeEx, 'TCoInitializeExProc');
+  TSepiVariable.Create(Result, 'CoAddRefServerProcess',
+    @CoAddRefServerProcess, 'TCoAddRefServerProcessProc');
+  TSepiVariable.Create(Result, 'CoReleaseServerProcess',
+    @CoReleaseServerProcess, 'TCoReleaseServerProcessProc');
+  TSepiVariable.Create(Result, 'CoResumeClassObjects',
+    @CoResumeClassObjects, 'TCoResumeClassObjectsProc');
+  TSepiVariable.Create(Result, 'CoSuspendClassObjects',
+    @CoSuspendClassObjects, 'TCoSuspendClassObjectsProc');
 
   // Global variables
   TSepiVariable.Create(Result, 'CoInitFlags',

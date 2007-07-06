@@ -2904,8 +2904,8 @@ begin
   // Global variables
   TSepiMethodRefType.Create(Result, '$24',
     'function(Directory: PChar; var FreeAvailable, TotalSpace : TLargeInteger ; TotalFree: PLargeInteger ) : Bool', False, ccStdCall);
-  TSepiVariable.CreateProc(Result, 'GetDiskFreeSpaceEx',
-    @@GetDiskFreeSpaceEx, '$24');
+  TSepiVariable.Create(Result, 'GetDiskFreeSpaceEx',
+    @GetDiskFreeSpaceEx, '$24');
 
   // Routines
   TSepiMetaMethod.Create(Result, 'SafeLoadLibrary', @SafeLoadLibrary,

@@ -4067,25 +4067,25 @@ begin
 
   // Global variables
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(TUnnamed_1));
-  TSepiVariable.CreateProc(Result, 'AddDataModule',
-    @@AddDataModule, TypeInfo(TUnnamed_1));
+  TSepiVariable.Create(Result, 'AddDataModule',
+    @AddDataModule, TypeInfo(TUnnamed_1));
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(TUnnamed_2));
-  TSepiVariable.CreateProc(Result, 'RemoveDataModule',
-    @@RemoveDataModule, TypeInfo(TUnnamed_2));
+  TSepiVariable.Create(Result, 'RemoveDataModule',
+    @RemoveDataModule, TypeInfo(TUnnamed_2));
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(TUnnamed_3));
-  TSepiVariable.CreateProc(Result, 'ApplicationHandleException',
-    @@ApplicationHandleException, TypeInfo(TUnnamed_3));
+  TSepiVariable.Create(Result, 'ApplicationHandleException',
+    @ApplicationHandleException, TypeInfo(TUnnamed_3));
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(TUnnamed_4));
-  TSepiVariable.CreateProc(Result, 'ApplicationShowException',
-    @@ApplicationShowException, TypeInfo(TUnnamed_4));
+  TSepiVariable.Create(Result, 'ApplicationShowException',
+    @ApplicationShowException, TypeInfo(TUnnamed_4));
   TSepiMethodRefType.Create(Result, '$5',
     'procedure(const Page: string; const ComponentClasses: array of TComponentClass )');
-  TSepiVariable.CreateProc(Result, 'RegisterComponentsProc',
-    @@RegisterComponentsProc, '$5');
+  TSepiVariable.Create(Result, 'RegisterComponentsProc',
+    @RegisterComponentsProc, '$5');
   TSepiMethodRefType.Create(Result, '$6',
     'procedure(const ComponentClasses: array of TComponentClass)');
-  TSepiVariable.CreateProc(Result, 'RegisterNoIconProc',
-    @@RegisterNoIconProc, '$6');
+  TSepiVariable.Create(Result, 'RegisterNoIconProc',
+    @RegisterNoIconProc, '$6');
   TSepiVariable.Create(Result, 'CurrentGroup',
     CurrentGroup, TypeInfo(Integer));
 
@@ -4095,12 +4095,12 @@ begin
   // Global variables
   TSepiMethodRefType.Create(Result, '$7',
     'procedure(const ComponentClasses: array of TComponentClass; AxRegType: TActiveXRegType )');
-  TSepiVariable.CreateProc(Result, 'RegisterNonActiveXProc',
-    @@RegisterNonActiveXProc, '$7');
+  TSepiVariable.Create(Result, 'RegisterNonActiveXProc',
+    @RegisterNonActiveXProc, '$7');
   TSepiMethodRefType.Create(Result, '$8',
     'procedure(Component: TComponent)');
-  TSepiVariable.CreateProc(Result, 'CreateVCLComObjectProc',
-    @@CreateVCLComObjectProc, '$8');
+  TSepiVariable.Create(Result, 'CreateVCLComObjectProc',
+    @CreateVCLComObjectProc, '$8');
 
   // Routines
   TSepiMetaMethod.Create(Result, 'Point', @Point,
@@ -4174,8 +4174,8 @@ begin
     'function(const Name: string): Boolean');
 
   // Global variables
-  TSepiVariable.CreateProc(Result, 'IsUniqueGlobalComponentNameProc',
-    @@IsUniqueGlobalComponentNameProc, 'TIsUniqueGlobalComponentName');
+  TSepiVariable.Create(Result, 'IsUniqueGlobalComponentNameProc',
+    @IsUniqueGlobalComponentNameProc, 'TIsUniqueGlobalComponentName');
 
   // Routines
   TSepiMetaMethod.Create(Result, 'RegisterIntegerConsts', @RegisterIntegerConsts,
@@ -4277,8 +4277,8 @@ begin
     'function(Timeout: Integer = 0): Boolean');
 
   // Global variables
-  TSepiVariable.CreateProc(Result, 'WakeMainThread',
-    @@WakeMainThread, TypeInfo(TNotifyEvent));
+  TSepiVariable.Create(Result, 'WakeMainThread',
+    @WakeMainThread, TypeInfo(TNotifyEvent));
   TSepiVariable.Create(Result, 'SyncEvent',
     SyncEvent, TypeInfo(THandle));
 

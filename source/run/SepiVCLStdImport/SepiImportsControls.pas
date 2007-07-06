@@ -4197,8 +4197,8 @@ begin
   // Global variables
   TSepiVariable.Create(Result, 'Mouse',
     Mouse, TypeInfo(TMouse));
-  TSepiVariable.CreateProc(Result, 'AnimateWindowProc',
-    @@AnimateWindowProc, 'TAnimateWindowProc');
+  TSepiVariable.Create(Result, 'AnimateWindowProc',
+    @AnimateWindowProc, 'TAnimateWindowProc');
 
   // Routines
   TSepiMetaMethod.Create(Result, 'IsDragObject', @IsDragObject,
