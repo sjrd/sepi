@@ -752,19 +752,19 @@ begin
   TSepiMethodRefType.Create(Result, '$1',
     'procedure(const CategoryName: string; const AClasses: array of TBasicActionClass ; Resource: TComponentClass )');
   TSepiVariable.Create(Result, 'RegisterActionsProc',
-     @RegisterActionsProc, '$1', True);
+    @RegisterActionsProc, '$1', True);
   TSepiMethodRefType.Create(Result, '$2',
     'procedure(const AClasses: array of TBasicActionClass)');
   TSepiVariable.Create(Result, 'UnRegisterActionsProc',
-     @UnRegisterActionsProc, '$2', True);
+    @UnRegisterActionsProc, '$2', True);
   TSepiMethodRefType.Create(Result, '$3',
     'procedure(Proc: TEnumActionProc; Info: Pointer)');
   TSepiVariable.Create(Result, 'EnumRegisteredActionsProc',
-     @EnumRegisteredActionsProc, '$3', True);
+    @EnumRegisteredActionsProc, '$3', True);
   TSepiMethodRefType.Create(Result, '$4',
     'function(AOwner: TComponent; ActionClass: TBasicActionClass): TBasicAction');
   TSepiVariable.Create(Result, 'CreateActionProc',
-     @CreateActionProc, '$4', True);
+    @CreateActionProc, '$4', True);
 
   Result.Complete;
 end;

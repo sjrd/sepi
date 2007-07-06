@@ -209,9 +209,9 @@ begin
 
   // Global variables
   TSepiVariable.Create(Result, 'ResemblesProc',
-     @ResemblesProc, 'TCompareTextProc');
+    @ResemblesProc, 'TCompareTextProc');
   TSepiVariable.Create(Result, 'AnsiResemblesProc',
-     @AnsiResemblesProc, 'TCompareTextProc');
+    @AnsiResemblesProc, 'TCompareTextProc');
 
   Result.Complete;
 end;

@@ -808,9 +808,6 @@ begin
 
   with Result do
   begin
-    TSepiMetaOverloadedMethod.Create(Result, 'Ellipse', 2);
-    TSepiMetaOverloadedMethod.Create(Result, 'Rectangle', 2);
-    TSepiMetaOverloadedMethod.Create(Result, 'TextRect', 2);
     CurrentVisibility := mvPrivate;
 
     AddField('FHandle', System.TypeInfo(HDC));
@@ -896,9 +893,9 @@ begin
       'procedure(X, Y: Integer; Graphic: TGraphic)');
     AddMethod('DrawFocusRect', @TSepiImportsTCanvas.DrawFocusRect,
       'procedure(const Rect: TRect)');
-    AddMethod('OL$Ellipse$0', @TSepiImportsTCanvas.Ellipse_0,
+    AddOverloadedMethod('Ellipse', @TSepiImportsTCanvas.Ellipse_0,
       'procedure(X1, Y1, X2, Y2: Integer)');
-    AddMethod('OL$Ellipse$1', @TSepiImportsTCanvas.Ellipse_1,
+    AddOverloadedMethod('Ellipse', @TSepiImportsTCanvas.Ellipse_1,
       'procedure(const Rect: TRect)');
     AddMethod('FillRect', @TSepiImportsTCanvas.FillRect,
       'procedure(const Rect: TRect)');
@@ -924,9 +921,9 @@ begin
       'procedure(const Points: array of TPoint)');
     AddMethod('PolyBezierTo', @TSepiImportsTCanvas.PolyBezierTo,
       'procedure(const Points: array of TPoint)');
-    AddMethod('OL$Rectangle$0', @TSepiImportsTCanvas.Rectangle_0,
+    AddOverloadedMethod('Rectangle', @TSepiImportsTCanvas.Rectangle_0,
       'procedure(X1, Y1, X2, Y2: Integer)');
-    AddMethod('OL$Rectangle$1', @TSepiImportsTCanvas.Rectangle_1,
+    AddOverloadedMethod('Rectangle', @TSepiImportsTCanvas.Rectangle_1,
       'procedure(const Rect: TRect)');
     AddMethod('Refresh', @TSepiImportsTCanvas.Refresh,
       'procedure');
@@ -940,9 +937,9 @@ begin
       'function(const Text: string): Integer');
     AddMethod('TextOut', @TSepiImportsTCanvas.TextOut,
       'procedure(X, Y: Integer; const Text: string)');
-    AddMethod('OL$TextRect$0', @TSepiImportsTCanvas.TextRect_0,
+    AddOverloadedMethod('TextRect', @TSepiImportsTCanvas.TextRect_0,
       'procedure(Rect: TRect; X, Y: Integer; const Text: string)');
-    AddMethod('OL$TextRect$1', @TSepiImportsTCanvas.TextRect_1,
+    AddOverloadedMethod('TextRect', @TSepiImportsTCanvas.TextRect_1,
       'procedure(var Rect: TRect; var Text: string; TextFormat: TTextFormat = [])');
     AddMethod('TextWidth', @TSepiImportsTCanvas.TextWidth,
       'function(const Text: string): Integer');
@@ -2285,15 +2282,15 @@ begin
 
   // Global variables
   TSepiVariable.Create(Result, 'DefFontData',
-     DefFontData, 'TFontData');
+    DefFontData, 'TFontData');
 
   // Global variables
   TSepiVariable.Create(Result, 'SystemPalette16',
-     SystemPalette16, TypeInfo(HPalette));
+    SystemPalette16, TypeInfo(HPalette));
 
   // Global variables
   TSepiVariable.Create(Result, 'DDBsOnly',
-     DDBsOnly, TypeInfo(Boolean));
+    DDBsOnly, TypeInfo(Boolean));
 
   // Routines
   TSepiMetaMethod.Create(Result, 'GraphicFilter', @GraphicFilter,

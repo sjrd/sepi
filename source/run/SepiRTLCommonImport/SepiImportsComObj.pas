@@ -834,17 +834,17 @@ begin
 
   // Global variables
   TSepiVariable.CreateProc(Result, 'CoCreateInstanceEx',
-     @@CoCreateInstanceEx, 'TCoCreateInstanceExProc');
+    @@CoCreateInstanceEx, 'TCoCreateInstanceExProc');
   TSepiVariable.CreateProc(Result, 'CoInitializeEx',
-     @@CoInitializeEx, 'TCoInitializeExProc');
+    @@CoInitializeEx, 'TCoInitializeExProc');
   TSepiVariable.CreateProc(Result, 'CoAddRefServerProcess',
-     @@CoAddRefServerProcess, 'TCoAddRefServerProcessProc');
+    @@CoAddRefServerProcess, 'TCoAddRefServerProcessProc');
   TSepiVariable.CreateProc(Result, 'CoReleaseServerProcess',
-     @@CoReleaseServerProcess, 'TCoReleaseServerProcessProc');
+    @@CoReleaseServerProcess, 'TCoReleaseServerProcessProc');
   TSepiVariable.CreateProc(Result, 'CoResumeClassObjects',
-     @@CoResumeClassObjects, 'TCoResumeClassObjectsProc');
+    @@CoResumeClassObjects, 'TCoResumeClassObjectsProc');
   TSepiVariable.CreateProc(Result, 'CoSuspendClassObjects',
-     @@CoSuspendClassObjects, 'TCoSuspendClassObjectsProc');
+    @@CoSuspendClassObjects, 'TCoSuspendClassObjectsProc');
 
   // Global variables
   TSepiVariable.Create(Result, 'CoInitFlags',

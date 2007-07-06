@@ -521,7 +521,6 @@ begin
 
   with Result do
   begin
-    TSepiMetaOverloadedMethod.Create(Result, 'AddItem', 2);
     CurrentVisibility := mvProtected;
 
     AddMethod('IsActiveLinked', @TSepiImportsTListActionLink.IsActiveLinked,
@@ -542,10 +541,10 @@ begin
     AddMethod('SetItemIndex', @TSepiImportsTListActionLink.SetItemIndex,
       'procedure(const Value: Integer)',
       mlkVirtual);
-    AddMethod('OL$AddItem$0', nil,
+    AddOverloadedMethod('AddItem', nil,
       'procedure(AnItem: TListControlItem)',
       mlkVirtual);
-    AddMethod('OL$AddItem$1', nil,
+    AddOverloadedMethod('AddItem', nil,
       'procedure(ACaption: String; AImageIndex: Integer; DataPtr: Pointer )',
       mlkVirtual);
     AddMethod('RefreshControl', @TSepiImportsTListActionLink.RefreshControl,

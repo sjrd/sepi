@@ -139,12 +139,11 @@ begin
 
   with Result do
   begin
-    TSepiMetaOverloadedMethod.Create(Result, 'Create', 2);
     CurrentVisibility := mvPublic;
 
-    AddMethod('OL$Create$0', @TSepiImportsTEvent.Create_0,
+    AddOverloadedMethod('Create', @TSepiImportsTEvent.Create_0,
       'constructor(EventAttributes: PSecurityAttributes; ManualReset, InitialState : Boolean ; const Name: string ; UseCOMWait: Boolean = False )');
-    AddMethod('OL$Create$1', @TSepiImportsTEvent.Create_1,
+    AddOverloadedMethod('Create', @TSepiImportsTEvent.Create_1,
       'constructor(UseCOMWait: Boolean = False)');
     AddMethod('SetEvent', @TSepiImportsTEvent.SetEvent,
       'procedure');
@@ -199,14 +198,13 @@ begin
 
   with Result do
   begin
-    TSepiMetaOverloadedMethod.Create(Result, 'Create', 3);
     CurrentVisibility := mvPublic;
 
-    AddMethod('OL$Create$0', @TSepiImportsTMutex.Create_0,
+    AddOverloadedMethod('Create', @TSepiImportsTMutex.Create_0,
       'constructor(UseCOMWait: Boolean = False)');
-    AddMethod('OL$Create$1', @TSepiImportsTMutex.Create_1,
+    AddOverloadedMethod('Create', @TSepiImportsTMutex.Create_1,
       'constructor(MutexAttributes: PSecurityAttributes; InitialOwner: Boolean; const Name: string; UseCOMWait: Boolean = False)');
-    AddMethod('OL$Create$2', @TSepiImportsTMutex.Create_2,
+    AddOverloadedMethod('Create', @TSepiImportsTMutex.Create_2,
       'constructor(DesiredAccess: LongWord; InheritHandle: Boolean; const Name: string; UseCOMWait: Boolean = False)');
     AddMethod('Acquire', @TSepiImportsTMutex.Acquire,
       'procedure',

@@ -3267,7 +3267,6 @@ begin
 
   with Result do
   begin
-    TSepiMetaOverloadedMethod.Create(Result, 'Select', 3);
     CurrentVisibility := mvPrivate;
 
     AddField('FAutoExpand', System.TypeInfo(Boolean));
@@ -3684,13 +3683,13 @@ begin
     AddProperty('TopItem', 'property: TTreeNode',
       'GetTopItem', 'SetTopItem');
 
-    AddMethod('OL$Select$0', nil,
+    AddOverloadedMethod('Select', nil,
       'procedure(Node: TTreeNode; ShiftState: TShiftState = [])',
       mlkVirtual);
-    AddMethod('OL$Select$1', nil,
+    AddOverloadedMethod('Select', nil,
       'procedure(const Nodes: array of TTreeNode)',
       mlkVirtual);
-    AddMethod('OL$Select$2', nil,
+    AddOverloadedMethod('Select', nil,
       'procedure(Nodes: TList)',
       mlkVirtual);
     AddMethod('Deselect', @TSepiImportsTCustomTreeView.Deselect,
@@ -6221,7 +6220,6 @@ begin
 
   with Result do
   begin
-    TSepiMetaOverloadedMethod.Create(Result, 'GetItemIndex', 2);
     CurrentVisibility := mvPrivate;
 
     AddField('FCanvas', System.TypeInfo(TCanvas));
@@ -6551,9 +6549,9 @@ begin
     AddMethod('GetDragImages', @TSepiImportsTCustomListView.GetDragImages,
       'function: TDragImageList',
       mlkOverride);
-    AddMethod('OL$GetItemIndex$0', @TSepiImportsTCustomListView.GetItemIndex_0,
+    AddOverloadedMethod('GetItemIndex', @TSepiImportsTCustomListView.GetItemIndex_0,
       'function(Value: TListItem): Integer');
-    AddMethod('OL$GetItemIndex$1', nil,
+    AddOverloadedMethod('GetItemIndex', nil,
       'function: Integer',
       mlkOverride);
     AddMethod('GetSelCount', @TSepiImportsTCustomListView.GetSelCount,
@@ -6926,13 +6924,12 @@ begin
 
   with Result do
   begin
-    TSepiMetaOverloadedMethod.Create(Result, 'AddItem', 2);
     CurrentVisibility := mvProtected;
 
-    AddMethod('OL$AddItem$0', nil,
+    AddOverloadedMethod('AddItem', nil,
       'procedure(AnItem: TListControlItem)',
       mlkOverride);
-    AddMethod('OL$AddItem$1', nil,
+    AddOverloadedMethod('AddItem', nil,
       'procedure(ACaption: String; AImageIndex: Integer; DataPtr: Pointer )',
       mlkOverride);
     AddMethod('SetImages', @TSepiImportsTListViewActionLink.SetImages,
@@ -10116,13 +10113,12 @@ begin
 
   with Result do
   begin
-    TSepiMetaOverloadedMethod.Create(Result, 'AddItem', 2);
     CurrentVisibility := mvProtected;
 
-    AddMethod('OL$AddItem$0', nil,
+    AddOverloadedMethod('AddItem', nil,
       'procedure(AnItem: TListControlItem)',
       mlkOverride);
-    AddMethod('OL$AddItem$1', nil,
+    AddOverloadedMethod('AddItem', nil,
       'procedure(ACaption: String; AImageIndex: Integer; DataPtr: Pointer )',
       mlkOverride);
 

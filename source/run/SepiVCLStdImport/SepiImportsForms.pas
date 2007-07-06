@@ -3083,21 +3083,21 @@ begin
 
   // Global variables
   TSepiVariable.Create(Result, 'Application',
-     Application, TypeInfo(TApplication));
+    Application, TypeInfo(TApplication));
   TSepiVariable.Create(Result, 'Screen',
-     Screen, TypeInfo(TScreen));
+    Screen, TypeInfo(TScreen));
   TSepiVariable.Create(Result, 'Ctl3DBtnWndProc',
-     Ctl3DBtnWndProc, 'Pointer');
+    Ctl3DBtnWndProc, 'Pointer');
   TSepiMethodRefType.Create(Result, '$1',
     'function(Window: HWnd; Msg, wParam, lParam: Longint): Longint', False, ccStdCall);
   TSepiVariable.Create(Result, 'Ctl3DDlgFramePaint',
-     @Ctl3DDlgFramePaint, '$1');
+    @Ctl3DDlgFramePaint, '$1');
   TSepiMethodRefType.Create(Result, '$2',
     'function(Window: HWnd; Msg, wParam, lParam: Longint): Longint', False, ccStdCall);
   TSepiVariable.Create(Result, 'Ctl3DCtlColorEx',
-     @Ctl3DCtlColorEx, '$2');
+    @Ctl3DCtlColorEx, '$2');
   TSepiVariable.Create(Result, 'HintWindowClass',
-     HintWindowClass, 'THintWindowClass');
+    HintWindowClass, 'THintWindowClass');
 
   // Routines
   TSepiMetaMethod.Create(Result, 'GetParentForm', @GetParentForm,
@@ -3137,7 +3137,7 @@ begin
 
   // Global variables
   TSepiVariable.Create(Result, 'SetLayeredWindowAttributes',
-     @SetLayeredWindowAttributes, 'TSetLayeredWindowAttributes');
+    @SetLayeredWindowAttributes, 'TSetLayeredWindowAttributes');
 
   Result.Complete;
 end;

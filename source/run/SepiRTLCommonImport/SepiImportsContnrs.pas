@@ -105,7 +105,6 @@ begin
 
   with Result do
   begin
-    TSepiMetaOverloadedMethod.Create(Result, 'Create', 2);
     CurrentVisibility := mvPrivate;
 
     AddField('FOwnsObjects', System.TypeInfo(Boolean));
@@ -122,9 +121,9 @@ begin
 
     CurrentVisibility := mvPublic;
 
-    AddMethod('OL$Create$0', @TSepiImportsTObjectList.Create_0,
+    AddOverloadedMethod('Create', @TSepiImportsTObjectList.Create_0,
       'constructor');
-    AddMethod('OL$Create$1', @TSepiImportsTObjectList.Create_1,
+    AddOverloadedMethod('Create', @TSepiImportsTObjectList.Create_1,
       'constructor(AOwnsObjects: Boolean)');
     AddMethod('Add', @TSepiImportsTObjectList.Add,
       'function(AObject: TObject): Integer');
@@ -470,7 +469,6 @@ begin
 
   with Result do
   begin
-    TSepiMetaOverloadedMethod.Create(Result, 'ForEach', 2);
     CurrentVisibility := mvPrivate;
 
     AddField('FBuckets', System.TypeInfo(TBucketArray));
@@ -516,9 +514,9 @@ begin
       'function(AItem, AData: Pointer): Pointer');
     AddMethod('Remove', @TSepiImportsTCustomBucketList.Remove,
       'function(AItem: Pointer): Pointer');
-    AddMethod('OL$ForEach$0', @TSepiImportsTCustomBucketList.ForEach_0,
+    AddOverloadedMethod('ForEach', @TSepiImportsTCustomBucketList.ForEach_0,
       'function(AProc: TBucketProc; AInfo: Pointer = nil): Boolean');
-    AddMethod('OL$ForEach$1', @TSepiImportsTCustomBucketList.ForEach_1,
+    AddOverloadedMethod('ForEach', @TSepiImportsTCustomBucketList.ForEach_1,
       'function(AEvent: TBucketEvent): Boolean');
     AddMethod('Assign', @TSepiImportsTCustomBucketList.Assign,
       'procedure(AList: TCustomBucketList)');

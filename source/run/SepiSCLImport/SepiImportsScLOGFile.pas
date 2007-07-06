@@ -51,7 +51,6 @@ begin
 
   with Result do
   begin
-    TSepiMetaOverloadedMethod.Create(Result, 'Add', 3);
     CurrentVisibility := mvPrivate;
 
     AddField('FFile', System.TypeInfo(TFileStream));
@@ -65,11 +64,11 @@ begin
       mlkOverride);
     AddMethod('AddLine', @TSepiImportsTScLogFile.AddLine,
       'procedure(const Line : string)');
-    AddMethod('OL$Add$0', @TSepiImportsTScLogFile.Add_0,
+    AddOverloadedMethod('Add', @TSepiImportsTScLogFile.Add_0,
       'procedure(const Time, Title, Description : string)');
-    AddMethod('OL$Add$1', @TSepiImportsTScLogFile.Add_1,
+    AddOverloadedMethod('Add', @TSepiImportsTScLogFile.Add_1,
       'procedure(Time : TDateTime; const Title : string; const Description : string = '''' )');
-    AddMethod('OL$Add$2', @TSepiImportsTScLogFile.Add_2,
+    AddOverloadedMethod('Add', @TSepiImportsTScLogFile.Add_2,
       'procedure(const Title : string; const Description : string = '''' )');
 
     Complete;

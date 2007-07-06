@@ -125,7 +125,6 @@ begin
 
   with Result do
   begin
-    TSepiMetaOverloadedMethod.Create(Result, 'Create', 2);
     CurrentVisibility := mvPrivate;
 
     AddField('FCurrentKey', System.TypeInfo(HKEY));
@@ -155,9 +154,9 @@ begin
 
     CurrentVisibility := mvPublic;
 
-    AddMethod('OL$Create$0', @TSepiImportsTRegistry.Create_0,
+    AddOverloadedMethod('Create', @TSepiImportsTRegistry.Create_0,
       'constructor');
-    AddMethod('OL$Create$1', @TSepiImportsTRegistry.Create_1,
+    AddOverloadedMethod('Create', @TSepiImportsTRegistry.Create_1,
       'constructor(AAccess: LongWord)');
     AddMethod('Destroy', @TSepiImportsTRegistry.Destroy,
       'destructor',
@@ -284,16 +283,15 @@ begin
 
   with Result do
   begin
-    TSepiMetaOverloadedMethod.Create(Result, 'Create', 2);
     CurrentVisibility := mvPrivate;
 
     AddField('FFileName', System.TypeInfo(string));
 
     CurrentVisibility := mvPublic;
 
-    AddMethod('OL$Create$0', @TSepiImportsTRegIniFile.Create_0,
+    AddOverloadedMethod('Create', @TSepiImportsTRegIniFile.Create_0,
       'constructor(const FileName: string)');
-    AddMethod('OL$Create$1', @TSepiImportsTRegIniFile.Create_1,
+    AddOverloadedMethod('Create', @TSepiImportsTRegIniFile.Create_1,
       'constructor(const FileName: string; AAccess: LongWord)');
     AddMethod('ReadString', @TSepiImportsTRegIniFile.ReadString,
       'function(const Section, Ident, Default: string): string');
@@ -347,17 +345,15 @@ begin
 
   with Result do
   begin
-    TSepiMetaOverloadedMethod.Create(Result, 'Create', 2);
-    TSepiMetaOverloadedMethod.Create(Result, 'ReadSections', 2);
     CurrentVisibility := mvPrivate;
 
     AddField('FRegIniFile', System.TypeInfo(TRegIniFile));
 
     CurrentVisibility := mvPublic;
 
-    AddMethod('OL$Create$0', @TSepiImportsTRegistryIniFile.Create_0,
+    AddOverloadedMethod('Create', @TSepiImportsTRegistryIniFile.Create_0,
       'constructor(const FileName: string)');
-    AddMethod('OL$Create$1', @TSepiImportsTRegistryIniFile.Create_1,
+    AddOverloadedMethod('Create', @TSepiImportsTRegistryIniFile.Create_1,
       'constructor(const FileName: string; AAccess: LongWord)');
     AddMethod('Destroy', @TSepiImportsTRegistryIniFile.Destroy,
       'destructor',
@@ -407,10 +403,10 @@ begin
     AddMethod('ReadSection', @TSepiImportsTRegistryIniFile.ReadSection,
       'procedure(const Section: string; Strings: TStrings)',
       mlkOverride);
-    AddMethod('OL$ReadSections$0', nil,
+    AddOverloadedMethod('ReadSections', nil,
       'procedure(Strings: TStrings)',
       mlkOverride);
-    AddMethod('OL$ReadSections$1', nil,
+    AddOverloadedMethod('ReadSections', nil,
       'procedure(const Section: string; Strings: TStrings)',
       mlkOverride);
     AddMethod('ReadSectionValues', @TSepiImportsTRegistryIniFile.ReadSectionValues,

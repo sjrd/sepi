@@ -2189,37 +2189,31 @@ begin
     'function(Size: Cardinal): Pointer');
   TSepiMetaMethod.Create(Result, 'AddExitProc', @AddExitProc,
     'procedure(Proc: TProcedure)');
-  TSepiMetaOverloadedMethod.Create(Result, 'UpperCase');
-  TSepiMetaMethod.Create(Result, 'OL$UpperCase$0', @UpperCase_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'UpperCase', @UpperCase_0,
     'function(const S: string): string');
-  TSepiMetaMethod.Create(Result, 'OL$UpperCase$1', @UpperCase_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'UpperCase', @UpperCase_1,
     'function(const S: string; LocaleOptions: TLocaleOptions): string');
-  TSepiMetaOverloadedMethod.Create(Result, 'LowerCase');
-  TSepiMetaMethod.Create(Result, 'OL$LowerCase$0', @LowerCase_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'LowerCase', @LowerCase_0,
     'function(const S: string): string');
-  TSepiMetaMethod.Create(Result, 'OL$LowerCase$1', @LowerCase_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'LowerCase', @LowerCase_1,
     'function(const S: string; LocaleOptions: TLocaleOptions): string');
-  TSepiMetaOverloadedMethod.Create(Result, 'CompareStr');
-  TSepiMetaMethod.Create(Result, 'OL$CompareStr$0', @CompareStr_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'CompareStr', @CompareStr_0,
     'function(const S1, S2: string): Integer');
-  TSepiMetaMethod.Create(Result, 'OL$CompareStr$1', @CompareStr_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'CompareStr', @CompareStr_1,
     'function(const S1, S2: string; LocaleOptions: TLocaleOptions): Integer');
-  TSepiMetaOverloadedMethod.Create(Result, 'SameStr');
-  TSepiMetaMethod.Create(Result, 'OL$SameStr$0', @SameStr_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'SameStr', @SameStr_0,
     'function(const S1, S2: string): Boolean');
-  TSepiMetaMethod.Create(Result, 'OL$SameStr$1', @SameStr_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'SameStr', @SameStr_1,
     'function(const S1, S2: string; LocaleOptions: TLocaleOptions): Boolean');
   TSepiMetaMethod.Create(Result, 'CompareMem', @CompareMem,
     'function(P1, P2: Pointer; Length: Integer): Boolean');
-  TSepiMetaOverloadedMethod.Create(Result, 'CompareText');
-  TSepiMetaMethod.Create(Result, 'OL$CompareText$0', @CompareText_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'CompareText', @CompareText_0,
     'function(const S1, S2: string): Integer');
-  TSepiMetaMethod.Create(Result, 'OL$CompareText$1', @CompareText_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'CompareText', @CompareText_1,
     'function(const S1, S2: string; LocaleOptions: TLocaleOptions): Integer');
-  TSepiMetaOverloadedMethod.Create(Result, 'SameText');
-  TSepiMetaMethod.Create(Result, 'OL$SameText$0', @SameText_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'SameText', @SameText_0,
     'function(const S1, S2: string): Boolean');
-  TSepiMetaMethod.Create(Result, 'OL$SameText$1', @SameText_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'SameText', @SameText_1,
     'function(const S1, S2: string; LocaleOptions: TLocaleOptions): Boolean');
   TSepiMetaMethod.Create(Result, 'AnsiUpperCase', @AnsiUpperCase,
     'function(const S: string): string');
@@ -2261,20 +2255,17 @@ begin
     'function(const S1, S2: WideString): Integer');
   TSepiMetaMethod.Create(Result, 'WideSameText', @WideSameText,
     'function(const S1, S2: WideString): Boolean');
-  TSepiMetaOverloadedMethod.Create(Result, 'Trim');
-  TSepiMetaMethod.Create(Result, 'OL$Trim$0', @Trim_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'Trim', @Trim_0,
     'function(const S: string): string');
-  TSepiMetaMethod.Create(Result, 'OL$Trim$1', @Trim_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'Trim', @Trim_1,
     'function(const S: WideString): WideString');
-  TSepiMetaOverloadedMethod.Create(Result, 'TrimLeft');
-  TSepiMetaMethod.Create(Result, 'OL$TrimLeft$0', @TrimLeft_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'TrimLeft', @TrimLeft_0,
     'function(const S: string): string');
-  TSepiMetaMethod.Create(Result, 'OL$TrimLeft$1', @TrimLeft_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'TrimLeft', @TrimLeft_1,
     'function(const S: WideString): WideString');
-  TSepiMetaOverloadedMethod.Create(Result, 'TrimRight');
-  TSepiMetaMethod.Create(Result, 'OL$TrimRight$0', @TrimRight_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'TrimRight', @TrimRight_0,
     'function(const S: string): string');
-  TSepiMetaMethod.Create(Result, 'OL$TrimRight$1', @TrimRight_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'TrimRight', @TrimRight_1,
     'function(const S: WideString): WideString');
   TSepiMetaMethod.Create(Result, 'QuotedStr', @QuotedStr,
     'function(const S: string): string');
@@ -2288,15 +2279,13 @@ begin
     'function(const S: string; Style: TTextLineBreakStyle = tlbsCRLF ) : string');
   TSepiMetaMethod.Create(Result, 'IsValidIdent', @IsValidIdent,
     'function(const Ident: string; AllowDots: Boolean = False): Boolean');
-  TSepiMetaOverloadedMethod.Create(Result, 'IntToStr');
-  TSepiMetaMethod.Create(Result, 'OL$IntToStr$0', @IntToStr_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'IntToStr', @IntToStr_0,
     'function(Value: Integer): string');
-  TSepiMetaMethod.Create(Result, 'OL$IntToStr$1', @IntToStr_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'IntToStr', @IntToStr_1,
     'function(Value: Int64): string');
-  TSepiMetaOverloadedMethod.Create(Result, 'IntToHex');
-  TSepiMetaMethod.Create(Result, 'OL$IntToHex$0', @IntToHex_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'IntToHex', @IntToHex_0,
     'function(Value: Integer; Digits: Integer): string');
-  TSepiMetaMethod.Create(Result, 'OL$IntToHex$1', @IntToHex_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'IntToHex', @IntToHex_1,
     'function(Value: Int64; Digits: Integer): string');
   TSepiMetaMethod.Create(Result, 'StrToInt', @StrToInt,
     'function(const S: string): Integer');
@@ -2338,19 +2327,17 @@ begin
     'function(Ident: Integer; const Args: array of const): string');
   TSepiMetaMethod.Create(Result, 'FileOpen', @FileOpen,
     'function(const FileName: string; Mode: LongWord): Integer');
-  TSepiMetaOverloadedMethod.Create(Result, 'FileCreate');
-  TSepiMetaMethod.Create(Result, 'OL$FileCreate$0', @FileCreate_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'FileCreate', @FileCreate_0,
     'function(const FileName: string): Integer');
-  TSepiMetaMethod.Create(Result, 'OL$FileCreate$1', @FileCreate_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'FileCreate', @FileCreate_1,
     'function(const FileName: string; Rights: Integer): Integer');
   TSepiMetaMethod.Create(Result, 'FileRead', @FileRead,
     'function(Handle: Integer; var Buffer; Count: LongWord): Integer');
   TSepiMetaMethod.Create(Result, 'FileWrite', @FileWrite,
     'function(Handle: Integer; const Buffer; Count: LongWord): Integer');
-  TSepiMetaOverloadedMethod.Create(Result, 'FileSeek');
-  TSepiMetaMethod.Create(Result, 'OL$FileSeek$0', @FileSeek_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'FileSeek', @FileSeek_0,
     'function(Handle, Offset, Origin: Integer): Integer');
-  TSepiMetaMethod.Create(Result, 'OL$FileSeek$1', @FileSeek_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'FileSeek', @FileSeek_1,
     'function(Handle: Integer; const Offset: Int64; Origin: Integer): Int64');
   TSepiMetaMethod.Create(Result, 'FileClose', @FileClose,
     'procedure(Handle: Integer)');
@@ -2370,10 +2357,9 @@ begin
     'procedure(var F: TSearchRec)');
   TSepiMetaMethod.Create(Result, 'FileGetDate', @FileGetDate,
     'function(Handle: Integer): Integer');
-  TSepiMetaOverloadedMethod.Create(Result, 'FileSetDate');
-  TSepiMetaMethod.Create(Result, 'OL$FileSetDate$0', @FileSetDate_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'FileSetDate', @FileSetDate_0,
     'function(const FileName: string; Age: Integer): Integer');
-  TSepiMetaMethod.Create(Result, 'OL$FileSetDate$1', @FileSetDate_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'FileSetDate', @FileSetDate_1,
     'function(Handle: Integer; Age: Integer): Integer');
   TSepiMetaMethod.Create(Result, 'FileGetAttr', @FileGetAttr,
     'function(const FileName: string): Integer');
@@ -2480,55 +2466,45 @@ begin
     'function(const Str: PChar): PChar');
   TSepiMetaMethod.Create(Result, 'StrDispose', @StrDispose,
     'procedure(Str: PChar)');
-  TSepiMetaOverloadedMethod.Create(Result, 'Format');
-  TSepiMetaMethod.Create(Result, 'OL$Format$0', @Format_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'Format', @Format_0,
     'function(const Format: string; const Args: array of const ) : string');
-  TSepiMetaMethod.Create(Result, 'OL$Format$1', @Format_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'Format', @Format_1,
     'function(const Format: string; const Args: array of const; const FormatSettings: TFormatSettings ) : string');
-  TSepiMetaOverloadedMethod.Create(Result, 'FmtStr');
-  TSepiMetaMethod.Create(Result, 'OL$FmtStr$0', @FmtStr_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'FmtStr', @FmtStr_0,
     'procedure(var Result: string; const Format: string; const Args: array of const )');
-  TSepiMetaMethod.Create(Result, 'OL$FmtStr$1', @FmtStr_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'FmtStr', @FmtStr_1,
     'procedure(var Result: string; const Format: string; const Args: array of const ; const FormatSettings: TFormatSettings )');
-  TSepiMetaOverloadedMethod.Create(Result, 'StrFmt');
-  TSepiMetaMethod.Create(Result, 'OL$StrFmt$0', @StrFmt_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'StrFmt', @StrFmt_0,
     'function(Buffer, Format: PChar; const Args: array of const ) : PChar');
-  TSepiMetaMethod.Create(Result, 'OL$StrFmt$1', @StrFmt_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'StrFmt', @StrFmt_1,
     'function(Buffer, Format: PChar; const Args: array of const; const FormatSettings: TFormatSettings ) : PChar');
-  TSepiMetaOverloadedMethod.Create(Result, 'StrLFmt');
-  TSepiMetaMethod.Create(Result, 'OL$StrLFmt$0', @StrLFmt_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'StrLFmt', @StrLFmt_0,
     'function(Buffer: PChar; MaxBufLen: Cardinal; Format: PChar; const Args: array of const ) : PChar');
-  TSepiMetaMethod.Create(Result, 'OL$StrLFmt$1', @StrLFmt_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'StrLFmt', @StrLFmt_1,
     'function(Buffer: PChar; MaxBufLen: Cardinal; Format: PChar; const Args: array of const ; const FormatSettings: TFormatSettings ) : PChar');
-  TSepiMetaOverloadedMethod.Create(Result, 'FormatBuf');
-  TSepiMetaMethod.Create(Result, 'OL$FormatBuf$0', @FormatBuf_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'FormatBuf', @FormatBuf_0,
     'function(var Buffer; BufLen: Cardinal; const Format; FmtLen: Cardinal ; const Args: array of const ) : Cardinal');
-  TSepiMetaMethod.Create(Result, 'OL$FormatBuf$1', @FormatBuf_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'FormatBuf', @FormatBuf_1,
     'function(var Buffer; BufLen: Cardinal; const Format; FmtLen: Cardinal ; const Args: array of const ; const FormatSettings: TFormatSettings ) : Cardinal');
-  TSepiMetaOverloadedMethod.Create(Result, 'WideFormat');
-  TSepiMetaMethod.Create(Result, 'OL$WideFormat$0', @WideFormat_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'WideFormat', @WideFormat_0,
     'function(const Format: WideString; const Args: array of const ) : WideString');
-  TSepiMetaMethod.Create(Result, 'OL$WideFormat$1', @WideFormat_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'WideFormat', @WideFormat_1,
     'function(const Format: WideString; const Args: array of const ; const FormatSettings: TFormatSettings ) : WideString');
-  TSepiMetaOverloadedMethod.Create(Result, 'WideFmtStr');
-  TSepiMetaMethod.Create(Result, 'OL$WideFmtStr$0', @WideFmtStr_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'WideFmtStr', @WideFmtStr_0,
     'procedure(var Result: WideString; const Format: WideString; const Args: array of const )');
-  TSepiMetaMethod.Create(Result, 'OL$WideFmtStr$1', @WideFmtStr_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'WideFmtStr', @WideFmtStr_1,
     'procedure(var Result: WideString; const Format: WideString; const Args: array of const ; const FormatSettings: TFormatSettings )');
-  TSepiMetaOverloadedMethod.Create(Result, 'WideFormatBuf');
-  TSepiMetaMethod.Create(Result, 'OL$WideFormatBuf$0', @WideFormatBuf_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'WideFormatBuf', @WideFormatBuf_0,
     'function(var Buffer; BufLen: Cardinal; const Format; FmtLen: Cardinal ; const Args: array of const ) : Cardinal');
-  TSepiMetaMethod.Create(Result, 'OL$WideFormatBuf$1', @WideFormatBuf_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'WideFormatBuf', @WideFormatBuf_1,
     'function(var Buffer; BufLen: Cardinal; const Format; FmtLen: Cardinal ; const Args: array of const ; const FormatSettings: TFormatSettings ) : Cardinal');
-  TSepiMetaOverloadedMethod.Create(Result, 'FloatToStr');
-  TSepiMetaMethod.Create(Result, 'OL$FloatToStr$0', @FloatToStr_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'FloatToStr', @FloatToStr_0,
     'function(Value: Extended): string');
-  TSepiMetaMethod.Create(Result, 'OL$FloatToStr$1', @FloatToStr_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'FloatToStr', @FloatToStr_1,
     'function(Value: Extended; const FormatSettings: TFormatSettings ) : string');
-  TSepiMetaOverloadedMethod.Create(Result, 'CurrToStr');
-  TSepiMetaMethod.Create(Result, 'OL$CurrToStr$0', @CurrToStr_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'CurrToStr', @CurrToStr_0,
     'function(Value: Currency): string');
-  TSepiMetaMethod.Create(Result, 'OL$CurrToStr$1', @CurrToStr_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'CurrToStr', @CurrToStr_1,
     'function(Value: Currency; const FormatSettings: TFormatSettings ) : string');
 
   // Constants
@@ -2542,78 +2518,65 @@ begin
     'function(const Value: Extended): Currency');
   TSepiMetaMethod.Create(Result, 'TryFloatToCurr', @TryFloatToCurr,
     'function(const Value: Extended; out AResult: Currency): Boolean');
-  TSepiMetaOverloadedMethod.Create(Result, 'FloatToStrF');
-  TSepiMetaMethod.Create(Result, 'OL$FloatToStrF$0', @FloatToStrF_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'FloatToStrF', @FloatToStrF_0,
     'function(Value: Extended; Format: TFloatFormat; Precision, Digits: Integer ) : string');
-  TSepiMetaMethod.Create(Result, 'OL$FloatToStrF$1', @FloatToStrF_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'FloatToStrF', @FloatToStrF_1,
     'function(Value: Extended; Format: TFloatFormat; Precision, Digits: Integer ; const FormatSettings: TFormatSettings ) : string');
-  TSepiMetaOverloadedMethod.Create(Result, 'CurrToStrF');
-  TSepiMetaMethod.Create(Result, 'OL$CurrToStrF$0', @CurrToStrF_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'CurrToStrF', @CurrToStrF_0,
     'function(Value: Currency; Format: TFloatFormat; Digits: Integer ) : string');
-  TSepiMetaMethod.Create(Result, 'OL$CurrToStrF$1', @CurrToStrF_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'CurrToStrF', @CurrToStrF_1,
     'function(Value: Currency; Format: TFloatFormat; Digits: Integer ; const FormatSettings: TFormatSettings ) : string');
-  TSepiMetaOverloadedMethod.Create(Result, 'FloatToText');
-  TSepiMetaMethod.Create(Result, 'OL$FloatToText$0', @FloatToText_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'FloatToText', @FloatToText_0,
     'function(BufferArg: PChar; const Value; ValueType: TFloatValue; Format: TFloatFormat ; Precision, Digits: Integer ) : Integer');
-  TSepiMetaMethod.Create(Result, 'OL$FloatToText$1', @FloatToText_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'FloatToText', @FloatToText_1,
     'function(BufferArg: PChar; const Value; ValueType: TFloatValue; Format: TFloatFormat ; Precision, Digits: Integer ; const FormatSettings: TFormatSettings ) : Integer');
-  TSepiMetaOverloadedMethod.Create(Result, 'FormatFloat');
-  TSepiMetaMethod.Create(Result, 'OL$FormatFloat$0', @FormatFloat_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'FormatFloat', @FormatFloat_0,
     'function(const Format: string; Value: Extended): string');
-  TSepiMetaMethod.Create(Result, 'OL$FormatFloat$1', @FormatFloat_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'FormatFloat', @FormatFloat_1,
     'function(const Format: string; Value: Extended; const FormatSettings: TFormatSettings ) : string');
-  TSepiMetaOverloadedMethod.Create(Result, 'FormatCurr');
-  TSepiMetaMethod.Create(Result, 'OL$FormatCurr$0', @FormatCurr_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'FormatCurr', @FormatCurr_0,
     'function(const Format: string; Value: Currency): string');
-  TSepiMetaMethod.Create(Result, 'OL$FormatCurr$1', @FormatCurr_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'FormatCurr', @FormatCurr_1,
     'function(const Format: string; Value: Currency; const FormatSettings: TFormatSettings ) : string');
-  TSepiMetaOverloadedMethod.Create(Result, 'FloatToTextFmt');
-  TSepiMetaMethod.Create(Result, 'OL$FloatToTextFmt$0', @FloatToTextFmt_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'FloatToTextFmt', @FloatToTextFmt_0,
     'function(Buf: PChar; const Value; ValueType: TFloatValue; Format: PChar ) : Integer');
-  TSepiMetaMethod.Create(Result, 'OL$FloatToTextFmt$1', @FloatToTextFmt_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'FloatToTextFmt', @FloatToTextFmt_1,
     'function(Buf: PChar; const Value; ValueType: TFloatValue; Format: PChar ; const FormatSettings: TFormatSettings ) : Integer');
-  TSepiMetaOverloadedMethod.Create(Result, 'StrToFloat');
-  TSepiMetaMethod.Create(Result, 'OL$StrToFloat$0', @StrToFloat_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'StrToFloat', @StrToFloat_0,
     'function(const S: string): Extended');
-  TSepiMetaMethod.Create(Result, 'OL$StrToFloat$1', @StrToFloat_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'StrToFloat', @StrToFloat_1,
     'function(const S: string; const FormatSettings: TFormatSettings ) : Extended');
-  TSepiMetaOverloadedMethod.Create(Result, 'StrToFloatDef');
-  TSepiMetaMethod.Create(Result, 'OL$StrToFloatDef$0', @StrToFloatDef_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'StrToFloatDef', @StrToFloatDef_0,
     'function(const S: string; const Default: Extended ) : Extended');
-  TSepiMetaMethod.Create(Result, 'OL$StrToFloatDef$1', @StrToFloatDef_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'StrToFloatDef', @StrToFloatDef_1,
     'function(const S: string; const Default: Extended; const FormatSettings: TFormatSettings ) : Extended');
-  TSepiMetaOverloadedMethod.Create(Result, 'TryStrToFloat');
-  TSepiMetaMethod.Create(Result, 'OL$TryStrToFloat$0', @TryStrToFloat_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'TryStrToFloat', @TryStrToFloat_0,
     'function(const S: string; out Value: Extended): Boolean');
-  TSepiMetaMethod.Create(Result, 'OL$TryStrToFloat$1', @TryStrToFloat_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'TryStrToFloat', @TryStrToFloat_1,
     'function(const S: string; out Value: Extended; const FormatSettings: TFormatSettings ) : Boolean');
-  TSepiMetaMethod.Create(Result, 'OL$TryStrToFloat$2', @TryStrToFloat_2,
+  TSepiMetaMethod.CreateOverloaded(Result, 'TryStrToFloat', @TryStrToFloat_2,
     'function(const S: string; out Value: Double): Boolean');
-  TSepiMetaMethod.Create(Result, 'OL$TryStrToFloat$3', @TryStrToFloat_3,
+  TSepiMetaMethod.CreateOverloaded(Result, 'TryStrToFloat', @TryStrToFloat_3,
     'function(const S: string; out Value: Double; const FormatSettings: TFormatSettings ) : Boolean');
-  TSepiMetaMethod.Create(Result, 'OL$TryStrToFloat$4', @TryStrToFloat_4,
+  TSepiMetaMethod.CreateOverloaded(Result, 'TryStrToFloat', @TryStrToFloat_4,
     'function(const S: string; out Value: Single): Boolean');
-  TSepiMetaMethod.Create(Result, 'OL$TryStrToFloat$5', @TryStrToFloat_5,
+  TSepiMetaMethod.CreateOverloaded(Result, 'TryStrToFloat', @TryStrToFloat_5,
     'function(const S: string; out Value: Single; const FormatSettings: TFormatSettings ) : Boolean');
-  TSepiMetaOverloadedMethod.Create(Result, 'StrToCurr');
-  TSepiMetaMethod.Create(Result, 'OL$StrToCurr$0', @StrToCurr_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'StrToCurr', @StrToCurr_0,
     'function(const S: string): Currency');
-  TSepiMetaMethod.Create(Result, 'OL$StrToCurr$1', @StrToCurr_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'StrToCurr', @StrToCurr_1,
     'function(const S: string; const FormatSettings: TFormatSettings ) : Currency');
-  TSepiMetaOverloadedMethod.Create(Result, 'StrToCurrDef');
-  TSepiMetaMethod.Create(Result, 'OL$StrToCurrDef$0', @StrToCurrDef_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'StrToCurrDef', @StrToCurrDef_0,
     'function(const S: string; const Default: Currency ) : Currency');
-  TSepiMetaMethod.Create(Result, 'OL$StrToCurrDef$1', @StrToCurrDef_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'StrToCurrDef', @StrToCurrDef_1,
     'function(const S: string; const Default: Currency; const FormatSettings: TFormatSettings ) : Currency');
-  TSepiMetaOverloadedMethod.Create(Result, 'TryStrToCurr');
-  TSepiMetaMethod.Create(Result, 'OL$TryStrToCurr$0', @TryStrToCurr_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'TryStrToCurr', @TryStrToCurr_0,
     'function(const S: string; out Value: Currency): Boolean');
-  TSepiMetaMethod.Create(Result, 'OL$TryStrToCurr$1', @TryStrToCurr_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'TryStrToCurr', @TryStrToCurr_1,
     'function(const S: string; out Value: Currency; const FormatSettings: TFormatSettings ) : Boolean');
-  TSepiMetaOverloadedMethod.Create(Result, 'TextToFloat');
-  TSepiMetaMethod.Create(Result, 'OL$TextToFloat$0', @TextToFloat_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'TextToFloat', @TextToFloat_0,
     'function(Buffer: PChar; var Value; ValueType: TFloatValue ) : Boolean');
-  TSepiMetaMethod.Create(Result, 'OL$TextToFloat$1', @TextToFloat_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'TextToFloat', @TextToFloat_1,
     'function(Buffer: PChar; var Value; ValueType: TFloatValue; const FormatSettings: TFormatSettings ) : Boolean');
   TSepiMetaMethod.Create(Result, 'FloatToDecimal', @FloatToDecimal,
     'procedure(var Result: TFloatRec; const Value; ValueType: TFloatValue ; Precision, Decimals: Integer )');
@@ -2678,75 +2641,61 @@ begin
      MonthDays, '$22', True);
 
   // Routines
-  TSepiMetaOverloadedMethod.Create(Result, 'DateToStr');
-  TSepiMetaMethod.Create(Result, 'OL$DateToStr$0', @DateToStr_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'DateToStr', @DateToStr_0,
     'function(const DateTime: TDateTime): string');
-  TSepiMetaMethod.Create(Result, 'OL$DateToStr$1', @DateToStr_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'DateToStr', @DateToStr_1,
     'function(const DateTime: TDateTime; const FormatSettings: TFormatSettings ) : string');
-  TSepiMetaOverloadedMethod.Create(Result, 'TimeToStr');
-  TSepiMetaMethod.Create(Result, 'OL$TimeToStr$0', @TimeToStr_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'TimeToStr', @TimeToStr_0,
     'function(const DateTime: TDateTime): string');
-  TSepiMetaMethod.Create(Result, 'OL$TimeToStr$1', @TimeToStr_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'TimeToStr', @TimeToStr_1,
     'function(const DateTime: TDateTime; const FormatSettings: TFormatSettings ) : string');
-  TSepiMetaOverloadedMethod.Create(Result, 'DateTimeToStr');
-  TSepiMetaMethod.Create(Result, 'OL$DateTimeToStr$0', @DateTimeToStr_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'DateTimeToStr', @DateTimeToStr_0,
     'function(const DateTime: TDateTime): string');
-  TSepiMetaMethod.Create(Result, 'OL$DateTimeToStr$1', @DateTimeToStr_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'DateTimeToStr', @DateTimeToStr_1,
     'function(const DateTime: TDateTime; const FormatSettings: TFormatSettings ) : string');
-  TSepiMetaOverloadedMethod.Create(Result, 'StrToDate');
-  TSepiMetaMethod.Create(Result, 'OL$StrToDate$0', @StrToDate_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'StrToDate', @StrToDate_0,
     'function(const S: string): TDateTime');
-  TSepiMetaMethod.Create(Result, 'OL$StrToDate$1', @StrToDate_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'StrToDate', @StrToDate_1,
     'function(const S: string; const FormatSettings: TFormatSettings ) : TDateTime');
-  TSepiMetaOverloadedMethod.Create(Result, 'StrToDateDef');
-  TSepiMetaMethod.Create(Result, 'OL$StrToDateDef$0', @StrToDateDef_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'StrToDateDef', @StrToDateDef_0,
     'function(const S: string; const Default: TDateTime ) : TDateTime');
-  TSepiMetaMethod.Create(Result, 'OL$StrToDateDef$1', @StrToDateDef_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'StrToDateDef', @StrToDateDef_1,
     'function(const S: string; const Default: TDateTime; const FormatSettings: TFormatSettings ) : TDateTime');
-  TSepiMetaOverloadedMethod.Create(Result, 'TryStrToDate');
-  TSepiMetaMethod.Create(Result, 'OL$TryStrToDate$0', @TryStrToDate_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'TryStrToDate', @TryStrToDate_0,
     'function(const S: string; out Value: TDateTime): Boolean');
-  TSepiMetaMethod.Create(Result, 'OL$TryStrToDate$1', @TryStrToDate_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'TryStrToDate', @TryStrToDate_1,
     'function(const S: string; out Value: TDateTime; const FormatSettings: TFormatSettings ) : Boolean');
-  TSepiMetaOverloadedMethod.Create(Result, 'StrToTime');
-  TSepiMetaMethod.Create(Result, 'OL$StrToTime$0', @StrToTime_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'StrToTime', @StrToTime_0,
     'function(const S: string): TDateTime');
-  TSepiMetaMethod.Create(Result, 'OL$StrToTime$1', @StrToTime_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'StrToTime', @StrToTime_1,
     'function(const S: string; const FormatSettings: TFormatSettings ) : TDateTime');
-  TSepiMetaOverloadedMethod.Create(Result, 'StrToTimeDef');
-  TSepiMetaMethod.Create(Result, 'OL$StrToTimeDef$0', @StrToTimeDef_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'StrToTimeDef', @StrToTimeDef_0,
     'function(const S: string; const Default: TDateTime ) : TDateTime');
-  TSepiMetaMethod.Create(Result, 'OL$StrToTimeDef$1', @StrToTimeDef_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'StrToTimeDef', @StrToTimeDef_1,
     'function(const S: string; const Default: TDateTime; const FormatSettings: TFormatSettings ) : TDateTime');
-  TSepiMetaOverloadedMethod.Create(Result, 'TryStrToTime');
-  TSepiMetaMethod.Create(Result, 'OL$TryStrToTime$0', @TryStrToTime_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'TryStrToTime', @TryStrToTime_0,
     'function(const S: string; out Value: TDateTime): Boolean');
-  TSepiMetaMethod.Create(Result, 'OL$TryStrToTime$1', @TryStrToTime_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'TryStrToTime', @TryStrToTime_1,
     'function(const S: string; out Value: TDateTime; const FormatSettings: TFormatSettings ) : Boolean');
-  TSepiMetaOverloadedMethod.Create(Result, 'StrToDateTime');
-  TSepiMetaMethod.Create(Result, 'OL$StrToDateTime$0', @StrToDateTime_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'StrToDateTime', @StrToDateTime_0,
     'function(const S: string): TDateTime');
-  TSepiMetaMethod.Create(Result, 'OL$StrToDateTime$1', @StrToDateTime_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'StrToDateTime', @StrToDateTime_1,
     'function(const S: string; const FormatSettings: TFormatSettings ) : TDateTime');
-  TSepiMetaOverloadedMethod.Create(Result, 'StrToDateTimeDef');
-  TSepiMetaMethod.Create(Result, 'OL$StrToDateTimeDef$0', @StrToDateTimeDef_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'StrToDateTimeDef', @StrToDateTimeDef_0,
     'function(const S: string; const Default: TDateTime ) : TDateTime');
-  TSepiMetaMethod.Create(Result, 'OL$StrToDateTimeDef$1', @StrToDateTimeDef_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'StrToDateTimeDef', @StrToDateTimeDef_1,
     'function(const S: string; const Default: TDateTime; const FormatSettings: TFormatSettings ) : TDateTime');
-  TSepiMetaOverloadedMethod.Create(Result, 'TryStrToDateTime');
-  TSepiMetaMethod.Create(Result, 'OL$TryStrToDateTime$0', @TryStrToDateTime_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'TryStrToDateTime', @TryStrToDateTime_0,
     'function(const S: string; out Value: TDateTime ) : Boolean');
-  TSepiMetaMethod.Create(Result, 'OL$TryStrToDateTime$1', @TryStrToDateTime_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'TryStrToDateTime', @TryStrToDateTime_1,
     'function(const S: string; out Value: TDateTime; const FormatSettings: TFormatSettings ) : Boolean');
-  TSepiMetaOverloadedMethod.Create(Result, 'FormatDateTime');
-  TSepiMetaMethod.Create(Result, 'OL$FormatDateTime$0', @FormatDateTime_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'FormatDateTime', @FormatDateTime_0,
     'function(const Format: string; DateTime: TDateTime ) : string');
-  TSepiMetaMethod.Create(Result, 'OL$FormatDateTime$1', @FormatDateTime_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'FormatDateTime', @FormatDateTime_1,
     'function(const Format: string; DateTime: TDateTime; const FormatSettings: TFormatSettings ) : string');
-  TSepiMetaOverloadedMethod.Create(Result, 'DateTimeToString');
-  TSepiMetaMethod.Create(Result, 'OL$DateTimeToString$0', @DateTimeToString_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'DateTimeToString', @DateTimeToString_0,
     'procedure(var Result: string; const Format: string; DateTime: TDateTime )');
-  TSepiMetaMethod.Create(Result, 'OL$DateTimeToString$1', @DateTimeToString_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'DateTimeToString', @DateTimeToString_1,
     'procedure(var Result: string; const Format: string; DateTime: TDateTime ; const FormatSettings: TFormatSettings )');
 
   // Constants
@@ -2848,35 +2797,32 @@ begin
   // Routines
   TSepiMetaMethod.Create(Result, 'StringReplace', @StringReplace,
     'function(const S, OldPattern, NewPattern: string; Flags: TReplaceFlags ) : string');
-  TSepiMetaOverloadedMethod.Create(Result, 'WrapText');
-  TSepiMetaMethod.Create(Result, 'OL$WrapText$0', @WrapText_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'WrapText', @WrapText_0,
     'function(const Line, BreakStr: string; const BreakChars: TSysCharSet; MaxCol: Integer ) : string');
-  TSepiMetaMethod.Create(Result, 'OL$WrapText$1', @WrapText_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'WrapText', @WrapText_1,
     'function(const Line: string; MaxCol: Integer = 45): string');
 
   // Constants
   //TSepiConstant.Create(Result, 'SwitchChars', SwitchChars);
 
   // Routines
-  TSepiMetaOverloadedMethod.Create(Result, 'FindCmdLineSwitch');
-  TSepiMetaMethod.Create(Result, 'OL$FindCmdLineSwitch$0', @FindCmdLineSwitch_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'FindCmdLineSwitch', @FindCmdLineSwitch_0,
     'function(const Switch: string; const Chars: TSysCharSet; IgnoreCase: Boolean ) : Boolean');
-  TSepiMetaMethod.Create(Result, 'OL$FindCmdLineSwitch$1', @FindCmdLineSwitch_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'FindCmdLineSwitch', @FindCmdLineSwitch_1,
     'function(const Switch: string): Boolean');
-  TSepiMetaMethod.Create(Result, 'OL$FindCmdLineSwitch$2', @FindCmdLineSwitch_2,
+  TSepiMetaMethod.CreateOverloaded(Result, 'FindCmdLineSwitch', @FindCmdLineSwitch_2,
     'function(const Switch: string; IgnoreCase: Boolean): Boolean');
   TSepiMetaMethod.Create(Result, 'FreeAndNil', @FreeAndNil,
     'procedure(var Obj)');
-  TSepiMetaOverloadedMethod.Create(Result, 'Supports');
-  TSepiMetaMethod.Create(Result, 'OL$Supports$0', @Supports_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'Supports', @Supports_0,
     'function(const Instance: IInterface; const IID: TGUID; out Intf): Boolean');
-  TSepiMetaMethod.Create(Result, 'OL$Supports$1', @Supports_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'Supports', @Supports_1,
     'function(const Instance: TObject; const IID: TGUID; out Intf): Boolean');
-  TSepiMetaMethod.Create(Result, 'OL$Supports$2', @Supports_2,
+  TSepiMetaMethod.CreateOverloaded(Result, 'Supports', @Supports_2,
     'function(const Instance: IInterface; const IID: TGUID): Boolean');
-  TSepiMetaMethod.Create(Result, 'OL$Supports$3', @Supports_3,
+  TSepiMetaMethod.CreateOverloaded(Result, 'Supports', @Supports_3,
     'function(const Instance: TObject; const IID: TGUID): Boolean');
-  TSepiMetaMethod.Create(Result, 'OL$Supports$4', @Supports_4,
+  TSepiMetaMethod.CreateOverloaded(Result, 'Supports', @Supports_4,
     'function(const AClass: TClass; const IID: TGUID): Boolean');
   TSepiMetaMethod.Create(Result, 'CreateGUID', @CreateGUID,
     'function(out Guid: TGUID): HResult');
@@ -2928,10 +2874,9 @@ begin
     'procedure(Module: HMODULE)');
   TSepiMetaMethod.Create(Result, 'FinalizePackage', @FinalizePackage,
     'procedure(Module: HMODULE)');
-  TSepiMetaOverloadedMethod.Create(Result, 'RaiseLastOSError');
-  TSepiMetaMethod.Create(Result, 'OL$RaiseLastOSError$0', @RaiseLastOSError_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'RaiseLastOSError', @RaiseLastOSError_0,
     'procedure');
-  TSepiMetaMethod.Create(Result, 'OL$RaiseLastOSError$1', @RaiseLastOSError_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'RaiseLastOSError', @RaiseLastOSError_1,
     'procedure(LastError: Integer)');
   TSepiMetaMethod.Create(Result, 'Win32Check', @Win32Check,
     'function(RetVal: BOOL): BOOL');
@@ -2960,7 +2905,7 @@ begin
   TSepiMethodRefType.Create(Result, '$24',
     'function(Directory: PChar; var FreeAvailable, TotalSpace : TLargeInteger ; TotalFree: PLargeInteger ) : Bool', False, ccStdCall);
   TSepiVariable.CreateProc(Result, 'GetDiskFreeSpaceEx',
-     @@GetDiskFreeSpaceEx, '$24');
+    @@GetDiskFreeSpaceEx, '$24');
 
   // Routines
   TSepiMetaMethod.Create(Result, 'SafeLoadLibrary', @SafeLoadLibrary,
@@ -2984,8 +2929,7 @@ begin
   TSepiTypeAlias.Create(Result, 'TMREWSync', TypeInfo(TMultiReadExclusiveWriteSynchronizer));
 
   // Routines
-  TSepiMetaOverloadedMethod.Create(Result, 'GetEnvironmentVariable');
-  TSepiMetaMethod.Create(Result, 'OL$GetEnvironmentVariable$0', @GetEnvironmentVariable_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'GetEnvironmentVariable', @GetEnvironmentVariable_0,
     'function(const Name: string): string');
 
   Result.Complete;

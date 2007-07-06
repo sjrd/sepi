@@ -47,6 +47,8 @@ type
   *}
   TPropertyStorageKind = (pskConstant, pskField, pskMethod);
 
+  TSepiMetaOverloadedMethod = class;
+
   {*
     Meta-variable
     @author Sébastien Jean Robert Doeraene
@@ -147,8 +149,14 @@ type
 
     FLinkIndex : integer; /// Offset de VMT ou index de DMT, selon la liaison
 
+    FIsOverloaded : boolean;                 /// Indique si surchargée
+    FOverloaded : TSepiMetaOverloadedMethod; /// Méthode surchargée (ou nil)
+    FOverloadIndex : Byte;                   /// Index de surcharge
+
     procedure MakeLink;
     procedure FindNativeCode;
+
+    function GetRealName : string;
   protected
     procedure ListReferences; override;
     procedure Save(Stream : TStream); override;
@@ -159,7 +167,14 @@ type
       ALinkKind : TMethodLinkKind = mlkStatic; AAbstract : boolean = False;
       AMsgID : integer = 0;
       ACallingConvention : TCallingConvention = ccRegister);
+    constructor CreateOverloaded(AOwner : TSepiMeta; const AName : string;
+      ACode : Pointer; const ASignature : string;
+      ALinkKind : TMethodLinkKind = mlkStatic; AAbstract : boolean = False;
+      AMsgID : integer = 0;
+      ACallingConvention : TCallingConvention = ccRegister);
     destructor Destroy; override;
+
+    procedure AfterConstruction; override;
 
     procedure SetCode(ACode : Pointer);
 
@@ -174,6 +189,11 @@ type
     property DMTIndex : integer read FLinkIndex;
     property MsgID : integer read FLinkIndex;
     property IMTIndex : integer read FLinkIndex;
+
+    property IsOverloaded : boolean read FIsOverloaded;
+    property Overloaded : TSepiMetaOverloadedMethod read FOverloaded;
+    property OverloadIndex : Byte read FOverloadIndex;
+    property RealName : string read GetRealName;
   end;
 
   {*
@@ -183,19 +203,23 @@ type
   *}
   TSepiMetaOverloadedMethod = class(TSepiMeta)
   private
-    FMethodCount : integer; /// Nombre de méthodes de même nom
-  protected
-    procedure Save(Stream : TStream); override;
+    FMethods : TObjectList; /// Liste des méthodes de même nom
+
+    function GetMethodCount : integer;
+    function GetMethods(Index : integer) : TSepiMetaMethod;
   public
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
-    constructor Create(AOwner : TSepiMeta; const AName : string;
-      AMethodCount : integer = 0);
+    constructor Create(AOwner : TSepiMeta; const AName : string);
+    destructor Destroy; override;
 
-    function NextID : integer;
     function FindMethod(
       ASignature : TSepiMethodSignature) : TSepiMetaMethod; overload;
     function FindMethod(
       const ATypes : array of TSepiType) : TSepiMetaMethod; overload;
+
+    property MethodCount : integer read GetMethodCount;
+    property Methods[index : integer] : TSepiMetaMethod read GetMethods;
+    property DefaultMethod : TSepiMetaMethod index 0 read GetMethods;
   end;
 
   {*
@@ -495,6 +519,14 @@ type
     function AddMethod(const MethodName : string; ACode: Pointer;
       const ASignature : string;
       ACallingConvention : TCallingConvention) : TSepiMetaMethod; overload;
+    function AddOverloadedMethod(const MethodName : string; ACode: Pointer;
+      const ASignature : string; ALinkKind : TMethodLinkKind = mlkStatic;
+      AAbstract : boolean = False; AMsgID : integer = 0;
+      ACallingConvention : TCallingConvention = ccRegister) : TSepiMetaMethod;
+      overload;
+    function AddOverloadedMethod(const MethodName : string; ACode: Pointer;
+      const ASignature : string;
+      ACallingConvention : TCallingConvention) : TSepiMetaMethod; overload;
 
     function AddProperty(
       const AName, ASignature, AReadAccess, AWriteAccess : string;
@@ -609,6 +641,9 @@ const
 
   /// Types de méthodes d'objet
   mkOfObject = [mkProcedure..mkClassConstructor];
+
+  /// Format du nom d'une méthode surchargée
+  OverloadedNameFormat = 'OL$%s$%d';
 
   /// Chaînes des types de méthode
   MethodKindStrings : array[mkProcedure..mkProperty] of string = (
@@ -1101,6 +1136,17 @@ begin
   Stream.ReadBuffer(FAbstract, 1);
   Stream.ReadBuffer(FLinkIndex, 2); // only for messages
 
+  Stream.ReadBuffer(FIsOverloaded, 1);
+  if FIsOverloaded then
+  begin
+    OwningUnit.ReadRef(Stream, FOverloaded);
+    Stream.ReadBuffer(FOverloadIndex, 1);
+  end else
+  begin
+    FOverloaded := nil;
+    FOverloadIndex := 0;
+  end;
+
   MakeLink;
 
   if Assigned(OwningUnit.OnGetMethodCode) then
@@ -1148,6 +1194,35 @@ begin
 end;
 
 {*
+  Crée une nouvelle meta-méthode surchargée
+  @param AOwner       Propriétaire de la méthode
+  @param AName        Nom de la méthode
+  @param ACode        Pointeur sur le code de la méthode
+  @param ASignature   Signature Delphi de la méthode
+  @param ALinkKind    Type de liaison
+  @param AAbstract    Indique si la méthode est abstraite
+  @param AMsgID       Pour les méthodes de message, le message intercepté
+  @param ACallingConvention   Convention d'appel de la méthode
+*}
+constructor TSepiMetaMethod.CreateOverloaded(AOwner : TSepiMeta;
+  const AName : string; ACode : Pointer; const ASignature : string;
+  ALinkKind : TMethodLinkKind = mlkStatic; AAbstract : boolean = False;
+  AMsgID : integer = 0; ACallingConvention : TCallingConvention = ccRegister);
+begin
+  FIsOverloaded := True;
+  FOverloaded := AOwner.GetMeta(AName) as TSepiMetaOverloadedMethod;
+
+  if FOverloaded = nil then
+    FOverloaded := TSepiMetaOverloadedMethod.Create(AOwner, AName);
+  FOverloadIndex := FOverloaded.MethodCount;
+
+  FOverloaded.FMethods.Add(Self);
+
+  Create(AOwner, Format(OverloadedNameFormat, [AName, FOverloadIndex]),
+    ACode, ASignature, ALinkKind, AAbstract, AMsgID, ACallingConvention);
+end;
+
+{*
   Détruit l'instance
 *}
 destructor TSepiMetaMethod.Destroy;
@@ -1162,7 +1237,6 @@ end;
 *}
 procedure TSepiMetaMethod.MakeLink;
 var OwningClass, Ancestor : TSepiClass;
-    LookFor : string;
     Meta : TSepiMeta;
     I : integer;
 begin
@@ -1191,16 +1265,8 @@ begin
   begin
     if FLinkKind <> mlkMessage then
     begin
-      // Setting the inherited method name
-      LookFor := Name;
-      if Copy(Name, 1, 3) = 'OL$' then // overloaded
-      begin
-        Delete(LookFor, 1, 3);
-        Delete(LookFor, Pos('$', LookFor), MaxInt);
-      end;
-
       // Looking for the inherited method
-      Meta := OwningClass.Parent.LookForMember(LookFor,
+      Meta := OwningClass.Parent.LookForMember(RealName,
         OwningUnit, OwningClass);
       if Meta is TSepiMetaMethod then
       begin
@@ -1271,12 +1337,25 @@ begin
 end;
 
 {*
+  Nom réel, tel que déclaré (indépendant d'une surcharge ou non)
+  @return Nom réel
+*}
+function TSepiMetaMethod.GetRealName : string;
+begin
+  if IsOverloaded then
+    Result := Overloaded.Name
+  else
+    Result := Name;
+end;
+
+{*
   [@inheritDoc]
 *}
 procedure TSepiMetaMethod.ListReferences;
 begin
   inherited;
   Signature.ListReferences;
+  OwningUnit.AddRef(FOverloaded);
 end;
 
 {*
@@ -1298,6 +1377,23 @@ begin
 
   Stream.WriteBuffer(FAbstract, 1);
   Stream.WriteBuffer(FLinkIndex, 2); // only for messages
+
+  Stream.WriteBuffer(FIsOverloaded, 1);
+  if IsOverloaded then
+  begin
+    OwningUnit.WriteRef(Stream, FOverloaded);
+    Stream.WriteBuffer(FOverloadIndex, 1);
+  end;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiMetaMethod.AfterConstruction;
+begin
+  inherited;
+  if IsOverloaded then
+    Overloaded.FMethods.Add(Self);
 end;
 
 {*
@@ -1324,7 +1420,7 @@ constructor TSepiMetaOverloadedMethod.Load(AOwner : TSepiMeta;
   Stream : TStream);
 begin
   inherited;
-  Stream.ReadBuffer(FMethodCount, 4);
+  FMethods := TObjectList.Create(False);
 end;
 
 {*
@@ -1333,29 +1429,39 @@ end;
   @param AName    Nom de la méthode
 *}
 constructor TSepiMetaOverloadedMethod.Create(AOwner : TSepiMeta;
-  const AName : string; AMethodCount : integer = 0);
+  const AName : string);
 begin
   inherited Create(AOwner, AName);
-  FMethodCount := AMethodCount;
+  FMethods := TObjectList.Create(False);
 end;
 
 {*
   [@inheritDoc]
 *}
-procedure TSepiMetaOverloadedMethod.Save(Stream : TStream);
+destructor TSepiMetaOverloadedMethod.Destroy;
 begin
+  FMethods.Free;
   inherited;
-  Stream.WriteBuffer(FMethodCount, 4);
 end;
 
 {*
-  Détermine l'ID de méthode surchargée suivant
-  @return Nouvel ID
+  Nombre de méthodes de même nom
+  @return Nombre de méthodes de même nom
 *}
-function TSepiMetaOverloadedMethod.NextID : integer;
+function TSepiMetaOverloadedMethod.GetMethodCount : integer;
 begin
-  Result := FMethodCount;
-  inc(FMethodCount);
+  Result := FMethods.Count;
+end;
+
+{*
+  Tableau zero-based des méthodes de même nom
+  @param Index   Index de la méthode
+  @return Méthode de même nom à l'index spécifié
+*}
+function TSepiMetaOverloadedMethod.GetMethods(
+  Index : integer) : TSepiMetaMethod;
+begin
+  Result := TSepiMetaMethod(FMethods[Index]);
 end;
 
 {*
@@ -1367,9 +1473,9 @@ function TSepiMetaOverloadedMethod.FindMethod(
   ASignature : TSepiMethodSignature) : TSepiMetaMethod;
 var I : integer;
 begin
-  for I := 0 to FMethodCount-1 do
+  for I := 0 to MethodCount-1 do
   begin
-    Result := TSepiMetaMethod(Owner.FindMeta(Format('OL$%s$%d', [Name, I])));
+    Result := Methods[I];
     if Result.Signature.Equals(ASignature) then exit;
   end;
   Result := nil;
@@ -1384,9 +1490,9 @@ function TSepiMetaOverloadedMethod.FindMethod(
   const ATypes : array of TSepiType) : TSepiMetaMethod;
 var I : integer;
 begin
-  for I := 0 to FMethodCount-1 do
+  for I := 0 to MethodCount-1 do
   begin
-    Result := TSepiMetaMethod(Owner.FindMeta(Format('OL$%s$%d', [Name, I])));
+    Result := Methods[I];
     if Result.Signature.CompatibleWith(ATypes) then exit;
   end;
   Result := nil;
@@ -3016,6 +3122,40 @@ function TSepiClass.AddMethod(const MethodName : string; ACode: Pointer;
 begin
   Result := TSepiMetaMethod.Create(Self, MethodName, ACode, ASignature,
     mlkStatic, False, 0, ACallingConvention);
+end;
+
+{*
+  Ajoute une méthode surchargée à la classe
+  @param MethodName   Nom de la méthode
+  @param ACode        Pointeur sur le code de la méthode
+  @param ASignature   Signature Delphi de la méthode
+  @param ALinkKind    Type de liaison
+  @param AAbstract    Indique si la méthode est abstraite
+  @param AMsgID       Pour les méthodes de message, le message intercepté
+  @param ACallingConvention   Convention d'appel de la méthode
+*}
+function TSepiClass.AddOverloadedMethod(const MethodName : string; ACode: Pointer;
+  const ASignature : string; ALinkKind : TMethodLinkKind = mlkStatic;
+  AAbstract : boolean = False; AMsgID : integer = 0;
+  ACallingConvention : TCallingConvention = ccRegister) : TSepiMetaMethod;
+begin
+  Result := TSepiMetaMethod.CreateOverloaded(Self, MethodName, ACode,
+    ASignature, ALinkKind, AAbstract, AMsgID, ACallingConvention);
+end;
+
+{*
+  Ajoute une méthode surchargée à la classe
+  @param MethodName           Nom de la méthode
+  @param ACode                Pointeur sur le code de la méthode
+  @param ASignature           Signature Delphi de la méthode
+  @param ACallingConvention   Convention d'appel de la méthode
+*}
+function TSepiClass.AddOverloadedMethod(const MethodName : string;
+  ACode: Pointer; const ASignature : string;
+  ACallingConvention : TCallingConvention) : TSepiMetaMethod;
+begin
+  Result := TSepiMetaMethod.CreateOverloaded(Self, MethodName, ACode,
+    ASignature, mlkStatic, False, 0, ACallingConvention);
 end;
 
 {*

@@ -96,7 +96,6 @@ begin
 
   with Result do
   begin
-    TSepiMetaOverloadedMethod.Create(Result, 'Execute', 2);
     CurrentVisibility := mvPrivate;
 
     AddField('FCtl3D', System.TypeInfo(Boolean));
@@ -153,10 +152,10 @@ begin
     AddMethod('Destroy', @TSepiImportsTCommonDialog.Destroy,
       'destructor',
       mlkOverride);
-    AddMethod('OL$Execute$0', nil,
+    AddOverloadedMethod('Execute', nil,
       'function: Boolean',
       mlkVirtual);
-    AddMethod('OL$Execute$1', nil,
+    AddOverloadedMethod('Execute', nil,
       'function(ParentWnd: HWND): Boolean',
       mlkVirtual, True);
     AddMethod('DefaultHandler', @TSepiImportsTCommonDialog.DefaultHandler,
@@ -227,7 +226,6 @@ begin
 
   with Result do
   begin
-    TSepiMetaOverloadedMethod.Create(Result, 'DoExecute', 2);
     CurrentVisibility := mvPrivate;
 
     AddField('FHistoryList', System.TypeInfo(TStrings));
@@ -266,9 +264,9 @@ begin
     AddMethod('DoCanClose', @TSepiImportsTOpenDialog.DoCanClose,
       'function: Boolean',
       mlkDynamic);
-    AddMethod('OL$DoExecute$0', @TSepiImportsTOpenDialog.DoExecute_0,
+    AddOverloadedMethod('DoExecute', @TSepiImportsTOpenDialog.DoExecute_0,
       'function(Func: Pointer): Bool');
-    AddMethod('OL$DoExecute$1', @TSepiImportsTOpenDialog.DoExecute_1,
+    AddOverloadedMethod('DoExecute', @TSepiImportsTOpenDialog.DoExecute_1,
       'function(Func: Pointer; ParentWnd: HWND): Bool');
     AddMethod('DoSelectionChange', @TSepiImportsTOpenDialog.DoSelectionChange,
       'procedure',
@@ -959,7 +957,7 @@ begin
 
   // Global variables
   TSepiVariable.Create(Result, 'ForceCurrentDirectory',
-     ForceCurrentDirectory, TypeInfo(Boolean));
+    ForceCurrentDirectory, TypeInfo(Boolean));
 
   Result.Complete;
 end;

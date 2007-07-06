@@ -67,7 +67,6 @@ begin
 
   with Result do
   begin
-    TSepiMetaOverloadedMethod.Create(Result, 'Execute', 3);
     CurrentVisibility := mvPrivate;
 
     AddField('FPassword', System.TypeInfo(string));
@@ -78,11 +77,11 @@ begin
     AddMethod('Create', @TSepiImportsTSdPasswordDialog.Create,
       'constructor(AOwner : TComponent)',
       mlkOverride);
-    AddMethod('OL$Execute$0', @TSepiImportsTSdPasswordDialog.Execute_0,
+    AddOverloadedMethod('Execute', @TSepiImportsTSdPasswordDialog.Execute_0,
       'function: boolean');
-    AddMethod('OL$Execute$1', @TSepiImportsTSdPasswordDialog.Execute_1,
+    AddOverloadedMethod('Execute', @TSepiImportsTSdPasswordDialog.Execute_1,
       'function(Password : string; ShowErrorMes : boolean = True ) : boolean');
-    AddMethod('OL$Execute$2', @TSepiImportsTSdPasswordDialog.Execute_2,
+    AddOverloadedMethod('Execute', @TSepiImportsTSdPasswordDialog.Execute_2,
       'function(ShowErrorMes : boolean) : boolean');
 
     CurrentVisibility := mvPublished;
@@ -214,7 +213,6 @@ begin
 
   with Result do
   begin
-    TSepiMetaOverloadedMethod.Create(Result, 'Execute', 5);
     CurrentVisibility := mvPrivate;
 
     AddField('FTitle', System.TypeInfo(string));
@@ -228,15 +226,15 @@ begin
     AddMethod('Create', @TSepiImportsTSdNumberDialog.Create,
       'constructor(AOwner : TComponent)',
       mlkOverride);
-    AddMethod('OL$Execute$0', @TSepiImportsTSdNumberDialog.Execute_0,
+    AddOverloadedMethod('Execute', @TSepiImportsTSdNumberDialog.Execute_0,
       'function(const ATitle, APrompt : string; ADefault, AMin, AMax : integer ) : integer');
-    AddMethod('OL$Execute$1', @TSepiImportsTSdNumberDialog.Execute_1,
+    AddOverloadedMethod('Execute', @TSepiImportsTSdNumberDialog.Execute_1,
       'function(ADefault, AMin, AMax : integer) : integer');
-    AddMethod('OL$Execute$2', @TSepiImportsTSdNumberDialog.Execute_2,
+    AddOverloadedMethod('Execute', @TSepiImportsTSdNumberDialog.Execute_2,
       'function(const ATitle, APrompt : string; AMin, AMax : integer ) : integer');
-    AddMethod('OL$Execute$3', @TSepiImportsTSdNumberDialog.Execute_3,
+    AddOverloadedMethod('Execute', @TSepiImportsTSdNumberDialog.Execute_3,
       'function(AMin, AMax : integer) : integer');
-    AddMethod('OL$Execute$4', @TSepiImportsTSdNumberDialog.Execute_4,
+    AddOverloadedMethod('Execute', @TSepiImportsTSdNumberDialog.Execute_4,
       'function: integer');
 
     CurrentVisibility := mvPublished;
@@ -290,10 +288,9 @@ begin
     'function(const Title, Text : string; DlgType : TDialogType = dtInformation ; DlgButtons : TDialogButtons = dbOK ; DefButton : Byte = 1 ; AddFlags : LongWord = 0 ) : TDialogResult');
   TSepiMetaMethod.Create(Result, 'ShowDialogRadio', @ShowDialogRadio,
     'function(const Title, Text : string; DlgType : TMsgDlgType; DlgButtons : TMsgDlgButtons ; DefButton : TModalResult ; const RadioTitles : array of string ; var Selected : integer ; OverButtons : boolean = False ) : Word');
-  TSepiMetaOverloadedMethod.Create(Result, 'QueryPassword');
-  TSepiMetaMethod.Create(Result, 'OL$QueryPassword$0', @QueryPassword_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'QueryPassword', @QueryPassword_0,
     'function: string');
-  TSepiMetaMethod.Create(Result, 'OL$QueryPassWord$1', @QueryPassWord_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'QueryPassWord', @QueryPassWord_1,
     'function(Password : string; ShowErrorMes : boolean = True ) : boolean');
   TSepiMetaMethod.Create(Result, 'ShowAbout', @ShowAbout,
     'procedure(Title : string; ProgramIcon : TIcon; ProgramName : string; ProgramVersion : string ; Author : string ; AuthorEMail : string = '''' ; WebSite : string = '''' )');

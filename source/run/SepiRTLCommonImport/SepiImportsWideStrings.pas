@@ -181,8 +181,6 @@ begin
 
   with Result do
   begin
-    TSepiMetaOverloadedMethod.Create(Result, 'AddStrings', 2);
-    TSepiMetaOverloadedMethod.Create(Result, 'Error', 2);
     CurrentVisibility := mvPrivate;
 
     AddField('FDefined', System.TypeInfo(TStringsDefined));
@@ -242,9 +240,9 @@ begin
     AddMethod('DefineProperties', @TSepiImportsTWideStrings.DefineProperties,
       'procedure(Filer: TFiler)',
       mlkOverride);
-    AddMethod('OL$Error$0', @TSepiImportsTWideStrings.Error_0,
+    AddOverloadedMethod('Error', @TSepiImportsTWideStrings.Error_0,
       'procedure(const Msg: WideString; Data: Integer)');
-    AddMethod('OL$Error$1', @TSepiImportsTWideStrings.Error_1,
+    AddOverloadedMethod('Error', @TSepiImportsTWideStrings.Error_1,
       'procedure(Msg: PResStringRec; Data: Integer)');
     AddMethod('ExtractName', @TSepiImportsTWideStrings.ExtractName,
       'function(const S: WideString): WideString');
@@ -299,10 +297,10 @@ begin
       mlkVirtual);
     AddMethod('Append', @TSepiImportsTWideStrings.Append,
       'procedure(const S: WideString)');
-    AddMethod('OL$AddStrings$0', nil,
+    AddOverloadedMethod('AddStrings', nil,
       'procedure(Strings: TStrings)',
       mlkVirtual);
-    AddMethod('OL$AddStrings$1', nil,
+    AddOverloadedMethod('AddStrings', nil,
       'procedure(Strings: TWideStrings)',
       mlkVirtual);
     AddMethod('Assign', @TSepiImportsTWideStrings.Assign,

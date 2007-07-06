@@ -423,14 +423,13 @@ begin
 
   with Result do
   begin
-    TSepiMetaOverloadedMethod.Create(Result, 'CreateEval', 2);
     CurrentVisibility := mvPublic;
 
     AddField('Expression', System.TypeInfo(string));
 
-    AddMethod('OL$CreateEval$0', @TSepiImportsEEvalError.CreateEval_0,
+    AddOverloadedMethod('CreateEval', @TSepiImportsEEvalError.CreateEval_0,
       'constructor(AExpression : string; AMessage : string)');
-    AddMethod('OL$CreateEval$1', @TSepiImportsEEvalError.CreateEval_1,
+    AddOverloadedMethod('CreateEval', @TSepiImportsEEvalError.CreateEval_1,
       'constructor(AExpression : string; Format : string; Args : array of const)');
     AddMethod('ClassType', @TSepiImportsEEvalError.ClassType,
       'function: EEvalErrorClass');
@@ -1304,9 +1303,9 @@ begin
   TSepiArrayType.Create(Result, '$1',
     [0, VarsListsCount-1], TypeInfo(TPolynomList), True);
   TSepiVariable.Create(Result, 'VarsLists',
-     VarsLists, '$1');
-  TSepiVariable.Create(Result, 'ScalarProdFunc',
-     @ScalarProdFunc, 'TScalarProdFunc');
+    VarsLists, '$1');
+  TSepiVariable.CreateProc(Result, 'ScalarProdFunc',
+    @@ScalarProdFunc, 'TScalarProdFunc');
 
   Result.Complete;
 end;

@@ -279,7 +279,6 @@ begin
 
   with Result do
   begin
-    TSepiMetaOverloadedMethod.Create(Result, 'Add', 2);
     CurrentVisibility := mvPrivate;
 
     AddField('FCaption', System.TypeInfo(string));
@@ -505,9 +504,9 @@ begin
       'function(AItem: TMenuItem): Integer');
     AddMethod('InsertNewLineAfter', @TSepiImportsTMenuItem.InsertNewLineAfter,
       'function(AItem: TMenuItem): Integer');
-    AddMethod('OL$Add$0', @TSepiImportsTMenuItem.Add_0,
+    AddOverloadedMethod('Add', @TSepiImportsTMenuItem.Add_0,
       'procedure(Item: TMenuItem)');
-    AddMethod('OL$Add$1', @TSepiImportsTMenuItem.Add_1,
+    AddOverloadedMethod('Add', @TSepiImportsTMenuItem.Add_1,
       'procedure(const AItems: array of TMenuItem)');
     AddMethod('Remove', @TSepiImportsTMenuItem.Remove,
       'procedure(Item: TMenuItem)');
@@ -664,7 +663,6 @@ begin
 
   with Result do
   begin
-    TSepiMetaOverloadedMethod.Create(Result, 'ParentBiDiModeChanged', 2);
     CurrentVisibility := mvPrivate;
 
     AddField('FBiDiMode', System.TypeInfo(TBiDiMode));
@@ -767,9 +765,9 @@ begin
     AddMethod('IsShortCut', @TSepiImportsTMenu.IsShortCut,
       'function(var Message: TWMKey): Boolean',
       mlkDynamic);
-    AddMethod('OL$ParentBiDiModeChanged$0', @TSepiImportsTMenu.ParentBiDiModeChanged_0,
+    AddOverloadedMethod('ParentBiDiModeChanged', @TSepiImportsTMenu.ParentBiDiModeChanged_0,
       'procedure');
-    AddMethod('OL$ParentBiDiModeChanged$1', @TSepiImportsTMenu.ParentBiDiModeChanged_1,
+    AddOverloadedMethod('ParentBiDiModeChanged', @TSepiImportsTMenu.ParentBiDiModeChanged_1,
       'procedure(AControl: TObject)');
     AddMethod('ProcessMenuChar', @TSepiImportsTMenu.ProcessMenuChar,
       'procedure(var Message: TWMMenuChar)');
@@ -1061,9 +1059,9 @@ begin
 
   // Global variables
   TSepiVariable.Create(Result, 'PopupList',
-     PopupList, TypeInfo(TPopupList));
+    PopupList, TypeInfo(TPopupList));
   TSepiVariable.Create(Result, 'ShortCutItems',
-     ShortCutItems, TypeInfo(TMenuItemStack));
+    ShortCutItems, TypeInfo(TMenuItemStack));
 
   // Routines
   TSepiMetaMethod.Create(Result, 'ShortCut', @ShortCut,
@@ -1091,7 +1089,7 @@ begin
 
   // Global variables
   TSepiVariable.Create(Result, 'ValidMenuHotkeys',
-     ValidMenuHotkeys, TypeInfo(string));
+    ValidMenuHotkeys, TypeInfo(string));
 
   // Constants
   TSepiConstant.Create(Result, 'cHotkeyPrefix', cHotkeyPrefix);

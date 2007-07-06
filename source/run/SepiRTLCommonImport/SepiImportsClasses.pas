@@ -9,7 +9,7 @@ interface
 
 uses
   TypInfo, SepiMetaUnits, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
-  SepiCompTypes, Classes, SysUtils, Windows, ActiveX;
+  SepiCompTypes, SysUtils, Windows, ActiveX, Classes;
 
 implementation
 
@@ -710,7 +710,6 @@ begin
 
   with Result do
   begin
-    TSepiMetaOverloadedMethod.Create(Result, 'Error', 2);
     CurrentVisibility := mvPrivate;
 
     AddField('FList', 'PPointerList');
@@ -746,10 +745,10 @@ begin
       mlkVirtual);
     AddMethod('Delete', @TSepiImportsTList.Delete,
       'procedure(Index: Integer)');
-    AddMethod('OL$Error$0', nil,
+    AddOverloadedMethod('Error', nil,
       'class procedure(const Msg: string; Data: Integer)',
       mlkVirtual);
-    AddMethod('OL$Error$1', @TSepiImportsTList.Error_1,
+    AddOverloadedMethod('Error', @TSepiImportsTList.Error_1,
       'class procedure(Msg: PResStringRec; Data: Integer)');
     AddMethod('Exchange', @TSepiImportsTList.Exchange,
       'procedure(Index1, Index2: Integer)');
@@ -1608,7 +1607,6 @@ begin
 
   with Result do
   begin
-    TSepiMetaOverloadedMethod.Create(Result, 'Error', 2);
     CurrentVisibility := mvPrivate;
 
     AddField('FDefined', System.TypeInfo(TStringsDefined));
@@ -1665,9 +1663,9 @@ begin
     AddMethod('DefineProperties', @TSepiImportsTStrings.DefineProperties,
       'procedure(Filer: TFiler)',
       mlkOverride);
-    AddMethod('OL$Error$0', @TSepiImportsTStrings.Error_0,
+    AddOverloadedMethod('Error', @TSepiImportsTStrings.Error_0,
       'procedure(const Msg: string; Data: Integer)');
-    AddMethod('OL$Error$1', @TSepiImportsTStrings.Error_1,
+    AddOverloadedMethod('Error', @TSepiImportsTStrings.Error_1,
       'procedure(Msg: PResStringRec; Data: Integer)');
     AddMethod('ExtractName', @TSepiImportsTStrings.ExtractName,
       'function(const S: string): string');
@@ -2001,8 +1999,6 @@ begin
 
   with Result do
   begin
-    TSepiMetaOverloadedMethod.Create(Result, 'Seek', 2);
-    TSepiMetaOverloadedMethod.Create(Result, 'SetSize', 2);
     CurrentVisibility := mvPrivate;
 
     AddMethod('GetPosition', @TSepiImportsTStream.GetPosition,
@@ -2017,10 +2013,10 @@ begin
     AddMethod('GetSize', @TSepiImportsTStream.GetSize,
       'function: Int64',
       mlkVirtual);
-    AddMethod('OL$SetSize$0', nil,
+    AddOverloadedMethod('SetSize', nil,
       'procedure(NewSize: Longint)',
       mlkVirtual);
-    AddMethod('OL$SetSize$1', nil,
+    AddOverloadedMethod('SetSize', nil,
       'procedure(const NewSize: Int64)',
       mlkVirtual);
 
@@ -2032,10 +2028,10 @@ begin
     AddMethod('Write', nil,
       'function(const Buffer; Count: Longint): Longint',
       mlkVirtual, True);
-    AddMethod('OL$Seek$0', nil,
+    AddOverloadedMethod('Seek', nil,
       'function(Offset: Longint; Origin: Word): Longint',
       mlkVirtual);
-    AddMethod('OL$Seek$1', nil,
+    AddOverloadedMethod('Seek', nil,
       'function(const Offset: Int64; Origin: TSeekOrigin): Int64',
       mlkVirtual);
     AddMethod('ReadBuffer', @TSepiImportsTStream.ReadBuffer,
@@ -2104,15 +2100,14 @@ begin
 
   with Result do
   begin
-    TSepiMetaOverloadedMethod.Create(Result, 'SetSize', 2);
     CurrentVisibility := mvProtected;
 
     AddField('FHandle', System.TypeInfo(Integer));
 
-    AddMethod('OL$SetSize$0', nil,
+    AddOverloadedMethod('SetSize', nil,
       'procedure(NewSize: Longint)',
       mlkOverride);
-    AddMethod('OL$SetSize$1', nil,
+    AddOverloadedMethod('SetSize', nil,
       'procedure(const NewSize: Int64)',
       mlkOverride);
 
@@ -2159,12 +2154,11 @@ begin
 
   with Result do
   begin
-    TSepiMetaOverloadedMethod.Create(Result, 'Create', 2);
     CurrentVisibility := mvPublic;
 
-    AddMethod('OL$Create$0', @TSepiImportsTFileStream.Create_0,
+    AddOverloadedMethod('Create', @TSepiImportsTFileStream.Create_0,
       'constructor(const FileName: string; Mode: Word)');
-    AddMethod('OL$Create$1', @TSepiImportsTFileStream.Create_1,
+    AddOverloadedMethod('Create', @TSepiImportsTFileStream.Create_1,
       'constructor(const FileName: string; Mode: Word; Rights: Cardinal)');
     AddMethod('Destroy', @TSepiImportsTFileStream.Destroy,
       'destructor',
@@ -2799,7 +2793,6 @@ begin
 
   with Result do
   begin
-    TSepiMetaOverloadedMethod.Create(Result, 'WriteInteger', 2);
     CurrentVisibility := mvPrivate;
 
     AddField('FRootAncestor', System.TypeInfo(TComponent));
@@ -2888,9 +2881,9 @@ begin
       'procedure(const Value: TDateTime)');
     AddMethod('WriteIdent', @TSepiImportsTWriter.WriteIdent,
       'procedure(const Ident: string)');
-    AddMethod('OL$WriteInteger$0', @TSepiImportsTWriter.WriteInteger_0,
+    AddOverloadedMethod('WriteInteger', @TSepiImportsTWriter.WriteInteger_0,
       'procedure(Value: Longint)');
-    AddMethod('OL$WriteInteger$1', @TSepiImportsTWriter.WriteInteger_1,
+    AddOverloadedMethod('WriteInteger', @TSepiImportsTWriter.WriteInteger_1,
       'procedure(Value: Int64)');
     AddMethod('WriteListBegin', @TSepiImportsTWriter.WriteListBegin,
       'procedure');
@@ -3107,9 +3100,6 @@ begin
 
   with Result do
   begin
-    TSepiMetaOverloadedMethod.Create(Result, 'CheckThreadError', 2);
-    TSepiMetaOverloadedMethod.Create(Result, 'Queue', 2);
-    TSepiMetaOverloadedMethod.Create(Result, 'Synchronize', 3);
     CurrentVisibility := mvPrivate;
 
     AddField('FHandle', System.TypeInfo(THandle));
@@ -3126,7 +3116,7 @@ begin
 
     AddMethod('CallOnTerminate', nil,
       'procedure');
-    AddMethod('OL$Synchronize$0', nil,
+    AddOverloadedMethod('Synchronize', nil,
       'class procedure(ASyncRec: PSynchronizeRecord; QueueEvent: Boolean = False)');
     AddMethod('GetPriority', @TSepiImportsTThread.GetPriority,
       'function: TThreadPriority');
@@ -3137,9 +3127,9 @@ begin
 
     CurrentVisibility := mvProtected;
 
-    AddMethod('OL$CheckThreadError$0', @TSepiImportsTThread.CheckThreadError_0,
+    AddOverloadedMethod('CheckThreadError', @TSepiImportsTThread.CheckThreadError_0,
       'procedure(ErrCode: Integer)');
-    AddMethod('OL$CheckThreadError$1', @TSepiImportsTThread.CheckThreadError_1,
+    AddOverloadedMethod('CheckThreadError', @TSepiImportsTThread.CheckThreadError_1,
       'procedure(Success: Boolean)');
     AddMethod('DoTerminate', @TSepiImportsTThread.DoTerminate,
       'procedure',
@@ -3147,9 +3137,9 @@ begin
     AddMethod('Execute', nil,
       'procedure',
       mlkVirtual, True);
-    AddMethod('OL$Queue$0', @TSepiImportsTThread.Queue_0,
+    AddOverloadedMethod('Queue', @TSepiImportsTThread.Queue_0,
       'procedure(AMethod: TThreadMethod)');
-    AddMethod('OL$Synchronize$1', @TSepiImportsTThread.Synchronize_1,
+    AddOverloadedMethod('Synchronize', @TSepiImportsTThread.Synchronize_1,
       'procedure(AMethod: TThreadMethod)');
 
     AddProperty('ReturnValue', 'property: Integer',
@@ -3175,13 +3165,13 @@ begin
       'procedure');
     AddMethod('WaitFor', @TSepiImportsTThread.WaitFor,
       'function: LongWord');
-    AddMethod('OL$Queue$1', @TSepiImportsTThread.Queue_1,
+    AddOverloadedMethod('Queue', @TSepiImportsTThread.Queue_1,
       'class procedure(AThread: TThread; AMethod: TThreadMethod)');
     AddMethod('RemoveQueuedEvents', @TSepiImportsTThread.RemoveQueuedEvents,
       'class procedure(AThread: TThread; AMethod: TThreadMethod)');
     AddMethod('StaticQueue', @TSepiImportsTThread.StaticQueue,
       'class procedure(AThread: TThread; AMethod: TThreadMethod)');
-    AddMethod('OL$Synchronize$2', @TSepiImportsTThread.Synchronize_2,
+    AddOverloadedMethod('Synchronize', @TSepiImportsTThread.Synchronize_2,
       'class procedure(AThread: TThread; AMethod: TThreadMethod)');
     AddMethod('StaticSynchronize', @TSepiImportsTThread.StaticSynchronize,
       'class procedure(AThread: TThread; AMethod: TThreadMethod)');
@@ -4077,27 +4067,27 @@ begin
 
   // Global variables
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(TUnnamed_1));
-  TSepiVariable.Create(Result, 'AddDataModule',
-     @AddDataModule, TypeInfo(TUnnamed_1));
+  TSepiVariable.CreateProc(Result, 'AddDataModule',
+    @@AddDataModule, TypeInfo(TUnnamed_1));
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(TUnnamed_2));
-  TSepiVariable.Create(Result, 'RemoveDataModule',
-     @RemoveDataModule, TypeInfo(TUnnamed_2));
+  TSepiVariable.CreateProc(Result, 'RemoveDataModule',
+    @@RemoveDataModule, TypeInfo(TUnnamed_2));
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(TUnnamed_3));
-  TSepiVariable.Create(Result, 'ApplicationHandleException',
-     @ApplicationHandleException, TypeInfo(TUnnamed_3));
+  TSepiVariable.CreateProc(Result, 'ApplicationHandleException',
+    @@ApplicationHandleException, TypeInfo(TUnnamed_3));
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(TUnnamed_4));
-  TSepiVariable.Create(Result, 'ApplicationShowException',
-     @ApplicationShowException, TypeInfo(TUnnamed_4));
+  TSepiVariable.CreateProc(Result, 'ApplicationShowException',
+    @@ApplicationShowException, TypeInfo(TUnnamed_4));
   TSepiMethodRefType.Create(Result, '$5',
     'procedure(const Page: string; const ComponentClasses: array of TComponentClass )');
-  TSepiVariable.Create(Result, 'RegisterComponentsProc',
-     @RegisterComponentsProc, '$5');
+  TSepiVariable.CreateProc(Result, 'RegisterComponentsProc',
+    @@RegisterComponentsProc, '$5');
   TSepiMethodRefType.Create(Result, '$6',
     'procedure(const ComponentClasses: array of TComponentClass)');
-  TSepiVariable.Create(Result, 'RegisterNoIconProc',
-     @RegisterNoIconProc, '$6');
+  TSepiVariable.CreateProc(Result, 'RegisterNoIconProc',
+    @@RegisterNoIconProc, '$6');
   TSepiVariable.Create(Result, 'CurrentGroup',
-     CurrentGroup, TypeInfo(Integer));
+    CurrentGroup, TypeInfo(Integer));
 
   // Types
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(TActiveXRegType));
@@ -4105,34 +4095,31 @@ begin
   // Global variables
   TSepiMethodRefType.Create(Result, '$7',
     'procedure(const ComponentClasses: array of TComponentClass; AxRegType: TActiveXRegType )');
-  TSepiVariable.Create(Result, 'RegisterNonActiveXProc',
-     @RegisterNonActiveXProc, '$7');
+  TSepiVariable.CreateProc(Result, 'RegisterNonActiveXProc',
+    @@RegisterNonActiveXProc, '$7');
   TSepiMethodRefType.Create(Result, '$8',
     'procedure(Component: TComponent)');
-  TSepiVariable.Create(Result, 'CreateVCLComObjectProc',
-     @CreateVCLComObjectProc, '$8');
+  TSepiVariable.CreateProc(Result, 'CreateVCLComObjectProc',
+    @@CreateVCLComObjectProc, '$8');
 
   // Routines
   TSepiMetaMethod.Create(Result, 'Point', @Point,
     'function(AX, AY: Integer): TPoint');
   TSepiMetaMethod.Create(Result, 'SmallPoint', @SmallPoint,
     'function(AX, AY: SmallInt): TSmallPoint');
-  TSepiMetaOverloadedMethod.Create(Result, 'PointsEqual');
-  TSepiMetaMethod.Create(Result, 'OL$PointsEqual$0', @PointsEqual_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'PointsEqual', @PointsEqual_0,
     'function(const P1, P2: TPoint): Boolean');
-  TSepiMetaMethod.Create(Result, 'OL$PointsEqual$1', @PointsEqual_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'PointsEqual', @PointsEqual_1,
     'function(const P1, P2: TSmallPoint): Boolean');
-  TSepiMetaOverloadedMethod.Create(Result, 'InvalidPoint');
-  TSepiMetaMethod.Create(Result, 'OL$InvalidPoint$0', @InvalidPoint_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'InvalidPoint', @InvalidPoint_0,
     'function(X, Y: Integer): Boolean');
-  TSepiMetaMethod.Create(Result, 'OL$InvalidPoint$1', @InvalidPoint_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'InvalidPoint', @InvalidPoint_1,
     'function(const At: TPoint): Boolean');
-  TSepiMetaMethod.Create(Result, 'OL$InvalidPoint$2', @InvalidPoint_2,
+  TSepiMetaMethod.CreateOverloaded(Result, 'InvalidPoint', @InvalidPoint_2,
     'function(const At: TSmallPoint): Boolean');
-  TSepiMetaOverloadedMethod.Create(Result, 'Rect');
-  TSepiMetaMethod.Create(Result, 'OL$Rect$0', @Rect_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'Rect', @Rect_0,
     'function(ALeft, ATop, ARight, ABottom: Integer): TRect');
-  TSepiMetaMethod.Create(Result, 'OL$Rect$1', @Rect_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'Rect', @Rect_1,
     'function(const ATopLeft, ABottomRight: TPoint): TRect');
   TSepiMetaMethod.Create(Result, 'Bounds', @Bounds,
     'function(ALeft, ATop, AWidth, AHeight: Integer): TRect');
@@ -4160,10 +4147,9 @@ begin
     'function(AClass: TPersistentClass): TPersistentClass');
   TSepiMetaMethod.Create(Result, 'ActiveClassGroup', @ActiveClassGroup,
     'function: TPersistentClass');
-  TSepiMetaOverloadedMethod.Create(Result, 'ClassGroupOf');
-  TSepiMetaMethod.Create(Result, 'OL$ClassGroupOf$0', @ClassGroupOf_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'ClassGroupOf', @ClassGroupOf_0,
     'function(AClass: TPersistentClass): TPersistentClass');
-  TSepiMetaMethod.Create(Result, 'OL$ClassGroupOf$1', @ClassGroupOf_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'ClassGroupOf', @ClassGroupOf_1,
     'function(Instance: TPersistent): TPersistentClass');
   TSepiMetaMethod.Create(Result, 'RegisterComponents', @RegisterComponents,
     'procedure(const Page: string; const ComponentClasses: array of TComponentClass )');
@@ -4174,7 +4160,7 @@ begin
 
   // Global variables
   TSepiVariable.Create(Result, 'GlobalNameSpace',
-     GlobalNameSpace, TypeInfo(IReadWriteSync));
+    GlobalNameSpace, TypeInfo(IReadWriteSync));
 
   // Types
   SepiImportTIdentMapEntry(Result);
@@ -4188,8 +4174,8 @@ begin
     'function(const Name: string): Boolean');
 
   // Global variables
-  TSepiVariable.Create(Result, 'IsUniqueGlobalComponentNameProc',
-     @IsUniqueGlobalComponentNameProc, 'TIsUniqueGlobalComponentName');
+  TSepiVariable.CreateProc(Result, 'IsUniqueGlobalComponentNameProc',
+    @@IsUniqueGlobalComponentNameProc, 'TIsUniqueGlobalComponentName');
 
   // Routines
   TSepiMetaMethod.Create(Result, 'RegisterIntegerConsts', @RegisterIntegerConsts,
@@ -4246,37 +4232,32 @@ begin
     'procedure');
   TSepiMetaMethod.Create(Result, 'CollectionsEqual', @CollectionsEqual,
     'function(C1, C2: TCollection; Owner1, Owner2: TComponent): Boolean');
-  TSepiMetaOverloadedMethod.Create(Result, 'GetUltimateOwner');
-  TSepiMetaMethod.Create(Result, 'OL$GetUltimateOwner$0', @GetUltimateOwner_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'GetUltimateOwner', @GetUltimateOwner_0,
     'function(ACollectionItem: TCollectionItem): TPersistent');
-  TSepiMetaMethod.Create(Result, 'OL$GetUltimateOwner$1', @GetUltimateOwner_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'GetUltimateOwner', @GetUltimateOwner_1,
     'function(ACollection: TCollection): TPersistent');
-  TSepiMetaMethod.Create(Result, 'OL$GetUltimateOwner$2', @GetUltimateOwner_2,
+  TSepiMetaMethod.CreateOverloaded(Result, 'GetUltimateOwner', @GetUltimateOwner_2,
     'function(APersistent: TPersistent): TPersistent');
 
   // Types
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(TStreamOriginalFormat));
 
   // Routines
-  TSepiMetaOverloadedMethod.Create(Result, 'ObjectBinaryToText');
-  TSepiMetaMethod.Create(Result, 'OL$ObjectBinaryToText$0', @ObjectBinaryToText_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'ObjectBinaryToText', @ObjectBinaryToText_0,
     'procedure(Input, Output: TStream)');
-  TSepiMetaMethod.Create(Result, 'OL$ObjectBinaryToText$1', @ObjectBinaryToText_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'ObjectBinaryToText', @ObjectBinaryToText_1,
     'procedure(Input, Output: TStream; var OriginalFormat: TStreamOriginalFormat )');
-  TSepiMetaOverloadedMethod.Create(Result, 'ObjectTextToBinary');
-  TSepiMetaMethod.Create(Result, 'OL$ObjectTextToBinary$0', @ObjectTextToBinary_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'ObjectTextToBinary', @ObjectTextToBinary_0,
     'procedure(Input, Output: TStream)');
-  TSepiMetaMethod.Create(Result, 'OL$ObjectTextToBinary$1', @ObjectTextToBinary_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'ObjectTextToBinary', @ObjectTextToBinary_1,
     'procedure(Input, Output: TStream; var OriginalFormat: TStreamOriginalFormat )');
-  TSepiMetaOverloadedMethod.Create(Result, 'ObjectResourceToText');
-  TSepiMetaMethod.Create(Result, 'OL$ObjectResourceToText$0', @ObjectResourceToText_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'ObjectResourceToText', @ObjectResourceToText_0,
     'procedure(Input, Output: TStream)');
-  TSepiMetaMethod.Create(Result, 'OL$ObjectResourceToText$1', @ObjectResourceToText_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'ObjectResourceToText', @ObjectResourceToText_1,
     'procedure(Input, Output: TStream; var OriginalFormat: TStreamOriginalFormat )');
-  TSepiMetaOverloadedMethod.Create(Result, 'ObjectTextToResource');
-  TSepiMetaMethod.Create(Result, 'OL$ObjectTextToResource$0', @ObjectTextToResource_0,
+  TSepiMetaMethod.CreateOverloaded(Result, 'ObjectTextToResource', @ObjectTextToResource_0,
     'procedure(Input, Output: TStream)');
-  TSepiMetaMethod.Create(Result, 'OL$ObjectTextToResource$1', @ObjectTextToResource_1,
+  TSepiMetaMethod.CreateOverloaded(Result, 'ObjectTextToResource', @ObjectTextToResource_1,
     'procedure(Input, Output: TStream; var OriginalFormat: TStreamOriginalFormat )');
   TSepiMetaMethod.Create(Result, 'TestStreamFormat', @TestStreamFormat,
     'function(Stream: TStream): TStreamOriginalFormat');
@@ -4296,10 +4277,10 @@ begin
     'function(Timeout: Integer = 0): Boolean');
 
   // Global variables
-  TSepiVariable.Create(Result, 'WakeMainThread',
-     @WakeMainThread, TypeInfo(TNotifyEvent));
+  TSepiVariable.CreateProc(Result, 'WakeMainThread',
+    @@WakeMainThread, TypeInfo(TNotifyEvent));
   TSepiVariable.Create(Result, 'SyncEvent',
-     SyncEvent, TypeInfo(THandle));
+    SyncEvent, TypeInfo(THandle));
 
   // Types
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(TWndMethod));

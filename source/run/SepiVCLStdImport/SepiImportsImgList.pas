@@ -170,10 +170,6 @@ begin
 
   with Result do
   begin
-    TSepiMetaOverloadedMethod.Create(Result, 'Draw', 2);
-    TSepiMetaOverloadedMethod.Create(Result, 'DrawOverlay', 2);
-    TSepiMetaOverloadedMethod.Create(Result, 'GetIcon', 2);
-    TSepiMetaOverloadedMethod.Create(Result, 'GetInstRes', 2);
     CurrentVisibility := mvPrivate;
 
     AddField('FHeight', System.TypeInfo(Integer));
@@ -295,13 +291,13 @@ begin
       'procedure');
     AddMethod('Delete', @TSepiImportsTCustomImageList.Delete,
       'procedure(Index: Integer)');
-    AddMethod('OL$Draw$0', @TSepiImportsTCustomImageList.Draw_0,
+    AddOverloadedMethod('Draw', @TSepiImportsTCustomImageList.Draw_0,
       'procedure(Canvas: TCanvas; X, Y, Index: Integer; Enabled: Boolean = True )');
-    AddMethod('OL$Draw$1', @TSepiImportsTCustomImageList.Draw_1,
+    AddOverloadedMethod('Draw', @TSepiImportsTCustomImageList.Draw_1,
       'procedure(Canvas: TCanvas; X, Y, Index: Integer; ADrawingStyle: TDrawingStyle ; AImageType: TImageType ; Enabled: Boolean = True )');
-    AddMethod('OL$DrawOverlay$0', @TSepiImportsTCustomImageList.DrawOverlay_0,
+    AddOverloadedMethod('DrawOverlay', @TSepiImportsTCustomImageList.DrawOverlay_0,
       'procedure(Canvas: TCanvas; X, Y: Integer; ImageIndex: Integer ; Overlay: TOverlay ; Enabled: Boolean = True )');
-    AddMethod('OL$DrawOverlay$1', @TSepiImportsTCustomImageList.DrawOverlay_1,
+    AddOverloadedMethod('DrawOverlay', @TSepiImportsTCustomImageList.DrawOverlay_1,
       'procedure(Canvas: TCanvas; X, Y: Integer; ImageIndex: Integer ; Overlay: TOverlay ; ADrawingStyle: TDrawingStyle ; AImageType: TImageType ; Enabled: Boolean = True )');
     AddMethod('FileLoad', @TSepiImportsTCustomImageList.FileLoad,
       'function(ResType: TResType; const Name: string; MaskColor: TColor ) : Boolean');
@@ -310,9 +306,9 @@ begin
     AddMethod('GetHotSpot', @TSepiImportsTCustomImageList.GetHotSpot,
       'function: TPoint',
       mlkVirtual);
-    AddMethod('OL$GetIcon$0', @TSepiImportsTCustomImageList.GetIcon_0,
+    AddOverloadedMethod('GetIcon', @TSepiImportsTCustomImageList.GetIcon_0,
       'procedure(Index: Integer; Image: TIcon)');
-    AddMethod('OL$GetIcon$1', @TSepiImportsTCustomImageList.GetIcon_1,
+    AddOverloadedMethod('GetIcon', @TSepiImportsTCustomImageList.GetIcon_1,
       'procedure(Index: Integer; Image: TIcon; ADrawingStyle: TDrawingStyle; AImageType: TImageType )');
     AddMethod('GetImageBitmap', @TSepiImportsTCustomImageList.GetImageBitmap,
       'function: HBITMAP');
@@ -320,9 +316,9 @@ begin
       'function: HBITMAP');
     AddMethod('GetResource', @TSepiImportsTCustomImageList.GetResource,
       'function(ResType: TResType; const Name: string; Width: Integer ; LoadFlags: TLoadResources ; MaskColor: TColor ) : Boolean');
-    AddMethod('OL$GetInstRes$0', @TSepiImportsTCustomImageList.GetInstRes_0,
+    AddOverloadedMethod('GetInstRes', @TSepiImportsTCustomImageList.GetInstRes_0,
       'function(Instance: THandle; ResType: TResType; const Name: string; Width: Integer ; LoadFlags: TLoadResources ; MaskColor: TColor ) : Boolean');
-    AddMethod('OL$GetInstRes$1', @TSepiImportsTCustomImageList.GetInstRes_1,
+    AddOverloadedMethod('GetInstRes', @TSepiImportsTCustomImageList.GetInstRes_1,
       'function(Instance: THandle; ResType: TResType; ResID: DWORD; Width: Integer ; LoadFlags: TLoadResources ; MaskColor: TColor ) : Boolean');
     AddMethod('HandleAllocated', @TSepiImportsTCustomImageList.HandleAllocated,
       'function: Boolean');

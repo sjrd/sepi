@@ -2396,7 +2396,6 @@ begin
 
   with Result do
   begin
-    TSepiMetaOverloadedMethod.Create(Result, 'PaintTo', 2);
     CurrentVisibility := mvPrivate;
 
     AddField('FAlignLevel', System.TypeInfo(Word));
@@ -3082,9 +3081,9 @@ begin
     AddMethod('Invalidate', @TSepiImportsTWinControl.Invalidate,
       'procedure',
       mlkOverride);
-    AddMethod('OL$PaintTo$0', @TSepiImportsTWinControl.PaintTo_0,
+    AddOverloadedMethod('PaintTo', @TSepiImportsTWinControl.PaintTo_0,
       'procedure(DC: HDC; X, Y: Integer)');
-    AddMethod('OL$PaintTo$1', @TSepiImportsTWinControl.PaintTo_1,
+    AddOverloadedMethod('PaintTo', @TSepiImportsTWinControl.PaintTo_1,
       'procedure(Canvas: TCanvas; X, Y: Integer)');
     AddMethod('PreProcessMessage', @TSepiImportsTWinControl.PreProcessMessage,
       'function(var Msg: TMsg): Boolean',
@@ -4197,9 +4196,9 @@ begin
 
   // Global variables
   TSepiVariable.Create(Result, 'Mouse',
-     Mouse, TypeInfo(TMouse));
-  TSepiVariable.Create(Result, 'AnimateWindowProc',
-     @AnimateWindowProc, 'TAnimateWindowProc');
+    Mouse, TypeInfo(TMouse));
+  TSepiVariable.CreateProc(Result, 'AnimateWindowProc',
+    @@AnimateWindowProc, 'TAnimateWindowProc');
 
   // Routines
   TSepiMetaMethod.Create(Result, 'IsDragObject', @IsDragObject,
@@ -4235,9 +4234,9 @@ begin
 
   // Global variables
   TSepiVariable.Create(Result, 'CreationControl',
-     CreationControl, TypeInfo(TWinControl));
+    CreationControl, TypeInfo(TWinControl));
   TSepiVariable.Create(Result, 'DefaultDockTreeClass',
-     DefaultDockTreeClass, 'TDockTreeClass');
+    DefaultDockTreeClass, 'TDockTreeClass');
 
   // Routines
   TSepiMetaMethod.Create(Result, 'InitWndProc', @InitWndProc,
@@ -4249,11 +4248,11 @@ begin
   TSepiArrayType.Create(Result, '$2',
     [Integer(Low(TAlign)), Integer(High(TAlign))], TypeInfo(TAnchors), True);
   TSepiVariable.Create(Result, 'AnchorAlign',
-     AnchorAlign, '$2', True);
+    AnchorAlign, '$2', True);
 
   // Global variables
   TSepiVariable.Create(Result, 'NewStyleControls',
-     NewStyleControls, TypeInfo(Boolean));
+    NewStyleControls, TypeInfo(Boolean));
 
   // Routines
   TSepiMetaMethod.Create(Result, 'ChangeBiDiModeAlignment', @ChangeBiDiModeAlignment,

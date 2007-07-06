@@ -79,7 +79,6 @@ begin
 
   with Result do
   begin
-    TSepiMetaOverloadedMethod.Create(Result, 'ReadSections', 2);
     CurrentVisibility := mvPrivate;
 
     AddField('FFileName', System.TypeInfo(string));
@@ -141,10 +140,10 @@ begin
     AddMethod('ReadSection', nil,
       'procedure(const Section: string; Strings: TStrings)',
       mlkVirtual, True);
-    AddMethod('OL$ReadSections$0', nil,
+    AddOverloadedMethod('ReadSections', nil,
       'procedure(Strings: TStrings)',
       mlkVirtual, True);
-    AddMethod('OL$ReadSections$1', nil,
+    AddOverloadedMethod('ReadSections', nil,
       'procedure(const Section: string; Strings: TStrings)',
       mlkVirtual);
     AddMethod('ReadSectionValues', nil,
