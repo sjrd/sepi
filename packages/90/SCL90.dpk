@@ -43,7 +43,8 @@ contains
   ScDelphiLanguage in '..\..\source\run\SCL\ScDelphiLanguage.pas',
   ScWindows in '..\..\source\run\SCL\ScWindows.pas',
   ScZLib in '..\..\source\run\SCL\ScZLib.pas',
-  ScSyncObjs in '..\..\source\run\SCL\ScSyncObjs.pas';
+  ScSyncObjs in '..\..\source\run\SCL\ScSyncObjs.pas',
+  ScCompilerMagic in '..\..\source\run\SCL\ScCompilerMagic.pas';
 
 end.
 

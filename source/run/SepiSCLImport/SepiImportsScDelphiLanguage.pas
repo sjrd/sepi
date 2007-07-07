@@ -89,10 +89,6 @@ begin
     'function(const EnumSet; TypeInfo : PTypeInfo) : string');
   TSepiMetaMethod.Create(Result, 'StrToEnumSet', @StrToEnumSet,
     'procedure(const Str : string; TypeInfo : PTypeInfo; out EnumSet)');
-  TSepiMetaMethod.Create(Result, 'ExplicitInitialize', @ExplicitInitialize,
-    'procedure(var Value; TypeInfo : PTypeInfo; Count : Cardinal = 1 )');
-  TSepiMetaMethod.Create(Result, 'ExplicitFinalize', @ExplicitFinalize,
-    'procedure(var Value; TypeInfo : PTypeInfo; Count : Cardinal = 1 )');
   TSepiMetaMethod.Create(Result, 'SkipPackedShortString', @SkipPackedShortString,
     'function(Value : PShortstring) : Pointer');
   TSepiMetaMethod.Create(Result, 'JmpArgument', @JmpArgument,

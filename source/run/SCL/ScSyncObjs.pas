@@ -1,3 +1,8 @@
+{*
+  Définit des classes de synchronisations entre threads
+  @author Sébastien Jean Robert Doeraene
+  @version 1.0
+*}
 unit ScSyncObjs;
 
 interface

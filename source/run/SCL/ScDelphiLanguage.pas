@@ -57,11 +57,6 @@ function StrToCharSet(Str : string) : TSysCharSet;
 function EnumSetToStr(const EnumSet; TypeInfo : PTypeInfo) : string;
 procedure StrToEnumSet(const Str : string; TypeInfo : PTypeInfo; out EnumSet);
 
-procedure ExplicitInitialize(var Value; TypeInfo : PTypeInfo;
-  Count : Cardinal = 1);
-procedure ExplicitFinalize(var Value; TypeInfo : PTypeInfo;
-  Count : Cardinal = 1);
-
 function SkipPackedShortString(Value : PShortstring) : Pointer;
 
 function JmpArgument(JmpAddress, JmpDest : Pointer) : integer;
@@ -792,34 +787,6 @@ begin
   except
     raise EConvertError.CreateFmt(sScWrongEnumSet, [Str, SetName]);
   end;
-end;
-
-{*
-  Initialise une variable
-  Cette routine n'est rien de plus qu'un moyen d'appeler explicitement la
-  routine cachée _InitializeArray de l'unité System.
-  @param Value      Variable à initialiser
-  @param TypeInfo   RTTI du type de la variable
-  @param Count      Nombre d'éléments dans la variable
-*}
-procedure ExplicitInitialize(var Value; TypeInfo : PTypeInfo;
-  Count : Cardinal = 1);
-asm
-        JMP     System.@InitializeArray
-end;
-
-{*
-  Finalise une variable
-  Cette routine n'est rien de plus qu'un moyen d'appeler explicitement la
-  routine cachée _FinalizeArray de l'unité System.
-  @param Value      Variable à finaliser
-  @param TypeInfo   RTTI du type de la variable
-  @param Count      Nombre d'éléments dans la variable
-*}
-procedure ExplicitFinalize(var Value; TypeInfo : PTypeInfo;
-  Count : Cardinal = 1);
-asm
-        JMP     System.@FinalizeArray
 end;
 
 {*

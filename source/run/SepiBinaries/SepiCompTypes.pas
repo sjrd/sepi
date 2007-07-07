@@ -9,8 +9,8 @@ interface
 
 uses
   Windows, Classes, SysUtils, ScUtils, SepiMetaUnits, SysConst, TypInfo,
-  Contnrs, ScLists, StrUtils, ScStrUtils, ScDelphiLanguage, SepiBinariesConsts,
-  SepiCore;
+  Contnrs, ScLists, StrUtils, ScStrUtils, ScDelphiLanguage, ScCompilerMagic,
+  SepiBinariesConsts, SepiCore;
 
 const
   /// Pas d'index
@@ -140,7 +140,7 @@ type
   TSepiMetaMethod = class(TSepiMeta)
   private
     FCode : Pointer;                   /// Adresse de code natif
-    FCodeJumper : TJmpInstruction;     /// Jumper sur le code, si chargement
+    FCodeJumper : TJmpInstruction;     /// Jumper sur le code, si non native
     FSignature : TSepiMethodSignature; /// Signature de la méthode
     FLinkKind : TMethodLinkKind;       /// Type de liaison d'appel
     FFirstDeclaration : boolean;       /// Faux uniquement quand 'override'
@@ -1149,10 +1149,13 @@ begin
 
   MakeLink;
 
-  if Assigned(OwningUnit.OnGetMethodCode) then
-    OwningUnit.OnGetMethodCode(Self, FCode);
-  if not Assigned(FCode) then
-    FCode := @FCodeJumper;
+  if not IsAbstract then
+  begin
+    if Assigned(OwningUnit.OnGetMethodCode) then
+      OwningUnit.OnGetMethodCode(Self, FCode);
+    if not Assigned(FCode) then
+      FCode := @FCodeJumper;
+  end;
 end;
 
 {*
@@ -1189,8 +1192,13 @@ begin
 
   MakeLink;
 
-  if (Code = nil) and (Owner as TSepiType).Native then
-    FindNativeCode;
+  if (not IsAbstract) and (not Assigned(FCode)) then
+  begin
+    if (Owner as TSepiType).Native then
+      FindNativeCode
+    else
+      FCode := @FCodeJumper;
+  end;
 end;
 
 {*
@@ -1399,7 +1407,7 @@ end;
 {*
   Donne l'adresse de début du code de la méthode
   Cette méthode ne peut être appelée qu'une seule fois par méthode, et
-  seulement pour les méthodes chargées.
+  seulement pour les méthodes non natives.
   @param ACode   Nouvelle adresse de code
 *}
 procedure TSepiMetaMethod.SetCode(ACode : Pointer);
@@ -2816,7 +2824,8 @@ begin
     begin
       Meta := Children[I];
       if (Meta is TSepiMetaMethod) and
-         (TSepiMetaMethod(Meta).LinkKind in [mlkDynamic, mlkMessage]) then
+         (TSepiMetaMethod(Meta).LinkKind in [mlkDynamic, mlkMessage]) and
+         (not TSepiMetaMethod(Meta).IsAbstract) then
         Methods.Add(Meta);
     end;
     Count := Methods.Count;
@@ -2844,6 +2853,7 @@ end;
 *}
 procedure TSepiClass.MakeVMT;
 var PVMT : Pointer;
+    AbstractErrorProcAddress : Pointer;
     I : integer;
     Method : TSepiMetaMethod;
 begin
@@ -2873,11 +2883,17 @@ begin
     Parent.VMTSize - vmtMinMethodIndex);
 
   // Setting the new method addresses
+  AbstractErrorProcAddress := CompilerMagicRoutineAddress(@AbstractError);
   for I := 0 to ChildCount-1 do if Children[I] is TSepiMetaMethod then
   begin
     Method := TSepiMetaMethod(Children[I]);
     if Method.LinkKind = mlkVirtual then
-      VMTEntries[Method.VMTOffset] := Method.Code;
+    begin
+      if Method.IsAbstract then
+        VMTEntries[Method.VMTOffset] := AbstractErrorProcAddress
+      else
+        VMTEntries[Method.VMTOffset] := Method.Code;
+    end;
   end;
 
   // Making the other tables

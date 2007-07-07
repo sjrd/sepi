@@ -10,9 +10,14 @@ interface
 uses
   Windows, SysUtils, Classes, Contnrs, SysConst, RTLConsts, SepiCore, ScUtils,
   IniFiles, TypInfo, Variants, StrUtils, ScLists, ScStrUtils, ScDelphiLanguage,
-  ScSyncObjs, SepiBinariesConsts;
+  ScSyncObjs, ScCompilerMagic, SepiBinariesConsts;
 
 type
+  TSepiMeta = class;
+  TSepiMetaRoot = class;
+  TSepiMetaUnit = class;
+  TSepiAsynchronousRootManager = class;
+
   {*
     État d'un meta
   *}
@@ -25,7 +30,16 @@ type
     mvProtected, mvPublic, mvPublished);
 
   {*
-    Type de l'événement OnGetMethodCode de TSepiMetaRoot
+    Type de l'événement OnLoadUnit de TSepiMetaRoot
+    @param Sender     Racine Sepi qui demande le chargement d'une unité
+    @param UnitName   Nom de l'unité à charger
+    @return L'unité chargée, ou nil si l'unité n'est pas trouvée
+  *}
+  TSepiLoadUnitEvent = function(Sender : TSepiMetaRoot;
+    const UnitName : string) : TSepiMetaUnit of object;
+
+  {*
+    Type de l'événement OnGetMethodCode de TSepiMetaUnit
     @param Sender   Méthode déclenchant l'événement (toujours TSepiMetaMethod)
     @param Code     Adresse de code de la méthode
   *}
@@ -59,11 +73,6 @@ type
     @version 1.0
   *}
   ESepiBadConstTypeError = class(ESepiError);
-
-  TSepiMeta = class;
-  TSepiMetaRoot = class;
-  TSepiMetaUnit = class;
-  TSepiAsynchronousRootManager = class;
 
   {*
     Liste de meta
@@ -228,7 +237,8 @@ type
   *}
   TSepiMetaRoot = class(TSepiMeta)
   private
-    FSearchOrder : TObjectList; /// Ordre de recherche
+    FSearchOrder : TObjectList;       /// Ordre de recherche
+    FOnLoadUnit : TSepiLoadUnitEvent; /// Déclenché au chargement d'une unité
 
     function GetUnitCount : integer;
     function GetUnits(Index : integer) : TSepiMetaUnit;
@@ -249,6 +259,8 @@ type
 
     property UnitCount : integer read GetUnitCount;
     property Units[index : integer] : TSepiMetaUnit read GetUnits;
+
+    property OnLoadUnit : TSepiLoadUnitEvent read FOnLoadUnit write FOnLoadUnit;
   end;
 
   {*
@@ -465,6 +477,7 @@ begin
     with TStringList(SepiMetaClasses) do
     begin
       CaseSensitive := False;
+      Sorted := True;
       Duplicates := dupIgnore;
     end;
   end;
@@ -1236,6 +1249,7 @@ begin
   FRoot := Self;
   FState := msNormal;
   FSearchOrder := TObjectList.Create(False);
+  FOnLoadUnit := nil;
 
   LoadUnit(SystemUnitName);
 end;
@@ -1305,7 +1319,8 @@ begin
     if Assigned(ImportFunc) then
       Result := ImportFunc(Self);
 
-    { TODO 2 -cMetaunités : Charger une unité non système par son nom }
+    if (Result = nil) and Assigned(OnLoadUnit) then
+      Result := OnLoadUnit(Self, UnitName);
   end;
 
   if Result = nil then
@@ -2070,7 +2085,7 @@ begin
   inherited;
 
   if FOwnValue and FType.NeedInit then
-    ExplicitFinalize(FValue^, FType.TypeInfo);
+    Finalize(FValue^, FType.TypeInfo);
 end;
 
 {--------------------------}
