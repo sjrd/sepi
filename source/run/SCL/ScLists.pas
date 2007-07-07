@@ -8,7 +8,7 @@ unit ScLists;
 interface
 
 uses
-  SysUtils, Classes;
+  SysUtils, Classes, Contnrs;
 
 type
   {*
@@ -258,6 +258,30 @@ type
 
     property Items[index : integer] : Extended
       read GetItems write SetItems; default;
+  end;
+
+  {*
+    File d'attente
+    TScWaitingQueue ajoute à TQueue une méthode Cancel qui permet de supprimer
+    un élément de la liste, quelle que soit sa position.
+    @author Sébastien Jean Robert Doeraene
+    @version 1.0
+  *}
+  TScWaitingQueue = class(TQueue)
+  public
+    procedure Cancel(AItem : Pointer);
+  end;
+
+  {*
+    File d'attente d'objets
+    TScWaitingObjectQueue ajoute à TObjectQueue une méthode Cancel qui permet
+    de supprimer un objet de la liste, quel que soit sa position.
+    @author Sébastien Jean Robert Doeraene
+    @version 1.0
+  *}
+  TScWaitingObjectQueue = class(TObjectQueue)
+  public
+    procedure Cancel(AObject : TObject);
   end;
 
 var
@@ -1660,6 +1684,24 @@ begin
 end;
 
 {$ENDREGION}
+
+{-----------------------}
+{ TScWaitingQueue class }
+{-----------------------}
+
+procedure TScWaitingQueue.Cancel(AItem : Pointer);
+begin
+  List.Remove(AItem);
+end;
+
+{-----------------------------}
+{ TScWaitingObjectQueue class }
+{-----------------------------}
+
+procedure TScWaitingObjectQueue.Cancel(AObject : TObject);
+begin
+  List.Remove(AObject);
+end;
 
 {--------------------------------}
 { Initialization et Finalization }
