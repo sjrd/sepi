@@ -118,6 +118,8 @@ type
     FName : string;              /// Nom
     FForwards : TStrings;        /// Liste des enfants forwards
     FChildren : TSepiMetaList;   /// Liste des enfants
+    FObjResources : TObjectList; /// Liste des ressources objet
+    FPtrResources : TList;       /// Liste des ressources pointeur
 
     procedure AddChild(Child : TSepiMeta);
     procedure RemoveChild(Child : TSepiMeta);
@@ -154,6 +156,9 @@ type
     function GetFullName : string;
     function GetMeta(const Name : string) : TSepiMeta;
     function FindMeta(const Name : string) : TSepiMeta;
+
+    procedure AddObjResource(Obj : TObject);
+    procedure AddPtrResource(Ptr : Pointer);
 
     property IsForward : boolean read FIsForward;
     property Owner : TSepiMeta read FOwner;
@@ -294,7 +299,7 @@ type
 
     procedure SaveToStream(Stream : TStream);
     class function LoadFromStream(AOwner : TSepiMeta; Stream : TStream;
-      const AOnGetMethodCode : TGetMethodCodeEvent) : TSepiMetaUnit;
+      const AOnGetMethodCode : TGetMethodCodeEvent = nil) : TSepiMetaUnit;
 
     procedure ReadRef(Stream : TStream; out Ref);
     procedure AddRef(Ref : TSepiMeta);
@@ -704,6 +709,8 @@ begin
   FVisibility := mvPublic;
   FForwards := THashedStringList.Create;
   FChildren := TSepiMetaList.Create;
+  FObjResources := TObjectList.Create;
+  FPtrResources := TList.Create;
 
   if Assigned(FOwner) then
   begin
@@ -725,6 +732,14 @@ var I : integer;
 begin
   if State <> msDestroying then // only if an error has occured in constructor
     Destroying;
+
+  if Assigned(FPtrResources) then
+  begin
+    for I := 0 to FPtrResources.Count-1 do
+      FreeMem(FPtrResources[I]);
+    FPtrResources.Free;
+  end;
+  FObjResources.Free;
 
   if Assigned(FChildren) then
   begin
@@ -1014,6 +1029,28 @@ begin
   Result := GetMeta(Name);
   if (Result = nil) and (Name <> '') then
     raise ESepiMetaNotFoundError.CreateFmt(SSepiObjectNotFound, [Name]);
+end;
+
+{*
+  Ajoute un objet aux ressources du meta
+  Tous les objets ajoutés aux ressources du meta seront libérés lorsque le meta
+  sera libéré lui-même.
+  @param Obj   Objet à ajouter aux ressources
+*}
+procedure TSepiMeta.AddObjResource(Obj : TObject);
+begin
+  FObjResources.Add(Obj);
+end;
+
+{*
+  Ajoute un pointeur aux ressources du meta
+  Tous les pointeurs ajoutés aux ressources du meta seront libérés lorsque le
+  meta sera libéré lui-même.
+  @param Ptr   Pointeur à ajouter aux ressources
+*}
+procedure TSepiMeta.AddPtrResource(Ptr : Pointer);
+begin
+  FPtrResources.Add(Ptr);
 end;
 
 {------------------}
@@ -1636,7 +1673,7 @@ end;
 *}
 class function TSepiMetaUnit.LoadFromStream(AOwner : TSepiMeta;
   Stream : TStream;
-  const AOnGetMethodCode : TGetMethodCodeEvent) : TSepiMetaUnit;
+  const AOnGetMethodCode : TGetMethodCodeEvent = nil) : TSepiMetaUnit;
 begin
   Result := TSepiMetaUnit(NewInstance);
   Result.FOnGetMethodCode := AOnGetMethodCode;
