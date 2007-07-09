@@ -234,9 +234,9 @@ begin
 
   with Result do
   begin
-    AddField('Lo', System.TypeInfo(Byte), '');
+    AddFieldAfter('Lo', System.TypeInfo(Byte), '');
     AddField('Hi', System.TypeInfo(Byte), True);
-    AddField('Bytes', '$1', '');
+    AddFieldAfter('Bytes', '$1', '');
 
     Complete;
   end;
@@ -252,10 +252,10 @@ begin
 
   with Result do
   begin
-    AddField('Lo', System.TypeInfo(Word), '');
+    AddFieldAfter('Lo', System.TypeInfo(Word), '');
     AddField('Hi', System.TypeInfo(Word), True);
-    AddField('Words', '$2', '');
-    AddField('Bytes', '$3', '');
+    AddFieldAfter('Words', '$2', '');
+    AddFieldAfter('Bytes', '$3', '');
 
     Complete;
   end;
@@ -271,11 +271,11 @@ begin
 
   with Result do
   begin
-    AddField('Lo', System.TypeInfo(Cardinal), '');
+    AddFieldAfter('Lo', System.TypeInfo(Cardinal), '');
     AddField('Hi', System.TypeInfo(Cardinal), True);
-    AddField('Cardinals', '$4', '');
-    AddField('Words', '$5', '');
-    AddField('Bytes', '$6', '');
+    AddFieldAfter('Cardinals', '$4', '');
+    AddFieldAfter('Words', '$5', '');
+    AddFieldAfter('Bytes', '$6', '');
 
     Complete;
   end;

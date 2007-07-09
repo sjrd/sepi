@@ -331,10 +331,10 @@ begin
     AddField('RefCount', System.TypeInfo(Integer));
     AddField('Handle', System.TypeInfo(THandle));
     AddField('HashCode', System.TypeInfo(Word));
-    AddField('Data', 'TResData', 'HashCode');
-    AddField('Font', 'TFontData', 'HashCode');
-    AddField('Pen', 'TPenData', 'HashCode');
-    AddField('Brush', 'TBrushData', 'HashCode');
+    AddFieldAfter('Data', 'TResData', 'HashCode');
+    AddFieldAfter('Font', 'TFontData', 'HashCode');
+    AddFieldAfter('Pen', 'TPenData', 'HashCode');
+    AddFieldAfter('Brush', 'TBrushData', 'HashCode');
 
     Complete;
   end;

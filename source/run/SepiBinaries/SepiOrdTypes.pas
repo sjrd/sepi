@@ -586,6 +586,7 @@ begin
   inherited;
 
   FSize := 8;
+  FParamBehavior.AlwaysByStack := True;
   FMinValue := TypeData.MinInt64Value;
   FMaxValue := TypeData.MaxInt64Value;
 
@@ -680,6 +681,8 @@ begin
     ftDouble, ftComp, ftCurr : FSize := 8;
     ftExtended : FSize := 10;
   end;
+
+  FParamBehavior.AlwaysByStack := True;
 end;
 
 {*
@@ -1032,6 +1035,8 @@ begin
 
   FSize := (FCompType.MaxValue - FCompType.MinValue) div 8 + 1;
   if FSize = 3 then FSize := 4;
+
+  FParamBehavior.AlwaysByAddress := Size > 4;
 end;
 
 {*

@@ -126,6 +126,7 @@ begin
 
   FMaxLength := TypeData.MaxLength;
   FSize := FMaxLength + 1;
+  FParamBehavior.AlwaysByAddress := True;
 end;
 
 {*

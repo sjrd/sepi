@@ -25,11 +25,11 @@ begin
 
   with Result do
   begin
-    AddField('A', System.TypeInfo(LongInt), '');
+    AddFieldAfter('A', System.TypeInfo(LongInt), '');
     AddField('B', System.TypeInfo(LongInt), True);
     AddField('C', System.TypeInfo(LongInt), True);
     AddField('D', System.TypeInfo(LongInt), True);
-    AddField('V', '$1', '');
+    AddFieldAfter('V', '$1', '');
 
     Complete;
   end;

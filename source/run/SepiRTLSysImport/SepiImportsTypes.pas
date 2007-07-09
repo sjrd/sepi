@@ -42,11 +42,11 @@ begin
 
   with Result do
   begin
-    AddField('Left', System.TypeInfo(Longint), '');
+    AddFieldAfter('Left', System.TypeInfo(Longint), '');
     AddField('Top', System.TypeInfo(Longint), True);
     AddField('Right', System.TypeInfo(Longint), True);
     AddField('Bottom', System.TypeInfo(Longint), True);
-    AddField('TopLeft', 'TPoint', '');
+    AddFieldAfter('TopLeft', 'TPoint', '');
     AddField('BottomRight', 'TPoint', True);
 
     Complete;

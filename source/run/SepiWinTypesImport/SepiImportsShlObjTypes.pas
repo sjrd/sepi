@@ -849,10 +849,10 @@ begin
   with Result do
   begin
     AddField('uType', System.TypeInfo(UINT));
-    AddField('pOleStr', 'LPWSTR', 'uType');
-    AddField('pStr', 'LPSTR', 'uType');
-    AddField('uOffset', System.TypeInfo(UINT), 'uType');
-    AddField('cStr', '$3', 'uType');
+    AddFieldAfter('pOleStr', 'LPWSTR', 'uType');
+    AddFieldAfter('pStr', 'LPSTR', 'uType');
+    AddFieldAfter('uOffset', System.TypeInfo(UINT), 'uType');
+    AddFieldAfter('cStr', '$3', 'uType');
 
     Complete;
   end;

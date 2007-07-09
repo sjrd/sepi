@@ -8,9 +8,9 @@ unit SepiCompTypes;
 interface
 
 uses
-  Windows, Classes, SysUtils, ScUtils, SepiMetaUnits, SysConst, TypInfo,
-  Contnrs, ScLists, StrUtils, ScStrUtils, ScDelphiLanguage, ScCompilerMagic,
-  SepiBinariesConsts, SepiCore;
+  Windows, Classes, SysUtils, RTLConsts, ScUtils, SepiMetaUnits, SysConst,
+  TypInfo, Contnrs, ScLists, StrUtils, ScStrUtils, ScDelphiLanguage,
+  ScCompilerMagic, SepiBinariesConsts, SepiCore;
 
 const
   /// Pas d'index
@@ -20,6 +20,25 @@ const
   NoDefaultValue = integer($80000000);
 
 type
+  {*
+    Type de paramètres
+    - spkNormal : paramètre normal
+    - spkSelf : paramètre Self des méthodes
+    - spkResult : paramètre Result des fonctions
+    - spkAlloc : paramètre $Alloc des constructeurs
+    - spkFree : paramètre $Free des destructeurs
+  *}
+  TSepiParamKind = (pkNormal, pkSelf, pkResult, pkAlloc, pkFree);
+
+  {*
+    Emplacement d'un paramètre
+    - ppEAX : registre EAX
+    - ppEDX : registre EDX
+    - ppECX : registre ECX
+    - ppStack : sur la pile
+  *}
+  TSepiParamPlace = (ppEAX, ppEDX, ppECX, ppStack);
+
   {*
     Type de liaison d'une méthode
     - mlkStatic : méthode statique (ni virtuelle ni dynamique)
@@ -71,15 +90,35 @@ type
   end;
 
   {*
+    Informations d'appel d'un paramètre (ou et comment le passer)
+    @author Sébastien Jean Robert Doeraene
+    @version 1.0
+  *}
+  TSepiParamCallInfo = record
+    ByAddress : boolean;     /// True pour le passer par adresse
+    Place : TSepiParamPlace; /// Endroit où le placer
+    StackOffset : Word;      /// Offset où le placer dans la pile
+  end;
+
+  {*
     Meta-paramètre de méthode
+    Les paramètres cachés ont aussi leur existence en tant que TSepiMetaParam.
+    Les trois types de paramètres cachés sont Self (class ou instance), Result
+    (qui peut être passé par adresse ou pas), le paramètre spécial $Alloc des
+    constructeurs et le paramètre spécial $Free des destructeurs.
     @author Sébastien Jean Robert Doeraene
     @version 1.0
   *}
   TSepiMetaParam = class(TSepiMeta)
   private
-    FType : TSepiType;    /// Type du paramètre (peut être nil)
-    FFlags : TParamFlags; /// Flags du paramètre
+    FKind : TSepiParamKind; /// Type de paramètre
+    FType : TSepiType;      /// Type du paramètre (peut être nil)
+    FFlags : TParamFlags;   /// Flags du paramètre
 
+    FCallInfo : TSepiParamCallInfo; /// Informations d'appel du paramètre
+
+    constructor CreateHidden(AOwner : TSepiMeta; AKind : TSepiParamKind;
+      AType : TSepiType = nil);
     constructor RegisterParamData(AOwner : TSepiMeta; var ParamData : Pointer);
     class procedure CreateFromString(AOwner : TSepiMeta;
       const Definition : string);
@@ -94,8 +133,10 @@ type
     function Equals(AParam : TSepiMetaParam) : boolean;
     function CompatibleWith(AType : TSepiType) : boolean;
 
+    property Kind : TSepiParamKind read FKind;
     property ParamType : TSepiType read FType;
     property Flags : TParamFlags read FFlags;
+    property CallInfo : TSepiParamCallInfo read FCallInfo;
   end;
 
   {*
@@ -110,8 +151,17 @@ type
     FReturnType : TSepiType;                 /// Type de retour
     FCallingConvention : TCallingConvention; /// Convention d'appel
 
+    FRegUsage : Byte;   /// Nombre de registres utilisés (entre 0 et 3)
+    FStackUsage : Word; /// Taille utilisée sur la pile (en octets)
+
+    procedure MakeCallInfo;
+
     function GetParamCount : integer;
     function GetParams(Index : integer) : TSepiMetaParam;
+    function GetActualParamCount : integer;
+    function GetActualParams(Index : integer) : TSepiMetaParam;
+
+    function GetHiddenParam(Kind : TSepiParamKind) : TSepiMetaParam;
   protected
     procedure ListReferences;
     procedure Save(Stream : TStream);
@@ -126,10 +176,25 @@ type
 
     property Owner : TSepiMeta read FOwner;
     property Kind : TMethodKind read FKind;
+
     property ParamCount : integer read GetParamCount;
     property Params[index : integer] : TSepiMetaParam read GetParams;
+    property ActualParamCount : integer read GetActualParamCount;
+    property ActualParams[index : integer] : TSepiMetaParam
+      read GetActualParams;
+
     property ReturnType : TSepiType read FReturnType;
     property CallingConvention : TCallingConvention read FCallingConvention;
+
+    property HiddenParam[Kind : TSepiParamKind] : TSepiMetaParam
+      read GetHiddenParam;
+    property SelfParam   : TSepiMetaParam index pkSelf   read GetHiddenParam;
+    property ResultParam : TSepiMetaParam index pkResult read GetHiddenParam;
+    property AllocParam  : TSepiMetaParam index pkAlloc  read GetHiddenParam;
+    property FreeParam   : TSepiMetaParam index pkFree   read GetHiddenParam;
+
+    property RegUsage : Byte read FRegUsage;
+    property StackUsage : Word read FStackUsage;
   end;
 
   {*
@@ -319,9 +384,9 @@ type
     FAlignment : integer; /// Alignement
     FCompleted : boolean; /// Indique si le record est entièrement défini
 
-    function AddField(const FieldName : string; FieldType : TSepiType;
+    function PrivAddField(const FieldName : string; FieldType : TSepiType;
       After : TSepiMetaField;
-      ForcePack : boolean = False) : TSepiMetaField; overload;
+      ForcePack : boolean = False) : TSepiMetaField;
 
     procedure MakeTypeInfo;
   protected
@@ -338,17 +403,18 @@ type
 
     function AddField(const FieldName : string; FieldType : TSepiType;
       ForcePack : boolean = False) : TSepiMetaField; overload;
-    function AddField(const FieldName : string; FieldType : TSepiType;
-      const After : string;
-      ForcePack : boolean = False) : TSepiMetaField; overload;
     function AddField(const FieldName : string; FieldTypeInfo : PTypeInfo;
-      ForcePack : boolean = False) : TSepiMetaField; overload;
-    function AddField(const FieldName : string; FieldTypeInfo : PTypeInfo;
-      const After : string;
       ForcePack : boolean = False) : TSepiMetaField; overload;
     function AddField(const FieldName, FieldTypeName : string;
       ForcePack : boolean = False) : TSepiMetaField; overload;
-    function AddField(const FieldName, FieldTypeName : string;
+
+    function AddFieldAfter(const FieldName : string; FieldType : TSepiType;
+      const After : string;
+      ForcePack : boolean = False) : TSepiMetaField; overload;
+    function AddFieldAfter(const FieldName : string; FieldTypeInfo : PTypeInfo;
+      const After : string;
+      ForcePack : boolean = False) : TSepiMetaField; overload;
+    function AddFieldAfter(const FieldName, FieldTypeName : string;
       const After : string;
       ForcePack : boolean = False) : TSepiMetaField; overload;
 
@@ -645,6 +711,11 @@ const
   /// Format du nom d'une méthode surchargée
   OverloadedNameFormat = 'OL$%s$%d';
 
+  /// Noms des paramètres cachés
+  HiddenParamNames : array[TSepiParamKind] of string = (
+    '', 'Self', 'Result', '$Alloc', '$Free'
+  );
+
   /// Chaînes des types de méthode
   MethodKindStrings : array[mkProcedure..mkProperty] of string = (
     'procedure', 'function', 'constructor', 'destructor',
@@ -801,6 +872,38 @@ end;
 {-----------------------}
 
 {*
+  Crée un paramètre caché
+  @param AOwner   Propriétaire du paramètre
+  @param AKind    Type de paramètre caché (doit être différent de pkNormal)
+  @param AType    Type du paramètre (uniquement pour AKind = pkResult)
+*}
+constructor TSepiMetaParam.CreateHidden(AOwner : TSepiMeta;
+  AKind : TSepiParamKind; AType : TSepiType = nil);
+begin
+  Assert(AKind <> pkNormal);
+  inherited Create(AOwner, HiddenParamNames[AKind]);
+
+  FKind := AKind;
+  FFlags := [];
+
+  case Kind of
+    pkSelf :
+    begin
+      if Owner.Owner is TSepiClass then
+        FType := TSepiClass(Owner.Owner)
+      else
+        FType := Root.FindType(TypeInfo(TObject));
+    end;
+    pkResult :
+    begin
+      FType := AType;
+      FFlags := [pfOut];
+    end;
+    else FType := Root.FindType(TypeInfo(Boolean));
+  end;
+end;
+
+{*
   Crée un paramètre depuis les données de type d'une référence de méthode
   En sortie, le pointeur ParamData a avancé jusqu'au paramètre suivant
   @param AOwner      Propriétaire du paramètre
@@ -811,6 +914,7 @@ constructor TSepiMetaParam.RegisterParamData(AOwner : TSepiMeta;
 var AFlags : TParamFlags;
     AName, ATypeStr : string;
 begin
+  FKind := pkNormal;
   AFlags := TParamFlags(ParamData^);
   inc(LongInt(ParamData), sizeof(TParamFlags));
   AName := PShortString(ParamData)^;
@@ -876,8 +980,11 @@ constructor TSepiMetaParam.Load(AOwner : TSepiMeta; Stream : TStream);
 begin
   inherited;
 
+  Stream.ReadBuffer(FKind, 1);
   OwningUnit.ReadRef(Stream, FType);
   Stream.ReadBuffer(FFlags, 1);
+
+  Stream.ReadBuffer(FCallInfo, sizeof(TSepiParamCallInfo));
 end;
 
 {*
@@ -892,6 +999,7 @@ constructor TSepiMetaParam.Create(AOwner : TSepiMeta; const AName : string;
 begin
   inherited Create(AOwner, AName);
 
+  FKind := pkNormal;
   FType := AType;
   FFlags := AFlags;
 end;
@@ -911,8 +1019,12 @@ end;
 procedure TSepiMetaParam.Save(Stream : TStream);
 begin
   inherited;
+
+  Stream.WriteBuffer(FKind, 1);
   OwningUnit.WriteRef(Stream, FType);
   Stream.WriteBuffer(FFlags, 1);
+
+  Stream.WriteBuffer(FCallInfo, sizeof(TSepiParamCallInfo));
 end;
 
 {*
@@ -955,11 +1067,17 @@ begin
   FKind := ATypeData.MethodKind;
   ParamData := @ATypeData.ParamList;
 
+  TSepiMetaParam.CreateHidden(FOwner, pkSelf);
   for I := 1 to ATypeData.ParamCount do
     TSepiMetaParam.RegisterParamData(FOwner, ParamData);
 
   FReturnType := FOwner.Root.FindType(PShortString(ParamData)^);
   FCallingConvention := ccRegister;
+
+  if ReturnType <> nil then
+    TSepiMetaParam.CreateHidden(FOwner, pkResult, ReturnType);
+
+  MakeCallInfo;
 end;
 
 {*
@@ -975,6 +1093,8 @@ begin
   Stream.ReadBuffer(FKind, 1);
   FOwner.OwningUnit.ReadRef(Stream, FReturnType);
   Stream.ReadBuffer(FCallingConvention, 1);
+  Stream.ReadBuffer(FRegUsage, 1);
+  Stream.ReadBuffer(FStackUsage, 2);
 
   // Parameters should be loaded by the owner, for they are children of it
 end;
@@ -1025,6 +1145,13 @@ begin
   end else ReturnTypePos := Length(ASignature);
 
   // Paramètres
+  if ((Kind in mkOfObject) or (Kind = mkProperty)) and
+     (CallingConvention <> ccPascal) then
+    TSepiMetaParam.CreateHidden(FOwner, pkSelf);
+
+  if Kind in [mkConstructor, mkDestructor] then
+    TSepiMetaParam.CreateHidden(FOwner, pkAlloc);
+
   if ParamPos < ReturnTypePos then
   begin
     while not (ASignature[ParamPos] in [')', ']', ':']) do
@@ -1036,6 +1163,89 @@ begin
       ParamPos := ParamEnd;
     end;
   end;
+
+  if ReturnType <> nil then
+    TSepiMetaParam.CreateHidden(FOwner, pkResult, ReturnType);
+
+  if ((Kind in mkOfObject) or (Kind = mkProperty)) and
+     (CallingConvention = ccPascal) then
+    TSepiMetaParam.CreateHidden(FOwner, pkSelf);
+
+  MakeCallInfo;
+end;
+
+{*
+  Construit les informations d'appel de la signature
+*}
+procedure TSepiMethodSignature.MakeCallInfo;
+var I, ParamCount : integer;
+    Param : TSepiMetaParam;
+begin
+  if CallingConvention = ccRegister then
+    FRegUsage := 0
+  else
+    FRegUsage := 3;
+  FStackUsage := 0;
+
+  ParamCount := ActualParamCount;
+
+  for I := 0 to ParamCount-1 do
+  begin
+    // pascal calling convention works in the opposite direction
+    if CallingConvention = ccPascal then
+      Param := ActualParams[ParamCount-I-1]
+    else
+      Param := ActualParams[I];
+
+    with Param.ParamType, Param, FCallInfo do
+    begin
+      // By address or by value?
+      if Kind <> pkResult then
+      begin
+        if pfArray in Flags then
+          ByAddress := (pfVar in Flags) or (pfOut in Flags)
+        else if ParamType = nil then
+          ByAddress := True
+        else
+          ByAddress := ParamBehavior.AlwaysByAddress or
+            (pfVar in Flags) or (pfOut in Flags);
+
+        if ByAddress or (pfArray in Flags) or
+           (not ParamBehavior.AlwaysByStack) then
+          Byte(Place) := FRegUsage
+        else
+          Place := ppStack;
+      end else
+      begin
+        ByAddress := ParamBehavior.AlwaysByAddress;
+        Place := ppEAX;
+        StackOffset := 0;
+      end;
+
+      // Where to place it?
+      if ByAddress or (Kind <> pkResult) then
+      begin
+        if Place = ppStack then
+        begin
+          StackOffset := FStackUsage;
+          if ByAddress or (pfArray in Flags) then
+            inc(FStackUsage, 4) else
+          begin
+            inc(FStackUsage, Size);
+            if FStackUsage mod 4 <> 0 then
+              FStackUsage := FStackUsage + 4 - (FStackUsage mod 4);
+          end;
+        end else
+        begin
+          inc(FRegUsage);
+          StackOffset := 0;
+        end;
+      end;
+    end;
+  end;
+
+  if CallingConvention <> ccRegister then
+    FRegUsage := 0;
 end;
 
 {*
@@ -1043,8 +1253,17 @@ end;
   @return Nombre de paramètres
 *}
 function TSepiMethodSignature.GetParamCount : integer;
+var I : integer;
+    Child : TSepiMeta;
 begin
-  Result := FOwner.ChildCount;
+  Result := 0;
+  for I := 0 to Owner.ChildCount-1 do
+  begin
+    Child := Owner.Children[I];
+    if (Child is TSepiMetaParam) and
+       (TSepiMetaParam(Child).Kind = pkNormal) then
+      inc(Result);
+  end;
 end;
 
 {*
@@ -1053,10 +1272,92 @@ end;
   @return Paramètre situé à l'index Index
 *}
 function TSepiMethodSignature.GetParams(Index : integer) : TSepiMetaParam;
+var I : integer;
+    Child : TSepiMeta;
 begin
-  { Here, we can't guarantee that all children are TSepiMetaParam, so we
-    check it with an as operator. }
-  Result := FOwner.Children[Index] as TSepiMetaParam;
+  for I := 0 to Owner.ChildCount-1 do
+  begin
+    Child := Owner.Children[I];
+    if (Child is TSepiMetaParam) and
+       (TSepiMetaParam(Child).Kind = pkNormal) then
+    begin
+      if Index > 0 then dec(Index) else
+      begin
+        Result := TSepiMetaParam(Child);
+        exit;
+      end;
+    end;
+  end;
+
+  raise EListError.CreateFmt(SListIndexError, [Index]);
+end;
+
+{*
+  Nombre de paramètres réels (incluant les paramètres cachés)
+  @return Nombre de paramètres réels
+*}
+function TSepiMethodSignature.GetActualParamCount : integer;
+var I : integer;
+    Child : TSepiMeta;
+begin
+  Result := 0;
+  for I := 0 to Owner.ChildCount-1 do
+  begin
+    Child := Owner.Children[I];
+    if Child is TSepiMetaParam then
+      inc(Result);
+  end;
+end;
+
+{*
+  Tableau zero-based des paramètres réels (incluant les paramètres cachés)
+  @param Index   Index du paramètre à récupérer
+  @return Paramètre situé à l'index Index
+*}
+function TSepiMethodSignature.GetActualParams(Index : integer) : TSepiMetaParam;
+var I : integer;
+    Child : TSepiMeta;
+begin
+  for I := 0 to Owner.ChildCount-1 do
+  begin
+    Child := Owner.Children[I];
+    if Child is TSepiMetaParam then
+    begin
+      if Index > 0 then dec(Index) else
+      begin
+        Result := TSepiMetaParam(Child);
+        exit;
+      end;
+    end;
+  end;
+
+  raise EListError.CreateFmt(SListIndexError, [Index]);
+end;
+
+{*
+  Paramètres cachés d'après leur type
+  @param Kind   Type de paramètre caché
+  @return Le paramètre caché correspondant, ou nil s'il n'y en a pas
+*}
+function TSepiMethodSignature.GetHiddenParam(
+  Kind : TSepiParamKind) : TSepiMetaParam;
+var I : integer;
+    Child : TSepiMeta;
+begin
+  Assert(Kind <> pkNormal);
+
+  for I := 0 to Owner.ChildCount-1 do
+  begin
+    Child := Owner.Children[I];
+    if (Child is TSepiMetaParam) and
+       (TSepiMetaParam(Child).Kind = Kind) then
+    begin
+      Result := TSepiMetaParam(Child);
+      exit;
+    end;
+  end;
+
+  Result := nil;
 end;
 
 {*
@@ -1075,6 +1376,8 @@ begin
   Stream.WriteBuffer(FKind, 1);
   Owner.OwningUnit.WriteRef(Stream, FReturnType);
   Stream.WriteBuffer(FCallingConvention, 1);
+  Stream.WriteBuffer(FRegUsage, 1);
+  Stream.WriteBuffer(FStackUsage, 2);
 
   // Parameters should be saved by the owner, for they are children of it
 end;
@@ -1827,7 +2130,7 @@ end;
   @param ForcePack   Force un pack sur ce champ si True
   @return Champ nouvellement ajouté
 *}
-function TSepiRecordType.AddField(const FieldName : string;
+function TSepiRecordType.PrivAddField(const FieldName : string;
   FieldType : TSepiType; After : TSepiMetaField;
   ForcePack : boolean = False) : TSepiMetaField;
 var Offset : integer;
@@ -1931,23 +2234,7 @@ begin
   if ChildCount = 0 then LastField := nil else
     LastField := TSepiMetaField(Children[ChildCount-1]);
 
-  Result := AddField(FieldName, FieldType, LastField, ForcePack);
-end;
-
-{*
-  Ajoute un champ au record après un champ donné en mémoire
-  @param FieldName   Nom du champ
-  @param FieldType   Type du champ
-  @param After       Nom du champ précédent en mémoire (vide pour le début)
-  @param ForcePack   Force un pack sur ce champ si True
-  @return Champ nouvellement ajouté
-*}
-function TSepiRecordType.AddField(const FieldName : string;
-  FieldType : TSepiType; const After : string;
-  ForcePack : boolean = False) : TSepiMetaField;
-begin
-  Result := AddField(FieldName, FieldType,
-    TSepiMetaField(FindMeta(After)), ForcePack);
+  Result := PrivAddField(FieldName, FieldType, LastField, ForcePack);
 end;
 
 {*
@@ -1961,22 +2248,6 @@ function TSepiRecordType.AddField(const FieldName : string;
   FieldTypeInfo : PTypeInfo; ForcePack : boolean = False) : TSepiMetaField;
 begin
   Result := AddField(FieldName, Root.FindType(FieldTypeInfo), ForcePack);
-end;
-
-{*
-  Ajoute un champ au record après un champ donné en mémoire
-  @param FieldName       Nom du champ
-  @param FieldTypeInfo   RTTI du type du champ
-  @param After           Nom du champ précédent en mémoire (vide pour le début)
-  @param ForcePack       Force un pack sur ce champ si True
-  @return Champ nouvellement ajouté
-*}
-function TSepiRecordType.AddField(const FieldName : string;
-  FieldTypeInfo : PTypeInfo; const After : string;
-  ForcePack : boolean = False) : TSepiMetaField;
-begin
-  Result := AddField(FieldName, Root.FindType(FieldTypeInfo),
-    TSepiMetaField(FindMeta(After)), ForcePack);
 end;
 
 {*
@@ -1994,17 +2265,49 @@ end;
 
 {*
   Ajoute un champ au record après un champ donné en mémoire
+  @param FieldName   Nom du champ
+  @param FieldType   Type du champ
+  @param After       Nom du champ précédent en mémoire (vide pour le début)
+  @param ForcePack   Force un pack sur ce champ si True
+  @return Champ nouvellement ajouté
+*}
+function TSepiRecordType.AddFieldAfter(const FieldName : string;
+  FieldType : TSepiType; const After : string;
+  ForcePack : boolean = False) : TSepiMetaField;
+begin
+  Result := PrivAddField(FieldName, FieldType,
+    TSepiMetaField(FindMeta(After)), ForcePack);
+end;
+
+{*
+  Ajoute un champ au record après un champ donné en mémoire
+  @param FieldName       Nom du champ
+  @param FieldTypeInfo   RTTI du type du champ
+  @param After           Nom du champ précédent en mémoire (vide pour le début)
+  @param ForcePack       Force un pack sur ce champ si True
+  @return Champ nouvellement ajouté
+*}
+function TSepiRecordType.AddFieldAfter(const FieldName : string;
+  FieldTypeInfo : PTypeInfo; const After : string;
+  ForcePack : boolean = False) : TSepiMetaField;
+begin
+  Result := PrivAddField(FieldName, Root.FindType(FieldTypeInfo),
+    TSepiMetaField(FindMeta(After)), ForcePack);
+end;
+
+{*
+  Ajoute un champ au record après un champ donné en mémoire
   @param FieldName       Nom du champ
   @param FieldTypeName   Nom du type du champ
   @param After           Nom du champ précédent en mémoire (vide pour le début)
   @param ForcePack       Force un pack sur ce champ si True
   @return Champ nouvellement ajouté
 *}
-function TSepiRecordType.AddField(
+function TSepiRecordType.AddFieldAfter(
   const FieldName, FieldTypeName, After : string;
   ForcePack : boolean = False) : TSepiMetaField;
 begin
-  Result := AddField(FieldName, Root.FindType(FieldTypeName),
+  Result := PrivAddField(FieldName, Root.FindType(FieldTypeName),
     TSepiMetaField(FindMeta(After)), ForcePack);
 end;
 
@@ -2018,6 +2321,8 @@ begin
   FCompleted := True;
   if not IsPacked then
     AlignOffset(FSize);
+  if Size > 4 then
+    FParamBehavior.AlwaysByAddress := True;
   if TypeInfo = nil then
     MakeTypeInfo;
 end;

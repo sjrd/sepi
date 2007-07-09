@@ -230,10 +230,10 @@ begin
     AddField('ShiftState', System.TypeInfo(TShiftState));
     AddField('Unused', System.TypeInfo(Byte));
     AddField('WheelDelta', System.TypeInfo(SmallInt));
-    AddField('XPos', System.TypeInfo(Smallint), 'WheelDelta');
-    AddField('YPos', System.TypeInfo(Smallint), 'XPos');
-    AddField('Pos', 'TSmallPoint', 'WheelDelta');
-    AddField('Result', System.TypeInfo(Longint), 'Pos');
+    AddFieldAfter('XPos', System.TypeInfo(Smallint), 'WheelDelta');
+    AddFieldAfter('YPos', System.TypeInfo(Smallint), 'XPos');
+    AddFieldAfter('Pos', 'TSmallPoint', 'WheelDelta');
+    AddFieldAfter('Result', System.TypeInfo(Longint), 'Pos');
 
     Complete;
   end;

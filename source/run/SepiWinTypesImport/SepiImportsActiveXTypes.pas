@@ -1016,14 +1016,14 @@ begin
   with Result do
   begin
     AddField('tymed', System.TypeInfo(Longint));
-    AddField('hBitmap', System.TypeInfo(HBitmap), 'tymed');
-    AddField('unkForRelease', 'Pointer', 'hBitmap');
-    AddField('hMetaFilePict', System.TypeInfo(THandle), 'tymed');
-    AddField('hEnhMetaFile', System.TypeInfo(THandle), 'tymed');
-    AddField('hGlobal', System.TypeInfo(HGlobal), 'tymed');
-    AddField('lpszFileName', 'POleStr', 'tymed');
-    AddField('stm', 'Pointer', 'tymed');
-    AddField('stg', 'Pointer', 'tymed');
+    AddFieldAfter('hBitmap', System.TypeInfo(HBitmap), 'tymed');
+    AddFieldAfter('unkForRelease', 'Pointer', 'hBitmap');
+    AddFieldAfter('hMetaFilePict', System.TypeInfo(THandle), 'tymed');
+    AddFieldAfter('hEnhMetaFile', System.TypeInfo(THandle), 'tymed');
+    AddFieldAfter('hGlobal', System.TypeInfo(HGlobal), 'tymed');
+    AddFieldAfter('lpszFileName', 'POleStr', 'tymed');
+    AddFieldAfter('stm', 'Pointer', 'tymed');
+    AddFieldAfter('stg', 'Pointer', 'tymed');
 
     Complete;
   end;
@@ -1354,13 +1354,13 @@ begin
   with Result do
   begin
     AddField('wReserved', System.TypeInfo(Word));
-    AddField('scale', System.TypeInfo(Byte), 'wReserved');
+    AddFieldAfter('scale', System.TypeInfo(Byte), 'wReserved');
     AddField('sign', System.TypeInfo(Byte), True);
-    AddField('Hi32', System.TypeInfo(Longint), 'sign');
-    AddField('Lo32', System.TypeInfo(Longint), 'Hi32');
+    AddFieldAfter('Hi32', System.TypeInfo(Longint), 'sign');
+    AddFieldAfter('Lo32', System.TypeInfo(Longint), 'Hi32');
     AddField('Mid32', System.TypeInfo(Longint), True);
-    AddField('Lo64', System.TypeInfo(LONGLONG), 'Hi32');
-    AddField('signscale', System.TypeInfo(Word), 'wReserved');
+    AddFieldAfter('Lo64', System.TypeInfo(LONGLONG), 'Hi32');
+    AddFieldAfter('signscale', System.TypeInfo(Word), 'wReserved');
 
     Complete;
   end;
@@ -1755,49 +1755,49 @@ begin
     AddField('wReserved1', System.TypeInfo(Word));
     AddField('wReserved2', System.TypeInfo(Word));
     AddField('wReserved3', System.TypeInfo(Word));
-    AddField('bVal', System.TypeInfo(Byte), 'wReserved3');
-    AddField('iVal', System.TypeInfo(SmallInt), 'wReserved3');
-    AddField('uiVal', System.TypeInfo(Word), 'wReserved3');
-    AddField('boolVal', System.TypeInfo(TOleBool), 'wReserved3');
-    AddField('bool', System.TypeInfo(TOleBool), 'wReserved3');
-    AddField('lVal', System.TypeInfo(Longint), 'wReserved3');
-    AddField('ulVal', System.TypeInfo(Cardinal), 'wReserved3');
-    AddField('fltVal', System.TypeInfo(Single), 'wReserved3');
-    AddField('scode', System.TypeInfo(SCODE), 'wReserved3');
-    AddField('hVal', 'LARGE_INTEGER', 'wReserved3');
-    AddField('uhVal', 'ULARGE_INTEGER', 'wReserved3');
-    AddField('dblVal', System.TypeInfo(Double), 'wReserved3');
-    AddField('cyVal', System.TypeInfo(Currency), 'wReserved3');
-    AddField('date', System.TypeInfo(TOleDate), 'wReserved3');
-    AddField('filetime', 'TFileTime', 'wReserved3');
-    AddField('puuid', 'PGUID', 'wReserved3');
-    AddField('blob', 'TBlob', 'wReserved3');
-    AddField('pclipdata', 'PClipData', 'wReserved3');
-    AddField('pStream', 'Pointer', 'wReserved3');
-    AddField('pStorage', 'Pointer', 'wReserved3');
-    AddField('bstrVal', 'TBStr', 'wReserved3');
-    AddField('pszVal', 'PAnsiChar', 'wReserved3');
-    AddField('pwszVal', 'PWideChar', 'wReserved3');
-    AddField('caub', 'TCAUB', 'wReserved3');
-    AddField('cai', 'TCAI', 'wReserved3');
-    AddField('caui', 'TCAUI', 'wReserved3');
-    AddField('cabool', 'TCABOOL', 'wReserved3');
-    AddField('cal', 'TCAL', 'wReserved3');
-    AddField('caul', 'TCAUL', 'wReserved3');
-    AddField('caflt', 'TCAFLT', 'wReserved3');
-    AddField('cascode', 'TCASCODE', 'wReserved3');
-    AddField('cah', 'TCAH', 'wReserved3');
-    AddField('cauh', 'TCAUH', 'wReserved3');
-    AddField('cadbl', 'TCADBL', 'wReserved3');
-    AddField('cacy', 'TCACY', 'wReserved3');
-    AddField('cadate', 'TCADATE', 'wReserved3');
-    AddField('cafiletime', 'TCAFILETIME', 'wReserved3');
-    AddField('cauuid', 'TCACLSID', 'wReserved3');
-    AddField('caclipdata', 'TCACLIPDATA', 'wReserved3');
-    AddField('cabstr', 'TCABSTR', 'wReserved3');
-    AddField('calpstr', 'TCALPSTR', 'wReserved3');
-    AddField('calpwstr', 'TCALPWSTR', 'wReserved3');
-    AddField('capropvar', 'TCAPROPVARIANT', 'wReserved3');
+    AddFieldAfter('bVal', System.TypeInfo(Byte), 'wReserved3');
+    AddFieldAfter('iVal', System.TypeInfo(SmallInt), 'wReserved3');
+    AddFieldAfter('uiVal', System.TypeInfo(Word), 'wReserved3');
+    AddFieldAfter('boolVal', System.TypeInfo(TOleBool), 'wReserved3');
+    AddFieldAfter('bool', System.TypeInfo(TOleBool), 'wReserved3');
+    AddFieldAfter('lVal', System.TypeInfo(Longint), 'wReserved3');
+    AddFieldAfter('ulVal', System.TypeInfo(Cardinal), 'wReserved3');
+    AddFieldAfter('fltVal', System.TypeInfo(Single), 'wReserved3');
+    AddFieldAfter('scode', System.TypeInfo(SCODE), 'wReserved3');
+    AddFieldAfter('hVal', 'LARGE_INTEGER', 'wReserved3');
+    AddFieldAfter('uhVal', 'ULARGE_INTEGER', 'wReserved3');
+    AddFieldAfter('dblVal', System.TypeInfo(Double), 'wReserved3');
+    AddFieldAfter('cyVal', System.TypeInfo(Currency), 'wReserved3');
+    AddFieldAfter('date', System.TypeInfo(TOleDate), 'wReserved3');
+    AddFieldAfter('filetime', 'TFileTime', 'wReserved3');
+    AddFieldAfter('puuid', 'PGUID', 'wReserved3');
+    AddFieldAfter('blob', 'TBlob', 'wReserved3');
+    AddFieldAfter('pclipdata', 'PClipData', 'wReserved3');
+    AddFieldAfter('pStream', 'Pointer', 'wReserved3');
+    AddFieldAfter('pStorage', 'Pointer', 'wReserved3');
+    AddFieldAfter('bstrVal', 'TBStr', 'wReserved3');
+    AddFieldAfter('pszVal', 'PAnsiChar', 'wReserved3');
+    AddFieldAfter('pwszVal', 'PWideChar', 'wReserved3');
+    AddFieldAfter('caub', 'TCAUB', 'wReserved3');
+    AddFieldAfter('cai', 'TCAI', 'wReserved3');
+    AddFieldAfter('caui', 'TCAUI', 'wReserved3');
+    AddFieldAfter('cabool', 'TCABOOL', 'wReserved3');
+    AddFieldAfter('cal', 'TCAL', 'wReserved3');
+    AddFieldAfter('caul', 'TCAUL', 'wReserved3');
+    AddFieldAfter('caflt', 'TCAFLT', 'wReserved3');
+    AddFieldAfter('cascode', 'TCASCODE', 'wReserved3');
+    AddFieldAfter('cah', 'TCAH', 'wReserved3');
+    AddFieldAfter('cauh', 'TCAUH', 'wReserved3');
+    AddFieldAfter('cadbl', 'TCADBL', 'wReserved3');
+    AddFieldAfter('cacy', 'TCACY', 'wReserved3');
+    AddFieldAfter('cadate', 'TCADATE', 'wReserved3');
+    AddFieldAfter('cafiletime', 'TCAFILETIME', 'wReserved3');
+    AddFieldAfter('cauuid', 'TCACLSID', 'wReserved3');
+    AddFieldAfter('caclipdata', 'TCACLIPDATA', 'wReserved3');
+    AddFieldAfter('cabstr', 'TCABSTR', 'wReserved3');
+    AddFieldAfter('calpstr', 'TCALPSTR', 'wReserved3');
+    AddFieldAfter('calpwstr', 'TCALPWSTR', 'wReserved3');
+    AddFieldAfter('capropvar', 'TCAPROPVARIANT', 'wReserved3');
 
     Complete;
   end;
@@ -1814,8 +1814,8 @@ begin
   with Result do
   begin
     AddField('ulKind', System.TypeInfo(ULONG));
-    AddField('propid', System.TypeInfo(TPropID), 'ulKind');
-    AddField('lpwstr', 'POleStr', 'ulKind');
+    AddFieldAfter('propid', System.TypeInfo(TPropID), 'ulKind');
+    AddFieldAfter('lpwstr', 'POleStr', 'ulKind');
 
     Complete;
   end;
@@ -2014,45 +2014,45 @@ begin
     AddField('wReserved1', System.TypeInfo(Word));
     AddField('wReserved2', System.TypeInfo(Word));
     AddField('wReserved3', System.TypeInfo(Word));
-    AddField('bVal', System.TypeInfo(Byte), 'wReserved3');
-    AddField('iVal', System.TypeInfo(Smallint), 'wReserved3');
-    AddField('lVal', System.TypeInfo(Longint), 'wReserved3');
-    AddField('fltVal', System.TypeInfo(Single), 'wReserved3');
-    AddField('dblVal', System.TypeInfo(Double), 'wReserved3');
-    AddField('vbool', System.TypeInfo(TOleBool), 'wReserved3');
-    AddField('scode', System.TypeInfo(HResult), 'wReserved3');
-    AddField('cyVal', System.TypeInfo(Currency), 'wReserved3');
-    AddField('date', System.TypeInfo(TOleDate), 'wReserved3');
-    AddField('bstrVal', 'PWideChar', 'wReserved3');
-    AddField('unkVal', 'Pointer', 'wReserved3');
-    AddField('dispVal', 'Pointer', 'wReserved3');
-    AddField('parray', 'PSafeArray', 'wReserved3');
-    AddField('pbVal', '$5', 'wReserved3');
-    AddField('piVal', '$6', 'wReserved3');
-    AddField('plVal', '$7', 'wReserved3');
-    AddField('pfltVal', '$8', 'wReserved3');
-    AddField('pdblVal', '$9', 'wReserved3');
-    AddField('pbool', '$10', 'wReserved3');
-    AddField('pscode', '$11', 'wReserved3');
-    AddField('pcyVal', '$12', 'wReserved3');
-    AddField('pdate', '$13', 'wReserved3');
-    AddField('pbstrVal', '$14', 'wReserved3');
-    AddField('punkVal', '$15', 'wReserved3');
-    AddField('pdispVal', '$16', 'wReserved3');
-    AddField('pparray', '$17', 'wReserved3');
-    AddField('pvarVal', 'PVariant', 'wReserved3');
-    AddField('byRef', 'Pointer', 'wReserved3');
-    AddField('cVal', System.TypeInfo(Char), 'wReserved3');
-    AddField('uiVal', System.TypeInfo(Word), 'wReserved3');
-    AddField('ulVal', System.TypeInfo(LongWord), 'wReserved3');
-    AddField('intVal', System.TypeInfo(Integer), 'wReserved3');
-    AddField('uintVal', System.TypeInfo(LongWord), 'wReserved3');
-    AddField('pdecVal', 'PDecimal', 'wReserved3');
-    AddField('pcVal', 'PChar', 'wReserved3');
-    AddField('puiVal', 'PWord', 'wReserved3');
-    AddField('pulVal', 'PInteger', 'wReserved3');
-    AddField('pintVal', 'PInteger', 'wReserved3');
-    AddField('puintVal', 'PLongWord', 'wReserved3');
+    AddFieldAfter('bVal', System.TypeInfo(Byte), 'wReserved3');
+    AddFieldAfter('iVal', System.TypeInfo(Smallint), 'wReserved3');
+    AddFieldAfter('lVal', System.TypeInfo(Longint), 'wReserved3');
+    AddFieldAfter('fltVal', System.TypeInfo(Single), 'wReserved3');
+    AddFieldAfter('dblVal', System.TypeInfo(Double), 'wReserved3');
+    AddFieldAfter('vbool', System.TypeInfo(TOleBool), 'wReserved3');
+    AddFieldAfter('scode', System.TypeInfo(HResult), 'wReserved3');
+    AddFieldAfter('cyVal', System.TypeInfo(Currency), 'wReserved3');
+    AddFieldAfter('date', System.TypeInfo(TOleDate), 'wReserved3');
+    AddFieldAfter('bstrVal', 'PWideChar', 'wReserved3');
+    AddFieldAfter('unkVal', 'Pointer', 'wReserved3');
+    AddFieldAfter('dispVal', 'Pointer', 'wReserved3');
+    AddFieldAfter('parray', 'PSafeArray', 'wReserved3');
+    AddFieldAfter('pbVal', '$5', 'wReserved3');
+    AddFieldAfter('piVal', '$6', 'wReserved3');
+    AddFieldAfter('plVal', '$7', 'wReserved3');
+    AddFieldAfter('pfltVal', '$8', 'wReserved3');
+    AddFieldAfter('pdblVal', '$9', 'wReserved3');
+    AddFieldAfter('pbool', '$10', 'wReserved3');
+    AddFieldAfter('pscode', '$11', 'wReserved3');
+    AddFieldAfter('pcyVal', '$12', 'wReserved3');
+    AddFieldAfter('pdate', '$13', 'wReserved3');
+    AddFieldAfter('pbstrVal', '$14', 'wReserved3');
+    AddFieldAfter('punkVal', '$15', 'wReserved3');
+    AddFieldAfter('pdispVal', '$16', 'wReserved3');
+    AddFieldAfter('pparray', '$17', 'wReserved3');
+    AddFieldAfter('pvarVal', 'PVariant', 'wReserved3');
+    AddFieldAfter('byRef', 'Pointer', 'wReserved3');
+    AddFieldAfter('cVal', System.TypeInfo(Char), 'wReserved3');
+    AddFieldAfter('uiVal', System.TypeInfo(Word), 'wReserved3');
+    AddFieldAfter('ulVal', System.TypeInfo(LongWord), 'wReserved3');
+    AddFieldAfter('intVal', System.TypeInfo(Integer), 'wReserved3');
+    AddFieldAfter('uintVal', System.TypeInfo(LongWord), 'wReserved3');
+    AddFieldAfter('pdecVal', 'PDecimal', 'wReserved3');
+    AddFieldAfter('pcVal', 'PChar', 'wReserved3');
+    AddFieldAfter('puiVal', 'PWord', 'wReserved3');
+    AddFieldAfter('pulVal', 'PInteger', 'wReserved3');
+    AddFieldAfter('pintVal', 'PInteger', 'wReserved3');
+    AddFieldAfter('puintVal', 'PLongWord', 'wReserved3');
 
     Complete;
   end;
@@ -2068,10 +2068,10 @@ begin
 
   with Result do
   begin
-    AddField('ptdesc', 'PTypeDesc', '');
-    AddField('vt', System.TypeInfo(TVarType), 'ptdesc');
-    AddField('padesc', 'PArrayDesc', '');
-    AddField('hreftype', System.TypeInfo(HRefType), '');
+    AddFieldAfter('ptdesc', 'PTypeDesc', '');
+    AddFieldAfter('vt', System.TypeInfo(TVarType), 'ptdesc');
+    AddFieldAfter('padesc', 'PArrayDesc', '');
+    AddFieldAfter('hreftype', System.TypeInfo(HRefType), '');
 
     Complete;
   end;
@@ -2158,8 +2158,8 @@ begin
   with Result do
   begin
     AddField('tdesc', 'TTypeDesc');
-    AddField('idldesc', 'TIDLDesc', 'tdesc');
-    AddField('paramdesc', 'TParamDesc', 'tdesc');
+    AddFieldAfter('idldesc', 'TIDLDesc', 'tdesc');
+    AddFieldAfter('paramdesc', 'TParamDesc', 'tdesc');
 
     Complete;
   end;
@@ -2281,11 +2281,11 @@ begin
   begin
     AddField('memid', System.TypeInfo(TMemberID));
     AddField('lpstrSchema', 'POleStr');
-    AddField('oInst', System.TypeInfo(Longint), 'lpstrSchema');
-    AddField('elemdescVar', 'TElemDesc', 'oInst');
-    AddField('wVarFlags', System.TypeInfo(Word), 'elemdescVar');
-    AddField('varkind', System.TypeInfo(TVarKind), 'wVarFlags');
-    AddField('lpvarValue', 'POleVariant', 'lpstrSchema');
+    AddFieldAfter('oInst', System.TypeInfo(Longint), 'lpstrSchema');
+    AddFieldAfter('elemdescVar', 'TElemDesc', 'oInst');
+    AddFieldAfter('wVarFlags', System.TypeInfo(Word), 'elemdescVar');
+    AddFieldAfter('varkind', System.TypeInfo(TVarKind), 'wVarFlags');
+    AddFieldAfter('lpvarValue', 'POleVariant', 'lpstrSchema');
 
     Complete;
   end;
@@ -2493,9 +2493,9 @@ begin
 
   with Result do
   begin
-    AddField('lpfuncdesc', 'PFuncDesc', '');
-    AddField('lpvardesc', 'PVarDesc', '');
-    AddField('lptcomp', 'Pointer', '');
+    AddFieldAfter('lpfuncdesc', 'PFuncDesc', '');
+    AddFieldAfter('lpvardesc', 'PVarDesc', '');
+    AddFieldAfter('lptcomp', 'Pointer', '');
 
     Complete;
   end;
@@ -4371,13 +4371,13 @@ begin
   begin
     AddField('cbSizeofstruct', System.TypeInfo(Integer));
     AddField('picType', System.TypeInfo(Integer));
-    AddField('hbitmap', System.TypeInfo(THandle), 'picType');
-    AddField('hpal', System.TypeInfo(THandle), 'hbitmap');
-    AddField('hMeta', System.TypeInfo(THandle), 'picType');
-    AddField('xExt', System.TypeInfo(Integer), 'hMeta');
+    AddFieldAfter('hbitmap', System.TypeInfo(THandle), 'picType');
+    AddFieldAfter('hpal', System.TypeInfo(THandle), 'hbitmap');
+    AddFieldAfter('hMeta', System.TypeInfo(THandle), 'picType');
+    AddFieldAfter('xExt', System.TypeInfo(Integer), 'hMeta');
     AddField('yExt', System.TypeInfo(Integer), True);
-    AddField('hIcon', System.TypeInfo(THandle), 'picType');
-    AddField('hemf', System.TypeInfo(THandle), 'picType');
+    AddFieldAfter('hIcon', System.TypeInfo(THandle), 'picType');
+    AddFieldAfter('hemf', System.TypeInfo(THandle), 'picType');
 
     Complete;
   end;

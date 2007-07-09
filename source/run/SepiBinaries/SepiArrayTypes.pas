@@ -134,6 +134,7 @@ begin
 
   MakeSize;
   FNeedInit := FElementType.NeedInit;
+  FParamBehavior.AlwaysByAddress := True;
 
   MakeTypeInfo;
 end;
@@ -162,6 +163,7 @@ begin
 
   MakeSize;
   FNeedInit := FElementType.NeedInit;
+  FParamBehavior.AlwaysByAddress := True;
 
   if AIsNative then
     ForceNative(ATypeInfo);

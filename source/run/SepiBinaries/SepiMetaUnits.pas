@@ -177,6 +177,16 @@ type
   TSepiMetaClass = class of TSepiMeta;
 
   {*
+    Comportement d'un type lorsqu'il est passé en paramètre
+    @author Sébastien Jean Robert Doeraene
+    @version 1.0
+  *}
+  TSepiTypeParamBehavior = record
+    AlwaysByAddress : boolean; /// Le type est toujours passé par adresse
+    AlwaysByStack : boolean;   /// Le type est toujours passé sur la pile
+  end;
+
+  {*
     Type
     @author Sébastien Jean Robert Doeraene
     @version 1.0
@@ -192,6 +202,8 @@ type
   protected
     FSize : integer;     /// Taille d'une variable de ce type
     FNeedInit : boolean; /// Indique si ce type requiert une initialisation
+
+    FParamBehavior : TSepiTypeParamBehavior; /// Comportement comme paramètre
 
     procedure Save(Stream : TStream); override;
 
@@ -228,6 +240,7 @@ type
     property Size : integer read FSize;
     property NeedInit : boolean read FNeedInit;
     property Alignment : integer read GetAlignment;
+    property ParamBehavior : TSepiTypeParamBehavior read FParamBehavior;
   end;
 
   {*
@@ -459,6 +472,12 @@ procedure SepiUnregisterImportedUnit(const UnitName : string);
 
 const {don't localize}
   SystemUnitName = 'System'; /// Nom de l'unité System.pas
+
+const
+  /// Comportement par des défaut d'un type comme paramètre
+  DefaultTypeParamBehavior : TSepiTypeParamBehavior = (
+    AlwaysByAddress : False; AlwaysByStack : False
+  );
 
 implementation
 
@@ -1073,6 +1092,7 @@ begin
   FTypeInfo := ATypeInfo;
   FTypeData := GetTypeData(FTypeInfo);
   FSize := 0;
+  FParamBehavior := DefaultTypeParamBehavior;
 end;
 
 {*
@@ -1093,6 +1113,7 @@ begin
   FTypeData := nil;
   FSize := 0;
   FNeedInit := False;
+  FParamBehavior := DefaultTypeParamBehavior;
 end;
 
 {*
@@ -1111,6 +1132,7 @@ begin
   FTypeData := nil;
   FSize := 0;
   FNeedInit := False;
+  FParamBehavior := DefaultTypeParamBehavior;
 end;
 
 {*
@@ -1131,6 +1153,7 @@ begin
   FTypeData := nil;
   FSize := 0;
   FNeedInit := False;
+  FParamBehavior := DefaultTypeParamBehavior;
 end;
 
 {*

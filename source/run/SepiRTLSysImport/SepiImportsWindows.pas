@@ -25,9 +25,9 @@ begin
 
   with Result do
   begin
-    AddField('LowPart', System.TypeInfo(DWORD), '');
-    AddField('HighPart', System.TypeInfo(Longint), 'LowPart');
-    AddField('QuadPart', System.TypeInfo(LONGLONG), '');
+    AddFieldAfter('LowPart', System.TypeInfo(DWORD), '');
+    AddFieldAfter('HighPart', System.TypeInfo(Longint), 'LowPart');
+    AddFieldAfter('QuadPart', System.TypeInfo(LONGLONG), '');
 
     Complete;
   end;
@@ -43,9 +43,9 @@ begin
 
   with Result do
   begin
-    AddField('LowPart', System.TypeInfo(DWORD), '');
-    AddField('HighPart', System.TypeInfo(DWORD), 'LowPart');
-    AddField('QuadPart', System.TypeInfo(LONGLONG), '');
+    AddFieldAfter('LowPart', System.TypeInfo(DWORD), '');
+    AddFieldAfter('HighPart', System.TypeInfo(DWORD), 'LowPart');
+    AddFieldAfter('QuadPart', System.TypeInfo(LONGLONG), '');
 
     Complete;
   end;

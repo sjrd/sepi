@@ -998,8 +998,8 @@ begin
 
   with Result do
   begin
-    AddField('adwData', '$2', '');
-    AddField('Data', '$3', '');
+    AddFieldAfter('adwData', '$2', '');
+    AddFieldAfter('Data', '$3', '');
 
     Complete;
   end;

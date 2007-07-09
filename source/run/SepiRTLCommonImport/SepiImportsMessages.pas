@@ -26,15 +26,15 @@ begin
   with Result do
   begin
     AddField('Msg', System.TypeInfo(Cardinal));
-    AddField('WParam', System.TypeInfo(Longint), 'Msg');
-    AddField('LParam', System.TypeInfo(Longint), 'WParam');
-    AddField('Result', System.TypeInfo(Longint), 'LParam');
-    AddField('WParamLo', System.TypeInfo(Word), 'Msg');
-    AddField('WParamHi', System.TypeInfo(Word), 'WParamLo');
-    AddField('LParamLo', System.TypeInfo(Word), 'WParamHi');
-    AddField('LParamHi', System.TypeInfo(Word), 'LParamLo');
-    AddField('ResultLo', System.TypeInfo(Word), 'LParamHi');
-    AddField('ResultHi', System.TypeInfo(Word), 'ResultLo');
+    AddFieldAfter('WParam', System.TypeInfo(Longint), 'Msg');
+    AddFieldAfter('LParam', System.TypeInfo(Longint), 'WParam');
+    AddFieldAfter('Result', System.TypeInfo(Longint), 'LParam');
+    AddFieldAfter('WParamLo', System.TypeInfo(Word), 'Msg');
+    AddFieldAfter('WParamHi', System.TypeInfo(Word), 'WParamLo');
+    AddFieldAfter('LParamLo', System.TypeInfo(Word), 'WParamHi');
+    AddFieldAfter('LParamHi', System.TypeInfo(Word), 'LParamLo');
+    AddFieldAfter('ResultLo', System.TypeInfo(Word), 'LParamHi');
+    AddFieldAfter('ResultHi', System.TypeInfo(Word), 'ResultLo');
 
     Complete;
   end;
@@ -90,10 +90,10 @@ begin
   begin
     AddField('Msg', System.TypeInfo(Cardinal));
     AddField('Keys', System.TypeInfo(Longint));
-    AddField('XPos', System.TypeInfo(Smallint), 'Keys');
-    AddField('YPos', System.TypeInfo(Smallint), 'XPos');
-    AddField('Pos', 'TSmallPoint', 'Keys');
-    AddField('Result', System.TypeInfo(Longint), 'Pos');
+    AddFieldAfter('XPos', System.TypeInfo(Smallint), 'Keys');
+    AddFieldAfter('YPos', System.TypeInfo(Smallint), 'XPos');
+    AddFieldAfter('Pos', 'TSmallPoint', 'Keys');
+    AddFieldAfter('Result', System.TypeInfo(Longint), 'Pos');
 
     Complete;
   end;
@@ -112,10 +112,10 @@ begin
     AddField('Msg', System.TypeInfo(Cardinal));
     AddField('Keys', System.TypeInfo(SmallInt));
     AddField('WheelDelta', System.TypeInfo(SmallInt));
-    AddField('XPos', System.TypeInfo(Smallint), 'WheelDelta');
-    AddField('YPos', System.TypeInfo(Smallint), 'XPos');
-    AddField('Pos', 'TSmallPoint', 'WheelDelta');
-    AddField('Result', System.TypeInfo(Longint), 'Pos');
+    AddFieldAfter('XPos', System.TypeInfo(Smallint), 'WheelDelta');
+    AddFieldAfter('YPos', System.TypeInfo(Smallint), 'XPos');
+    AddFieldAfter('Pos', 'TSmallPoint', 'WheelDelta');
+    AddFieldAfter('Result', System.TypeInfo(Longint), 'Pos');
 
     Complete;
   end;
@@ -133,10 +133,10 @@ begin
   begin
     AddField('Msg', System.TypeInfo(Cardinal));
     AddField('WheelDelta', System.TypeInfo(Integer));
-    AddField('XPos', System.TypeInfo(Smallint), 'WheelDelta');
-    AddField('YPos', System.TypeInfo(Smallint), 'XPos');
-    AddField('Pos', 'TSmallPoint', 'WheelDelta');
-    AddField('Result', System.TypeInfo(Longint), 'Pos');
+    AddFieldAfter('XPos', System.TypeInfo(Smallint), 'WheelDelta');
+    AddFieldAfter('YPos', System.TypeInfo(Smallint), 'XPos');
+    AddFieldAfter('Pos', 'TSmallPoint', 'WheelDelta');
+    AddFieldAfter('Result', System.TypeInfo(Longint), 'Pos');
 
     Complete;
   end;
@@ -425,10 +425,10 @@ begin
   begin
     AddField('Msg', System.TypeInfo(Cardinal));
     AddField('PostingApp', System.TypeInfo(HWND));
-    AddField('App', System.TypeInfo(Word), 'PostingApp');
-    AddField('Topic', System.TypeInfo(Word), 'App');
-    AddField('Result', System.TypeInfo(Longint), 'Topic');
-    AddField('PackedVal', System.TypeInfo(Longint), 'PostingApp');
+    AddFieldAfter('App', System.TypeInfo(Word), 'PostingApp');
+    AddFieldAfter('Topic', System.TypeInfo(Word), 'App');
+    AddFieldAfter('Result', System.TypeInfo(Longint), 'Topic');
+    AddFieldAfter('PackedVal', System.TypeInfo(Longint), 'PostingApp');
 
     Complete;
   end;
@@ -944,10 +944,10 @@ begin
   with Result do
   begin
     AddField('Msg', System.TypeInfo(Cardinal));
-    AddField('ChildWnd', System.TypeInfo(HWND), 'Msg');
-    AddField('DeactiveWnd', System.TypeInfo(HWND), 'Msg');
-    AddField('ActiveWnd', System.TypeInfo(HWND), 'DeactiveWnd');
-    AddField('Result', System.TypeInfo(Longint), 'ActiveWnd');
+    AddFieldAfter('ChildWnd', System.TypeInfo(HWND), 'Msg');
+    AddFieldAfter('DeactiveWnd', System.TypeInfo(HWND), 'Msg');
+    AddFieldAfter('ActiveWnd', System.TypeInfo(HWND), 'DeactiveWnd');
+    AddFieldAfter('Result', System.TypeInfo(Longint), 'ActiveWnd');
 
     Complete;
   end;
@@ -1197,10 +1197,10 @@ begin
   begin
     AddField('Msg', System.TypeInfo(Cardinal));
     AddField('Unused', System.TypeInfo(Integer));
-    AddField('XPos', System.TypeInfo(Smallint), 'Unused');
-    AddField('YPos', System.TypeInfo(Smallint), 'XPos');
-    AddField('Pos', 'TSmallPoint', 'Unused');
-    AddField('Result', System.TypeInfo(Longint), 'Pos');
+    AddFieldAfter('XPos', System.TypeInfo(Smallint), 'Unused');
+    AddFieldAfter('YPos', System.TypeInfo(Smallint), 'XPos');
+    AddFieldAfter('Pos', 'TSmallPoint', 'Unused');
+    AddFieldAfter('Result', System.TypeInfo(Longint), 'Pos');
 
     Complete;
   end;
@@ -1293,10 +1293,10 @@ begin
   begin
     AddField('Msg', System.TypeInfo(Cardinal));
     AddField('Unused', System.TypeInfo(Longint));
-    AddField('XPos', System.TypeInfo(Smallint), 'Unused');
-    AddField('YPos', System.TypeInfo(Smallint), 'XPos');
-    AddField('Pos', 'TSmallPoint', 'Unused');
-    AddField('Result', System.TypeInfo(Longint), 'Pos');
+    AddFieldAfter('XPos', System.TypeInfo(Smallint), 'Unused');
+    AddFieldAfter('YPos', System.TypeInfo(Smallint), 'XPos');
+    AddFieldAfter('Pos', 'TSmallPoint', 'Unused');
+    AddFieldAfter('Result', System.TypeInfo(Longint), 'Pos');
 
     Complete;
   end;
@@ -1486,14 +1486,14 @@ begin
   with Result do
   begin
     AddField('Msg', System.TypeInfo(Cardinal));
-    AddField('ChildID', System.TypeInfo(Word), 'Msg');
-    AddField('ChildWnd', System.TypeInfo(HWnd), 'ChildID');
-    AddField('Value', System.TypeInfo(Word), 'Msg');
-    AddField('XPos', System.TypeInfo(Smallint), 'Value');
-    AddField('YPos', System.TypeInfo(Smallint), 'XPos');
-    AddField('Value1', System.TypeInfo(Word), 'Msg');
-    AddField('Value2', System.TypeInfo(Longint), 'Value1');
-    AddField('Result', System.TypeInfo(Longint), 'Value2');
+    AddFieldAfter('ChildID', System.TypeInfo(Word), 'Msg');
+    AddFieldAfter('ChildWnd', System.TypeInfo(HWnd), 'ChildID');
+    AddFieldAfter('Value', System.TypeInfo(Word), 'Msg');
+    AddFieldAfter('XPos', System.TypeInfo(Smallint), 'Value');
+    AddFieldAfter('YPos', System.TypeInfo(Smallint), 'XPos');
+    AddFieldAfter('Value1', System.TypeInfo(Word), 'Msg');
+    AddFieldAfter('Value2', System.TypeInfo(Longint), 'Value1');
+    AddFieldAfter('Result', System.TypeInfo(Longint), 'Value2');
 
     Complete;
   end;
@@ -1818,11 +1818,11 @@ begin
   with Result do
   begin
     AddField('Msg', System.TypeInfo(Cardinal));
-    AddField('ActivateWnd', System.TypeInfo(HWND), 'Msg');
-    AddField('Key', System.TypeInfo(Word), 'Msg');
-    AddField('XPos', System.TypeInfo(Smallint), 'Msg');
-    AddField('YPos', System.TypeInfo(Smallint), 'XPos');
-    AddField('Result', System.TypeInfo(Longint), 'YPos');
+    AddFieldAfter('ActivateWnd', System.TypeInfo(HWND), 'Msg');
+    AddFieldAfter('Key', System.TypeInfo(Word), 'Msg');
+    AddFieldAfter('XPos', System.TypeInfo(Smallint), 'Msg');
+    AddFieldAfter('YPos', System.TypeInfo(Smallint), 'XPos');
+    AddFieldAfter('Result', System.TypeInfo(Longint), 'YPos');
 
     Complete;
   end;
@@ -2014,10 +2014,10 @@ begin
   begin
     AddField('Msg', System.TypeInfo(Cardinal));
     AddField('hWnd', System.TypeInfo(HWND));
-    AddField('XPos', System.TypeInfo(Smallint), 'hWnd');
-    AddField('YPos', System.TypeInfo(Smallint), 'XPos');
-    AddField('Pos', 'TSmallPoint', 'hWnd');
-    AddField('Result', System.TypeInfo(Longint), 'Pos');
+    AddFieldAfter('XPos', System.TypeInfo(Smallint), 'hWnd');
+    AddFieldAfter('YPos', System.TypeInfo(Smallint), 'XPos');
+    AddFieldAfter('Pos', 'TSmallPoint', 'hWnd');
+    AddFieldAfter('Result', System.TypeInfo(Longint), 'Pos');
 
     Complete;
   end;
