@@ -242,6 +242,7 @@ type
     procedure AfterConstruction; override;
 
     procedure SetCode(ACode : Pointer);
+    procedure SetCodeMethod(const AMethod : TMethod);
 
     property Code : Pointer read FCode;
     property Signature : TSepiMethodSignature read FSignature;
@@ -1713,13 +1714,37 @@ end;
   Donne l'adresse de début du code de la méthode
   Cette méthode ne peut être appelée qu'une seule fois par méthode, et
   seulement pour les méthodes non natives.
-  @param ACode   Nouvelle adresse de code
+  @param ACode   Adresse de code
 *}
 procedure TSepiMetaMethod.SetCode(ACode : Pointer);
 begin
   Assert(FCode = @FCodeJumper);
   Assert(FCodeJumper.OpCode = 0);
   MakeJmp(FCodeJumper, ACode);
+end;
+
+{*
+  Donne l'adresse de début du code de la méthode, à partir d'une méthode
+  Cette méthode ne peut être appelée qu'une seule fois par méthode, et
+  seulement pour les méthodes non natives.
+  @param AMethod   Méthode de code
+*}
+procedure TSepiMetaMethod.SetCodeMethod(const AMethod : TMethod);
+var ACode : Pointer;
+begin
+  case Signature.CallingConvention of
+    ccRegister :
+      ACode := MakeProcOfRegisterMethod(AMethod, Signature.RegUsage);
+    ccCDecl :
+      ACode := MakeProcOfCDeclMethod(AMethod);
+    ccPascal :
+      ACode := MakeProcOfPascalMethod(AMethod);
+    else
+      ACode := MakeProcOfStdCallMethod(AMethod);
+  end;
+
+  AddPtrResource(ACode);
+  SetCode(ACode);
 end;
 
 {----------------------------------}

@@ -308,6 +308,8 @@ type
       const AUses : array of string);
     destructor Destroy; override;
 
+    procedure MoreUses(const AUses : array of string);
+
     procedure Complete;
 
     procedure SaveToStream(Stream : TStream);
@@ -1557,17 +1559,16 @@ end;
 *}
 constructor TSepiMetaUnit.Create(AOwner : TSepiMeta; const AName : string;
   const AUses : array of string);
-var I : integer;
 begin
   Assert(AOwner is TSepiMetaRoot);
 
+  FOwner := AOwner;
   FRefCount := 0;
 
   FUsesList := TStringList.Create;
   if not AnsiSameText(AName, SystemUnitName) then
     AddUses(TSepiMetaRoot(AOwner).LoadUnit(SystemUnitName));
-  for I := Low(AUses) to High(AUses) do
-    AddUses(TSepiMetaRoot(AOwner).LoadUnit(AUses[I]));
+  MoreUses(AUses);
 
   inherited Create(AOwner, AName, tkUnknown);
 
@@ -1634,6 +1635,20 @@ procedure TSepiMetaUnit.Save(Stream : TStream);
 begin
   inherited;
   SaveChildren(Stream);
+end;
+
+{*
+  Ajoute des uses à l'unité
+  Cette méthode ne peut être appelée que pour une unité en cours de
+  construction.
+  @param AUses   Uses à ajouter
+*}
+procedure TSepiMetaUnit.MoreUses(const AUses : array of string);
+var I : integer;
+begin
+  for I := Low(AUses) to High(AUses) do
+    if FUsesList.IndexOf(AUses[I]) < 0 then
+      AddUses(TSepiMetaRoot(Owner).LoadUnit(AUses[I]));
 end;
 
 {*
