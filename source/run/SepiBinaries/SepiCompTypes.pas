@@ -1149,8 +1149,10 @@ begin
      (CallingConvention <> ccPascal) then
     TSepiMetaParam.CreateHidden(FOwner, pkSelf);
 
-  if Kind in [mkConstructor, mkDestructor] then
-    TSepiMetaParam.CreateHidden(FOwner, pkAlloc);
+  if Kind = mkConstructor then
+    TSepiMetaParam.CreateHidden(FOwner, pkAlloc)
+  else if Kind = mkDestructor then
+    TSepiMetaParam.CreateHidden(FOwner, pkFree);
 
   if ParamPos < ReturnTypePos then
   begin
