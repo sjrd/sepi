@@ -22,13 +22,15 @@ const
 type
   {*
     Type de paramètres
-    - spkNormal : paramètre normal
-    - spkSelf : paramètre Self des méthodes
-    - spkResult : paramètre Result des fonctions
-    - spkAlloc : paramètre $Alloc des constructeurs
-    - spkFree : paramètre $Free des destructeurs
+    - pkNormal : paramètre normal
+    - pkSelf : paramètre Self des méthodes
+    - pkResult : paramètre Result des fonctions
+    - pkAlloc : paramètre $Alloc des constructeurs
+    - pkFree : paramètre $Free des destructeurs
+    - pkOpenArrayHighValue : valeur maximale d'indice du tableau ouvert
   *}
-  TSepiParamKind = (pkNormal, pkSelf, pkResult, pkAlloc, pkFree);
+  TSepiParamKind = (pkNormal, pkSelf, pkResult, pkAlloc, pkFree,
+    pkOpenArrayHighValue);
 
   {*
     Emplacement d'un paramètre
@@ -103,9 +105,10 @@ type
   {*
     Meta-paramètre de méthode
     Les paramètres cachés ont aussi leur existence en tant que TSepiMetaParam.
-    Les trois types de paramètres cachés sont Self (class ou instance), Result
+    Les cinq types de paramètres cachés sont Self (class ou instance), Result
     (qui peut être passé par adresse ou pas), le paramètre spécial $Alloc des
-    constructeurs et le paramètre spécial $Free des destructeurs.
+    constructeurs, le paramètre spécial $Free des destructeurs et les
+    paramètres High$xxx suivant chaque paramètre de type "open array".
     @author Sébastien Jean Robert Doeraene
     @version 1.0
   *}
@@ -129,6 +132,8 @@ type
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
     constructor Create(AOwner : TSepiMeta; const AName : string;
       AType : TSepiType; AFlags : TParamFlags = []);
+
+    procedure AfterConstruction; override;
 
     function Equals(AParam : TSepiMetaParam) : boolean;
     function CompatibleWith(AType : TSepiType) : boolean;
@@ -155,6 +160,8 @@ type
     FStackUsage : Word; /// Taille utilisée sur la pile (en octets)
 
     procedure MakeCallInfo;
+
+    function CheckInherited(ASignature : TSepiMethodSignature) : boolean;
 
     function GetParamCount : integer;
     function GetParams(Index : integer) : TSepiMetaParam;
@@ -270,6 +277,9 @@ type
   TSepiMetaOverloadedMethod = class(TSepiMeta)
   private
     FMethods : TObjectList; /// Liste des méthodes de même nom
+
+    function FindInherited(
+      ASignature : TSepiMethodSignature) : TSepiMetaMethod;
 
     function GetMethodCount : integer;
     function GetMethods(Index : integer) : TSepiMetaMethod;
@@ -714,7 +724,7 @@ const
 
   /// Noms des paramètres cachés
   HiddenParamNames : array[TSepiParamKind] of string = (
-    '', 'Self', 'Result', '$Alloc', '$Free'
+    '', 'Self', 'Result', '$Alloc', '$Free', 'High$'
   );
 
   /// Chaînes des types de méthode
@@ -880,9 +890,14 @@ end;
 *}
 constructor TSepiMetaParam.CreateHidden(AOwner : TSepiMeta;
   AKind : TSepiParamKind; AType : TSepiType = nil);
+var AName : string;
 begin
   Assert(AKind <> pkNormal);
-  inherited Create(AOwner, HiddenParamNames[AKind]);
+  AName := HiddenParamNames[AKind];
+  if AKind = pkOpenArrayHighValue then
+    AName := AName + AOwner.Children[AOwner.ChildCount-1].Name;
+
+  inherited Create(AOwner, AName);
 
   FKind := AKind;
   FFlags := [];
@@ -900,6 +915,7 @@ begin
       FType := AType;
       FFlags := [pfOut];
     end;
+    pkOpenArrayHighValue : FType := Root.FindType(TypeInfo(SmallInt));
     else FType := Root.FindType(TypeInfo(Boolean));
   end;
 end;
@@ -1029,13 +1045,26 @@ begin
 end;
 
 {*
+  [@inheritDoc]
+*}
+procedure TSepiMetaParam.AfterConstruction;
+begin
+  inherited;
+
+  if pfArray in Flags then
+    TSepiMetaParam.CreateHidden(Owner, pkOpenArrayHighValue);
+end;
+
+{*
   Détermine si deux paramètres sont identiques
   @param AParam   Paramètre à comparer
   @return True si les paramètres sont identiques, False sinon
 *}
 function TSepiMetaParam.Equals(AParam : TSepiMetaParam) : boolean;
 begin
-  Result := (ParamType = AParam.ParamType) and (Flags = AParam.Flags);
+  Result := Kind = AParam.Kind;
+  if Result and (Kind = pkNormal) then
+    Result := (ParamType = AParam.ParamType) and (Flags = AParam.Flags);
 end;
 
 {*
@@ -1045,7 +1074,10 @@ end;
 *}
 function TSepiMetaParam.CompatibleWith(AType : TSepiType) : boolean;
 begin
-  Result := FType.CompatibleWith(AType);
+  if (pfVar in Flags) or (pfOut in Flags) then
+    Result := FType = AType
+  else
+    Result := FType.CompatibleWith(AType);
 end;
 
 {-----------------------------}
@@ -1252,6 +1284,29 @@ begin
 end;
 
 {*
+  Vérifie que la signature peut hériter d'une autre
+  CheckInherited met à jour la convention d'appel si besoin est, contrairement
+  à Equals.
+  @param ASignature   Signature à comparer
+  @return True si les signatures sont identiques, False sinon
+*}
+function TSepiMethodSignature.CheckInherited(
+  ASignature : TSepiMethodSignature) : boolean;
+var OldCallingConv : TCallingConvention;
+begin
+  Result := False;
+  OldCallingConv := CallingConvention;
+  FCallingConvention := ASignature.CallingConvention;
+
+  try
+    Result := Equals(ASignature);
+  finally
+    if not Result then
+      FCallingConvention := OldCallingConv;
+  end;
+end;
+
+{*
   Nombre de paramètres
   @return Nombre de paramètres
 *}
@@ -1397,10 +1452,12 @@ begin
   Result := False;
 
   if Kind <> ASignature.Kind then exit;
+  if CallingConvention <> ASignature.CallingConvention then exit;
+
   if ParamCount <> ASignature.ParamCount then exit;
   for I := 0 to ParamCount-1 do
     if not Params[I].Equals(ASignature.Params[I]) then exit;
-  if FReturnType <> ASignature.ReturnType then exit;
+  if ReturnType <> ASignature.ReturnType then exit;
 
   Result := True;
 end;
@@ -1584,11 +1641,11 @@ begin
         OwningUnit, OwningClass);
       if Meta is TSepiMetaMethod then
       begin
-        if TSepiMetaMethod(Meta).Signature.Equals(Signature) then
+        if Signature.CheckInherited(TSepiMetaMethod(Meta).Signature) then
           FInherited := TSepiMetaMethod(Meta);
       end else
       if Meta is TSepiMetaOverloadedMethod then
-        FInherited := TSepiMetaOverloadedMethod(Meta).FindMethod(Signature);
+        FInherited := TSepiMetaOverloadedMethod(Meta).FindInherited(Signature);
     end else
     begin
       // Looking for an ancestor method which intercepts the same message ID
@@ -1780,6 +1837,23 @@ destructor TSepiMetaOverloadedMethod.Destroy;
 begin
   FMethods.Free;
   inherited;
+end;
+
+{*
+  Trouve la méthode effective dont une signature donnée hérite
+  @param ASignature   Signature à rechercher
+  @return Méthode effective correspondante
+*}
+function TSepiMetaOverloadedMethod.FindInherited(
+  ASignature : TSepiMethodSignature) : TSepiMetaMethod;
+var I : integer;
+begin
+  for I := 0 to MethodCount-1 do
+  begin
+    Result := Methods[I];
+    if ASignature.CheckInherited(Result.Signature) then exit;
+  end;
+  Result := nil;
 end;
 
 {*
@@ -3742,8 +3816,10 @@ begin
   FSignature := TSepiMethodSignature.RegisterTypeData(Self, TypeData);
 
   if Signature.Kind in mkOfObject then
-    FSize := 8
-  else
+  begin
+    FSize := 8;
+    FParamBehavior.AlwaysByStack := True;
+  end else
     FSize := 4;
 end;
 
@@ -3757,8 +3833,10 @@ begin
   LoadChildren(Stream);
 
   if Signature.Kind in mkOfObject then
-    FSize := 8
-  else
+  begin
+    FSize := 8;
+    FParamBehavior.AlwaysByStack := True;
+  end else
     FSize := 4;
 end;
 
@@ -3782,8 +3860,10 @@ begin
     Prefix + ASignature, ACallingConvention);
 
   if Signature.Kind in mkOfObject then
-    FSize := 8
-  else
+  begin
+    FSize := 8;
+    FParamBehavior.AlwaysByStack := True;
+  end else
     FSize := 4;
 end;
 
@@ -3838,6 +3918,7 @@ begin
 
   FSize := 16;
   FNeedInit := True;
+  FParamBehavior.AlwaysByAddress := True;
 end;
 
 {*
@@ -3851,6 +3932,7 @@ begin
 
   FSize := 16;
   FNeedInit := True;
+  FParamBehavior.AlwaysByAddress := True;
 end;
 
 {*
