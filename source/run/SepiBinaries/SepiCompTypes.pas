@@ -21,16 +21,25 @@ const
 
 type
   {*
-    Type de paramètres
-    - pkNormal : paramètre normal
-    - pkSelf : paramètre Self des méthodes
-    - pkResult : paramètre Result des fonctions
-    - pkAlloc : paramètre $Alloc des constructeurs
-    - pkFree : paramètre $Free des destructeurs
-    - pkOpenArrayHighValue : valeur maximale d'indice du tableau ouvert
+    Type de paramètre caché
+    - hpNormal : paramètre normal
+    - hpSelf : paramètre Self des méthodes
+    - hpResult : paramètre Result des fonctions
+    - hpAlloc : paramètre $Alloc des constructeurs
+    - hpFree : paramètre $Free des destructeurs
+    - hpOpenArrayHighValue : valeur maximale d'indice du tableau ouvert
   *}
-  TSepiParamKind = (pkNormal, pkSelf, pkResult, pkAlloc, pkFree,
-    pkOpenArrayHighValue);
+  TSepiHiddenParamKind = (hpNormal, hpSelf, hpResult, hpAlloc, hpFree,
+    hpOpenArrayHighValue);
+
+  {*
+    Type de paramètre
+    - pkValue : transmis par valeur
+    - pkVar : paramètre var
+    - pkConst : paramètre const
+    - pkOut : paramètre out
+  *}
+  TSepiParamKind = (pkValue, pkVar, pkConst, pkOut);
 
   {*
     Emplacement d'un paramètre
@@ -114,32 +123,39 @@ type
   *}
   TSepiMetaParam = class(TSepiMeta)
   private
-    FKind : TSepiParamKind; /// Type de paramètre
-    FType : TSepiType;      /// Type du paramètre (peut être nil)
-    FFlags : TParamFlags;   /// Flags du paramètre
+    FHiddenKind : TSepiHiddenParamKind; /// Type de paramètre caché
+    FKind : TSepiParamKind;             /// Type de paramètre
+    FByRef : boolean;                   /// True si passé par référence
+    FOpenArray : boolean;               /// True pour un tableau ouvert
+    FType : TSepiType;                  /// Type du paramètre (peut être nil)
 
+    FFlags : TParamFlags;           /// Flags du paramètre
     FCallInfo : TSepiParamCallInfo; /// Informations d'appel du paramètre
 
-    constructor CreateHidden(AOwner : TSepiMeta; AKind : TSepiParamKind;
-      AType : TSepiType = nil);
+    constructor CreateHidden(AOwner : TSepiMeta;
+      AHiddenKind : TSepiHiddenParamKind; AType : TSepiType = nil);
     constructor RegisterParamData(AOwner : TSepiMeta; var ParamData : Pointer);
     class procedure CreateFromString(AOwner : TSepiMeta;
       const Definition : string);
+    procedure MakeFlags;
   protected
     procedure ListReferences; override;
     procedure Save(Stream : TStream); override;
   public
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
     constructor Create(AOwner : TSepiMeta; const AName : string;
-      AType : TSepiType; AFlags : TParamFlags = []);
-
-    procedure AfterConstruction; override;
+      AType : TSepiType; AKind : TSepiParamKind = pkValue;
+      AOpenArray : boolean = False);
 
     function Equals(AParam : TSepiMetaParam) : boolean;
     function CompatibleWith(AType : TSepiType) : boolean;
 
+    property HiddenKind : TSepiHiddenParamKind read FHiddenKind;
     property Kind : TSepiParamKind read FKind;
+    property ByRef : boolean read FByRef;
+    property OpenArray : boolean read FOpenArray;
     property ParamType : TSepiType read FType;
+
     property Flags : TParamFlags read FFlags;
     property CallInfo : TSepiParamCallInfo read FCallInfo;
   end;
@@ -168,7 +184,7 @@ type
     function GetActualParamCount : integer;
     function GetActualParams(Index : integer) : TSepiMetaParam;
 
-    function GetHiddenParam(Kind : TSepiParamKind) : TSepiMetaParam;
+    function GetHiddenParam(Kind : TSepiHiddenParamKind) : TSepiMetaParam;
   protected
     procedure ListReferences;
     procedure Save(Stream : TStream);
@@ -193,12 +209,12 @@ type
     property ReturnType : TSepiType read FReturnType;
     property CallingConvention : TCallingConvention read FCallingConvention;
 
-    property HiddenParam[Kind : TSepiParamKind] : TSepiMetaParam
+    property HiddenParam[Kind : TSepiHiddenParamKind] : TSepiMetaParam
       read GetHiddenParam;
-    property SelfParam   : TSepiMetaParam index pkSelf   read GetHiddenParam;
-    property ResultParam : TSepiMetaParam index pkResult read GetHiddenParam;
-    property AllocParam  : TSepiMetaParam index pkAlloc  read GetHiddenParam;
-    property FreeParam   : TSepiMetaParam index pkFree   read GetHiddenParam;
+    property SelfParam   : TSepiMetaParam index hpSelf   read GetHiddenParam;
+    property ResultParam : TSepiMetaParam index hpResult read GetHiddenParam;
+    property AllocParam  : TSepiMetaParam index hpAlloc  read GetHiddenParam;
+    property FreeParam   : TSepiMetaParam index hpFree   read GetHiddenParam;
 
     property RegUsage : Byte read FRegUsage;
     property StackUsage : Word read FStackUsage;
@@ -723,8 +739,13 @@ const
   OverloadedNameFormat = 'OL$%s$%d';
 
   /// Noms des paramètres cachés
-  HiddenParamNames : array[TSepiParamKind] of string = (
+  HiddenParamNames : array[TSepiHiddenParamKind] of string = (
     '', 'Self', 'Result', '$Alloc', '$Free', 'High$'
+  );
+
+  /// Chaînes des types de paramètre
+  ParamKindStrings : array[TSepiParamKind] of string = (
+    '', 'var', 'const', 'out'
   );
 
   /// Chaînes des types de méthode
@@ -884,40 +905,45 @@ end;
 
 {*
   Crée un paramètre caché
-  @param AOwner   Propriétaire du paramètre
-  @param AKind    Type de paramètre caché (doit être différent de pkNormal)
-  @param AType    Type du paramètre (uniquement pour AKind = pkResult)
+  @param AOwner        Propriétaire du paramètre
+  @param AHiddenKind   Type de paramètre caché (doit être différent de pkNormal)
+  @param AType         Type du paramètre (uniquement pour AKind = pkResult)
 *}
 constructor TSepiMetaParam.CreateHidden(AOwner : TSepiMeta;
-  AKind : TSepiParamKind; AType : TSepiType = nil);
+  AHiddenKind : TSepiHiddenParamKind; AType : TSepiType = nil);
 var AName : string;
 begin
-  Assert(AKind <> pkNormal);
-  AName := HiddenParamNames[AKind];
-  if AKind = pkOpenArrayHighValue then
+  Assert(AHiddenKind <> hpNormal);
+  AName := HiddenParamNames[AHiddenKind];
+  if AHiddenKind = hpOpenArrayHighValue then
     AName := AName + AOwner.Children[AOwner.ChildCount-1].Name;
 
   inherited Create(AOwner, AName);
 
-  FKind := AKind;
-  FFlags := [];
+  FHiddenKind := AHiddenKind;
+  FKind := pkValue;
+  FByRef := False;
+  FOpenArray := False;
 
-  case Kind of
-    pkSelf :
+  case HiddenKind of
+    hpSelf :
     begin
       if Owner.Owner is TSepiClass then
         FType := TSepiClass(Owner.Owner)
       else
         FType := Root.FindType(TypeInfo(TObject));
     end;
-    pkResult :
+    hpResult :
     begin
+      FKind := pkOut;
+      FByRef := True;
       FType := AType;
-      FFlags := [pfOut];
     end;
-    pkOpenArrayHighValue : FType := Root.FindType(TypeInfo(SmallInt));
+    hpOpenArrayHighValue : FType := Root.FindType(TypeInfo(SmallInt));
     else FType := Root.FindType(TypeInfo(Boolean));
   end;
+
+  MakeFlags;
 end;
 
 {*
@@ -930,8 +956,10 @@ constructor TSepiMetaParam.RegisterParamData(AOwner : TSepiMeta;
   var ParamData : Pointer);
 var AFlags : TParamFlags;
     AName, ATypeStr : string;
+    AKind : TSepiParamKind;
+    AOpenArray : boolean;
 begin
-  FKind := pkNormal;
+  FHiddenKind := hpNormal;
   AFlags := TParamFlags(ParamData^);
   inc(LongInt(ParamData), sizeof(TParamFlags));
   AName := PShortString(ParamData)^;
@@ -939,7 +967,29 @@ begin
   ATypeStr := PShortString(ParamData)^;
   inc(LongInt(ParamData), PByte(ParamData)^ + 1);
 
-  Create(AOwner, AName, AOwner.Root.FindType(ATypeStr), AFlags);
+  if pfVar   in AFlags then AKind := pkVar   else
+  if pfConst in AFlags then AKind := pkConst else
+  if pfOut   in AFlags then AKind := pkOut   else
+  AKind := pkValue;
+
+  AOpenArray := pfArray in AFlags;
+
+  { Work around of bug of the Delphi compiler with parameters written like:
+      var Param: ShortString
+    The compiler writes into the RTTI that it is a 'string', in this case.
+    Fortunately, this does not happen when the parameter is an open array, so
+    we can spot this by checking the pfReference flag, which is to be present
+    in case of ShortString, and not in case of string. }
+  if (AKind = pkVar) and (pfReference in AFlags) and (not AOpenArray) and
+     AnsiSameText(ATypeStr, 'string') then {don't localize}
+    ATypeStr := 'ShortString';
+
+  Create(AOwner, AName, AOwner.Root.FindType(ATypeStr), AKind, AOpenArray);
+
+  Assert(FFlags = AFlags, Format('FFlags (%s) <> AFlags (%s) for %s',
+    [EnumSetToStr(FFlags, TypeInfo(TParamFlags)),
+     EnumSetToStr(AFlags, TypeInfo(TParamFlags)),
+     GetFullName]));
 end;
 
 {*
@@ -949,45 +999,50 @@ end;
 *}
 class procedure TSepiMetaParam.CreateFromString(AOwner : TSepiMeta;
   const Definition : string);
-var AFlags : TParamFlags;
-    NamePart, NamePart2, TypePart, FlagStr, AName, ATypeStr : string;
+var NamePart, NamePart2, TypePart, KindStr, AName, ATypeStr : string;
+    AKind : TSepiParamKind;
+    AOpenArray : boolean;
     AType : TSepiType;
 begin
-  AFlags := [];
   if not SplitToken(Definition, ':', NamePart, TypePart) then
     TypePart := '';
   TypePart := GetFirstToken(TypePart, '=');
 
   // Partie du nom - à gauche du :
-  if SplitToken(Trim(NamePart), ' ', FlagStr, NamePart2) then
+  if SplitToken(Trim(NamePart), ' ', KindStr, NamePart2) then
   begin
-    case AnsiIndexText(FlagStr, ['var', 'const', 'out']) of {don't localize}
-      0 : Include(AFlags, pfVar);
-      1 : Include(AFlags, pfConst);
-      2 : Include(AFlags, pfOut);
-      else NamePart2 := FlagStr + ' ' + NamePart2;
+    ShortInt(AKind) := AnsiIndexText(KindStr, ParamKindStrings);
+    if ShortInt(AKind) < 0 then
+    begin
+      AKind := pkValue;
+      NamePart2 := KindStr + ' ' + NamePart2;
     end;
-  end;
+  end else AKind := pkValue;
   NamePart := NamePart2;
 
   // Partie du type - à droite du :
   TypePart := Trim(TypePart);
   if AnsiStartsText('array of ', TypePart) then {don't localize}
   begin
-    Include(AFlags, pfArray);
+    AOpenArray := True;
     ATypeStr := TrimLeft(Copy(TypePart, 10, MaxInt)); // 10 is 'array of |'
 
     if AnsiSameText(ATypeStr, 'const') then {don't localize}
       ATypeStr := '';
-  end else ATypeStr := TypePart;
+  end else
+  begin
+    AOpenArray := False;
+    ATypeStr := TypePart;
+  end;
   AType := AOwner.Root.FindType(ATypeStr);
 
+  // Création du (ou des) paramètre(s)
   while SplitToken(NamePart, ',', AName, NamePart2) do
   begin
-    Create(AOwner, Trim(AName), AType, AFlags);
+    Create(AOwner, Trim(AName), AType, AKind, AOpenArray);
     NamePart := NamePart2;
   end;
-  Create(AOwner, Trim(AName), AType, AFlags);
+  Create(AOwner, Trim(AName), AType, AKind, AOpenArray);
 end;
 
 {*
@@ -997,28 +1052,67 @@ constructor TSepiMetaParam.Load(AOwner : TSepiMeta; Stream : TStream);
 begin
   inherited;
 
+  Stream.ReadBuffer(FHiddenKind, 1);
   Stream.ReadBuffer(FKind, 1);
+  FByRef := FKind in [pkVar, pkOut];
+  Stream.ReadBuffer(FOpenArray, 1);
   OwningUnit.ReadRef(Stream, FType);
-  Stream.ReadBuffer(FFlags, 1);
 
+  MakeFlags;
   Stream.ReadBuffer(FCallInfo, sizeof(TSepiParamCallInfo));
 end;
 
 {*
   Crée un nouveau paramètre
-  @param AOwner   Propriétaire du paramètre
-  @param AName    Nom du paramètre
-  @param AType    Type du paramètre
-  @param AFlags   Flags
+  @param AOwner       Propriétaire du paramètre
+  @param AName        Nom du paramètre
+  @param AType        Type du paramètre
+  @param AKind        Type de paramètre
+  @param AOpenArray   True pour un paramètre tableau ouvert
 *}
 constructor TSepiMetaParam.Create(AOwner : TSepiMeta; const AName : string;
-  AType : TSepiType; AFlags : TParamFlags = []);
+  AType : TSepiType; AKind : TSepiParamKind = pkValue;
+  AOpenArray : boolean = False);
 begin
   inherited Create(AOwner, AName);
 
-  FKind := pkNormal;
+  FHiddenKind := hpNormal;
+  FKind := AKind;
+  FByRef := FKind in [pkVar, pkOut];
+  FOpenArray := AOpenArray;
   FType := AType;
-  FFlags := AFlags;
+
+  MakeFlags;
+
+  if OpenArray then
+    TSepiMetaParam.CreateHidden(Owner, hpOpenArrayHighValue);
+end;
+
+{*
+  Construit la propriété Flags
+*}
+procedure TSepiMetaParam.MakeFlags;
+begin
+  // Param kind flag
+  case FKind of
+    pkValue : FFlags := [];
+    pkVar   : FFlags := [pfVar];
+    pkConst : FFlags := [pfConst];
+    pkOut   : FFlags := [pfOut];
+  end;
+
+  // Flags pfArray, pfAddress and pfReference
+  if FOpenArray then
+  begin
+    Include(FFlags, pfArray);
+    Include(FFlags, pfReference);
+  end else
+  begin
+    if (FType is TSepiClass) or (FType is TSepiInterface) then
+      Include(FFlags, pfAddress);
+    if (FType <> nil) and (FType.ParamBehavior.AlwaysByAddress) then
+      Include(FFlags, pfReference);
+  end;
 end;
 
 {*
@@ -1037,22 +1131,12 @@ procedure TSepiMetaParam.Save(Stream : TStream);
 begin
   inherited;
 
+  Stream.WriteBuffer(FHiddenKind, 1);
   Stream.WriteBuffer(FKind, 1);
+  Stream.WriteBuffer(FOpenArray, 1);
   OwningUnit.WriteRef(Stream, FType);
-  Stream.WriteBuffer(FFlags, 1);
 
   Stream.WriteBuffer(FCallInfo, sizeof(TSepiParamCallInfo));
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TSepiMetaParam.AfterConstruction;
-begin
-  inherited;
-
-  if pfArray in Flags then
-    TSepiMetaParam.CreateHidden(Owner, pkOpenArrayHighValue);
 end;
 
 {*
@@ -1062,9 +1146,10 @@ end;
 *}
 function TSepiMetaParam.Equals(AParam : TSepiMetaParam) : boolean;
 begin
-  Result := Kind = AParam.Kind;
-  if Result and (Kind = pkNormal) then
-    Result := (ParamType = AParam.ParamType) and (Flags = AParam.Flags);
+  Result := HiddenKind = AParam.HiddenKind;
+  if Result and (HiddenKind = hpNormal) then
+    Result := (Kind = AParam.Kind) and (OpenArray = AParam.OpenArray) and
+      (ParamType = AParam.ParamType);
 end;
 
 {*
@@ -1074,7 +1159,7 @@ end;
 *}
 function TSepiMetaParam.CompatibleWith(AType : TSepiType) : boolean;
 begin
-  if (pfVar in Flags) or (pfOut in Flags) then
+  if ByRef then
     Result := FType = AType
   else
     Result := FType.CompatibleWith(AType);
@@ -1100,7 +1185,7 @@ begin
   FKind := ATypeData.MethodKind;
   ParamData := @ATypeData.ParamList;
 
-  TSepiMetaParam.CreateHidden(FOwner, pkSelf);
+  TSepiMetaParam.CreateHidden(FOwner, hpSelf);
   for I := 1 to ATypeData.ParamCount do
     TSepiMetaParam.RegisterParamData(FOwner, ParamData);
 
@@ -1108,7 +1193,7 @@ begin
   FCallingConvention := ccRegister;
 
   if ReturnType <> nil then
-    TSepiMetaParam.CreateHidden(FOwner, pkResult, ReturnType);
+    TSepiMetaParam.CreateHidden(FOwner, hpResult, ReturnType);
 
   MakeCallInfo;
 end;
@@ -1178,14 +1263,13 @@ begin
   end else ReturnTypePos := Length(ASignature);
 
   // Paramètres
-  if ((Kind in mkOfObject) or (Kind = mkProperty)) and
-     (CallingConvention <> ccPascal) then
-    TSepiMetaParam.CreateHidden(FOwner, pkSelf);
+  if (Kind in mkOfObject) and (CallingConvention <> ccPascal) then
+    TSepiMetaParam.CreateHidden(FOwner, hpSelf);
 
   if Kind = mkConstructor then
-    TSepiMetaParam.CreateHidden(FOwner, pkAlloc)
+    TSepiMetaParam.CreateHidden(FOwner, hpAlloc)
   else if Kind = mkDestructor then
-    TSepiMetaParam.CreateHidden(FOwner, pkFree);
+    TSepiMetaParam.CreateHidden(FOwner, hpFree);
 
   if ParamPos < ReturnTypePos then
   begin
@@ -1200,11 +1284,10 @@ begin
   end;
 
   if ReturnType <> nil then
-    TSepiMetaParam.CreateHidden(FOwner, pkResult, ReturnType);
+    TSepiMetaParam.CreateHidden(FOwner, hpResult, ReturnType);
 
-  if ((Kind in mkOfObject) or (Kind = mkProperty)) and
-     (CallingConvention = ccPascal) then
-    TSepiMetaParam.CreateHidden(FOwner, pkSelf);
+  if (Kind in mkOfObject) and (CallingConvention = ccPascal) then
+    TSepiMetaParam.CreateHidden(FOwner, hpSelf);
 
   MakeCallInfo;
 end;
@@ -1235,18 +1318,11 @@ begin
     with Param.ParamType, Param, FCallInfo do
     begin
       // By address or by value?
-      if Kind <> pkResult then
+      if HiddenKind <> hpResult then
       begin
-        if pfArray in Flags then
-          ByAddress := (pfVar in Flags) or (pfOut in Flags)
-        else if ParamType = nil then
-          ByAddress := True
-        else
-          ByAddress := ParamBehavior.AlwaysByAddress or
-            (pfVar in Flags) or (pfOut in Flags);
+        ByAddress := ByRef or (pfReference in Flags) or (ParamType = nil);
 
-        if ByAddress or (pfArray in Flags) or
-           (not ParamBehavior.AlwaysByStack) then
+        if ByAddress or (not ParamBehavior.AlwaysByStack) then
           Byte(Place) := FRegUsage
         else
           Place := ppStack;
@@ -1258,17 +1334,17 @@ begin
       end;
 
       // Where to place it?
-      if ByAddress or (Kind <> pkResult) then
+      if ByAddress or (HiddenKind <> hpResult) then
       begin
         if Place = ppStack then
         begin
           StackOffset := FStackUsage;
-          if ByAddress or (pfArray in Flags) then
+          if ByAddress then
             inc(FStackUsage, 4) else
           begin
             inc(FStackUsage, Size);
             if FStackUsage mod 4 <> 0 then
-              FStackUsage := FStackUsage + 4 - (FStackUsage mod 4);
+              FStackUsage := (FStackUsage and $FFFC) + 4;
           end;
         end else
         begin
@@ -1319,7 +1395,7 @@ begin
   begin
     Child := Owner.Children[I];
     if (Child is TSepiMetaParam) and
-       (TSepiMetaParam(Child).Kind = pkNormal) then
+       (TSepiMetaParam(Child).HiddenKind = hpNormal) then
       inc(Result);
   end;
 end;
@@ -1337,7 +1413,7 @@ begin
   begin
     Child := Owner.Children[I];
     if (Child is TSepiMetaParam) and
-       (TSepiMetaParam(Child).Kind = pkNormal) then
+       (TSepiMetaParam(Child).HiddenKind = hpNormal) then
     begin
       if Index > 0 then dec(Index) else
       begin
@@ -1398,17 +1474,17 @@ end;
   @return Le paramètre caché correspondant, ou nil s'il n'y en a pas
 *}
 function TSepiMethodSignature.GetHiddenParam(
-  Kind : TSepiParamKind) : TSepiMetaParam;
+  Kind : TSepiHiddenParamKind) : TSepiMetaParam;
 var I : integer;
     Child : TSepiMeta;
 begin
-  Assert(Kind <> pkNormal);
+  Assert(Kind in [hpSelf, hpResult, hpAlloc, hpFree]);
 
   for I := 0 to Owner.ChildCount-1 do
   begin
     Child := Owner.Children[I];
     if (Child is TSepiMetaParam) and
-       (TSepiMetaParam(Child).Kind = Kind) then
+       (TSepiMetaParam(Child).HiddenKind = Kind) then
     begin
       Result := TSepiMetaParam(Child);
       exit;
