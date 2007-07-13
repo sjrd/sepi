@@ -31,6 +31,8 @@ function TestBit(const Value : integer; const Bit : Byte) : boolean; register;
 function GetMethodFromName(Obj : TObject;
   const MethodName : ShortString) : TMethod;
 
+function MakeMethod(Code : Pointer; Data : Pointer = nil) : TMethod;
+
 function GetClassVirtualCode(AClass : TClass; VMTOffset : integer) : Pointer;
 function GetClassVirtualMethod(AClass : TClass; VMTOffset : integer) : TMethod;
 function GetObjectVirtualCode(AObject : TObject; VMTOffset : integer) : Pointer;
@@ -247,6 +249,18 @@ function GetMethodFromName(Obj : TObject;
 begin
   Result.Code := Obj.MethodAddress(MethodName);
   Result.Data := Obj;
+end;
+
+{*
+  Construit un record TMethod
+  @param Code   Valeur du champ Code
+  @param Data   Valeur du champ Data
+  @return Un enregistrement TMethod avec les champs indiqués
+*}
+function MakeMethod(Code : Pointer; Data : Pointer = nil) : TMethod;
+begin
+  Result.Code := Code;
+  Result.Data := Data;
 end;
 
 {*

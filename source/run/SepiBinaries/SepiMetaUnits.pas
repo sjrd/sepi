@@ -300,6 +300,9 @@ type
     function AddUses(AUnit : TSepiMetaUnit) : integer;
 
     procedure SetCurrentVisibility(Value : TMemberVisibility);
+
+    function GetUsedUnitCount : integer;
+    function GetUsedUnits(Index : integer) : TSepiMetaUnit;
   protected
     procedure Save(Stream : TStream); override;
   public
@@ -322,6 +325,9 @@ type
 
     property CurrentVisibility : TMemberVisibility
       read FCurrentVisibility write SetCurrentVisibility;
+
+    property UsedUnitCount : integer read GetUsedUnitCount;
+    property UsedUnits[index : integer] : TSepiMetaUnit read GetUsedUnits;
 
     property OnGetMethodCode : TGetMethodCodeEvent read FOnGetMethodCode;
   end;
@@ -1626,6 +1632,25 @@ begin
     FCurrentVisibility := mvPublic
   else
     FCurrentVisibility := mvPrivate;
+end;
+
+{*
+  Nombre d'unités utilisées
+  @return Nombre d'unité utilisées
+*}
+function TSepiMetaUnit.GetUsedUnitCount : integer;
+begin
+  Result := FUsesList.Count;
+end;
+
+{*
+  Tableau zero-based des unités utilisées
+  @param Index   Index de l'unité utilisée
+  @return Unité utilisée dont l'index est spécifié
+*}
+function TSepiMetaUnit.GetUsedUnits(Index : integer) : TSepiMetaUnit;
+begin
+  Result := TSepiMetaUnit(FUsesList.Objects[Index]);
 end;
 
 {*
