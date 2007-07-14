@@ -1189,11 +1189,14 @@ begin
   for I := 1 to ATypeData.ParamCount do
     TSepiMetaParam.RegisterParamData(FOwner, ParamData);
 
-  FReturnType := FOwner.Root.FindType(PShortString(ParamData)^);
   FCallingConvention := ccRegister;
 
-  if ReturnType <> nil then
+  if Kind in [mkFunction, mkClassFunction]then
+  begin
+    FReturnType := FOwner.Root.FindType(PShortString(ParamData)^);
     TSepiMetaParam.CreateHidden(FOwner, hpResult, ReturnType);
+  end else
+    FReturnType := nil;
 
   MakeCallInfo;
 end;
@@ -1378,7 +1381,9 @@ begin
     Result := Equals(ASignature);
   finally
     if not Result then
-      FCallingConvention := OldCallingConv;
+      FCallingConvention := OldCallingConv
+    else if FCallingConvention <> OldCallingConv then
+      MakeCallInfo;
   end;
 end;
 
