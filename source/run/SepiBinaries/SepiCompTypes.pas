@@ -1,6 +1,6 @@
 {*
   Définit les classes de gestion des types composites
-  @author Sébastien Jean Robert Doeraene
+  @author sjrd
   @version 1.0
 *}
 unit SepiCompTypes;
@@ -81,7 +81,7 @@ type
 
   {*
     Meta-variable
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TSepiMetaField = class(TSepiMeta)
@@ -102,7 +102,7 @@ type
 
   {*
     Informations d'appel d'un paramètre (ou et comment le passer)
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TSepiParamCallInfo = record
@@ -118,7 +118,7 @@ type
     (qui peut être passé par adresse ou pas), le paramètre spécial $Alloc des
     constructeurs, le paramètre spécial $Free des destructeurs et les
     paramètres High$xxx suivant chaque paramètre de type "open array".
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TSepiMetaParam = class(TSepiMeta)
@@ -162,7 +162,7 @@ type
 
   {*
     Signature d'une méthode
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TSepiMethodSignature = class
@@ -222,7 +222,7 @@ type
 
   {*
     Meta-méthode
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TSepiMetaMethod = class(TSepiMeta)
@@ -287,7 +287,7 @@ type
 
   {*
     Meta-méthode surchargée
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TSepiMetaOverloadedMethod = class(TSepiMeta)
@@ -316,7 +316,7 @@ type
 
   {*
     Accès de propriété
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TSepiPropertyAccess = record
@@ -329,7 +329,7 @@ type
 
   {*
     Stockage de propriété
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TSepiPropertyStorage = record
@@ -343,7 +343,7 @@ type
 
   {*
     Meta-propriété
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TSepiMetaProperty = class(TSepiMeta)
@@ -402,7 +402,7 @@ type
 
   {*
     Type enregistrement
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TSepiRecordType = class(TSepiType)
@@ -455,7 +455,7 @@ type
 
   {*
     Interface
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TSepiInterface = class(TSepiType)
@@ -536,7 +536,7 @@ type
 
   {*
     Classe (type objet)
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TSepiClass = class(TSepiType)
@@ -661,7 +661,7 @@ type
 
   {*
     Meta-classe (type classe)
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TSepiMetaClass = class(TSepiType)
@@ -686,7 +686,7 @@ type
 
   {*
     Type référence de méthode
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TSepiMethodRefType = class(TSepiType)
@@ -712,7 +712,7 @@ type
   {*
     Type variant
     Note : il est impossible de créer un nouveau type variant.
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TSepiVariantType = class(TSepiType)

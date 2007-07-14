@@ -1,6 +1,6 @@
 {*
   Définit des classes et routines de mathématiques avancées
-  @author Sébastien Jean Robert Doeraene
+  @author sjrd
   @version 1.0
 *}
 unit ScMaths;

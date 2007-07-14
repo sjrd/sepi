@@ -1,6 +1,6 @@
 {*
   Définit des classes de listes diverses
-  @author Sébastien Jean Robert Doeraene
+  @author sjrd
   @version 1.0
 *}
 unit ScLists;
@@ -13,7 +13,7 @@ uses
 type
   {*
     Exception déclenchée lors d'une erreur de liste d'entiers
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   EIntListError = class(EListError);
@@ -23,7 +23,7 @@ type
     Rend publique la méthode CompareStrings afin de pouvoir l'utiliser pour
     comparer deux chaînes en respectant les règles de comparaison d'une liste.
     Cette classe ne doit pas être utilisée dans une autre optique.
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TCompareStrings = class(TStrings)
@@ -36,7 +36,7 @@ type
     Propose une série de méthodes pouvant être appliquée à des instances de
     TStrings (toutes les méthodes de recherche respectent les règles de
     comparaison de la liste concernée)
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   StringsOps = class
@@ -68,7 +68,7 @@ type
     Amélioration de TStringList pour lui ajouter les méthodes de StringsOps
     ainsi qu'un index interne permettant de parcourir aisément toutes les
     chaînes dans l'ordre
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TScStrings = class(TStringList)
@@ -122,7 +122,7 @@ type
     Ne pas utiliser pour des listes de chaînes, de pointeurs ou d'objets ;
     dans ces cas, utiliser respectivement TStringList (unité Classes), TList
     (unité Classes) et TObjectList (unité Contnrs).
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TScList = class(TPersistent)
@@ -173,7 +173,7 @@ type
 
   {*
     Gère une liste d'entiers signés
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TIntegerList = class(TScList)
@@ -203,7 +203,7 @@ type
 
   {*
     Gère une liste d'entiers non signés
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TUnsignedIntList = class(TScList)
@@ -233,7 +233,7 @@ type
 
   {*
     Gère une liste de Extended
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TExtendedList = class(TScList)
@@ -264,7 +264,7 @@ type
     File d'attente
     TScWaitingQueue ajoute à TQueue une méthode Cancel qui permet de supprimer
     un élément de la liste, quelle que soit sa position.
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TScWaitingQueue = class(TQueue)
@@ -276,7 +276,7 @@ type
     File d'attente d'objets
     TScWaitingObjectQueue ajoute à TObjectQueue une méthode Cancel qui permet
     de supprimer un objet de la liste, quel que soit sa position.
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TScWaitingObjectQueue = class(TObjectQueue)

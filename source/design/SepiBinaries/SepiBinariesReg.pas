@@ -1,6 +1,6 @@
 {*
   Enregistre les composants de SepiBinaries dans la palette d'outils de Delphi
-  @author Sébastien Jean Robert Doeraene
+  @author sjrd
   @version 1.0
 *}
 unit SepiBinariesReg;

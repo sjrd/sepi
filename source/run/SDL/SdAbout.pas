@@ -1,6 +1,6 @@
 {*
   Boîte de dialogue À propos
-  @author Sébastien Jean Robert Doeraene
+  @author sjrd
   @version 1.0
 *}
 unit SdAbout platform;
@@ -19,7 +19,7 @@ uses
 type
   {*
     Boîte de dialogue À propos
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TSdAboutForm = class(TForm)

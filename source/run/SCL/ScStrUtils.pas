@@ -1,6 +1,6 @@
 {*
   Définit quelques routines de gestion de chaînes
-  @author Sébastien Jean Robert Doeraene
+  @author sjrd
   @version 1.0
 *}
 unit ScStrUtils;

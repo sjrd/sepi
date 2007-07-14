@@ -1,6 +1,6 @@
 {*
   Enregistre les composants de SepiInterpreter dans la palette d'outils
-  @author Sébastien Jean Robert Doeraene
+  @author sjrd
   @version 1.0
 *}
 unit SepiInterpreterReg;

@@ -1,6 +1,6 @@
 {*
   Composants de type Label
-  @author Sébastien Jean Robert Doeraene
+  @author sjrd
   @version 1.0
 *}
 unit SvLabels;
@@ -25,7 +25,7 @@ resourcestring
 type
   {*
     Classe de base pour les label renvoyant à une URL
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TSvCustomURLLabel = class(TCustomLabel)
@@ -54,7 +54,7 @@ type
 
   {*
     Label renvoyant à une URL
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TSvURLLabel = class(TSvCustomURLLabel)

@@ -1,6 +1,6 @@
 {*
   Importe l'unité StdConvs dans un environnement Sepi
-  @author Sébastien Jean Robert Doeraene
+  @author sjrd
   @version 1.0
 *}
 unit SepiImportsStdConvs;

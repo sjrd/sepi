@@ -1,6 +1,6 @@
 {*
   Définit les classes de gestion des types tableau
-  @author Sébastien Jean Robert Doeraene
+  @author sjrd
   @version 1.0
 *}
 unit SepiArrayTypes;
@@ -13,7 +13,7 @@ uses
 type
   {*
     Informations sur une dimension de tableau
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TDimInfo = record
@@ -23,7 +23,7 @@ type
 
   {*
     Type tableau statique (à N dimensions)
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TSepiArrayType = class(TSepiType)
@@ -69,7 +69,7 @@ type
 
   {*
     Type tableau dynamique (à une dimension)
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TSepiDynArrayType = class(TSepiType)

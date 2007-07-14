@@ -1,6 +1,6 @@
 {*
   Définit les classes de gestion des types chaîne
-  @author Sébastien Jean Robert Doeraene
+  @author sjrd
   @version 1.0
 *}
 unit SepiStrTypes;
@@ -13,7 +13,7 @@ uses
 type
   {*
     Type chaîne de caractères courte
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TSepiShortStringType = class(TSepiType)
@@ -37,7 +37,7 @@ type
 
   {*
     Type chaîne de caractères longue
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TSepiStringType = class(TSepiType)

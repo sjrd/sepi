@@ -1,6 +1,6 @@
 {*
   Boîte de dialogue demandant un nombre à l'utilisateur
-  @author Sébastien Jean Robert Doeraene
+  @author sjrd
   @version 5.0
 *}
 unit SdNumber;
@@ -13,7 +13,7 @@ uses
 type
   {*
     Boîte de dialogue demandant un nombre à l'utilisateur
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TSdNumberForm = class(TForm)

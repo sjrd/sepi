@@ -1,6 +1,6 @@
 {*
   Composants de type Image
-  @author Sébastien Jean Robert Doeraene
+  @author sjrd
   @version 1.0
 *}
 unit SvImages;
@@ -25,7 +25,7 @@ type
     souris et déposée par glisser-déposer soit sur le parent, soit sur un autre
     contrôle. Ce composant permet de constituer de façon très simple une palette
     de glisser-déposer.
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TSvDropImage = class(TImage)

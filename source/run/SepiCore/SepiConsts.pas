@@ -1,6 +1,6 @@
 {*
   Définit les constantes générales de Sepi
-  @author Sébastien Jean Robert Doeraene
+  @author sjrd
   @version 1.0
 *}
 unit SepiConsts;

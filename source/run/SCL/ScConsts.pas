@@ -1,6 +1,6 @@
 {*
   Définit les différentes constantes de la SCL
-  @author Sébastien Jean Robert Doeraene
+  @author sjrd
   @version 1.0
 *}
 unit ScConsts;

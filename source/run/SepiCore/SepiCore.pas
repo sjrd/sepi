@@ -1,6 +1,6 @@
 {*
   Définit les classes coeur de Sepi
-  @author Sébastien Jean Robert Doeraene
+  @author sjrd
   @version 1.0
 *}
 unit SepiCore;
@@ -23,7 +23,7 @@ type
 
   {*
     Version Sepi
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TSepiVersion = record
@@ -33,7 +33,7 @@ type
 
   {*
     Classe maître universelle de Sepi
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TSepi = class
@@ -86,7 +86,7 @@ type
 
   {*
     Informations sur un package chargé par Sepi
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TSepiPackage = record

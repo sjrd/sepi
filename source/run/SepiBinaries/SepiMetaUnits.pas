@@ -1,6 +1,6 @@
 {*
   Définit les classes de gestion des meta-unités
-  @author Sébastien Jean Robert Doeraene
+  @author sjrd
   @version 1.0
 *}
 unit SepiMetaUnits;
@@ -48,35 +48,35 @@ type
 
   {*
     Déclenchée si l'on tente de recréer un meta (second appel au constructeur)
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   ESepiMetaAlreadyCreated = class(ESepiError);
 
   {*
     Déclenchée lorsque la recherche d'un meta s'est soldée par un échec
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   ESepiMetaNotFoundError = class(ESepiError);
 
   {*
     Déclenchée lorsque la recherche d'une unité s'est soldée par un échec
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   ESepiUnitNotFoundError = class(ESepiMetaNotFoundError);
 
   {*
     Déclenchée si l'on tente de créer une constante avec un mauvais type
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   ESepiBadConstTypeError = class(ESepiError);
 
   {*
     Liste de meta
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TSepiMetaList = class(THashedStringList)
@@ -105,7 +105,7 @@ type
     Meta générique
     Les meta sont les informations statiques qui représentent les unités
     compilées.
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TSepiMeta = class
@@ -178,7 +178,7 @@ type
 
   {*
     Comportement d'un type lorsqu'il est passé en paramètre
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TSepiTypeParamBehavior = record
@@ -188,7 +188,7 @@ type
 
   {*
     Type
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TSepiType = class(TSepiMeta)
@@ -250,7 +250,7 @@ type
 
   {*
     Meta-racine
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TSepiMetaRoot = class(TSepiMeta)
@@ -283,7 +283,7 @@ type
 
   {*
     Meta-unité
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TSepiMetaUnit = class(TSepiType)
@@ -334,7 +334,7 @@ type
 
   {*
     Alias de type
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TSepiTypeAlias = class(TSepiMeta)
@@ -357,7 +357,7 @@ type
 
   {*
     Constante
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TSepiConstant = class(TSepiMeta)
@@ -384,7 +384,7 @@ type
 
   {*
     Variable (ou constante typée)
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TSepiVariable = class(TSepiMeta)
@@ -426,7 +426,7 @@ type
 
   {*
     Tâche de chargement/déchargement d'une unité Sepi
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TSepiUnitLoadTask = class(TScTask)
@@ -450,7 +450,7 @@ type
 
   {*
     Gestionnaire asynchrone de racine Sepi
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TSepiAsynchronousRootManager = class(TScTaskQueue)

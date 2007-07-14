@@ -1,6 +1,6 @@
 {*
   Définit des classes de synchronisations entre threads
-  @author Sébastien Jean Robert Doeraene
+  @author sjrd
   @version 1.0
 *}
 unit ScSyncObjs;
@@ -24,7 +24,7 @@ type
 
   {*
     Tâche gérée par une instance de TScTaskQueue
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TScTask = class
@@ -83,7 +83,7 @@ type
     lors de l'un d'eux.
     Les descendants de TScTaskQueue ne devraient normalement pas réimplémenter
     la méthode Execute.
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TScCustomTaskQueue = class(TThread)
@@ -126,7 +126,7 @@ type
     Gestionnaire de file (FIFO) de tâches
     TScTaskQueue propose une implémentation entièrement publique de
     TScCustomTaskQueue.
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TScTaskQueue = class(TScCustomTaskQueue)
@@ -140,7 +140,7 @@ type
     Tâche de répartition de message
     TScCustomMessageTask fournit une implémentation protégée d'une tâche de
     dispatching de message.
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TScCustomMessageTask = class(TScTask)
@@ -168,7 +168,7 @@ type
   {*
     Tâche de répartition de message
     TScMessageTask est une version publique de TScCustomMessageTask.
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TScMessageTask = class(TScCustomMessageTask)

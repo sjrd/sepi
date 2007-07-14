@@ -1,6 +1,6 @@
 {*
   Définit le composant « À propos » de Sepi
-  @author Sébastien Jean Robert Doeraene
+  @author sjrd
   @version 1.0
 *}
 unit SepiAbout;
@@ -13,7 +13,7 @@ uses
 type
   {*
     Boîte de dialogue « À propos » de Sepi
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TSepiAboutDialog = class(TComponent)

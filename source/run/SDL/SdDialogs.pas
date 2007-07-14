@@ -1,6 +1,6 @@
 {*
   Définit des routines et composants utilisant des boîtes de dialogue
-  @author Sébastien Jean Robert Doeraene
+  @author sjrd
   @version 1.0
 *}
 unit SdDialogs;
@@ -83,7 +83,7 @@ type
 
   {*
     Gère une boîte de dialogue d'introduction de mot de passe
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TSdPasswordDialog = class(TComponent)
@@ -105,7 +105,7 @@ type
 
   {*
     Gère une boîte de dialogue À propos
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TSdAboutDialog = class(TComponent)
@@ -147,7 +147,7 @@ type
 
   {*
     Gère une boîte de dialogue demandant un nombre à l'utilisateur
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TSdNumberDialog = class(TComponent)

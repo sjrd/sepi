@@ -1,6 +1,6 @@
 {*
   Définit des routines en lien avec le langage Delphi lui-même
-  @author Sébastien Jean Robert Doeraene
+  @author sjrd
   @version 1.0
 *}
 unit ScDelphiLanguage;
@@ -13,7 +13,7 @@ uses
 type
   {*
     Instruction JMP ou CALL
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TJmpInstruction = packed record

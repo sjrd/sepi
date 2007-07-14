@@ -1,7 +1,7 @@
 {*
   Propose une série d'alias aux routines cachées de System
   Ces routines sont celles connues sous le nom de "compiler magic".
-  @author Sébastien Jean Robert Doeraene
+  @author sjrd
   @version 1.0
 *}
 unit ScCompilerMagic;

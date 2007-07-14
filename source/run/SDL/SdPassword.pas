@@ -1,6 +1,6 @@
 {*
   Boîte de dialogue de saisie de mot de passe
-  @author Sébastien Jean Robert Doeraene
+  @author sjrd
   @version 1.0
 *}
 unit SdPassword;
@@ -19,7 +19,7 @@ uses
 type
   {*
     Boîte de dialogue de saisie de mot de passe
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TSdPasswordForm = class(TForm)

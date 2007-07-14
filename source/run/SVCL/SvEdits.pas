@@ -1,6 +1,6 @@
 {*
   Composants de type Edit
-  @author Sébastien Jean Robert Doeraene
+  @author sjrd
   @version 1.0
 *}
 unit SvEdits;
@@ -17,7 +17,7 @@ type
     nombres négatifs selon des propriétés. Il peut forcer le caractère de
     séparations des décimales, une valeur minimum et une valeur maximum. Il peut
     aussi assurer un préfixe et/ou un suffixe textuels sur le nombre.
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TSvCustomNumberEdit = class(TCustomEdit)
@@ -82,7 +82,7 @@ type
     nombres négatifs selon des propriétés. Il peut forcer le caractère de
     séparations des décimales, une valeur minimum et une valeur maximum. Il peut
     aussi assurer un préfixe et/ou un suffixe textuels sur le nombre.
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TSvNumberEdit = class(TSvCustomNumberEdit)

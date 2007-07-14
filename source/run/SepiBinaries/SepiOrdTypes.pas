@@ -1,6 +1,6 @@
 {*
   Définit les classes de gestion des types ordinaux
-  @author Sébastien Jean Robert Doeraene
+  @author sjrd
   @version 1.0
 *}
 unit SepiOrdTypes;
@@ -36,7 +36,7 @@ type
 
   {*
     Type entier
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TSepiIntegerType = class(TSepiOrdType)
@@ -64,7 +64,7 @@ type
 
   {*
     Type caractère
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TSepiCharType = class(TSepiOrdType)
@@ -96,7 +96,7 @@ type
 
   {*
     Type entier long (64 bits)
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TSepiInt64Type = class(TSepiType)
@@ -125,7 +125,7 @@ type
 
   {*
     Type nombre à virgule flottante
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TSepiFloatType = class(TSepiType)
@@ -150,7 +150,7 @@ type
   {*
     Type booléen
     Note : il est impossible de créer un nouveau type booléen.
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TSepiBooleanType = class(TSepiOrdType)
@@ -170,7 +170,7 @@ type
 
   {*
     Type énumération
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TSepiEnumType = class(TSepiOrdType)
@@ -206,7 +206,7 @@ type
 
   {*
     Type ensemble
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TSepiSetType = class(TSepiType)
@@ -235,7 +235,7 @@ type
 
   {*
     Information sur un pointeur déclaré en forward
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TSepiForwardPointerInfo = record
@@ -249,7 +249,7 @@ type
 
   {*
     Type pointeur
-    @author Sébastien Jean Robert Doeraene
+    @author sjrd
     @version 1.0
   *}
   TSepiPointerType = class(TSepiOrdType)
