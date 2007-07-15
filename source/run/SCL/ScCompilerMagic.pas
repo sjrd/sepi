@@ -117,6 +117,15 @@ end;
 function CompilerMagicRoutineAddress(
   CompilerMagicRoutineAlias : Pointer) : Pointer;
 begin
+  // Handle an optional module redirector
+  if PWord(CompilerMagicRoutineAlias)^ = $25FF then // JMP dword ptr [] op code
+  begin
+    inc(Integer(CompilerMagicRoutineAlias), 2);
+    CompilerMagicRoutineAlias := PPointer(CompilerMagicRoutineAlias)^;
+    CompilerMagicRoutineAlias := PPointer(CompilerMagicRoutineAlias)^;
+  end;
+
+  // Handle the actual alias
   Assert(PByte(CompilerMagicRoutineAlias)^ = $E9); // JMP op code
   inc(Integer(CompilerMagicRoutineAlias));
   Result := Pointer(Integer(CompilerMagicRoutineAlias) +

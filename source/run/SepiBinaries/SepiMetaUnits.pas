@@ -1427,6 +1427,7 @@ function TSepiMetaRoot.GetType(TypeInfo : PTypeInfo) : TSepiType;
 var TypeName : string;
     I : integer;
     Meta : TSepiMeta;
+    First : TSepiType;
 begin
   if TypeInfo = nil then
   begin
@@ -1434,18 +1435,28 @@ begin
     exit;
   end;
 
+  First := nil;
+
   TypeName := AnsiReplaceStr(TypeInfo.Name, '.', '$$');
-  for I := 0 to UnitCount-1 do
+  for I := 0 to FSearchOrder.Count-1 do
   begin
-    Meta := Units[I].GetMeta(TypeName);
-    if (Meta is TSepiType) and (TSepiType(Meta).TypeInfo = TypeInfo) then
+    Meta := TSepiMeta(FSearchOrder[I]).GetMeta(TypeName);
+
+    if Meta is TSepiType then
     begin
-      Result := TSepiType(Meta);
-      exit;
+      if TSepiType(Meta).TypeInfo = TypeInfo then
+      begin
+        Result := TSepiType(Meta);
+        exit;
+      end else
+      begin
+        if First = nil then
+          First := TSepiType(Meta);
+      end;
     end;
   end;
 
-  Result := nil;
+  Result := First;
 end;
 
 {*

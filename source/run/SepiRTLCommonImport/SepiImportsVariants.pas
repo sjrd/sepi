@@ -240,10 +240,10 @@ begin
     AddMethod('CastToOle', @TSepiImportsTCustomVariantType.CastToOle,
       'procedure(var Dest: TVarData; const Source: TVarData)',
       mlkVirtual);
-    AddMethod('Clear', @TSepiImportsTCustomVariantType.Clear,
+    AddMethod('Clear', {@TSepiImportsTCustomVariantType.Clear}nil,
       'procedure(var V: TVarData)',
       mlkVirtual, True);
-    AddMethod('Copy', @TSepiImportsTCustomVariantType.Copy,
+    AddMethod('Copy', {@TSepiImportsTCustomVariantType.Copy}nil,
       'procedure(var Dest: TVarData; const Source: TVarData; const Indirect: Boolean )',
       mlkVirtual, True);
     AddMethod('BinaryOp', @TSepiImportsTCustomVariantType.BinaryOp,
