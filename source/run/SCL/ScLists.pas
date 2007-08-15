@@ -8,7 +8,7 @@ unit ScLists;
 interface
 
 uses
-  SysUtils, Classes, Contnrs;
+  SysUtils, Classes, Contnrs, TypInfo;
 
 type
   {*
@@ -284,13 +284,129 @@ type
     procedure Cancel(AObject : TObject);
   end;
 
+  {*
+    Procédure de call-back pour la méthode ForEach de TCustomValueBucketList
+    @param Info       Retransmission du paramètre AInfo donné à ForEach
+    @param Key        Clef
+    @param Data       Données associées à la clef
+    @param Continue   Positionner à False pour interrompre l'énumération
+  *}
+  TValueBucketProc = procedure(Info : Pointer; const Key, Data;
+    var Continue : boolean);
+
+  {*
+    Méthode de call-back pour la méthode ForEach de TCustomValueBucketList
+    @param Key        Clef
+    @param Data       Données associées à la clef
+    @param Continue   Positionner à False pour interrompre l'énumération
+  *}
+  TValueBucketEvent = procedure(const Key, Data;
+    var Continue : boolean) of object;
+
+  {*
+    Classe de base pour les tables associatives hashées par valeur
+    Au contraire de TCustomBucketList, et donc de TBucketList,
+    TCustomValueBucketList recherche et fait correspondre les clefs et les
+    données par valeur, et non par pointeur.
+    Pour cela, elle gère elle-même l'allocation des données en interne, et a
+    donc besoin des RTTI des types de clef et de données, ou à défaut de leurs
+    tailles (s'ils ne requièrent pas d'initialisation).
+    @author sjrd
+    @version 1.0
+  *}
+  TCustomValueBucketList = class(TObject)
+  private
+    FBuckets : TBucketArray; /// Boîtes de hashage
+    FBucketCount : integer;  /// Nombre de boîtes de hashage (défaut = 16)
+    FListLocked : boolean;   /// Indique si la liste est verrouillée
+    FClearing : boolean;     /// Indique si la liste est en train d'être vidée
+
+    FKeySize : integer;    /// Taille du type des clefs
+    FKeyInfo : PTypeInfo;  /// RTTI du type des clefs (si need-init)
+    FDataSize : integer;   /// Taille du type des données
+    FDataInfo : PTypeInfo; /// RTTI du type des données (si need-init)
+
+    constructor Create(AKeySize : integer; AKeyInfo : PTypeInfo;
+      ADataSize : integer; ADataInfo : PTypeInfo); overload;
+
+    procedure AssignCallBack(const Key, Data; var Continue : boolean);
+
+    procedure SetBucketCount(Value : integer);
+  protected
+    function BucketFor(const Key) : Cardinal; virtual;
+    function KeyEquals(const Key1, Key2) : boolean; virtual;
+
+    function FindItem(const Key;
+      out Bucket, Index : integer) : boolean; virtual;
+    procedure AddItem(Bucket : integer; const Key, Data); virtual;
+    procedure DeleteItem(Bucket, Index : integer); virtual;
+    procedure ExtractItem(Bucket, Index : integer; out Data); virtual;
+
+    procedure GetData(const Key; out Data);
+    procedure SetData(const Key, Data);
+    procedure AddData(const Key, Data);
+    procedure RemoveData(const Key);
+    procedure ExtractData(const Key; out Data);
+    procedure Clear;
+
+    procedure Assign(Source : TCustomValueBucketList); virtual;
+
+    property Buckets : TBucketArray read FBuckets;
+    property BucketCount : integer read FBucketCount write SetBucketCount;
+
+    property KeySize : integer read FKeySize;
+    property KeyInfo : PTypeInfo read FKeyInfo;
+    property DataSize : integer read FDataSize;
+    property DataInfo : PTypeInfo read FDataInfo;
+  public
+    constructor Create(AKeySize, ADataSize : integer); overload;
+    constructor Create(AKeySize : integer; ADataInfo : PTypeInfo); overload;
+    constructor Create(AKeyInfo : PTypeInfo; ADataSize : integer); overload;
+    constructor Create(AKeyInfo, ADataInfo : PTypeInfo); overload;
+    destructor Destroy; override;
+
+    function ForEach(Proc : TValueBucketProc;
+      Info : Pointer = nil) : boolean; overload;
+    function ForEach(Event : TValueBucketEvent) : boolean; overload;
+
+    function Exists(const Key) : boolean;
+    function Find(const Key; out Data) : boolean;
+  end;
+
+  {*
+    Table associative hashées par valeur générique
+    Au contraire de TBucketList, TValueBucketList recherche et fait
+    correspondre les clefs et les données par valeur, et non par pointeur.
+    Pour cela, elle gère elle-même l'allocation des données en interne, et a
+    donc besoin des RTTI des types de clef et de données, ou à défaut de leurs
+    tailles (s'ils ne requièrent pas d'initialisation).
+    @author sjrd
+    @version 1.0
+  *}
+  TValueBucketList = class(TCustomValueBucketList)
+  public
+    procedure Get(const Key; out Data);
+    procedure Put(const Key, Data);
+    procedure Add(const Key, Data);
+    procedure Remove(const Key);
+    procedure Extract(const Key; out Data);
+    procedure Clear;
+
+    procedure Assign(Source : TCustomValueBucketList); override;
+
+    property BucketCount;
+  end;
+
 var
   AppParams : TScStrings; /// Liste des paramètres envoyés à l'application
 
 implementation
 
 uses
-  ScUtils, ScStrUtils, ScConsts;
+  RTLConsts, ScUtils, ScStrUtils, ScCompilerMagic, ScTypInfo, ScConsts;
+
+const
+  DefaultBucketCount = 16;
 
 {------------------------}
 { Classe TCompareStrings }
@@ -1685,6 +1801,7 @@ end;
 
 {$ENDREGION}
 
+{$REGION 'Classes TScWaitingQueue et TScWaitingObjectQueue'}
 {-----------------------}
 { TScWaitingQueue class }
 {-----------------------}
@@ -1702,6 +1819,569 @@ procedure TScWaitingObjectQueue.Cancel(AObject : TObject);
 begin
   List.Remove(AObject);
 end;
+
+{$ENDREGION}
+
+{$REGION 'Classes TCustomValueBucketList et TValueBucketList'}
+
+{------------------------------}
+{ TCustomValueBucketList class }
+{------------------------------}
+
+{*
+  Crée une nouvelle instance de TCustomValueBucketList
+  @param AKeySize    Taille du type des clefs
+  @param AKeyInfo    RTTI du type des clefs
+  @param ADataSize   Taille du type des données
+  @param ADataInfo   RTTI du type des données
+*}
+constructor TCustomValueBucketList.Create(AKeySize : integer;
+  AKeyInfo : PTypeInfo; ADataSize : integer; ADataInfo : PTypeInfo);
+begin
+  inherited Create;
+
+  BucketCount := DefaultBucketCount;
+
+  if Assigned(AKeyInfo) then
+  begin
+    FKeySize := TypeSize(AKeyInfo);
+    if AKeyInfo.Kind in NeedInitTypeKinds then
+      FKeyInfo := AKeyInfo
+    else
+      FKeyInfo := nil;
+  end else
+  begin
+    FKeySize := AKeySize;
+    FKeyInfo := nil;
+  end;
+
+  if Assigned(ADataInfo) then
+  begin
+    FDataSize := TypeSize(ADataInfo);
+    if ADataInfo.Kind in NeedInitTypeKinds then
+      FDataInfo := ADataInfo
+    else
+      FDataInfo := nil;
+  end else
+  begin
+    FDataSize := ADataSize;
+    FDataInfo := nil;
+  end;
+end;
+
+{*
+  Crée une nouvelle instance de TCustomValueBucketList
+  @param AKeySize    Taille du type des clefs
+  @param ADataSize   Taille du type des données
+*}
+constructor TCustomValueBucketList.Create(AKeySize, ADataSize : integer);
+begin
+  Create(AKeySize, nil, ADataSize, nil);
+end;
+
+{*
+  Crée une nouvelle instance de TCustomValueBucketList
+  @param AKeySize    Taille du type des clefs
+  @param ADataInfo   RTTI du type des données
+*}
+constructor TCustomValueBucketList.Create(AKeySize : integer;
+  ADataInfo : PTypeInfo);
+begin
+  Create(AKeySize, nil, 0, ADataInfo);
+end;
+
+{*
+  Crée une nouvelle instance de TCustomValueBucketList
+  @param AKeyInfo    RTTI du type des clefs
+  @param ADataSize   Taille du type des données
+*}
+constructor TCustomValueBucketList.Create(AKeyInfo : PTypeInfo;
+  ADataSize : integer);
+begin
+  Create(0, AKeyInfo, ADataSize, nil);
+end;
+
+{*
+  Crée une nouvelle instance de TCustomValueBucketList
+  @param AKeyInfo    RTTI du type des clefs
+  @param ADataInfo   RTTI du type des données
+*}
+constructor TCustomValueBucketList.Create(AKeyInfo, ADataInfo : PTypeInfo);
+begin
+  Create(0, AKeyInfo, 0, ADataInfo);
+end;
+
+{*
+  [@inheritDoc]
+*}
+destructor TCustomValueBucketList.Destroy;
+begin
+  Clear;
+  inherited;
+end;
+
+{*
+  Call-back de ForEach utilisé par la méthode Assign
+  @param Key        Clef
+  @param Data       Données associées à la clef
+  @param Continue   Positionner à False pour interrompre l'énumération
+*}
+procedure TCustomValueBucketList.AssignCallBack(const Key, Data;
+  var Continue : boolean);
+begin
+  AddData(Key, Data);
+end;
+
+{*
+  Modifie le nombre de boîtes de hashage
+  BucketCount ne peut être modifié que lorsque la liste est vide
+  @param Value   Nouvelle valeur
+  @raise EListError La liste n'est pas vide
+*}
+procedure TCustomValueBucketList.SetBucketCount(Value : integer);
+var I : integer;
+begin
+  for I := 0 to BucketCount-1 do
+    if Buckets[I].Count > 0 then
+      raise EListError.Create(sScListIsNotEmpty);
+
+  if Value > 0 then
+  begin
+    SetLength(FBuckets, Value);
+    FBucketCount := Value;
+  end;
+end;
+
+{*
+  Identifie la boîte dans laquelle ranger un élément donné
+  Les descendants de TCustomValueBucketList surchargent en général BucketFor
+  pour utiliser au mieux les spécificités du type de données traité, afin
+  d'avoir un remplissage optimal.
+  L'implémentation par défauut de BucketFor est de prendre les 4 premiers
+  octets de la clef, et de prendre le modulo par le nombre de boîtes de
+  hashage (BucketCount).
+*}
+function TCustomValueBucketList.BucketFor(const Key) : Cardinal;
+begin
+  if KeySize >= 4 then Result := Cardinal(Key) else
+  begin
+    Result := 0;
+    Move(Key, Result, KeySize);
+  end;
+
+  Result := Result mod BucketCount;
+end;
+
+{*
+  Détermine si deux clefs sont identiques
+  L'implémentation par défaut de KeyEquals teste si le contenu brut pointé
+  par Key1 et Key2 est équivalent sur KeySize octets.
+  Ce comportement doit être surchargé pour les types pour lesquels on ne peut
+  pas se fier qu'au contenu brut (chaînes, tableaux dynamiques, record non
+  packed avec des trous, etc.)
+  @param Key1   Première clef
+  @param Key2   Seconde clef
+  @return True si les clefs sont identiques, False sinon
+*}
+function TCustomValueBucketList.KeyEquals(const Key1, Key2) : boolean;
+var I : integer;
+begin
+  Result := False;
+
+  for I := 0 to KeySize-1 do
+  begin
+    if PByte(Integer(@Key1) + I)^ <> PByte(Integer(@Key2) + I)^ then
+      exit;
+  end;
+
+  Result := True;
+end;
+
+{*
+  Localise la boîte de hashage et l'index d'une paire par sa clef
+  @param Key      Clef à rechercher
+  @param Bucket   En sortie : boîte de hashage (même si FindItem renvoie False)
+  @param Index    En sortie : index dans la boîte (indéterminé si renvoie False)
+  @return True si la paire a été trouvée, False sinon
+*}
+function TCustomValueBucketList.FindItem(const Key;
+  out Bucket, Index : integer) : boolean;
+begin
+  Result := True;
+  Bucket := BucketFor(Key);
+  Index := 0;
+
+  with Buckets[Bucket] do while Index < Count do
+  begin
+    if KeyEquals(Items[Index].Item^, Key) then
+      exit;
+    inc(Index);
+  end;
+
+  Result := False;
+end;
+
+{*
+  Ajoute une paire clef/données dans une boîte donnée
+  AddItem ne vérifie pas quue la clef donnée doit effectivement se mettre dans
+  la boîte spécifiée. Assurez-vous d'appeler AddItem avec des données valides.
+  @param Bucket   Index de la boîte dans laquelle ajouter la paire
+  @param Key      Clef
+  @param Data     Données
+*}
+procedure TCustomValueBucketList.AddItem(Bucket : integer; const Key, Data);
+var FKey, FData : Pointer;
+    Delta, Size : integer;
+begin
+  GetMem(FKey, KeySize);
+  if Assigned(KeyInfo) then
+    Initialize(FKey^, KeyInfo);
+  CopyData(Key, FKey^, KeySize, KeyInfo);
+
+  GetMem(FData, DataSize);
+  if Assigned(DataInfo) then
+    Initialize(FData^, DataInfo);
+  CopyData(Data, FData^, DataSize, DataInfo);
+
+  // Copied and adapted from Contnrs.pas: TCustomBucketList.AddItem
+  with Buckets[Bucket] do
+  begin
+    Size := Length(Items);
+    if Count = Size then
+    begin
+      if Size > 64 then
+        Delta := Size div 4
+      else if Size > 8 then
+        Delta := 16
+      else
+        Delta := 4;
+      SetLength(Items, Size + Delta);
+    end;
+
+    with Items[Count] do
+    begin
+      Item := FKey;
+      Data := FData;
+    end;
+    inc(Count);
+  end;
+end;
+
+{*
+  Supprime une paire clef/données, identifiée par sa position
+  @param Bucket   Index de la boîte
+  @param Index    Index dans la boîte
+*}
+procedure TCustomValueBucketList.DeleteItem(Bucket, Index : integer);
+var Ptr : Pointer;
+begin
+  with Buckets[Bucket] do
+  begin
+    Ptr := Items[Index].Item;
+    if Assigned(KeyInfo) then
+      Finalize(Ptr^, KeyInfo);
+    FreeMem(Ptr);
+
+    Ptr := Items[Index].Data;
+    if Assigned(DataInfo) then
+      Finalize(Ptr^, DataInfo);
+    FreeMem(Ptr);
+
+    // Copied and adapted from Contnrs.pas: TCustomBucketList.DeleteItem
+    if not FClearing then
+    begin
+      if Count = 1 then
+        SetLength(Items, 0)
+      else
+        Move(Items[Index+1], Items[Index],
+          (Count-Index) * sizeof(TBucketItem));
+      dec(Count);
+    end;
+  end;
+end;
+
+{*
+  Supprime une paire clef/données, identifiée par sa position
+  @param Bucket   Index de la boîte
+  @param Index    Index dans la boîte
+  @param Data     En sortie : les données de la paire qui est supprimée
+*}
+procedure TCustomValueBucketList.ExtractItem(Bucket, Index : integer; out Data);
+begin
+  CopyData(Buckets[Bucket].Items[Index].Data^, Data, DataSize, DataInfo);
+  DeleteItem(Bucket, Index);
+end;
+
+{*
+  Récupère les données liées à une clef
+  @param Key    Clef
+  @param Data   En sortie : données associées à la clef Key
+  @raise EListError Élément non trouvé
+*}
+procedure TCustomValueBucketList.GetData(const Key; out Data);
+var Bucket, Index : integer;
+begin
+  if not FindItem(Key, Bucket, Index) then
+    raise EListError.CreateFmt(SItemNotFound, [Integer(@Key)]);
+  CopyData(Buckets[Bucket].Items[Index].Data^, Data, DataSize, DataInfo);
+end;
+
+{*
+  Modifie les données liées à une clef
+  Il doit déjà exister une paire clef/données avec cette clef.
+  @param Key    Clef
+  @param Data   Données associées à la clef Key
+  @raise EListError Élément non trouvé
+*}
+procedure TCustomValueBucketList.SetData(const Key, Data);
+var Bucket, Index : integer;
+begin
+  if not FindItem(Key, Bucket, Index) then
+    raise EListError.CreateFmt(SItemNotFound, [Integer(@Key)]);
+  CopyData(Data, Buckets[Bucket].Items[Index].Data^, DataSize, DataInfo);
+end;
+
+{*
+  Ajoute une paire clef/données
+  Il ne peut pas encore exister de paire clef/données avec cette clef.
+  @param Key    Clef
+  @param Data   Données associées à la clef Key
+  @raise EListError Liste verrouillée lors d'une opération ForEach active
+  @raise EListError Élément dupliqué
+*}
+procedure TCustomValueBucketList.AddData(const Key, Data);
+var Bucket, Index : integer;
+begin
+  if FListLocked then
+    raise EListError.Create(SBucketListLocked);
+  if FindItem(Key, Bucket, Index) then
+    raise EListError.CreateFmt(SDuplicateItem, [Integer(@Key)]);
+  AddItem(Bucket, Key, Data);
+end;
+
+{*
+  Retire une paire clef/données
+  La paire ne doit pas nécessairement être présente dans la liste.
+  @param Key   Clef
+  @raise EListError Liste verrouillée lors d'une opération ForEach active
+*}
+procedure TCustomValueBucketList.RemoveData(const Key);
+var Bucket, Index : integer;
+begin
+  if FListLocked then
+    raise EListError.Create(SBucketListLocked);
+  if FindItem(Key, Bucket, Index) then
+    DeleteItem(Bucket, Index);
+end;
+
+{*
+  Retire une paire clef/données
+  La paire ne doit pas nécessairement être présente dans la liste.
+  @param Key    Clef
+  @param Data   En sortie : les données de la paire qui est supprimée
+  @raise EListError Liste verrouillée lors d'une opération ForEach active
+*}
+procedure TCustomValueBucketList.ExtractData(const Key; out Data);
+var Bucket, Index : integer;
+begin
+  if FListLocked then
+    raise EListError.Create(SBucketListLocked);
+  if FindItem(Key, Bucket, Index) then
+    DeleteItem(Bucket, Index);
+end;
+
+{*
+  Vide la liste
+*}
+procedure TCustomValueBucketList.Clear;
+var Bucket, Index : integer;
+begin
+  // Copied and adapted from Contnrs.pas: TCustomBucketList.Clear
+  if FListLocked then
+    raise EListError.Create(SBucketListLocked);
+
+  FClearing := True;
+  try
+    for Bucket := 0 to BucketCount-1 do
+    begin
+      for Index := Buckets[Bucket].Count-1 downto 0 do
+        DeleteItem(Bucket, Index);
+
+      SetLength(Buckets[Bucket].Items, 0);
+      Buckets[Bucket].Count := 0;
+    end;
+  finally
+    FClearing := False;
+  end;
+end;
+
+{*
+  Appelle une routine de call-back pour chaque paire clef/valeur de la liste
+  @param Proc   Routine de call-back
+  @param Info   Pointeur libre retransmis dans le paramètre Info de Proc
+  @return False si ForEach a été interrompu par le paramètre Continue,
+          True sinon
+*}
+function TCustomValueBucketList.ForEach(Proc : TValueBucketProc;
+  Info : Pointer = nil) : boolean;
+var Bucket, Index : integer;
+    OldListLocked : boolean;
+begin
+  // Copied and adapted from Contnrs.pas: TCustomBucketList.ForEach
+  Result := True;
+  OldListLocked := FListLocked;
+  FListLocked := True;
+  try
+    for Bucket := 0 to BucketCount-1 do with Buckets[Bucket] do
+    begin
+      for Index := Count-1 downto 0 do
+      begin
+        with Items[Index] do
+          Proc(Info, Item^, Data^, Result);
+        if not Result then
+          exit;
+      end;
+    end;
+  finally
+    FListLocked := OldListLocked;
+  end;
+end;
+
+{*
+  Appelle une méthode de call-back pour chaque paire clef/valeur de la liste
+  @param Event   Méthode de call-back
+  @return False si ForEach a été interrompu par le paramètre Continue,
+          True sinon
+*}
+function TCustomValueBucketList.ForEach(Event : TValueBucketEvent) : boolean;
+begin
+  with TMethod(Event) do
+    Result := ForEach(TValueBucketProc(Code), Data);
+end;
+
+{*
+  Copie le contenu d'une liste
+  La liste source doit avoir le même type d'éléments, sinon une exception
+  EConvertError sera déclenchée.
+  @param Source   Liste source
+  @raise EConvertError La liste source n'a pas le même type d'élément
+*}
+procedure TCustomValueBucketList.Assign(Source : TCustomValueBucketList);
+begin
+  if (Source.KeySize <> KeySize) or (Source.KeyInfo <> KeyInfo) or
+     (Source.DataSize <> DataSize) or (Source.DataInfo <> DataInfo) then
+    raise EConvertError.CreateResFmt(@SAssignError,
+      [Source.ClassName, ClassName]);
+
+  Clear;
+  Source.ForEach(AssignCallBack);
+end;
+
+{*
+  Détermine si un clef est référencée dans la liste
+  @param Key   Clef à rechercher
+  @return True si la clef est référencée, False sinon
+*}
+function TCustomValueBucketList.Exists(const Key) : boolean;
+var Bucket, Index : integer;
+begin
+  Result := FindItem(Key, Bucket, Index);
+end;
+
+{*
+  Recherche une clef dans la liste
+  @param Key    Clef à rechercher
+  @param Data   En sortie : données associées à la clef, si elle existe
+  @return True si la clef a été trouvée, False sinon
+*}
+function TCustomValueBucketList.Find(const Key; out Data) : boolean;
+var Bucket, Index : integer;
+begin
+  Result := FindItem(Key, Bucket, Index);
+  if Result then
+    CopyData(Buckets[Bucket].Items[Index].Data^, Data, DataSize, DataInfo);
+end;
+
+{------------------------}
+{ TValueBucketList class }
+{------------------------}
+
+{*
+  Récupère les données liées à une clef
+  @param Key    Clef
+  @param Data   En sortie : données associées à la clef Key
+  @raise EListError Élément non trouvé
+*}
+procedure TValueBucketList.Get(const Key; out Data);
+begin
+  GetData(Key, Data);
+end;
+
+{*
+  Modifie les données liées à une clef
+  Il doit déjà exister une paire clef/données avec cette clef.
+  @param Key    Clef
+  @param Data   Données associées à la clef Key
+  @raise EListError Élément non trouvé
+*}
+procedure TValueBucketList.Put(const Key, Data);
+begin
+  SetData(Key, Data);
+end;
+
+{*
+  Ajoute une paire clef/données
+  Il ne peut pas encore exister de paire clef/données avec cette clef.
+  @param Key    Clef
+  @param Data   Données associées à la clef Key
+  @raise EListError Liste verrouillée lors d'une opération ForEach active
+  @raise EListError Élément dupliqué
+*}
+procedure TValueBucketList.Add(const Key, Data);
+begin
+  AddData(Key, Data);
+end;
+
+{*
+  Retire une paire clef/données
+  La paire ne doit pas nécessairement être présente dans la liste.
+  @param Key   Clef
+  @raise EListError Liste verrouillée lors d'une opération ForEach active
+*}
+procedure TValueBucketList.Remove(const Key);
+begin
+  RemoveData(Key);
+end;
+
+{*
+  Retire une paire clef/données
+  La paire ne doit pas nécessairement être présente dans la liste.
+  @param Key    Clef
+  @param Data   En sortie : les données de la paire qui est supprimée
+  @raise EListError Liste verrouillée lors d'une opération ForEach active
+*}
+procedure TValueBucketList.Extract(const Key; out Data);
+begin
+  ExtractData(Key, Data);
+end;
+
+{*
+  Vide la liste
+*}
+procedure TValueBucketList.Clear;
+begin
+  inherited Clear;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TValueBucketList.Assign(Source : TCustomValueBucketList);
+begin
+  inherited;
+end;
+
+{$ENDREGION}
 
 {--------------------------------}
 { Initialization et Finalization }

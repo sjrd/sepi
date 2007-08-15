@@ -50,6 +50,7 @@ begin
   TSepiConstant.Create(Result, 'sScIndexOutOfRange', sScIndexOutOfRange);
   TSepiConstant.Create(Result, 'sScWrongIntSize', sScWrongIntSize);
   TSepiConstant.Create(Result, 'sScWrongLongWord', sScWrongLongWord);
+  TSepiConstant.Create(Result, 'sScListIsNotEmpty', sScListIsNotEmpty);
   TSepiConstant.Create(Result, 'sScWrongBase', sScWrongBase);
   TSepiConstant.Create(Result, 'sScWrongInteger', sScWrongInteger);
   TSepiConstant.Create(Result, 'sScWrongFloat', sScWrongFloat);

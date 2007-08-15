@@ -9,7 +9,7 @@ interface
 
 uses
   TypInfo, SepiMetaUnits, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
-  SepiCompTypes, ScLists, Classes;
+  SepiCompTypes, Classes, Contnrs, ScLists;
 
 implementation
 
@@ -66,6 +66,33 @@ type
   private
     function GetItems(Index : integer) : Extended;
     procedure SetItems(Index : integer; New : Extended);
+    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+  end;
+
+  TSepiImportsTScWaitingQueue = class(TScWaitingQueue)
+  private
+    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+  end;
+
+  TSepiImportsTScWaitingObjectQueue = class(TScWaitingObjectQueue)
+  private
+    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+  end;
+
+  TSepiImportsTCustomValueBucketList = class(TCustomValueBucketList)
+  private
+    procedure SetBucketCount(Value : integer);
+    constructor Create_1(AKeySize, ADataSize : integer);
+    constructor Create_2(AKeySize : integer; ADataInfo : PTypeInfo);
+    constructor Create_3(AKeyInfo : PTypeInfo; ADataSize : integer);
+    constructor Create_4(AKeyInfo, ADataInfo : PTypeInfo);
+    function ForEach_0(Proc : TValueBucketProc; Info : Pointer = nil ) : boolean;
+    function ForEach_1(Event : TValueBucketEvent) : boolean;
+    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+  end;
+
+  TSepiImportsTValueBucketList = class(TValueBucketList)
+  private
     class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
   end;
 
@@ -530,6 +557,224 @@ begin
   end;
 end;
 
+{------------------------}
+{ TScWaitingQueue import }
+{------------------------}
+
+class function TSepiImportsTScWaitingQueue.SepiImport(
+  Owner : TSepiMetaUnit) : TSepiClass;
+begin
+  Result := TSepiClass.RegisterTypeInfo(
+    Owner, TypeInfo(TScWaitingQueue));
+
+  with Result do
+  begin
+    CurrentVisibility := mvPublic;
+
+    AddMethod('Cancel', @TSepiImportsTScWaitingQueue.Cancel,
+      'procedure(AItem : Pointer)');
+
+    Complete;
+  end;
+end;
+
+{------------------------------}
+{ TScWaitingObjectQueue import }
+{------------------------------}
+
+class function TSepiImportsTScWaitingObjectQueue.SepiImport(
+  Owner : TSepiMetaUnit) : TSepiClass;
+begin
+  Result := TSepiClass.RegisterTypeInfo(
+    Owner, TypeInfo(TScWaitingObjectQueue));
+
+  with Result do
+  begin
+    CurrentVisibility := mvPublic;
+
+    AddMethod('Cancel', @TSepiImportsTScWaitingObjectQueue.Cancel,
+      'procedure(AObject : TObject)');
+
+    Complete;
+  end;
+end;
+
+{-------------------------------}
+{ TCustomValueBucketList import }
+{-------------------------------}
+
+procedure TSepiImportsTCustomValueBucketList.SetBucketCount(Value : integer);
+begin
+  BucketCount := Value;
+end;
+
+constructor TSepiImportsTCustomValueBucketList.Create_1(AKeySize, ADataSize : integer);
+begin
+  Create(AKeySize, ADataSize);
+end;
+
+constructor TSepiImportsTCustomValueBucketList.Create_2(AKeySize : integer; ADataInfo : PTypeInfo);
+begin
+  Create(AKeySize, ADataInfo);
+end;
+
+constructor TSepiImportsTCustomValueBucketList.Create_3(AKeyInfo : PTypeInfo; ADataSize : integer);
+begin
+  Create(AKeyInfo, ADataSize);
+end;
+
+constructor TSepiImportsTCustomValueBucketList.Create_4(AKeyInfo, ADataInfo : PTypeInfo);
+begin
+  Create(AKeyInfo, ADataInfo);
+end;
+
+function TSepiImportsTCustomValueBucketList.ForEach_0(Proc : TValueBucketProc; Info : Pointer = nil ) : boolean;
+begin
+  Result := ForEach(Proc, Info);
+end;
+
+function TSepiImportsTCustomValueBucketList.ForEach_1(Event : TValueBucketEvent) : boolean;
+begin
+  Result := ForEach(Event);
+end;
+
+class function TSepiImportsTCustomValueBucketList.SepiImport(
+  Owner : TSepiMetaUnit) : TSepiClass;
+begin
+  Result := TSepiClass.RegisterTypeInfo(
+    Owner, TypeInfo(TCustomValueBucketList));
+
+  with Result do
+  begin
+    CurrentVisibility := mvPrivate;
+
+    AddField('FBuckets', System.TypeInfo(TBucketArray));
+    AddField('FBucketCount', System.TypeInfo(integer));
+    AddField('FListLocked', System.TypeInfo(boolean));
+    AddField('FClearing', System.TypeInfo(boolean));
+    AddField('FKeySize', System.TypeInfo(integer));
+    AddField('FKeyInfo', 'PTypeInfo');
+    AddField('FDataSize', System.TypeInfo(integer));
+    AddField('FDataInfo', 'PTypeInfo');
+
+    AddOverloadedMethod('Create', nil,
+      'constructor(AKeySize : integer; AKeyInfo : PTypeInfo; ADataSize : integer ; ADataInfo : PTypeInfo )');
+    AddMethod('AssignCallBack', nil,
+      'procedure(const Key, Data; var Continue : boolean)');
+    AddMethod('SetBucketCount', @TSepiImportsTCustomValueBucketList.SetBucketCount,
+      'procedure(Value : integer)');
+
+    CurrentVisibility := mvProtected;
+
+    AddMethod('BucketFor', @TSepiImportsTCustomValueBucketList.BucketFor,
+      'function(const Key) : integer',
+      mlkVirtual);
+    AddMethod('KeyEquals', @TSepiImportsTCustomValueBucketList.KeyEquals,
+      'function(const Key1, Key2) : boolean',
+      mlkVirtual);
+    AddMethod('FindItem', @TSepiImportsTCustomValueBucketList.FindItem,
+      'function(const Key; out Bucket, Index : integer ) : boolean',
+      mlkVirtual);
+    AddMethod('AddItem', @TSepiImportsTCustomValueBucketList.AddItem,
+      'procedure(Bucket : integer; const Key, Data)',
+      mlkVirtual);
+    AddMethod('DeleteItem', @TSepiImportsTCustomValueBucketList.DeleteItem,
+      'procedure(Bucket, Index : integer)',
+      mlkVirtual);
+    AddMethod('ExtractItem', @TSepiImportsTCustomValueBucketList.ExtractItem,
+      'procedure(Bucket, Index : integer; out Data)',
+      mlkVirtual);
+    AddMethod('GetData', @TSepiImportsTCustomValueBucketList.GetData,
+      'procedure(const Key; out Data)');
+    AddMethod('SetData', @TSepiImportsTCustomValueBucketList.SetData,
+      'procedure(const Key, Data)');
+    AddMethod('AddData', @TSepiImportsTCustomValueBucketList.AddData,
+      'procedure(const Key, Data)');
+    AddMethod('RemoveData', @TSepiImportsTCustomValueBucketList.RemoveData,
+      'procedure(const Key)');
+    AddMethod('ExtractData', @TSepiImportsTCustomValueBucketList.ExtractData,
+      'procedure(const Key; out Data)');
+    AddMethod('Clear', @TSepiImportsTCustomValueBucketList.Clear,
+      'procedure');
+    AddMethod('Assign', @TSepiImportsTCustomValueBucketList.Assign,
+      'procedure(Source : TCustomValueBucketList)',
+      mlkVirtual);
+
+    AddProperty('Buckets', 'property: TBucketArray',
+      'FBuckets', '');
+    AddProperty('BucketCount', 'property: integer',
+      'FBucketCount', 'SetBucketCount');
+    AddProperty('KeySize', 'property: integer',
+      'FKeySize', '');
+    AddProperty('KeyInfo', 'property: PTypeInfo',
+      'FKeyInfo', '');
+    AddProperty('DataSize', 'property: integer',
+      'FDataSize', '');
+    AddProperty('DataInfo', 'property: PTypeInfo',
+      'FDataInfo', '');
+
+    CurrentVisibility := mvPublic;
+
+    AddOverloadedMethod('Create', @TSepiImportsTCustomValueBucketList.Create_1,
+      'constructor(AKeySize, ADataSize : integer)');
+    AddOverloadedMethod('Create', @TSepiImportsTCustomValueBucketList.Create_2,
+      'constructor(AKeySize : integer; ADataInfo : PTypeInfo)');
+    AddOverloadedMethod('Create', @TSepiImportsTCustomValueBucketList.Create_3,
+      'constructor(AKeyInfo : PTypeInfo; ADataSize : integer)');
+    AddOverloadedMethod('Create', @TSepiImportsTCustomValueBucketList.Create_4,
+      'constructor(AKeyInfo, ADataInfo : PTypeInfo)');
+    AddMethod('Destroy', @TSepiImportsTCustomValueBucketList.Destroy,
+      'destructor',
+      mlkOverride);
+    AddOverloadedMethod('ForEach', @TSepiImportsTCustomValueBucketList.ForEach_0,
+      'function(Proc : TValueBucketProc; Info : Pointer = nil ) : boolean');
+    AddOverloadedMethod('ForEach', @TSepiImportsTCustomValueBucketList.ForEach_1,
+      'function(Event : TValueBucketEvent) : boolean');
+    AddMethod('Exists', @TSepiImportsTCustomValueBucketList.Exists,
+      'function(const Key) : boolean');
+    AddMethod('Find', @TSepiImportsTCustomValueBucketList.Find,
+      'function(const Key; out Data) : boolean');
+
+    Complete;
+  end;
+end;
+
+{-------------------------}
+{ TValueBucketList import }
+{-------------------------}
+
+class function TSepiImportsTValueBucketList.SepiImport(
+  Owner : TSepiMetaUnit) : TSepiClass;
+begin
+  Result := TSepiClass.RegisterTypeInfo(
+    Owner, TypeInfo(TValueBucketList));
+
+  with Result do
+  begin
+    CurrentVisibility := mvPublic;
+
+    AddMethod('Get', @TSepiImportsTValueBucketList.Get,
+      'procedure(const Key; out Data)');
+    AddMethod('Put', @TSepiImportsTValueBucketList.Put,
+      'procedure(const Key, Data)');
+    AddMethod('Add', @TSepiImportsTValueBucketList.Add,
+      'procedure(const Key, Data)');
+    AddMethod('Remove', @TSepiImportsTValueBucketList.Remove,
+      'procedure(const Key)');
+    AddMethod('Extract', @TSepiImportsTValueBucketList.Extract,
+      'procedure(const Key; out Data)');
+    AddMethod('Clear', @TSepiImportsTValueBucketList.Clear,
+      'procedure');
+    AddMethod('Assign', @TSepiImportsTValueBucketList.Assign,
+      'procedure(Source : TCustomValueBucketList)',
+      mlkOverride);
+
+    RedefineProperty('BucketCount');
+
+    Complete;
+  end;
+end;
+
 {-------------}
 { Unit import }
 {-------------}
@@ -550,10 +795,17 @@ begin
   TSepiImportsTIntegerList.SepiImport(Result);
   TSepiImportsTUnsignedIntList.SepiImport(Result);
   TSepiImportsTExtendedList.SepiImport(Result);
+  TSepiImportsTScWaitingQueue.SepiImport(Result);
+  TSepiImportsTScWaitingObjectQueue.SepiImport(Result);
+  TSepiMethodRefType.Create(Result, 'TValueBucketProc',
+    'procedure(Info : Pointer; const Key, Data; var Continue : boolean )');
+  TSepiType.LoadFromTypeInfo(Result, TypeInfo(TValueBucketEvent));
+  TSepiImportsTCustomValueBucketList.SepiImport(Result);
+  TSepiImportsTValueBucketList.SepiImport(Result);
 
   // Global variables
   TSepiVariable.Create(Result, 'AppParams',
-     AppParams, TypeInfo(TScStrings));
+    AppParams, TypeInfo(TScStrings));
 
   Result.Complete;
 end;

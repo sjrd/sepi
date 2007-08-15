@@ -40,6 +40,7 @@ resourcestring
   sScIndexOutOfRange = 'Index liste hors bornes (%d)';
   sScWrongIntSize = 'Taille d''entier incorrecte : %d';
   sScWrongLongWord = '''%s'' n''est pas une valeur entière non signée correcte';
+  sScListIsNotEmpty = 'La liste n''est pas vide';
 
 // Extra errors
   sScWrongBase = 'La base %d est incorrecte';
