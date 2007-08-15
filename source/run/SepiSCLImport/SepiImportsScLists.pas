@@ -81,6 +81,7 @@ type
 
   TSepiImportsTCustomValueBucketList = class(TCustomValueBucketList)
   private
+    function GetIsEmpty: boolean;
     procedure SetBucketCount(Value : integer);
     constructor Create_1(AKeySize, ADataSize : integer);
     constructor Create_2(AKeySize : integer; ADataInfo : PTypeInfo);
@@ -603,6 +604,11 @@ end;
 { TCustomValueBucketList import }
 {-------------------------------}
 
+function TSepiImportsTCustomValueBucketList.GetIsEmpty: boolean;
+begin
+  Result := IsEmpty;
+end;
+
 procedure TSepiImportsTCustomValueBucketList.SetBucketCount(Value : integer);
 begin
   BucketCount := Value;
@@ -661,13 +667,15 @@ begin
       'constructor(AKeySize : integer; AKeyInfo : PTypeInfo; ADataSize : integer ; ADataInfo : PTypeInfo )');
     AddMethod('AssignCallBack', nil,
       'procedure(const Key, Data; var Continue : boolean)');
+    AddMethod('GetIsEmpty', @TSepiImportsTCustomValueBucketList.GetIsEmpty,
+      'function: boolean');
     AddMethod('SetBucketCount', @TSepiImportsTCustomValueBucketList.SetBucketCount,
       'procedure(Value : integer)');
 
     CurrentVisibility := mvProtected;
 
     AddMethod('BucketFor', @TSepiImportsTCustomValueBucketList.BucketFor,
-      'function(const Key) : integer',
+      'function(const Key) : Cardinal',
       mlkVirtual);
     AddMethod('KeyEquals', @TSepiImportsTCustomValueBucketList.KeyEquals,
       'function(const Key1, Key2) : boolean',
@@ -735,6 +743,9 @@ begin
     AddMethod('Find', @TSepiImportsTCustomValueBucketList.Find,
       'function(const Key; out Data) : boolean');
 
+    AddProperty('IsEmpty', 'property: boolean',
+      'GetIsEmpty', '');
+
     Complete;
   end;
 end;
@@ -782,7 +793,7 @@ end;
 function ImportUnit(Root : TSepiMetaRoot) : TSepiMetaUnit;
 begin
   Result := TSepiMetaUnit.Create(Root, 'ScLists',
-    ['SysUtils', 'Classes']);
+    ['SysUtils', 'Classes', 'Contnrs', 'TypInfo']);
 
   // Types
   TSepiImportsEIntListError.SepiImport(Result);

@@ -331,6 +331,7 @@ type
 
     procedure AssignCallBack(const Key, Data; var Continue : boolean);
 
+    function GetIsEmpty : boolean;
     procedure SetBucketCount(Value : integer);
   protected
     function BucketFor(const Key) : Cardinal; virtual;
@@ -371,6 +372,8 @@ type
 
     function Exists(const Key) : boolean;
     function Find(const Key; out Data) : boolean;
+
+    property IsEmpty : boolean read GetIsEmpty;
   end;
 
   {*
@@ -1943,17 +1946,28 @@ begin
 end;
 
 {*
+  True si la liste est vide, False sinon
+  @return True si la liste est vide, False sinon
+*}
+function TCustomValueBucketList.GetIsEmpty : boolean;
+var I : integer;
+begin
+  Result := False;
+  for I := 0 to BucketCount-1 do
+    if Buckets[I].Count > 0 then exit;
+  Result := True;
+end;
+
+{*
   Modifie le nombre de boîtes de hashage
   BucketCount ne peut être modifié que lorsque la liste est vide
   @param Value   Nouvelle valeur
   @throws EListError La liste n'est pas vide
 *}
 procedure TCustomValueBucketList.SetBucketCount(Value : integer);
-var I : integer;
 begin
-  for I := 0 to BucketCount-1 do
-    if Buckets[I].Count > 0 then
-      raise EListError.Create(sScListIsNotEmpty);
+  if not IsEmpty then
+    raise EListError.Create(sScListIsNotEmpty);
 
   if Value > 0 then
   begin
