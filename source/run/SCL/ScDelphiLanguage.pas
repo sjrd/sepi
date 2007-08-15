@@ -79,11 +79,18 @@ uses
   Windows, ScConsts;
 
 type
+  /// Pointeur vers TCDeclCallInfo
   PCDeclCallInfo = ^TCDeclCallInfo;
+
+  {*
+    Informations de contexte sur l'appel d'une méthode cdecl
+    @author sjrd
+    @version 1.0
+  *}
   TCDeclCallInfo = packed record
-    Previous : PCDeclCallInfo;
-    StackPointer : Pointer;
-    ReturnAddress : Pointer;
+    Previous : PCDeclCallInfo; /// Pointeur vers le contexte précédent
+    StackPointer : Pointer;    /// Valeur de ESP au moment de l'appel
+    ReturnAddress : Pointer;   /// Adresse de retour de l'appel
   end;
 
 var
@@ -130,6 +137,7 @@ end;
 
 {*
   Ajoute une adresse de retour
+  @param StackPointer    Valeur du registre ESP
   @param ReturnAddress   Adresse à ajouter
 *}
 procedure StoreCDeclReturnAddress(
@@ -147,6 +155,7 @@ end;
 
 {*
   Récupère une adresse de retour
+  @param StackPointer   Valeur du registre ESP
   @return L'adresse de retour qui a été ajoutée en dernier
 *}
 function GetCDeclReturnAddress(StackPointer : Pointer) : Pointer; stdcall;
@@ -322,7 +331,7 @@ end;
   @param AClass     Classe concernée
   @param DMTIndex   DMT index de la méthode
   @return Pointeur sur le code de la méthode
-  @raise EAbstractError La classe n'implémente pas la méthode recherchée
+  @throws EAbstractError La classe n'implémente pas la méthode recherchée
 *}
 function GetClassDynamicCode(AClass : TClass; DMTIndex : integer) : Pointer;
 asm
@@ -337,7 +346,7 @@ end;
   @param AClass     Classe concernée
   @param DMTIndex   DMT index de la méthode
   @return Méthode correspondante
-  @raise EAbstractError La classe n'implémente pas la méthode recherchée
+  @throws EAbstractError La classe n'implémente pas la méthode recherchée
 *}
 function GetClassDynamicMethod(AClass : TClass; DMTIndex : integer) : TMethod;
 begin
@@ -350,7 +359,7 @@ end;
   @param AObject    Objet concerné
   @param DMTIndex   DMT index de la méthode
   @return Pointeur sur le code de la méthode
-  @raise EAbstractError La classe n'implémente pas la méthode recherchée
+  @throws EAbstractError La classe n'implémente pas la méthode recherchée
 *}
 function GetObjectDynamicCode(AObject : TObject; DMTIndex : integer) : Pointer;
 asm
@@ -366,7 +375,7 @@ end;
   @param AObject    Objet concerné
   @param DMTIndex   DMT index de la méthode
   @return Méthode correspondante
-  @raise EAbstractError La classe n'implémente pas la méthode recherchée
+  @throws EAbstractError La classe n'implémente pas la méthode recherchée
 *}
 function GetObjectDynamicMethod(AObject : TObject;
   DMTIndex : integer) : TMethod;
@@ -429,7 +438,7 @@ end;
   Cette chaîne peut par exemple être extraite d'un code Pascal.
   @param Str   Chaîne à traiter
   @return Chaîne représentée par Str en Pascal
-  @raise EConvertError Chaîne de caractère incorrecte
+  @throws EConvertError Chaîne de caractère incorrecte
 *}
 function StrRepresToStr(Str : string) : string;
 var CharStr : string;
@@ -506,7 +515,7 @@ end;
   Détermine un caractère à partir de sa représentation Pascal
   @param Str   Chaîne à traiter
   @return Caractère représenté par Str en Pascal
-  @raise EConvertError Caractère incorrect
+  @throws EConvertError Caractère incorrect
 *}
 function CharRepresToChar(Str : string) : Char;
 begin
@@ -584,7 +593,7 @@ end;
   Détermine un ensemble de caractères à partir de sa représentation Pascal
   @param Str   Chaîne à traiter
   @return Ensemble de caractères représenté par CharSet
-  @raise EConvertError Ensemble de caractères incorrect
+  @throws EConvertError Ensemble de caractères incorrect
 *}
 function StrToCharSet(Str : string) : TSysCharSet;
 var I : integer;
@@ -878,6 +887,7 @@ end;
   La procédure devra être libérée avec FreeProcOfMethod une fois utilisée.
   @param Method         Méthode à convertir
   @param UsedRegCount   Nombre de registres utilisés dans l'appel de *procédure*
+  @return Pointeur vers le code de la procédure créée
 *}
 function MakeProcOfRegisterMethod(const Method : TMethod;
   UsedRegCount : Byte) : Pointer;
@@ -921,6 +931,7 @@ end;
   la méthode initiale.
   La procédure devra être libérée avec FreeProcOfMethod une fois utilisée.
   @param Method   Méthode à convertir
+  @return Pointeur vers le code de la procédure créée
 *}
 function MakeProcOfStdCallMethod(const Method : TMethod) : Pointer;
 type
@@ -952,6 +963,7 @@ end;
   la méthode initiale.
   La procédure devra être libérée avec FreeProcOfMethod une fois utilisée.
   @param Method   Méthode à convertir
+  @return Pointeur vers le code de la procédure créée
 *}
 function MakeProcOfPascalMethod(const Method : TMethod) : Pointer;
 begin
@@ -965,7 +977,8 @@ end;
   renvoyée commence par ajouter un paramètre supplémentaire, avant d'appeler
   la méthode initiale.
   La procédure devra être libérée avec FreeProcOfMethod une fois utilisée.
-  @param Method         Méthode à convertir
+  @param Method   Méthode à convertir
+  @return Pointeur vers le code de la procédure créée
 *}
 function MakeProcOfCDeclMethod(const Method : TMethod) : Pointer;
 

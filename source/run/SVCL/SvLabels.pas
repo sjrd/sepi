@@ -41,8 +41,11 @@ type
     function IsFontStored : boolean;
     function IsPopupMenuStored : boolean;
   protected
+    /// [@inheritDoc]
     property Cursor default crHandPoint;
+    /// [@inheritDoc]
     property Font stored IsFontStored;
+    /// [@inheritDoc]
     property PopupMenu stored IsPopupMenuStored;
     property URL : string read FURL write FURL;
   public

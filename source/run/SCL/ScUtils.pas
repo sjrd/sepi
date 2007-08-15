@@ -231,7 +231,7 @@ end;
   @param Op1   Dividande
   @param Op2   Diviseur
   @return Résultat de la division euclidienne de Op1 par Op2
-  @raise EDivByZero Division par 0
+  @throws EDivByZero Division par 0
 *}
 function IntDiv(Op1, Op2 : integer) : integer;
 begin
@@ -243,7 +243,7 @@ end;
   @param Op1   Dividande
   @param Op2   Diviseur
   @return Reste de la division euclidienne de Op1 par Op2
-  @raise EDivByZero Division par 0
+  @throws EDivByZero Division par 0
 *}
 function IntMod(Op1, Op2 : integer) : integer;
 begin
@@ -253,7 +253,7 @@ end;
 {*
   Vérifie qu'une base est valide
   @param Base   Base à tester
-  @raise EConvertError Base incorrecte
+  @throws EConvertError Base incorrecte
 *}
 procedure VerifyBase(Base : Byte);
 begin
@@ -266,7 +266,7 @@ end;
   @param Value   Entier à convertir
   @param Base    Base de destination
   @return Représentation en chaîne de Value exprimé dans la base Base
-  @raise EConvertError Base incorrecte
+  @throws EConvertError Base incorrecte
 *}
 function IntToBase(Value : integer; Base : Byte = 10) : string;
 var Negative : boolean;
@@ -292,8 +292,8 @@ end;
   @param Value   Chaîne de caractère représentant le nombre
   @param Base    Base dans laquelle est exprimée le nombre
   @return Valeur décimale du nombre
-  @raise EConvertError Base incorrecte
-  @raise EConvertError Entier incorrect
+  @throws EConvertError Base incorrecte
+  @throws EConvertError Entier incorrect
 *}
 function BaseToInt(const Value : string; Base : Byte = 10) : integer;
   procedure RaiseUncorrectInteger;

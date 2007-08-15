@@ -1,3 +1,8 @@
+{*
+  Liaison Sepi-PS à l'exécution
+  @author sjrd
+  @version 1.0
+*}
 unit SepiPSRunTime;
 
 interface
@@ -24,6 +29,11 @@ uses
   SepiCompTypes, uPSUtils, SepiPSUtils;
 
 type
+  {*
+    Classe privée TProtectedPSExec
+    @author sjrd
+    @version 1.0
+  *}
   TProtectedPSExec = class(TPSExec)
   public
     function InnerfuseCall(_Self, Address : Pointer;
@@ -38,6 +48,15 @@ resourcestring
 { TProtectedPSExec class }
 {------------------------}
 
+{*
+  Appelle une routine/méthode native dans un contexte Pascal Script
+  @param _Self   Instance d'objet (nil pour une routine)
+  @param Address   Pointeur sur le code de la routine/méthode à appeler
+  @param CallingConv   Convention d'appel de la routine/méthode
+  @param Params        Paramètres de l'appel
+  @param ReturnValue   Emplacement où enregistrer la valeur de retour
+  @return True si l'appel s'est déroulé sans exception, False sinon
+*}
 function TProtectedPSExec.InnerfuseCall(_Self, Address : Pointer;
   CallingConv : TPSCallingConvention; Params : TPSList;
   ReturnValue : PPSVariantIFC) : boolean;

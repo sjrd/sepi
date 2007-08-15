@@ -68,7 +68,8 @@
       <Item0>.\..\</Item0>
     </FilesIncludeList>
     <FilesExcludeList>
-      <Count>0</Count>
+      <Count>1</Count>
+      <Item0>*\SepiImport*.pas</Item0>
     </FilesExcludeList>
     <AllowHtmlInDescription>FALSE</AllowHtmlInDescription>
     <PropertyCommentFromAssessors>TRUE</PropertyCommentFromAssessors>

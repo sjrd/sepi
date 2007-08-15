@@ -1,3 +1,8 @@
+{*
+  Exécuteur d'unité Sepi-PS
+  @author sjrd
+  @version 1.0
+*}
 unit SepiPSExecuter;
 
 interface

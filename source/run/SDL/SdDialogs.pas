@@ -653,6 +653,15 @@ begin
   FMax := 0;
 end;
 
+{*
+  Affiche la boîte de dialogue
+  @param ATitle     Titre de la boîte de dialogue
+  @param APrompt    Invite
+  @param ADefault   Valeur par défaut
+  @param AMin       Valeur minimale
+  @param AMax       Valeur maximale
+  @return Valeur sélectionnée par l'utilisateur
+*}
 function TSdNumberDialog.Execute(const ATitle, APrompt : string;
   ADefault, AMin, AMax : integer) : integer;
 begin
@@ -660,23 +669,54 @@ begin
   Result := FValue;
 end;
 
+{*
+  Affiche la boîte de dialogue
+  @param ADefault   Valeur par défaut
+  @param AMin       Valeur minimale
+  @param AMax       Valeur maximale
+  @return Valeur sélectionnée par l'utilisateur
+*}
 function TSdNumberDialog.Execute(
   ADefault, AMin, AMax : integer) : integer;
 begin
   Result := Execute(Title, Prompt, ADefault, AMin, AMax);
 end;
 
+{*
+  Affiche la boîte de dialogue
+  Cette variante utilise comme valeur par défaut la valeur sélectionnée par
+  l'utilisateur lors de la précédent invocation.
+  @param ATitle    Titre de la boîte de dialogue
+  @param APrompt   Invite
+  @param AMin      Valeur minimale
+  @param AMax      Valeur maximale
+  @return Valeur sélectionnée par l'utilisateur
+*}
 function TSdNumberDialog.Execute(const ATitle, APrompt : string;
   AMin, AMax : integer) : integer;
 begin
   Result := Execute(Title, Prompt, Value, AMin, AMax);
 end;
 
+{*
+  Affiche la boîte de dialogue
+  Cette variante utilise comme valeur par défaut la valeur sélectionnée par
+  l'utilisateur lors de la précédent invocation.
+  @param AMin   Valeur minimale
+  @param AMax   Valeur maximale
+  @return Valeur sélectionnée par l'utilisateur
+*}
 function TSdNumberDialog.Execute(AMin, AMax : integer) : integer;
 begin
   Result := Execute(Title, Prompt, Value, AMin, AMax);
 end;
 
+{*
+  Affiche la boîte de dialogue
+  Cette variante utilise comme valeur par défaut la valeur sélectionnée par
+  l'utilisateur lors de la précédent invocation.
+  @return Valeur sélectionnée par l'utilisateur
+*}
 function TSdNumberDialog.Execute : integer;
 begin
   Result := Execute(Title, Prompt, Value, Min, Max);

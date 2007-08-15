@@ -56,9 +56,9 @@ type
     @version 1.0
   *}
   TArrayTypeData = packed record
-    Size : integer;
-    Count : integer;
-    ElType : PPTypeInfo;
+    Size : integer;      /// Taille du type
+    Count : integer;     /// Nombre d'éléments (linéarisés)
+    ElType : PPTypeInfo; /// RTTI du type des éléments
   end;
 
 function TypeSize(TypeInfo : PTypeInfo) : integer;
@@ -77,6 +77,7 @@ uses
   Le seul cas dans lequel TypeSize est incapable de déterminer la taille du
   type (et donc renvoie -1), est si TypeInfo.Kind = tkUnknown, ce qui ne
   devrait jamais arriver.
+  @param TypeInfo   RTTI du type
   @return Taille du type, ou -1 si c'est impossible à déterminer
 *}
 function TypeSize(TypeInfo : PTypeInfo) : integer;

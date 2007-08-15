@@ -1,3 +1,8 @@
+{*
+  Liaison Sepi-PS à la compilation
+  @author sjrd
+  @version 1.0
+*}
 unit SepiPSCompileTime;
 
 interface
@@ -20,6 +25,7 @@ procedure ImportType(PSCompiler : TPSPascalCompiler;
   SepiType : TSepiType); forward;
 
 const {don't localize}
+  /// Identificateurs Delphi que PS reconnaît comme mots-clefs
   InvalidIdentifiers : array[0..3] of string = (
     'Chr', 'Ord', 'High', 'Low'
   );

@@ -23,10 +23,10 @@ type
     @version 1.0
   *}
   TSdPasswordForm = class(TForm)
-    LabelPrompt: TLabel;
-    EditPassword: TEdit;
-    BoutonOK: TBitBtn;
-    BoutonAnnuler: TBitBtn;
+    LabelPrompt: TLabel;    /// Label pour l'invite
+    EditPassword: TEdit;    /// Edit pour le mot de passe
+    BoutonOK: TBitBtn;      /// Bouton OK
+    BoutonAnnuler: TBitBtn; /// Bouton Annuler
   private
     { Déclarations privées }
   public

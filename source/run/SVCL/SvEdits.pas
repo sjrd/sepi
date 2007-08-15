@@ -56,6 +56,7 @@ type
 
     property Int : integer read GetInt write SetInt;
 
+    /// [@inheritDoc]
     property AutoSelect default False;
 
     property Value : Double read GetValue write SetValue;

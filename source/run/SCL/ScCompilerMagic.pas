@@ -59,7 +59,7 @@ asm
 end;
 
 {*
-  Copie un tableau statique
+  Copie un tableau statique - alias de @CopyArray
   @param Dest       Pointeur sur le tableau destination
   @param Source     Pointeur sur le tableau source
   @param TypeInfo   RTTI du type des éléments du tableau
@@ -71,7 +71,7 @@ asm
 end;
 
 {*
-  Copie un record
+  Copie un record - alias de @CopyRecord
   @param Dest       Pointeur sur le record destination
   @param Source     Pointeur sur le record source
   @param TypeInfo   RTTI du type record
@@ -82,7 +82,7 @@ asm
 end;
 
 {*
-  Copie un tableau dynamique
+  Copie un tableau dynamique - alias de @DynArrayCopy
   @param Source     Tableau source sous forme de pointeur
   @param TypeInfo   RTTI du type tableau dynamique
   @param Dest       Tableau destination sous forme de pointeur
@@ -94,7 +94,7 @@ asm
 end;
 
 {*
-  Copie une partie d'un tableau dynamique dans un autre
+  Copie une partie d'un tableau dynamique - alias de @DynArrayCopyRange
   @param Source     Tableau source sous forme de pointeur
   @param TypeInfo   RTTI du type tableau dynamique
   @param Index      Index du premier élément à copier

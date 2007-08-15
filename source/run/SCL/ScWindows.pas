@@ -1,3 +1,8 @@
+{*
+  Types et routines dépendant de la plate-forme Windows
+  @author sjrd
+  @version 1.0
+*}
 unit ScWindows platform;
 
 interface

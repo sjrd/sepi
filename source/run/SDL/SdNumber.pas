@@ -17,15 +17,15 @@ type
     @version 1.0
   *}
   TSdNumberForm = class(TForm)
-    LabelPrompt: TLabel;
-    ButtonOK: TButton;
+    LabelPrompt: TLabel; /// Label pour l'invite
+    ButtonOK: TButton;   /// Bouton OK
     procedure FormCreate(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure FormKeyPress(Sender: TObject; var Key: Char);
   private
     { Composants non disponibles dans Turbo Explorer }
-    EditValue : TSpinEdit;
+    EditValue : TSpinEdit; /// Éditeur pour la valeur sélectionnée
 
     { Déclarations privées }
   public

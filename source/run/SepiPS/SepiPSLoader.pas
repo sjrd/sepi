@@ -1,3 +1,8 @@
+{*
+  Chargeur d'unité Sepi-PS
+  @author sjrd
+  @version 1.0
+*}
 unit SepiPSLoader;
 
 interface
@@ -16,6 +21,7 @@ function SepiPSLoadUnit(Self : TObject; Root : TSepiMetaRoot;
   const UnitName : string) : TSepiMetaUnit;
 
 const {don't localize}
+  /// Extension des fichiers unité Sepi-PS
   sSepiPSExtension = '.sps';
 
 implementation

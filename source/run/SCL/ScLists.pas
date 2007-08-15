@@ -394,6 +394,7 @@ type
 
     procedure Assign(Source : TCustomValueBucketList); override;
 
+    /// [@inheritDoc]
     property BucketCount;
   end;
 
@@ -406,6 +407,7 @@ uses
   RTLConsts, ScUtils, ScStrUtils, ScCompilerMagic, ScTypInfo, ScConsts;
 
 const
+  /// Nombre par défaut de boîtes de hashage
   DefaultBucketCount = 16;
 
 {------------------------}
@@ -607,8 +609,8 @@ end;
   @param Str       Chaîne à découper
   @param Delim     Caractères qui délimitent deux sous-chaînes
   @param NotIn     Paires de caractères échappant les délimiteurs
-  @raise EListError NotIn contient un nombre impair de caractères
-  @raise EListError Delim et NotIn contiennent un même caractère
+  @throws EListError NotIn contient un nombre impair de caractères
+  @throws EListError Delim et NotIn contiennent un même caractère
 *}
 class procedure StringsOps.FromString(Strings : TStrings;
   const Str, Delim : string; const NotIn : string = '');
@@ -625,8 +627,8 @@ end;
   @param Str       Chaîne à découper
   @param Delim     Caractères qui délimitent deux sous-chaînes
   @param NotIn     Paires de caractères échappant les délimiteurs
-  @raise EListError NotIn contient un nombre impair de caractères
-  @raise EListError Delim et NotIn contiennent un même caractère
+  @throws EListError NotIn contient un nombre impair de caractères
+  @throws EListError Delim et NotIn contiennent un même caractère
 *}
 class procedure StringsOps.AddFromString(Strings : TStrings;
   const Str, Delim : string; const NotIn : string = '');
@@ -714,8 +716,8 @@ end;
   @param Str       Chaîne à découper
   @param Delim     Caractères qui délimitent deux sous-chaînes
   @param NotIn     Paires de caractères échappant les délimiteurs
-  @raise EListError NotIn contient un nombre impair de caractères
-  @raise EListError Delim et NotIn contiennent un même caractère
+  @throws EListError NotIn contient un nombre impair de caractères
+  @throws EListError Delim et NotIn contiennent un même caractère
 *}
 constructor TScStrings.CreateFromString(const Str, Delim : string;
   const NotIn : string = '');
@@ -850,8 +852,8 @@ end;
   @param Str       Chaîne à découper
   @param Delim     Caractères qui délimitent deux sous-chaînes
   @param NotIn     Paires de caractères échappant les délimiteurs
-  @raise EListError NotIn contient un nombre impair de caractères
-  @raise EListError Delim et NotIn contiennent un même caractère
+  @throws EListError NotIn contient un nombre impair de caractères
+  @throws EListError Delim et NotIn contiennent un même caractère
 *}
 procedure TScStrings.FromString(const Str, Delim : string;
   const NotIn : string = '');
@@ -866,8 +868,8 @@ end;
   @param Str       Chaîne à découper
   @param Delim     Caractères qui délimitent deux sous-chaînes
   @param NotIn     Paires de caractères échappant les délimiteurs
-  @raise EListError NotIn contient un nombre impair de caractères
-  @raise EListError Delim et NotIn contiennent un même caractère
+  @throws EListError NotIn contient un nombre impair de caractères
+  @throws EListError Delim et NotIn contiennent un même caractère
 *}
 procedure TScStrings.AddFromString(const Str, Delim : string;
   const NotIn : string = '');
@@ -960,7 +962,7 @@ end;
 {*
   Modifie l'index interne de la liste
   @param New   Nouvelle valeur de l'index interne
-  @raise EListError Index de liste hors bornes
+  @throws EListError Index de liste hors bornes
 *}
 procedure TScList.SetIndex(New : integer);
 begin
@@ -1038,7 +1040,7 @@ end;
   Lit un élément identifié par son index
   @param AIndex   Index de l'élément à lire
   @param Buffer   Buffer non typé dans lequel enregistré l'élément lu
-  @raise EListError Index de liste hors bornes
+  @throws EListError Index de liste hors bornes
 *}
 procedure TScList._GetItems(AIndex : integer; var Buffer);
 begin
@@ -1054,7 +1056,7 @@ end;
   Modifie un élément identifié par son index
   @param AIndex   Index de l'élément à modifier
   @param Buffer   Buffer non typé contenant l'élément à écrire
-  @raise EListError Index de liste hors bornes
+  @throws EListError Index de liste hors bornes
 *}
 procedure TScList._SetItems(AIndex : integer; var Buffer);
 begin
@@ -1083,7 +1085,7 @@ end;
   @param AIndex   Index où insérer l'élément
   @param Buffer   Buffer non typé contenant l'élément à insérer
   @return Index de l'élément inséré
-  @raise EListError Index de liste hors bornes
+  @throws EListError Index de liste hors bornes
 *}
 function TScList._Insert(AIndex : integer; var Buffer) : integer;
 var Temp : TMemoryStream;
@@ -1120,7 +1122,7 @@ end;
   Supprime un élément de la liste
   @param AIndex   Index de l'élément à supprimer
   @param Buffer   Buffer non typé dans lequel enregistré l'élément supprimé
-  @raise EListError Index de liste hors bornes
+  @throws EListError Index de liste hors bornes
 *}
 procedure TScList._Delete(AIndex : integer; var Buffer);
 var Temp : TMemoryStream;
@@ -1259,7 +1261,7 @@ end;
 {*
   Crée une nouvelle instance de TIntegerList
   @param IntSize   Taille en octets des entiers (entre 1 et 8 inclus)
-  @raise EIntListError Taille d'entier incorrecte
+  @throws EIntListError Taille d'entier incorrecte
 *}
 constructor TIntegerList.Create(IntSize : integer = 4);
 begin
@@ -1274,7 +1276,7 @@ end;
   Crée une nouvelle instance de TIntegerList, copie d'une autre source
   @param Source    Objet source à copier
   @param IntSize   Taille en octets des entiers (entre 1 et 8 inclus)
-  @raise EIntListError Taille d'entier incorrecte
+  @throws EIntListError Taille d'entier incorrecte
 *}
 constructor TIntegerList.CreateAssign(Source : TPersistent;
   IntSize : integer = 4);
@@ -1287,7 +1289,7 @@ end;
   Tableau indexé par leurs index des éléments de la liste
   @param Index   Index de l'élément à lire
   @return Valeur de l'élément à l'index Index
-  @raise EListError Index de liste hors bornes
+  @throws EListError Index de liste hors bornes
 *}
 function TIntegerList.GetItems(Index : integer) : Int64;
 begin
@@ -1299,7 +1301,7 @@ end;
   Modifie le tableau indexé par leurs index des éléments de la liste
   @param Index   Index de l'élément à modifier
   @param New     Nouvelle valeur de l'élément à l'index Index
-  @raise EListError Index de liste hors bornes
+  @throws EListError Index de liste hors bornes
 *}
 procedure TIntegerList.SetItems(Index : integer; New : Int64);
 begin
@@ -1458,7 +1460,7 @@ end;
 {*
   Crée une nouvelle instance de TUnsignedIntList
   @param IntSize   Taille en octets des entiers (entre 1 et 4 inclus)
-  @raise EIntListError Taille d'entier incorrecte
+  @throws EIntListError Taille d'entier incorrecte
 *}
 constructor TUnsignedIntList.Create(IntSize : integer = 4);
 begin
@@ -1473,7 +1475,7 @@ end;
   Crée une nouvelle instance de TUnsignedIntList, copie d'une autre source
   @param Source    Objet source à copier
   @param IntSize   Taille en octets des entiers (entre 1 et 4 inclus)
-  @raise EIntListError Taille d'entier incorrecte
+  @throws EIntListError Taille d'entier incorrecte
 *}
 constructor TUnsignedIntList.CreateAssign(Source : TPersistent;
   IntSize : integer = 4);
@@ -1486,7 +1488,7 @@ end;
   Tableau indexé par leurs index des éléments de la liste
   @param Index   Index de l'élément à lire
   @return Valeur de l'élément à l'index Index
-  @raise EListError Index de liste hors bornes
+  @throws EListError Index de liste hors bornes
 *}
 function TUnsignedIntList.GetItems(Index : integer) : LongWord;
 begin
@@ -1498,7 +1500,7 @@ end;
   Modifie le tableau indexé par leurs index des éléments de la liste
   @param Index   Index de l'élément à modifier
   @param New     Nouvelle valeur de l'élément à l'index Index
-  @raise EListError Index de liste hors bornes
+  @throws EListError Index de liste hors bornes
 *}
 procedure TUnsignedIntList.SetItems(Index : integer; New : LongWord);
 begin
@@ -1677,7 +1679,7 @@ end;
   Tableau indexé par leurs index des éléments de la liste
   @param Index   Index de l'élément à lire
   @return Valeur de l'élément à l'index Index
-  @raise EListError Index de liste hors bornes
+  @throws EListError Index de liste hors bornes
 *}
 function TExtendedList.GetItems(Index : integer) : Extended;
 begin
@@ -1688,7 +1690,7 @@ end;
   Modifie le tableau indexé par leurs index des éléments de la liste
   @param Index   Index de l'élément à modifier
   @param New     Nouvelle valeur de l'élément à l'index Index
-  @raise EListError Index de liste hors bornes
+  @throws EListError Index de liste hors bornes
 *}
 procedure TExtendedList.SetItems(Index : integer; New : Extended);
 begin
@@ -1806,6 +1808,10 @@ end;
 { TScWaitingQueue class }
 {-----------------------}
 
+{*
+  Annule un élément de la file, en le supprimant
+  @param AItem   Élément à supprimer
+*}
 procedure TScWaitingQueue.Cancel(AItem : Pointer);
 begin
   List.Remove(AItem);
@@ -1815,6 +1821,10 @@ end;
 { TScWaitingObjectQueue class }
 {-----------------------------}
 
+{*
+  Annule un objet de la file, en le supprimant
+  @param AObject   Objet à supprimer
+*}
 procedure TScWaitingObjectQueue.Cancel(AObject : TObject);
 begin
   List.Remove(AObject);
@@ -1822,7 +1832,7 @@ end;
 
 {$ENDREGION}
 
-{$REGION 'Classes TCustomValueBucketList et TValueBucketList'}
+{$REGION 'Classe TCustomValueBucketList'}
 
 {------------------------------}
 { TCustomValueBucketList class }
@@ -1936,7 +1946,7 @@ end;
   Modifie le nombre de boîtes de hashage
   BucketCount ne peut être modifié que lorsque la liste est vide
   @param Value   Nouvelle valeur
-  @raise EListError La liste n'est pas vide
+  @throws EListError La liste n'est pas vide
 *}
 procedure TCustomValueBucketList.SetBucketCount(Value : integer);
 var I : integer;
@@ -1960,6 +1970,8 @@ end;
   L'implémentation par défauut de BucketFor est de prendre les 4 premiers
   octets de la clef, et de prendre le modulo par le nombre de boîtes de
   hashage (BucketCount).
+  @param Key   Clef
+  @return Numéro de la boîte de hashage pour la clef Key
 *}
 function TCustomValueBucketList.BucketFor(const Key) : Cardinal;
 begin
@@ -2116,7 +2128,7 @@ end;
   Récupère les données liées à une clef
   @param Key    Clef
   @param Data   En sortie : données associées à la clef Key
-  @raise EListError Élément non trouvé
+  @throws EListError Élément non trouvé
 *}
 procedure TCustomValueBucketList.GetData(const Key; out Data);
 var Bucket, Index : integer;
@@ -2131,7 +2143,7 @@ end;
   Il doit déjà exister une paire clef/données avec cette clef.
   @param Key    Clef
   @param Data   Données associées à la clef Key
-  @raise EListError Élément non trouvé
+  @throws EListError Élément non trouvé
 *}
 procedure TCustomValueBucketList.SetData(const Key, Data);
 var Bucket, Index : integer;
@@ -2146,8 +2158,8 @@ end;
   Il ne peut pas encore exister de paire clef/données avec cette clef.
   @param Key    Clef
   @param Data   Données associées à la clef Key
-  @raise EListError Liste verrouillée lors d'une opération ForEach active
-  @raise EListError Élément dupliqué
+  @throws EListError Liste verrouillée lors d'une opération ForEach active
+  @throws EListError Élément dupliqué
 *}
 procedure TCustomValueBucketList.AddData(const Key, Data);
 var Bucket, Index : integer;
@@ -2163,7 +2175,7 @@ end;
   Retire une paire clef/données
   La paire ne doit pas nécessairement être présente dans la liste.
   @param Key   Clef
-  @raise EListError Liste verrouillée lors d'une opération ForEach active
+  @throws EListError Liste verrouillée lors d'une opération ForEach active
 *}
 procedure TCustomValueBucketList.RemoveData(const Key);
 var Bucket, Index : integer;
@@ -2179,7 +2191,7 @@ end;
   La paire ne doit pas nécessairement être présente dans la liste.
   @param Key    Clef
   @param Data   En sortie : les données de la paire qui est supprimée
-  @raise EListError Liste verrouillée lors d'une opération ForEach active
+  @throws EListError Liste verrouillée lors d'une opération ForEach active
 *}
 procedure TCustomValueBucketList.ExtractData(const Key; out Data);
 var Bucket, Index : integer;
@@ -2264,7 +2276,7 @@ end;
   La liste source doit avoir le même type d'éléments, sinon une exception
   EConvertError sera déclenchée.
   @param Source   Liste source
-  @raise EConvertError La liste source n'a pas le même type d'élément
+  @throws EConvertError La liste source n'a pas le même type d'élément
 *}
 procedure TCustomValueBucketList.Assign(Source : TCustomValueBucketList);
 begin
@@ -2302,6 +2314,10 @@ begin
     CopyData(Buckets[Bucket].Items[Index].Data^, Data, DataSize, DataInfo);
 end;
 
+{$ENDREGION}
+
+{$REGION 'Classe TValueBucketList'}
+
 {------------------------}
 { TValueBucketList class }
 {------------------------}
@@ -2310,7 +2326,7 @@ end;
   Récupère les données liées à une clef
   @param Key    Clef
   @param Data   En sortie : données associées à la clef Key
-  @raise EListError Élément non trouvé
+  @throws EListError Élément non trouvé
 *}
 procedure TValueBucketList.Get(const Key; out Data);
 begin
@@ -2322,7 +2338,7 @@ end;
   Il doit déjà exister une paire clef/données avec cette clef.
   @param Key    Clef
   @param Data   Données associées à la clef Key
-  @raise EListError Élément non trouvé
+  @throws EListError Élément non trouvé
 *}
 procedure TValueBucketList.Put(const Key, Data);
 begin
@@ -2334,8 +2350,8 @@ end;
   Il ne peut pas encore exister de paire clef/données avec cette clef.
   @param Key    Clef
   @param Data   Données associées à la clef Key
-  @raise EListError Liste verrouillée lors d'une opération ForEach active
-  @raise EListError Élément dupliqué
+  @throws EListError Liste verrouillée lors d'une opération ForEach active
+  @throws EListError Élément dupliqué
 *}
 procedure TValueBucketList.Add(const Key, Data);
 begin
@@ -2346,7 +2362,7 @@ end;
   Retire une paire clef/données
   La paire ne doit pas nécessairement être présente dans la liste.
   @param Key   Clef
-  @raise EListError Liste verrouillée lors d'une opération ForEach active
+  @throws EListError Liste verrouillée lors d'une opération ForEach active
 *}
 procedure TValueBucketList.Remove(const Key);
 begin
@@ -2358,7 +2374,7 @@ end;
   La paire ne doit pas nécessairement être présente dans la liste.
   @param Key    Clef
   @param Data   En sortie : les données de la paire qui est supprimée
-  @raise EListError Liste verrouillée lors d'une opération ForEach active
+  @throws EListError Liste verrouillée lors d'une opération ForEach active
 *}
 procedure TValueBucketList.Extract(const Key; out Data);
 begin

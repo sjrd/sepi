@@ -1,3 +1,8 @@
+{*
+  Compilateur d'unité Sepi-PS
+  @author sjrd
+  @version 1.0
+*}
 unit SepiPSCompiler;
 
 interface
@@ -23,12 +28,19 @@ uses
   uPSCompiler, SepiCompTypes, SepiPSCompileTime, SepiPSLoader;
 
 type
+  /// Pointeur vers TCompilingContext
   PCompilingContext = ^TCompilingContext;
+
+  {*
+    Contexte de compilation
+    @author sjrd
+    @version 1.0
+  *}
   TCompilingContext = record
-    Root : TSepiMetaRoot;
-    SepiUnit : TSepiMetaUnit;
-    UsesList : array of string;
-    ExportUnexistingProcs : boolean;
+    Root : TSepiMetaRoot;            /// Racine Sepi
+    SepiUnit : TSepiMetaUnit;        /// Unité Sepi à compiler
+    UsesList : array of string;      /// Liste des uses explicites
+    ExportUnexistingProcs : boolean; /// True exporte de PS vers Sepi
   end;
 
 {-----------------}

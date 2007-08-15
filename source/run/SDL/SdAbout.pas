@@ -23,18 +23,18 @@ type
     @version 1.0
   *}
   TSdAboutForm = class(TForm)
-    ImageProgramIcon: TImage;
-    LabelProgramName: TLabel;
-    LabelProgramVersion: TLabel;
-    LabelAuthor: TLabel;
-    ButtonOK: TButton;
+    ImageProgramIcon: TImage;    /// Image pour l'icône
+    LabelProgramName: TLabel;    /// Label pour le nom du programme
+    LabelProgramVersion: TLabel; /// Label pour la version
+    LabelAuthor: TLabel;         /// Label pour l'auteur
+    ButtonOK: TButton;           /// Bouton OK
     procedure FormCreate(Sender: TObject);
   private
     { Déclarations privées }
   public
     { Composants non disponibles dans Turbo Explorer }
-    URLLabelEMail : TSvURLLabel;
-    URLLabelWebSite : TSvURLLabel;
+    URLLabelEMail : TSvURLLabel;   /// Label pour l'e-mail de l'auteur
+    URLLabelWebSite : TSvURLLabel; /// Label pour le site Web
 
     { Déclarations publiques }
     class procedure ShowAbout(Title : string; ProgramIcon : TGraphic;
