@@ -47,13 +47,15 @@ function GetXWord(const S : string; X : integer) : string;
 
 function PosWord(const Wrd, Str : string; Index : integer = 1) : integer;
 
+function HashOfStr(const Str : string) : Cardinal;
+
 implementation
 
 uses
 {$IFDEF MSWINDOWS}
   Windows,
 {$ENDIF}
-  StrUtils;
+  StrUtils, IniFiles;
 
 {*
   Cherche un caractère dans une chaîne à partir de la fin de celle-ci
@@ -265,6 +267,35 @@ end;
 function PosWord(const Wrd, Str : string; Index : integer = 1) : integer;
 begin
   Result := PosEx(' '+Wrd+' ', ' '+Str+' ', Index);
+end;
+
+type
+  {*
+    Classe privée TProtectedStringHash
+    @author sjrd
+    @version 1.0
+  *}
+  TProtectedStringHash = class(TStringHash)
+  public
+    function HashOf(const Str : string) : Cardinal; reintroduce;
+  end;
+
+{*
+  [@inheritDoc]
+*}
+function TProtectedStringHash.HashOf(const Str : string) : Cardinal;
+begin
+  Result := inherited HashOf(Str);
+end;
+
+{*
+  Calcule le hash d'une chaîne de caractères selon l'algorithme de TStringHash
+  @param Str   Chaîne de caractères
+  @return Hash de Str selon l'algorithme utilisé par IniFiles.TStringHash
+*}
+function HashOfStr(const Str : string) : Cardinal;
+begin
+  Result := TProtectedStringHash(nil).HashOf(Str);
 end;
 
 end.

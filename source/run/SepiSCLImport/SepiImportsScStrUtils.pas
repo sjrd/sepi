@@ -52,6 +52,8 @@ begin
     'function(const S : string; X : integer) : string');
   TSepiMetaMethod.Create(Result, 'PosWord', @PosWord,
     'function(const Wrd, Str : string; Index : integer = 1) : integer');
+  TSepiMetaMethod.Create(Result, 'HashOfStr', @HashOfStr,
+    'function(const Str : string) : Cardinal');
 
   Result.Complete;
 end;
