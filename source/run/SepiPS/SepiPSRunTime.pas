@@ -16,14 +16,12 @@ function SepiLoadPSExecuter(SepiRoot : TSepiMetaRoot;
   const SepiUnits : array of TSepiMetaUnit; PSExecuter : TPSExec;
   const Compiled : string) : boolean;
 
-procedure SepiCopyData(Source, Dest : Pointer; SepiType : TSepiType);
-
 implementation
 
 uses
   SysUtils, TypInfo, StrUtils, ScUtils, ScStrUtils, ScDelphiLanguage,
-  ScCompilerMagic, SepiOrdTypes, SepiStrTypes, SepiArrayTypes, SepiCompTypes,
-  uPSUtils, SepiPSUtils;
+  ScCompilerMagic, ScTypInfo, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
+  SepiCompTypes, uPSUtils, SepiPSUtils;
 
 type
   TProtectedPSExec = class(TPSExec)
@@ -207,32 +205,6 @@ begin
 end;
 
 {*
-  Copie une variable
-  @param Source     Pointeur sur la variable source
-  @param Dest       Pointeur sur la variable destination
-  @param SepiType   Type de la variable
-*}
-procedure SepiCopyData(Source, Dest : Pointer; SepiType : TSepiType);
-begin
-  if not SepiType.NeedInit then
-    Move(Source^, Dest^, SepiType.Size) else
-  case SepiType.Kind of
-    tkLString : AnsiString(Source^) := AnsiString(Dest^);
-    tkWString : WideString(Source^) := WideString(Dest^);
-    tkVariant : Variant(Source^) := Variant(Dest^);
-    tkArray :
-      with TSepiArrayType(SepiType) do
-        CopyArray(Dest, Source, ElementType.TypeInfo,
-          Size div ElementType.Size);
-    tkRecord : CopyRecord(Dest, Source, SepiType.TypeInfo);
-    tkInterface : IInterface(Source^) := IInterface(Dest^);
-    tkDynArray :
-      DynArrayCopy(PPointer(Source)^, SepiType.TypeInfo, PPointer(Dest)^);
-    else Assert(False);
-  end;
-end;
-
-{*
   Procédure de call-back pour un accès à un champ
   @param Caller   Interpréteur Pascal Script
   @param Method   Descripteur de méthode
@@ -284,7 +256,7 @@ begin
     end;
 
     // Copy data
-    SepiCopyData(SourceData, DestData, FieldType);
+    CopyData(SourceData^, DestData^, FieldType.Size, FieldType.TypeInfo);
   finally
     uPSRuntime.DisposePPSVariantIFC(Value);
   end;
