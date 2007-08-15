@@ -46,7 +46,8 @@ contains
   SepiImportsSCL in '..\..\source\run\SepiSCLImport\SepiImportsSCL.pas',
   SepiImportsScDelphiLanguage in '..\..\source\run\SepiSCLImport\SepiImportsScDelphiLanguage.pas',
   SepiImportsScSyncObjs in '..\..\source\run\SepiSCLImport\SepiImportsScSyncObjs.pas',
-  SepiImportsScCompilerMagic in '..\..\source\run\SepiSCLImport\SepiImportsScCompilerMagic.pas';
+  SepiImportsScCompilerMagic in '..\..\source\run\SepiSCLImport\SepiImportsScCompilerMagic.pas',
+  SepiImportsScTypInfo in '..\..\source\run\SepiSCLImport\SepiImportsScTypInfo.pas';
 
 end.
 

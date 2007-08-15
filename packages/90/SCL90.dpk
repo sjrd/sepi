@@ -44,7 +44,8 @@ contains
   ScWindows in '..\..\source\run\SCL\ScWindows.pas',
   ScZLib in '..\..\source\run\SCL\ScZLib.pas',
   ScSyncObjs in '..\..\source\run\SCL\ScSyncObjs.pas',
-  ScCompilerMagic in '..\..\source\run\SCL\ScCompilerMagic.pas';
+  ScCompilerMagic in '..\..\source\run\SCL\ScCompilerMagic.pas',
+  ScTypInfo in '..\..\source\run\SCL\ScTypInfo.pas';
 
 end.
 
