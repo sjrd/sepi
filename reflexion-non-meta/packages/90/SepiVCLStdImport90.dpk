@@ -29,8 +29,7 @@ package SepiVCLStdImport90;
 requires
   rtl,
   vcl,
-  SCL90,
-  SepiBinaries90;
+  SepiReflection90;
 
 contains
   SepiImportsGraphics in '..\..\source\run\SepiVCLStdImport\SepiImportsGraphics.pas',

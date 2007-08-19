@@ -28,9 +28,7 @@ package SepiRTLCommonImport90;
 requires
   rtl,
   vcl,
-  SCL90,
-  SepiCore90,
-  SepiBinaries90;
+  SepiReflection90;
 
 contains
   SepiImportsClasses in '..\..\source\run\SepiRTLCommonImport\SepiImportsClasses.pas',

@@ -5,12 +5,12 @@
 			<Option Name="Personality">Delphi.Personality</Option>
 			<Option Name="ProjectType"></Option>
 			<Option Name="Version">1.0</Option>
-			<Option Name="GUID">{6B6E56D5-2D56-4824-BB06-E07BAF844415}</Option>
+			<Option Name="GUID">{5F4A61BC-8D94-4F36-A983-F1F24B106777}</Option>
 		</Option>
 	</PersonalityInfo>
 	<Delphi.Personality>
 		<Source>
-			<Source Name="MainSource">SepiBinaries90.dpk</Source>
+			<Source Name="MainSource">DclSepiReflection90.dpk</Source>
 		</Source>
 		<FileVersion>
 			<FileVersion Name="Version">7.0</FileVersion>
@@ -112,7 +112,7 @@
 			<Linker Name="MinStackSize">16384</Linker>
 			<Linker Name="MaxStackSize">1048576</Linker>
 			<Linker Name="ImageBase">4194304</Linker>
-			<Linker Name="ExeDescription">Sepi Binaries</Linker>
+			<Linker Name="ExeDescription">Sepi Reflection</Linker>
 		</Linker>
 		<Directories>
 			<Directories Name="OutputDir"></Directories>
@@ -161,12 +161,15 @@
 			<VersionInfoKeys Name="FileVersion">0.1.0.0</VersionInfoKeys>
 			<VersionInfoKeys Name="ProductVersion">0.1</VersionInfoKeys>
 			<VersionInfoKeys Name="CompanyName">SJRDoeraene</VersionInfoKeys>
-			<VersionInfoKeys Name="FileDescription">Sepi Binaries</VersionInfoKeys>
-			<VersionInfoKeys Name="InternalName">SepiBinariesR</VersionInfoKeys>
+			<VersionInfoKeys Name="FileDescription">Sepi Reflection</VersionInfoKeys>
+			<VersionInfoKeys Name="InternalName">DclSepiReflection90</VersionInfoKeys>
 			<VersionInfoKeys Name="LegalCopyright">Copyright (c) 2005-2006 SJRDoeraene</VersionInfoKeys>
 			<VersionInfoKeys Name="LegalTrademarks"></VersionInfoKeys>
-			<VersionInfoKeys Name="OriginalFilename">SepiBinariesR.bpl</VersionInfoKeys>
+			<VersionInfoKeys Name="OriginalFilename">DclSepiReflection90.bpl</VersionInfoKeys>
 			<VersionInfoKeys Name="ProductName">Sepi</VersionInfoKeys>
-		</VersionInfoKeys>
-	</Delphi.Personality>
+		</VersionInfoKeys>  <Excluded_Packages>
+      <Excluded_Packages Name="C:\Documents and Settings\Sepi\Mes documents\Projets Borland Studio\Bpl\JvDBD9D.bpl">JVCL Database Components</Excluded_Packages>
+      <Excluded_Packages Name="C:\DOCUME~1\Sepi\MESDOC~1\PROJET~1\Bpl\JclUsesExpert90.bpl">JCL Uses Wizard</Excluded_Packages>
+    </Excluded_Packages>
+  </Delphi.Personality>
 </BorlandProject>

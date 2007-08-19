@@ -1,0 +1,43 @@
+package SepiReflection90;
+{$R *.res}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO ON}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION ON}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES OFF}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DESCRIPTION 'Sepi Reflection'}
+{$RUNONLY}
+{$IMPLICITBUILD OFF}
+
+requires
+  rtl,
+  SCL90,
+  SepiCore90;
+
+contains
+  SepiArrayTypes in '..\..\source\run\SepiReflection\SepiArrayTypes.pas',
+  SepiBinariesConsts in '..\..\source\run\SepiReflection\SepiBinariesConsts.pas',
+  SepiCompTypes in '..\..\source\run\SepiReflection\SepiCompTypes.pas',
+  SepiImportsSystem in '..\..\source\run\SepiReflection\SepiImportsSystem.pas',
+  SepiMetaUnits in '..\..\source\run\SepiReflection\SepiMetaUnits.pas',
+  SepiOrdTypes in '..\..\source\run\SepiReflection\SepiOrdTypes.pas',
+  SepiStrTypes in '..\..\source\run\SepiReflection\SepiStrTypes.pas';
+
+end.
+

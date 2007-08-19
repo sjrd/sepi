@@ -1,7 +1,7 @@
-package DclSepiBinaries90;
+package DclSepiReflection90;
 
 {$R *.res}
-{$R '..\..\source\design\SepiBinaries\SepiBinariesReg.dcr'}
+{$R '..\..\source\design\SepiReflection\SepiBinariesReg.dcr'}
 {$ALIGN 8}
 {$ASSERTIONS ON}
 {$BOOLEVAL OFF}
@@ -23,7 +23,7 @@ package DclSepiBinaries90;
 {$WRITEABLECONST OFF}
 {$MINENUMSIZE 1}
 {$IMAGEBASE $400000}
-{$DESCRIPTION 'Sepi Binaries'}
+{$DESCRIPTION 'Sepi Reflection'}
 {$DESIGNONLY}
 {$IMPLICITBUILD OFF}
 
@@ -31,7 +31,7 @@ requires
   rtl;
 
 contains
-  SepiBinariesReg in '..\..\source\design\SepiBinaries\SepiBinariesReg.pas';
+  SepiBinariesReg in '..\..\source\design\SepiReflection\SepiBinariesReg.pas';
 
 end.
 

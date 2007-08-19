@@ -16,8 +16,8 @@
       <Projects Name="DclSDL90.bpl">packages\90\DclSDL90.bdsproj</Projects>
       <Projects Name="SepiCore90.bpl">packages\90\SepiCore90.bdsproj</Projects>
       <Projects Name="DclSepiCore90.bpl">packages\90\DclSepiCore90.bdsproj</Projects>
-      <Projects Name="SepiBinaries90.bpl">packages\90\SepiBinaries90.bdsproj</Projects>
-      <Projects Name="DclSepiBinaries90.bpl">packages\90\DclSepiBinaries90.bdsproj</Projects>
+      <Projects Name="SepiReflection90.bpl">packages\90\SepiReflection90.bdsproj</Projects>
+      <Projects Name="DclSepiReflection90.bpl">packages\90\DclSepiReflection90.bdsproj</Projects>
       <Projects Name="SepiCompiler90.bpl">packages\90\SepiCompiler90.bdsproj</Projects>
       <Projects Name="DclSepiCompiler90.bpl">packages\90\DclSepiCompiler90.bdsproj</Projects>
       <Projects Name="SepiInterpreter90.bpl">packages\90\SepiInterpreter90.bdsproj</Projects>
@@ -26,7 +26,7 @@
       <Projects Name="DclSepiEditor90.bpl">packages\90\DclSepiEditor90.bdsproj</Projects>
       <Projects Name="SepiOptions.exe">programs\SepiOptions\SepiOptions.bdsproj</Projects>
       <Projects Name="SepiEdit.exe">programs\SepiEdit\SepiEdit.bdsproj</Projects>
-      <Projects Name="Targets">SCL90.bpl SVCL90.bpl DclSVCL90.bpl SDL90.bpl DclSDL90.bpl SepiCore90.bpl DclSepiCore90.bpl SepiBinaries90.bpl DclSepiBinaries90.bpl SepiCompiler90.bpl DclSepiCompiler90.bpl SepiInterpreter90.bpl DclSepiInterpreter90.bpl SepiEditor90.bpl DclSepiEditor90.bpl SepiOptions.exe SepiEdit.exe</Projects>
+      <Projects Name="Targets">SCL90.bpl SVCL90.bpl DclSVCL90.bpl SDL90.bpl DclSDL90.bpl SepiCore90.bpl DclSepiCore90.bpl SepiReflection90.bpl DclSepiReflection90.bpl SepiCompiler90.bpl DclSepiCompiler90.bpl SepiInterpreter90.bpl DclSepiInterpreter90.bpl SepiEditor90.bpl DclSepiEditor90.bpl SepiOptions.exe SepiEdit.exe</Projects>
     </Projects>
     <Dependencies/>
   </Default.Personality>

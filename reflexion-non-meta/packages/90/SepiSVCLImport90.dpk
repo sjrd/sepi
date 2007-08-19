@@ -29,7 +29,7 @@ requires
   rtl,
   vcl,
   SVCL90,
-  SepiBinaries90;
+  SepiReflection90;
 
 contains
   SepiImportsSvEdits in '..\..\source\run\SepiSVCLImport\SepiImportsSvEdits.pas',
