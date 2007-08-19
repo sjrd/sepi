@@ -15,7 +15,7 @@ uses
 type
   TSepiReflectionItem = class;
   TSepiRoot = class;
-  TSepiUnit = class;
+  TSepiUnitFile = class;
   TSepiAsynchronousRootManager = class;
 
   {*
@@ -37,10 +37,10 @@ type
     @return L'unité chargée, ou nil si l'unité n'est pas trouvée
   *}
   TSepiLoadUnitEvent = function(Sender : TSepiRoot;
-    const UnitName : string) : TSepiUnit of object;
+    const UnitName : string) : TSepiUnitFile of object;
 
   {*
-    Type de l'événement OnGetMethodCode de TSepiUnit
+    Type de l'événement OnGetMethodCode de TSepiUnitFile
     @param Sender   Méthode déclenchant l'événement (toujours TSepiMethod)
     @param Code     Adresse de code de la méthode
   *}
@@ -115,7 +115,7 @@ type
     FState : TSepiReflectionItemState;   /// État
     FOwner : TSepiReflectionItem;        /// Propriétaire
     FRoot : TSepiRoot;                   /// Racine
-    FOwningUnit : TSepiUnit;             /// Unité contenante
+    FOwningUnit : TSepiUnitFile;         /// Unité contenante
     FName : string;                      /// Nom
     FForwards : TStrings;                /// Liste des enfants forwards
     FChildren : TSepiReflectionItemList; /// Liste des enfants
@@ -164,7 +164,7 @@ type
     property IsForward : boolean read FIsForward;
     property Owner : TSepiReflectionItem read FOwner;
     property Root : TSepiRoot read FRoot;
-    property OwningUnit : TSepiUnit read FOwningUnit;
+    property OwningUnit : TSepiUnitFile read FOwningUnit;
     property Name : string read FName;
     property Visibility : TMemberVisibility read FVisibility write FVisibility;
 
@@ -260,14 +260,14 @@ type
     FOnLoadUnit : TSepiLoadUnitEvent; /// Déclenché au chargement d'une unité
 
     function GetUnitCount : integer;
-    function GetUnits(Index : integer) : TSepiUnit;
+    function GetUnits(Index : integer) : TSepiUnitFile;
   protected
     procedure ChildAdded(Child : TSepiReflectionItem); override;
   public
     constructor Create;
     destructor Destroy; override;
 
-    function LoadUnit(const UnitName : string) : TSepiUnit;
+    function LoadUnit(const UnitName : string) : TSepiUnitFile;
     procedure UnloadUnit(const UnitName : string);
 
     function GetType(TypeInfo : PTypeInfo) : TSepiType; overload;
@@ -277,7 +277,7 @@ type
     function FindType(const TypeName : string) : TSepiType; overload;
 
     property UnitCount : integer read GetUnitCount;
-    property Units[index : integer] : TSepiUnit read GetUnits;
+    property Units[index : integer] : TSepiUnitFile read GetUnits;
 
     property OnLoadUnit : TSepiLoadUnitEvent read FOnLoadUnit write FOnLoadUnit;
   end;
@@ -287,7 +287,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TSepiUnit = class(TSepiType)
+  TSepiUnitFile = class(TSepiType)
   private
     /// Déclenché pour chaque méthode au chargement, pour obtenir son code
     FOnGetMethodCode : TGetMethodCodeEvent;
@@ -298,12 +298,12 @@ type
 
     FReferences : array of TStrings; /// Références en chargement/sauvegarde
 
-    function AddUses(AUnit : TSepiUnit) : integer;
+    function AddUses(AUnit : TSepiUnitFile) : integer;
 
     procedure SetCurrentVisibility(Value : TMemberVisibility);
 
     function GetUsedUnitCount : integer;
-    function GetUsedUnits(Index : integer) : TSepiUnit;
+    function GetUsedUnits(Index : integer) : TSepiUnitFile;
   protected
     procedure Save(Stream : TStream); override;
   public
@@ -319,7 +319,7 @@ type
     procedure SaveToStream(Stream : TStream);
     class function LoadFromStream(AOwner : TSepiReflectionItem;
       Stream : TStream;
-      const AOnGetMethodCode : TGetMethodCodeEvent = nil) : TSepiUnit;
+      const AOnGetMethodCode : TGetMethodCodeEvent = nil) : TSepiUnitFile;
 
     procedure ReadRef(Stream : TStream; out Ref);
     procedure AddRef(Ref : TSepiReflectionItem);
@@ -329,7 +329,7 @@ type
       read FCurrentVisibility write SetCurrentVisibility;
 
     property UsedUnitCount : integer read GetUsedUnitCount;
-    property UsedUnits[index : integer] : TSepiUnit read GetUsedUnits;
+    property UsedUnits[index : integer] : TSepiUnitFile read GetUsedUnits;
 
     property OnGetMethodCode : TGetMethodCodeEvent read FOnGetMethodCode;
   end;
@@ -472,7 +472,7 @@ type
   {*
     Type de routine call-back pour l'import d'une unité sous Sepi
   *}
-  TSepiImportUnitFunc = function(Root : TSepiRoot) : TSepiUnit;
+  TSepiImportUnitFunc = function(Root : TSepiRoot) : TSepiUnitFile;
 
 procedure SepiRegisterReflectionItemClasses(
   const ItemClasses : array of TSepiReflectionItemClass);
@@ -1320,9 +1320,9 @@ begin
   Result := AType.FKind = FKind;
 end;
 
-{----------------------}
+{------------------}
 { Classe TSepiRoot }
-{----------------------}
+{------------------}
 
 {*
   Crée une instance de TSepiRoot
@@ -1361,21 +1361,21 @@ end;
   @param Index   Index de l'unité à récupérer
   @return Unité à l'index spécifié
 *}
-function TSepiRoot.GetUnits(Index : integer) : TSepiUnit;
+function TSepiRoot.GetUnits(Index : integer) : TSepiUnitFile;
 begin
-  Result := TSepiUnit(FChildren.Objects[Index]);
+  Result := TSepiUnitFile(FChildren.Objects[Index]);
 end;
 
 {*
   [@inheritDoc]
 *}
 procedure TSepiRoot.ChildAdded(Child : TSepiReflectionItem);
-var CurrentUnit : TSepiUnit;
+var CurrentUnit : TSepiUnitFile;
     I : integer;
 begin
   inherited;
 
-  CurrentUnit := Child as TSepiUnit;
+  CurrentUnit := Child as TSepiUnitFile;
   FSearchOrder.Clear;
   FSearchOrder.Add(Self);
 
@@ -1392,10 +1392,10 @@ end;
   @param UnitName   Nom de l'unité à charger
   @return Unité chargée
 *}
-function TSepiRoot.LoadUnit(const UnitName : string) : TSepiUnit;
+function TSepiRoot.LoadUnit(const UnitName : string) : TSepiUnitFile;
 var ImportFunc : TSepiImportUnitFunc;
 begin
-  Result := TSepiUnit(GetChild(UnitName));
+  Result := TSepiUnitFile(GetChild(UnitName));
 
   if Result = nil then
   begin
@@ -1418,11 +1418,11 @@ end;
   @param UnitName   Nom de l'unité à charger
 *}
 procedure TSepiRoot.UnloadUnit(const UnitName : string);
-var SepiUnit : TSepiUnit;
+var SepiUnit : TSepiUnitFile;
 begin
   if State = rsDestroying then exit;
 
-  SepiUnit := TSepiUnit(GetChild(UnitName));
+  SepiUnit := TSepiUnitFile(GetChild(UnitName));
   if SepiUnit = nil then
     raise ESepiUnitNotFoundError.CreateFmt(SSepiUnitNotFound, [UnitName]);
 
@@ -1537,13 +1537,13 @@ begin
 end;
 
 {----------------------}
-{ Classe TSepiUnit }
+{ Classe TSepiUnitFile }
 {----------------------}
 
 {*
   Charge une unité depuis un flux
 *}
-constructor TSepiUnit.Load(AOwner : TSepiReflectionItem; Stream : TStream);
+constructor TSepiUnitFile.Load(AOwner : TSepiReflectionItem; Stream : TStream);
 var UsesCount, RefCount, I, J : integer;
     Str : string;
 begin
@@ -1590,8 +1590,8 @@ end;
   @param AOwner   Propriétaire de l'unité (la racine)
   @param AName    Nom de l'unité
 *}
-constructor TSepiUnit.Create(AOwner : TSepiReflectionItem; const AName : string;
-  const AUses : array of string);
+constructor TSepiUnitFile.Create(AOwner : TSepiReflectionItem;
+  const AName : string; const AUses : array of string);
 begin
   Assert(AOwner is TSepiRoot);
 
@@ -1612,7 +1612,7 @@ end;
 {*
   [@inheritDoc]
 *}
-destructor TSepiUnit.Destroy;
+destructor TSepiUnitFile.Destroy;
 var I : integer;
 begin
   inherited;
@@ -1630,7 +1630,7 @@ end;
   @param AUnit   Unité à ajouter aux uses
   @return Index de la nouvelle unité dans les uses
 *}
-function TSepiUnit.AddUses(AUnit : TSepiUnit) : integer;
+function TSepiUnitFile.AddUses(AUnit : TSepiUnitFile) : integer;
 begin
   if AUnit = Self then Result := -1 else
   begin
@@ -1653,7 +1653,7 @@ end;
   Change la visibilité courante
   @param Value   Nouvelle visibilité
 *}
-procedure TSepiUnit.SetCurrentVisibility(Value : TMemberVisibility);
+procedure TSepiUnitFile.SetCurrentVisibility(Value : TMemberVisibility);
 begin
   if Value in [mvPublic, mvPublished] then
     FCurrentVisibility := mvPublic
@@ -1665,7 +1665,7 @@ end;
   Nombre d'unités utilisées
   @return Nombre d'unité utilisées
 *}
-function TSepiUnit.GetUsedUnitCount : integer;
+function TSepiUnitFile.GetUsedUnitCount : integer;
 begin
   Result := FUsesList.Count;
 end;
@@ -1675,15 +1675,15 @@ end;
   @param Index   Index de l'unité utilisée
   @return Unité utilisée dont l'index est spécifié
 *}
-function TSepiUnit.GetUsedUnits(Index : integer) : TSepiUnit;
+function TSepiUnitFile.GetUsedUnits(Index : integer) : TSepiUnitFile;
 begin
-  Result := TSepiUnit(FUsesList.Objects[Index]);
+  Result := TSepiUnitFile(FUsesList.Objects[Index]);
 end;
 
 {*
   [@inheritDoc]
 *}
-procedure TSepiUnit.Save(Stream : TStream);
+procedure TSepiUnitFile.Save(Stream : TStream);
 begin
   inherited;
   SaveChildren(Stream);
@@ -1695,7 +1695,7 @@ end;
   construction.
   @param AUses   Uses à ajouter
 *}
-procedure TSepiUnit.MoreUses(const AUses : array of string);
+procedure TSepiUnitFile.MoreUses(const AUses : array of string);
 var I : integer;
 begin
   for I := Low(AUses) to High(AUses) do
@@ -1706,7 +1706,7 @@ end;
 {*
   Complète l'unité créée
 *}
-procedure TSepiUnit.Complete;
+procedure TSepiUnitFile.Complete;
 begin
   Assert(State = rsConstructing);
   Loaded;
@@ -1715,7 +1715,7 @@ end;
 {*
   Enregistre l'unité dans un flux
 *}
-procedure TSepiUnit.SaveToStream(Stream : TStream);
+procedure TSepiUnitFile.SaveToStream(Stream : TStream);
 var UsesCount, RefCount, I, J : integer;
     RefList : TStrings;
 begin
@@ -1761,11 +1761,11 @@ end;
   @param AOnGetMethodCode   Méthode de call-back pour récupérer le code d'une
                             méthode
 *}
-class function TSepiUnit.LoadFromStream(AOwner : TSepiReflectionItem;
+class function TSepiUnitFile.LoadFromStream(AOwner : TSepiReflectionItem;
   Stream : TStream;
-  const AOnGetMethodCode : TGetMethodCodeEvent = nil) : TSepiUnit;
+  const AOnGetMethodCode : TGetMethodCodeEvent = nil) : TSepiUnitFile;
 begin
-  Result := TSepiUnit(NewInstance);
+  Result := TSepiUnitFile(NewInstance);
   Result.FOnGetMethodCode := AOnGetMethodCode;
   Result.Load(AOwner, Stream);
   Result.FOnGetMethodCode := nil;
@@ -1779,7 +1779,7 @@ end;
   @param Stream   Flux dans lequel écrire la référence
   @param Ref      Variable de type TSepiReflectionItem où stocker la référence
 *}
-procedure TSepiUnit.ReadRef(Stream : TStream; out Ref);
+procedure TSepiUnitFile.ReadRef(Stream : TStream; out Ref);
 var UnitIndex, RefIndex : integer;
     RefList : TStrings;
 begin
@@ -1803,7 +1803,7 @@ begin
     if UnitIndex = 0 then // local reference
       TObject(Ref) := FindChild(RefList[RefIndex])
     else // remote reference
-      TObject(Ref) := TSepiUnit(FUsesList.Objects[UnitIndex-1])
+      TObject(Ref) := TSepiUnitFile(FUsesList.Objects[UnitIndex-1])
         .FindChild(RefList[RefIndex]);
     RefList.Objects[RefIndex] := TObject(Ref);
   end;
@@ -1816,7 +1816,7 @@ end;
   d'accès assurée.
   @param Ref   Référence à ajouter
 *}
-procedure TSepiUnit.AddRef(Ref : TSepiReflectionItem);
+procedure TSepiUnitFile.AddRef(Ref : TSepiReflectionItem);
 var UnitIndex : integer;
     RefList : TStrings;
 begin
@@ -1840,7 +1840,7 @@ end;
   @param Stream   Flux dans lequel écrire la référence
   @param Ref      Référence à écrire
 *}
-procedure TSepiUnit.WriteRef(Stream : TStream; Ref : TSepiReflectionItem);
+procedure TSepiUnitFile.WriteRef(Stream : TStream; Ref : TSepiReflectionItem);
 var UnitIndex, RefIndex : integer;
 begin
   if Ref = nil then
@@ -2317,7 +2317,7 @@ end;
 
 initialization
   SepiRegisterReflectionItemClasses([
-    TSepiUnit, TSepiTypeAlias, TSepiConstant, TSepiVariable
+    TSepiUnitFile, TSepiTypeAlias, TSepiConstant, TSepiVariable
   ]);
 finalization
   SepiReflectionItemClasses.Free;

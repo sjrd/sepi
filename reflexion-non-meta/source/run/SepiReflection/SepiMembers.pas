@@ -644,7 +644,7 @@ type
     function CompatibleWith(AType : TSepiType) : boolean; override;
     function ClassInheritsFrom(AParent : TSepiClass) : boolean;
 
-    function LookForMember(const MemberName : string; FromUnit : TSepiUnit;
+    function LookForMember(const MemberName : string; FromUnit : TSepiUnitFile;
       FromClass : TSepiClass = nil) : TSepiReflectionItem;
 
     property DelphiClass : TClass read FDelphiClass;
@@ -1625,7 +1625,7 @@ var SignPrefix : string;
 begin
   inherited Create(AOwner, AName);
 
-  if Owner is TSepiUnit then
+  if Owner is TSepiUnitFile then
     SignPrefix := 'unit '
   else
     SignPrefix := '';
@@ -3778,7 +3778,7 @@ end;
   @return Le membre correspondant, ou nil si non trouvé
 *}
 function TSepiClass.LookForMember(const MemberName : string;
-  FromUnit : TSepiUnit; FromClass : TSepiClass = nil) : TSepiReflectionItem;
+  FromUnit : TSepiUnitFile; FromClass : TSepiClass = nil) : TSepiReflectionItem;
 begin
   if MemberName = '' then
   begin
