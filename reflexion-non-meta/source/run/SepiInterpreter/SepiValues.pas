@@ -8,7 +8,7 @@ unit SepiValues;
 interface
 
 uses
-  Classes, SysUtils, Contnrs, SepiMetaUnits, ScUtils;
+  Classes, SysUtils, Contnrs, SepiReflectionCore, ScUtils;
 (*
 type
   TSepiValue = class(TPersistent)

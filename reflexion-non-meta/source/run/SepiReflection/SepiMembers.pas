@@ -3,14 +3,14 @@
   @author sjrd
   @version 1.0
 *}
-unit SepiCompTypes;
+unit SepiMembers;
 
 interface
 
 uses
-  Windows, Classes, SysUtils, RTLConsts, ScUtils, SepiMetaUnits, SysConst,
-  TypInfo, Contnrs, ScLists, StrUtils, ScStrUtils, ScDelphiLanguage,
-  ScCompilerMagic, SepiBinariesConsts, SepiCore;
+  Windows, Classes, SysUtils, StrUtils, RTLConsts, Contnrs, TypInfo, ScUtils,
+  ScStrUtils, ScDelphiLanguage, ScCompilerMagic, SepiReflectionCore,
+  SepiReflectionConsts;
 
 const
   /// Pas d'index

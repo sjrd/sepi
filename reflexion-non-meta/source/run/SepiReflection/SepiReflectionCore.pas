@@ -3,14 +3,14 @@
   @author sjrd
   @version 1.0
 *}
-unit SepiMetaUnits;
+unit SepiReflectionCore;
 
 interface
 
 uses
-  Windows, SysUtils, Classes, Contnrs, SysConst, RTLConsts, SepiCore, ScUtils,
-  IniFiles, TypInfo, Variants, StrUtils, ScLists, ScStrUtils, ScDelphiLanguage,
-  ScSyncObjs, ScCompilerMagic, SepiBinariesConsts;
+  Windows, SysUtils, Classes, Contnrs, RTLConsts, IniFiles, TypInfo, Variants,
+  StrUtils, ScUtils, ScStrUtils, ScSyncObjs, ScCompilerMagic, SepiCore,
+  SepiReflectionConsts;
 
 type
   TSepiMeta = class;
@@ -490,7 +490,7 @@ const
 implementation
 
 uses
-  SepiOrdTypes, SepiStrTypes, SepiArrayTypes, SepiCompTypes, SepiImportsSystem;
+  SepiOrdTypes, SepiStrTypes, SepiArrayTypes, SepiMembers, SepiImportsSystem;
 
 var
   SepiMetaClasses : TStrings = nil;

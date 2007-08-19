@@ -8,8 +8,7 @@ unit SepiOrdTypes;
 interface
 
 uses
-  Classes, SysUtils, ScUtils, SepiMetaUnits, SysConst, TypInfo, ScLists,
-  ScDelphiLanguage;
+  Classes, SysUtils, SysConst, TypInfo, ScDelphiLanguage, SepiReflectionCore;
 
 const
   MinInt64 = Int64($FFFFFFFFFFFFFFFF);

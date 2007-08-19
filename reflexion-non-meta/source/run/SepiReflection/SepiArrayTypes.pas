@@ -8,7 +8,7 @@ unit SepiArrayTypes;
 interface
 
 uses
-  Classes, SysUtils, ScUtils, SepiMetaUnits, SysConst, TypInfo, ScLists;
+  Classes, SysUtils, SysConst, TypInfo, ScUtils, SepiReflectionCore;
 
 type
   {*

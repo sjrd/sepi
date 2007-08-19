@@ -32,10 +32,10 @@ requires
 
 contains
   SepiArrayTypes in '..\..\source\run\SepiReflection\SepiArrayTypes.pas',
-  SepiBinariesConsts in '..\..\source\run\SepiReflection\SepiBinariesConsts.pas',
-  SepiCompTypes in '..\..\source\run\SepiReflection\SepiCompTypes.pas',
+  SepiReflectionConsts in '..\..\source\run\SepiReflection\SepiReflectionConsts.pas',
+  SepiMembers in '..\..\source\run\SepiReflection\SepiMembers.pas',
   SepiImportsSystem in '..\..\source\run\SepiReflection\SepiImportsSystem.pas',
-  SepiMetaUnits in '..\..\source\run\SepiReflection\SepiMetaUnits.pas',
+  SepiReflectionCore in '..\..\source\run\SepiReflection\SepiReflectionCore.pas',
   SepiOrdTypes in '..\..\source\run\SepiReflection\SepiOrdTypes.pas',
   SepiStrTypes in '..\..\source\run\SepiReflection\SepiStrTypes.pas';
 
