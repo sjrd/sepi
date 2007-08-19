@@ -1,5 +1,5 @@
 {*
-  Définit les constantes du package SepiBinaries
+  Définit les constantes du package SepiReflexion
   @author sjrd
   @version 1.0
 *}
@@ -16,9 +16,6 @@ resourcestring
   SSepiUnitNotFound = 'Impossible de trouver l''unité %s';
   SSepiNoRegisterTypeInfo = 'Ce type n''implémente pas RegisterTypeInfo';
   SSepiBadConstType = 'Impossible de créer une constante de type variant %d';
-
-  SSepiUnsupportedIntfCallConvention =
-    'La convention d''appel %s n''est pas encore supportée pour les interfaces';
 
 implementation
 

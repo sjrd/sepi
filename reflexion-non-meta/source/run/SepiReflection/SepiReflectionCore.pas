@@ -1,5 +1,5 @@
 {*
-  Définit les classes de gestion des Item-unités
+  Définit les classes coeur de réflexion
   @author sjrd
   @version 1.0
 *}
@@ -19,7 +19,7 @@ type
   TSepiAsynchronousRootManager = class;
 
   {*
-    État d'un meta
+    État d'un élément de réflexion
   *}
   TSepiReflectionItemState = (rsNormal, rsConstructing, rsLoading,
     rsDestroying);
@@ -31,7 +31,7 @@ type
     mvProtected, mvPublic, mvPublished);
 
   {*
-    Type de l'événement OnLoadUnit de TSepiMetaRoot
+    Type de l'événement OnLoadUnit de TSepiRoot
     @param Sender     Racine Sepi qui demande le chargement d'une unité
     @param UnitName   Nom de l'unité à charger
     @return L'unité chargée, ou nil si l'unité n'est pas trouvée
@@ -40,22 +40,22 @@ type
     const UnitName : string) : TSepiUnit of object;
 
   {*
-    Type de l'événement OnGetMethodCode de TSepiMetaUnit
-    @param Sender   Méthode déclenchant l'événement (toujours TSepiMetaMethod)
+    Type de l'événement OnGetMethodCode de TSepiUnit
+    @param Sender   Méthode déclenchant l'événement (toujours TSepiMethod)
     @param Code     Adresse de code de la méthode
   *}
   TGetMethodCodeEvent = procedure(Sender : TObject;
     var Code : Pointer) of object;
 
   {*
-    Déclenchée si l'on tente de recréer un meta (second appel au constructeur)
+    Déclenchée si l'on veut recréer un élément (second appel au constructeur)
     @author sjrd
     @version 1.0
   *}
   ESepiItemAlreadyCreated = class(ESepiError);
 
   {*
-    Déclenchée lorsque la recherche d'un meta s'est soldée par un échec
+    Déclenchée lorsque la recherche d'un élément s'est soldée par un échec
     @author sjrd
     @version 1.0
   *}
@@ -76,7 +76,7 @@ type
   ESepiBadConstTypeError = class(ESepiError);
 
   {*
-    Liste de Item
+    Liste d'éléments de l'arborescence de réflexion
     @author sjrd
     @version 1.0
   *}
@@ -103,24 +103,24 @@ type
   end;
 
   {*
-    Item générique
-    Les Item sont les informations statiques qui représentent les unités
-    compilées.
+    Élément de l'arborescence de réflexion
+    L'arborescence de réflexion est un arbre de données qui représente la
+    structure statique d'unités à l'exécution.
     @author sjrd
     @version 1.0
   *}
   TSepiReflectionItem = class
   private
-    FIsForward : boolean;        /// True tant que le Item n'a pas été construit
-    FState : TSepiReflectionItemState;     /// État
-    FOwner : TSepiReflectionItem;          /// Propriétaire
-    FRoot : TSepiRoot;       /// Racine
-    FOwningUnit : TSepiUnit; /// Unité contenante
-    FName : string;              /// Nom
-    FForwards : TStrings;        /// Liste des enfants forwards
-    FChildren : TSepiReflectionItemList;   /// Liste des enfants
-    FObjResources : TObjectList; /// Liste des ressources objet
-    FPtrResources : TList;       /// Liste des ressources pointeur
+    FIsForward : boolean;                /// True si l'élément est forward
+    FState : TSepiReflectionItemState;   /// État
+    FOwner : TSepiReflectionItem;        /// Propriétaire
+    FRoot : TSepiRoot;                   /// Racine
+    FOwningUnit : TSepiUnit;             /// Unité contenante
+    FName : string;                      /// Nom
+    FForwards : TStrings;                /// Liste des enfants forwards
+    FChildren : TSepiReflectionItemList; /// Liste des enfants
+    FObjResources : TObjectList;         /// Liste des ressources objet
+    FPtrResources : TList;               /// Liste des ressources pointeur
 
     procedure AddChild(Child : TSepiReflectionItem);
     procedure RemoveChild(Child : TSepiReflectionItem);
@@ -250,7 +250,7 @@ type
   TSepiTypeClass = class of TSepiType;
 
   {*
-    Item-racine
+    Racine de l'arbre de réflexion
     @author sjrd
     @version 1.0
   *}
@@ -283,7 +283,7 @@ type
   end;
 
   {*
-    Item-unité
+    Unité
     @author sjrd
     @version 1.0
   *}
@@ -458,7 +458,7 @@ type
   TSepiAsynchronousRootManager = class(TScTaskQueue)
   private
     FOwnsRoot : boolean; /// Indique si l'on possède la racine
-    FRoot : TSepiRoot;   /// Item-racine gérée
+    FRoot : TSepiRoot;   /// Racine gérée
   public
     constructor Create(ARoot : TSepiRoot = nil);
     destructor Destroy; override;
@@ -500,8 +500,8 @@ var
   SepiImportedUnits : TStrings = nil;
 
 {*
-  Recense des classes de Item
-  @param ItemClasses   Classes de Item à recenser
+  Recense des classes d'éléments de réflexion
+  @param ItemClasses   Classes de réflexion à recenser
 *}
 procedure SepiRegisterReflectionItemClasses(
   const ItemClasses : array of TSepiReflectionItemClass);
@@ -526,11 +526,11 @@ begin
 end;
 
 {*
-  Cherche une classe de Item par son nom
+  Cherche une classe d'élément de réflexion par son nom
   La classe recherchée doit avoir été recensée au préalable avec
   SepiRegisterReflectionItemClasses.
-  @param ItemClassName   Nom de la classe de Item
-  @return La classe de Item dont le nom correspond
+  @param ItemClassName   Nom de la classe d'élément de réflexion
+  @return La classe d'élément de réflexion dont le nom correspond
   @throws EClassNotFound La classe recherchée n'existe pas
 *}
 function SepiFindReflectionItemClass(
@@ -611,9 +611,9 @@ begin
 end;
 
 {*
-  Liste zero-based des Items
-  @param Index   Index du Item à obtenir
-  @return Item à l'index spécifié
+  Liste zero-based des éléments contenus
+  @param Index   Index de l'élément à obtenir
+  @return Élément à l'index spécifié
 *}
 function TSepiReflectionItemList.GetItems(
   Index : integer) : TSepiReflectionItem;
@@ -622,11 +622,11 @@ begin
 end;
 
 {*
-  Assigne la référence à un Item
-  Un Item ne peut pas être modifé une fois assigné, il ne peut donc être assigné
-  qu'une et une seule fois.
-  @param Index   Index du Item à modifier
-  @param Value   Référence au nouveau Item
+  Assigne la référence à un élément
+  Un élément ne peut pas être modifé une fois assigné, il ne peut donc être
+  assigné qu'une et une seule fois.
+  @param Index   Index de l'élément à modifier
+  @param Value   Référence au nouvel élément
 *}
 procedure TSepiReflectionItemList.SetItems(Index : integer;
   Value : TSepiReflectionItem);
@@ -637,9 +637,9 @@ begin
 end;
 
 {*
-  Liste des Items indexée par leurs noms
-  @param Name   Nom d'un meta
-  @return Le Item dont le nom a été spécifié, ou nil s'il n'existe pas
+  Liste des éléments indexée par leurs noms
+  @param Name   Nom d'un élément
+  @return L'élément dont le nom a été spécifié, ou nil s'il n'existe pas
 *}
 function TSepiReflectionItemList.GetItemFromName(
   const Name : string) : TSepiReflectionItem;
@@ -651,11 +651,11 @@ begin
 end;
 
 {*
-  Assigne ou ajoute un Item par son nom
-  Un Item ne peut pas être modifé une fois assigné, il ne peut donc être assigné
-  qu'une et une seule fois.
-  @param Name    Nom du Item
-  @param Value   Référence au Item
+  Assigne ou ajoute un élément par son nom
+  Un élément ne peut pas être modifé une fois assigné, il ne peut donc être
+  assigné qu'une et une seule fois.
+  @param Name    Nom de l'élément
+  @param Value   Référence à l'élément
 *}
 procedure TSepiReflectionItemList.SetItemFromName(const Name : string;
   Value : TSepiReflectionItem);
@@ -681,9 +681,9 @@ begin
 end;
 
 {*
-  Ajoute un Item
-  @param Item   Item à ajouter
-  @return Index du Item nouvellement ajouté
+  Ajoute un élément
+  @param Item   Élément à ajouter
+  @return Index de l'élément nouvellement ajouté
 *}
 function TSepiReflectionItemList.AddItem(Item : TSepiReflectionItem) : integer;
 begin
@@ -691,9 +691,9 @@ begin
 end;
 
 {*
-  Cherche un Item dans la liste
-  @param Item   Item à chercher
-  @return L'index du meta dans la liste, ou nil s'il n'existe pas
+  Cherche un élément dans la liste
+  @param Item   Élément à chercher
+  @return L'index de l'élément dans la liste, ou nil s'il n'existe pas
 *}
 function TSepiReflectionItemList.IndexOfItem(
   Item : TSepiReflectionItem) : integer;
@@ -702,9 +702,9 @@ begin
 end;
 
 {*
-  Supprime un Item de la liste
-  @param Item   Item à supprimer
-  @return L'index auquel se trouvait le meta
+  Supprime un élément de la liste
+  @param Item   Élément à supprimer
+  @return L'index auquel se trouvait l'élément
 *}
 function TSepiReflectionItemList.Remove(Item : TSepiReflectionItem) : integer;
 begin
@@ -717,9 +717,9 @@ end;
 {----------------------------}
 
 {*
-  Charge un Item depuis un flux
-  @param AOwner   Propriétaire du Item
-  @param Stream   Flux depuis lequel charger le Item
+  Charge un élément de réflexion depuis un flux
+  @param AOwner   Propriétaire de l'élément
+  @param Stream   Flux depuis lequel charger l'élément
 *}
 constructor TSepiReflectionItem.Load(AOwner : TSepiReflectionItem;
   Stream : TStream);
@@ -730,9 +730,9 @@ begin
 end;
 
 {*
-  Crée un nouveau Item
-  @param AOwner   Propriétaire du Item
-  @param AName    Nom du Item
+  Crée un nouvel élément de réflexion
+  @param AOwner   Propriétaire de l'élément
+  @param AName    Nom de l'élément
 *}
 constructor TSepiReflectionItem.Create(AOwner : TSepiReflectionItem;
   const AName : string);
@@ -795,8 +795,8 @@ end;
 
 {*
   Ajoute un enfant
-  AddChild est appelée dans le constructeur du Item enfant, et ne doit pas être
-  appelée ailleurs.
+  AddChild est appelée dans le constructeur de l'élément enfant, et ne doit pas
+  être appelée ailleurs.
   @param Child   Enfant à ajouter
 *}
 procedure TSepiReflectionItem.AddChild(Child : TSepiReflectionItem);
@@ -806,8 +806,8 @@ end;
 
 {*
   Supprime un enfant
-  RemoveChild est appelée dans le destructeur du Item enfant, et ne doit pas
-  être appelée ailleurs.
+  RemoveChild est appelée dans le destructeur de l'élément enfant, et ne doit
+  pas être appelée ailleurs.
   @param Child   Enfant à supprimer
 *}
 procedure TSepiReflectionItem.RemoveChild(Child : TSepiReflectionItem);
@@ -965,8 +965,8 @@ begin
 end;
 
 {*
-  Enregistre le Item dans un flux
-  @param Stream   Flux dans lequel enregistrer le Item
+  Enregistre l'élément dans un flux
+  @param Stream   Flux dans lequel enregistrer l'élément
 *}
 procedure TSepiReflectionItem.Save(Stream : TStream);
 begin
@@ -1021,8 +1021,8 @@ begin
 end;
 
 {*
-  Nom qualifié du Item, depuis l'unité contenante
-  @return Nom qualifié du Item
+  Nom qualifié de l'élément, depuis l'unité contenante
+  @return Nom qualifié de l'élément
 *}
 function TSepiReflectionItem.GetFullName : string;
 begin
@@ -1033,22 +1033,22 @@ begin
 end;
 
 {*
-  Cherche un Item enfant
-  @param Name   Nom du Item à trouver
-  @return Le Item correspondant, ou nil s'il n'a pas été trouvé
+  Cherche un élément enfant
+  @param Name   Nom de l'élément à trouver
+  @return L'élément correspondant, ou nil s'il n'a pas été trouvé
 *}
 function TSepiReflectionItem.GetChild(
   const Name : string) : TSepiReflectionItem;
 var I : integer;
-    MetaName, Field : string;
+    ChildName, Field : string;
 begin
-  if not SplitToken(Name, '.', MetaName, Field) then
+  if not SplitToken(Name, '.', ChildName, Field) then
     Field := '';
-  Result := FChildren.ItemFromName[MetaName];
+  Result := FChildren.ItemFromName[ChildName];
 
   if (Result = nil) and (Field = '') then
   begin
-    I := FForwards.IndexOf(MetaName);
+    I := FForwards.IndexOf(ChildName);
     if I >= 0 then
       Result := TSepiReflectionItem(FForwards.Objects[I]);
   end;
@@ -1061,10 +1061,10 @@ begin
 end;
 
 {*
-  Cherche un Item enfant
-  @param Name   Nom du Item à trouver
-  @return Le Item correspondant
-  @throws ESepiItemNotFoundError Le Item n'a pas été trouvé
+  Cherche un élément enfant
+  @param Name   Nom de l'élément à trouver
+  @return L'élément correspondant
+  @throws ESepiItemNotFoundError L'élément n'a pas été trouvé
 *}
 function TSepiReflectionItem.FindChild(
   const Name : string) : TSepiReflectionItem;
@@ -1075,9 +1075,9 @@ begin
 end;
 
 {*
-  Ajoute un objet aux ressources du Item
-  Tous les objets ajoutés aux ressources du Item seront libérés lorsque le Item
-  sera libéré lui-même.
+  Ajoute un objet aux ressources de l'élément
+  Tous les objets ajoutés aux ressources de l'élément seront libérés lorsque
+  l'élément sera libéré lui-même.
   @param Obj   Objet à ajouter aux ressources
 *}
 procedure TSepiReflectionItem.AddObjResource(Obj : TObject);
@@ -1086,9 +1086,9 @@ begin
 end;
 
 {*
-  Ajoute un pointeur aux ressources du Item
-  Tous les pointeurs ajoutés aux ressources du Item seront libérés lorsque le
-  Item sera libéré lui-même.
+  Ajoute un pointeur aux ressources de l'élément
+  Tous les pointeurs ajoutés aux ressources de l'élément seront libérés lorsque
+  l'élément sera libéré lui-même.
   @param Ptr   Pointeur à ajouter aux ressources
 *}
 procedure TSepiReflectionItem.AddPtrResource(Ptr : Pointer);
@@ -1418,19 +1418,19 @@ end;
   @param UnitName   Nom de l'unité à charger
 *}
 procedure TSepiRoot.UnloadUnit(const UnitName : string);
-var MetaUnit : TSepiUnit;
+var SepiUnit : TSepiUnit;
 begin
   if State = rsDestroying then exit;
 
-  MetaUnit := TSepiUnit(GetChild(UnitName));
-  if MetaUnit = nil then
+  SepiUnit := TSepiUnit(GetChild(UnitName));
+  if SepiUnit = nil then
     raise ESepiUnitNotFoundError.CreateFmt(SSepiUnitNotFound, [UnitName]);
 
-  dec(MetaUnit.FRefCount);
-  if MetaUnit.FRefCount = 0 then
+  dec(SepiUnit.FRefCount);
+  if SepiUnit.FRefCount = 0 then
   begin
-    Assert(FChildren.IndexOfObject(MetaUnit) = FChildren.Count-1);
-    MetaUnit.Free;
+    Assert(FChildren.IndexOfObject(SepiUnit) = FChildren.Count-1);
+    SepiUnit.Free;
   end;
 end;
 

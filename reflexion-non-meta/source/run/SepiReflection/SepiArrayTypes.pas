@@ -351,7 +351,7 @@ begin
     TypeData.elType := nil;
 
   // OLE Variant equivalent - always set to -1 at the moment
-  { TODO 1 -cMetaunités : OLE Variant dans les RTTI des dyn array }
+  { TODO 1 -cRéflexion : OLE Variant dans les RTTI des dyn array }
   TypeData.varType := -1;
 
   // Element RTTI, independant of cleanup
