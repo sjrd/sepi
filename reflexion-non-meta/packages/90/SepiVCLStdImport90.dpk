@@ -1,0 +1,54 @@
+package SepiVCLStdImport90;
+
+{$R *.res}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO ON}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION ON}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES OFF}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DESCRIPTION 'Sepi importer for VCL standart units'}
+{$RUNONLY}
+{$IMPLICITBUILD OFF}
+
+requires
+  rtl,
+  vcl,
+  SCL90,
+  SepiBinaries90;
+
+contains
+  SepiImportsGraphics in '..\..\source\run\SepiVCLStdImport\SepiImportsGraphics.pas',
+  SepiImportsVCLStd in '..\..\source\run\SepiVCLStdImport\SepiImportsVCLStd.pas',
+  SepiImportsImgList in '..\..\source\run\SepiVCLStdImport\SepiImportsImgList.pas',
+  SepiImportsActnList in '..\..\source\run\SepiVCLStdImport\SepiImportsActnList.pas',
+  SepiImportsMenus in '..\..\source\run\SepiVCLStdImport\SepiImportsMenus.pas',
+  SepiImportsControls in '..\..\source\run\SepiVCLStdImport\SepiImportsControls.pas',
+  SepiImportsForms in '..\..\source\run\SepiVCLStdImport\SepiImportsForms.pas',
+  SepiImportsStdCtrls in '..\..\source\run\SepiVCLStdImport\SepiImportsStdCtrls.pas',
+  SepiImportsDialogs in '..\..\source\run\SepiVCLStdImport\SepiImportsDialogs.pas',
+  SepiImportsPrinters in '..\..\source\run\SepiVCLStdImport\SepiImportsPrinters.pas',
+  SepiImportsExtCtrls in '..\..\source\run\SepiVCLStdImport\SepiImportsExtCtrls.pas',
+  SepiImportsClipBrd in '..\..\source\run\SepiVCLStdImport\SepiImportsClipBrd.pas',
+  SepiImportsComCtrls in '..\..\source\run\SepiVCLStdImport\SepiImportsComCtrls.pas',
+  SepiImportsToolWin in '..\..\source\run\SepiVCLStdImport\SepiImportsToolWin.pas',
+  SepiImportsListActns in '..\..\source\run\SepiVCLStdImport\SepiImportsListActns.pas',
+  SepiImportsRichEdit in '..\..\source\run\SepiVCLStdImport\SepiImportsRichEdit.pas';
+
+end.
+

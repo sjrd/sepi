@@ -1,0 +1,51 @@
+package SCL90;
+
+{$R *.res}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO ON}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION ON}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES OFF}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DESCRIPTION 'Sepi Code Library'}
+{$RUNONLY}
+{$IMPLICITBUILD OFF}
+
+requires
+  rtl,
+  vcl;
+
+contains
+  ScConsts in '..\..\source\run\SCL\ScConsts.pas',
+  ScDateTimeUtils in '..\..\source\run\SCL\ScDateTimeUtils.pas',
+  ScLists in '..\..\source\run\SCL\ScLists.pas',
+  ScLOGFile in '..\..\source\run\SCL\ScLOGFile.pas',
+  ScMaths in '..\..\source\run\SCL\ScMaths.pas',
+  ScMD5 in '..\..\source\run\SCL\ScMD5.pas',
+  ScNoSecretWindow in '..\..\source\run\SCL\ScNoSecretWindow.pas',
+  ScStrUtils in '..\..\source\run\SCL\ScStrUtils.pas',
+  ScUtils in '..\..\source\run\SCL\ScUtils.pas',
+  ScDelphiLanguage in '..\..\source\run\SCL\ScDelphiLanguage.pas',
+  ScWindows in '..\..\source\run\SCL\ScWindows.pas',
+  ScZLib in '..\..\source\run\SCL\ScZLib.pas',
+  ScSyncObjs in '..\..\source\run\SCL\ScSyncObjs.pas',
+  ScCompilerMagic in '..\..\source\run\SCL\ScCompilerMagic.pas',
+  ScTypInfo in '..\..\source\run\SCL\ScTypInfo.pas';
+
+end.
+

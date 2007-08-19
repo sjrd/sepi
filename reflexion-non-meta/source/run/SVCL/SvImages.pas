@@ -1,0 +1,161 @@
+{*
+  Composants de type Image
+  @author sjrd
+  @version 1.0
+*}
+unit SvImages;
+
+interface
+
+uses
+  Windows, Forms, Classes, Controls, ExtCtrls;
+
+type
+  {*
+    Type de l'événement TSvDropImage.OnDrop
+    @param Sender   Objet qui a déclenché l'événement
+    @param X        Coordonnée X de dépôt de l'image
+    @param Y        Coordonnée Y de dépôt de l'image
+  *}
+  TDropImageEvent = procedure(Sender: TObject; X, Y : integer) of object;
+
+  {*
+    Image pouvant être « prise » et déposée
+    TSvDropImage est une image qui peut être « prise » au moyen d'un clic de
+    souris et déposée par glisser-déposer soit sur le parent, soit sur un autre
+    contrôle. Ce composant permet de constituer de façon très simple une palette
+    de glisser-déposer.
+    @author sjrd
+    @version 1.0
+  *}
+  TSvDropImage = class(TImage)
+  private
+    ImageBis : TImage;         /// Copie de l'image en train d'être glissée
+    FDropControl : TControl;   /// Contrôle sur lequel il faut déposer l'image
+    FOnDrop : TDropImageEvent; /// Exécuté lorsque l'image a été déposée
+
+    procedure MoveBisAt(X, Y : integer);
+  protected
+    procedure MouseDown(Button : TMouseButton; Shift : TShiftState;
+      X, Y : integer); override;
+    procedure MouseMove(Shift : TShiftState; X, Y : integer); override;
+    procedure MouseUp(Button : TMouseButton; Shift : TShiftState;
+      X, Y : integer); override;
+  public
+    constructor Create(AOwner : TComponent); override;
+  published
+    property DropControl : TControl read FDropControl write FDropControl default nil;
+    property OnDrop : TDropImageEvent read FOnDrop write FOnDrop default nil;
+  end;
+
+implementation
+
+{---------------------}
+{ Classe TScDropImage }
+{---------------------}
+
+{*
+  Crée une instance de TSvDropImage
+  @param AOwner   Propriétaire
+*}
+constructor TSvDropImage.Create(AOwner : TComponent);
+begin
+  inherited;
+  ControlStyle := ControlStyle + [csCaptureMouse];
+  ImageBis := nil;
+  FDropControl := nil;
+  FOnDrop := nil;
+end;
+
+{*
+  Déplace la copie en déplacement de l'image à des coordonnées spécifiées
+  @param X   Coordonnée X du point sur lequel centrer la copie de l'image
+  @param Y   Coordonnée Y du point sur lequel centrer la copie de l'image
+*}
+procedure TSvDropImage.MoveBisAt(X, Y : integer);
+var L, T, ParentWidth, ParentHeight : integer;
+begin
+  if Parent is TForm then
+  begin
+    ParentWidth  := (Parent as TForm).ClientWidth ;
+    ParentHeight := (Parent as TForm).ClientHeight;
+  end else
+  begin
+    ParentWidth  := Parent.Width ;
+    ParentHeight := Parent.Height;
+  end;
+
+  L := Left + X - Width  div 2;
+  T := Top  + Y - Height div 2;
+
+  if L > (ParentWidth -Width ) then L := ParentWidth -Width ;
+  if L < 0 then L := 0;
+  if T > (ParentHeight-Height) then T := ParentHeight-Height;
+  if T < 0 then T := 0;
+
+  ImageBis.Left := L;
+  ImageBis.Top  := T;
+end;
+
+{*
+  Exécuté lorsque l'utilisateur enfonce le bouton de la souris
+  @param Button   Bouton de souris enfoncé
+  @param Shift    État des touches système et des boutons de souris
+  @param X        Coordonnée X du point de clic
+  @param Y        Coordonnée Y du point de clic
+*}
+procedure TSvDropImage.MouseDown(Button : TMouseButton; Shift : TShiftState;
+  X, Y : integer);
+begin
+  inherited;
+  if not Enabled then exit;
+  if (Button <> mbLeft) or Assigned(ImageBis) then exit;
+
+  ImageBis := TImage.Create(Self);
+  ImageBis.Parent := Parent;
+  ImageBis.Width := Width;
+  ImageBis.Height := Height;
+  ImageBis.Stretch := Stretch;
+  ImageBis.Picture.Assign(Picture);
+  MoveBisAt(X, Y);
+end;
+
+{*
+  Exécuté lorsque l'utilisateur déplace la souris
+  @param Shift    État des touches système et des boutons de souris
+  @param X        Coordonnée X de la souris
+  @param Y        Coordonnée Y de la souris
+*}
+procedure TSvDropImage.MouseMove(Shift : TShiftState; X, Y : integer);
+begin
+  inherited;
+  if Assigned(ImageBis) then MoveBisAt(X, Y);
+end;
+
+{*
+  Exécuté lorsque l'utilisateur relâche le bouton de la souris
+  @param Button   Bouton de souris relâché
+  @param Shift    État des touches système et des boutons de souris
+  @param X        Coordonnée X du point de relâche
+  @param Y        Coordonnée Y du point de relâche
+*}
+procedure TSvDropImage.MouseUp(Button : TMouseButton; Shift : TShiftState;
+  X, Y : integer);
+var PutPoint : TPoint;
+begin
+  inherited;
+  if (Button <> mbLeft) or (not Assigned(ImageBis)) then exit;
+
+  ImageBis.Free;
+  ImageBis := nil;
+
+  if not Assigned(FOnDrop) then exit;
+  if Assigned(FDropControl) then
+    PutPoint := FDropControl.ScreenToClient(ClientToScreen(Point(X, Y)))
+  else
+    PutPoint := ClientToParent(Point(X, Y));
+  FOnDrop(Self, PutPoint.X, PutPoint.Y);
+end;
+
+end.
+

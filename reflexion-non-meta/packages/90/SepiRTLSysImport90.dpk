@@ -1,0 +1,44 @@
+package SepiRTLSysImport90;
+
+{$R *.res}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO ON}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION ON}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES OFF}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DESCRIPTION 'Sepi importer for RTL sys units'}
+{$RUNONLY}
+{$IMPLICITBUILD OFF}
+
+requires
+  rtl,
+  vcl,
+  SCL90,
+  SepiCore90,
+  SepiBinaries90;
+
+contains
+  SepiImportsSysConst in '..\..\source\run\SepiRTLSysImport\SepiImportsSysConst.pas',
+  SepiImportsSysUtils in '..\..\source\run\SepiRTLSysImport\SepiImportsSysUtils.pas',
+  SepiImportsTypes in '..\..\source\run\SepiRTLSysImport\SepiImportsTypes.pas',
+  SepiImportsWindows in '..\..\source\run\SepiRTLSysImport\SepiImportsWindows.pas',
+  SepiImportsRTLSys in '..\..\source\run\SepiRTLSysImport\SepiImportsRTLSys.pas';
+
+end.
+
