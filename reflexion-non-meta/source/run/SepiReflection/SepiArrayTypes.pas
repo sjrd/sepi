@@ -42,14 +42,14 @@ type
 
     function GetAlignment : integer; override;
   public
-    constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
-    constructor Create(AOwner : TSepiMeta; const AName : string;
+    constructor Load(AOwner : TSepiReflectionItem; Stream : TStream); override;
+    constructor Create(AOwner : TSepiReflectionItem; const AName : string;
       const ADimensions : array of integer; AElementType : TSepiType;
       AIsNative : boolean = False; ATypeInfo : PTypeInfo = nil); overload;
-    constructor Create(AOwner : TSepiMeta; const AName : string;
+    constructor Create(AOwner : TSepiReflectionItem; const AName : string;
       const ADimensions : array of integer; AElementTypeInfo : PTypeInfo;
       AIsNative : boolean = False; ATypeInfo : PTypeInfo = nil); overload;
-    constructor Create(AOwner : TSepiMeta; const AName : string;
+    constructor Create(AOwner : TSepiReflectionItem; const AName : string;
       const ADimensions : array of integer; const AElementTypeName : string;
       AIsNative : boolean = False; ATypeInfo : PTypeInfo = nil); overload;
 
@@ -83,10 +83,10 @@ type
 
     procedure ExtractTypeData; override;
   public
-    constructor RegisterTypeInfo(AOwner : TSepiMeta;
+    constructor RegisterTypeInfo(AOwner : TSepiReflectionItem;
       ATypeInfo : PTypeInfo); override;
-    constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
-    constructor Create(AOwner : TSepiMeta; const AName : string;
+    constructor Load(AOwner : TSepiReflectionItem; Stream : TStream); override;
+    constructor Create(AOwner : TSepiReflectionItem; const AName : string;
       AElementType : TSepiType);
 
     procedure SetElementType(AElementType : TSepiType); overload;
@@ -121,7 +121,7 @@ const
 {*
   Charge un type entier depuis un flux
 *}
-constructor TSepiArrayType.Load(AOwner : TSepiMeta; Stream : TStream);
+constructor TSepiArrayType.Load(AOwner : TSepiReflectionItem; Stream : TStream);
 begin
   inherited;
 
@@ -148,9 +148,10 @@ end;
   @param AIsNative      Indique si le type tableau est natif
   @param ATypeInfo      RTTI du type tableau natif
 *}
-constructor TSepiArrayType.Create(AOwner : TSepiMeta; const AName : string;
-  const ADimensions : array of integer; AElementType : TSepiType;
-  AIsNative : boolean = False; ATypeInfo : PTypeInfo = nil);
+constructor TSepiArrayType.Create(AOwner : TSepiReflectionItem;
+  const AName : string; const ADimensions : array of integer;
+  AElementType : TSepiType; AIsNative : boolean = False;
+  ATypeInfo : PTypeInfo = nil);
 begin
   inherited Create(AOwner, AName, tkArray);
 
@@ -180,9 +181,10 @@ end;
   @param AIsNative          Indique si le type tableau est natif
   @param ATypeInfo          RTTI du type tableau natif
 *}
-constructor TSepiArrayType.Create(AOwner : TSepiMeta; const AName : string;
-  const ADimensions : array of integer; AElementTypeInfo : PTypeInfo;
-  AIsNative : boolean = False; ATypeInfo : PTypeInfo = nil);
+constructor TSepiArrayType.Create(AOwner : TSepiReflectionItem;
+  const AName : string; const ADimensions : array of integer;
+  AElementTypeInfo : PTypeInfo; AIsNative : boolean = False;
+  ATypeInfo : PTypeInfo = nil);
 begin
   Create(AOwner, AName, ADimensions, AOwner.Root.FindType(AElementTypeInfo),
     AIsNative, ATypeInfo);
@@ -197,9 +199,10 @@ end;
   @param AIsNative          Indique si le type tableau est natif
   @param ATypeInfo          RTTI du type tableau natif
 *}
-constructor TSepiArrayType.Create(AOwner : TSepiMeta; const AName : string;
-  const ADimensions : array of integer; const AElementTypeName : string;
-  AIsNative : boolean = False; ATypeInfo : PTypeInfo = nil);
+constructor TSepiArrayType.Create(AOwner : TSepiReflectionItem;
+  const AName : string; const ADimensions : array of integer;
+  const AElementTypeName : string; AIsNative : boolean = False;
+  ATypeInfo : PTypeInfo = nil);
 begin
   Create(AOwner, AName, ADimensions, AOwner.Root.FindType(AElementTypeName),
     AIsNative, ATypeInfo);
@@ -288,7 +291,7 @@ end;
 {*
   Recense un type tableau dynamique natif
 *}
-constructor TSepiDynArrayType.RegisterTypeInfo(AOwner : TSepiMeta;
+constructor TSepiDynArrayType.RegisterTypeInfo(AOwner : TSepiReflectionItem;
   ATypeInfo : PTypeInfo);
 begin
   inherited;
@@ -298,7 +301,8 @@ end;
 {*
   Charge un type tableau dynamique depuis un flux
 *}
-constructor TSepiDynArrayType.Load(AOwner : TSepiMeta; Stream : TStream);
+constructor TSepiDynArrayType.Load(AOwner : TSepiReflectionItem;
+  Stream : TStream);
 begin
   inherited;
 
@@ -313,8 +317,8 @@ end;
   @param AName          Nom du type
   @param AElementType   Type des éléments
 *}
-constructor TSepiDynArrayType.Create(AOwner : TSepiMeta; const AName : string;
-  AElementType : TSepiType);
+constructor TSepiDynArrayType.Create(AOwner : TSepiReflectionItem;
+  const AName : string; AElementType : TSepiType);
 begin
   inherited Create(AOwner, AName, tkDynArray);
 
@@ -428,7 +432,7 @@ begin
 end;
 
 initialization
-  SepiRegisterMetaClasses([
+  SepiRegisterReflectionItemClasses([
     TSepiArrayType, TSepiDynArrayType
   ]);
 end.

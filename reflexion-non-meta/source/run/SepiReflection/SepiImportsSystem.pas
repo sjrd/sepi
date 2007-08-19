@@ -18,35 +18,35 @@ implementation
 type
   TSepiImportsTObject = class(TObject)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTInterfacedObject = class(TInterfacedObject)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTAggregatedObject = class(TAggregatedObject)
   private
     function GetController: IInterface;
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTContainedObject = class(TContainedObject)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTClassHelperBase = class(TClassHelperBase)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
 {--------------}
 { TGUID import }
 {--------------}
 
-function SepiImportTGUID(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTGUID(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TGUID', True, True);
 
@@ -65,7 +65,7 @@ end;
 { TInterfaceEntry import }
 {------------------------}
 
-function SepiImportTInterfaceEntry(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTInterfaceEntry(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TInterfaceEntry', True, True);
 
@@ -84,7 +84,7 @@ end;
 { TInterfaceTable import }
 {------------------------}
 
-function SepiImportTInterfaceTable(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTInterfaceTable(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TInterfaceTable', True, True);
 
@@ -101,7 +101,7 @@ end;
 { TMethod import }
 {----------------}
 
-function SepiImportTMethod(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTMethod(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TMethod', False, True);
 
@@ -118,7 +118,7 @@ end;
 { TDispatchMessage import }
 {-------------------------}
 
-function SepiImportTDispatchMessage(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTDispatchMessage(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TDispatchMessage', False, True);
 
@@ -135,7 +135,7 @@ end;
 {----------------}
 
 class function TSepiImportsTObject.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(Owner, TypeInfo(TObject));
   TSepiMetaClass.Create(Owner, 'TClass', Result, True);
@@ -209,7 +209,7 @@ end;
 { IInterface import }
 {-------------------}
 
-function SepiImportIInterface(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIInterface(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IInterface));
@@ -231,7 +231,7 @@ end;
 { IInvokable import }
 {-------------------}
 
-function SepiImportIInvokable(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIInvokable(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IInvokable));
@@ -247,7 +247,7 @@ end;
 { IDispatch import }
 {------------------}
 
-function SepiImportIDispatch(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIDispatch(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IDispatch));
@@ -272,7 +272,7 @@ end;
 {--------------------------}
 
 class function TSepiImportsTInterfacedObject.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TInterfacedObject));
@@ -324,7 +324,7 @@ begin
 end;
 
 class function TSepiImportsTAggregatedObject.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TAggregatedObject));
@@ -367,7 +367,7 @@ end;
 {-------------------------}
 
 class function TSepiImportsTContainedObject.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TContainedObject));
@@ -391,7 +391,7 @@ end;
 {-------------------------}
 
 class function TSepiImportsTClassHelperBase.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TClassHelperBase));
@@ -415,7 +415,7 @@ end;
 { TVarArrayBound import }
 {-----------------------}
 
-function SepiImportTVarArrayBound(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTVarArrayBound(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TVarArrayBound', True, True);
 
@@ -432,7 +432,7 @@ end;
 { TVarArray import }
 {------------------}
 
-function SepiImportTVarArray(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTVarArray(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TVarArray', True, True);
 
@@ -453,7 +453,7 @@ end;
 { TVarData import }
 {-----------------}
 
-function SepiImportTVarData(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTVarData(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TVarData', True, True);
 
@@ -496,7 +496,7 @@ end;
 { TCallDesc import }
 {------------------}
 
-function SepiImportTCallDesc(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTCallDesc(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TCallDesc', True, True);
 
@@ -515,7 +515,7 @@ end;
 { TDispDesc import }
 {------------------}
 
-function SepiImportTDispDesc(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTDispDesc(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TDispDesc', True, True);
 
@@ -533,7 +533,7 @@ end;
 { TFileRec import }
 {-----------------}
 
-function SepiImportTFileRec(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTFileRec(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TFileRec', True, True);
 
@@ -562,7 +562,7 @@ end;
 { TTextRec import }
 {-----------------}
 
-function SepiImportTTextRec(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTTextRec(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TTextRec', True, True);
 
@@ -591,7 +591,7 @@ end;
 { TResStringRec import }
 {----------------------}
 
-function SepiImportTResStringRec(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTResStringRec(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TResStringRec', True, True);
 
@@ -678,9 +678,9 @@ begin
   Result := StringOfChar(ch, Count);
 end;
 
-function ImportUnit(Root : TSepiMetaRoot) : TSepiMetaUnit;
+function ImportUnit(Root : TSepiRoot) : TSepiUnit;
 begin
-  Result := TSepiMetaUnit.Create(Root, SystemUnitName, []);
+  Result := TSepiUnit.Create(Root, SystemUnitName, []);
 
   // Integer types
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(Integer));

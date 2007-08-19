@@ -8,9 +8,10 @@ unit SepiReflectionConsts;
 interface
 
 resourcestring
-  SSepiMetaAlreadyCreated = 'Le meta de nom ''%s'' a déjà été créé';
-  SSepiMetaAlreadyExists = 'Un meta de  nom ''%s'' existe déjà';
-  SSepiMetaAlreadyAssigned = 'L''objet meta à la position %d est déjà assigné';
+  SSepiItemAlreadyCreated = 'L''élément de nom ''%s'' a déjà été créé';
+  SSepiItemAlreadyExists = 'Un élément de  nom ''%s'' existe déjà';
+  SSepiItemAlreadyAssigned =
+    'L''objet élément à la position %d est déjà assigné';
   SSepiObjectNotFound = 'Objet %s non trouvé';
   SSepiUnitNotFound = 'Impossible de trouver l''unité %s';
   SSepiNoRegisterTypeInfo = 'Ce type n''implémente pas RegisterTypeInfo';
