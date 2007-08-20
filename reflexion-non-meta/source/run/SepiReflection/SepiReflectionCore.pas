@@ -287,7 +287,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TSepiUnitFile = class(TSepiType)
+  TSepiUnitFile = class(TSepiReflectionItem)
   private
     /// Déclenché pour chaque méthode au chargement, pour obtenir son code
     FOnGetMethodCode : TGetMethodCodeEvent;
@@ -1603,7 +1603,7 @@ begin
     AddUses(TSepiRoot(AOwner).LoadUnit(SystemUnitName));
   MoreUses(AUses);
 
-  inherited Create(AOwner, AName, tkUnknown);
+  inherited Create(AOwner, AName);
 
   FOwningUnit := Self;
   FCurrentVisibility := mvPublic;
