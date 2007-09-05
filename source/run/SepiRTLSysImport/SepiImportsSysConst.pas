@@ -8,8 +8,8 @@ unit SepiImportsSysConst;
 interface
 
 uses
-  TypInfo, SepiMetaUnits, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
-  SepiCompTypes, SysConst;
+  TypInfo, SepiReflectionCore, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
+  SepiMembers, SysConst;
 
 implementation
 

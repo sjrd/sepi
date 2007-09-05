@@ -8,8 +8,8 @@ unit SepiImportsExtCtrls;
 interface
 
 uses
-  TypInfo, SepiMetaUnits, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
-  SepiCompTypes, Windows, Messages, Classes, Controls, Graphics, StdCtrls,
+  TypInfo, SepiReflectionCore, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
+  SepiMembers, Windows, Messages, Classes, Controls, Graphics, StdCtrls,
   Forms, ExtCtrls;
 
 implementation

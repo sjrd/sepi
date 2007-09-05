@@ -8,8 +8,8 @@ unit SepiImportsScMD5;
 interface
 
 uses
-  TypInfo, SepiMetaUnits, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
-  SepiCompTypes, ScMD5;
+  TypInfo, SepiReflectionCore, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
+  SepiMembers, ScMD5;
 
 implementation
 

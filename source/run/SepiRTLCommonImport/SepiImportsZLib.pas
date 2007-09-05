@@ -8,8 +8,8 @@ unit SepiImportsZLib;
 interface
 
 uses
-  TypInfo, SepiMetaUnits, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
-  SepiCompTypes, ZLib, Classes;
+  TypInfo, SepiReflectionCore, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
+  SepiMembers, ZLib, Classes;
 
 implementation
 

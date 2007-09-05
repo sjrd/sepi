@@ -8,7 +8,7 @@ unit SepiPSRunTime;
 interface
 
 uses
-  SepiMetaUnits, uPSRuntime;
+  SepiReflectionCore, uPSRuntime;
 
 procedure SepiRegisterClassesInPSExecuter(SepiRoot : TSepiMetaRoot;
   PSExecuter : TPSExec);
@@ -26,7 +26,7 @@ implementation
 uses
   SysUtils, TypInfo, StrUtils, ScUtils, ScStrUtils, ScDelphiLanguage,
   ScCompilerMagic, ScTypInfo, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
-  SepiCompTypes, uPSUtils, SepiPSUtils;
+  SepiMembers, uPSUtils, SepiPSUtils;
 
 type
   {*

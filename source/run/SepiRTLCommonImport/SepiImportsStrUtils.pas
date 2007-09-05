@@ -8,8 +8,8 @@ unit SepiImportsStrUtils;
 interface
 
 uses
-  TypInfo, SepiMetaUnits, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
-  SepiCompTypes, StrUtils;
+  TypInfo, SepiReflectionCore, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
+  SepiMembers, StrUtils;
 
 implementation
 

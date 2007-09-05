@@ -8,8 +8,8 @@ unit SepiImportsToolWin;
 interface
 
 uses
-  TypInfo, SepiMetaUnits, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
-  SepiCompTypes, Messages, Controls, ToolWin;
+  TypInfo, SepiReflectionCore, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
+  SepiMembers, Messages, Controls, ToolWin;
 
 implementation
 

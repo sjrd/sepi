@@ -8,8 +8,8 @@ unit SepiImportsDialogs;
 interface
 
 uses
-  TypInfo, SepiMetaUnits, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
-  SepiCompTypes, Windows, Messages, SysUtils, Classes, Graphics, Controls,
+  TypInfo, SepiReflectionCore, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
+  SepiMembers, Windows, Messages, SysUtils, Classes, Graphics, Controls,
   Forms, CommDlg, Printers, Dialogs;
 
 implementation

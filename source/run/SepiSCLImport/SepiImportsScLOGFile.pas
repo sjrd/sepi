@@ -8,8 +8,8 @@ unit SepiImportsScLOGFile;
 interface
 
 uses
-  TypInfo, SepiMetaUnits, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
-  SepiCompTypes, ScLOGFile, Classes;
+  TypInfo, SepiReflectionCore, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
+  SepiMembers, ScLOGFile, Classes;
 
 implementation
 

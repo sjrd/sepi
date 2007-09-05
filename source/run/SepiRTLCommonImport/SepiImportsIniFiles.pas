@@ -8,8 +8,8 @@ unit SepiImportsIniFiles;
 interface
 
 uses
-  TypInfo, SepiMetaUnits, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
-  SepiCompTypes, IniFiles, Classes;
+  TypInfo, SepiReflectionCore, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
+  SepiMembers, IniFiles, Classes;
 
 implementation
 

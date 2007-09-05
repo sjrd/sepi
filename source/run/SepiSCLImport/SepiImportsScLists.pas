@@ -8,8 +8,8 @@ unit SepiImportsScLists;
 interface
 
 uses
-  TypInfo, SepiMetaUnits, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
-  SepiCompTypes, Classes, Contnrs, ScLists;
+  TypInfo, SepiReflectionCore, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
+  SepiMembers, Classes, Contnrs, ScLists;
 
 implementation
 

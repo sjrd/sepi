@@ -8,7 +8,7 @@ unit SepiPSUtils;
 interface
 
 uses
-  SepiCompTypes, uPSUtils;
+  SepiMembers, uPSUtils;
 
 function HandleOverloaded(const Name : string;
   out PSName, SecondName : string) : boolean;

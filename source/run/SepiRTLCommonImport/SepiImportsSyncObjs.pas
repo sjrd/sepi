@@ -8,8 +8,8 @@ unit SepiImportsSyncObjs;
 interface
 
 uses
-  TypInfo, SepiMetaUnits, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
-  SepiCompTypes, SyncObjs, Windows;
+  TypInfo, SepiReflectionCore, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
+  SepiMembers, SyncObjs, Windows;
 
 implementation
 

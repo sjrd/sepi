@@ -8,7 +8,7 @@ unit SepiPSLoader;
 interface
 
 uses
-  SysUtils, Classes, SepiMetaUnits;
+  SysUtils, Classes, SepiReflectionCore;
 
 function LoadSepiPSUnitFromStream(Root : TSepiMetaRoot;
   Stream : TStream) : TSepiMetaUnit;
@@ -27,7 +27,7 @@ const {don't localize}
 implementation
 
 uses
-  Windows, ScUtils, ScDelphiLanguage, SepiCompTypes, uPSRunTime, SepiPSRuntime;
+  Windows, ScUtils, ScDelphiLanguage, SepiMembers, uPSRunTime, SepiPSRuntime;
 
 {-----------------}
 { Global routines }

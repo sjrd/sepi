@@ -8,8 +8,8 @@ unit SepiImportsActnList;
 interface
 
 uses
-  TypInfo, SepiMetaUnits, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
-  SepiCompTypes, Classes, ImgList, ActnList;
+  TypInfo, SepiReflectionCore, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
+  SepiMembers, Classes, ImgList, ActnList;
 
 implementation
 

@@ -8,8 +8,8 @@ unit SepiImportsSvImages;
 interface
 
 uses
-  TypInfo, SepiMetaUnits, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
-  SepiCompTypes, Controls, ExtCtrls, SvImages;
+  TypInfo, SepiReflectionCore, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
+  SepiMembers, Controls, ExtCtrls, SvImages;
 
 implementation
 

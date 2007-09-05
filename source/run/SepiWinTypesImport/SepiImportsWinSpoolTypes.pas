@@ -8,8 +8,8 @@ unit SepiImportsWinSpoolTypes;
 interface
 
 uses
-  TypInfo, SepiMetaUnits, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
-  SepiCompTypes, Windows, WinSpool;
+  TypInfo, SepiReflectionCore, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
+  SepiMembers, Windows, WinSpool;
 
 implementation
 

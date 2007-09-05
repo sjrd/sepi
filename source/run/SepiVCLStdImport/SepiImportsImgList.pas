@@ -8,8 +8,8 @@ unit SepiImportsImgList;
 interface
 
 uses
-  TypInfo, SepiMetaUnits, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
-  SepiCompTypes, Windows, Classes, Graphics, CommCtrl, ImgList;
+  TypInfo, SepiReflectionCore, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
+  SepiMembers, Windows, Classes, Graphics, CommCtrl, ImgList;
 
 implementation
 

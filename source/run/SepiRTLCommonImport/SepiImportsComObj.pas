@@ -8,8 +8,8 @@ unit SepiImportsComObj;
 interface
 
 uses
-  TypInfo, SepiMetaUnits, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
-  SepiCompTypes, SysUtils, ActiveX, ComObj;
+  TypInfo, SepiReflectionCore, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
+  SepiMembers, SysUtils, ActiveX, ComObj;
 
 implementation
 

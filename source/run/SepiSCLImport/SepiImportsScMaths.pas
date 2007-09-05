@@ -8,8 +8,8 @@ unit SepiImportsScMaths;
 interface
 
 uses
-  TypInfo, SepiMetaUnits, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
-  SepiCompTypes, ScMaths, ScLists, Contnrs;
+  TypInfo, SepiReflectionCore, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
+  SepiMembers, ScMaths, ScLists, Contnrs;
 
 implementation
 

@@ -8,8 +8,8 @@ unit SepiImportsComCtrls;
 interface
 
 uses
-  TypInfo, SepiMetaUnits, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
-  SepiCompTypes, Windows, Messages, SysUtils, Classes, Forms, Graphics,
+  TypInfo, SepiReflectionCore, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
+  SepiMembers, Windows, Messages, SysUtils, Classes, Forms, Graphics,
   Controls, Menus, ImgList, ListActns, CommCtrl, ExtCtrls, ShlObj, ToolWin,
   ComCtrls;
 

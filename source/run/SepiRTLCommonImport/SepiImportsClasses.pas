@@ -8,8 +8,8 @@ unit SepiImportsClasses;
 interface
 
 uses
-  TypInfo, SepiMetaUnits, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
-  SepiCompTypes, SysUtils, Windows, ActiveX, Classes;
+  TypInfo, SepiReflectionCore, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
+  SepiMembers, SysUtils, Windows, ActiveX, Classes;
 
 implementation
 

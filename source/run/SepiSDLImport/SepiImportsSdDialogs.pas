@@ -8,8 +8,8 @@ unit SepiImportsSdDialogs;
 interface
 
 uses
-  TypInfo, SepiMetaUnits, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
-  SepiCompTypes, Graphics, SdDialogs;
+  TypInfo, SepiReflectionCore, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
+  SepiMembers, Graphics, SdDialogs;
 
 implementation
 

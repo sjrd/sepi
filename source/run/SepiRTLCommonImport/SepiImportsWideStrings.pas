@@ -8,8 +8,8 @@ unit SepiImportsWideStrings;
 interface
 
 uses
-  TypInfo, SepiMetaUnits, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
-  SepiCompTypes, WideStrings, Classes;
+  TypInfo, SepiReflectionCore, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
+  SepiMembers, WideStrings, Classes;
 
 implementation
 

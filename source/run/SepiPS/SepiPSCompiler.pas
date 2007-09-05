@@ -8,7 +8,7 @@ unit SepiPSCompiler;
 interface
 
 uses
-  Classes, SepiMetaUnits;
+  Classes, SepiReflectionCore;
 
 function SepiPSCompile(const Source : string; Output : TStream;
   SepiUnit : TSepiMetaUnit; Errors : TStrings;
@@ -25,7 +25,7 @@ implementation
 
 uses
   Windows, SysUtils, TypInfo, ScUtils, ScStrUtils, ScDelphiLanguage, uPSUtils,
-  uPSCompiler, SepiCompTypes, SepiPSCompileTime, SepiPSLoader;
+  uPSCompiler, SepiMembers, SepiPSCompileTime, SepiPSLoader;
 
 type
   /// Pointeur vers TCompilingContext

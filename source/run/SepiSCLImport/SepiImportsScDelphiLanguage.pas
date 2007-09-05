@@ -8,8 +8,8 @@ unit SepiImportsScDelphiLanguage;
 interface
 
 uses
-  TypInfo, SepiMetaUnits, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
-  SepiCompTypes, ScDelphiLanguage;
+  TypInfo, SepiReflectionCore, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
+  SepiMembers, ScDelphiLanguage;
 
 implementation
 

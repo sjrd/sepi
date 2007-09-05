@@ -8,8 +8,8 @@ unit SepiImportsCommDlgTypes;
 interface
 
 uses
-  TypInfo, SepiMetaUnits, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
-  SepiCompTypes, Windows, ShlObj, CommDlg;
+  TypInfo, SepiReflectionCore, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
+  SepiMembers, Windows, ShlObj, CommDlg;
 
 implementation
 

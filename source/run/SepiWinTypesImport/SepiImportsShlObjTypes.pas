@@ -8,8 +8,8 @@ unit SepiImportsShlObjTypes;
 interface
 
 uses
-  TypInfo, SepiMetaUnits, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
-  SepiCompTypes, Windows, ActiveX, WinInet, ShlObj;
+  TypInfo, SepiReflectionCore, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
+  SepiMembers, Windows, ActiveX, WinInet, ShlObj;
 
 implementation
 

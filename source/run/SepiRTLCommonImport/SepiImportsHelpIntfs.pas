@@ -8,8 +8,8 @@ unit SepiImportsHelpIntfs;
 interface
 
 uses
-  TypInfo, SepiMetaUnits, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
-  SepiCompTypes, HelpIntfs;
+  TypInfo, SepiReflectionCore, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
+  SepiMembers, HelpIntfs;
 
 implementation
 

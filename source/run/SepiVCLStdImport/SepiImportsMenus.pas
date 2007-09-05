@@ -8,8 +8,8 @@ unit SepiImportsMenus;
 interface
 
 uses
-  TypInfo, SepiMetaUnits, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
-  SepiCompTypes, Windows, Classes, Graphics, ImgList, Menus;
+  TypInfo, SepiReflectionCore, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
+  SepiMembers, Windows, Classes, Graphics, ImgList, Menus;
 
 implementation
 

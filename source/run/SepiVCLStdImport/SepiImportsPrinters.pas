@@ -8,8 +8,8 @@ unit SepiImportsPrinters;
 interface
 
 uses
-  TypInfo, SepiMetaUnits, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
-  SepiCompTypes, Windows, Classes, Graphics, Printers;
+  TypInfo, SepiReflectionCore, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
+  SepiMembers, Windows, Classes, Graphics, Printers;
 
 implementation
 

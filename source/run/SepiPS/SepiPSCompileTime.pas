@@ -8,7 +8,7 @@ unit SepiPSCompileTime;
 interface
 
 uses
-  SepiMetaUnits, uPSCompiler;
+  SepiReflectionCore, uPSCompiler;
 
 procedure SepiImportUnitInPSCompiler(SepiUnit : TSepiMetaUnit;
   PSCompiler : TPSPascalCompiler); overload;
@@ -19,7 +19,7 @@ implementation
 
 uses
   SysUtils, TypInfo, StrUtils, ScUtils, ScStrUtils, SepiOrdTypes, SepiStrTypes,
-  SepiArrayTypes, SepiCompTypes, uPSUtils, SepiPSUtils;
+  SepiArrayTypes, SepiMembers, uPSUtils, SepiPSUtils;
 
 procedure ImportType(PSCompiler : TPSPascalCompiler;
   SepiType : TSepiType); forward;

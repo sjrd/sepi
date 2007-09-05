@@ -12,7 +12,7 @@ procedure SepiPSExecute(const UnitName : string);
 implementation
 
 uses
-  SepiMetaUnits, SepiCompTypes, SepiPSLoader;
+  SepiReflectionCore, SepiMembers, SepiPSLoader;
 
 {*
   Exécute un script Sepi-PS

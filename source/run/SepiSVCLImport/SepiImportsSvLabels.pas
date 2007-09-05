@@ -8,8 +8,8 @@ unit SepiImportsSvLabels;
 interface
 
 uses
-  TypInfo, SepiMetaUnits, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
-  SepiCompTypes, Menus, Controls, SvLabels;
+  TypInfo, SepiReflectionCore, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
+  SepiMembers, Menus, Controls, SvLabels;
 
 implementation
 

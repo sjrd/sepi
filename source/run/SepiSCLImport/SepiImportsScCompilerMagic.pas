@@ -8,8 +8,8 @@ unit SepiImportsScCompilerMagic;
 interface
 
 uses
-  TypInfo, SepiMetaUnits, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
-  SepiCompTypes, ScCompilerMagic;
+  TypInfo, SepiReflectionCore, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
+  SepiMembers, ScCompilerMagic;
 
 implementation
 

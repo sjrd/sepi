@@ -8,8 +8,8 @@ unit SepiImportsObjAuto;
 interface
 
 uses
-  TypInfo, SepiMetaUnits, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
-  SepiCompTypes, ObjAuto;
+  TypInfo, SepiReflectionCore, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
+  SepiMembers, ObjAuto;
 
 implementation
 
@@ -83,9 +83,9 @@ begin
   with Result do
   begin
     AddMethod('Execute',
-      'function(const Args: array of Variant): Variant', SepiCompTypes.ccRegister);
+      'function(const Args: array of Variant): Variant', SepiMembers.ccRegister);
     AddMethod('InstanceToVariant',
-      'function(Instance: TObject): Variant', SepiCompTypes.ccRegister);
+      'function(Instance: TObject): Variant', SepiMembers.ccRegister);
 
     Complete;
   end;

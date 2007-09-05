@@ -8,8 +8,8 @@ unit SepiImportsVCLCom;
 interface
 
 uses
-  TypInfo, SepiMetaUnits, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
-  SepiCompTypes, VCLCom, ActiveX;
+  TypInfo, SepiReflectionCore, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
+  SepiMembers, VCLCom, ActiveX;
 
 implementation
 

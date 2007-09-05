@@ -8,8 +8,8 @@ unit SepiImportsVarConv;
 interface
 
 uses
-  TypInfo, SepiMetaUnits, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
-  SepiCompTypes, VarConv, ConvUtils;
+  TypInfo, SepiReflectionCore, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
+  SepiMembers, VarConv, ConvUtils;
 
 implementation
 
