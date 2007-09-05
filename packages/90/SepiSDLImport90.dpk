@@ -30,7 +30,7 @@ requires
   vcl,
   VclSmp,
   SDL90,
-  SepiBinaries90;
+  SepiReflection90;
 
 contains
   SepiImportsSdDialogs in '..\..\source\run\SepiSDLImport\SepiImportsSdDialogs.pas',

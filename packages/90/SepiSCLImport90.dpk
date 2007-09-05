@@ -27,10 +27,9 @@ package SepiSCLImport90;
 
 requires
   rtl,
-  SepiCore90,
-  SepiBinaries90,
-  SCL90,
-  vcl;
+  vcl,
+  SepiReflection90,
+  SCL90;
 
 contains
   SepiImportsScConsts in '..\..\source\run\SepiSCLImport\SepiImportsScConsts.pas',

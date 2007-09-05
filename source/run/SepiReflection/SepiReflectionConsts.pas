@@ -3,7 +3,7 @@
   @author sjrd
   @version 1.0
 *}
-unit SepiBinariesConsts;
+unit SepiReflectionConsts;
 
 interface
 

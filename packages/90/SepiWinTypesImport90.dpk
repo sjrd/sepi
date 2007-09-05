@@ -28,8 +28,7 @@ package SepiWinTypesImport90;
 requires
   rtl,
   vcl,
-  SepiCompiler90,
-  SepiBinaries90;
+  SepiReflection90;
 
 contains
   SepiImportsActiveXTypes in '..\..\source\run\SepiWinTypesImport\SepiImportsActiveXTypes.pas',

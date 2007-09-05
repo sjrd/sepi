@@ -28,10 +28,7 @@ package SepiRTLSysImport90;
 
 requires
   rtl,
-  vcl,
-  SCL90,
-  SepiCore90,
-  SepiBinaries90;
+  SepiReflection90;
 
 contains
   SepiImportsSysConst in '..\..\source\run\SepiRTLSysImport\SepiImportsSysConst.pas',

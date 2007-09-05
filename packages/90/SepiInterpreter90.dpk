@@ -28,7 +28,7 @@ package SepiInterpreter90;
 
 requires
   rtl,
-  SepiBinaries90;
+  SepiReflection90;
 
 contains
   SepiValues in '..\..\source\run\SepiInterpreter\SepiValues.pas';

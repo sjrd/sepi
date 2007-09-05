@@ -30,7 +30,7 @@ requires
   rtl,
   vcl,
   PascalScript_Core_D9,
-  SepiBinaries90;
+  SepiReflection90;
 
 contains
   SepiPSCompiler in '..\..\source\run\SepiPS\SepiPSCompiler.pas',

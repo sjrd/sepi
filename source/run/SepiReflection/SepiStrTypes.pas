@@ -8,7 +8,7 @@ unit SepiStrTypes;
 interface
 
 uses
-  Classes, SysUtils, ScUtils, SepiMetaUnits, SysConst, TypInfo, ScLists;
+  Classes, TypInfo, SepiReflectionCore;
 
 type
   {*
