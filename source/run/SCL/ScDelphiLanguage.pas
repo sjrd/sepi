@@ -93,9 +93,9 @@ type
     ReturnAddress : Pointer;   /// Adresse de retour de l'appel
   end;
 
-var
-  /// Index de TLS pour les infos sur les appels cdecl dans le thread
-  CDeclCallInfoTLSIndex : Cardinal = 0;
+threadvar
+  /// Liste des infos sur les appels cdecl (spécifique à chaque thread)
+  CDeclCallInfoList : PCDeclCallInfo;
 
 {*
   Trouve la dernière info de routine cdecl valide
@@ -107,7 +107,7 @@ function GetLastValidCDeclCallInfo(StackPointer : Pointer;
   AllowSame : boolean) : PCDeclCallInfo;
 var Previous : PCDeclCallInfo;
 begin
-  Result := TlsGetValue(CDeclCallInfoTLSIndex);
+  Result := CDeclCallInfoList;
   while (Result <> nil) and
     (Cardinal(Result.StackPointer) <= Cardinal(StackPointer)) do
   begin
@@ -132,7 +132,7 @@ end;
 procedure ClearCDeclCallInfo;
 begin
   GetLastValidCDeclCallInfo(Pointer($FFFFFFFF), False);
-  TlsSetValue(CDeclCallInfoTLSIndex, nil);
+  CDeclCallInfoList := nil;
 end;
 
 {*
@@ -150,7 +150,7 @@ begin
   CurInfo.Previous := LastInfo;
   CurInfo.StackPointer := StackPointer;
   CurInfo.ReturnAddress := ReturnAddress;
-  TlsSetValue(CDeclCallInfoTLSIndex, CurInfo);
+  CDeclCallInfoList := CurInfo;
 end;
 
 {*
@@ -165,11 +165,11 @@ begin
 
   if (LastInfo = nil) or (LastInfo.StackPointer <> StackPointer) then
   begin
-    TlsSetValue(CDeclCallInfoTLSIndex, LastInfo);
+    CDeclCallInfoList := LastInfo;
     Assert(False);
   end;
 
-  TlsSetValue(CDeclCallInfoTLSIndex, LastInfo.Previous);
+  CDeclCallInfoList := LastInfo.Previous;
   Result := LastInfo.ReturnAddress;
   Dispose(LastInfo);
 end;
@@ -1033,9 +1033,7 @@ begin
 end;
 
 initialization
-  CDeclCallInfoTLSIndex := TlsAlloc;
 finalization
   ClearCDeclCallInfo;
-  TlsFree(CDeclCallInfoTLSIndex);
 end.
 
