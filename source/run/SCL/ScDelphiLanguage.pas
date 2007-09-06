@@ -66,7 +66,7 @@ procedure MakeJmp(var Instruction; Dest : Pointer);
 procedure MakeCall(var Instruction; Dest : Pointer);
 
 function MakeProcOfRegisterMethod(const Method : TMethod;
-  UsedRegCount : Byte) : Pointer;
+  UsedRegCount : Byte; MoveStackCount : Word = 0) : Pointer;
 function MakeProcOfStdCallMethod(const Method : TMethod) : Pointer;
 function MakeProcOfPascalMethod(const Method : TMethod) : Pointer;
 function MakeProcOfCDeclMethod(const Method : TMethod) : Pointer;
@@ -158,7 +158,7 @@ end;
   @param StackPointer   Valeur du registre ESP
   @return L'adresse de retour qui a été ajoutée en dernier
 *}
-function GetCDeclReturnAddress(StackPointer : Pointer) : Pointer; stdcall;
+function GetCDeclReturnAddress(StackPointer : Pointer) : Pointer; register;
 var LastInfo : PCDeclCallInfo;
 begin
   LastInfo := GetLastValidCDeclCallInfo(StackPointer, True);
@@ -879,25 +879,24 @@ asm
 end;
 
 {*
-  Construit une routine équivalente à une méthode register
-  MakeProcOfMethod permet d'obtenir un pointeur sur une routine, construite
-  dynamiquement, qui équivaut à une méthode. Ce qui signifie que la routine
-  renvoyée commence par ajouter un paramètre supplémentaire, avant d'appeler
-  la méthode initiale.
-  La procédure devra être libérée avec FreeProcOfMethod une fois utilisée.
-  @param Method         Méthode à convertir
-  @param UsedRegCount   Nombre de registres utilisés dans l'appel de *procédure*
+  Construit une routine équivalente à une méthode register, version courte
+  @param Method           Méthode à convertir
+  @param UsedRegCount     Nombre de registres utilisés dans l'appel de procédure
+  @param MoveStackCount   Nombre de cases de pile empilées après ECX
   @return Pointeur vers le code de la procédure créée
 *}
-function MakeProcOfRegisterMethod(const Method : TMethod;
-  UsedRegCount : Byte) : Pointer;
+function MakeShortProcOfRegisterMethod(const Method : TMethod;
+  UsedRegCount : Byte; MoveStackCount : Word) : Pointer;
+
 const
-  Preparation : array[0..7] of Byte = (
+  MoveStackItem : LongWord = $00244C87; // 874C24 xx   XCHG ECX,[ESP+xx]
+  MoveRegisters : array[0..7] of Byte = (
     $87, $0C, $24, // XCHG    ECX,[ESP]
     $51,           // PUSH    ECX
     $8B, $CA,      // MOV     ECX,EDX
     $8B, $D0       // MOV     EDX,EAX
   );
+
 type
   PRegisterRedirector = ^TRegisterRedirector;
   TRegisterRedirector = packed record
@@ -905,22 +904,126 @@ type
     ObjAddress : Pointer;
     Jump : TJmpInstruction;
   end;
-var PreparationSize : integer;
+
+var MoveStackSize : integer;
+    MoveRegSize : integer;
+    InstrPtr : Pointer;
+    I : Cardinal;
 begin
   if UsedRegCount >= 3 then
     UsedRegCount := 4;
-  PreparationSize := 2*UsedRegCount;
+  MoveRegSize := 2*UsedRegCount;
+  MoveStackSize := 4*MoveStackCount;
 
-  GetMem(Result, sizeof(TRegisterRedirector) + PreparationSize);
+  GetMem(Result, MoveStackSize + MoveRegSize + sizeof(TRegisterRedirector));
+  InstrPtr := Result;
 
-  with PRegisterRedirector(Integer(Result) + PreparationSize)^ do
+  for I := MoveStackCount downto 1 do
+  begin
+    // I shl 26 => I*4 in the most significant byte (kind of $ I*4 00 00 00)
+    PLongWord(InstrPtr)^ := (I shl 26) or MoveStackItem;
+    inc(Integer(InstrPtr), 4);
+  end;
+
+  Move(MoveRegisters[sizeof(MoveRegisters) - MoveRegSize],
+    InstrPtr^, MoveRegSize);
+  inc(Integer(InstrPtr), MoveRegSize);
+
+  with PRegisterRedirector(InstrPtr)^ do
   begin
     MovEAXObj := $B8;
     ObjAddress := Method.Data;
     MakeJmp(Jump, Method.Code);
   end;
+end;
 
-  Move(Preparation[8 - PreparationSize], Result^, PreparationSize);
+{*
+  Construit une routine équivalente à une méthode register, version longue
+  @param Method           Méthode à convertir
+  @param MoveStackCount   Nombre de cases de pile empilées après ECX
+  @return Pointeur vers le code de la procédure créée
+*}
+function MakeLongProcOfRegisterMethod(const Method : TMethod;
+  MoveStackCount : Word) : Pointer;
+
+type
+  PRegisterRedirector = ^TRegisterRedirector;
+  TRegisterRedirector = packed record
+    Reserved1 : array[0..8] of Byte;
+    MoveStackCount4 : LongWord;
+    Reserved2 : array[13..20] of Byte;
+    FourMoveStackCount1 : LongWord;
+    Reserved3 : array[25..29] of Byte;
+    ObjAddress : Pointer;
+    Jump : TJmpInstruction;
+  end;
+
+const
+  Code : array[0..sizeof(TRegisterRedirector)-1] of Byte = (
+    $56,                     // PUSH    ESI
+    $57,                     // PUSH    EDI
+    $51,                     // PUSH    ECX
+
+    $8B, $F4,                // MOV     ESI,ESP
+    $51,                     // PUSH    ECX
+    $8B, $FC,                // MOV     EDI,ESP
+    $B9, $FF, $FF, $FF, $FF, // MOV     ECX,MoveStackCount+4
+
+    $F3, $A5,                // REP     MOVSD
+
+    $59,                     // POP     ECX
+    $5F,                     // POP     EDI
+    $5E,                     // POP     ESI
+
+    $89, $8C, $24, $EE, $EE, $EE, $EE,
+                             // MOV     [ESP + 4*(MoveStackCount+1)],ECX
+    $8B, $CA,                // MOV     ECX,EDX
+    $8B, $D0,                // MOV     EDX,EAX
+    $B8, $DD, $DD, $DD, $DD, // MOV     EAX,0
+    $E9, $CC, $CC, $CC, $CC  // JMP     MethodAddress
+  );
+
+begin
+  GetMem(Result, sizeof(Code));
+  Move(Code[0], Result^, sizeof(Code));
+
+  with PRegisterRedirector(Result)^ do
+  begin
+    MoveStackCount4 := MoveStackCount+4;
+    FourMoveStackCount1 := 4 * (MoveStackCount+1);
+    ObjAddress := Method.Data;
+    MakeJmp(Jump, Method.Code);
+  end;
+end;
+
+{*
+  Construit une routine équivalente à une méthode register
+  MakeProcOfMethod permet d'obtenir un pointeur sur une routine, construite
+  dynamiquement, qui équivaut à une méthode. Ce qui signifie que la routine
+  renvoyée commence par ajouter un paramètre supplémentaire, avant d'appeler
+  la méthode initiale.
+  La procédure devra être libérée avec FreeProcOfMethod une fois utilisée.
+  Vous devez déterminer UsedRegCount et MoveStackCount d'après la délcaration de
+  la *procédure*. UsedRegCount est le nombre de registres utilisés pour la
+  transmission des paramètres (dans l'ordre EAX, EDX et ECX). Si les trois sont
+  utilisés, le paramètre MoveStackCount doit renseigner le nombre de "cases" de
+  pile (de doubles mots) utilisés par les paramètres déclarés *après* le
+  paramètre transmis dans ECX.
+  @param Method           Méthode à convertir
+  @param UsedRegCount     Nombre de registres utilisés dans l'appel de procédure
+  @param MoveStackCount   Nombre de cases de pile empilées après ECX
+  @return Pointeur vers le code de la procédure créée
+*}
+function MakeProcOfRegisterMethod(const Method : TMethod;
+  UsedRegCount : Byte; MoveStackCount : Word = 0) : Pointer;
+begin
+  Assert((MoveStackCount = 0) or (UsedRegCount >= 3));
+
+  if MoveStackCount <= 8 then
+    Result := MakeShortProcOfRegisterMethod(
+      Method, UsedRegCount, MoveStackCount)
+  else
+    Result := MakeLongProcOfRegisterMethod(Method, MoveStackCount);
 end;
 
 {*
@@ -991,21 +1094,25 @@ type
     ObjAddress : Pointer;
     CallMethod : TJmpInstruction;
     MovESPEAX : array[0..2] of Byte;
-    PushESP2 : Byte;
+    MovEAXESP : array[0..1] of Byte;
+    PushEDX : Byte;
     CallGetAddress : TJmpInstruction;
+    PopEDX : Byte;
     Xchg : array[0..2] of Byte;
     Ret : Byte;
   end;
 
 const
-  Code : array[0..28] of Byte = (
+  Code : array[0..sizeof(TCDeclRedirector)-1] of Byte = (
     $54,                     // PUSH    ESP
     $E8, $FF, $FF, $FF, $FF, // CALL    StoreCDeclReturnAddress
     $68, $EE, $EE, $EE, $EE, // PUSH    ObjAddress
     $E8, $DD, $DD, $DD, $DD, // CALL    MethodCode
     $89, $04, $24,           // MOV     [ESP],EAX
-    $54,                     // PUSH    ESP
-    $E8, $CC, $CC, $CC, $CC, // CALL    PopCDeclReturnAddress
+    $8B, $C4,                // MOV     EAX,ESP
+    $52,                     // PUSH    EDX
+    $E8, $CC, $CC, $CC, $CC, // CALL    GetCDeclReturnAddress
+    $5A,                     // POP     EDX
     $87, $04, $24,           // XCHG    EAX,[ESP]
     $C3                      // RET
   );
