@@ -1312,8 +1312,8 @@ begin
 
   for I := 0 to ParamCount-1 do
   begin
-    // pascal calling convention works in the opposite direction
-    if CallingConvention = ccPascal then
+    // register and pascal calling conventions work in the opposite direction
+    if CallingConvention in [ccRegister, ccPascal] then
       Param := ActualParams[ParamCount-I-1]
     else
       Param := ActualParams[I];
@@ -1868,17 +1868,30 @@ end;
   @param AMethod   Méthode de code
 *}
 procedure TSepiMetaMethod.SetCodeMethod(const AMethod : TMethod);
-var ACode : Pointer;
+var I, MoveStackCount : integer;
+    ACode : Pointer;
 begin
   case Signature.CallingConvention of
     ccRegister :
-      ACode := MakeProcOfRegisterMethod(AMethod, Signature.RegUsage);
-    ccCDecl :
-      ACode := MakeProcOfCDeclMethod(AMethod);
-    ccPascal :
-      ACode := MakeProcOfPascalMethod(AMethod);
-    else
-      ACode := MakeProcOfStdCallMethod(AMethod);
+    begin
+      with Signature do
+      begin
+        MoveStackCount := 0;
+        for I := 0 to ActualParamCount-1 do with ActualParams[I] do
+        begin
+          if CallInfo.Place = ppECX then
+          begin
+            MoveStackCount := CallInfo.StackOffset div 4;
+            Break;
+          end;
+        end;
+
+        ACode := MakeProcOfRegisterMethod(AMethod, RegUsage, MoveStackCount);
+      end;
+    end;
+    ccCDecl : ACode := MakeProcOfCDeclMethod(AMethod);
+    ccPascal : ACode := MakeProcOfPascalMethod(AMethod);
+    else ACode := MakeProcOfStdCallMethod(AMethod);
   end;
 
   AddPtrResource(ACode);

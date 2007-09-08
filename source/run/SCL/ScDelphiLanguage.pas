@@ -822,8 +822,8 @@ end;
 *}
 function SkipPackedShortString(Value : PShortstring) : Pointer;
 asm
-        { ->    EAX Pointer to type info }
-        { <-    EAX Pointer to type data }
+        { ->    EAX Pointer to a packed ShortString                   }
+        { <-    EAX Pointer to data following this packed ShortString }
         XOR     EDX,EDX
         MOV     DL,[EAX]
         LEA     EAX,[EAX].Byte[EDX+1]
