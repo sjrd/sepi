@@ -18,7 +18,7 @@ implementation
 type
   TSepiImportsTChangeLink = class(TChangeLink)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTCustomImageList = class(TCustomImageList)
@@ -39,7 +39,7 @@ type
     procedure GetIcon_1(Index: Integer; Image: TIcon; ADrawingStyle: TDrawingStyle; AImageType: TImageType );
     function GetInstRes_0(Instance: THandle; ResType: TResType; const Name: string; Width: Integer ; LoadFlags: TLoadResources ; MaskColor: TColor ) : Boolean;
     function GetInstRes_1(Instance: THandle; ResType: TResType; ResID: DWORD; Width: Integer ; LoadFlags: TLoadResources ; MaskColor: TColor ) : Boolean;
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
 {--------------------}
@@ -47,7 +47,7 @@ type
 {--------------------}
 
 class function TSepiImportsTChangeLink.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TChangeLink));
@@ -162,7 +162,7 @@ begin
 end;
 
 class function TSepiImportsTCustomImageList.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass(Owner.FindMeta('TCustomImageList'));
   Result.RegisterTypeInfo(
@@ -392,9 +392,9 @@ end;
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiMetaRoot) : TSepiMetaUnit;
+function ImportUnit(Root : TSepiRoot) : TSepiUnit;
 begin
-  Result := TSepiMetaUnit.Create(Root, 'ImgList',
+  Result := TSepiUnit.Create(Root, 'ImgList',
     ['Windows', 'Classes', 'Graphics']);
 
   // CommCtrl

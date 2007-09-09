@@ -20,42 +20,42 @@ type
   private
     constructor Create_0;
     constructor Create_1(AOwnsObjects: Boolean);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTComponentList = class(TComponentList)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTClassList = class(TClassList)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTOrderedList = class(TOrderedList)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTStack = class(TStack)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTObjectStack = class(TObjectStack)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTQueue = class(TQueue)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTObjectQueue = class(TObjectQueue)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTCustomBucketList = class(TCustomBucketList)
@@ -65,22 +65,22 @@ type
     procedure SetBucketCount(const Value: Integer);
     function ForEach_0(AProc: TBucketProc; AInfo: Pointer = nil): Boolean;
     function ForEach_1(AEvent: TBucketEvent): Boolean;
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTBucketList = class(TBucketList)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTObjectBucketList = class(TObjectBucketList)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTIntegerBucketList = class(TIntegerBucketList)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
 {--------------------}
@@ -98,7 +98,7 @@ begin
 end;
 
 class function TSepiImportsTObjectList.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TObjectList));
@@ -156,7 +156,7 @@ end;
 {-----------------------}
 
 class function TSepiImportsTComponentList.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TComponentList));
@@ -211,7 +211,7 @@ end;
 {-------------------}
 
 class function TSepiImportsTClassList.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TClassList));
@@ -254,7 +254,7 @@ end;
 {---------------------}
 
 class function TSepiImportsTOrderedList.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TOrderedList));
@@ -307,7 +307,7 @@ end;
 {---------------}
 
 class function TSepiImportsTStack.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TStack));
@@ -329,7 +329,7 @@ end;
 {---------------------}
 
 class function TSepiImportsTObjectStack.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TObjectStack));
@@ -354,7 +354,7 @@ end;
 {---------------}
 
 class function TSepiImportsTQueue.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TQueue));
@@ -376,7 +376,7 @@ end;
 {---------------------}
 
 class function TSepiImportsTObjectQueue.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TObjectQueue));
@@ -400,7 +400,7 @@ end;
 { TBucketItem import }
 {--------------------}
 
-function SepiImportTBucketItem(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTBucketItem(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TBucketItem', False, True);
 
@@ -417,7 +417,7 @@ end;
 { TBucket import }
 {----------------}
 
-function SepiImportTBucket(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTBucket(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TBucket', False, True,
     TypeInfo(TBucket));
@@ -461,7 +461,7 @@ begin
 end;
 
 class function TSepiImportsTCustomBucketList.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass(Owner.FindMeta('TCustomBucketList'));
   Result.RegisterTypeInfo(
@@ -537,7 +537,7 @@ end;
 {--------------------}
 
 class function TSepiImportsTBucketList.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TBucketList));
@@ -568,7 +568,7 @@ end;
 {--------------------------}
 
 class function TSepiImportsTObjectBucketList.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TObjectBucketList));
@@ -601,7 +601,7 @@ end;
 {---------------------------}
 
 class function TSepiImportsTIntegerBucketList.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TIntegerBucketList));
@@ -633,9 +633,9 @@ end;
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiMetaRoot) : TSepiMetaUnit;
+function ImportUnit(Root : TSepiRoot) : TSepiUnit;
 begin
-  Result := TSepiMetaUnit.Create(Root, 'Contnrs',
+  Result := TSepiUnit.Create(Root, 'Contnrs',
     ['SysUtils', 'Classes']);
 
   // Types
@@ -663,7 +663,7 @@ begin
   TSepiImportsTIntegerBucketList.SepiImport(Result);
 
   // Routines
-  TSepiMetaMethod.Create(Result, 'RaiseListError', @RaiseListError,
+  TSepiMethod.Create(Result, 'RaiseListError', @RaiseListError,
     'procedure(const ATemplate: string; const AData: array of const)');
 
   Result.Complete;

@@ -19,7 +19,7 @@ implementation
 { tagCOMPOSITIONFORM import }
 {---------------------------}
 
-function SepiImporttagCOMPOSITIONFORM(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagCOMPOSITIONFORM(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagCOMPOSITIONFORM', False, True);
 
@@ -37,7 +37,7 @@ end;
 { tagCANDIDATEFORM import }
 {-------------------------}
 
-function SepiImporttagCANDIDATEFORM(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagCANDIDATEFORM(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagCANDIDATEFORM', False, True);
 
@@ -56,7 +56,7 @@ end;
 { tagCANDIDATELIST import }
 {-------------------------}
 
-function SepiImporttagCANDIDATELIST(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagCANDIDATELIST(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagCANDIDATELIST', False, True);
 
@@ -78,7 +78,7 @@ end;
 { tagREGISTERWORDA import }
 {-------------------------}
 
-function SepiImporttagREGISTERWORDA(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagREGISTERWORDA(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagREGISTERWORDA', False, True);
 
@@ -95,7 +95,7 @@ end;
 { tagREGISTERWORDW import }
 {-------------------------}
 
-function SepiImporttagREGISTERWORDW(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagREGISTERWORDW(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagREGISTERWORDW', False, True);
 
@@ -112,7 +112,7 @@ end;
 { tagSTYLEBUFA import }
 {---------------------}
 
-function SepiImporttagSTYLEBUFA(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagSTYLEBUFA(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagSTYLEBUFA', False, True);
 
@@ -129,7 +129,7 @@ end;
 { tagSTYLEBUFW import }
 {---------------------}
 
-function SepiImporttagSTYLEBUFW(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagSTYLEBUFW(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagSTYLEBUFW', False, True);
 
@@ -146,9 +146,9 @@ end;
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiMetaRoot) : TSepiMetaUnit;
+function ImportUnit(Root : TSepiRoot) : TSepiUnit;
 begin
-  Result := TSepiMetaUnit.Create(Root, 'ImmTypes',
+  Result := TSepiUnit.Create(Root, 'ImmTypes',
     ['Windows']);
 
   // Types

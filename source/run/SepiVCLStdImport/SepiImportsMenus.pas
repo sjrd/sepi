@@ -18,17 +18,17 @@ implementation
 type
   TSepiImportsEMenuError = class(EMenuError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTMenuActionLink = class(TMenuActionLink)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTMenuItemEnumerator = class(TMenuItemEnumerator)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTMenuItem = class(TMenuItem)
@@ -42,7 +42,7 @@ type
     procedure SetAutoLineReduction(const Value: TMenuItemAutoFlag);
     procedure Add_0(Item: TMenuItem);
     procedure Add_1(const AItems: array of TMenuItem);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTMenu = class(TMenu)
@@ -58,30 +58,30 @@ type
     procedure SetAutoLineReduction(const Value: TMenuAutoFlag);
     procedure ParentBiDiModeChanged_0;
     procedure ParentBiDiModeChanged_1(AControl: TObject);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTMainMenu = class(TMainMenu)
   private
     procedure SetAutoMerge(Value: Boolean);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTPopupMenu = class(TPopupMenu)
   private
     function GetHelpContext: THelpContext;
     procedure SetHelpContext(Value: THelpContext);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTPopupList = class(TPopupList)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTMenuItemStack = class(TMenuItemStack)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
 {-------------------}
@@ -89,7 +89,7 @@ type
 {-------------------}
 
 class function TSepiImportsEMenuError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EMenuError));
@@ -106,7 +106,7 @@ end;
 {------------------------}
 
 class function TSepiImportsTMenuActionLink.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TMenuActionLink));
@@ -193,7 +193,7 @@ end;
 {----------------------------}
 
 class function TSepiImportsTMenuItemEnumerator.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TMenuItemEnumerator));
@@ -271,7 +271,7 @@ begin
 end;
 
 class function TSepiImportsTMenuItem.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass(Owner.FindMeta('TMenuItem'));
   Result.RegisterTypeInfo(
@@ -655,7 +655,7 @@ begin
 end;
 
 class function TSepiImportsTMenu.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass(Owner.FindMeta('TMenu'));
   Result.RegisterTypeInfo(
@@ -811,7 +811,7 @@ begin
 end;
 
 class function TSepiImportsTMainMenu.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TMainMenu));
@@ -882,7 +882,7 @@ begin
 end;
 
 class function TSepiImportsTPopupMenu.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TPopupMenu));
@@ -969,7 +969,7 @@ end;
 {-------------------}
 
 class function TSepiImportsTPopupList.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TPopupList));
@@ -1005,7 +1005,7 @@ end;
 {-----------------------}
 
 class function TSepiImportsTMenuItemStack.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TMenuItemStack));
@@ -1025,9 +1025,9 @@ end;
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiMetaRoot) : TSepiMetaUnit;
+function ImportUnit(Root : TSepiRoot) : TSepiUnit;
 begin
-  Result := TSepiMetaUnit.Create(Root, 'Menus',
+  Result := TSepiUnit.Create(Root, 'Menus',
     ['Windows', 'SysUtils', 'Classes', 'Contnrs', 'Messages', 'Graphics', 'ImgList', 'ActnList']);
 
   // Types
@@ -1064,27 +1064,27 @@ begin
     ShortCutItems, TypeInfo(TMenuItemStack));
 
   // Routines
-  TSepiMetaMethod.Create(Result, 'ShortCut', @ShortCut,
+  TSepiMethod.Create(Result, 'ShortCut', @ShortCut,
     'function(Key: Word; Shift: TShiftState): TShortCut');
-  TSepiMetaMethod.Create(Result, 'ShortCutToKey', @ShortCutToKey,
+  TSepiMethod.Create(Result, 'ShortCutToKey', @ShortCutToKey,
     'procedure(ShortCut: TShortCut; var Key: Word; var Shift: TShiftState)');
-  TSepiMetaMethod.Create(Result, 'ShortCutToText', @ShortCutToText,
+  TSepiMethod.Create(Result, 'ShortCutToText', @ShortCutToText,
     'function(ShortCut: TShortCut): string');
-  TSepiMetaMethod.Create(Result, 'TextToShortCut', @TextToShortCut,
+  TSepiMethod.Create(Result, 'TextToShortCut', @TextToShortCut,
     'function(Text: string): TShortCut');
-  TSepiMetaMethod.Create(Result, 'ShortCutFromMessage', @ShortCutFromMessage,
+  TSepiMethod.Create(Result, 'ShortCutFromMessage', @ShortCutFromMessage,
     'function(Message: TWMKey): TShortCut');
-  TSepiMetaMethod.Create(Result, 'NewMenu', @NewMenu,
+  TSepiMethod.Create(Result, 'NewMenu', @NewMenu,
     'function(Owner: TComponent; const AName: string; const Items: array of TMenuItem): TMainMenu');
-  TSepiMetaMethod.Create(Result, 'NewPopupMenu', @NewPopupMenu,
+  TSepiMethod.Create(Result, 'NewPopupMenu', @NewPopupMenu,
     'function(Owner: TComponent; const AName: string; Alignment: TPopupAlignment ; AutoPopup: Boolean ; const Items: array of TMenuItem ) : TPopupMenu');
-  TSepiMetaMethod.Create(Result, 'NewSubMenu', @NewSubMenu,
+  TSepiMethod.Create(Result, 'NewSubMenu', @NewSubMenu,
     'function(const ACaption: string; hCtx: THelpContext; const AName: string ; const Items: array of TMenuItem ; AEnabled: Boolean = True ) : TMenuItem');
-  TSepiMetaMethod.Create(Result, 'NewItem', @NewItem,
+  TSepiMethod.Create(Result, 'NewItem', @NewItem,
     'function(const ACaption: string; AShortCut: TShortCut; AChecked, AEnabled: Boolean ; AOnClick: TNotifyEvent ; hCtx: THelpContext ; const AName: string ) : TMenuItem');
-  TSepiMetaMethod.Create(Result, 'NewLine', @NewLine,
+  TSepiMethod.Create(Result, 'NewLine', @NewLine,
     'function: TMenuItem');
-  TSepiMetaMethod.Create(Result, 'DrawMenuItem', @DrawMenuItem,
+  TSepiMethod.Create(Result, 'DrawMenuItem', @DrawMenuItem,
     'procedure(MenuItem: TMenuItem; ACanvas: TCanvas; ARect: TRect; State: TOwnerDrawState )');
 
   // Global variables
@@ -1097,13 +1097,13 @@ begin
   TSepiConstant.Create(Result, 'cDialogSuffix', cDialogSuffix);
 
   // Routines
-  TSepiMetaMethod.Create(Result, 'StripHotkey', @StripHotkey,
+  TSepiMethod.Create(Result, 'StripHotkey', @StripHotkey,
     'function(const Text: string): string');
-  TSepiMetaMethod.Create(Result, 'GetHotkey', @GetHotkey,
+  TSepiMethod.Create(Result, 'GetHotkey', @GetHotkey,
     'function(const Text: string): string');
-  TSepiMetaMethod.Create(Result, 'AnsiSameCaption', @AnsiSameCaption,
+  TSepiMethod.Create(Result, 'AnsiSameCaption', @AnsiSameCaption,
     'function(const Text1, Text2: string): Boolean');
-  TSepiMetaMethod.Create(Result, 'IsAltGRPressed', @IsAltGRPressed,
+  TSepiMethod.Create(Result, 'IsAltGRPressed', @IsAltGRPressed,
     'function: boolean');
 
   Result.Complete;

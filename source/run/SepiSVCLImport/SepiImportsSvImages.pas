@@ -18,7 +18,7 @@ implementation
 type
   TSepiImportsTSvDropImage = class(TSvDropImage)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
 {---------------------}
@@ -26,7 +26,7 @@ type
 {---------------------}
 
 class function TSepiImportsTSvDropImage.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TSvDropImage));
@@ -77,9 +77,9 @@ end;
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiMetaRoot) : TSepiMetaUnit;
+function ImportUnit(Root : TSepiRoot) : TSepiUnit;
 begin
-  Result := TSepiMetaUnit.Create(Root, 'SvImages',
+  Result := TSepiUnit.Create(Root, 'SvImages',
     ['Windows', 'Forms', 'Classes', 'Controls', 'ExtCtrls']);
 
   // Types

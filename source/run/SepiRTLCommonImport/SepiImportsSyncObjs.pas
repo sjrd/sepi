@@ -18,24 +18,24 @@ implementation
 type
   TSepiImportsTSynchroObject = class(TSynchroObject)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTHandleObject = class(THandleObject)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTEvent = class(TEvent)
   private
     constructor Create_0(EventAttributes: PSecurityAttributes; ManualReset, InitialState : Boolean ; const Name: string ; UseCOMWait: Boolean = False );
     constructor Create_1(UseCOMWait: Boolean = False);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTSimpleEvent = class(TSimpleEvent)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTMutex = class(TMutex)
@@ -43,12 +43,12 @@ type
     constructor Create_0(UseCOMWait: Boolean = False);
     constructor Create_1(MutexAttributes: PSecurityAttributes; InitialOwner: Boolean; const Name: string; UseCOMWait: Boolean = False);
     constructor Create_2(DesiredAccess: LongWord; InheritHandle: Boolean; const Name: string; UseCOMWait: Boolean = False);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTCriticalSection = class(TCriticalSection)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
 {-----------------------}
@@ -56,7 +56,7 @@ type
 {-----------------------}
 
 class function TSepiImportsTSynchroObject.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TSynchroObject));
@@ -81,7 +81,7 @@ end;
 {----------------------}
 
 class function TSepiImportsTHandleObject.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(THandleObject));
@@ -132,7 +132,7 @@ begin
 end;
 
 class function TSepiImportsTEvent.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TEvent));
@@ -159,7 +159,7 @@ end;
 {---------------------}
 
 class function TSepiImportsTSimpleEvent.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TSimpleEvent));
@@ -191,7 +191,7 @@ begin
 end;
 
 class function TSepiImportsTMutex.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TMutex));
@@ -222,7 +222,7 @@ end;
 {-------------------------}
 
 class function TSepiImportsTCriticalSection.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TCriticalSection));
@@ -261,9 +261,9 @@ end;
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiMetaRoot) : TSepiMetaUnit;
+function ImportUnit(Root : TSepiRoot) : TSepiUnit;
 begin
-  Result := TSepiMetaUnit.Create(Root, 'SyncObjs',
+  Result := TSepiUnit.Create(Root, 'SyncObjs',
     ['Windows', 'Messages', 'SysUtils', 'Classes']);
 
   // Types

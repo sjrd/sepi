@@ -10,9 +10,9 @@ interface
 uses
   SepiReflectionCore, uPSCompiler;
 
-procedure SepiImportUnitInPSCompiler(SepiUnit : TSepiMetaUnit;
+procedure SepiImportUnitInPSCompiler(SepiUnit : TSepiUnit;
   PSCompiler : TPSPascalCompiler); overload;
-procedure SepiImportUnitInPSCompiler(Root : TSepiMetaRoot;
+procedure SepiImportUnitInPSCompiler(Root : TSepiRoot;
   const UnitName : string; PSCompiler : TPSPascalCompiler); overload;
 
 implementation
@@ -65,7 +65,7 @@ end;
   @return Déclaration Delphi du paramètre
 *}
 function ParamToString(PSCompiler : TPSPascalCompiler;
-  Param : TSepiMetaParam) : string;
+  Param : TSepiParam) : string;
 begin
   with Param do
   begin
@@ -380,10 +380,10 @@ begin
     for I := 0 to ChildCount-1 do
     begin
       Child := Children[I];
-      if not (Child is TSepiMetaField) then
+      if not (Child is TSepiField) then
         Continue;
 
-      with TSepiMetaField(Child), AddRecVal do
+      with TSepiField(Child), AddRecVal do
       begin
         FieldOrgName := Name;
         aType := PSCompiler.FindType(FieldType.Name);
@@ -586,7 +586,7 @@ end;
   @param Routine      Routine à importer
 *}
 procedure ImportRoutine(PSCompiler : TPSPascalCompiler;
-  Routine : TSepiMetaMethod);
+  Routine : TSepiMethod);
 var StrSignature, PSName, SecondName : string;
 begin
   with Routine do
@@ -639,7 +639,7 @@ begin
     begin
       Child := Children[I];
 
-      if Child is TSepiMetaMethod then with TSepiMetaMethod(Child) do
+      if Child is TSepiMethod then with TSepiMethod(Child) do
       begin
         StrSignature := SignatureToString(PSCompiler, Signature, Name);
         if StrSignature <> '' then
@@ -687,7 +687,7 @@ begin
         Continue;
 
       // FIELD
-      if Child is TSepiMetaField then with TSepiMetaField(Child) do
+      if Child is TSepiField then with TSepiField(Child) do
       begin
         if not (FieldType.Kind in [tkArray, tkDynArray]) then
         begin
@@ -697,7 +697,7 @@ begin
       end else
 
       // METHOD
-      if Child is TSepiMetaMethod then with TSepiMetaMethod(Child) do
+      if Child is TSepiMethod then with TSepiMethod(Child) do
       begin
         if (FirstDeclaration or
            (not (InheritedMethod.Visibility in [mvPublic, mvPublished]))) then
@@ -713,7 +713,7 @@ begin
       end else
 
       // PROPERTY
-      if Child is TSepiMetaProperty then with TSepiMetaProperty(Child) do
+      if Child is TSepiProperty then with TSepiProperty(Child) do
       begin
         if ReadAccess.Kind = pakNone then Access := iptW else
         if WriteAccess.Kind = pakNone then Access := iptR else
@@ -738,7 +738,7 @@ end;
   @param SepiUnit     Unité Sepi
   @param PSCompiler   Compilateur Pascal Script
 *}
-procedure SepiImportUnitInPSCompiler(SepiUnit : TSepiMetaUnit;
+procedure SepiImportUnitInPSCompiler(SepiUnit : TSepiUnit;
   PSCompiler : TPSPascalCompiler);
 var I : integer;
     Child : TSepiMeta;
@@ -778,8 +778,8 @@ begin
       ImportConst(PSCompiler, TSepiConstant(Child))
     else if Child is TSepiVariable then
       ImportVariable(PSCompiler, TSepiVariable(Child))
-    else if Child is TSepiMetaMethod then
-      ImportRoutine(PSCompiler, TSepiMetaMethod(Child));
+    else if Child is TSepiMethod then
+      ImportRoutine(PSCompiler, TSepiMethod(Child));
   except
     on Error : Exception do
       PSCompiler.MakeWarning(SepiUnit.Name, ewCustomWarning, Error.Message);
@@ -811,7 +811,7 @@ end;
   @param UnitName     Nom de l'unité Sepi
   @param PSCompiler   Compilateur Pascal Script
 *}
-procedure SepiImportUnitInPSCompiler(Root : TSepiMetaRoot;
+procedure SepiImportUnitInPSCompiler(Root : TSepiRoot;
   const UnitName : string; PSCompiler : TPSPascalCompiler);
 begin
   SepiImportUnitInPSCompiler(Root.LoadUnit(UnitName), PSCompiler);

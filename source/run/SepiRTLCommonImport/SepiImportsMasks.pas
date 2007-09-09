@@ -18,12 +18,12 @@ implementation
 type
   TSepiImportsEMaskException = class(EMaskException)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTMask = class(TMask)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
 {-----------------------}
@@ -31,7 +31,7 @@ type
 {-----------------------}
 
 class function TSepiImportsEMaskException.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EMaskException));
@@ -48,7 +48,7 @@ end;
 {--------------}
 
 class function TSepiImportsTMask.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TMask));
@@ -78,9 +78,9 @@ end;
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiMetaRoot) : TSepiMetaUnit;
+function ImportUnit(Root : TSepiRoot) : TSepiUnit;
 begin
-  Result := TSepiMetaUnit.Create(Root, 'Masks',
+  Result := TSepiUnit.Create(Root, 'Masks',
     ['SysUtils']);
 
   // Types
@@ -88,7 +88,7 @@ begin
   TSepiImportsTMask.SepiImport(Result);
 
   // Routines
-  TSepiMetaMethod.Create(Result, 'MatchesMask', @MatchesMask,
+  TSepiMethod.Create(Result, 'MatchesMask', @MatchesMask,
     'function(const Filename, Mask: string): Boolean');
 
   Result.Complete;

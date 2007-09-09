@@ -18,7 +18,7 @@ implementation
 type
   TSepiImportsTComponentFactory = class(TComponentFactory)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
 {--------------------------}
@@ -26,7 +26,7 @@ type
 {--------------------------}
 
 class function TSepiImportsTComponentFactory.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TComponentFactory));
@@ -60,9 +60,9 @@ end;
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiMetaRoot) : TSepiMetaUnit;
+function ImportUnit(Root : TSepiRoot) : TSepiUnit;
 begin
-  Result := TSepiMetaUnit.Create(Root, 'VCLCom',
+  Result := TSepiUnit.Create(Root, 'VCLCom',
     ['ActiveXTypes', 'ComObj', 'Classes']);
 
   // Types

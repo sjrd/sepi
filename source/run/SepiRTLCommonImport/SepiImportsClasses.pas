@@ -20,118 +20,118 @@ implementation
 type
   TSepiImportsEStreamError = class(EStreamError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsEFileStreamError = class(EFileStreamError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsEFCreateError = class(EFCreateError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsEFOpenError = class(EFOpenError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsEFilerError = class(EFilerError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsEReadError = class(EReadError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsEWriteError = class(EWriteError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsEClassNotFound = class(EClassNotFound)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsEMethodNotFound = class(EMethodNotFound)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsEInvalidImage = class(EInvalidImage)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsEResNotFound = class(EResNotFound)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsEListError = class(EListError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsEBitsError = class(EBitsError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsEStringListError = class(EStringListError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsEComponentError = class(EComponentError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsEParserError = class(EParserError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsEOutOfResources = class(EOutOfResources)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsEInvalidOperation = class(EInvalidOperation)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTListEnumerator = class(TListEnumerator)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTList = class(TList)
   private
     class procedure Error_1(Msg: PResStringRec; Data: Integer);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTThreadList = class(TThreadList)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTInterfaceListEnumerator = class(TInterfaceListEnumerator)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTInterfaceList = class(TInterfaceList)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTBits = class(TBits)
@@ -139,50 +139,50 @@ type
     procedure SetSize(Value: Integer);
     procedure SetBit(Index: Integer; Value: Boolean);
     function GetBit(Index: Integer): Boolean;
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTPersistent = class(TPersistent)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTInterfacedPersistent = class(TInterfacedPersistent)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTRecall = class(TRecall)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTCollectionItem = class(TCollectionItem)
   private
     function GetIndex: Integer;
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTCollectionEnumerator = class(TCollectionEnumerator)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTCollection = class(TCollection)
   private
     function GetCount: Integer;
     function GetPropName: string;
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTOwnedCollection = class(TOwnedCollection)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTStringsEnumerator = class(TStringsEnumerator)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTStrings = class(TStrings)
@@ -207,14 +207,14 @@ type
     procedure SetValueFromIndex(Index: Integer; const Value: string);
     procedure Error_0(const Msg: string; Data: Integer);
     procedure Error_1(Msg: PResStringRec; Data: Integer);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTStringList = class(TStringList)
   private
     procedure SetSorted(Value: Boolean);
     procedure SetCaseSensitive(const Value: Boolean);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTStream = class(TStream)
@@ -222,61 +222,61 @@ type
     function GetPosition: Int64;
     procedure SetPosition(const Pos: Int64);
     procedure SetSize64(const NewSize: Int64);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTHandleStream = class(THandleStream)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTFileStream = class(TFileStream)
   private
     constructor Create_0(const FileName: string; Mode: Word);
     constructor Create_1(const FileName: string; Mode: Word; Rights: Cardinal);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTCustomMemoryStream = class(TCustomMemoryStream)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTMemoryStream = class(TMemoryStream)
   private
     procedure SetCapacity(NewCapacity: Longint);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTStringStream = class(TStringStream)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTResourceStream = class(TResourceStream)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTStreamAdapter = class(TStreamAdapter)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTClassFinder = class(TClassFinder)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTFiler = class(TFiler)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTReader = class(TReader)
   private
     function GetPosition: Longint;
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTWriter = class(TWriter)
@@ -285,17 +285,17 @@ type
     procedure SetPosition(Value: Longint);
     procedure WriteInteger_0(Value: Longint);
     procedure WriteInteger_1(Value: Int64);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTParser = class(TParser)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsEThread = class(EThread)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTThread = class(TThread)
@@ -309,12 +309,12 @@ type
     procedure Synchronize_1(AMethod: TThreadMethod);
     class procedure Queue_1(AThread: TThread; AMethod: TThreadMethod);
     class procedure Synchronize_2(AThread: TThread; AMethod: TThreadMethod);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTComponentEnumerator = class(TComponentEnumerator)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTComponent = class(TComponent)
@@ -324,23 +324,23 @@ type
     function GetComponentCount: Integer;
     function GetComponentIndex: Integer;
     procedure SetComponentIndex(Value: Integer);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTBasicActionLink = class(TBasicActionLink)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTBasicAction = class(TBasicAction)
   private
     procedure SetActionComponent(const Value: TComponent);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTDataModule = class(TDataModule)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TUnnamed_1 = procedure (DataModule: TDataModule) of object;
@@ -356,7 +356,7 @@ type
 {---------------------}
 
 class function TSepiImportsEStreamError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EStreamError));
@@ -373,7 +373,7 @@ end;
 {-------------------------}
 
 class function TSepiImportsEFileStreamError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EFileStreamError));
@@ -392,7 +392,7 @@ end;
 {----------------------}
 
 class function TSepiImportsEFCreateError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EFCreateError));
@@ -409,7 +409,7 @@ end;
 {--------------------}
 
 class function TSepiImportsEFOpenError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EFOpenError));
@@ -426,7 +426,7 @@ end;
 {--------------------}
 
 class function TSepiImportsEFilerError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EFilerError));
@@ -443,7 +443,7 @@ end;
 {-------------------}
 
 class function TSepiImportsEReadError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EReadError));
@@ -460,7 +460,7 @@ end;
 {--------------------}
 
 class function TSepiImportsEWriteError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EWriteError));
@@ -477,7 +477,7 @@ end;
 {-----------------------}
 
 class function TSepiImportsEClassNotFound.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EClassNotFound));
@@ -494,7 +494,7 @@ end;
 {------------------------}
 
 class function TSepiImportsEMethodNotFound.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EMethodNotFound));
@@ -511,7 +511,7 @@ end;
 {----------------------}
 
 class function TSepiImportsEInvalidImage.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EInvalidImage));
@@ -528,7 +528,7 @@ end;
 {---------------------}
 
 class function TSepiImportsEResNotFound.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EResNotFound));
@@ -545,7 +545,7 @@ end;
 {-------------------}
 
 class function TSepiImportsEListError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EListError));
@@ -562,7 +562,7 @@ end;
 {-------------------}
 
 class function TSepiImportsEBitsError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EBitsError));
@@ -579,7 +579,7 @@ end;
 {-------------------------}
 
 class function TSepiImportsEStringListError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EStringListError));
@@ -596,7 +596,7 @@ end;
 {------------------------}
 
 class function TSepiImportsEComponentError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EComponentError));
@@ -613,7 +613,7 @@ end;
 {---------------------}
 
 class function TSepiImportsEParserError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EParserError));
@@ -630,7 +630,7 @@ end;
 {------------------------}
 
 class function TSepiImportsEOutOfResources.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EOutOfResources));
@@ -647,7 +647,7 @@ end;
 {--------------------------}
 
 class function TSepiImportsEInvalidOperation.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EInvalidOperation));
@@ -664,7 +664,7 @@ end;
 {------------------------}
 
 class function TSepiImportsTListEnumerator.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TListEnumerator));
@@ -702,7 +702,7 @@ begin
 end;
 
 class function TSepiImportsTList.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass(Owner.FindMeta('TList'));
   Result.RegisterTypeInfo(
@@ -795,7 +795,7 @@ end;
 {--------------------}
 
 class function TSepiImportsTThreadList.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TThreadList));
@@ -837,7 +837,7 @@ end;
 { IInterfaceList import }
 {-----------------------}
 
-function SepiImportIInterfaceList(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIInterfaceList(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IInterfaceList));
@@ -894,7 +894,7 @@ end;
 {---------------------------------}
 
 class function TSepiImportsTInterfaceListEnumerator.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TInterfaceListEnumerator));
@@ -927,7 +927,7 @@ end;
 {-----------------------}
 
 class function TSepiImportsTInterfaceList.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass(Owner.FindMeta('TInterfaceList'));
   Result.RegisterTypeInfo(
@@ -1021,7 +1021,7 @@ begin
 end;
 
 class function TSepiImportsTBits.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TBits));
@@ -1064,7 +1064,7 @@ end;
 {--------------------}
 
 class function TSepiImportsTPersistent.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TPersistent));
@@ -1109,7 +1109,7 @@ end;
 {------------------------------}
 
 class function TSepiImportsTInterfacedPersistent.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TInterfacedPersistent));
@@ -1149,7 +1149,7 @@ end;
 {----------------}
 
 class function TSepiImportsTRecall.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TRecall));
@@ -1190,7 +1190,7 @@ begin
 end;
 
 class function TSepiImportsTCollectionItem.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TCollectionItem));
@@ -1255,7 +1255,7 @@ end;
 {------------------------------}
 
 class function TSepiImportsTCollectionEnumerator.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TCollectionEnumerator));
@@ -1298,7 +1298,7 @@ begin
 end;
 
 class function TSepiImportsTCollection.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass(Owner.FindMeta('TCollection'));
   Result.RegisterTypeInfo(
@@ -1415,7 +1415,7 @@ end;
 {-------------------------}
 
 class function TSepiImportsTOwnedCollection.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TOwnedCollection));
@@ -1445,7 +1445,7 @@ end;
 { IStringsAdapter import }
 {------------------------}
 
-function SepiImportIStringsAdapter(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIStringsAdapter(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IStringsAdapter));
@@ -1466,7 +1466,7 @@ end;
 {---------------------------}
 
 class function TSepiImportsTStringsEnumerator.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TStringsEnumerator));
@@ -1599,7 +1599,7 @@ begin
 end;
 
 class function TSepiImportsTStrings.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass(Owner.FindMeta('TStrings'));
   Result.RegisterTypeInfo(
@@ -1819,7 +1819,7 @@ end;
 { TStringItem import }
 {--------------------}
 
-function SepiImportTStringItem(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTStringItem(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TStringItem', False, True,
     TypeInfo(TStringItem));
@@ -1848,7 +1848,7 @@ begin
 end;
 
 class function TSepiImportsTStringList.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass(Owner.FindMeta('TStringList'));
   Result.RegisterTypeInfo(
@@ -1991,7 +1991,7 @@ begin
 end;
 
 class function TSepiImportsTStream.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass(Owner.FindMeta('TStream'));
   Result.RegisterTypeInfo(
@@ -2072,7 +2072,7 @@ end;
 { IStreamPersist import }
 {-----------------------}
 
-function SepiImportIStreamPersist(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIStreamPersist(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IStreamPersist));
@@ -2093,7 +2093,7 @@ end;
 {----------------------}
 
 class function TSepiImportsTHandleStream.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(THandleStream));
@@ -2147,7 +2147,7 @@ begin
 end;
 
 class function TSepiImportsTFileStream.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TFileStream));
@@ -2173,7 +2173,7 @@ end;
 {----------------------------}
 
 class function TSepiImportsTCustomMemoryStream.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TCustomMemoryStream));
@@ -2221,7 +2221,7 @@ begin
 end;
 
 class function TSepiImportsTMemoryStream.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TMemoryStream));
@@ -2271,7 +2271,7 @@ end;
 {----------------------}
 
 class function TSepiImportsTStringStream.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TStringStream));
@@ -2319,7 +2319,7 @@ end;
 {------------------------}
 
 class function TSepiImportsTResourceStream.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TResourceStream));
@@ -2356,7 +2356,7 @@ end;
 {-----------------------}
 
 class function TSepiImportsTStreamAdapter.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TStreamAdapter));
@@ -2425,7 +2425,7 @@ end;
 {---------------------}
 
 class function TSepiImportsTClassFinder.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TClassFinder));
@@ -2456,7 +2456,7 @@ end;
 { IInterfaceComponentReference import }
 {-------------------------------------}
 
-function SepiImportIInterfaceComponentReference(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIInterfaceComponentReference(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IInterfaceComponentReference));
@@ -2475,7 +2475,7 @@ end;
 {---------------}
 
 class function TSepiImportsTFiler.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass(Owner.FindMeta('TFiler'));
   Result.RegisterTypeInfo(
@@ -2535,7 +2535,7 @@ end;
 { IVarStreamable import }
 {-----------------------}
 
-function SepiImportIVarStreamable(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIVarStreamable(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IVarStreamable));
@@ -2561,7 +2561,7 @@ begin
 end;
 
 class function TSepiImportsTReader.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass(Owner.FindMeta('TReader'));
   Result.RegisterTypeInfo(
@@ -2785,7 +2785,7 @@ begin
 end;
 
 class function TSepiImportsTWriter.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass(Owner.FindMeta('TWriter'));
   Result.RegisterTypeInfo(
@@ -2922,7 +2922,7 @@ end;
 {----------------}
 
 class function TSepiImportsTParser.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TParser));
@@ -3013,7 +3013,7 @@ end;
 {----------------}
 
 class function TSepiImportsEThread.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EThread));
@@ -3029,7 +3029,7 @@ end;
 { TSynchronizeRecord import }
 {---------------------------}
 
-function SepiImportTSynchronizeRecord(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTSynchronizeRecord(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TSynchronizeRecord', False, True);
 
@@ -3093,7 +3093,7 @@ begin
 end;
 
 class function TSepiImportsTThread.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TThread));
@@ -3200,7 +3200,7 @@ end;
 {-----------------------------}
 
 class function TSepiImportsTComponentEnumerator.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TComponentEnumerator));
@@ -3232,7 +3232,7 @@ end;
 { IVCLComObject import }
 {----------------------}
 
-function SepiImportIVCLComObject(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIVCLComObject(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IVCLComObject));
@@ -3260,7 +3260,7 @@ end;
 { IDesignerNotify import }
 {------------------------}
 
-function SepiImportIDesignerNotify(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIDesignerNotify(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IDesignerNotify));
@@ -3306,7 +3306,7 @@ begin
 end;
 
 class function TSepiImportsTComponent.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass(Owner.FindMeta('TComponent'));
   Result.RegisterTypeInfo(
@@ -3543,7 +3543,7 @@ end;
 {-------------------------}
 
 class function TSepiImportsTBasicActionLink.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TBasicActionLink));
@@ -3608,7 +3608,7 @@ begin
 end;
 
 class function TSepiImportsTBasicAction.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass(Owner.FindMeta('TBasicAction'));
   Result.RegisterTypeInfo(
@@ -3688,7 +3688,7 @@ end;
 {--------------------}
 
 class function TSepiImportsTDataModule.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TDataModule));
@@ -3781,7 +3781,7 @@ end;
 { TIdentMapEntry import }
 {-----------------------}
 
-function SepiImportTIdentMapEntry(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTIdentMapEntry(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TIdentMapEntry', False, True,
     TypeInfo(TIdentMapEntry));
@@ -3899,9 +3899,9 @@ begin
   ObjectTextToResource(Input, Output, OriginalFormat);
 end;
 
-function ImportUnit(Root : TSepiMetaRoot) : TSepiMetaUnit;
+function ImportUnit(Root : TSepiRoot) : TSepiUnit;
 begin
-  Result := TSepiMetaUnit.Create(Root, 'Classes',
+  Result := TSepiUnit.Create(Root, 'Classes',
     ['Windows', 'Messages', 'SysUtils', 'Variants', 'TypInfo', 'ActiveXTypes']);
 
   // Constants
@@ -4103,59 +4103,59 @@ begin
     @CreateVCLComObjectProc, '$8');
 
   // Routines
-  TSepiMetaMethod.Create(Result, 'Point', @Point,
+  TSepiMethod.Create(Result, 'Point', @Point,
     'function(AX, AY: Integer): TPoint');
-  TSepiMetaMethod.Create(Result, 'SmallPoint', @SmallPoint,
+  TSepiMethod.Create(Result, 'SmallPoint', @SmallPoint,
     'function(AX, AY: SmallInt): TSmallPoint');
-  TSepiMetaMethod.CreateOverloaded(Result, 'PointsEqual', @PointsEqual_0,
+  TSepiMethod.CreateOverloaded(Result, 'PointsEqual', @PointsEqual_0,
     'function(const P1, P2: TPoint): Boolean');
-  TSepiMetaMethod.CreateOverloaded(Result, 'PointsEqual', @PointsEqual_1,
+  TSepiMethod.CreateOverloaded(Result, 'PointsEqual', @PointsEqual_1,
     'function(const P1, P2: TSmallPoint): Boolean');
-  TSepiMetaMethod.CreateOverloaded(Result, 'InvalidPoint', @InvalidPoint_0,
+  TSepiMethod.CreateOverloaded(Result, 'InvalidPoint', @InvalidPoint_0,
     'function(X, Y: Integer): Boolean');
-  TSepiMetaMethod.CreateOverloaded(Result, 'InvalidPoint', @InvalidPoint_1,
+  TSepiMethod.CreateOverloaded(Result, 'InvalidPoint', @InvalidPoint_1,
     'function(const At: TPoint): Boolean');
-  TSepiMetaMethod.CreateOverloaded(Result, 'InvalidPoint', @InvalidPoint_2,
+  TSepiMethod.CreateOverloaded(Result, 'InvalidPoint', @InvalidPoint_2,
     'function(const At: TSmallPoint): Boolean');
-  TSepiMetaMethod.CreateOverloaded(Result, 'Rect', @Rect_0,
+  TSepiMethod.CreateOverloaded(Result, 'Rect', @Rect_0,
     'function(ALeft, ATop, ARight, ABottom: Integer): TRect');
-  TSepiMetaMethod.CreateOverloaded(Result, 'Rect', @Rect_1,
+  TSepiMethod.CreateOverloaded(Result, 'Rect', @Rect_1,
     'function(const ATopLeft, ABottomRight: TPoint): TRect');
-  TSepiMetaMethod.Create(Result, 'Bounds', @Bounds,
+  TSepiMethod.Create(Result, 'Bounds', @Bounds,
     'function(ALeft, ATop, AWidth, AHeight: Integer): TRect');
-  TSepiMetaMethod.Create(Result, 'RegisterClass', @RegisterClass,
+  TSepiMethod.Create(Result, 'RegisterClass', @RegisterClass,
     'procedure(AClass: TPersistentClass)');
-  TSepiMetaMethod.Create(Result, 'RegisterClasses', @RegisterClasses,
+  TSepiMethod.Create(Result, 'RegisterClasses', @RegisterClasses,
     'procedure(AClasses: array of TPersistentClass)');
-  TSepiMetaMethod.Create(Result, 'RegisterClassAlias', @RegisterClassAlias,
+  TSepiMethod.Create(Result, 'RegisterClassAlias', @RegisterClassAlias,
     'procedure(AClass: TPersistentClass; const Alias: string)');
-  TSepiMetaMethod.Create(Result, 'UnRegisterClass', @UnRegisterClass,
+  TSepiMethod.Create(Result, 'UnRegisterClass', @UnRegisterClass,
     'procedure(AClass: TPersistentClass)');
-  TSepiMetaMethod.Create(Result, 'UnRegisterClasses', @UnRegisterClasses,
+  TSepiMethod.Create(Result, 'UnRegisterClasses', @UnRegisterClasses,
     'procedure(AClasses: array of TPersistentClass)');
-  TSepiMetaMethod.Create(Result, 'UnRegisterModuleClasses', @UnRegisterModuleClasses,
+  TSepiMethod.Create(Result, 'UnRegisterModuleClasses', @UnRegisterModuleClasses,
     'procedure(Module: HMODULE)');
-  TSepiMetaMethod.Create(Result, 'FindClass', @FindClass,
+  TSepiMethod.Create(Result, 'FindClass', @FindClass,
     'function(const ClassName: string): TPersistentClass');
-  TSepiMetaMethod.Create(Result, 'GetClass', @GetClass,
+  TSepiMethod.Create(Result, 'GetClass', @GetClass,
     'function(const AClassName: string): TPersistentClass');
-  TSepiMetaMethod.Create(Result, 'StartClassGroup', @StartClassGroup,
+  TSepiMethod.Create(Result, 'StartClassGroup', @StartClassGroup,
     'procedure(AClass: TPersistentClass)');
-  TSepiMetaMethod.Create(Result, 'GroupDescendentsWith', @GroupDescendentsWith,
+  TSepiMethod.Create(Result, 'GroupDescendentsWith', @GroupDescendentsWith,
     'procedure(AClass, AClassGroup: TPersistentClass)');
-  TSepiMetaMethod.Create(Result, 'ActivateClassGroup', @ActivateClassGroup,
+  TSepiMethod.Create(Result, 'ActivateClassGroup', @ActivateClassGroup,
     'function(AClass: TPersistentClass): TPersistentClass');
-  TSepiMetaMethod.Create(Result, 'ActiveClassGroup', @ActiveClassGroup,
+  TSepiMethod.Create(Result, 'ActiveClassGroup', @ActiveClassGroup,
     'function: TPersistentClass');
-  TSepiMetaMethod.CreateOverloaded(Result, 'ClassGroupOf', @ClassGroupOf_0,
+  TSepiMethod.CreateOverloaded(Result, 'ClassGroupOf', @ClassGroupOf_0,
     'function(AClass: TPersistentClass): TPersistentClass');
-  TSepiMetaMethod.CreateOverloaded(Result, 'ClassGroupOf', @ClassGroupOf_1,
+  TSepiMethod.CreateOverloaded(Result, 'ClassGroupOf', @ClassGroupOf_1,
     'function(Instance: TPersistent): TPersistentClass');
-  TSepiMetaMethod.Create(Result, 'RegisterComponents', @RegisterComponents,
+  TSepiMethod.Create(Result, 'RegisterComponents', @RegisterComponents,
     'procedure(const Page: string; const ComponentClasses: array of TComponentClass )');
-  TSepiMetaMethod.Create(Result, 'RegisterNoIcon', @RegisterNoIcon,
+  TSepiMethod.Create(Result, 'RegisterNoIcon', @RegisterNoIcon,
     'procedure(const ComponentClasses: array of TComponentClass)');
-  TSepiMetaMethod.Create(Result, 'RegisterNonActiveX', @RegisterNonActiveX,
+  TSepiMethod.Create(Result, 'RegisterNonActiveX', @RegisterNonActiveX,
     'procedure(const ComponentClasses: array of TComponentClass; AxRegType: TActiveXRegType )');
 
   // Global variables
@@ -4178,102 +4178,102 @@ begin
     @IsUniqueGlobalComponentNameProc, 'TIsUniqueGlobalComponentName');
 
   // Routines
-  TSepiMetaMethod.Create(Result, 'RegisterIntegerConsts', @RegisterIntegerConsts,
+  TSepiMethod.Create(Result, 'RegisterIntegerConsts', @RegisterIntegerConsts,
     'procedure(AIntegerType: Pointer; AIdentToInt: TIdentToInt; AIntToIdent: TIntToIdent )');
-  TSepiMetaMethod.Create(Result, 'UnregisterIntegerConsts', @UnregisterIntegerConsts,
+  TSepiMethod.Create(Result, 'UnregisterIntegerConsts', @UnregisterIntegerConsts,
     'procedure(AIntegerType: Pointer; AIdentToInt: TIdentToInt; AIntToIdent: TIntToIdent )');
-  TSepiMetaMethod.Create(Result, 'RegisterFindGlobalComponentProc', @RegisterFindGlobalComponentProc,
+  TSepiMethod.Create(Result, 'RegisterFindGlobalComponentProc', @RegisterFindGlobalComponentProc,
     'procedure(AFindGlobalComponent: TFindGlobalComponent)');
-  TSepiMetaMethod.Create(Result, 'UnregisterFindGlobalComponentProc', @UnregisterFindGlobalComponentProc,
+  TSepiMethod.Create(Result, 'UnregisterFindGlobalComponentProc', @UnregisterFindGlobalComponentProc,
     'procedure(AFindGlobalComponent: TFindGlobalComponent)');
-  TSepiMetaMethod.Create(Result, 'FindGlobalComponent', @FindGlobalComponent,
+  TSepiMethod.Create(Result, 'FindGlobalComponent', @FindGlobalComponent,
     'function(const Name: string): TComponent');
-  TSepiMetaMethod.Create(Result, 'IsUniqueGlobalComponentName', @IsUniqueGlobalComponentName,
+  TSepiMethod.Create(Result, 'IsUniqueGlobalComponentName', @IsUniqueGlobalComponentName,
     'function(const Name: string): Boolean');
-  TSepiMetaMethod.Create(Result, 'IdentToInt', @IdentToInt,
+  TSepiMethod.Create(Result, 'IdentToInt', @IdentToInt,
     'function(const Ident: string; var Int: Longint; const Map: array of TIdentMapEntry): Boolean');
-  TSepiMetaMethod.Create(Result, 'IntToIdent', @IntToIdent,
+  TSepiMethod.Create(Result, 'IntToIdent', @IntToIdent,
     'function(Int: Longint; var Ident: string; const Map: array of TIdentMapEntry): Boolean');
-  TSepiMetaMethod.Create(Result, 'FindIntToIdent', @FindIntToIdent,
+  TSepiMethod.Create(Result, 'FindIntToIdent', @FindIntToIdent,
     'function(AIntegerType: Pointer): TIntToIdent');
-  TSepiMetaMethod.Create(Result, 'FindIdentToInt', @FindIdentToInt,
+  TSepiMethod.Create(Result, 'FindIdentToInt', @FindIdentToInt,
     'function(AIntegerType: Pointer): TIdentToInt');
-  TSepiMetaMethod.Create(Result, 'InitInheritedComponent', @InitInheritedComponent,
+  TSepiMethod.Create(Result, 'InitInheritedComponent', @InitInheritedComponent,
     'function(Instance: TComponent; RootAncestor: TClass): Boolean');
-  TSepiMetaMethod.Create(Result, 'InitComponentRes', @InitComponentRes,
+  TSepiMethod.Create(Result, 'InitComponentRes', @InitComponentRes,
     'function(const ResName: string; Instance: TComponent): Boolean');
-  TSepiMetaMethod.Create(Result, 'ReadComponentRes', @ReadComponentRes,
+  TSepiMethod.Create(Result, 'ReadComponentRes', @ReadComponentRes,
     'function(const ResName: string; Instance: TComponent): TComponent');
-  TSepiMetaMethod.Create(Result, 'ReadComponentResEx', @ReadComponentResEx,
+  TSepiMethod.Create(Result, 'ReadComponentResEx', @ReadComponentResEx,
     'function(HInstance: THandle; const ResName: string): TComponent');
-  TSepiMetaMethod.Create(Result, 'ReadComponentResFile', @ReadComponentResFile,
+  TSepiMethod.Create(Result, 'ReadComponentResFile', @ReadComponentResFile,
     'function(const FileName: string; Instance: TComponent): TComponent');
-  TSepiMetaMethod.Create(Result, 'WriteComponentResFile', @WriteComponentResFile,
+  TSepiMethod.Create(Result, 'WriteComponentResFile', @WriteComponentResFile,
     'procedure(const FileName: string; Instance: TComponent)');
-  TSepiMetaMethod.Create(Result, 'GlobalFixupReferences', @GlobalFixupReferences,
+  TSepiMethod.Create(Result, 'GlobalFixupReferences', @GlobalFixupReferences,
     'procedure');
-  TSepiMetaMethod.Create(Result, 'GetFixupReferenceNames', @GetFixupReferenceNames,
+  TSepiMethod.Create(Result, 'GetFixupReferenceNames', @GetFixupReferenceNames,
     'procedure(Root: TComponent; Names: TStrings)');
-  TSepiMetaMethod.Create(Result, 'GetFixupInstanceNames', @GetFixupInstanceNames,
+  TSepiMethod.Create(Result, 'GetFixupInstanceNames', @GetFixupInstanceNames,
     'procedure(Root: TComponent; const ReferenceRootName: string ; Names: TStrings )');
-  TSepiMetaMethod.Create(Result, 'RedirectFixupReferences', @RedirectFixupReferences,
+  TSepiMethod.Create(Result, 'RedirectFixupReferences', @RedirectFixupReferences,
     'procedure(Root: TComponent; const OldRootName, NewRootName : string )');
-  TSepiMetaMethod.Create(Result, 'RemoveFixupReferences', @RemoveFixupReferences,
+  TSepiMethod.Create(Result, 'RemoveFixupReferences', @RemoveFixupReferences,
     'procedure(Root: TComponent; const RootName: string)');
-  TSepiMetaMethod.Create(Result, 'RemoveFixups', @RemoveFixups,
+  TSepiMethod.Create(Result, 'RemoveFixups', @RemoveFixups,
     'procedure(Instance: TPersistent)');
-  TSepiMetaMethod.Create(Result, 'FindNestedComponent', @FindNestedComponent,
+  TSepiMethod.Create(Result, 'FindNestedComponent', @FindNestedComponent,
     'function(Root: TComponent; const NamePath: string): TComponent');
-  TSepiMetaMethod.Create(Result, 'BeginGlobalLoading', @BeginGlobalLoading,
+  TSepiMethod.Create(Result, 'BeginGlobalLoading', @BeginGlobalLoading,
     'procedure');
-  TSepiMetaMethod.Create(Result, 'NotifyGlobalLoading', @NotifyGlobalLoading,
+  TSepiMethod.Create(Result, 'NotifyGlobalLoading', @NotifyGlobalLoading,
     'procedure');
-  TSepiMetaMethod.Create(Result, 'EndGlobalLoading', @EndGlobalLoading,
+  TSepiMethod.Create(Result, 'EndGlobalLoading', @EndGlobalLoading,
     'procedure');
-  TSepiMetaMethod.Create(Result, 'CollectionsEqual', @CollectionsEqual,
+  TSepiMethod.Create(Result, 'CollectionsEqual', @CollectionsEqual,
     'function(C1, C2: TCollection; Owner1, Owner2: TComponent): Boolean');
-  TSepiMetaMethod.CreateOverloaded(Result, 'GetUltimateOwner', @GetUltimateOwner_0,
+  TSepiMethod.CreateOverloaded(Result, 'GetUltimateOwner', @GetUltimateOwner_0,
     'function(ACollectionItem: TCollectionItem): TPersistent');
-  TSepiMetaMethod.CreateOverloaded(Result, 'GetUltimateOwner', @GetUltimateOwner_1,
+  TSepiMethod.CreateOverloaded(Result, 'GetUltimateOwner', @GetUltimateOwner_1,
     'function(ACollection: TCollection): TPersistent');
-  TSepiMetaMethod.CreateOverloaded(Result, 'GetUltimateOwner', @GetUltimateOwner_2,
+  TSepiMethod.CreateOverloaded(Result, 'GetUltimateOwner', @GetUltimateOwner_2,
     'function(APersistent: TPersistent): TPersistent');
 
   // Types
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(TStreamOriginalFormat));
 
   // Routines
-  TSepiMetaMethod.CreateOverloaded(Result, 'ObjectBinaryToText', @ObjectBinaryToText_0,
+  TSepiMethod.CreateOverloaded(Result, 'ObjectBinaryToText', @ObjectBinaryToText_0,
     'procedure(Input, Output: TStream)');
-  TSepiMetaMethod.CreateOverloaded(Result, 'ObjectBinaryToText', @ObjectBinaryToText_1,
+  TSepiMethod.CreateOverloaded(Result, 'ObjectBinaryToText', @ObjectBinaryToText_1,
     'procedure(Input, Output: TStream; var OriginalFormat: TStreamOriginalFormat )');
-  TSepiMetaMethod.CreateOverloaded(Result, 'ObjectTextToBinary', @ObjectTextToBinary_0,
+  TSepiMethod.CreateOverloaded(Result, 'ObjectTextToBinary', @ObjectTextToBinary_0,
     'procedure(Input, Output: TStream)');
-  TSepiMetaMethod.CreateOverloaded(Result, 'ObjectTextToBinary', @ObjectTextToBinary_1,
+  TSepiMethod.CreateOverloaded(Result, 'ObjectTextToBinary', @ObjectTextToBinary_1,
     'procedure(Input, Output: TStream; var OriginalFormat: TStreamOriginalFormat )');
-  TSepiMetaMethod.CreateOverloaded(Result, 'ObjectResourceToText', @ObjectResourceToText_0,
+  TSepiMethod.CreateOverloaded(Result, 'ObjectResourceToText', @ObjectResourceToText_0,
     'procedure(Input, Output: TStream)');
-  TSepiMetaMethod.CreateOverloaded(Result, 'ObjectResourceToText', @ObjectResourceToText_1,
+  TSepiMethod.CreateOverloaded(Result, 'ObjectResourceToText', @ObjectResourceToText_1,
     'procedure(Input, Output: TStream; var OriginalFormat: TStreamOriginalFormat )');
-  TSepiMetaMethod.CreateOverloaded(Result, 'ObjectTextToResource', @ObjectTextToResource_0,
+  TSepiMethod.CreateOverloaded(Result, 'ObjectTextToResource', @ObjectTextToResource_0,
     'procedure(Input, Output: TStream)');
-  TSepiMetaMethod.CreateOverloaded(Result, 'ObjectTextToResource', @ObjectTextToResource_1,
+  TSepiMethod.CreateOverloaded(Result, 'ObjectTextToResource', @ObjectTextToResource_1,
     'procedure(Input, Output: TStream; var OriginalFormat: TStreamOriginalFormat )');
-  TSepiMetaMethod.Create(Result, 'TestStreamFormat', @TestStreamFormat,
+  TSepiMethod.Create(Result, 'TestStreamFormat', @TestStreamFormat,
     'function(Stream: TStream): TStreamOriginalFormat');
-  TSepiMetaMethod.Create(Result, 'LineStart', @LineStart,
+  TSepiMethod.Create(Result, 'LineStart', @LineStart,
     'function(Buffer, BufPos: PChar): PChar');
-  TSepiMetaMethod.Create(Result, 'ExtractStrings', @ExtractStrings,
+  TSepiMethod.Create(Result, 'ExtractStrings', @ExtractStrings,
     'function(Separators, WhiteSpace: TSysCharSet; Content: PChar; Strings: TStrings ) : Integer');
-  TSepiMetaMethod.Create(Result, 'BinToHex', @BinToHex,
+  TSepiMethod.Create(Result, 'BinToHex', @BinToHex,
     'procedure(Buffer, Text: PChar; BufSize: Integer)');
-  TSepiMetaMethod.Create(Result, 'HexToBin', @HexToBin,
+  TSepiMethod.Create(Result, 'HexToBin', @HexToBin,
     'function(Text, Buffer: PChar; BufSize: Integer): Integer');
-  TSepiMetaMethod.Create(Result, 'FindRootDesigner', @FindRootDesigner,
+  TSepiMethod.Create(Result, 'FindRootDesigner', @FindRootDesigner,
     'function(Obj: TPersistent): IDesignerNotify');
-  TSepiMetaMethod.Create(Result, 'CountGenerations', @CountGenerations,
+  TSepiMethod.Create(Result, 'CountGenerations', @CountGenerations,
     'function(Ancestor, Descendent: TClass): Integer');
-  TSepiMetaMethod.Create(Result, 'CheckSynchronize', @CheckSynchronize,
+  TSepiMethod.Create(Result, 'CheckSynchronize', @CheckSynchronize,
     'function(Timeout: Integer = 0): Boolean');
 
   // Global variables
@@ -4286,17 +4286,17 @@ begin
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(TWndMethod));
 
   // Routines
-  TSepiMetaMethod.Create(Result, 'MakeObjectInstance', @MakeObjectInstance,
+  TSepiMethod.Create(Result, 'MakeObjectInstance', @MakeObjectInstance,
     'function(Method: TWndMethod): Pointer');
-  TSepiMetaMethod.Create(Result, 'FreeObjectInstance', @FreeObjectInstance,
+  TSepiMethod.Create(Result, 'FreeObjectInstance', @FreeObjectInstance,
     'procedure(ObjectInstance: Pointer)');
-  TSepiMetaMethod.Create(Result, 'AllocateHWnd', @AllocateHWnd,
+  TSepiMethod.Create(Result, 'AllocateHWnd', @AllocateHWnd,
     'function(Method: TWndMethod): HWND');
-  TSepiMetaMethod.Create(Result, 'DeallocateHWnd', @DeallocateHWnd,
+  TSepiMethod.Create(Result, 'DeallocateHWnd', @DeallocateHWnd,
     'procedure(Wnd: HWND)');
-  TSepiMetaMethod.Create(Result, 'AncestorIsValid', @AncestorIsValid,
+  TSepiMethod.Create(Result, 'AncestorIsValid', @AncestorIsValid,
     'function(Ancestor: TPersistent; Root, RootAncestor : TComponent ) : Boolean');
-  TSepiMetaMethod.Create(Result, 'IsDefaultPropertyValue', @IsDefaultPropertyValue,
+  TSepiMethod.Create(Result, 'IsDefaultPropertyValue', @IsDefaultPropertyValue,
     'function(Instance: TObject; PropInfo: PPropInfo; OnGetLookupInfo: TGetLookupInfoEvent ; Writer: TWriter = nil ; OnFindMethodName: TFindMethodNameEvent = nil ) : Boolean');
 
   Result.Complete;

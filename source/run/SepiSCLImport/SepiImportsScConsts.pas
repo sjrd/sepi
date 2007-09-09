@@ -19,9 +19,9 @@ implementation
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiMetaRoot) : TSepiMetaUnit;
+function ImportUnit(Root : TSepiRoot) : TSepiUnit;
 begin
-  Result := TSepiMetaUnit.Create(Root, 'ScConsts', []);
+  Result := TSepiUnit.Create(Root, 'ScConsts', []);
 
   // Constants
   TSepiConstant.Create(Result, 'sScLanguage', sScLanguage);

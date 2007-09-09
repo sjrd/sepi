@@ -22,87 +22,87 @@ type
     procedure VarDataCastTo_1(var Dest: TVarData; const AVarType: TVarType);
     constructor Create_0;
     constructor Create_1(RequestedVarType: TVarType);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTInvokeableVariantType = class(TInvokeableVariantType)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsEVariantInvalidOpError = class(EVariantInvalidOpError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsEVariantTypeCastError = class(EVariantTypeCastError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsEVariantOverflowError = class(EVariantOverflowError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsEVariantInvalidArgError = class(EVariantInvalidArgError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsEVariantBadVarTypeError = class(EVariantBadVarTypeError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsEVariantBadIndexError = class(EVariantBadIndexError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsEVariantArrayLockedError = class(EVariantArrayLockedError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsEVariantNotAnArrayError = class(EVariantNotAnArrayError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsEVariantArrayCreateError = class(EVariantArrayCreateError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsEVariantNotImplError = class(EVariantNotImplError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsEVariantOutOfMemoryError = class(EVariantOutOfMemoryError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsEVariantUnexpectedError = class(EVariantUnexpectedError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsEVariantDispatchError = class(EVariantDispatchError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsEVariantRangeCheckError = class(EVariantRangeCheckError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsEVariantInvalidNullOpError = class(EVariantInvalidNullOpError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
 {---------------------------}
@@ -130,7 +130,7 @@ begin
 end;
 
 class function TSepiImportsTCustomVariantType.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TCustomVariantType));
@@ -139,8 +139,8 @@ begin
   begin
     AddInterface(System.TypeInfo(IInterface));
 
-    TSepiMetaOverloadedMethod.Create(Result, 'VarDataCastTo');
-    TSepiMetaOverloadedMethod.Create(Result, 'Create');
+    TSepiOverloadedMethod.Create(Result, 'VarDataCastTo');
+    TSepiOverloadedMethod.Create(Result, 'Create');
     CurrentVisibility := mvPrivate;
 
     AddField('FVarType', System.TypeInfo(TVarType));
@@ -267,7 +267,7 @@ end;
 { IVarInvokeable import }
 {-----------------------}
 
-function SepiImportIVarInvokeable(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIVarInvokeable(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IVarInvokeable));
@@ -292,7 +292,7 @@ end;
 {-------------------------------}
 
 class function TSepiImportsTInvokeableVariantType.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TInvokeableVariantType));
@@ -333,7 +333,7 @@ end;
 { IVarInstanceReference import }
 {------------------------------}
 
-function SepiImportIVarInstanceReference(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIVarInstanceReference(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IVarInstanceReference));
@@ -352,7 +352,7 @@ end;
 {-------------------------------}
 
 class function TSepiImportsEVariantInvalidOpError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EVariantInvalidOpError));
@@ -369,7 +369,7 @@ end;
 {------------------------------}
 
 class function TSepiImportsEVariantTypeCastError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EVariantTypeCastError));
@@ -386,7 +386,7 @@ end;
 {------------------------------}
 
 class function TSepiImportsEVariantOverflowError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EVariantOverflowError));
@@ -403,7 +403,7 @@ end;
 {--------------------------------}
 
 class function TSepiImportsEVariantInvalidArgError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EVariantInvalidArgError));
@@ -420,7 +420,7 @@ end;
 {--------------------------------}
 
 class function TSepiImportsEVariantBadVarTypeError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EVariantBadVarTypeError));
@@ -437,7 +437,7 @@ end;
 {------------------------------}
 
 class function TSepiImportsEVariantBadIndexError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EVariantBadIndexError));
@@ -454,7 +454,7 @@ end;
 {---------------------------------}
 
 class function TSepiImportsEVariantArrayLockedError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EVariantArrayLockedError));
@@ -471,7 +471,7 @@ end;
 {--------------------------------}
 
 class function TSepiImportsEVariantNotAnArrayError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EVariantNotAnArrayError));
@@ -488,7 +488,7 @@ end;
 {---------------------------------}
 
 class function TSepiImportsEVariantArrayCreateError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EVariantArrayCreateError));
@@ -505,7 +505,7 @@ end;
 {-----------------------------}
 
 class function TSepiImportsEVariantNotImplError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EVariantNotImplError));
@@ -522,7 +522,7 @@ end;
 {---------------------------------}
 
 class function TSepiImportsEVariantOutOfMemoryError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EVariantOutOfMemoryError));
@@ -539,7 +539,7 @@ end;
 {--------------------------------}
 
 class function TSepiImportsEVariantUnexpectedError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EVariantUnexpectedError));
@@ -556,7 +556,7 @@ end;
 {------------------------------}
 
 class function TSepiImportsEVariantDispatchError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EVariantDispatchError));
@@ -573,7 +573,7 @@ end;
 {--------------------------------}
 
 class function TSepiImportsEVariantRangeCheckError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EVariantRangeCheckError));
@@ -590,7 +590,7 @@ end;
 {-----------------------------------}
 
 class function TSepiImportsEVariantInvalidNullOpError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EVariantInvalidNullOpError));
@@ -676,120 +676,120 @@ begin
   VarResultCheck(AResult, ASourceType, ADestType);
 end;
 
-function ImportUnit(Root : TSepiMetaRoot) : TSepiMetaUnit;
+function ImportUnit(Root : TSepiRoot) : TSepiUnit;
 begin
-  Result := TSepiMetaUnit.Create(Root, 'Variants',
+  Result := TSepiUnit.Create(Root, 'Variants',
     ['Types', 'SysUtils']);
 
   // Routines
-  TSepiMetaMethod.Create(Result, 'VarType', @VarType,
+  TSepiMethod.Create(Result, 'VarType', @VarType,
     'function(const V: Variant): TVarType');
-  TSepiMetaMethod.Create(Result, 'VarAsType', @VarAsType,
+  TSepiMethod.Create(Result, 'VarAsType', @VarAsType,
     'function(const V: Variant; AVarType: TVarType): Variant');
-  TSepiMetaOverloadedMethod.Create(Result, 'VarIsType');
-  TSepiMetaMethod.Create(Result, 'OL$VarIsType$0', @VarIsType_0,
+  TSepiOverloadedMethod.Create(Result, 'VarIsType');
+  TSepiMethod.Create(Result, 'OL$VarIsType$0', @VarIsType_0,
     'function(const V: Variant; AVarType: TVarType): Boolean');
-  TSepiMetaMethod.Create(Result, 'OL$VarIsType$1', @VarIsType_1,
+  TSepiMethod.Create(Result, 'OL$VarIsType$1', @VarIsType_1,
     'function(const V: Variant; const AVarTypes: array of TVarType): Boolean');
-  TSepiMetaMethod.Create(Result, 'VarIsByRef', @VarIsByRef,
+  TSepiMethod.Create(Result, 'VarIsByRef', @VarIsByRef,
     'function(const V: Variant): Boolean');
-  TSepiMetaMethod.Create(Result, 'VarIsEmpty', @VarIsEmpty,
+  TSepiMethod.Create(Result, 'VarIsEmpty', @VarIsEmpty,
     'function(const V: Variant): Boolean');
-  TSepiMetaMethod.Create(Result, 'VarCheckEmpty', @VarCheckEmpty,
+  TSepiMethod.Create(Result, 'VarCheckEmpty', @VarCheckEmpty,
     'procedure(const V: Variant)');
-  TSepiMetaMethod.Create(Result, 'VarIsNull', @VarIsNull,
+  TSepiMethod.Create(Result, 'VarIsNull', @VarIsNull,
     'function(const V: Variant): Boolean');
-  TSepiMetaMethod.Create(Result, 'VarIsClear', @VarIsClear,
+  TSepiMethod.Create(Result, 'VarIsClear', @VarIsClear,
     'function(const V: Variant): Boolean');
-  TSepiMetaMethod.Create(Result, 'VarIsCustom', @VarIsCustom,
+  TSepiMethod.Create(Result, 'VarIsCustom', @VarIsCustom,
     'function(const V: Variant): Boolean');
-  TSepiMetaMethod.Create(Result, 'VarIsOrdinal', @VarIsOrdinal,
+  TSepiMethod.Create(Result, 'VarIsOrdinal', @VarIsOrdinal,
     'function(const V: Variant): Boolean');
-  TSepiMetaMethod.Create(Result, 'VarIsFloat', @VarIsFloat,
+  TSepiMethod.Create(Result, 'VarIsFloat', @VarIsFloat,
     'function(const V: Variant): Boolean');
-  TSepiMetaMethod.Create(Result, 'VarIsNumeric', @VarIsNumeric,
+  TSepiMethod.Create(Result, 'VarIsNumeric', @VarIsNumeric,
     'function(const V: Variant): Boolean');
-  TSepiMetaMethod.Create(Result, 'VarIsStr', @VarIsStr,
+  TSepiMethod.Create(Result, 'VarIsStr', @VarIsStr,
     'function(const V: Variant): Boolean');
-  TSepiMetaMethod.Create(Result, 'VarToStr', @VarToStr,
+  TSepiMethod.Create(Result, 'VarToStr', @VarToStr,
     'function(const V: Variant): string');
-  TSepiMetaMethod.Create(Result, 'VarToStrDef', @VarToStrDef,
+  TSepiMethod.Create(Result, 'VarToStrDef', @VarToStrDef,
     'function(const V: Variant; const ADefault: string): string');
-  TSepiMetaMethod.Create(Result, 'VarToWideStr', @VarToWideStr,
+  TSepiMethod.Create(Result, 'VarToWideStr', @VarToWideStr,
     'function(const V: Variant): WideString');
-  TSepiMetaMethod.Create(Result, 'VarToWideStrDef', @VarToWideStrDef,
+  TSepiMethod.Create(Result, 'VarToWideStrDef', @VarToWideStrDef,
     'function(const V: Variant; const ADefault: WideString): WideString');
-  TSepiMetaMethod.Create(Result, 'VarToDateTime', @VarToDateTime,
+  TSepiMethod.Create(Result, 'VarToDateTime', @VarToDateTime,
     'function(const V: Variant): TDateTime');
-  TSepiMetaMethod.Create(Result, 'VarFromDateTime', @VarFromDateTime,
+  TSepiMethod.Create(Result, 'VarFromDateTime', @VarFromDateTime,
     'function(const DateTime: TDateTime): Variant');
-  TSepiMetaMethod.Create(Result, 'VarInRange', @VarInRange,
+  TSepiMethod.Create(Result, 'VarInRange', @VarInRange,
     'function(const AValue, AMin, AMax: Variant): Boolean');
-  TSepiMetaMethod.Create(Result, 'VarEnsureRange', @VarEnsureRange,
+  TSepiMethod.Create(Result, 'VarEnsureRange', @VarEnsureRange,
     'function(const AValue, AMin, AMax: Variant): Variant');
 
   // Types
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(TVariantRelationship));
 
   // Routines
-  TSepiMetaMethod.Create(Result, 'VarSameValue', @VarSameValue,
+  TSepiMethod.Create(Result, 'VarSameValue', @VarSameValue,
     'function(const A, B: Variant): Boolean');
-  TSepiMetaMethod.Create(Result, 'VarCompareValue', @VarCompareValue,
+  TSepiMethod.Create(Result, 'VarCompareValue', @VarCompareValue,
     'function(const A, B: Variant): TVariantRelationship');
-  TSepiMetaMethod.Create(Result, 'VarIsEmptyParam', @VarIsEmptyParam,
+  TSepiMethod.Create(Result, 'VarIsEmptyParam', @VarIsEmptyParam,
     'function(const V: Variant): Boolean');
-  TSepiMetaOverloadedMethod.Create(Result, 'VarIsError');
-  TSepiMetaMethod.Create(Result, 'OL$VarIsError$0', @VarIsError_0,
+  TSepiOverloadedMethod.Create(Result, 'VarIsError');
+  TSepiMethod.Create(Result, 'OL$VarIsError$0', @VarIsError_0,
     'function(const V: Variant; out AResult: HRESULT): Boolean');
-  TSepiMetaMethod.Create(Result, 'OL$VarIsError$1', @VarIsError_1,
+  TSepiMethod.Create(Result, 'OL$VarIsError$1', @VarIsError_1,
     'function(const V: Variant): Boolean');
-  TSepiMetaMethod.Create(Result, 'VarAsError', @VarAsError,
+  TSepiMethod.Create(Result, 'VarAsError', @VarAsError,
     'function(AResult: HRESULT): Variant');
-  TSepiMetaOverloadedMethod.Create(Result, 'VarSupports');
-  TSepiMetaMethod.Create(Result, 'OL$VarSupports$0', @VarSupports_0,
+  TSepiOverloadedMethod.Create(Result, 'VarSupports');
+  TSepiMethod.Create(Result, 'OL$VarSupports$0', @VarSupports_0,
     'function(const V: Variant; const IID: TGUID; out Intf): Boolean');
-  TSepiMetaMethod.Create(Result, 'OL$VarSupports$1', @VarSupports_1,
+  TSepiMethod.Create(Result, 'OL$VarSupports$1', @VarSupports_1,
     'function(const V: Variant; const IID: TGUID): Boolean');
-  TSepiMetaMethod.Create(Result, 'VarCopyNoInd', @VarCopyNoInd,
+  TSepiMethod.Create(Result, 'VarCopyNoInd', @VarCopyNoInd,
     'procedure(var Dest: Variant; const Source: Variant)');
-  TSepiMetaOverloadedMethod.Create(Result, 'VarIsArray');
-  TSepiMetaMethod.Create(Result, 'OL$VarIsArray$0', @VarIsArray_0,
+  TSepiOverloadedMethod.Create(Result, 'VarIsArray');
+  TSepiMethod.Create(Result, 'OL$VarIsArray$0', @VarIsArray_0,
     'function(const A: Variant): Boolean');
-  TSepiMetaMethod.Create(Result, 'OL$VarIsArray$1', @VarIsArray_1,
+  TSepiMethod.Create(Result, 'OL$VarIsArray$1', @VarIsArray_1,
     'function(const A: Variant; AResolveByRef: Boolean): Boolean');
-  TSepiMetaMethod.Create(Result, 'VarArrayCreate', @VarArrayCreate,
+  TSepiMethod.Create(Result, 'VarArrayCreate', @VarArrayCreate,
     'function(const Bounds: array of Integer; AVarType: TVarType): Variant');
-  TSepiMetaMethod.Create(Result, 'VarArrayOf', @VarArrayOf,
+  TSepiMethod.Create(Result, 'VarArrayOf', @VarArrayOf,
     'function(const Values: array of Variant): Variant');
-  TSepiMetaMethod.Create(Result, 'VarArrayRef', @VarArrayRef,
+  TSepiMethod.Create(Result, 'VarArrayRef', @VarArrayRef,
     'function(const A: Variant): Variant');
-  TSepiMetaMethod.Create(Result, 'VarTypeIsValidArrayType', @VarTypeIsValidArrayType,
+  TSepiMethod.Create(Result, 'VarTypeIsValidArrayType', @VarTypeIsValidArrayType,
     'function(const AVarType: TVarType): Boolean');
-  TSepiMetaMethod.Create(Result, 'VarTypeIsValidElementType', @VarTypeIsValidElementType,
+  TSepiMethod.Create(Result, 'VarTypeIsValidElementType', @VarTypeIsValidElementType,
     'function(const AVarType: TVarType): Boolean');
-  TSepiMetaMethod.Create(Result, 'VarArrayDimCount', @VarArrayDimCount,
+  TSepiMethod.Create(Result, 'VarArrayDimCount', @VarArrayDimCount,
     'function(const A: Variant): Integer');
-  TSepiMetaMethod.Create(Result, 'VarArrayLowBound', @VarArrayLowBound,
+  TSepiMethod.Create(Result, 'VarArrayLowBound', @VarArrayLowBound,
     'function(const A: Variant; Dim: Integer): Integer');
-  TSepiMetaMethod.Create(Result, 'VarArrayHighBound', @VarArrayHighBound,
+  TSepiMethod.Create(Result, 'VarArrayHighBound', @VarArrayHighBound,
     'function(const A: Variant; Dim: Integer): Integer');
-  TSepiMetaMethod.Create(Result, 'VarArrayLock', @VarArrayLock,
+  TSepiMethod.Create(Result, 'VarArrayLock', @VarArrayLock,
     'function(const A: Variant): Pointer');
-  TSepiMetaMethod.Create(Result, 'VarArrayUnlock', @VarArrayUnlock,
+  TSepiMethod.Create(Result, 'VarArrayUnlock', @VarArrayUnlock,
     'procedure(const A: Variant)');
-  TSepiMetaMethod.Create(Result, 'VarArrayAsPSafeArray', @VarArrayAsPSafeArray,
+  TSepiMethod.Create(Result, 'VarArrayAsPSafeArray', @VarArrayAsPSafeArray,
     'function(const A: Variant): PVarArray');
-  TSepiMetaMethod.Create(Result, 'VarArrayGet', @VarArrayGet,
+  TSepiMethod.Create(Result, 'VarArrayGet', @VarArrayGet,
     'function(const A: Variant; const Indices: array of Integer): Variant');
-  TSepiMetaMethod.Create(Result, 'VarArrayPut', @VarArrayPut,
+  TSepiMethod.Create(Result, 'VarArrayPut', @VarArrayPut,
     'procedure(var A: Variant; const Value: Variant; const Indices: array of Integer)');
-  TSepiMetaMethod.Create(Result, 'DynArrayToVariant', @DynArrayToVariant,
+  TSepiMethod.Create(Result, 'DynArrayToVariant', @DynArrayToVariant,
     'procedure(var V: Variant; const DynArray: Pointer; TypeInfo: Pointer)');
-  TSepiMetaMethod.Create(Result, 'DynArrayFromVariant', @DynArrayFromVariant,
+  TSepiMethod.Create(Result, 'DynArrayFromVariant', @DynArrayFromVariant,
     'procedure(var DynArray: Pointer; const V: Variant; TypeInfo: Pointer)');
-  TSepiMetaMethod.Create(Result, 'Unassigned', @Unassigned,
+  TSepiMethod.Create(Result, 'Unassigned', @Unassigned,
     'function: Variant');
-  TSepiMetaMethod.Create(Result, 'Null', @Null,
+  TSepiMethod.Create(Result, 'Null', @Null,
     'function: Variant');
 
   // Global variables
@@ -807,10 +807,10 @@ begin
   SepiImportIVarInstanceReference(Result);
 
   // Routines
-  TSepiMetaOverloadedMethod.Create(Result, 'FindCustomVariantType');
-  TSepiMetaMethod.Create(Result, 'OL$FindCustomVariantType$0', @FindCustomVariantType_0,
+  TSepiOverloadedMethod.Create(Result, 'FindCustomVariantType');
+  TSepiMethod.Create(Result, 'OL$FindCustomVariantType$0', @FindCustomVariantType_0,
     'function(const AVarType: TVarType; out CustomVariantType: TCustomVariantType ) : Boolean');
-  TSepiMetaMethod.Create(Result, 'OL$FindCustomVariantType$1', @FindCustomVariantType_1,
+  TSepiMethod.Create(Result, 'OL$FindCustomVariantType$1', @FindCustomVariantType_1,
     'function(const TypeName: string; out CustomVariantType: TCustomVariantType ) : Boolean');
 
   // Types
@@ -831,31 +831,31 @@ begin
   TSepiImportsEVariantInvalidNullOpError.SepiImport(Result);
 
   // Routines
-  TSepiMetaOverloadedMethod.Create(Result, 'VarCastError');
-  TSepiMetaMethod.Create(Result, 'OL$VarCastError$0', @VarCastError_0,
+  TSepiOverloadedMethod.Create(Result, 'VarCastError');
+  TSepiMethod.Create(Result, 'OL$VarCastError$0', @VarCastError_0,
     'procedure');
-  TSepiMetaMethod.Create(Result, 'OL$VarCastError$1', @VarCastError_1,
+  TSepiMethod.Create(Result, 'OL$VarCastError$1', @VarCastError_1,
     'procedure(const ASourceType, ADestType: TVarType)');
-  TSepiMetaMethod.Create(Result, 'VarInvalidOp', @VarInvalidOp,
+  TSepiMethod.Create(Result, 'VarInvalidOp', @VarInvalidOp,
     'procedure');
-  TSepiMetaMethod.Create(Result, 'VarInvalidNullOp', @VarInvalidNullOp,
+  TSepiMethod.Create(Result, 'VarInvalidNullOp', @VarInvalidNullOp,
     'procedure');
-  TSepiMetaMethod.Create(Result, 'VarOverflowError', @VarOverflowError,
+  TSepiMethod.Create(Result, 'VarOverflowError', @VarOverflowError,
     'procedure(const ASourceType, ADestType: TVarType)');
-  TSepiMetaMethod.Create(Result, 'VarRangeCheckError', @VarRangeCheckError,
+  TSepiMethod.Create(Result, 'VarRangeCheckError', @VarRangeCheckError,
     'procedure(const ASourceType, ADestType: TVarType)');
-  TSepiMetaMethod.Create(Result, 'VarArrayCreateError', @VarArrayCreateError,
+  TSepiMethod.Create(Result, 'VarArrayCreateError', @VarArrayCreateError,
     'procedure');
-  TSepiMetaOverloadedMethod.Create(Result, 'VarResultCheck');
-  TSepiMetaMethod.Create(Result, 'OL$VarResultCheck$0', @VarResultCheck_0,
+  TSepiOverloadedMethod.Create(Result, 'VarResultCheck');
+  TSepiMethod.Create(Result, 'OL$VarResultCheck$0', @VarResultCheck_0,
     'procedure(AResult: HRESULT)');
-  TSepiMetaMethod.Create(Result, 'OL$VarResultCheck$1', @VarResultCheck_1,
+  TSepiMethod.Create(Result, 'OL$VarResultCheck$1', @VarResultCheck_1,
     'procedure(AResult: HRESULT; ASourceType, ADestType: TVarType)');
-  TSepiMetaMethod.Create(Result, 'HandleConversionException', @HandleConversionException,
+  TSepiMethod.Create(Result, 'HandleConversionException', @HandleConversionException,
     'procedure(const ASourceType, ADestType: TVarType)');
-  TSepiMetaMethod.Create(Result, 'VarTypeAsText', @VarTypeAsText,
+  TSepiMethod.Create(Result, 'VarTypeAsText', @VarTypeAsText,
     'function(const AType: TVarType): string');
-  TSepiMetaMethod.Create(Result, 'FindVarData', @FindVarData,
+  TSepiMethod.Create(Result, 'FindVarData', @FindVarData,
     'function(const V: Variant): PVarData');
 
   // Types

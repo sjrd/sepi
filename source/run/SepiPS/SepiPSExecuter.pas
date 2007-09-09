@@ -19,20 +19,20 @@ uses
   @param UnitName   Nom de l'unité à charger pour exécution
 *}
 procedure SepiPSExecute(const UnitName : string);
-var Root : TSepiMetaRoot;
+var Root : TSepiRoot;
     Method : TMethod;
-    SepiUnit : TSepiMetaUnit;
-    SepiMainProc : TSepiMetaMethod;
+    SepiUnit : TSepiUnit;
+    SepiMainProc : TSepiMethod;
     MainProc : procedure;
 begin
-  Root := TSepiMetaRoot.Create;
+  Root := TSepiRoot.Create;
   try
     Method.Code := @SepiPSLoadUnit;
     Method.Data := nil;
     Root.OnLoadUnit := TSepiLoadUnitEvent(Method);
 
     SepiUnit := Root.LoadUnit(UnitName);
-    SepiMainProc := SepiUnit.GetMeta('$MAIN') as TSepiMetaMethod;
+    SepiMainProc := SepiUnit.GetMeta('$MAIN') as TSepiMethod;
 
     if SepiMainProc = nil then
       WriteLn('There is no main proc in this unit') else

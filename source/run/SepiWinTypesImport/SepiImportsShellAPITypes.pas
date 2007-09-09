@@ -19,7 +19,7 @@ implementation
 { _DRAGINFOA import }
 {-------------------}
 
-function SepiImport_DRAGINFOA(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImport_DRAGINFOA(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_DRAGINFOA', False, True);
 
@@ -39,7 +39,7 @@ end;
 { _DRAGINFOW import }
 {-------------------}
 
-function SepiImport_DRAGINFOW(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImport_DRAGINFOW(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_DRAGINFOW', False, True);
 
@@ -59,7 +59,7 @@ end;
 { _AppBarData import }
 {--------------------}
 
-function SepiImport_AppBarData(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImport_AppBarData(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_AppBarData', False, True);
 
@@ -80,7 +80,7 @@ end;
 { _SHFILEOPSTRUCTA import }
 {-------------------------}
 
-function SepiImport_SHFILEOPSTRUCTA(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImport_SHFILEOPSTRUCTA(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_SHFILEOPSTRUCTA', True, True);
 
@@ -103,7 +103,7 @@ end;
 { _SHFILEOPSTRUCTW import }
 {-------------------------}
 
-function SepiImport_SHFILEOPSTRUCTW(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImport_SHFILEOPSTRUCTW(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_SHFILEOPSTRUCTW', True, True);
 
@@ -126,7 +126,7 @@ end;
 { _SHNAMEMAPPINGA import }
 {------------------------}
 
-function SepiImport_SHNAMEMAPPINGA(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImport_SHNAMEMAPPINGA(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_SHNAMEMAPPINGA', False, True);
 
@@ -145,7 +145,7 @@ end;
 { _SHNAMEMAPPINGW import }
 {------------------------}
 
-function SepiImport_SHNAMEMAPPINGW(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImport_SHNAMEMAPPINGW(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_SHNAMEMAPPINGW', False, True);
 
@@ -164,7 +164,7 @@ end;
 { _SHELLEXECUTEINFOA import }
 {---------------------------}
 
-function SepiImport_SHELLEXECUTEINFOA(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImport_SHELLEXECUTEINFOA(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_SHELLEXECUTEINFOA', False, True);
 
@@ -194,7 +194,7 @@ end;
 { _SHELLEXECUTEINFOW import }
 {---------------------------}
 
-function SepiImport_SHELLEXECUTEINFOW(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImport_SHELLEXECUTEINFOW(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_SHELLEXECUTEINFOW', False, True);
 
@@ -224,7 +224,7 @@ end;
 { _NOTIFYICONDATAA import }
 {-------------------------}
 
-function SepiImport_NOTIFYICONDATAA(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImport_NOTIFYICONDATAA(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_NOTIFYICONDATAA', False, True);
 
@@ -246,7 +246,7 @@ end;
 { _NOTIFYICONDATAW import }
 {-------------------------}
 
-function SepiImport_NOTIFYICONDATAW(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImport_NOTIFYICONDATAW(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_NOTIFYICONDATAW', False, True);
 
@@ -268,7 +268,7 @@ end;
 { _SHFILEINFOA import }
 {---------------------}
 
-function SepiImport_SHFILEINFOA(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImport_SHFILEINFOA(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_SHFILEINFOA', False, True);
 
@@ -288,7 +288,7 @@ end;
 { _SHFILEINFOW import }
 {---------------------}
 
-function SepiImport_SHFILEINFOW(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImport_SHFILEINFOW(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_SHFILEINFOW', False, True);
 
@@ -308,9 +308,9 @@ end;
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiMetaRoot) : TSepiMetaUnit;
+function ImportUnit(Root : TSepiRoot) : TSepiUnit;
 begin
-  Result := TSepiMetaUnit.Create(Root, 'ShellAPITypes',
+  Result := TSepiUnit.Create(Root, 'ShellAPITypes',
     ['Windows']);
 
   // Types

@@ -18,36 +18,36 @@ implementation
 type
   TSepiImportsEIniFileException = class(EIniFileException)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTCustomIniFile = class(TCustomIniFile)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TUnnamed_1 = array of PHashItem;
 
   TSepiImportsTStringHash = class(TStringHash)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTHashedStringList = class(THashedStringList)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTMemIniFile = class(TMemIniFile)
   private
     function GetCaseSensitive: Boolean;
     procedure SetCaseSensitive(Value: Boolean);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTIniFile = class(TIniFile)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
 {--------------------------}
@@ -55,7 +55,7 @@ type
 {--------------------------}
 
 class function TSepiImportsEIniFileException.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EIniFileException));
@@ -72,7 +72,7 @@ end;
 {-----------------------}
 
 class function TSepiImportsTCustomIniFile.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TCustomIniFile));
@@ -173,7 +173,7 @@ end;
 { THashItem import }
 {------------------}
 
-function SepiImportTHashItem(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTHashItem(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'THashItem', False, True,
     TypeInfo(THashItem));
@@ -193,7 +193,7 @@ end;
 {--------------------}
 
 class function TSepiImportsTStringHash.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TStringHash));
@@ -239,7 +239,7 @@ end;
 {--------------------------}
 
 class function TSepiImportsTHashedStringList.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(THashedStringList));
@@ -295,7 +295,7 @@ begin
 end;
 
 class function TSepiImportsTMemIniFile.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TMemIniFile));
@@ -367,7 +367,7 @@ end;
 {-----------------}
 
 class function TSepiImportsTIniFile.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TIniFile));
@@ -412,9 +412,9 @@ end;
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiMetaRoot) : TSepiMetaUnit;
+function ImportUnit(Root : TSepiRoot) : TSepiUnit;
 begin
-  Result := TSepiMetaUnit.Create(Root, 'IniFiles',
+  Result := TSepiUnit.Create(Root, 'IniFiles',
     ['SysUtils', 'Classes']);
 
   // Types

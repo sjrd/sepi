@@ -10,15 +10,15 @@ interface
 uses
   SepiReflectionCore, uPSRuntime;
 
-procedure SepiRegisterClassesInPSExecuter(SepiRoot : TSepiMetaRoot;
+procedure SepiRegisterClassesInPSExecuter(SepiRoot : TSepiRoot;
   PSExecuter : TPSExec);
-procedure SepiRegisterProcsInPSExecuter(SepiUnit : TSepiMetaUnit;
+procedure SepiRegisterProcsInPSExecuter(SepiUnit : TSepiUnit;
   PSExecuter : TPSExec);
-procedure SepiRegisterVarsInPSExecuter(SepiUnit : TSepiMetaUnit;
+procedure SepiRegisterVarsInPSExecuter(SepiUnit : TSepiUnit;
   PSExecuter : TPSExec);
 
-function SepiLoadPSExecuter(SepiRoot : TSepiMetaRoot;
-  const SepiUnits : array of TSepiMetaUnit; PSExecuter : TPSExec;
+function SepiLoadPSExecuter(SepiRoot : TSepiRoot;
+  const SepiUnits : array of TSepiUnit; PSExecuter : TPSExec;
   const Compiled : string) : boolean;
 
 implementation
@@ -88,7 +88,7 @@ function ClassCallProcMethod(Caller : TPSExec; Method : TPSExternalProcRec;
     Result.VarParam := False;
   end;
 
-var SepiMethod : TSepiMetaMethod;
+var SepiMethod : TSepiMethod;
     Signature : TSepiMethodSignature;
     TrueBoolValue : integer;
     CallingConv : TPSCallingConvention;
@@ -105,7 +105,7 @@ var SepiMethod : TSepiMetaMethod;
     ExceptObject : TObject;
 begin
   Result := False;
-  SepiMethod := TSepiMetaMethod(Method.Ext1);
+  SepiMethod := TSepiMethod(Method.Ext1);
   Signature := SepiMethod.Signature;
   TrueBoolValue := 1;
 
@@ -233,7 +233,7 @@ end;
 *}
 function ClassCallProcField(Caller : TPSExec; Method : TPSExternalProcRec;
   Global, Stack : TPSStack) : boolean;
-var SepiField : TSepiMetaField;
+var SepiField : TSepiField;
     FieldType : TSepiType;
     IsWriteAccess : boolean;
     SelfParam, ValueParam : PIFVariant;
@@ -241,7 +241,7 @@ var SepiField : TSepiMetaField;
     SourceData, DestData : Pointer;
 begin
   Result := False;
-  SepiField := TSepiMetaField(Method.Ext1);
+  SepiField := TSepiField(Method.Ext1);
   FieldType := SepiField.FieldType;
   IsWriteAccess := LongBool(Method.Ext2);
   Value := nil;
@@ -292,14 +292,14 @@ end;
 *}
 function SepiSpecialProcImport(Sender : TPSExec; Method : TPSExternalProcRec;
   Tag : Pointer) : boolean;
-var Root : TSepiMetaRoot;
+var Root : TSepiRoot;
     Decl, ClassName, MethodName : string;
     IsWriteAccess : boolean;
     MetaClass, Meta : TSepiMeta;
     Pos : integer;
 begin
   Result := False;
-  Root := TSepiMetaRoot(Tag);
+  Root := TSepiRoot(Tag);
 
   // Parse the declaration
   // 'class:' + ClassName + '|' + MethodName + '|' + Signature
@@ -333,31 +333,31 @@ begin
   end;
 
   // Map properties to their accessor
-  if Meta is TSepiMetaProperty then
+  if Meta is TSepiProperty then
   begin
     if IsWriteAccess then
-      Meta := TSepiMetaProperty(Meta).WriteAccess.Meta
+      Meta := TSepiProperty(Meta).WriteAccess.Meta
     else
-      Meta := TSepiMetaProperty(Meta).ReadAccess.Meta;
+      Meta := TSepiProperty(Meta).ReadAccess.Meta;
 
     if Meta = nil then exit;
   end;
 
   // Replace an overloaded method by its first real method
-  if Meta is TSepiMetaOverloadedMethod then
+  if Meta is TSepiOverloadedMethod then
   begin
     Meta := MetaClass.GetMeta('OL$'+MethodName+'$0');
     if Meta = nil then exit;
   end;
 
   // Set the proper calling handler
-  if Meta is TSepiMetaMethod then
+  if Meta is TSepiMethod then
   begin
     Method.ProcPtr := @ClassCallProcMethod;
     IsWriteAccess := False;
   end else
   begin
-    Assert(Meta is TSepiMetaField);
+    Assert(Meta is TSepiField);
     Method.ProcPtr := @ClassCallProcField;
   end;
 
@@ -374,7 +374,7 @@ end;
   @param Routine      Routine Sepi
   @param PSExecuter   Intepréteur Pascal Script
 *}
-procedure ImportRoutine(PSExecuter : TPSExec; Routine : TSepiMetaMethod);
+procedure ImportRoutine(PSExecuter : TPSExec; Routine : TSepiMethod);
 var CallingConv : TPSCallingConvention;
     PSName, SecondName : string;
 begin
@@ -412,7 +412,7 @@ end;
   @param SepiUnit     Unité Sepi
   @param PSExecuter   Intepréteur Pascal Script
 *}
-procedure SepiImportUnitInPSExecuter(SepiUnit : TSepiMetaUnit;
+procedure SepiImportUnitInPSExecuter(SepiUnit : TSepiUnit;
   PSExecuter : TPSExec);
 var I : integer;
     Child : TSepiMeta;
@@ -421,8 +421,8 @@ begin
   begin
     Child := SepiUnit.Children[I];
 
-    if Child is TSepiMetaMethod then
-      ImportRoutine(PSExecuter, TSepiMetaMethod(Child))
+    if Child is TSepiMethod then
+      ImportRoutine(PSExecuter, TSepiMethod(Child))
     else if Child is TSepiVariable then
       ImportVariable(PSExecuter, TSepiVariable(Child));
   end;
@@ -433,7 +433,7 @@ end;
   @param SepiRoot     Racine Sepi
   @param PSExecuter   Interpréteur Pascal Script
 *}
-procedure SepiRegisterClassesInPSExecuter(SepiRoot : TSepiMetaRoot;
+procedure SepiRegisterClassesInPSExecuter(SepiRoot : TSepiRoot;
   PSExecuter : TPSExec);
 begin
   PSExecuter.AddSpecialProcImport('class',
@@ -445,7 +445,7 @@ end;
   @param SepiUnit     Unité Sepi
   @param PSExecuter   Interpréteur Pascal Script
 *}
-procedure SepiRegisterProcsInPSExecuter(SepiUnit : TSepiMetaUnit;
+procedure SepiRegisterProcsInPSExecuter(SepiUnit : TSepiUnit;
   PSExecuter : TPSExec);
 var I : integer;
     Child : TSepiMeta;
@@ -453,8 +453,8 @@ begin
   for I := 0 to SepiUnit.ChildCount-1 do
   begin
     Child := SepiUnit.Children[I];
-    if Child is TSepiMetaMethod then
-      ImportRoutine(PSExecuter, TSepiMetaMethod(Child));
+    if Child is TSepiMethod then
+      ImportRoutine(PSExecuter, TSepiMethod(Child));
   end;
 end;
 
@@ -463,7 +463,7 @@ end;
   @param SepiUnit     Unité Sepi
   @param PSExecuter   Interpréteur Pascal Script
 *}
-procedure SepiRegisterVarsInPSExecuter(SepiUnit : TSepiMetaUnit;
+procedure SepiRegisterVarsInPSExecuter(SepiUnit : TSepiUnit;
   PSExecuter : TPSExec);
 var I : integer;
     Child : TSepiMeta;
@@ -489,8 +489,8 @@ end;
   @param Compiled     Données compilées Pascal Script
   @return True si le chargement s'est bien passé, False sinon
 *}
-function SepiLoadPSExecuter(SepiRoot : TSepiMetaRoot;
-  const SepiUnits : array of TSepiMetaUnit; PSExecuter : TPSExec;
+function SepiLoadPSExecuter(SepiRoot : TSepiRoot;
+  const SepiUnits : array of TSepiUnit; PSExecuter : TPSExec;
   const Compiled : string) : boolean;
 var I : integer;
 begin

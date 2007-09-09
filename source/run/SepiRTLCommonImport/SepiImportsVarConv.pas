@@ -39,25 +39,25 @@ begin
   Result := VarAsConvert(AValue, AType);
 end;
 
-function ImportUnit(Root : TSepiMetaRoot) : TSepiMetaUnit;
+function ImportUnit(Root : TSepiRoot) : TSepiUnit;
 begin
-  Result := TSepiMetaUnit.Create(Root, 'VarConv',
+  Result := TSepiUnit.Create(Root, 'VarConv',
     ['SysUtils', 'Variants', 'ConvUtils']);
 
   // Routines
-  TSepiMetaOverloadedMethod.Create(Result, 'VarConvertCreate');
-  TSepiMetaMethod.Create(Result, 'OL$VarConvertCreate$0', @VarConvertCreate_0,
+  TSepiOverloadedMethod.Create(Result, 'VarConvertCreate');
+  TSepiMethod.Create(Result, 'OL$VarConvertCreate$0', @VarConvertCreate_0,
     'function(const AValue: Double; const AType: TConvType): Variant');
-  TSepiMetaMethod.Create(Result, 'OL$VarConvertCreate$1', @VarConvertCreate_1,
+  TSepiMethod.Create(Result, 'OL$VarConvertCreate$1', @VarConvertCreate_1,
     'function(const AValue: string): Variant');
-  TSepiMetaMethod.Create(Result, 'VarConvert', @VarConvert,
+  TSepiMethod.Create(Result, 'VarConvert', @VarConvert,
     'function: TVarType');
-  TSepiMetaMethod.Create(Result, 'VarIsConvert', @VarIsConvert,
+  TSepiMethod.Create(Result, 'VarIsConvert', @VarIsConvert,
     'function(const AValue: Variant): Boolean');
-  TSepiMetaOverloadedMethod.Create(Result, 'VarAsConvert');
-  TSepiMetaMethod.Create(Result, 'OL$VarAsConvert$0', @VarAsConvert_0,
+  TSepiOverloadedMethod.Create(Result, 'VarAsConvert');
+  TSepiMethod.Create(Result, 'OL$VarAsConvert$0', @VarAsConvert_0,
     'function(const AValue: Variant): Variant');
-  TSepiMetaMethod.Create(Result, 'OL$VarAsConvert$1', @VarAsConvert_1,
+  TSepiMethod.Create(Result, 'OL$VarAsConvert$1', @VarAsConvert_1,
     'function(const AValue: Variant; const AType: TConvType): Variant');
 
   Result.Complete;

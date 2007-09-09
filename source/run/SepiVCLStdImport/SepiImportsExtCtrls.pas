@@ -22,12 +22,12 @@ type
     procedure SetBrush(Value: TBrush);
     procedure SetPen(Value: TPen);
     procedure SetShape(Value: TShapeType);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTPaintBox = class(TPaintBox)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTImage = class(TImage)
@@ -38,14 +38,14 @@ type
     procedure SetStretch(Value: Boolean);
     procedure SetTransparent(Value: Boolean);
     procedure SetProportional(Value: Boolean);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTBevel = class(TBevel)
   private
     procedure SetStyle(Value: TBevelStyle);
     procedure SetShape(Value: TBevelShape);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTTimer = class(TTimer)
@@ -53,7 +53,7 @@ type
     procedure SetEnabled(Value: Boolean);
     procedure SetInterval(Value: Cardinal);
     procedure SetOnTimer(Value: TNotifyEvent);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTCustomPanel = class(TCustomPanel)
@@ -65,17 +65,17 @@ type
     procedure SetBorderWidth(Value: TBorderWidth);
     procedure SetBorderStyle(Value: TBorderStyle);
     procedure SetVerticalAlignment(const Value: TVerticalAlignment);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTPanel = class(TPanel)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTPage = class(TPage)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTNotebook = class(TNotebook)
@@ -84,7 +84,7 @@ type
     procedure SetActivePage(const Value: string);
     function GetActivePage: string;
     procedure SetPageIndex(Value: Integer);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTHeader = class(THeader)
@@ -93,7 +93,7 @@ type
     procedure SetSections(Strings: TStrings);
     function GetWidth(X: Integer): Integer;
     procedure SetWidth(X: Integer; Value: Integer);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTCustomRadioGroup = class(TCustomRadioGroup)
@@ -102,18 +102,18 @@ type
     procedure SetColumns(Value: Integer);
     procedure SetItemIndex(Value: Integer);
     procedure SetItems(Value: TStrings);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTRadioGroup = class(TRadioGroup)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTSplitter = class(TSplitter)
   private
     procedure SetBeveled(Value: Boolean);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTCustomControlBar = class(TCustomControlBar)
@@ -121,12 +121,12 @@ type
     procedure SetPicture(const Value: TPicture);
     procedure SetRowSize(Value: TRowSize);
     procedure SetRowSnap(Value: Boolean);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTControlBar = class(TControlBar)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTBoundLabel = class(TBoundLabel)
@@ -137,19 +137,19 @@ type
     function GetHeight: Integer;
     procedure SetHeight(const Value: Integer);
     procedure SetWidth(const Value: Integer);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTCustomLabeledEdit = class(TCustomLabeledEdit)
   private
     procedure SetLabelPosition(const Value: TLabelPosition);
     procedure SetLabelSpacing(const Value: Integer);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTLabeledEdit = class(TLabeledEdit)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTCustomColorBox = class(TCustomColorBox)
@@ -160,12 +160,12 @@ type
     procedure SetSelected(const AColor: TColor);
     procedure SetDefaultColorColor(const Value: TColor);
     procedure SetNoneColorColor(const Value: TColor);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTColorBox = class(TColorBox)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTCustomColorListBox = class(TCustomColorListBox)
@@ -176,12 +176,12 @@ type
     procedure SetSelected(const AColor: TColor);
     procedure SetDefaultColorColor(const Value: TColor);
     procedure SetNoneColorColor(const Value: TColor);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTColorListBox = class(TColorListBox)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
 {---------------}
@@ -204,7 +204,7 @@ begin
 end;
 
 class function TSepiImportsTShape.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TShape));
@@ -282,7 +282,7 @@ end;
 {------------------}
 
 class function TSepiImportsTPaintBox.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TPaintBox));
@@ -379,7 +379,7 @@ begin
 end;
 
 class function TSepiImportsTImage.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TImage));
@@ -509,7 +509,7 @@ begin
 end;
 
 class function TSepiImportsTBevel.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TBevel));
@@ -577,7 +577,7 @@ begin
 end;
 
 class function TSepiImportsTTimer.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TTimer));
@@ -672,7 +672,7 @@ begin
 end;
 
 class function TSepiImportsTCustomPanel.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TCustomPanel));
@@ -798,7 +798,7 @@ end;
 {---------------}
 
 class function TSepiImportsTPanel.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TPanel));
@@ -883,7 +883,7 @@ end;
 {--------------}
 
 class function TSepiImportsTPage.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TPage));
@@ -954,7 +954,7 @@ begin
 end;
 
 class function TSepiImportsTNotebook.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TNotebook));
@@ -1081,7 +1081,7 @@ begin
 end;
 
 class function TSepiImportsTHeader.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(THeader));
@@ -1213,7 +1213,7 @@ begin
 end;
 
 class function TSepiImportsTCustomRadioGroup.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TCustomRadioGroup));
@@ -1305,7 +1305,7 @@ end;
 {--------------------}
 
 class function TSepiImportsTRadioGroup.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TRadioGroup));
@@ -1366,7 +1366,7 @@ begin
 end;
 
 class function TSepiImportsTSplitter.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TSplitter));
@@ -1507,7 +1507,7 @@ begin
 end;
 
 class function TSepiImportsTCustomControlBar.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TCustomControlBar));
@@ -1688,7 +1688,7 @@ end;
 {--------------------}
 
 class function TSepiImportsTControlBar.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TControlBar));
@@ -1805,7 +1805,7 @@ begin
 end;
 
 class function TSepiImportsTBoundLabel.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TBoundLabel));
@@ -1899,7 +1899,7 @@ begin
 end;
 
 class function TSepiImportsTCustomLabeledEdit.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TCustomLabeledEdit));
@@ -1965,7 +1965,7 @@ end;
 {---------------------}
 
 class function TSepiImportsTLabeledEdit.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TLabeledEdit));
@@ -2074,7 +2074,7 @@ begin
 end;
 
 class function TSepiImportsTCustomColorBox.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 const
   DefaultStyle : TColorBoxStyle =
     [cbStandardColors, cbExtendedColors, cbSystemColors];
@@ -2175,7 +2175,7 @@ end;
 {------------------}
 
 class function TSepiImportsTColorBox.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TColorBox));
@@ -2272,7 +2272,7 @@ begin
 end;
 
 class function TSepiImportsTCustomColorListBox.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 const
   DefaultStyle : TColorBoxStyle =
     [cbStandardColors, cbExtendedColors, cbSystemColors];
@@ -2367,7 +2367,7 @@ end;
 {----------------------}
 
 class function TSepiImportsTColorListBox.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TColorListBox));
@@ -2427,9 +2427,9 @@ end;
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiMetaRoot) : TSepiMetaUnit;
+function ImportUnit(Root : TSepiRoot) : TSepiUnit;
 begin
-  Result := TSepiMetaUnit.Create(Root, 'ExtCtrls',
+  Result := TSepiUnit.Create(Root, 'ExtCtrls',
     ['Messages', 'Windows', 'SysUtils', 'Classes', 'Controls', 'Forms', 'Menus', 'Graphics', 'StdCtrls']);
 
   // Types
@@ -2487,9 +2487,9 @@ begin
   TSepiImportsTColorListBox.SepiImport(Result);
 
   // Routines
-  TSepiMetaMethod.Create(Result, 'Frame3D', @Frame3D,
+  TSepiMethod.Create(Result, 'Frame3D', @Frame3D,
     'procedure(Canvas: TCanvas; var Rect: TRect; TopColor, BottomColor: TColor ; Width: Integer )');
-  TSepiMetaMethod.Create(Result, 'NotebookHandlesNeeded', @NotebookHandlesNeeded,
+  TSepiMethod.Create(Result, 'NotebookHandlesNeeded', @NotebookHandlesNeeded,
     'procedure(Notebook: TNotebook)');
 
   Result.Complete;

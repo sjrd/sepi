@@ -19,7 +19,7 @@ implementation
 { _PROPSHEETPAGEA import }
 {------------------------}
 
-function SepiImport_PROPSHEETPAGEA(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImport_PROPSHEETPAGEA(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_PROPSHEETPAGEA', False, True);
 
@@ -48,7 +48,7 @@ end;
 { _PROPSHEETPAGEW import }
 {------------------------}
 
-function SepiImport_PROPSHEETPAGEW(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImport_PROPSHEETPAGEW(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_PROPSHEETPAGEW', False, True);
 
@@ -77,7 +77,7 @@ end;
 { _PROPSHEETHEADERA import }
 {--------------------------}
 
-function SepiImport_PROPSHEETHEADERA(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImport_PROPSHEETHEADERA(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_PROPSHEETHEADERA', False, True);
 
@@ -110,7 +110,7 @@ end;
 { _PROPSHEETHEADERW import }
 {--------------------------}
 
-function SepiImport_PROPSHEETHEADERW(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImport_PROPSHEETHEADERW(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_PROPSHEETHEADERW', False, True);
 
@@ -143,7 +143,7 @@ end;
 { tagINITCOMMONCONTROLSEX import }
 {--------------------------------}
 
-function SepiImporttagINITCOMMONCONTROLSEX(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagINITCOMMONCONTROLSEX(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagINITCOMMONCONTROLSEX', True, True);
 
@@ -160,7 +160,7 @@ end;
 { tagCOLORSCHEME import }
 {-----------------------}
 
-function SepiImporttagCOLORSCHEME(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagCOLORSCHEME(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagCOLORSCHEME', True, True);
 
@@ -178,7 +178,7 @@ end;
 { tagNMMOUSE import }
 {-------------------}
 
-function SepiImporttagNMMOUSE(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagNMMOUSE(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagNMMOUSE', True, True);
 
@@ -198,7 +198,7 @@ end;
 { tagNMOBJECTNOTIFY import }
 {--------------------------}
 
-function SepiImporttagNMOBJECTNOTIFY(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagNMOBJECTNOTIFY(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagNMOBJECTNOTIFY', True, True);
 
@@ -219,7 +219,7 @@ end;
 { tagNMKEY import }
 {-----------------}
 
-function SepiImporttagNMKEY(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagNMKEY(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagNMKEY', True, True);
 
@@ -237,7 +237,7 @@ end;
 { tagNMCHAR import }
 {------------------}
 
-function SepiImporttagNMCHAR(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagNMCHAR(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagNMCHAR', True, True);
 
@@ -256,7 +256,7 @@ end;
 { tagNMCUSTOMDRAWINFO import }
 {----------------------------}
 
-function SepiImporttagNMCUSTOMDRAWINFO(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagNMCUSTOMDRAWINFO(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagNMCUSTOMDRAWINFO', True, True);
 
@@ -278,7 +278,7 @@ end;
 { tagNMTTCUSTOMDRAW import }
 {--------------------------}
 
-function SepiImporttagNMTTCUSTOMDRAW(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagNMTTCUSTOMDRAW(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagNMTTCUSTOMDRAW', True, True);
 
@@ -295,7 +295,7 @@ end;
 { _IMAGELISTDRAWPARAMS import }
 {-----------------------------}
 
-function SepiImport_IMAGELISTDRAWPARAMS(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImport_IMAGELISTDRAWPARAMS(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_IMAGELISTDRAWPARAMS', True, True);
 
@@ -324,7 +324,7 @@ end;
 { _IMAGEINFO import }
 {-------------------}
 
-function SepiImport_IMAGEINFO(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImport_IMAGEINFO(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_IMAGEINFO', True, True);
 
@@ -344,7 +344,7 @@ end;
 { _HD_ITEMA import }
 {------------------}
 
-function SepiImport_HD_ITEMA(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImport_HD_ITEMA(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_HD_ITEMA', True, True);
 
@@ -368,7 +368,7 @@ end;
 { _HD_ITEMW import }
 {------------------}
 
-function SepiImport_HD_ITEMW(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImport_HD_ITEMW(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_HD_ITEMW', True, True);
 
@@ -392,7 +392,7 @@ end;
 { _HD_LAYOUT import }
 {-------------------}
 
-function SepiImport_HD_LAYOUT(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImport_HD_LAYOUT(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_HD_LAYOUT', True, True);
 
@@ -409,7 +409,7 @@ end;
 { _HD_HITTESTINFO import }
 {------------------------}
 
-function SepiImport_HD_HITTESTINFO(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImport_HD_HITTESTINFO(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_HD_HITTESTINFO', True, True);
 
@@ -427,7 +427,7 @@ end;
 { tagNMHEADERA import }
 {---------------------}
 
-function SepiImporttagNMHEADERA(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagNMHEADERA(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagNMHEADERA', True, True);
 
@@ -446,7 +446,7 @@ end;
 { tagNMHEADERW import }
 {---------------------}
 
-function SepiImporttagNMHEADERW(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagNMHEADERW(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagNMHEADERW', True, True);
 
@@ -465,7 +465,7 @@ end;
 { tagNMHDDISPINFOA import }
 {-------------------------}
 
-function SepiImporttagNMHDDISPINFOA(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagNMHDDISPINFOA(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagNMHDDISPINFOA', True, True);
 
@@ -487,7 +487,7 @@ end;
 { tagNMHDDISPINFOW import }
 {-------------------------}
 
-function SepiImporttagNMHDDISPINFOW(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagNMHDDISPINFOW(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagNMHDDISPINFOW', True, True);
 
@@ -509,7 +509,7 @@ end;
 { _TBBUTTON import }
 {------------------}
 
-function SepiImport_TBBUTTON(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImport_TBBUTTON(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_TBBUTTON', True, True);
 
@@ -531,7 +531,7 @@ end;
 { _COLORMAP import }
 {------------------}
 
-function SepiImport_COLORMAP(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImport_COLORMAP(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_COLORMAP', True, True);
 
@@ -548,7 +548,7 @@ end;
 { _NMTBCUSTOMDRAW import }
 {------------------------}
 
-function SepiImport_NMTBCUSTOMDRAW(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImport_NMTBCUSTOMDRAW(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_NMTBCUSTOMDRAW', True, True);
 
@@ -576,7 +576,7 @@ end;
 { tagTBADDBITMAP import }
 {-----------------------}
 
-function SepiImporttagTBADDBITMAP(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagTBADDBITMAP(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagTBADDBITMAP', True, True);
 
@@ -593,7 +593,7 @@ end;
 { tagTBSAVEPARAMSA import }
 {-------------------------}
 
-function SepiImporttagTBSAVEPARAMSA(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagTBSAVEPARAMSA(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagTBSAVEPARAMSA', True, True);
 
@@ -611,7 +611,7 @@ end;
 { tagTBSAVEPARAMSW import }
 {-------------------------}
 
-function SepiImporttagTBSAVEPARAMSW(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagTBSAVEPARAMSW(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagTBSAVEPARAMSW', True, True);
 
@@ -629,7 +629,7 @@ end;
 { TBINSERTMARK import }
 {---------------------}
 
-function SepiImportTBINSERTMARK(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTBINSERTMARK(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TBINSERTMARK', True, True);
 
@@ -646,7 +646,7 @@ end;
 { TBREPLACEBITMAP import }
 {------------------------}
 
-function SepiImportTBREPLACEBITMAP(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTBREPLACEBITMAP(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TBREPLACEBITMAP', True, True);
 
@@ -666,7 +666,7 @@ end;
 { TBBUTTONINFOA import }
 {----------------------}
 
-function SepiImportTBBUTTONINFOA(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTBBUTTONINFOA(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TBBUTTONINFOA', True, True);
 
@@ -691,7 +691,7 @@ end;
 { TBBUTTONINFOW import }
 {----------------------}
 
-function SepiImportTBBUTTONINFOW(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTBBUTTONINFOW(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TBBUTTONINFOW', True, True);
 
@@ -716,7 +716,7 @@ end;
 { tagNMTBHOTITEM import }
 {-----------------------}
 
-function SepiImporttagNMTBHOTITEM(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagNMTBHOTITEM(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagNMTBHOTITEM', True, True);
 
@@ -735,7 +735,7 @@ end;
 { tagNMTBGETINFOTIPA import }
 {---------------------------}
 
-function SepiImporttagNMTBGETINFOTIPA(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagNMTBGETINFOTIPA(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagNMTBGETINFOTIPA', True, True);
 
@@ -755,7 +755,7 @@ end;
 { tagNMTBGETINFOTIPW import }
 {---------------------------}
 
-function SepiImporttagNMTBGETINFOTIPW(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagNMTBGETINFOTIPW(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagNMTBGETINFOTIPW', True, True);
 
@@ -775,7 +775,7 @@ end;
 { NMTBDISPINFOA import }
 {----------------------}
 
-function SepiImportNMTBDISPINFOA(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportNMTBDISPINFOA(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'NMTBDISPINFOA', True, True);
 
@@ -797,7 +797,7 @@ end;
 { NMTBDISPINFOW import }
 {----------------------}
 
-function SepiImportNMTBDISPINFOW(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportNMTBDISPINFOW(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'NMTBDISPINFOW', True, True);
 
@@ -819,7 +819,7 @@ end;
 { tagNMTOOLBARA import }
 {----------------------}
 
-function SepiImporttagNMTOOLBARA(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagNMTOOLBARA(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagNMTOOLBARA', True, True);
 
@@ -839,7 +839,7 @@ end;
 { tagNMTOOLBARW import }
 {----------------------}
 
-function SepiImporttagNMTOOLBARW(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagNMTOOLBARW(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagNMTOOLBARW', True, True);
 
@@ -859,7 +859,7 @@ end;
 { tagREBARINFO import }
 {---------------------}
 
-function SepiImporttagREBARINFO(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagREBARINFO(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagREBARINFO', True, True);
 
@@ -877,7 +877,7 @@ end;
 { tagREBARBANDINFOA import }
 {--------------------------}
 
-function SepiImporttagREBARBANDINFOA(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagREBARBANDINFOA(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagREBARBANDINFOA', True, True);
 
@@ -912,7 +912,7 @@ end;
 { tagREBARBANDINFOW import }
 {--------------------------}
 
-function SepiImporttagREBARBANDINFOW(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagREBARBANDINFOW(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagREBARBANDINFOW', True, True);
 
@@ -947,7 +947,7 @@ end;
 { tagNMREBARCHILDSIZE import }
 {----------------------------}
 
-function SepiImporttagNMREBARCHILDSIZE(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagNMREBARCHILDSIZE(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagNMREBARCHILDSIZE', True, True);
 
@@ -967,7 +967,7 @@ end;
 { tagNMREBAR import }
 {-------------------}
 
-function SepiImporttagNMREBAR(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagNMREBAR(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagNMREBAR', True, True);
 
@@ -988,7 +988,7 @@ end;
 { tagNMRBAUTOSIZE import }
 {------------------------}
 
-function SepiImporttagNMRBAUTOSIZE(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagNMRBAUTOSIZE(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagNMRBAUTOSIZE', True, True);
 
@@ -1007,7 +1007,7 @@ end;
 { _RB_HITTESTINFO import }
 {------------------------}
 
-function SepiImport_RB_HITTESTINFO(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImport_RB_HITTESTINFO(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_RB_HITTESTINFO', True, True);
 
@@ -1025,7 +1025,7 @@ end;
 { tagTOOLINFOA import }
 {---------------------}
 
-function SepiImporttagTOOLINFOA(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagTOOLINFOA(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagTOOLINFOA', True, True);
 
@@ -1048,7 +1048,7 @@ end;
 { tagTOOLINFOW import }
 {---------------------}
 
-function SepiImporttagTOOLINFOW(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagTOOLINFOW(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagTOOLINFOW', True, True);
 
@@ -1071,7 +1071,7 @@ end;
 { _TT_HITTESTINFOA import }
 {-------------------------}
 
-function SepiImport_TT_HITTESTINFOA(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImport_TT_HITTESTINFOA(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_TT_HITTESTINFOA', True, True);
 
@@ -1089,7 +1089,7 @@ end;
 { _TT_HITTESTINFOW import }
 {-------------------------}
 
-function SepiImport_TT_HITTESTINFOW(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImport_TT_HITTESTINFOW(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_TT_HITTESTINFOW', True, True);
 
@@ -1107,7 +1107,7 @@ end;
 { tagNMTTDISPINFOA import }
 {-------------------------}
 
-function SepiImporttagNMTTDISPINFOA(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagNMTTDISPINFOA(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagNMTTDISPINFOA', True, True);
 
@@ -1128,7 +1128,7 @@ end;
 { tagNMTTDISPINFOW import }
 {-------------------------}
 
-function SepiImporttagNMTTDISPINFOW(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagNMTTDISPINFOW(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagNMTTDISPINFOW', True, True);
 
@@ -1149,7 +1149,7 @@ end;
 { tagDRAGLISTINFO import }
 {------------------------}
 
-function SepiImporttagDRAGLISTINFO(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagDRAGLISTINFO(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagDRAGLISTINFO', True, True);
 
@@ -1167,7 +1167,7 @@ end;
 { _UDACCEL import }
 {-----------------}
 
-function SepiImport_UDACCEL(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImport_UDACCEL(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_UDACCEL', True, True);
 
@@ -1184,7 +1184,7 @@ end;
 { _NM_UPDOWN import }
 {-------------------}
 
-function SepiImport_NM_UPDOWN(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImport_NM_UPDOWN(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_NM_UPDOWN', True, True);
 
@@ -1202,7 +1202,7 @@ end;
 { PBRANGE import }
 {----------------}
 
-function SepiImportPBRANGE(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportPBRANGE(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'PBRANGE', False, True);
 
@@ -1219,7 +1219,7 @@ end;
 { tagLVITEMA import }
 {-------------------}
 
-function SepiImporttagLVITEMA(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagLVITEMA(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagLVITEMA', True, True);
 
@@ -1244,7 +1244,7 @@ end;
 { tagLVITEMW import }
 {-------------------}
 
-function SepiImporttagLVITEMW(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagLVITEMW(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagLVITEMW', True, True);
 
@@ -1269,7 +1269,7 @@ end;
 { tagLVFINDINFOA import }
 {-----------------------}
 
-function SepiImporttagLVFINDINFOA(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagLVFINDINFOA(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagLVFINDINFOA', True, True);
 
@@ -1289,7 +1289,7 @@ end;
 { tagLVFINDINFOW import }
 {-----------------------}
 
-function SepiImporttagLVFINDINFOW(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagLVFINDINFOW(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagLVFINDINFOW', True, True);
 
@@ -1309,7 +1309,7 @@ end;
 { tagLVHITTESTINFO import }
 {-------------------------}
 
-function SepiImporttagLVHITTESTINFO(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagLVHITTESTINFO(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagLVHITTESTINFO', True, True);
 
@@ -1328,7 +1328,7 @@ end;
 { tagLVCOLUMNA import }
 {---------------------}
 
-function SepiImporttagLVCOLUMNA(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagLVCOLUMNA(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagLVCOLUMNA', True, True);
 
@@ -1351,7 +1351,7 @@ end;
 { tagLVCOLUMNW import }
 {---------------------}
 
-function SepiImporttagLVCOLUMNW(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagLVCOLUMNW(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagLVCOLUMNW', True, True);
 
@@ -1374,7 +1374,7 @@ end;
 { tagLVBKIMAGEA import }
 {----------------------}
 
-function SepiImporttagLVBKIMAGEA(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagLVBKIMAGEA(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagLVBKIMAGEA', True, True);
 
@@ -1395,7 +1395,7 @@ end;
 { tagLVBKIMAGEW import }
 {----------------------}
 
-function SepiImporttagLVBKIMAGEW(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagLVBKIMAGEW(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagLVBKIMAGEW', True, True);
 
@@ -1416,7 +1416,7 @@ end;
 { tagNMLISTVIEW import }
 {----------------------}
 
-function SepiImporttagNMLISTVIEW(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagNMLISTVIEW(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagNMLISTVIEW', True, True);
 
@@ -1439,7 +1439,7 @@ end;
 { tagNMITEMACTIVATE import }
 {--------------------------}
 
-function SepiImporttagNMITEMACTIVATE(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagNMITEMACTIVATE(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagNMITEMACTIVATE', True, True);
 
@@ -1463,7 +1463,7 @@ end;
 { tagNMLVCUSTOMDRAW import }
 {--------------------------}
 
-function SepiImporttagNMLVCUSTOMDRAW(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagNMLVCUSTOMDRAW(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagNMLVCUSTOMDRAW', True, True);
 
@@ -1482,7 +1482,7 @@ end;
 { tagNMLVCACHEHINT import }
 {-------------------------}
 
-function SepiImporttagNMLVCACHEHINT(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagNMLVCACHEHINT(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagNMLVCACHEHINT', True, True);
 
@@ -1500,7 +1500,7 @@ end;
 { tagNMLVFINDITEMA import }
 {-------------------------}
 
-function SepiImporttagNMLVFINDITEMA(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagNMLVFINDITEMA(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagNMLVFINDITEMA', True, True);
 
@@ -1518,7 +1518,7 @@ end;
 { tagNMLVFINDITEMW import }
 {-------------------------}
 
-function SepiImporttagNMLVFINDITEMW(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagNMLVFINDITEMW(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagNMLVFINDITEMW', True, True);
 
@@ -1536,7 +1536,7 @@ end;
 { tagNMLVODSTATECHANGE import }
 {-----------------------------}
 
-function SepiImporttagNMLVODSTATECHANGE(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagNMLVODSTATECHANGE(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagNMLVODSTATECHANGE', True, True);
 
@@ -1556,7 +1556,7 @@ end;
 { tagLVDISPINFO import }
 {----------------------}
 
-function SepiImporttagLVDISPINFO(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagLVDISPINFO(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagLVDISPINFO', True, True);
 
@@ -1573,7 +1573,7 @@ end;
 { tagLVDISPINFOW import }
 {-----------------------}
 
-function SepiImporttagLVDISPINFOW(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagLVDISPINFOW(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagLVDISPINFOW', True, True);
 
@@ -1590,7 +1590,7 @@ end;
 { tagLVKEYDOWN import }
 {---------------------}
 
-function SepiImporttagLVKEYDOWN(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagLVKEYDOWN(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagLVKEYDOWN', True, True);
 
@@ -1608,7 +1608,7 @@ end;
 { tagNMLVGETINFOTIPA import }
 {---------------------------}
 
-function SepiImporttagNMLVGETINFOTIPA(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagNMLVGETINFOTIPA(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagNMLVGETINFOTIPA', True, True);
 
@@ -1630,7 +1630,7 @@ end;
 { tagNMLVGETINFOTIPW import }
 {---------------------------}
 
-function SepiImporttagNMLVGETINFOTIPW(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagNMLVGETINFOTIPW(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagNMLVGETINFOTIPW', True, True);
 
@@ -1652,7 +1652,7 @@ end;
 { _TREEITEM import }
 {------------------}
 
-function SepiImport_TREEITEM(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImport_TREEITEM(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_TREEITEM', True, True);
 
@@ -1667,7 +1667,7 @@ end;
 { tagTVITEMA import }
 {-------------------}
 
-function SepiImporttagTVITEMA(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagTVITEMA(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagTVITEMA', True, True);
 
@@ -1692,7 +1692,7 @@ end;
 { tagTVITEMW import }
 {-------------------}
 
-function SepiImporttagTVITEMW(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagTVITEMW(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagTVITEMW', True, True);
 
@@ -1717,7 +1717,7 @@ end;
 { tagTVITEMEXA import }
 {---------------------}
 
-function SepiImporttagTVITEMEXA(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagTVITEMEXA(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagTVITEMEXA', True, True);
 
@@ -1743,7 +1743,7 @@ end;
 { tagTVITEMEXW import }
 {---------------------}
 
-function SepiImporttagTVITEMEXW(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagTVITEMEXW(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagTVITEMEXW', True, True);
 
@@ -1769,7 +1769,7 @@ end;
 { tagTVINSERTSTRUCTA import }
 {---------------------------}
 
-function SepiImporttagTVINSERTSTRUCTA(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagTVINSERTSTRUCTA(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagTVINSERTSTRUCTA', True, True);
 
@@ -1788,7 +1788,7 @@ end;
 { tagTVINSERTSTRUCTW import }
 {---------------------------}
 
-function SepiImporttagTVINSERTSTRUCTW(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagTVINSERTSTRUCTW(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagTVINSERTSTRUCTW', True, True);
 
@@ -1807,7 +1807,7 @@ end;
 { tagTVHITTESTINFO import }
 {-------------------------}
 
-function SepiImporttagTVHITTESTINFO(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagTVHITTESTINFO(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagTVHITTESTINFO', True, True);
 
@@ -1825,7 +1825,7 @@ end;
 { tagTVSORTCB import }
 {--------------------}
 
-function SepiImporttagTVSORTCB(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagTVSORTCB(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagTVSORTCB', True, True);
 
@@ -1843,7 +1843,7 @@ end;
 { tagNMTREEVIEWA import }
 {-----------------------}
 
-function SepiImporttagNMTREEVIEWA(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagNMTREEVIEWA(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagNMTREEVIEWA', True, True);
 
@@ -1863,7 +1863,7 @@ end;
 { tagNMTREEVIEWW import }
 {-----------------------}
 
-function SepiImporttagNMTREEVIEWW(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagNMTREEVIEWW(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagNMTREEVIEWW', True, True);
 
@@ -1883,7 +1883,7 @@ end;
 { tagTVDISPINFOA import }
 {-----------------------}
 
-function SepiImporttagTVDISPINFOA(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagTVDISPINFOA(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagTVDISPINFOA', True, True);
 
@@ -1900,7 +1900,7 @@ end;
 { tagTVDISPINFOW import }
 {-----------------------}
 
-function SepiImporttagTVDISPINFOW(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagTVDISPINFOW(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagTVDISPINFOW', True, True);
 
@@ -1917,7 +1917,7 @@ end;
 { tagTVKEYDOWN import }
 {---------------------}
 
-function SepiImporttagTVKEYDOWN(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagTVKEYDOWN(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagTVKEYDOWN', True, True);
 
@@ -1935,7 +1935,7 @@ end;
 { tagNMTVCUSTOMDRAW import }
 {--------------------------}
 
-function SepiImporttagNMTVCUSTOMDRAW(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagNMTVCUSTOMDRAW(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagNMTVCUSTOMDRAW', True, True);
 
@@ -1954,7 +1954,7 @@ end;
 { tagNMTVGETINFOTIPA import }
 {---------------------------}
 
-function SepiImporttagNMTVGETINFOTIPA(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagNMTVGETINFOTIPA(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagNMTVGETINFOTIPA', True, True);
 
@@ -1974,7 +1974,7 @@ end;
 { tagNMTVGETINFOTIPW import }
 {---------------------------}
 
-function SepiImporttagNMTVGETINFOTIPW(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagNMTVGETINFOTIPW(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagNMTVGETINFOTIPW', True, True);
 
@@ -1994,7 +1994,7 @@ end;
 { tagCOMBOBOXEXITEMA import }
 {---------------------------}
 
-function SepiImporttagCOMBOBOXEXITEMA(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagCOMBOBOXEXITEMA(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagCOMBOBOXEXITEMA', True, True);
 
@@ -2018,7 +2018,7 @@ end;
 { tagCOMBOBOXEXITEMW import }
 {---------------------------}
 
-function SepiImporttagCOMBOBOXEXITEMW(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagCOMBOBOXEXITEMW(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagCOMBOBOXEXITEMW', True, True);
 
@@ -2042,7 +2042,7 @@ end;
 { NMCOMBOBOXEXA import }
 {----------------------}
 
-function SepiImportNMCOMBOBOXEXA(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportNMCOMBOBOXEXA(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'NMCOMBOBOXEXA', True, True);
 
@@ -2059,7 +2059,7 @@ end;
 { NMCOMBOBOXEXW import }
 {----------------------}
 
-function SepiImportNMCOMBOBOXEXW(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportNMCOMBOBOXEXW(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'NMCOMBOBOXEXW', True, True);
 
@@ -2076,7 +2076,7 @@ end;
 { NMCBEDRAGBEGINA import }
 {------------------------}
 
-function SepiImportNMCBEDRAGBEGINA(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportNMCBEDRAGBEGINA(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'NMCBEDRAGBEGINA', True, True);
 
@@ -2094,7 +2094,7 @@ end;
 { NMCBEDRAGBEGINW import }
 {------------------------}
 
-function SepiImportNMCBEDRAGBEGINW(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportNMCBEDRAGBEGINW(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'NMCBEDRAGBEGINW', True, True);
 
@@ -2112,7 +2112,7 @@ end;
 { NMCBEENDEDITA import }
 {----------------------}
 
-function SepiImportNMCBEENDEDITA(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportNMCBEENDEDITA(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'NMCBEENDEDITA', True, True);
 
@@ -2132,7 +2132,7 @@ end;
 { NMCBEENDEDITW import }
 {----------------------}
 
-function SepiImportNMCBEENDEDITW(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportNMCBEENDEDITW(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'NMCBEENDEDITW', True, True);
 
@@ -2152,7 +2152,7 @@ end;
 { tagTCITEMHEADERA import }
 {-------------------------}
 
-function SepiImporttagTCITEMHEADERA(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagTCITEMHEADERA(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagTCITEMHEADERA', True, True);
 
@@ -2173,7 +2173,7 @@ end;
 { tagTCITEMHEADERW import }
 {-------------------------}
 
-function SepiImporttagTCITEMHEADERW(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagTCITEMHEADERW(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagTCITEMHEADERW', True, True);
 
@@ -2194,7 +2194,7 @@ end;
 { tagTCITEMA import }
 {-------------------}
 
-function SepiImporttagTCITEMA(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagTCITEMA(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagTCITEMA', True, True);
 
@@ -2216,7 +2216,7 @@ end;
 { tagTCITEMW import }
 {-------------------}
 
-function SepiImporttagTCITEMW(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagTCITEMW(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagTCITEMW', True, True);
 
@@ -2238,7 +2238,7 @@ end;
 { tagTCHITTESTINFO import }
 {-------------------------}
 
-function SepiImporttagTCHITTESTINFO(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagTCHITTESTINFO(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagTCHITTESTINFO', True, True);
 
@@ -2255,7 +2255,7 @@ end;
 { tagTCKEYDOWN import }
 {---------------------}
 
-function SepiImporttagTCKEYDOWN(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagTCKEYDOWN(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagTCKEYDOWN', True, True);
 
@@ -2273,7 +2273,7 @@ end;
 { MCHITTESTINFO import }
 {----------------------}
 
-function SepiImportMCHITTESTINFO(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportMCHITTESTINFO(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'MCHITTESTINFO', True, True);
 
@@ -2292,7 +2292,7 @@ end;
 { tagNMSELCHANGE import }
 {-----------------------}
 
-function SepiImporttagNMSELCHANGE(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagNMSELCHANGE(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagNMSELCHANGE', True, True);
 
@@ -2310,7 +2310,7 @@ end;
 { tagNMDAYSTATE import }
 {----------------------}
 
-function SepiImporttagNMDAYSTATE(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagNMDAYSTATE(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagNMDAYSTATE', True, True);
 
@@ -2329,7 +2329,7 @@ end;
 { tagNMDATETIMECHANGE import }
 {----------------------------}
 
-function SepiImporttagNMDATETIMECHANGE(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagNMDATETIMECHANGE(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagNMDATETIMECHANGE', True, True);
 
@@ -2347,7 +2347,7 @@ end;
 { tagNMDATETIMESTRINGA import }
 {-----------------------------}
 
-function SepiImporttagNMDATETIMESTRINGA(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagNMDATETIMESTRINGA(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagNMDATETIMESTRINGA', True, True);
 
@@ -2366,7 +2366,7 @@ end;
 { tagNMDATETIMESTRINGW import }
 {-----------------------------}
 
-function SepiImporttagNMDATETIMESTRINGW(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagNMDATETIMESTRINGW(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagNMDATETIMESTRINGW', True, True);
 
@@ -2385,7 +2385,7 @@ end;
 { tagNMDATETIMEWMKEYDOWNA import }
 {--------------------------------}
 
-function SepiImporttagNMDATETIMEWMKEYDOWNA(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagNMDATETIMEWMKEYDOWNA(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagNMDATETIMEWMKEYDOWNA', True, True);
 
@@ -2404,7 +2404,7 @@ end;
 { tagNMDATETIMEWMKEYDOWNW import }
 {--------------------------------}
 
-function SepiImporttagNMDATETIMEWMKEYDOWNW(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagNMDATETIMEWMKEYDOWNW(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagNMDATETIMEWMKEYDOWNW', True, True);
 
@@ -2423,7 +2423,7 @@ end;
 { tagNMDATETIMEFORMATA import }
 {-----------------------------}
 
-function SepiImporttagNMDATETIMEFORMATA(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagNMDATETIMEFORMATA(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagNMDATETIMEFORMATA', True, True);
 
@@ -2443,7 +2443,7 @@ end;
 { tagNMDATETIMEFORMATW import }
 {-----------------------------}
 
-function SepiImporttagNMDATETIMEFORMATW(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagNMDATETIMEFORMATW(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagNMDATETIMEFORMATW', True, True);
 
@@ -2463,7 +2463,7 @@ end;
 { tagNMDATETIMEFORMATQUERYA import }
 {----------------------------------}
 
-function SepiImporttagNMDATETIMEFORMATQUERYA(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagNMDATETIMEFORMATQUERYA(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagNMDATETIMEFORMATQUERYA', True, True);
 
@@ -2481,7 +2481,7 @@ end;
 { tagNMDATETIMEFORMATQUERYW import }
 {----------------------------------}
 
-function SepiImporttagNMDATETIMEFORMATQUERYW(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagNMDATETIMEFORMATQUERYW(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagNMDATETIMEFORMATQUERYW', True, True);
 
@@ -2499,7 +2499,7 @@ end;
 { tagNMIPADDRESS import }
 {-----------------------}
 
-function SepiImporttagNMIPADDRESS(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagNMIPADDRESS(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagNMIPADDRESS', True, True);
 
@@ -2517,7 +2517,7 @@ end;
 { NMPGSCROLL import }
 {-------------------}
 
-function SepiImportNMPGSCROLL(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportNMPGSCROLL(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'NMPGSCROLL', True, True);
 
@@ -2539,7 +2539,7 @@ end;
 { NMPGCALCSIZE import }
 {---------------------}
 
-function SepiImportNMPGCALCSIZE(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportNMPGCALCSIZE(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'NMPGCALCSIZE', True, True);
 
@@ -2558,7 +2558,7 @@ end;
 { tagTRACKMOUSEEVENT import }
 {---------------------------}
 
-function SepiImporttagTRACKMOUSEEVENT(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagTRACKMOUSEEVENT(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagTRACKMOUSEEVENT', True, True);
 
@@ -2577,9 +2577,9 @@ end;
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiMetaRoot) : TSepiMetaUnit;
+function ImportUnit(Root : TSepiRoot) : TSepiUnit;
 begin
-  Result := TSepiMetaUnit.Create(Root, 'CommCtrlTypes',
+  Result := TSepiUnit.Create(Root, 'CommCtrlTypes',
     ['Messages', 'Windows', 'ActiveXTypes']);
 
   // Types

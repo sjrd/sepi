@@ -19,7 +19,7 @@ implementation
 type
   TSepiImportsTCommonDialog = class(TCommonDialog)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTOpenDialog = class(TOpenDialog)
@@ -30,40 +30,40 @@ type
     procedure SetInitialDir(const Value: string);
     function DoExecute_0(Func: Pointer): Bool;
     function DoExecute_1(Func: Pointer; ParentWnd: HWND): Bool;
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTSaveDialog = class(TSaveDialog)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTColorDialog = class(TColorDialog)
   private
     procedure SetCustomColors(Value: TStrings);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTFontDialog = class(TFontDialog)
   private
     procedure SetFont(Value: TFont);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTPrinterSetupDialog = class(TPrinterSetupDialog)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTPrintDialog = class(TPrintDialog)
   private
     procedure SetNumCopies(Value: Integer);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTPageSetupDialog = class(TPageSetupDialog)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTFindDialog = class(TFindDialog)
@@ -76,12 +76,12 @@ type
     procedure SetLeft(Value: Integer);
     procedure SetPosition(const Value: TPoint);
     procedure SetTop(Value: Integer);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTReplaceDialog = class(TReplaceDialog)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
 {----------------------}
@@ -89,7 +89,7 @@ type
 {----------------------}
 
 class function TSepiImportsTCommonDialog.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TCommonDialog));
@@ -217,7 +217,7 @@ begin
 end;
 
 class function TSepiImportsTOpenDialog.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 const
   DefaultOptions : TOpenOptions = [ofHideReadOnly, ofEnableSizing];
 begin
@@ -352,7 +352,7 @@ end;
 {--------------------}
 
 class function TSepiImportsTSaveDialog.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TSaveDialog));
@@ -377,7 +377,7 @@ begin
 end;
 
 class function TSepiImportsTColorDialog.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TColorDialog));
@@ -432,7 +432,7 @@ begin
 end;
 
 class function TSepiImportsTFontDialog.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 const
   DefaultOptions : TFontDialogOptions = [fdEffects];
 begin
@@ -508,7 +508,7 @@ end;
 {----------------------------}
 
 class function TSepiImportsTPrinterSetupDialog.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TPrinterSetupDialog));
@@ -535,7 +535,7 @@ begin
 end;
 
 class function TSepiImportsTPrintDialog.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TPrintDialog));
@@ -602,7 +602,7 @@ end;
 {-------------------------}
 
 class function TSepiImportsTPageSetupDialog.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 const
   DefaultOptions : TPageSetupDialogOptions = [psoDefaultMinMargins];
 begin
@@ -740,7 +740,7 @@ begin
 end;
 
 class function TSepiImportsTFindDialog.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 const
   DefaultOptions : TFindOptions = [frDown];
 begin
@@ -839,7 +839,7 @@ end;
 {-----------------------}
 
 class function TSepiImportsTReplaceDialog.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TReplaceDialog));
@@ -865,9 +865,9 @@ end;
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiMetaRoot) : TSepiMetaUnit;
+function ImportUnit(Root : TSepiRoot) : TSepiUnit;
 begin
-  Result := TSepiMetaUnit.Create(Root, 'Dialogs',
+  Result := TSepiUnit.Create(Root, 'Dialogs',
     ['Windows', 'Messages', 'SysUtils', 'CommDlgTypes', 'Printers', 'Classes',
      'Graphics', 'Controls', 'Forms', 'StdCtrls']);
 
@@ -934,25 +934,25 @@ begin
   //TSepiConstant.Create(Result, 'mbAbortIgnore', mbAbortIgnore);
 
   // Routines
-  TSepiMetaMethod.Create(Result, 'CreateMessageDialog', @CreateMessageDialog,
+  TSepiMethod.Create(Result, 'CreateMessageDialog', @CreateMessageDialog,
     'function(const Msg: string; DlgType: TMsgDlgType; Buttons: TMsgDlgButtons ) : TForm');
-  TSepiMetaMethod.Create(Result, 'MessageDlg', @MessageDlg,
+  TSepiMethod.Create(Result, 'MessageDlg', @MessageDlg,
     'function(const Msg: string; DlgType: TMsgDlgType; Buttons: TMsgDlgButtons ; HelpCtx: Longint ) : Integer');
-  TSepiMetaMethod.Create(Result, 'MessageDlgPos', @MessageDlgPos,
+  TSepiMethod.Create(Result, 'MessageDlgPos', @MessageDlgPos,
     'function(const Msg: string; DlgType: TMsgDlgType; Buttons: TMsgDlgButtons ; HelpCtx: Longint ; X, Y: Integer ) : Integer');
-  TSepiMetaMethod.Create(Result, 'MessageDlgPosHelp', @MessageDlgPosHelp,
+  TSepiMethod.Create(Result, 'MessageDlgPosHelp', @MessageDlgPosHelp,
     'function(const Msg: string; DlgType: TMsgDlgType; Buttons: TMsgDlgButtons ; HelpCtx: Longint ; X, Y: Integer ; const HelpFileName: string ) : Integer');
-  TSepiMetaMethod.Create(Result, 'ShowMessage', @ShowMessage,
+  TSepiMethod.Create(Result, 'ShowMessage', @ShowMessage,
     'procedure(const Msg: string)');
-  TSepiMetaMethod.Create(Result, 'ShowMessageFmt', @ShowMessageFmt,
+  TSepiMethod.Create(Result, 'ShowMessageFmt', @ShowMessageFmt,
     'procedure(const Msg: string; Params: array of const)');
-  TSepiMetaMethod.Create(Result, 'ShowMessagePos', @ShowMessagePos,
+  TSepiMethod.Create(Result, 'ShowMessagePos', @ShowMessagePos,
     'procedure(const Msg: string; X, Y: Integer)');
-  TSepiMetaMethod.Create(Result, 'InputBox', @InputBox,
+  TSepiMethod.Create(Result, 'InputBox', @InputBox,
     'function(const ACaption, APrompt, ADefault: string): string');
-  TSepiMetaMethod.Create(Result, 'InputQuery', @InputQuery,
+  TSepiMethod.Create(Result, 'InputQuery', @InputQuery,
     'function(const ACaption, APrompt: string; var Value: string ) : Boolean');
-  TSepiMetaMethod.Create(Result, 'PromptForFileName', @PromptForFileName,
+  TSepiMethod.Create(Result, 'PromptForFileName', @PromptForFileName,
     'function(var AFileName: string; const AFilter: string = ''''; const ADefaultExt: string = '''' ; const ATitle: string = '''' ; const AInitialDir: string = '''' ; SaveDialog: Boolean = False ) : Boolean');
 
   // Global variables

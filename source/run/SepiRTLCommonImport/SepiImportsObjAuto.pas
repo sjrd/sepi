@@ -19,7 +19,7 @@ implementation
 { TMethodInfoHeader import }
 {--------------------------}
 
-function SepiImportTMethodInfoHeader(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTMethodInfoHeader(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TMethodInfoHeader', True, True);
 
@@ -37,7 +37,7 @@ end;
 { TReturnInfo import }
 {--------------------}
 
-function SepiImportTReturnInfo(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTReturnInfo(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TReturnInfo', True, True);
 
@@ -56,7 +56,7 @@ end;
 { TParamInfo import }
 {-------------------}
 
-function SepiImportTParamInfo(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTParamInfo(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TParamInfo', True, True);
 
@@ -75,7 +75,7 @@ end;
 { IMethodHandler import }
 {-----------------------}
 
-function SepiImportIMethodHandler(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIMethodHandler(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IMethodHandler));
@@ -95,9 +95,9 @@ end;
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiMetaRoot) : TSepiMetaUnit;
+function ImportUnit(Root : TSepiRoot) : TSepiUnit;
 begin
-  Result := TSepiMetaUnit.Create(Root, 'ObjAuto',
+  Result := TSepiUnit.Create(Root, 'ObjAuto',
     ['TypInfo']);
 
   // Constants
@@ -121,18 +121,18 @@ begin
   SepiImportTParamInfo(Result);
 
   // Routines
-  TSepiMetaMethod.Create(Result, 'ObjectInvoke', @ObjectInvoke,
+  TSepiMethod.Create(Result, 'ObjectInvoke', @ObjectInvoke,
     'function(Instance: TObject; MethodHeader: PMethodInfoHeader; const ParamIndexes: array of Integer ; const Params: array of Variant ) : Variant');
-  TSepiMetaMethod.Create(Result, 'GetMethodInfo', @GetMethodInfo,
+  TSepiMethod.Create(Result, 'GetMethodInfo', @GetMethodInfo,
     'function(Instance: TObject; const MethodName: ShortString ) : PMethodInfoHeader');
 
   // Types
   SepiImportIMethodHandler(Result);
 
   // Routines
-  TSepiMetaMethod.Create(Result, 'CreateMethodPointer', @CreateMethodPointer,
+  TSepiMethod.Create(Result, 'CreateMethodPointer', @CreateMethodPointer,
     'function(const MethodHandler: IMethodHandler; TypeData: PTypeData): TMethod');
-  TSepiMetaMethod.Create(Result, 'ReleaseMethodPointer', @ReleaseMethodPointer,
+  TSepiMethod.Create(Result, 'ReleaseMethodPointer', @ReleaseMethodPointer,
     'procedure(MethodPointer: TMethod)');
 
   Result.Complete;

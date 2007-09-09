@@ -19,27 +19,27 @@ implementation
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiMetaRoot) : TSepiMetaUnit;
+function ImportUnit(Root : TSepiRoot) : TSepiUnit;
 begin
-  Result := TSepiMetaUnit.Create(Root, 'ScCompilerMagic',
+  Result := TSepiUnit.Create(Root, 'ScCompilerMagic',
     ['TypInfo']);
 
   // Routines
-  TSepiMetaMethod.Create(Result, 'AbstractError', @AbstractError,
+  TSepiMethod.Create(Result, 'AbstractError', @AbstractError,
     'procedure');
-  TSepiMetaMethod.Create(Result, 'Initialize', @Initialize,
+  TSepiMethod.Create(Result, 'Initialize', @Initialize,
     'procedure(var Value; TypeInfo : PTypeInfo; Count : Cardinal = 1)');
-  TSepiMetaMethod.Create(Result, 'Finalize', @Finalize,
+  TSepiMethod.Create(Result, 'Finalize', @Finalize,
     'procedure(var Value; TypeInfo : PTypeInfo; Count : Cardinal = 1)');
-  TSepiMetaMethod.Create(Result, 'CopyArray', @CopyArray,
+  TSepiMethod.Create(Result, 'CopyArray', @CopyArray,
     'procedure(Dest, Source, TypeInfo : Pointer; Count : integer)');
-  TSepiMetaMethod.Create(Result, 'CopyRecord', @CopyRecord,
+  TSepiMethod.Create(Result, 'CopyRecord', @CopyRecord,
     'procedure(Dest, Source, TypeInfo : Pointer)');
-  TSepiMetaMethod.Create(Result, 'DynArrayCopy', @DynArrayCopy,
+  TSepiMethod.Create(Result, 'DynArrayCopy', @DynArrayCopy,
     'procedure(Source : Pointer; TypeInfo : Pointer; var Dest : Pointer )');
-  TSepiMetaMethod.Create(Result, 'DynArrayCopyRange', @DynArrayCopyRange,
+  TSepiMethod.Create(Result, 'DynArrayCopyRange', @DynArrayCopyRange,
     'procedure(Source : Pointer; TypeInfo : Pointer; Index, Count : integer ; var Dest : Pointer )');
-  TSepiMetaMethod.Create(Result, 'CompilerMagicRoutineAddress', @CompilerMagicRoutineAddress,
+  TSepiMethod.Create(Result, 'CompilerMagicRoutineAddress', @CompilerMagicRoutineAddress,
     'function( CompilerMagicRoutineAlias : Pointer ) : Pointer');
 
   Result.Complete;

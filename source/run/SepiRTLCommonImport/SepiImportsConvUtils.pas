@@ -18,22 +18,22 @@ implementation
 type
   TSepiImportsEConversionError = class(EConversionError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTConvTypeInfo = class(TConvTypeInfo)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTConvTypeFactor = class(TConvTypeFactor)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTConvTypeProcs = class(TConvTypeProcs)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
 {-------------------------}
@@ -41,7 +41,7 @@ type
 {-------------------------}
 
 class function TSepiImportsEConversionError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EConversionError));
@@ -58,7 +58,7 @@ end;
 {----------------------}
 
 class function TSepiImportsTConvTypeInfo.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TConvTypeInfo));
@@ -98,7 +98,7 @@ end;
 {------------------------}
 
 class function TSepiImportsTConvTypeFactor.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TConvTypeFactor));
@@ -134,7 +134,7 @@ end;
 {-----------------------}
 
 class function TSepiImportsTConvTypeProcs.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TConvTypeProcs));
@@ -250,9 +250,9 @@ begin
   Result := RegisterConversionType(AConvTypeInfo, AType);
 end;
 
-function ImportUnit(Root : TSepiMetaRoot) : TSepiMetaUnit;
+function ImportUnit(Root : TSepiRoot) : TSepiUnit;
 begin
-  Result := TSepiMetaUnit.Create(Root, 'ConvUtils',
+  Result := TSepiUnit.Create(Root, 'ConvUtils',
     ['SysUtils', 'Math', 'Types']);
 
   // Types
@@ -264,89 +264,89 @@ begin
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(TConvFamilyArray));
 
   // Routines
-  TSepiMetaOverloadedMethod.Create(Result, 'Convert');
-  TSepiMetaMethod.Create(Result, 'OL$Convert$0', @Convert_0,
+  TSepiOverloadedMethod.Create(Result, 'Convert');
+  TSepiMethod.Create(Result, 'OL$Convert$0', @Convert_0,
     'function(const AValue: Double; const AFrom, ATo: TConvType ) : Double');
-  TSepiMetaMethod.Create(Result, 'OL$Convert$1', @Convert_1,
+  TSepiMethod.Create(Result, 'OL$Convert$1', @Convert_1,
     'function(const AValue: Double; const AFrom1, AFrom2, ATo1, ATo2: TConvType ) : Double');
-  TSepiMetaMethod.Create(Result, 'ConvertFrom', @ConvertFrom,
+  TSepiMethod.Create(Result, 'ConvertFrom', @ConvertFrom,
     'function(const AFrom: TConvType; const AValue: Double): Double');
-  TSepiMetaMethod.Create(Result, 'ConvertTo', @ConvertTo,
+  TSepiMethod.Create(Result, 'ConvertTo', @ConvertTo,
     'function(const AValue: Double; const ATo: TConvType): Double');
-  TSepiMetaMethod.Create(Result, 'ConvUnitAdd', @ConvUnitAdd,
+  TSepiMethod.Create(Result, 'ConvUnitAdd', @ConvUnitAdd,
     'function(const AValue1: Double; const AType1: TConvType; const AValue2: Double ; const AType2, AResultType: TConvType ) : Double');
-  TSepiMetaMethod.Create(Result, 'ConvUnitDiff', @ConvUnitDiff,
+  TSepiMethod.Create(Result, 'ConvUnitDiff', @ConvUnitDiff,
     'function(const AValue1: Double; const AType1: TConvType; const AValue2: Double ; const AType2, AResultType: TConvType ) : Double');
-  TSepiMetaOverloadedMethod.Create(Result, 'ConvUnitInc');
-  TSepiMetaMethod.Create(Result, 'OL$ConvUnitInc$0', @ConvUnitInc_0,
+  TSepiOverloadedMethod.Create(Result, 'ConvUnitInc');
+  TSepiMethod.Create(Result, 'OL$ConvUnitInc$0', @ConvUnitInc_0,
     'function(const AValue: Double; const AType, AAmountType: TConvType ) : Double');
-  TSepiMetaMethod.Create(Result, 'OL$ConvUnitInc$1', @ConvUnitInc_1,
+  TSepiMethod.Create(Result, 'OL$ConvUnitInc$1', @ConvUnitInc_1,
     'function(const AValue: Double; const AType: TConvType; const AAmount: Double ; const AAmountType: TConvType ) : Double');
-  TSepiMetaOverloadedMethod.Create(Result, 'ConvUnitDec');
-  TSepiMetaMethod.Create(Result, 'OL$ConvUnitDec$0', @ConvUnitDec_0,
+  TSepiOverloadedMethod.Create(Result, 'ConvUnitDec');
+  TSepiMethod.Create(Result, 'OL$ConvUnitDec$0', @ConvUnitDec_0,
     'function(const AValue: Double; const AType, AAmountType: TConvType ) : Double');
-  TSepiMetaMethod.Create(Result, 'OL$ConvUnitDec$1', @ConvUnitDec_1,
+  TSepiMethod.Create(Result, 'OL$ConvUnitDec$1', @ConvUnitDec_1,
     'function(const AValue: Double; const AType: TConvType; const AAmount: Double ; const AAmountType: TConvType ) : Double');
-  TSepiMetaMethod.Create(Result, 'ConvUnitWithinPrevious', @ConvUnitWithinPrevious,
+  TSepiMethod.Create(Result, 'ConvUnitWithinPrevious', @ConvUnitWithinPrevious,
     'function(const AValue, ATest: Double; const AType: TConvType ; const AAmount: Double ; const AAmountType: TConvType ) : Boolean');
-  TSepiMetaMethod.Create(Result, 'ConvUnitWithinNext', @ConvUnitWithinNext,
+  TSepiMethod.Create(Result, 'ConvUnitWithinNext', @ConvUnitWithinNext,
     'function(const AValue, ATest: Double; const AType: TConvType; const AAmount: Double ; const AAmountType: TConvType ) : Boolean');
-  TSepiMetaMethod.Create(Result, 'ConvUnitCompareValue', @ConvUnitCompareValue,
+  TSepiMethod.Create(Result, 'ConvUnitCompareValue', @ConvUnitCompareValue,
     'function(const AValue1: Double; const AType1: TConvType; const AValue2: Double ; const AType2: TConvType ) : TValueRelationship');
-  TSepiMetaMethod.Create(Result, 'ConvUnitSameValue', @ConvUnitSameValue,
+  TSepiMethod.Create(Result, 'ConvUnitSameValue', @ConvUnitSameValue,
     'function(const AValue1: Double; const AType1: TConvType; const AValue2: Double ; const AType2: TConvType ) : Boolean');
-  TSepiMetaOverloadedMethod.Create(Result, 'RegisterConversionType');
-  TSepiMetaMethod.Create(Result, 'OL$RegisterConversionType$0', @RegisterConversionType_0,
+  TSepiOverloadedMethod.Create(Result, 'RegisterConversionType');
+  TSepiMethod.Create(Result, 'OL$RegisterConversionType$0', @RegisterConversionType_0,
     'function(const AFamily: TConvFamily; const ADescription: string ; const AFactor: Double ) : TConvType');
-  TSepiMetaMethod.Create(Result, 'OL$RegisterConversionType$1', @RegisterConversionType_1,
+  TSepiMethod.Create(Result, 'OL$RegisterConversionType$1', @RegisterConversionType_1,
     'function(const AFamily: TConvFamily; const ADescription: string ; const AToCommonProc, AFromCommonProc : TConversionProc ) : TConvType');
-  TSepiMetaMethod.Create(Result, 'UnregisterConversionType', @UnregisterConversionType,
+  TSepiMethod.Create(Result, 'UnregisterConversionType', @UnregisterConversionType,
     'procedure(const AType: TConvType)');
-  TSepiMetaMethod.Create(Result, 'RegisterConversionFamily', @RegisterConversionFamily,
+  TSepiMethod.Create(Result, 'RegisterConversionFamily', @RegisterConversionFamily,
     'function(const ADescription: string): TConvFamily');
-  TSepiMetaMethod.Create(Result, 'UnregisterConversionFamily', @UnregisterConversionFamily,
+  TSepiMethod.Create(Result, 'UnregisterConversionFamily', @UnregisterConversionFamily,
     'procedure(const AFamily: TConvFamily)');
-  TSepiMetaMethod.Create(Result, 'CompatibleConversionTypes', @CompatibleConversionTypes,
+  TSepiMethod.Create(Result, 'CompatibleConversionTypes', @CompatibleConversionTypes,
     'function(const AFrom, ATo: TConvType): Boolean');
-  TSepiMetaMethod.Create(Result, 'CompatibleConversionType', @CompatibleConversionType,
+  TSepiMethod.Create(Result, 'CompatibleConversionType', @CompatibleConversionType,
     'function(const AType: TConvType; const AFamily: TConvFamily ) : Boolean');
-  TSepiMetaMethod.Create(Result, 'GetConvTypes', @GetConvTypes,
+  TSepiMethod.Create(Result, 'GetConvTypes', @GetConvTypes,
     'procedure(const AFamily: TConvFamily; out ATypes: TConvTypeArray)');
-  TSepiMetaMethod.Create(Result, 'GetConvFamilies', @GetConvFamilies,
+  TSepiMethod.Create(Result, 'GetConvFamilies', @GetConvFamilies,
     'procedure(out AFamilies: TConvFamilyArray)');
-  TSepiMetaMethod.Create(Result, 'StrToConvUnit', @StrToConvUnit,
+  TSepiMethod.Create(Result, 'StrToConvUnit', @StrToConvUnit,
     'function(AText: string; out AType: TConvType): Double');
-  TSepiMetaMethod.Create(Result, 'TryStrToConvUnit', @TryStrToConvUnit,
+  TSepiMethod.Create(Result, 'TryStrToConvUnit', @TryStrToConvUnit,
     'function(AText: string; out AValue: Double; out AType: TConvType ) : Boolean');
-  TSepiMetaMethod.Create(Result, 'ConvUnitToStr', @ConvUnitToStr,
+  TSepiMethod.Create(Result, 'ConvUnitToStr', @ConvUnitToStr,
     'function(const AValue: Double; const AType: TConvType): string');
-  TSepiMetaMethod.Create(Result, 'ConvTypeToDescription', @ConvTypeToDescription,
+  TSepiMethod.Create(Result, 'ConvTypeToDescription', @ConvTypeToDescription,
     'function(const AType: TConvType): string');
-  TSepiMetaMethod.Create(Result, 'ConvFamilyToDescription', @ConvFamilyToDescription,
+  TSepiMethod.Create(Result, 'ConvFamilyToDescription', @ConvFamilyToDescription,
     'function(const AFamily: TConvFamily): string');
-  TSepiMetaOverloadedMethod.Create(Result, 'DescriptionToConvType');
-  TSepiMetaMethod.Create(Result, 'OL$DescriptionToConvType$0', @DescriptionToConvType_0,
+  TSepiOverloadedMethod.Create(Result, 'DescriptionToConvType');
+  TSepiMethod.Create(Result, 'OL$DescriptionToConvType$0', @DescriptionToConvType_0,
     'function(const ADescription: string; out AType: TConvType ) : Boolean');
-  TSepiMetaMethod.Create(Result, 'OL$DescriptionToConvType$1', @DescriptionToConvType_1,
+  TSepiMethod.Create(Result, 'OL$DescriptionToConvType$1', @DescriptionToConvType_1,
     'function(const AFamily: TConvFamily; const ADescription: string ; out AType: TConvType ) : Boolean');
-  TSepiMetaMethod.Create(Result, 'DescriptionToConvFamily', @DescriptionToConvFamily,
+  TSepiMethod.Create(Result, 'DescriptionToConvFamily', @DescriptionToConvFamily,
     'function(const ADescription: string; out AFamily: TConvFamily ) : Boolean');
-  TSepiMetaOverloadedMethod.Create(Result, 'ConvTypeToFamily');
-  TSepiMetaMethod.Create(Result, 'OL$ConvTypeToFamily$0', @ConvTypeToFamily_0,
+  TSepiOverloadedMethod.Create(Result, 'ConvTypeToFamily');
+  TSepiMethod.Create(Result, 'OL$ConvTypeToFamily$0', @ConvTypeToFamily_0,
     'function(const AType: TConvType): TConvFamily');
-  TSepiMetaOverloadedMethod.Create(Result, 'TryConvTypeToFamily');
-  TSepiMetaMethod.Create(Result, 'OL$TryConvTypeToFamily$0', @TryConvTypeToFamily_0,
+  TSepiOverloadedMethod.Create(Result, 'TryConvTypeToFamily');
+  TSepiMethod.Create(Result, 'OL$TryConvTypeToFamily$0', @TryConvTypeToFamily_0,
     'function(const AType: TConvType; out AFamily: TConvFamily ) : Boolean');
-  TSepiMetaMethod.Create(Result, 'OL$ConvTypeToFamily$1', @ConvTypeToFamily_1,
+  TSepiMethod.Create(Result, 'OL$ConvTypeToFamily$1', @ConvTypeToFamily_1,
     'function(const AFrom, ATo: TConvType): TConvFamily');
-  TSepiMetaMethod.Create(Result, 'OL$TryConvTypeToFamily$1', @TryConvTypeToFamily_1,
+  TSepiMethod.Create(Result, 'OL$TryConvTypeToFamily$1', @TryConvTypeToFamily_1,
     'function(const AFrom, ATo: TConvType; out AFamily: TConvFamily ) : Boolean');
-  TSepiMetaOverloadedMethod.Create(Result, 'RaiseConversionError');
-  TSepiMetaMethod.Create(Result, 'OL$RaiseConversionError$0', @RaiseConversionError_0,
+  TSepiOverloadedMethod.Create(Result, 'RaiseConversionError');
+  TSepiMethod.Create(Result, 'OL$RaiseConversionError$0', @RaiseConversionError_0,
     'procedure(const AText: string)');
-  TSepiMetaMethod.Create(Result, 'OL$RaiseConversionError$1', @RaiseConversionError_1,
+  TSepiMethod.Create(Result, 'OL$RaiseConversionError$1', @RaiseConversionError_1,
     'procedure(const AText: string; const AArgs: array of const )');
-  TSepiMetaMethod.Create(Result, 'RaiseConversionRegError', @RaiseConversionRegError,
+  TSepiMethod.Create(Result, 'RaiseConversionRegError', @RaiseConversionRegError,
     'procedure(AFamily: TConvFamily; const ADescription: string )');
 
   // Types
@@ -369,7 +369,7 @@ begin
   TSepiImportsTConvTypeProcs.SepiImport(Result);
 
   // Routines
-  TSepiMetaMethod.Create(Result, 'OL$RegisterConversionType$2', @RegisterConversionType_2,
+  TSepiMethod.Create(Result, 'OL$RegisterConversionType$2', @RegisterConversionType_2,
     'function(AConvTypeInfo: TConvTypeInfo; out AType: TConvType ) : Boolean');
 
   Result.Complete;

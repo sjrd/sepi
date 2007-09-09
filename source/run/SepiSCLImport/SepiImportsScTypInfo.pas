@@ -19,7 +19,7 @@ implementation
 { TRecordField import }
 {---------------------}
 
-function SepiImportTRecordField(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTRecordField(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TRecordField', True, True);
 
@@ -36,7 +36,7 @@ end;
 { TRecordTypeData import }
 {------------------------}
 
-function SepiImportTRecordTypeData(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTRecordTypeData(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TRecordTypeData', True, True);
 
@@ -54,7 +54,7 @@ end;
 { TArrayTypeData import }
 {-----------------------}
 
-function SepiImportTArrayTypeData(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTArrayTypeData(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TArrayTypeData', True, True);
 
@@ -82,9 +82,9 @@ begin
   CopyData(Source, Dest, TypeInfo);
 end;
 
-function ImportUnit(Root : TSepiMetaRoot) : TSepiMetaUnit;
+function ImportUnit(Root : TSepiRoot) : TSepiUnit;
 begin
-  Result := TSepiMetaUnit.Create(Root, 'ScTypInfo',
+  Result := TSepiUnit.Create(Root, 'ScTypInfo',
     ['TypInfo']);
 
   // Constants
@@ -101,11 +101,11 @@ begin
   SepiImportTArrayTypeData(Result);
 
   // Routines
-  TSepiMetaMethod.Create(Result, 'TypeSize', @TypeSize,
+  TSepiMethod.Create(Result, 'TypeSize', @TypeSize,
     'function(TypeInfo : PTypeInfo) : integer');
-  TSepiMetaMethod.CreateOverloaded(Result, 'CopyData', @CopyData_0,
+  TSepiMethod.CreateOverloaded(Result, 'CopyData', @CopyData_0,
     'procedure(const Source; var Dest; Size : integer; TypeInfo : PTypeInfo )');
-  TSepiMetaMethod.CreateOverloaded(Result, 'CopyData', @CopyData_1,
+  TSepiMethod.CreateOverloaded(Result, 'CopyData', @CopyData_1,
     'procedure(const Source; var Dest; TypeInfo : PTypeInfo)');
 
   Result.Complete;

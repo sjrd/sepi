@@ -31,12 +31,12 @@ type
     procedure SetHasMaxValue(New : boolean);
     procedure SetMinValue(New : Double);
     procedure SetMaxValue(New : Double);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTSvNumberEdit = class(TSvNumberEdit)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
 {----------------------------}
@@ -109,7 +109,7 @@ begin
 end;
 
 class function TSepiImportsTSvCustomNumberEdit.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TSvCustomNumberEdit));
@@ -215,7 +215,7 @@ end;
 {----------------------}
 
 class function TSepiImportsTSvNumberEdit.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TSvNumberEdit));
@@ -292,9 +292,9 @@ end;
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiMetaRoot) : TSepiMetaUnit;
+function ImportUnit(Root : TSepiRoot) : TSepiUnit;
 begin
-  Result := TSepiMetaUnit.Create(Root, 'SvEdits',
+  Result := TSepiUnit.Create(Root, 'SvEdits',
     ['Windows', 'Messages', 'SysUtils', 'Classes', 'ScUtils', 'StdCtrls']);
 
   // Types

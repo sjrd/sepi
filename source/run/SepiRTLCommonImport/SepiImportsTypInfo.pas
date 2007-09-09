@@ -18,17 +18,17 @@ implementation
 type
   TSepiImportsTPublishableVariantType = class(TPublishableVariantType)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsEPropertyError = class(EPropertyError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsEPropertyConvertError = class(EPropertyConvertError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
 {--------------------------------}
@@ -36,7 +36,7 @@ type
 {--------------------------------}
 
 class function TSepiImportsTPublishableVariantType.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TPublishableVariantType));
@@ -68,7 +68,7 @@ end;
 { TTypeInfo import }
 {------------------}
 
-function SepiImportTTypeInfo(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTTypeInfo(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TTypeInfo', False, True);
 
@@ -85,7 +85,7 @@ end;
 { TTypeData import }
 {------------------}
 
-function SepiImportTTypeData(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTTypeData(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TTypeData', True, True);
 
@@ -127,7 +127,7 @@ end;
 { $2 import }
 {-----------}
 
-function SepiImport_2(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImport_2(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '$2', False, True);
 
@@ -142,7 +142,7 @@ end;
 { TPropData import }
 {------------------}
 
-function SepiImportTPropData(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTPropData(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TPropData', True, True);
 
@@ -159,7 +159,7 @@ end;
 { TPropInfo import }
 {------------------}
 
-function SepiImportTPropInfo(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTPropInfo(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TPropInfo', True, True);
 
@@ -183,7 +183,7 @@ end;
 {-----------------------}
 
 class function TSepiImportsEPropertyError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EPropertyError));
@@ -200,7 +200,7 @@ end;
 {------------------------------}
 
 class function TSepiImportsEPropertyConvertError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EPropertyConvertError));
@@ -566,115 +566,115 @@ begin
   SetDynArrayProp(Instance, PropInfo, Value);
 end;
 
-function ImportUnit(Root : TSepiMetaRoot) : TSepiMetaUnit;
+function ImportUnit(Root : TSepiRoot) : TSepiUnit;
 begin
-  Result := TSepiMetaUnit.Create(Root, 'TypInfo',
+  Result := TSepiUnit.Create(Root, 'TypInfo',
     ['Variants', 'SysUtils']);
 
   // Types
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(TTypeKind));
 
   // Routines
-  TSepiMetaOverloadedMethod.Create(Result, 'PropType');
-  TSepiMetaMethod.Create(Result, 'OL$PropType$0', @PropType_0,
+  TSepiOverloadedMethod.Create(Result, 'PropType');
+  TSepiMethod.Create(Result, 'OL$PropType$0', @PropType_0,
     'function(Instance: TObject; const PropName: string): TTypeKind');
-  TSepiMetaMethod.Create(Result, 'OL$PropType$1', @PropType_1,
+  TSepiMethod.Create(Result, 'OL$PropType$1', @PropType_1,
     'function(AClass: TClass; const PropName: string): TTypeKind');
-  TSepiMetaOverloadedMethod.Create(Result, 'PropIsType');
-  TSepiMetaMethod.Create(Result, 'OL$PropIsType$0', @PropIsType_0,
+  TSepiOverloadedMethod.Create(Result, 'PropIsType');
+  TSepiMethod.Create(Result, 'OL$PropIsType$0', @PropIsType_0,
     'function(Instance: TObject; const PropName: string; TypeKind: TTypeKind ) : Boolean');
-  TSepiMetaMethod.Create(Result, 'OL$PropIsType$1', @PropIsType_1,
+  TSepiMethod.Create(Result, 'OL$PropIsType$1', @PropIsType_1,
     'function(AClass: TClass; const PropName: string; TypeKind: TTypeKind ) : Boolean');
-  TSepiMetaOverloadedMethod.Create(Result, 'IsStoredProp');
-  TSepiMetaMethod.Create(Result, 'OL$IsStoredProp$0', @IsStoredProp_0,
+  TSepiOverloadedMethod.Create(Result, 'IsStoredProp');
+  TSepiMethod.Create(Result, 'OL$IsStoredProp$0', @IsStoredProp_0,
     'function(Instance: TObject; const PropName: string): Boolean');
-  TSepiMetaOverloadedMethod.Create(Result, 'IsPublishedProp');
-  TSepiMetaMethod.Create(Result, 'OL$IsPublishedProp$0', @IsPublishedProp_0,
+  TSepiOverloadedMethod.Create(Result, 'IsPublishedProp');
+  TSepiMethod.Create(Result, 'OL$IsPublishedProp$0', @IsPublishedProp_0,
     'function(Instance: TObject; const PropName: string): Boolean');
-  TSepiMetaMethod.Create(Result, 'OL$IsPublishedProp$1', @IsPublishedProp_1,
+  TSepiMethod.Create(Result, 'OL$IsPublishedProp$1', @IsPublishedProp_1,
     'function(AClass: TClass; const PropName: string): Boolean');
-  TSepiMetaOverloadedMethod.Create(Result, 'GetOrdProp');
-  TSepiMetaMethod.Create(Result, 'OL$GetOrdProp$0', @GetOrdProp_0,
+  TSepiOverloadedMethod.Create(Result, 'GetOrdProp');
+  TSepiMethod.Create(Result, 'OL$GetOrdProp$0', @GetOrdProp_0,
     'function(Instance: TObject; const PropName: string): Longint');
-  TSepiMetaOverloadedMethod.Create(Result, 'SetOrdProp');
-  TSepiMetaMethod.Create(Result, 'OL$SetOrdProp$0', @SetOrdProp_0,
+  TSepiOverloadedMethod.Create(Result, 'SetOrdProp');
+  TSepiMethod.Create(Result, 'OL$SetOrdProp$0', @SetOrdProp_0,
     'procedure(Instance: TObject; const PropName: string; Value: Longint )');
-  TSepiMetaOverloadedMethod.Create(Result, 'GetEnumProp');
-  TSepiMetaMethod.Create(Result, 'OL$GetEnumProp$0', @GetEnumProp_0,
+  TSepiOverloadedMethod.Create(Result, 'GetEnumProp');
+  TSepiMethod.Create(Result, 'OL$GetEnumProp$0', @GetEnumProp_0,
     'function(Instance: TObject; const PropName: string): string');
-  TSepiMetaOverloadedMethod.Create(Result, 'SetEnumProp');
-  TSepiMetaMethod.Create(Result, 'OL$SetEnumProp$0', @SetEnumProp_0,
+  TSepiOverloadedMethod.Create(Result, 'SetEnumProp');
+  TSepiMethod.Create(Result, 'OL$SetEnumProp$0', @SetEnumProp_0,
     'procedure(Instance: TObject; const PropName: string; const Value: string )');
-  TSepiMetaOverloadedMethod.Create(Result, 'GetSetProp');
-  TSepiMetaMethod.Create(Result, 'OL$GetSetProp$0', @GetSetProp_0,
+  TSepiOverloadedMethod.Create(Result, 'GetSetProp');
+  TSepiMethod.Create(Result, 'OL$GetSetProp$0', @GetSetProp_0,
     'function(Instance: TObject; const PropName: string; Brackets: Boolean = False ) : string');
-  TSepiMetaOverloadedMethod.Create(Result, 'SetSetProp');
-  TSepiMetaMethod.Create(Result, 'OL$SetSetProp$0', @SetSetProp_0,
+  TSepiOverloadedMethod.Create(Result, 'SetSetProp');
+  TSepiMethod.Create(Result, 'OL$SetSetProp$0', @SetSetProp_0,
     'procedure(Instance: TObject; const PropName: string; const Value: string )');
-  TSepiMetaOverloadedMethod.Create(Result, 'GetObjectProp');
-  TSepiMetaMethod.Create(Result, 'OL$GetObjectProp$0', @GetObjectProp_0,
+  TSepiOverloadedMethod.Create(Result, 'GetObjectProp');
+  TSepiMethod.Create(Result, 'OL$GetObjectProp$0', @GetObjectProp_0,
     'function(Instance: TObject; const PropName: string; MinClass: TClass = nil ) : TObject');
-  TSepiMetaOverloadedMethod.Create(Result, 'SetObjectProp');
-  TSepiMetaMethod.Create(Result, 'OL$SetObjectProp$0', @SetObjectProp_0,
+  TSepiOverloadedMethod.Create(Result, 'SetObjectProp');
+  TSepiMethod.Create(Result, 'OL$SetObjectProp$0', @SetObjectProp_0,
     'procedure(Instance: TObject; const PropName: string; Value: TObject )');
-  TSepiMetaOverloadedMethod.Create(Result, 'GetObjectPropClass');
-  TSepiMetaMethod.Create(Result, 'OL$GetObjectPropClass$0', @GetObjectPropClass_0,
+  TSepiOverloadedMethod.Create(Result, 'GetObjectPropClass');
+  TSepiMethod.Create(Result, 'OL$GetObjectPropClass$0', @GetObjectPropClass_0,
     'function(Instance: TObject; const PropName: string): TClass');
-  TSepiMetaOverloadedMethod.Create(Result, 'GetStrProp');
-  TSepiMetaMethod.Create(Result, 'OL$GetStrProp$0', @GetStrProp_0,
+  TSepiOverloadedMethod.Create(Result, 'GetStrProp');
+  TSepiMethod.Create(Result, 'OL$GetStrProp$0', @GetStrProp_0,
     'function(Instance: TObject; const PropName: string): string');
-  TSepiMetaOverloadedMethod.Create(Result, 'SetStrProp');
-  TSepiMetaMethod.Create(Result, 'OL$SetStrProp$0', @SetStrProp_0,
+  TSepiOverloadedMethod.Create(Result, 'SetStrProp');
+  TSepiMethod.Create(Result, 'OL$SetStrProp$0', @SetStrProp_0,
     'procedure(Instance: TObject; const PropName: string; const Value: string )');
-  TSepiMetaOverloadedMethod.Create(Result, 'GetWideStrProp');
-  TSepiMetaMethod.Create(Result, 'OL$GetWideStrProp$0', @GetWideStrProp_0,
+  TSepiOverloadedMethod.Create(Result, 'GetWideStrProp');
+  TSepiMethod.Create(Result, 'OL$GetWideStrProp$0', @GetWideStrProp_0,
     'function(Instance: TObject; const PropName: string): WideString');
-  TSepiMetaOverloadedMethod.Create(Result, 'SetWideStrProp');
-  TSepiMetaMethod.Create(Result, 'OL$SetWideStrProp$0', @SetWideStrProp_0,
+  TSepiOverloadedMethod.Create(Result, 'SetWideStrProp');
+  TSepiMethod.Create(Result, 'OL$SetWideStrProp$0', @SetWideStrProp_0,
     'procedure(Instance: TObject; const PropName: string; const Value: WideString )');
-  TSepiMetaOverloadedMethod.Create(Result, 'GetFloatProp');
-  TSepiMetaMethod.Create(Result, 'OL$GetFloatProp$0', @GetFloatProp_0,
+  TSepiOverloadedMethod.Create(Result, 'GetFloatProp');
+  TSepiMethod.Create(Result, 'OL$GetFloatProp$0', @GetFloatProp_0,
     'function(Instance: TObject; const PropName: string): Extended');
-  TSepiMetaOverloadedMethod.Create(Result, 'SetFloatProp');
-  TSepiMetaMethod.Create(Result, 'OL$SetFloatProp$0', @SetFloatProp_0,
+  TSepiOverloadedMethod.Create(Result, 'SetFloatProp');
+  TSepiMethod.Create(Result, 'OL$SetFloatProp$0', @SetFloatProp_0,
     'procedure(Instance: TObject; const PropName: string; const Value: Extended )');
-  TSepiMetaOverloadedMethod.Create(Result, 'GetVariantProp');
-  TSepiMetaMethod.Create(Result, 'OL$GetVariantProp$0', @GetVariantProp_0,
+  TSepiOverloadedMethod.Create(Result, 'GetVariantProp');
+  TSepiMethod.Create(Result, 'OL$GetVariantProp$0', @GetVariantProp_0,
     'function(Instance: TObject; const PropName: string): Variant');
-  TSepiMetaOverloadedMethod.Create(Result, 'SetVariantProp');
-  TSepiMetaMethod.Create(Result, 'OL$SetVariantProp$0', @SetVariantProp_0,
+  TSepiOverloadedMethod.Create(Result, 'SetVariantProp');
+  TSepiMethod.Create(Result, 'OL$SetVariantProp$0', @SetVariantProp_0,
     'procedure(Instance: TObject; const PropName: string; const Value: Variant )');
-  TSepiMetaOverloadedMethod.Create(Result, 'GetMethodProp');
-  TSepiMetaMethod.Create(Result, 'OL$GetMethodProp$0', @GetMethodProp_0,
+  TSepiOverloadedMethod.Create(Result, 'GetMethodProp');
+  TSepiMethod.Create(Result, 'OL$GetMethodProp$0', @GetMethodProp_0,
     'function(Instance: TObject; const PropName: string): TMethod');
-  TSepiMetaOverloadedMethod.Create(Result, 'SetMethodProp');
-  TSepiMetaMethod.Create(Result, 'OL$SetMethodProp$0', @SetMethodProp_0,
+  TSepiOverloadedMethod.Create(Result, 'SetMethodProp');
+  TSepiMethod.Create(Result, 'OL$SetMethodProp$0', @SetMethodProp_0,
     'procedure(Instance: TObject; const PropName: string; const Value: TMethod )');
-  TSepiMetaOverloadedMethod.Create(Result, 'GetInt64Prop');
-  TSepiMetaMethod.Create(Result, 'OL$GetInt64Prop$0', @GetInt64Prop_0,
+  TSepiOverloadedMethod.Create(Result, 'GetInt64Prop');
+  TSepiMethod.Create(Result, 'OL$GetInt64Prop$0', @GetInt64Prop_0,
     'function(Instance: TObject; const PropName: string): Int64');
-  TSepiMetaOverloadedMethod.Create(Result, 'SetInt64Prop');
-  TSepiMetaMethod.Create(Result, 'OL$SetInt64Prop$0', @SetInt64Prop_0,
+  TSepiOverloadedMethod.Create(Result, 'SetInt64Prop');
+  TSepiMethod.Create(Result, 'OL$SetInt64Prop$0', @SetInt64Prop_0,
     'procedure(Instance: TObject; const PropName: string; const Value: Int64 )');
-  TSepiMetaOverloadedMethod.Create(Result, 'GetInterfaceProp');
-  TSepiMetaMethod.Create(Result, 'OL$GetInterfaceProp$0', @GetInterfaceProp_0,
+  TSepiOverloadedMethod.Create(Result, 'GetInterfaceProp');
+  TSepiMethod.Create(Result, 'OL$GetInterfaceProp$0', @GetInterfaceProp_0,
     'function(Instance: TObject; const PropName: string): IInterface');
-  TSepiMetaOverloadedMethod.Create(Result, 'SetInterfaceProp');
-  TSepiMetaMethod.Create(Result, 'OL$SetInterfaceProp$0', @SetInterfaceProp_0,
+  TSepiOverloadedMethod.Create(Result, 'SetInterfaceProp');
+  TSepiMethod.Create(Result, 'OL$SetInterfaceProp$0', @SetInterfaceProp_0,
     'procedure(Instance: TObject; const PropName: string; const Value: IInterface )');
-  TSepiMetaOverloadedMethod.Create(Result, 'GetDynArrayProp');
-  TSepiMetaMethod.Create(Result, 'OL$GetDynArrayProp$0', @GetDynArrayProp_0,
+  TSepiOverloadedMethod.Create(Result, 'GetDynArrayProp');
+  TSepiMethod.Create(Result, 'OL$GetDynArrayProp$0', @GetDynArrayProp_0,
     'function(Instance: TObject; const PropName: string): Pointer');
-  TSepiMetaOverloadedMethod.Create(Result, 'SetDynArrayProp');
-  TSepiMetaMethod.Create(Result, 'OL$SetDynArrayProp$0', @SetDynArrayProp_0,
+  TSepiOverloadedMethod.Create(Result, 'SetDynArrayProp');
+  TSepiMethod.Create(Result, 'OL$SetDynArrayProp$0', @SetDynArrayProp_0,
     'procedure(Instance: TObject; const PropName: string; const Value: Pointer )');
-  TSepiMetaOverloadedMethod.Create(Result, 'GetPropValue');
-  TSepiMetaMethod.Create(Result, 'OL$GetPropValue$0', @GetPropValue_0,
+  TSepiOverloadedMethod.Create(Result, 'GetPropValue');
+  TSepiMethod.Create(Result, 'OL$GetPropValue$0', @GetPropValue_0,
     'function(Instance: TObject; const PropName: string; PreferStrings: Boolean = True ) : Variant');
-  TSepiMetaOverloadedMethod.Create(Result, 'SetPropValue');
-  TSepiMetaMethod.Create(Result, 'OL$SetPropValue$0', @SetPropValue_0,
+  TSepiOverloadedMethod.Create(Result, 'SetPropValue');
+  TSepiMethod.Create(Result, 'OL$SetPropValue$0', @SetPropValue_0,
     'procedure(Instance: TObject; const PropName: string; const Value: Variant )');
-  TSepiMetaMethod.Create(Result, 'FreeAndNilProperties', @FreeAndNilProperties,
+  TSepiMethod.Create(Result, 'FreeAndNilProperties', @FreeAndNilProperties,
     'procedure(AObject: TObject)');
 
   // Types
@@ -718,89 +718,89 @@ begin
   TSepiImportsEPropertyConvertError.SepiImport(Result);
 
   // Routines
-  TSepiMetaMethod.Create(Result, 'GetTypeData', @GetTypeData,
+  TSepiMethod.Create(Result, 'GetTypeData', @GetTypeData,
     'function(TypeInfo: PTypeInfo): PTypeData');
-  TSepiMetaMethod.Create(Result, 'GetEnumName', @GetEnumName,
+  TSepiMethod.Create(Result, 'GetEnumName', @GetEnumName,
     'function(TypeInfo: PTypeInfo; Value: Integer): string');
-  TSepiMetaMethod.Create(Result, 'GetEnumValue', @GetEnumValue,
+  TSepiMethod.Create(Result, 'GetEnumValue', @GetEnumValue,
     'function(TypeInfo: PTypeInfo; const Name: string): Integer');
-  TSepiMetaOverloadedMethod.Create(Result, 'GetPropInfo');
-  TSepiMetaMethod.Create(Result, 'OL$GetPropInfo$0', @GetPropInfo_0,
+  TSepiOverloadedMethod.Create(Result, 'GetPropInfo');
+  TSepiMethod.Create(Result, 'OL$GetPropInfo$0', @GetPropInfo_0,
     'function(Instance: TObject; const PropName: string; AKinds: TTypeKinds = [] ) : PPropInfo');
-  TSepiMetaMethod.Create(Result, 'OL$GetPropInfo$1', @GetPropInfo_1,
+  TSepiMethod.Create(Result, 'OL$GetPropInfo$1', @GetPropInfo_1,
     'function(AClass: TClass; const PropName: string; AKinds: TTypeKinds = [] ) : PPropInfo');
-  TSepiMetaMethod.Create(Result, 'OL$GetPropInfo$2', @GetPropInfo_2,
+  TSepiMethod.Create(Result, 'OL$GetPropInfo$2', @GetPropInfo_2,
     'function(TypeInfo: PTypeInfo; const PropName: string ) : PPropInfo');
-  TSepiMetaMethod.Create(Result, 'OL$GetPropInfo$3', @GetPropInfo_3,
+  TSepiMethod.Create(Result, 'OL$GetPropInfo$3', @GetPropInfo_3,
     'function(TypeInfo: PTypeInfo; const PropName: string; AKinds: TTypeKinds ) : PPropInfo');
-  TSepiMetaMethod.Create(Result, 'GetPropInfos', @GetPropInfos,
+  TSepiMethod.Create(Result, 'GetPropInfos', @GetPropInfos,
     'procedure(TypeInfo: PTypeInfo; PropList: PPropList)');
-  TSepiMetaOverloadedMethod.Create(Result, 'GetPropList');
-  TSepiMetaMethod.Create(Result, 'OL$GetPropList$0', @GetPropList_0,
+  TSepiOverloadedMethod.Create(Result, 'GetPropList');
+  TSepiMethod.Create(Result, 'OL$GetPropList$0', @GetPropList_0,
     'function(TypeInfo: PTypeInfo; TypeKinds: TTypeKinds; PropList: PPropList ; SortList: Boolean = True ) : Integer');
-  TSepiMetaMethod.Create(Result, 'OL$GetPropList$1', @GetPropList_1,
+  TSepiMethod.Create(Result, 'OL$GetPropList$1', @GetPropList_1,
     'function(TypeInfo: PTypeInfo; out PropList: PPropList): Integer');
-  TSepiMetaMethod.Create(Result, 'OL$GetPropList$2', @GetPropList_2,
+  TSepiMethod.Create(Result, 'OL$GetPropList$2', @GetPropList_2,
     'function(AObject: TObject; out PropList: PPropList): Integer');
-  TSepiMetaMethod.Create(Result, 'SortPropList', @SortPropList,
+  TSepiMethod.Create(Result, 'SortPropList', @SortPropList,
     'procedure(PropList: PPropList; PropCount: Integer)');
-  TSepiMetaMethod.Create(Result, 'OL$IsStoredProp$1', @IsStoredProp_1,
+  TSepiMethod.Create(Result, 'OL$IsStoredProp$1', @IsStoredProp_1,
     'function(Instance: TObject; PropInfo: PPropInfo): Boolean');
-  TSepiMetaMethod.Create(Result, 'OL$GetPropValue$1', @GetPropValue_1,
+  TSepiMethod.Create(Result, 'OL$GetPropValue$1', @GetPropValue_1,
     'function(Instance: TObject; PropInfo: PPropInfo; PreferStrings: Boolean = True ) : Variant');
-  TSepiMetaMethod.Create(Result, 'OL$SetPropValue$1', @SetPropValue_1,
+  TSepiMethod.Create(Result, 'OL$SetPropValue$1', @SetPropValue_1,
     'procedure(Instance: TObject; PropInfo: PPropInfo; const Value: Variant )');
-  TSepiMetaMethod.Create(Result, 'OL$GetOrdProp$1', @GetOrdProp_1,
+  TSepiMethod.Create(Result, 'OL$GetOrdProp$1', @GetOrdProp_1,
     'function(Instance: TObject; PropInfo: PPropInfo): Longint');
-  TSepiMetaMethod.Create(Result, 'OL$SetOrdProp$1', @SetOrdProp_1,
+  TSepiMethod.Create(Result, 'OL$SetOrdProp$1', @SetOrdProp_1,
     'procedure(Instance: TObject; PropInfo: PPropInfo; Value: Longint )');
-  TSepiMetaMethod.Create(Result, 'OL$GetEnumProp$1', @GetEnumProp_1,
+  TSepiMethod.Create(Result, 'OL$GetEnumProp$1', @GetEnumProp_1,
     'function(Instance: TObject; PropInfo: PPropInfo): string');
-  TSepiMetaMethod.Create(Result, 'OL$SetEnumProp$1', @SetEnumProp_1,
+  TSepiMethod.Create(Result, 'OL$SetEnumProp$1', @SetEnumProp_1,
     'procedure(Instance: TObject; PropInfo: PPropInfo; const Value: string )');
-  TSepiMetaMethod.Create(Result, 'OL$GetSetProp$1', @GetSetProp_1,
+  TSepiMethod.Create(Result, 'OL$GetSetProp$1', @GetSetProp_1,
     'function(Instance: TObject; PropInfo: PPropInfo; Brackets: Boolean = False ) : string');
-  TSepiMetaMethod.Create(Result, 'OL$SetSetProp$1', @SetSetProp_1,
+  TSepiMethod.Create(Result, 'OL$SetSetProp$1', @SetSetProp_1,
     'procedure(Instance: TObject; PropInfo: PPropInfo; const Value: string )');
-  TSepiMetaMethod.Create(Result, 'OL$GetObjectProp$1', @GetObjectProp_1,
+  TSepiMethod.Create(Result, 'OL$GetObjectProp$1', @GetObjectProp_1,
     'function(Instance: TObject; PropInfo: PPropInfo; MinClass: TClass = nil ) : TObject');
-  TSepiMetaMethod.Create(Result, 'OL$SetObjectProp$1', @SetObjectProp_1,
+  TSepiMethod.Create(Result, 'OL$SetObjectProp$1', @SetObjectProp_1,
     'procedure(Instance: TObject; PropInfo: PPropInfo; Value: TObject ; ValidateClass: Boolean = True )');
-  TSepiMetaMethod.Create(Result, 'OL$GetObjectPropClass$1', @GetObjectPropClass_1,
+  TSepiMethod.Create(Result, 'OL$GetObjectPropClass$1', @GetObjectPropClass_1,
     'function(Instance: TObject; PropInfo: PPropInfo): TClass');
-  TSepiMetaMethod.Create(Result, 'OL$GetObjectPropClass$2', @GetObjectPropClass_2,
+  TSepiMethod.Create(Result, 'OL$GetObjectPropClass$2', @GetObjectPropClass_2,
     'function(PropInfo: PPropInfo): TClass');
-  TSepiMetaMethod.Create(Result, 'OL$GetStrProp$1', @GetStrProp_1,
+  TSepiMethod.Create(Result, 'OL$GetStrProp$1', @GetStrProp_1,
     'function(Instance: TObject; PropInfo: PPropInfo): string');
-  TSepiMetaMethod.Create(Result, 'OL$SetStrProp$1', @SetStrProp_1,
+  TSepiMethod.Create(Result, 'OL$SetStrProp$1', @SetStrProp_1,
     'procedure(Instance: TObject; PropInfo: PPropInfo; const Value: string )');
-  TSepiMetaMethod.Create(Result, 'OL$GetWideStrProp$1', @GetWideStrProp_1,
+  TSepiMethod.Create(Result, 'OL$GetWideStrProp$1', @GetWideStrProp_1,
     'function(Instance: TObject; PropInfo: PPropInfo): WideString');
-  TSepiMetaMethod.Create(Result, 'OL$SetWideStrProp$1', @SetWideStrProp_1,
+  TSepiMethod.Create(Result, 'OL$SetWideStrProp$1', @SetWideStrProp_1,
     'procedure(Instance: TObject; PropInfo: PPropInfo; const Value: WideString )');
-  TSepiMetaMethod.Create(Result, 'OL$GetFloatProp$1', @GetFloatProp_1,
+  TSepiMethod.Create(Result, 'OL$GetFloatProp$1', @GetFloatProp_1,
     'function(Instance: TObject; PropInfo: PPropInfo): Extended');
-  TSepiMetaMethod.Create(Result, 'OL$SetFloatProp$1', @SetFloatProp_1,
+  TSepiMethod.Create(Result, 'OL$SetFloatProp$1', @SetFloatProp_1,
     'procedure(Instance: TObject; PropInfo: PPropInfo; const Value: Extended )');
-  TSepiMetaMethod.Create(Result, 'OL$GetVariantProp$1', @GetVariantProp_1,
+  TSepiMethod.Create(Result, 'OL$GetVariantProp$1', @GetVariantProp_1,
     'function(Instance: TObject; PropInfo: PPropInfo): Variant');
-  TSepiMetaMethod.Create(Result, 'OL$SetVariantProp$1', @SetVariantProp_1,
+  TSepiMethod.Create(Result, 'OL$SetVariantProp$1', @SetVariantProp_1,
     'procedure(Instance: TObject; PropInfo: PPropInfo; const Value: Variant )');
-  TSepiMetaMethod.Create(Result, 'OL$GetMethodProp$1', @GetMethodProp_1,
+  TSepiMethod.Create(Result, 'OL$GetMethodProp$1', @GetMethodProp_1,
     'function(Instance: TObject; PropInfo: PPropInfo): TMethod');
-  TSepiMetaMethod.Create(Result, 'OL$SetMethodProp$1', @SetMethodProp_1,
+  TSepiMethod.Create(Result, 'OL$SetMethodProp$1', @SetMethodProp_1,
     'procedure(Instance: TObject; PropInfo: PPropInfo; const Value: TMethod )');
-  TSepiMetaMethod.Create(Result, 'OL$GetInt64Prop$1', @GetInt64Prop_1,
+  TSepiMethod.Create(Result, 'OL$GetInt64Prop$1', @GetInt64Prop_1,
     'function(Instance: TObject; PropInfo: PPropInfo): Int64');
-  TSepiMetaMethod.Create(Result, 'OL$SetInt64Prop$1', @SetInt64Prop_1,
+  TSepiMethod.Create(Result, 'OL$SetInt64Prop$1', @SetInt64Prop_1,
     'procedure(Instance: TObject; PropInfo: PPropInfo; const Value: Int64 )');
-  TSepiMetaMethod.Create(Result, 'OL$GetInterfaceProp$1', @GetInterfaceProp_1,
+  TSepiMethod.Create(Result, 'OL$GetInterfaceProp$1', @GetInterfaceProp_1,
     'function(Instance: TObject; PropInfo: PPropInfo): IInterface');
-  TSepiMetaMethod.Create(Result, 'OL$SetInterfaceProp$1', @SetInterfaceProp_1,
+  TSepiMethod.Create(Result, 'OL$SetInterfaceProp$1', @SetInterfaceProp_1,
     'procedure(Instance: TObject; PropInfo: PPropInfo; const Value: IInterface )');
-  TSepiMetaMethod.Create(Result, 'OL$GetDynArrayProp$1', @GetDynArrayProp_1,
+  TSepiMethod.Create(Result, 'OL$GetDynArrayProp$1', @GetDynArrayProp_1,
     'function(Instance: TObject; PropInfo: PPropInfo): Pointer');
-  TSepiMetaMethod.Create(Result, 'OL$SetDynArrayProp$1', @SetDynArrayProp_1,
+  TSepiMethod.Create(Result, 'OL$SetDynArrayProp$1', @SetDynArrayProp_1,
     'procedure(Instance: TObject; PropInfo: PPropInfo; const Value: Pointer )');
 
   // Global variables
@@ -812,13 +812,13 @@ begin
      DotSep, TypeInfo(string));
 
   // Routines
-  TSepiMetaMethod.Create(Result, 'SetToString', @SetToString,
+  TSepiMethod.Create(Result, 'SetToString', @SetToString,
     'function(PropInfo: PPropInfo; Value: Integer; Brackets: Boolean = False): string');
-  TSepiMetaMethod.Create(Result, 'StringToSet', @StringToSet,
+  TSepiMethod.Create(Result, 'StringToSet', @StringToSet,
     'function(PropInfo: PPropInfo; const Value: string): Integer');
-  TSepiMetaMethod.Create(Result, 'GetSetElementName', @GetSetElementName,
+  TSepiMethod.Create(Result, 'GetSetElementName', @GetSetElementName,
     'function(TypeInfo: PTypeInfo; Value: Integer): string');
-  TSepiMetaMethod.Create(Result, 'GetSetElementValue', @GetSetElementValue,
+  TSepiMethod.Create(Result, 'GetSetElementValue', @GetSetElementValue,
     'function(TypeInfo: PTypeInfo; const Name: string): Integer');
 
   Result.Complete;

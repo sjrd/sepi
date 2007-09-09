@@ -19,7 +19,7 @@ implementation
 { TMD5Digest import }
 {-------------------}
 
-function SepiImportTMD5Digest(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTMD5Digest(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TMD5Digest', False, True);
 
@@ -39,9 +39,9 @@ end;
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiMetaRoot) : TSepiMetaUnit;
+function ImportUnit(Root : TSepiRoot) : TSepiUnit;
 begin
-  Result := TSepiMetaUnit.Create(Root, 'ScMD5',
+  Result := TSepiUnit.Create(Root, 'ScMD5',
     ['Windows', 'SysUtils', 'Classes']);
 
   // Types
@@ -51,19 +51,19 @@ begin
   SepiImportTMD5Digest(Result);
 
   // Routines
-  TSepiMetaMethod.Create(Result, 'MD5String', @MD5String,
+  TSepiMethod.Create(Result, 'MD5String', @MD5String,
     'function(const S : string) : TMD5Digest');
-  TSepiMetaMethod.Create(Result, 'MD5File', @MD5File,
+  TSepiMethod.Create(Result, 'MD5File', @MD5File,
     'function(const FileName : TFileName) : TMD5Digest');
-  TSepiMetaMethod.Create(Result, 'MD5Stream', @MD5Stream,
+  TSepiMethod.Create(Result, 'MD5Stream', @MD5Stream,
     'function(const Stream : TStream) : TMD5Digest');
-  TSepiMetaMethod.Create(Result, 'MD5Buffer', @MD5Buffer,
+  TSepiMethod.Create(Result, 'MD5Buffer', @MD5Buffer,
     'function(const Buffer; Size : Integer) : TMD5Digest');
-  TSepiMetaMethod.Create(Result, 'MD5DigestToStr', @MD5DigestToStr,
+  TSepiMethod.Create(Result, 'MD5DigestToStr', @MD5DigestToStr,
     'function(const Digest : TMD5Digest) : string');
-  TSepiMetaMethod.Create(Result, 'StrToMD5Digest', @StrToMD5Digest,
+  TSepiMethod.Create(Result, 'StrToMD5Digest', @StrToMD5Digest,
     'function(Str : string) : TMD5Digest');
-  TSepiMetaMethod.Create(Result, 'MD5DigestCompare', @MD5DigestCompare,
+  TSepiMethod.Create(Result, 'MD5DigestCompare', @MD5DigestCompare,
     'function(const Digest1, Digest2 : TMD5Digest) : boolean');
 
   Result.Complete;

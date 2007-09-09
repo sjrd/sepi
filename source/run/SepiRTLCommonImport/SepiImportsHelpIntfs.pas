@@ -18,14 +18,14 @@ implementation
 type
   TSepiImportsEHelpSystemException = class(EHelpSystemException)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
 {----------------------}
 { IHelpSelector import }
 {----------------------}
 
-function SepiImportIHelpSelector(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIHelpSelector(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IHelpSelector));
@@ -45,7 +45,7 @@ end;
 { IHelpSelector2 import }
 {-----------------------}
 
-function SepiImportIHelpSelector2(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIHelpSelector2(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IHelpSelector2));
@@ -63,7 +63,7 @@ end;
 { IHelpSystem import }
 {--------------------}
 
-function SepiImportIHelpSystem(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIHelpSystem(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IHelpSystem));
@@ -91,7 +91,7 @@ end;
 { IHelpSystem2 import }
 {---------------------}
 
-function SepiImportIHelpSystem2(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIHelpSystem2(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IHelpSystem2));
@@ -109,7 +109,7 @@ end;
 { ICustomHelpViewer import }
 {--------------------------}
 
-function SepiImportICustomHelpViewer(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportICustomHelpViewer(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(ICustomHelpViewer));
@@ -143,7 +143,7 @@ end;
 { IExtendedHelpViewer import }
 {----------------------------}
 
-function SepiImportIExtendedHelpViewer(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIExtendedHelpViewer(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IExtendedHelpViewer));
@@ -167,7 +167,7 @@ end;
 { ISpecialWinHelpViewer import }
 {------------------------------}
 
-function SepiImportISpecialWinHelpViewer(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportISpecialWinHelpViewer(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(ISpecialWinHelpViewer));
@@ -185,7 +185,7 @@ end;
 { IHelpSystemFlags import }
 {-------------------------}
 
-function SepiImportIHelpSystemFlags(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIHelpSystemFlags(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IHelpSystemFlags));
@@ -205,7 +205,7 @@ end;
 { IHelpManager import }
 {---------------------}
 
-function SepiImportIHelpManager(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIHelpManager(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IHelpManager));
@@ -228,7 +228,7 @@ end;
 {-----------------------------}
 
 class function TSepiImportsEHelpSystemException.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EHelpSystemException));
@@ -254,9 +254,9 @@ begin
   Result := GetHelpSystem(System);
 end;
 
-function ImportUnit(Root : TSepiMetaRoot) : TSepiMetaUnit;
+function ImportUnit(Root : TSepiRoot) : TSepiUnit;
 begin
-  Result := TSepiMetaUnit.Create(Root, 'HelpIntfs',
+  Result := TSepiUnit.Create(Root, 'HelpIntfs',
     ['SysUtils', 'Classes']);
 
   // Types
@@ -272,12 +272,12 @@ begin
   TSepiImportsEHelpSystemException.SepiImport(Result);
 
   // Routines
-  TSepiMetaMethod.Create(Result, 'RegisterViewer', @RegisterViewer,
+  TSepiMethod.Create(Result, 'RegisterViewer', @RegisterViewer,
     'function(const newViewer: ICustomHelpViewer; out Manager: IHelpManager ) : Integer');
-  TSepiMetaOverloadedMethod.Create(Result, 'GetHelpSystem');
-  TSepiMetaMethod.Create(Result, 'OL$GetHelpSystem$0', @GetHelpSystem_0,
+  TSepiOverloadedMethod.Create(Result, 'GetHelpSystem');
+  TSepiMethod.Create(Result, 'OL$GetHelpSystem$0', @GetHelpSystem_0,
     'function(out System: IHelpSystem): Boolean');
-  TSepiMetaMethod.Create(Result, 'OL$GetHelpSystem$1', @GetHelpSystem_1,
+  TSepiMethod.Create(Result, 'OL$GetHelpSystem$1', @GetHelpSystem_1,
     'function(out System: IHelpSystem2): Boolean');
 
   Result.Complete;

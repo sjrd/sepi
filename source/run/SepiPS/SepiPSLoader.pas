@@ -10,15 +10,15 @@ interface
 uses
   SysUtils, Classes, SepiReflectionCore;
 
-function LoadSepiPSUnitFromStream(Root : TSepiMetaRoot;
-  Stream : TStream) : TSepiMetaUnit;
-function LoadSepiPSUnitFromFile(Root : TSepiMetaRoot;
-  const FileName : TFileName) : TSepiMetaUnit;
-function LoadSepiPSUnitFromName(Root : TSepiMetaRoot;
-  const UnitName : string) : TSepiMetaUnit;
+function LoadSepiPSUnitFromStream(Root : TSepiRoot;
+  Stream : TStream) : TSepiUnit;
+function LoadSepiPSUnitFromFile(Root : TSepiRoot;
+  const FileName : TFileName) : TSepiUnit;
+function LoadSepiPSUnitFromName(Root : TSepiRoot;
+  const UnitName : string) : TSepiUnit;
 
-function SepiPSLoadUnit(Self : TObject; Root : TSepiMetaRoot;
-  const UnitName : string) : TSepiMetaUnit;
+function SepiPSLoadUnit(Self : TObject; Root : TSepiRoot;
+  const UnitName : string) : TSepiUnit;
 
 const {don't localize}
   /// Extension des fichiers unité Sepi-PS
@@ -48,7 +48,7 @@ end;
   @param Routine      Routine Sepi
   @param PSExecuter   Interpréteur Pascal Script
 *}
-procedure LinkPSToSepiRoutine(Routine : TSepiMetaMethod; PSExecuter : TPSExec);
+procedure LinkPSToSepiRoutine(Routine : TSepiMethod; PSExecuter : TPSExec);
 var ProcName : string;
     Method : TMethod;
 begin
@@ -82,8 +82,8 @@ begin
   begin
     Child := SepiClass.Children[I];
 
-    if Child is TSepiMetaMethod then
-      LinkPSToSepiRoutine(TSepiMetaMethod(Child), PSExecuter);
+    if Child is TSepiMethod then
+      LinkPSToSepiRoutine(TSepiMethod(Child), PSExecuter);
   end;
 end;
 
@@ -92,7 +92,7 @@ end;
   @param SepiUnit     Unité Sepi
   @param PSExecuter   Interpréteur Pascal Script
 *}
-procedure LinkPSToSepi(SepiUnit : TSepiMetaUnit; PSExecuter : TPSExec);
+procedure LinkPSToSepi(SepiUnit : TSepiUnit; PSExecuter : TPSExec);
 var I : integer;
     Child : TSepiMeta;
 begin
@@ -100,8 +100,8 @@ begin
   begin
     Child := SepiUnit.Children[I];
 
-    if Child is TSepiMetaMethod then
-      LinkPSToSepiRoutine(TSepiMetaMethod(Child), PSExecuter)
+    if Child is TSepiMethod then
+      LinkPSToSepiRoutine(TSepiMethod(Child), PSExecuter)
     else if Child is TSepiClass then
       LinkPSToSepiClass(TSepiClass(Child), PSExecuter);
   end;
@@ -113,20 +113,20 @@ end;
   @param Stream   Flux source
   @return Unité Sepi chargée
 *}
-function LoadSepiPSUnitFromStream(Root : TSepiMetaRoot;
-  Stream : TStream) : TSepiMetaUnit;
+function LoadSepiPSUnitFromStream(Root : TSepiRoot;
+  Stream : TStream) : TSepiUnit;
 var I, Count : integer;
-    UsesList : array of TSepiMetaUnit;
+    UsesList : array of TSepiUnit;
     PSExecuter : TPSExec;
 begin
   // Load the Sepi unit
-  Result := TSepiMetaUnit.LoadFromStream(Root, Stream);
+  Result := TSepiUnit.LoadFromStream(Root, Stream);
   try
     // Load the uses list
     Stream.ReadBuffer(Count, 4);
     SetLength(UsesList, Count);
     for I := 0 to Count-1 do
-      UsesList[I] := Root.FindMeta(ReadStrFromStream(Stream)) as TSepiMetaUnit;
+      UsesList[I] := Root.FindMeta(ReadStrFromStream(Stream)) as TSepiUnit;
 
     // Create the PS executer
     PSExecuter := TPSExec.Create;
@@ -150,8 +150,8 @@ end;
   @param FileName   Nom du fichier
   @return Unité Sepi chargée
 *}
-function LoadSepiPSUnitFromFile(Root : TSepiMetaRoot;
-  const FileName : TFileName) : TSepiMetaUnit;
+function LoadSepiPSUnitFromFile(Root : TSepiRoot;
+  const FileName : TFileName) : TSepiUnit;
 var Stream : TStream;
 begin
   Stream := TFileStream.Create(FileName, fmOpenRead or fmShareDenyWrite);
@@ -168,8 +168,8 @@ end;
   @param UnitName   Nom de l'unité
   @return Unité Sepi chargée
 *}
-function LoadSepiPSUnitFromName(Root : TSepiMetaRoot;
-  const UnitName : string) : TSepiMetaUnit;
+function LoadSepiPSUnitFromName(Root : TSepiRoot;
+  const UnitName : string) : TSepiUnit;
 var FileName : TFileName;
 begin
   FileName := UnitName + sSepiPSExtension;
@@ -180,14 +180,14 @@ begin
 end;
 
 {*
-  Routine de call-back pour l'événement OnLoadUnit de TSepiMetaRoot
+  Routine de call-back pour l'événement OnLoadUnit de TSepiRoot
   @param Self       Objet courant, non utilisé
   @param Root       Racine Sepi
   @param UnitName   Nom de l'unité
   @return Unité Sepi chargée
 *}
-function SepiPSLoadUnit(Self : TObject; Root : TSepiMetaRoot;
-  const UnitName : string) : TSepiMetaUnit;
+function SepiPSLoadUnit(Self : TObject; Root : TSepiRoot;
+  const UnitName : string) : TSepiUnit;
 begin
   Result := LoadSepiPSUnitFromName(Root, UnitName);
 end;

@@ -18,44 +18,44 @@ implementation
 type
   TSepiImportsTDragObject = class(TDragObject)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTDragObjectEx = class(TDragObjectEx)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTBaseDragControlObject = class(TBaseDragControlObject)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTDragControlObject = class(TDragControlObject)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTDragControlObjectEx = class(TDragControlObjectEx)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTDragDockObject = class(TDragDockObject)
   private
     procedure SetBrush(Value: TBrush);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTDragDockObjectEx = class(TDragDockObjectEx)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTControlCanvas = class(TControlCanvas)
   private
     procedure SetControl(AControl: TControl);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTCustomControlAction = class(TCustomControlAction)
@@ -63,22 +63,22 @@ type
     procedure SetDropdownMenu(Value: TPopupMenu);
     procedure SetEnableDropdown(Value: Boolean);
     procedure SetPopupMenu(Value: TPopupMenu);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTControlAction = class(TControlAction)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTControlActionLink = class(TControlActionLink)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTSizeConstraints = class(TSizeConstraints)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTControl = class(TControl)
@@ -118,12 +118,12 @@ type
     procedure SetVisible(Value: Boolean);
     procedure SetWidth(Value: Integer);
     procedure SetConstraints(const Value: TSizeConstraints);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTWinControlActionLink = class(TWinControlActionLink)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTWinControl = class(TWinControl)
@@ -150,33 +150,33 @@ type
     procedure SetUseDockManager(Value: Boolean);
     procedure PaintTo_0(DC: HDC; X, Y: Integer);
     procedure PaintTo_1(Canvas: TCanvas; X, Y: Integer);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTGraphicControl = class(TGraphicControl)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTCustomControl = class(TCustomControl)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTHintWindow = class(THintWindow)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTDragImageList = class(TDragImageList)
   private
     procedure SetDragCursor(Value: TCursor);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTImageList = class(TImageList)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTDockZone = class(TDockZone)
@@ -188,12 +188,12 @@ type
     function GetVisibleChildCount: Integer;
     function GetZoneLimit: Integer;
     procedure SetZoneLimit(const Value: Integer);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTDockTree = class(TDockTree)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTMouse = class(TMouse)
@@ -203,24 +203,24 @@ type
     function GetCapture: HWND;
     procedure SetCapture(const Value: HWND);
     function GetIsDragging: Boolean;
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTCustomListControl = class(TCustomListControl)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTCustomMultiSelectListControl = class(TCustomMultiSelectListControl)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
 {----------------------}
 { TCMMouseWheel import }
 {----------------------}
 
-function SepiImportTCMMouseWheel(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTCMMouseWheel(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TCMMouseWheel', False, True);
 
@@ -243,7 +243,7 @@ end;
 { TCMCancelMode import }
 {----------------------}
 
-function SepiImportTCMCancelMode(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTCMCancelMode(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TCMCancelMode', False, True);
 
@@ -262,7 +262,7 @@ end;
 { TCMFocusChanged import }
 {------------------------}
 
-function SepiImportTCMFocusChanged(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTCMFocusChanged(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TCMFocusChanged', False, True);
 
@@ -281,7 +281,7 @@ end;
 { TCMControlListChange import }
 {-----------------------------}
 
-function SepiImportTCMControlListChange(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTCMControlListChange(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TCMControlListChange', False, True);
 
@@ -300,7 +300,7 @@ end;
 { TCMChildKey import }
 {--------------------}
 
-function SepiImportTCMChildKey(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTCMChildKey(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TCMChildKey', False, True);
 
@@ -320,7 +320,7 @@ end;
 { TCMControlChange import }
 {-------------------------}
 
-function SepiImportTCMControlChange(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTCMControlChange(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TCMControlChange', False, True);
 
@@ -339,7 +339,7 @@ end;
 { TCMChanged import }
 {-------------------}
 
-function SepiImportTCMChanged(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTCMChanged(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TCMChanged', False, True);
 
@@ -358,7 +358,7 @@ end;
 { TDragRec import }
 {-----------------}
 
-function SepiImportTDragRec(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTDragRec(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TDragRec', False, True);
 
@@ -377,7 +377,7 @@ end;
 { TCMDrag import }
 {----------------}
 
-function SepiImportTCMDrag(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTCMDrag(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TCMDrag', True, True);
 
@@ -398,7 +398,7 @@ end;
 { TCMDockClient import }
 {----------------------}
 
-function SepiImportTCMDockClient(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTCMDockClient(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TCMDockClient', True, True);
 
@@ -417,7 +417,7 @@ end;
 { TCMUnDockClient import }
 {------------------------}
 
-function SepiImportTCMUnDockClient(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTCMUnDockClient(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TCMUnDockClient', True, True);
 
@@ -436,7 +436,7 @@ end;
 { TCMFloat import }
 {-----------------}
 
-function SepiImportTCMFloat(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTCMFloat(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TCMFloat', True, True);
 
@@ -455,7 +455,7 @@ end;
 { TDockNotifyRec import }
 {-----------------------}
 
-function SepiImportTDockNotifyRec(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTDockNotifyRec(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TDockNotifyRec', False, True);
 
@@ -473,7 +473,7 @@ end;
 { TCMDockNotification import }
 {----------------------------}
 
-function SepiImportTCMDockNotification(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTCMDockNotification(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TCMDockNotification', True, True);
 
@@ -492,7 +492,7 @@ end;
 { TPopupFormInfo import }
 {-----------------------}
 
-function SepiImportTPopupFormInfo(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTPopupFormInfo(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TPopupFormInfo', False, True);
 
@@ -510,7 +510,7 @@ end;
 { TCMPopupHWndDestroy import }
 {----------------------------}
 
-function SepiImportTCMPopupHWndDestroy(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTCMPopupHWndDestroy(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TCMPopupHWndDestroy', True, True);
 
@@ -529,7 +529,7 @@ end;
 { TCMCreatePopup import }
 {-----------------------}
 
-function SepiImportTCMCreatePopup(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTCMCreatePopup(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TCMCreatePopup', True, True);
 
@@ -549,7 +549,7 @@ end;
 {--------------------}
 
 class function TSepiImportsTDragObject.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass(Owner.FindMeta('TDragObject'));
   Result.RegisterTypeInfo(
@@ -646,7 +646,7 @@ end;
 {----------------------}
 
 class function TSepiImportsTDragObjectEx.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TDragObjectEx));
@@ -668,7 +668,7 @@ end;
 {-------------------------------}
 
 class function TSepiImportsTBaseDragControlObject.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TBaseDragControlObject));
@@ -709,7 +709,7 @@ end;
 {---------------------------}
 
 class function TSepiImportsTDragControlObject.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TDragControlObject));
@@ -743,7 +743,7 @@ end;
 {-----------------------------}
 
 class function TSepiImportsTDragControlObjectEx.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TDragControlObjectEx));
@@ -770,7 +770,7 @@ begin
 end;
 
 class function TSepiImportsTDragDockObject.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass(Owner.FindMeta('TDragDockObject'));
   Result.RegisterTypeInfo(
@@ -845,7 +845,7 @@ end;
 {--------------------------}
 
 class function TSepiImportsTDragDockObjectEx.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TDragDockObjectEx));
@@ -872,7 +872,7 @@ begin
 end;
 
 class function TSepiImportsTControlCanvas.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TControlCanvas));
@@ -931,7 +931,7 @@ begin
 end;
 
 class function TSepiImportsTCustomControlAction.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TCustomControlAction));
@@ -970,7 +970,7 @@ end;
 {-----------------------}
 
 class function TSepiImportsTControlAction.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TControlAction));
@@ -1008,7 +1008,7 @@ end;
 {---------------------------}
 
 class function TSepiImportsTControlActionLink.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TControlActionLink));
@@ -1094,7 +1094,7 @@ end;
 { TMouseActivateRec import }
 {--------------------------}
 
-function SepiImportTMouseActivateRec(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTMouseActivateRec(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TMouseActivateRec', False, True);
 
@@ -1114,7 +1114,7 @@ end;
 { TCMMouseActivate import }
 {-------------------------}
 
-function SepiImportTCMMouseActivate(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTCMMouseActivate(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TCMMouseActivate', True, True);
 
@@ -1134,7 +1134,7 @@ end;
 {-------------------------}
 
 class function TSepiImportsTSizeConstraints.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TSizeConstraints));
@@ -1373,7 +1373,7 @@ begin
 end;
 
 class function TSepiImportsTControl.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 const
   DefaultAnchors : TAnchors = [akLeft, akTop];
 begin
@@ -2162,7 +2162,7 @@ end;
 { TCreateParams import }
 {----------------------}
 
-function SepiImportTCreateParams(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTCreateParams(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TCreateParams', False, True);
 
@@ -2189,7 +2189,7 @@ end;
 {------------------------------}
 
 class function TSepiImportsTWinControlActionLink.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TWinControlActionLink));
@@ -2218,7 +2218,7 @@ end;
 { TAlignInfo import }
 {-------------------}
 
-function SepiImportTAlignInfo(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTAlignInfo(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TAlignInfo', False, True);
 
@@ -2237,7 +2237,7 @@ end;
 { IDockManager import }
 {---------------------}
 
-function SepiImportIDockManager(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIDockManager(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IDockManager));
@@ -2386,7 +2386,7 @@ begin
 end;
 
 class function TSepiImportsTWinControl.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 const
   DefaultBevelEdges : TBevelEdges = [beLeft, beTop, beRight, beBottom];
 begin
@@ -3148,7 +3148,7 @@ end;
 {------------------------}
 
 class function TSepiImportsTGraphicControl.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TGraphicControl));
@@ -3190,7 +3190,7 @@ end;
 {-----------------------}
 
 class function TSepiImportsTCustomControl.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TCustomControl));
@@ -3235,7 +3235,7 @@ end;
 {--------------------}
 
 class function TSepiImportsTHintWindow.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(THintWindow));
@@ -3315,7 +3315,7 @@ begin
 end;
 
 class function TSepiImportsTDragImageList.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass(Owner.FindMeta('TDragImageList'));
   Result.RegisterTypeInfo(
@@ -3379,7 +3379,7 @@ end;
 {-------------------}
 
 class function TSepiImportsTImageList.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TImageList));
@@ -3443,7 +3443,7 @@ begin
 end;
 
 class function TSepiImportsTDockZone.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TDockZone));
@@ -3540,7 +3540,7 @@ end;
 {------------------}
 
 class function TSepiImportsTDockTree.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass(Owner.FindMeta('TDockTree'));
   Result.RegisterTypeInfo(
@@ -3731,7 +3731,7 @@ begin
 end;
 
 class function TSepiImportsTMouse.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TMouse));
@@ -3808,7 +3808,7 @@ end;
 {---------------------------}
 
 class function TSepiImportsTCustomListControl.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TCustomListControl));
@@ -3863,7 +3863,7 @@ end;
 {--------------------------------------}
 
 class function TSepiImportsTCustomMultiSelectListControl.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TCustomMultiSelectListControl));
@@ -3897,9 +3897,9 @@ end;
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiMetaRoot) : TSepiMetaUnit;
+function ImportUnit(Root : TSepiRoot) : TSepiUnit;
 begin
-  Result := TSepiMetaUnit.Create(Root, 'Controls',
+  Result := TSepiUnit.Create(Root, 'Controls',
     ['Messages', 'Types', 'Windows', 'Classes', 'SysUtils', 'Graphics', 'Menus',
      'ImmTypes', 'ImgList', 'ActnList']);
 
@@ -4024,15 +4024,15 @@ begin
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(TModalResult));
 
   // Routines
-  TSepiMetaMethod.Create(Result, 'IsPositiveResult', @IsPositiveResult,
+  TSepiMethod.Create(Result, 'IsPositiveResult', @IsPositiveResult,
     'function(const AModalResult: TModalResult): Boolean');
-  TSepiMetaMethod.Create(Result, 'IsNegativeResult', @IsNegativeResult,
+  TSepiMethod.Create(Result, 'IsNegativeResult', @IsNegativeResult,
     'function(const AModalResult: TModalResult): Boolean');
-  TSepiMetaMethod.Create(Result, 'IsAbortResult', @IsAbortResult,
+  TSepiMethod.Create(Result, 'IsAbortResult', @IsAbortResult,
     'function(const AModalResult: TModalResult): Boolean');
-  TSepiMetaMethod.Create(Result, 'IsAnAllResult', @IsAnAllResult,
+  TSepiMethod.Create(Result, 'IsAnAllResult', @IsAnAllResult,
     'function(const AModalResult: TModalResult): Boolean');
-  TSepiMetaMethod.Create(Result, 'StripAllFromResult', @StripAllFromResult,
+  TSepiMethod.Create(Result, 'StripAllFromResult', @StripAllFromResult,
     'function(const AModalResult: TModalResult): TModalResult');
 
   // Types
@@ -4201,35 +4201,35 @@ begin
     @AnimateWindowProc, 'TAnimateWindowProc');
 
   // Routines
-  TSepiMetaMethod.Create(Result, 'IsDragObject', @IsDragObject,
+  TSepiMethod.Create(Result, 'IsDragObject', @IsDragObject,
     'function(Sender: TObject): Boolean');
-  TSepiMetaMethod.Create(Result, 'FindControl', @FindControl,
+  TSepiMethod.Create(Result, 'FindControl', @FindControl,
     'function(Handle: HWnd): TWinControl');
-  TSepiMetaMethod.Create(Result, 'FindVCLWindow', @FindVCLWindow,
+  TSepiMethod.Create(Result, 'FindVCLWindow', @FindVCLWindow,
     'function(const Pos: TPoint): TWinControl');
-  TSepiMetaMethod.Create(Result, 'FindDragTarget', @FindDragTarget,
+  TSepiMethod.Create(Result, 'FindDragTarget', @FindDragTarget,
     'function(const Pos: TPoint; AllowDisabled: Boolean): TControl');
-  TSepiMetaMethod.Create(Result, 'GetCaptureControl', @GetCaptureControl,
+  TSepiMethod.Create(Result, 'GetCaptureControl', @GetCaptureControl,
     'function: TControl');
-  TSepiMetaMethod.Create(Result, 'SetCaptureControl', @SetCaptureControl,
+  TSepiMethod.Create(Result, 'SetCaptureControl', @SetCaptureControl,
     'procedure(Control: TControl)');
-  TSepiMetaMethod.Create(Result, 'CancelDrag', @CancelDrag,
+  TSepiMethod.Create(Result, 'CancelDrag', @CancelDrag,
     'procedure');
-  TSepiMetaMethod.Create(Result, 'CursorToString', @CursorToString,
+  TSepiMethod.Create(Result, 'CursorToString', @CursorToString,
     'function(Cursor: TCursor): string');
-  TSepiMetaMethod.Create(Result, 'StringToCursor', @StringToCursor,
+  TSepiMethod.Create(Result, 'StringToCursor', @StringToCursor,
     'function(const S: string): TCursor');
-  TSepiMetaMethod.Create(Result, 'GetCursorValues', @GetCursorValues,
+  TSepiMethod.Create(Result, 'GetCursorValues', @GetCursorValues,
     'procedure(Proc: TGetStrProc)');
-  TSepiMetaMethod.Create(Result, 'CursorToIdent', @CursorToIdent,
+  TSepiMethod.Create(Result, 'CursorToIdent', @CursorToIdent,
     'function(Cursor: Longint; var Ident: string): Boolean');
-  TSepiMetaMethod.Create(Result, 'IdentToCursor', @IdentToCursor,
+  TSepiMethod.Create(Result, 'IdentToCursor', @IdentToCursor,
     'function(const Ident: string; var Cursor: Longint): Boolean');
-  TSepiMetaMethod.Create(Result, 'GetShortHint', @GetShortHint,
+  TSepiMethod.Create(Result, 'GetShortHint', @GetShortHint,
     'function(const Hint: string): string');
-  TSepiMetaMethod.Create(Result, 'GetLongHint', @GetLongHint,
+  TSepiMethod.Create(Result, 'GetLongHint', @GetLongHint,
     'function(const Hint: string): string');
-  TSepiMetaMethod.Create(Result, 'PerformEraseBackground', @PerformEraseBackground,
+  TSepiMethod.Create(Result, 'PerformEraseBackground', @PerformEraseBackground,
     'procedure(Control: TControl; DC: HDC)');
 
   // Global variables
@@ -4239,7 +4239,7 @@ begin
     DefaultDockTreeClass, 'TDockTreeClass');
 
   // Routines
-  TSepiMetaMethod.Create(Result, 'InitWndProc', @InitWndProc,
+  TSepiMethod.Create(Result, 'InitWndProc', @InitWndProc,
     'function(HWindow: HWnd; Message, WParam: Longint; LParam: Longint ) : Longint');
 
   // Constants
@@ -4255,39 +4255,39 @@ begin
     NewStyleControls, TypeInfo(Boolean));
 
   // Routines
-  TSepiMetaMethod.Create(Result, 'ChangeBiDiModeAlignment', @ChangeBiDiModeAlignment,
+  TSepiMethod.Create(Result, 'ChangeBiDiModeAlignment', @ChangeBiDiModeAlignment,
     'procedure(var Alignment: TAlignment)');
-  TSepiMetaMethod.Create(Result, 'SendAppMessage', @SendAppMessage,
+  TSepiMethod.Create(Result, 'SendAppMessage', @SendAppMessage,
     'function(Msg: Cardinal; WParam, LParam: Longint): Longint');
-  TSepiMetaMethod.Create(Result, 'MoveWindowOrg', @MoveWindowOrg,
+  TSepiMethod.Create(Result, 'MoveWindowOrg', @MoveWindowOrg,
     'procedure(DC: HDC; DX, DY: Integer)');
-  TSepiMetaMethod.Create(Result, 'SetImeMode', @SetImeMode,
+  TSepiMethod.Create(Result, 'SetImeMode', @SetImeMode,
     'procedure(hWnd: HWND; Mode: TImeMode)');
-  TSepiMetaMethod.Create(Result, 'SetImeName', @SetImeName,
+  TSepiMethod.Create(Result, 'SetImeName', @SetImeName,
     'procedure(Name: TImeName)');
-  TSepiMetaMethod.Create(Result, 'Win32NLSEnableIME', @Win32NLSEnableIME,
+  TSepiMethod.Create(Result, 'Win32NLSEnableIME', @Win32NLSEnableIME,
     'function(hWnd: HWND; Enable: Boolean): Boolean');
-  TSepiMetaMethod.Create(Result, 'Imm32GetContext', @Imm32GetContext,
+  TSepiMethod.Create(Result, 'Imm32GetContext', @Imm32GetContext,
     'function(hWnd: HWND): HIMC');
-  TSepiMetaMethod.Create(Result, 'Imm32ReleaseContext', @Imm32ReleaseContext,
+  TSepiMethod.Create(Result, 'Imm32ReleaseContext', @Imm32ReleaseContext,
     'function(hWnd: HWND; hImc: HIMC): Boolean');
-  TSepiMetaMethod.Create(Result, 'Imm32GetConversionStatus', @Imm32GetConversionStatus,
+  TSepiMethod.Create(Result, 'Imm32GetConversionStatus', @Imm32GetConversionStatus,
     'function(hImc: HIMC; var Conversion, Sentence: DWORD): Boolean');
-  TSepiMetaMethod.Create(Result, 'Imm32SetConversionStatus', @Imm32SetConversionStatus,
+  TSepiMethod.Create(Result, 'Imm32SetConversionStatus', @Imm32SetConversionStatus,
     'function(hImc: HIMC; Conversion, Sentence: DWORD): Boolean');
-  TSepiMetaMethod.Create(Result, 'Imm32SetOpenStatus', @Imm32SetOpenStatus,
+  TSepiMethod.Create(Result, 'Imm32SetOpenStatus', @Imm32SetOpenStatus,
     'function(hImc: HIMC; fOpen: Boolean): Boolean');
-  TSepiMetaMethod.Create(Result, 'Imm32SetCompositionWindow', @Imm32SetCompositionWindow,
+  TSepiMethod.Create(Result, 'Imm32SetCompositionWindow', @Imm32SetCompositionWindow,
     'function(hImc: HIMC; lpCompForm: PCOMPOSITIONFORM): Boolean');
-  TSepiMetaMethod.Create(Result, 'Imm32SetCompositionFont', @Imm32SetCompositionFont,
+  TSepiMethod.Create(Result, 'Imm32SetCompositionFont', @Imm32SetCompositionFont,
     'function(hImc: HIMC; lpLogfont: PLOGFONTA): Boolean');
-  TSepiMetaMethod.Create(Result, 'Imm32GetCompositionString', @Imm32GetCompositionString,
+  TSepiMethod.Create(Result, 'Imm32GetCompositionString', @Imm32GetCompositionString,
     'function(hImc: HIMC; dWord1: DWORD; lpBuf: pointer; dwBufLen: DWORD): Longint');
-  TSepiMetaMethod.Create(Result, 'Imm32IsIME', @Imm32IsIME,
+  TSepiMethod.Create(Result, 'Imm32IsIME', @Imm32IsIME,
     'function(hKl: HKL): Boolean');
-  TSepiMetaMethod.Create(Result, 'Imm32NotifyIME', @Imm32NotifyIME,
+  TSepiMethod.Create(Result, 'Imm32NotifyIME', @Imm32NotifyIME,
     'function(hImc: HIMC; dwAction, dwIndex, dwValue: DWORD): Boolean');
-  TSepiMetaMethod.Create(Result, 'DragDone', @DragDone,
+  TSepiMethod.Create(Result, 'DragDone', @DragDone,
     'procedure(Drop: Boolean)');
 
   Result.Complete;

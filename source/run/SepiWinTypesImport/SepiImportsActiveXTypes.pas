@@ -19,7 +19,7 @@ implementation
 { _OBJECTID import }
 {------------------}
 
-function SepiImport_OBJECTID(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImport_OBJECTID(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_OBJECTID', False, True);
 
@@ -36,7 +36,7 @@ end;
 { _COSERVERINFO import }
 {----------------------}
 
-function SepiImport_COSERVERINFO(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImport_COSERVERINFO(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_COSERVERINFO', False, True);
 
@@ -55,7 +55,7 @@ end;
 { tagMULTI_QI import }
 {--------------------}
 
-function SepiImporttagMULTI_QI(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagMULTI_QI(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagMULTI_QI', False, True,
     TypeInfo(tagMULTI_QI));
@@ -74,7 +74,7 @@ end;
 { tagSAFEARRAYBOUND import }
 {--------------------------}
 
-function SepiImporttagSAFEARRAYBOUND(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagSAFEARRAYBOUND(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagSAFEARRAYBOUND', False, True);
 
@@ -91,7 +91,7 @@ end;
 { tagSAFEARRAY import }
 {---------------------}
 
-function SepiImporttagSAFEARRAY(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagSAFEARRAY(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagSAFEARRAY', False, True);
 
@@ -112,7 +112,7 @@ end;
 { tagPOINTF import }
 {------------------}
 
-function SepiImporttagPOINTF(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagPOINTF(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagPOINTF', False, True);
 
@@ -129,7 +129,7 @@ end;
 { tagCONTROLINFO import }
 {-----------------------}
 
-function SepiImporttagCONTROLINFO(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagCONTROLINFO(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagCONTROLINFO', False, True);
 
@@ -148,7 +148,7 @@ end;
 { IClassFactory import }
 {----------------------}
 
-function SepiImportIClassFactory(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIClassFactory(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IClassFactory));
@@ -168,7 +168,7 @@ end;
 { IMarshal import }
 {-----------------}
 
-function SepiImportIMarshal(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIMarshal(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IMarshal));
@@ -196,7 +196,7 @@ end;
 { IMalloc import }
 {----------------}
 
-function SepiImportIMalloc(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIMalloc(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IMalloc));
@@ -224,7 +224,7 @@ end;
 { IMallocSpy import }
 {-------------------}
 
-function SepiImportIMallocSpy(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIMallocSpy(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IMallocSpy));
@@ -264,7 +264,7 @@ end;
 { IStdMarshalInfo import }
 {------------------------}
 
-function SepiImportIStdMarshalInfo(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIStdMarshalInfo(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IStdMarshalInfo));
@@ -282,7 +282,7 @@ end;
 { IExternalConnection import }
 {----------------------------}
 
-function SepiImportIExternalConnection(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIExternalConnection(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IExternalConnection));
@@ -302,7 +302,7 @@ end;
 { IWeakRef import }
 {-----------------}
 
-function SepiImportIWeakRef(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIWeakRef(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IWeakRef));
@@ -322,7 +322,7 @@ end;
 { IEnumUnknown import }
 {---------------------}
 
-function SepiImportIEnumUnknown(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIEnumUnknown(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IEnumUnknown));
@@ -346,7 +346,7 @@ end;
 { tagBIND_OPTS import }
 {---------------------}
 
-function SepiImporttagBIND_OPTS(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagBIND_OPTS(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagBIND_OPTS', False, True);
 
@@ -365,7 +365,7 @@ end;
 { IBindCtx import }
 {-----------------}
 
-function SepiImportIBindCtx(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIBindCtx(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IBindCtx));
@@ -401,7 +401,7 @@ end;
 { IEnumMoniker import }
 {---------------------}
 
-function SepiImportIEnumMoniker(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIEnumMoniker(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IEnumMoniker));
@@ -425,7 +425,7 @@ end;
 { IRunnableObject import }
 {------------------------}
 
-function SepiImportIRunnableObject(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIRunnableObject(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IRunnableObject));
@@ -451,7 +451,7 @@ end;
 { IRunningObjectTable import }
 {----------------------------}
 
-function SepiImportIRunningObjectTable(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIRunningObjectTable(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface(Owner.FindMeta('IRunningObjectTable'));
   Result.RegisterTypeInfo(
@@ -482,7 +482,7 @@ end;
 { IPersist import }
 {-----------------}
 
-function SepiImportIPersist(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIPersist(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IPersist));
@@ -500,7 +500,7 @@ end;
 { IPersistStream import }
 {-----------------------}
 
-function SepiImportIPersistStream(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIPersistStream(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IPersistStream));
@@ -524,7 +524,7 @@ end;
 { IMoniker import }
 {-----------------}
 
-function SepiImportIMoniker(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIMoniker(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface(Owner.FindMeta('IMoniker'));
   Result.RegisterTypeInfo(
@@ -571,7 +571,7 @@ end;
 { IEnumString import }
 {--------------------}
 
-function SepiImportIEnumString(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIEnumString(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface(Owner.FindMeta('IEnumString'));
   Result.RegisterTypeInfo(
@@ -596,7 +596,7 @@ end;
 { tagSTATSTG import }
 {-------------------}
 
-function SepiImporttagSTATSTG(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagSTATSTG(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagSTATSTG', False, True);
 
@@ -622,7 +622,7 @@ end;
 { ISequentialStream import }
 {--------------------------}
 
-function SepiImportISequentialStream(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportISequentialStream(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(ISequentialStream));
@@ -642,7 +642,7 @@ end;
 { IStream import }
 {----------------}
 
-function SepiImportIStream(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIStream(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface(Owner.FindMeta('IStream'));
   Result.RegisterTypeInfo(
@@ -677,7 +677,7 @@ end;
 { IEnumStatStg import }
 {---------------------}
 
-function SepiImportIEnumStatStg(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIEnumStatStg(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IEnumStatStg));
@@ -701,7 +701,7 @@ end;
 { IStorage import }
 {-----------------}
 
-function SepiImportIStorage(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIStorage(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IStorage));
@@ -747,7 +747,7 @@ end;
 { IPersistFile import }
 {---------------------}
 
-function SepiImportIPersistFile(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIPersistFile(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IPersistFile));
@@ -773,7 +773,7 @@ end;
 { IPersistStorage import }
 {------------------------}
 
-function SepiImportIPersistStorage(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIPersistStorage(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IPersistStorage));
@@ -801,7 +801,7 @@ end;
 { ILockBytes import }
 {-------------------}
 
-function SepiImportILockBytes(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportILockBytes(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(ILockBytes));
@@ -831,7 +831,7 @@ end;
 { $2 import }
 {-----------}
 
-function SepiImport_2(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImport_2(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '$2', False, True);
 
@@ -846,7 +846,7 @@ end;
 { tagDVTARGETDEVICE import }
 {--------------------------}
 
-function SepiImporttagDVTARGETDEVICE(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagDVTARGETDEVICE(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagDVTARGETDEVICE', False, True);
 
@@ -867,7 +867,7 @@ end;
 { tagFORMATETC import }
 {---------------------}
 
-function SepiImporttagFORMATETC(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagFORMATETC(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagFORMATETC', False, True);
 
@@ -887,7 +887,7 @@ end;
 { IEnumFORMATETC import }
 {-----------------------}
 
-function SepiImportIEnumFORMATETC(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIEnumFORMATETC(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IEnumFORMATETC));
@@ -911,7 +911,7 @@ end;
 { tagSTATDATA import }
 {--------------------}
 
-function SepiImporttagSTATDATA(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagSTATDATA(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagSTATDATA', False, True,
     TypeInfo(tagSTATDATA));
@@ -931,7 +931,7 @@ end;
 { IEnumSTATDATA import }
 {----------------------}
 
-function SepiImportIEnumSTATDATA(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIEnumSTATDATA(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IEnumSTATDATA));
@@ -955,7 +955,7 @@ end;
 { IRootStorage import }
 {---------------------}
 
-function SepiImportIRootStorage(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIRootStorage(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IRootStorage));
@@ -973,7 +973,7 @@ end;
 { $3 import }
 {-----------}
 
-function SepiImport_3(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImport_3(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '$3', False, True);
 
@@ -988,7 +988,7 @@ end;
 { tagRemSTGMEDIUM import }
 {------------------------}
 
-function SepiImporttagRemSTGMEDIUM(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagRemSTGMEDIUM(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagRemSTGMEDIUM', False, True);
 
@@ -1009,7 +1009,7 @@ end;
 { tagSTGMEDIUM import }
 {---------------------}
 
-function SepiImporttagSTGMEDIUM(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagSTGMEDIUM(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagSTGMEDIUM', False, True);
 
@@ -1033,7 +1033,7 @@ end;
 { IAdviseSink import }
 {--------------------}
 
-function SepiImportIAdviseSink(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIAdviseSink(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface(Owner.FindMeta('IAdviseSink'));
   Result.RegisterTypeInfo(
@@ -1060,7 +1060,7 @@ end;
 { IAdviseSink2 import }
 {---------------------}
 
-function SepiImportIAdviseSink2(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIAdviseSink2(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IAdviseSink2));
@@ -1078,7 +1078,7 @@ end;
 { IDataObject import }
 {--------------------}
 
-function SepiImportIDataObject(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIDataObject(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IDataObject));
@@ -1112,7 +1112,7 @@ end;
 { IDataAdviseHolder import }
 {--------------------------}
 
-function SepiImportIDataAdviseHolder(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIDataAdviseHolder(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IDataAdviseHolder));
@@ -1136,7 +1136,7 @@ end;
 { tagINTERFACEINFO import }
 {-------------------------}
 
-function SepiImporttagINTERFACEINFO(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagINTERFACEINFO(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagINTERFACEINFO', False, True,
     TypeInfo(tagINTERFACEINFO));
@@ -1155,7 +1155,7 @@ end;
 { IMessageFilter import }
 {-----------------------}
 
-function SepiImportIMessageFilter(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIMessageFilter(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IMessageFilter));
@@ -1177,7 +1177,7 @@ end;
 { tagRPCOLEMESSAGE import }
 {-------------------------}
 
-function SepiImporttagRPCOLEMESSAGE(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagRPCOLEMESSAGE(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagRPCOLEMESSAGE', False, True);
 
@@ -1199,7 +1199,7 @@ end;
 { IRpcChannelBuffer import }
 {--------------------------}
 
-function SepiImportIRpcChannelBuffer(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIRpcChannelBuffer(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IRpcChannelBuffer));
@@ -1225,7 +1225,7 @@ end;
 { IRpcProxyBuffer import }
 {------------------------}
 
-function SepiImportIRpcProxyBuffer(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIRpcProxyBuffer(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IRpcProxyBuffer));
@@ -1245,7 +1245,7 @@ end;
 { IRpcStubBuffer import }
 {-----------------------}
 
-function SepiImportIRpcStubBuffer(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIRpcStubBuffer(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IRpcStubBuffer));
@@ -1275,7 +1275,7 @@ end;
 { IPSFactoryBuffer import }
 {-------------------------}
 
-function SepiImportIPSFactoryBuffer(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIPSFactoryBuffer(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IPSFactoryBuffer));
@@ -1295,7 +1295,7 @@ end;
 { IChannelHook import }
 {---------------------}
 
-function SepiImportIChannelHook(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIChannelHook(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IChannelHook));
@@ -1323,7 +1323,7 @@ end;
 { IFillLockBytes import }
 {-----------------------}
 
-function SepiImportIFillLockBytes(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIFillLockBytes(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IFillLockBytes));
@@ -1347,7 +1347,7 @@ end;
 { tagDEC import }
 {---------------}
 
-function SepiImporttagDEC(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagDEC(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagDEC', True, True);
 
@@ -1370,7 +1370,7 @@ end;
 { tagBLOB import }
 {----------------}
 
-function SepiImporttagBLOB(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagBLOB(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagBLOB', False, True);
 
@@ -1387,7 +1387,7 @@ end;
 { tagCLIPDATA import }
 {--------------------}
 
-function SepiImporttagCLIPDATA(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagCLIPDATA(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagCLIPDATA', False, True);
 
@@ -1405,7 +1405,7 @@ end;
 { tagCAUB import }
 {----------------}
 
-function SepiImporttagCAUB(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagCAUB(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagCAUB', True, True);
 
@@ -1422,7 +1422,7 @@ end;
 { tagCAI import }
 {---------------}
 
-function SepiImporttagCAI(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagCAI(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagCAI', True, True);
 
@@ -1439,7 +1439,7 @@ end;
 { tagCAUI import }
 {----------------}
 
-function SepiImporttagCAUI(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagCAUI(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagCAUI', True, True);
 
@@ -1456,7 +1456,7 @@ end;
 { tagCAL import }
 {---------------}
 
-function SepiImporttagCAL(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagCAL(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagCAL', True, True);
 
@@ -1473,7 +1473,7 @@ end;
 { tagCAUL import }
 {----------------}
 
-function SepiImporttagCAUL(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagCAUL(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagCAUL', True, True);
 
@@ -1490,7 +1490,7 @@ end;
 { tagCAFLT import }
 {-----------------}
 
-function SepiImporttagCAFLT(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagCAFLT(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagCAFLT', True, True);
 
@@ -1507,7 +1507,7 @@ end;
 { tagCADBL import }
 {-----------------}
 
-function SepiImporttagCADBL(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagCADBL(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagCADBL', True, True);
 
@@ -1524,7 +1524,7 @@ end;
 { tagCACY import }
 {----------------}
 
-function SepiImporttagCACY(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagCACY(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagCACY', True, True);
 
@@ -1541,7 +1541,7 @@ end;
 { tagCADATE import }
 {------------------}
 
-function SepiImporttagCADATE(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagCADATE(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagCADATE', True, True);
 
@@ -1558,7 +1558,7 @@ end;
 { tagCABSTR import }
 {------------------}
 
-function SepiImporttagCABSTR(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagCABSTR(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagCABSTR', True, True);
 
@@ -1575,7 +1575,7 @@ end;
 { tagCABOOL import }
 {------------------}
 
-function SepiImporttagCABOOL(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagCABOOL(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagCABOOL', True, True);
 
@@ -1592,7 +1592,7 @@ end;
 { tagCASCODE import }
 {-------------------}
 
-function SepiImporttagCASCODE(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagCASCODE(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagCASCODE', True, True);
 
@@ -1609,7 +1609,7 @@ end;
 { tagCAPROPVARIANT import }
 {-------------------------}
 
-function SepiImporttagCAPROPVARIANT(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagCAPROPVARIANT(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagCAPROPVARIANT', True, True);
 
@@ -1626,7 +1626,7 @@ end;
 { tagCAH import }
 {---------------}
 
-function SepiImporttagCAH(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagCAH(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagCAH', True, True);
 
@@ -1643,7 +1643,7 @@ end;
 { tagCAUH import }
 {----------------}
 
-function SepiImporttagCAUH(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagCAUH(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagCAUH', True, True);
 
@@ -1660,7 +1660,7 @@ end;
 { tagCALPSTR import }
 {-------------------}
 
-function SepiImporttagCALPSTR(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagCALPSTR(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagCALPSTR', True, True);
 
@@ -1677,7 +1677,7 @@ end;
 { tagCALPWSTR import }
 {--------------------}
 
-function SepiImporttagCALPWSTR(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagCALPWSTR(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagCALPWSTR', True, True);
 
@@ -1694,7 +1694,7 @@ end;
 { tagCAFILETIME import }
 {----------------------}
 
-function SepiImporttagCAFILETIME(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagCAFILETIME(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagCAFILETIME', True, True);
 
@@ -1711,7 +1711,7 @@ end;
 { tagCACLIPDATA import }
 {----------------------}
 
-function SepiImporttagCACLIPDATA(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagCACLIPDATA(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagCACLIPDATA', True, True);
 
@@ -1728,7 +1728,7 @@ end;
 { tagCACLSID import }
 {-------------------}
 
-function SepiImporttagCACLSID(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagCACLSID(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagCACLSID', True, True);
 
@@ -1745,7 +1745,7 @@ end;
 { tagPROPVARIANT import }
 {-----------------------}
 
-function SepiImporttagPROPVARIANT(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagPROPVARIANT(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagPROPVARIANT', True, True);
 
@@ -1807,7 +1807,7 @@ end;
 { tagPROPSPEC import }
 {--------------------}
 
-function SepiImporttagPROPSPEC(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagPROPSPEC(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagPROPSPEC', True, True);
 
@@ -1825,7 +1825,7 @@ end;
 { tagSTATPROPSTG import }
 {-----------------------}
 
-function SepiImporttagSTATPROPSTG(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagSTATPROPSTG(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagSTATPROPSTG', False, True);
 
@@ -1843,7 +1843,7 @@ end;
 { tagSTATPROPSETSTG import }
 {--------------------------}
 
-function SepiImporttagSTATPROPSETSTG(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagSTATPROPSETSTG(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagSTATPROPSETSTG', True, True);
 
@@ -1865,7 +1865,7 @@ end;
 { IPropertyStorage import }
 {-------------------------}
 
-function SepiImportIPropertyStorage(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIPropertyStorage(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface(Owner.FindMeta('IPropertyStorage'));
   Result.RegisterTypeInfo(
@@ -1906,7 +1906,7 @@ end;
 { IPropertySetStorage import }
 {----------------------------}
 
-function SepiImportIPropertySetStorage(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIPropertySetStorage(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface(Owner.FindMeta('IPropertySetStorage'));
   Result.RegisterTypeInfo(
@@ -1931,7 +1931,7 @@ end;
 { IEnumSTATPROPSTG import }
 {-------------------------}
 
-function SepiImportIEnumSTATPROPSTG(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIEnumSTATPROPSTG(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface(Owner.FindMeta('IEnumSTATPROPSTG'));
   Result.RegisterTypeInfo(
@@ -1956,7 +1956,7 @@ end;
 { IEnumSTATPROPSETSTG import }
 {----------------------------}
 
-function SepiImportIEnumSTATPROPSETSTG(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIEnumSTATPROPSETSTG(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface(Owner.FindMeta('IEnumSTATPROPSETSTG'));
   Result.RegisterTypeInfo(
@@ -1981,7 +1981,7 @@ end;
 { IGlobalInterfaceTable import }
 {------------------------------}
 
-function SepiImportIGlobalInterfaceTable(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIGlobalInterfaceTable(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface(Owner.FindMeta('IGlobalInterfaceTable'));
   Result.RegisterTypeInfo(
@@ -2004,7 +2004,7 @@ end;
 { tagVARIANT import }
 {-------------------}
 
-function SepiImporttagVARIANT(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagVARIANT(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagVARIANT', False, True);
 
@@ -2062,7 +2062,7 @@ end;
 { tagTYPEDESC import }
 {--------------------}
 
-function SepiImporttagTYPEDESC(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagTYPEDESC(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagTYPEDESC', False, True);
 
@@ -2081,7 +2081,7 @@ end;
 { tagARRAYDESC import }
 {---------------------}
 
-function SepiImporttagARRAYDESC(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagARRAYDESC(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagARRAYDESC', False, True);
 
@@ -2099,7 +2099,7 @@ end;
 { tagIDLDESC import }
 {-------------------}
 
-function SepiImporttagIDLDESC(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagIDLDESC(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagIDLDESC', False, True);
 
@@ -2116,7 +2116,7 @@ end;
 { tagPARAMDESCEX import }
 {-----------------------}
 
-function SepiImporttagPARAMDESCEX(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagPARAMDESCEX(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagPARAMDESCEX', False, True);
 
@@ -2134,7 +2134,7 @@ end;
 { tagPARAMDESC import }
 {---------------------}
 
-function SepiImporttagPARAMDESC(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagPARAMDESC(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagPARAMDESC', False, True);
 
@@ -2151,7 +2151,7 @@ end;
 { tagELEMDESC import }
 {--------------------}
 
-function SepiImporttagELEMDESC(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagELEMDESC(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagELEMDESC', False, True);
 
@@ -2169,7 +2169,7 @@ end;
 { tagTYPEATTR import }
 {--------------------}
 
-function SepiImporttagTYPEATTR(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagTYPEATTR(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagTYPEATTR', False, True);
 
@@ -2202,7 +2202,7 @@ end;
 { tagDISPPARAMS import }
 {----------------------}
 
-function SepiImporttagDISPPARAMS(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagDISPPARAMS(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagDISPPARAMS', False, True);
 
@@ -2221,7 +2221,7 @@ end;
 { tagEXCEPINFO import }
 {---------------------}
 
-function SepiImporttagEXCEPINFO(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagEXCEPINFO(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagEXCEPINFO', False, True,
     TypeInfo(tagEXCEPINFO));
@@ -2246,7 +2246,7 @@ end;
 { tagFUNCDESC import }
 {--------------------}
 
-function SepiImporttagFUNCDESC(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagFUNCDESC(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagFUNCDESC', False, True);
 
@@ -2273,7 +2273,7 @@ end;
 { tagVARDESC import }
 {-------------------}
 
-function SepiImporttagVARDESC(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagVARDESC(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagVARDESC', False, True);
 
@@ -2295,7 +2295,7 @@ end;
 { ICreateTypeInfo import }
 {------------------------}
 
-function SepiImportICreateTypeInfo(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportICreateTypeInfo(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(ICreateTypeInfo));
@@ -2357,7 +2357,7 @@ end;
 { ICreateTypeInfo2 import }
 {-------------------------}
 
-function SepiImportICreateTypeInfo2(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportICreateTypeInfo2(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(ICreateTypeInfo2));
@@ -2403,7 +2403,7 @@ end;
 { ICreateTypeLib import }
 {-----------------------}
 
-function SepiImportICreateTypeLib(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportICreateTypeLib(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(ICreateTypeLib));
@@ -2439,7 +2439,7 @@ end;
 { ICreateTypeLib2 import }
 {------------------------}
 
-function SepiImportICreateTypeLib2(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportICreateTypeLib2(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(ICreateTypeLib2));
@@ -2463,7 +2463,7 @@ end;
 { IEnumVariant import }
 {---------------------}
 
-function SepiImportIEnumVariant(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIEnumVariant(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IEnumVariant));
@@ -2487,7 +2487,7 @@ end;
 { tagBINDPTR import }
 {-------------------}
 
-function SepiImporttagBINDPTR(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagBINDPTR(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagBINDPTR', False, True);
 
@@ -2505,7 +2505,7 @@ end;
 { ITypeComp import }
 {------------------}
 
-function SepiImportITypeComp(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportITypeComp(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface(Owner.FindMeta('ITypeComp'));
   Result.RegisterTypeInfo(
@@ -2526,7 +2526,7 @@ end;
 { ITypeInfo import }
 {------------------}
 
-function SepiImportITypeInfo(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportITypeInfo(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface(Owner.FindMeta('ITypeInfo'));
   Result.RegisterTypeInfo(
@@ -2581,7 +2581,7 @@ end;
 { tagTLIBATTR import }
 {--------------------}
 
-function SepiImporttagTLIBATTR(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagTLIBATTR(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagTLIBATTR', False, True);
 
@@ -2602,7 +2602,7 @@ end;
 { ITypeLib import }
 {-----------------}
 
-function SepiImportITypeLib(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportITypeLib(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface(Owner.FindMeta('ITypeLib'));
   Result.RegisterTypeInfo(
@@ -2639,7 +2639,7 @@ end;
 { tagCUSTDATAITEM import }
 {------------------------}
 
-function SepiImporttagCUSTDATAITEM(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagCUSTDATAITEM(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagCUSTDATAITEM', False, True);
 
@@ -2656,7 +2656,7 @@ end;
 { tagCUSTDATA import }
 {--------------------}
 
-function SepiImporttagCUSTDATA(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagCUSTDATA(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagCUSTDATA', False, True);
 
@@ -2673,7 +2673,7 @@ end;
 { ITypeLib2 import }
 {------------------}
 
-function SepiImportITypeLib2(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportITypeLib2(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface(Owner.FindMeta('ITypeLib2'));
   Result.RegisterTypeInfo(
@@ -2698,7 +2698,7 @@ end;
 { ITypeInfo2 import }
 {-------------------}
 
-function SepiImportITypeInfo2(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportITypeInfo2(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface(Owner.FindMeta('ITypeInfo2'));
   Result.RegisterTypeInfo(
@@ -2745,7 +2745,7 @@ end;
 { IErrorInfo import }
 {-------------------}
 
-function SepiImportIErrorInfo(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIErrorInfo(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IErrorInfo));
@@ -2771,7 +2771,7 @@ end;
 { ICreateErrorInfo import }
 {-------------------------}
 
-function SepiImportICreateErrorInfo(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportICreateErrorInfo(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(ICreateErrorInfo));
@@ -2797,7 +2797,7 @@ end;
 { ISupportErrorInfo import }
 {--------------------------}
 
-function SepiImportISupportErrorInfo(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportISupportErrorInfo(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(ISupportErrorInfo));
@@ -2815,7 +2815,7 @@ end;
 { tagPARAMDATA import }
 {---------------------}
 
-function SepiImporttagPARAMDATA(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagPARAMDATA(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagPARAMDATA', False, True);
 
@@ -2832,7 +2832,7 @@ end;
 { tagMETHODDATA import }
 {----------------------}
 
-function SepiImporttagMETHODDATA(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagMETHODDATA(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagMETHODDATA', False, True);
 
@@ -2855,7 +2855,7 @@ end;
 { tagINTERFACEDATA import }
 {-------------------------}
 
-function SepiImporttagINTERFACEDATA(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagINTERFACEDATA(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagINTERFACEDATA', False, True);
 
@@ -2872,7 +2872,7 @@ end;
 { IOleAdviseHolder import }
 {-------------------------}
 
-function SepiImportIOleAdviseHolder(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIOleAdviseHolder(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IOleAdviseHolder));
@@ -2900,7 +2900,7 @@ end;
 { IOleCache import }
 {------------------}
 
-function SepiImportIOleCache(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIOleCache(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IOleCache));
@@ -2926,7 +2926,7 @@ end;
 { IOleCache2 import }
 {-------------------}
 
-function SepiImportIOleCache2(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIOleCache2(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IOleCache2));
@@ -2946,7 +2946,7 @@ end;
 { IOleCacheControl import }
 {-------------------------}
 
-function SepiImportIOleCacheControl(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIOleCacheControl(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IOleCacheControl));
@@ -2966,7 +2966,7 @@ end;
 { IParseDisplayName import }
 {--------------------------}
 
-function SepiImportIParseDisplayName(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIParseDisplayName(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IParseDisplayName));
@@ -2984,7 +2984,7 @@ end;
 { IOleContainer import }
 {----------------------}
 
-function SepiImportIOleContainer(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIOleContainer(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IOleContainer));
@@ -3004,7 +3004,7 @@ end;
 { IOleClientSite import }
 {-----------------------}
 
-function SepiImportIOleClientSite(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIOleClientSite(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IOleClientSite));
@@ -3032,7 +3032,7 @@ end;
 { IOleObject import }
 {-------------------}
 
-function SepiImportIOleObject(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIOleObject(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IOleObject));
@@ -3090,7 +3090,7 @@ end;
 { tagOBJECTDESCRIPTOR import }
 {----------------------------}
 
-function SepiImporttagOBJECTDESCRIPTOR(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagOBJECTDESCRIPTOR(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagOBJECTDESCRIPTOR', False, True);
 
@@ -3113,7 +3113,7 @@ end;
 { IOleWindow import }
 {-------------------}
 
-function SepiImportIOleWindow(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIOleWindow(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IOleWindow));
@@ -3133,7 +3133,7 @@ end;
 { IOleLink import }
 {-----------------}
 
-function SepiImportIOleLink(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIOleLink(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IOleLink));
@@ -3171,7 +3171,7 @@ end;
 { IOleItemContainer import }
 {--------------------------}
 
-function SepiImportIOleItemContainer(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIOleItemContainer(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IOleItemContainer));
@@ -3193,7 +3193,7 @@ end;
 { IOleInPlaceUIWindow import }
 {----------------------------}
 
-function SepiImportIOleInPlaceUIWindow(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIOleInPlaceUIWindow(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IOleInPlaceUIWindow));
@@ -3217,7 +3217,7 @@ end;
 { IOleInPlaceActiveObject import }
 {--------------------------------}
 
-function SepiImportIOleInPlaceActiveObject(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIOleInPlaceActiveObject(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface(Owner.FindMeta('IOleInPlaceActiveObject'));
   Result.RegisterTypeInfo(
@@ -3244,7 +3244,7 @@ end;
 { tagOIFI import }
 {----------------}
 
-function SepiImporttagOIFI(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagOIFI(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagOIFI', False, True);
 
@@ -3264,7 +3264,7 @@ end;
 { tagOleMenuGroupWidths import }
 {------------------------------}
 
-function SepiImporttagOleMenuGroupWidths(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagOleMenuGroupWidths(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagOleMenuGroupWidths', False, True);
 
@@ -3280,7 +3280,7 @@ end;
 { IOleInPlaceFrame import }
 {-------------------------}
 
-function SepiImportIOleInPlaceFrame(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIOleInPlaceFrame(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IOleInPlaceFrame));
@@ -3308,7 +3308,7 @@ end;
 { IOleInPlaceObject import }
 {--------------------------}
 
-function SepiImportIOleInPlaceObject(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIOleInPlaceObject(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IOleInPlaceObject));
@@ -3332,7 +3332,7 @@ end;
 { IOleInPlaceSite import }
 {------------------------}
 
-function SepiImportIOleInPlaceSite(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIOleInPlaceSite(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IOleInPlaceSite));
@@ -3368,7 +3368,7 @@ end;
 { IViewObject import }
 {--------------------}
 
-function SepiImportIViewObject(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIViewObject(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IViewObject));
@@ -3396,7 +3396,7 @@ end;
 { IViewObject2 import }
 {---------------------}
 
-function SepiImportIViewObject2(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIViewObject2(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IViewObject2));
@@ -3414,7 +3414,7 @@ end;
 { IDropSource import }
 {--------------------}
 
-function SepiImportIDropSource(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIDropSource(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IDropSource));
@@ -3434,7 +3434,7 @@ end;
 { IDropTarget import }
 {--------------------}
 
-function SepiImportIDropTarget(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIDropTarget(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IDropTarget));
@@ -3458,7 +3458,7 @@ end;
 { tagOLEVERB import }
 {-------------------}
 
-function SepiImporttagOLEVERB(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagOLEVERB(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagOLEVERB', False, True);
 
@@ -3477,7 +3477,7 @@ end;
 { IEnumOLEVERB import }
 {---------------------}
 
-function SepiImportIEnumOLEVERB(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIEnumOLEVERB(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface(Owner.FindMeta('IEnumOLEVERB'));
   Result.RegisterTypeInfo(
@@ -3502,7 +3502,7 @@ end;
 { IOleControl import }
 {--------------------}
 
-function SepiImportIOleControl(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIOleControl(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface(Owner.FindMeta('IOleControl'));
   Result.RegisterTypeInfo(
@@ -3527,7 +3527,7 @@ end;
 { IOleControlSite import }
 {------------------------}
 
-function SepiImportIOleControlSite(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIOleControlSite(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface(Owner.FindMeta('IOleControlSite'));
   Result.RegisterTypeInfo(
@@ -3558,7 +3558,7 @@ end;
 { ISimpleFrameSite import }
 {-------------------------}
 
-function SepiImportISimpleFrameSite(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportISimpleFrameSite(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface(Owner.FindMeta('ISimpleFrameSite'));
   Result.RegisterTypeInfo(
@@ -3579,7 +3579,7 @@ end;
 { IObjectWithSite import }
 {------------------------}
 
-function SepiImportIObjectWithSite(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIObjectWithSite(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IObjectWithSite));
@@ -3599,7 +3599,7 @@ end;
 { IErrorLog import }
 {------------------}
 
-function SepiImportIErrorLog(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIErrorLog(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IErrorLog));
@@ -3617,7 +3617,7 @@ end;
 { IPropertyBag import }
 {---------------------}
 
-function SepiImportIPropertyBag(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIPropertyBag(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IPropertyBag));
@@ -3637,7 +3637,7 @@ end;
 { IPersistPropertyBag import }
 {----------------------------}
 
-function SepiImportIPersistPropertyBag(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIPersistPropertyBag(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface(Owner.FindMeta('IPersistPropertyBag'));
   Result.RegisterTypeInfo(
@@ -3660,7 +3660,7 @@ end;
 { IPersistStreamInit import }
 {---------------------------}
 
-function SepiImportIPersistStreamInit(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIPersistStreamInit(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface(Owner.FindMeta('IPersistStreamInit'));
   Result.RegisterTypeInfo(
@@ -3679,7 +3679,7 @@ end;
 { IPropertyNotifySink import }
 {----------------------------}
 
-function SepiImportIPropertyNotifySink(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIPropertyNotifySink(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface(Owner.FindMeta('IPropertyNotifySink'));
   Result.RegisterTypeInfo(
@@ -3700,7 +3700,7 @@ end;
 { IProvideClassInfo import }
 {--------------------------}
 
-function SepiImportIProvideClassInfo(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIProvideClassInfo(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface(Owner.FindMeta('IProvideClassInfo'));
   Result.RegisterTypeInfo(
@@ -3719,7 +3719,7 @@ end;
 { IConnectionPointContainer import }
 {----------------------------------}
 
-function SepiImportIConnectionPointContainer(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIConnectionPointContainer(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface(Owner.FindMeta('IConnectionPointContainer'));
   Result.RegisterTypeInfo(
@@ -3740,7 +3740,7 @@ end;
 { IEnumConnectionPoints import }
 {------------------------------}
 
-function SepiImportIEnumConnectionPoints(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIEnumConnectionPoints(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface(Owner.FindMeta('IEnumConnectionPoints'));
   Result.RegisterTypeInfo(
@@ -3765,7 +3765,7 @@ end;
 { IConnectionPoint import }
 {-------------------------}
 
-function SepiImportIConnectionPoint(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIConnectionPoint(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface(Owner.FindMeta('IConnectionPoint'));
   Result.RegisterTypeInfo(
@@ -3792,7 +3792,7 @@ end;
 { tagCONNECTDATA import }
 {-----------------------}
 
-function SepiImporttagCONNECTDATA(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagCONNECTDATA(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagCONNECTDATA', False, True,
     TypeInfo(tagCONNECTDATA));
@@ -3810,7 +3810,7 @@ end;
 { IEnumConnections import }
 {-------------------------}
 
-function SepiImportIEnumConnections(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIEnumConnections(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface(Owner.FindMeta('IEnumConnections'));
   Result.RegisterTypeInfo(
@@ -3835,7 +3835,7 @@ end;
 { tagLICINFO import }
 {-------------------}
 
-function SepiImporttagLICINFO(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagLICINFO(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagLICINFO', False, True);
 
@@ -3853,7 +3853,7 @@ end;
 { IClassFactory2 import }
 {-----------------------}
 
-function SepiImportIClassFactory2(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIClassFactory2(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface(Owner.FindMeta('IClassFactory2'));
   Result.RegisterTypeInfo(
@@ -3876,7 +3876,7 @@ end;
 { tagCAUUID import }
 {------------------}
 
-function SepiImporttagCAUUID(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagCAUUID(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagCAUUID', False, True);
 
@@ -3893,7 +3893,7 @@ end;
 { tagCALPOLESTR import }
 {----------------------}
 
-function SepiImporttagCALPOLESTR(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagCALPOLESTR(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagCALPOLESTR', False, True);
 
@@ -3910,7 +3910,7 @@ end;
 { tagCADWORD import }
 {-------------------}
 
-function SepiImporttagCADWORD(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagCADWORD(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagCADWORD', False, True);
 
@@ -3927,7 +3927,7 @@ end;
 { IOleInPlaceObjectWindowless import }
 {------------------------------------}
 
-function SepiImportIOleInPlaceObjectWindowless(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIOleInPlaceObjectWindowless(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IOleInPlaceObjectWindowless));
@@ -3947,7 +3947,7 @@ end;
 { IOleInPlaceSiteEx import }
 {--------------------------}
 
-function SepiImportIOleInPlaceSiteEx(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIOleInPlaceSiteEx(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IOleInPlaceSiteEx));
@@ -3969,7 +3969,7 @@ end;
 { IOleInPlaceSiteWindowless import }
 {----------------------------------}
 
-function SepiImportIOleInPlaceSiteWindowless(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIOleInPlaceSiteWindowless(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IOleInPlaceSiteWindowless));
@@ -4009,7 +4009,7 @@ end;
 { tagOCPFIPARAMS import }
 {-----------------------}
 
-function SepiImporttagOCPFIPARAMS(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagOCPFIPARAMS(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagOCPFIPARAMS', False, True);
 
@@ -4035,7 +4035,7 @@ end;
 { tagPROPPAGEINFO import }
 {------------------------}
 
-function SepiImporttagPROPPAGEINFO(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagPROPPAGEINFO(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagPROPPAGEINFO', False, True);
 
@@ -4056,7 +4056,7 @@ end;
 { ISpecifyPropertyPages import }
 {------------------------------}
 
-function SepiImportISpecifyPropertyPages(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportISpecifyPropertyPages(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface(Owner.FindMeta('ISpecifyPropertyPages'));
   Result.RegisterTypeInfo(
@@ -4075,7 +4075,7 @@ end;
 { IPerPropertyBrowsing import }
 {-----------------------------}
 
-function SepiImportIPerPropertyBrowsing(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIPerPropertyBrowsing(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface(Owner.FindMeta('IPerPropertyBrowsing'));
   Result.RegisterTypeInfo(
@@ -4100,7 +4100,7 @@ end;
 { IPropertyPageSite import }
 {--------------------------}
 
-function SepiImportIPropertyPageSite(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIPropertyPageSite(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface(Owner.FindMeta('IPropertyPageSite'));
   Result.RegisterTypeInfo(
@@ -4125,7 +4125,7 @@ end;
 { IPropertyPage import }
 {----------------------}
 
-function SepiImportIPropertyPage(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIPropertyPage(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface(Owner.FindMeta('IPropertyPage'));
   Result.RegisterTypeInfo(
@@ -4164,7 +4164,7 @@ end;
 { IPropertyPage2 import }
 {-----------------------}
 
-function SepiImportIPropertyPage2(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIPropertyPage2(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface(Owner.FindMeta('IPropertyPage2'));
   Result.RegisterTypeInfo(
@@ -4183,7 +4183,7 @@ end;
 { IFont import }
 {--------------}
 
-function SepiImportIFont(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIFont(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IFont));
@@ -4245,7 +4245,7 @@ end;
 { IFontDisp import }
 {------------------}
 
-function SepiImportIFontDisp(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIFontDisp(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IFontDisp));
@@ -4261,7 +4261,7 @@ end;
 { tagSOLE_AUTHENTICATION_SERVICE import }
 {---------------------------------------}
 
-function SepiImporttagSOLE_AUTHENTICATION_SERVICE(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagSOLE_AUTHENTICATION_SERVICE(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagSOLE_AUTHENTICATION_SERVICE', False, True);
 
@@ -4280,7 +4280,7 @@ end;
 { tagFONTDESC import }
 {--------------------}
 
-function SepiImporttagFONTDESC(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagFONTDESC(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagFONTDESC', False, True);
 
@@ -4303,7 +4303,7 @@ end;
 { IPicture import }
 {-----------------}
 
-function SepiImportIPicture(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIPicture(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IPicture));
@@ -4347,7 +4347,7 @@ end;
 { IPictureDisp import }
 {---------------------}
 
-function SepiImportIPictureDisp(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIPictureDisp(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IPictureDisp));
@@ -4363,7 +4363,7 @@ end;
 { tagPICTDESC import }
 {--------------------}
 
-function SepiImporttagPICTDESC(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagPICTDESC(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagPICTDESC', False, True);
 
@@ -4387,7 +4387,7 @@ end;
 { IOleDocumentView import }
 {-------------------------}
 
-function SepiImportIOleDocumentView(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIOleDocumentView(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IOleDocumentView));
@@ -4429,7 +4429,7 @@ end;
 { IEnumOleDocumentViews import }
 {------------------------------}
 
-function SepiImportIEnumOleDocumentViews(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIEnumOleDocumentViews(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IEnumOleDocumentViews));
@@ -4453,7 +4453,7 @@ end;
 { IOleDocument import }
 {---------------------}
 
-function SepiImportIOleDocument(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIOleDocument(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IOleDocument));
@@ -4475,7 +4475,7 @@ end;
 { IOleDocumentSite import }
 {-------------------------}
 
-function SepiImportIOleDocumentSite(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIOleDocumentSite(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IOleDocumentSite));
@@ -4493,7 +4493,7 @@ end;
 { IContinueCallback import }
 {--------------------------}
 
-function SepiImportIContinueCallback(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIContinueCallback(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IContinueCallback));
@@ -4513,7 +4513,7 @@ end;
 { IServiceProvider import }
 {-------------------------}
 
-function SepiImportIServiceProvider(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIServiceProvider(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IServiceProvider));
@@ -4531,7 +4531,7 @@ end;
 { tagPAGERANGE import }
 {---------------------}
 
-function SepiImporttagPAGERANGE(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagPAGERANGE(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagPAGERANGE', False, True);
 
@@ -4548,7 +4548,7 @@ end;
 { tagPAGESET import }
 {-------------------}
 
-function SepiImporttagPAGESET(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagPAGESET(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagPAGESET', False, True);
 
@@ -4568,7 +4568,7 @@ end;
 { IPrint import }
 {---------------}
 
-function SepiImportIPrint(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIPrint(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IPrint));
@@ -4590,7 +4590,7 @@ end;
 { _tagOLECMD import }
 {-------------------}
 
-function SepiImport_tagOLECMD(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImport_tagOLECMD(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_tagOLECMD', False, True);
 
@@ -4607,7 +4607,7 @@ end;
 { _tagOLECMDTEXT import }
 {-----------------------}
 
-function SepiImport_tagOLECMDTEXT(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImport_tagOLECMDTEXT(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_tagOLECMDTEXT', False, True);
 
@@ -4626,7 +4626,7 @@ end;
 { IOleCommandTarget import }
 {--------------------------}
 
-function SepiImportIOleCommandTarget(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIOleCommandTarget(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IOleCommandTarget));
@@ -4646,7 +4646,7 @@ end;
 { IActiveDesigner import }
 {------------------------}
 
-function SepiImportIActiveDesigner(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIActiveDesigner(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IActiveDesigner));
@@ -4672,7 +4672,7 @@ end;
 { IPersistTextStream import }
 {---------------------------}
 
-function SepiImportIPersistTextStream(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIPersistTextStream(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IPersistTextStream));
@@ -4688,7 +4688,7 @@ end;
 { IProvideRuntimeText import }
 {----------------------------}
 
-function SepiImportIProvideRuntimeText(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIProvideRuntimeText(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IProvideRuntimeText));
@@ -4706,7 +4706,7 @@ end;
 { TCATEGORYINFO import }
 {----------------------}
 
-function SepiImportTCATEGORYINFO(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTCATEGORYINFO(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TCATEGORYINFO', False, True);
 
@@ -4724,7 +4724,7 @@ end;
 { IEnumGUID import }
 {------------------}
 
-function SepiImportIEnumGUID(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIEnumGUID(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface(Owner.FindMeta('IEnumGUID'));
   Result.RegisterTypeInfo(
@@ -4749,7 +4749,7 @@ end;
 { IEnumCATEGORYINFO import }
 {--------------------------}
 
-function SepiImportIEnumCATEGORYINFO(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIEnumCATEGORYINFO(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface(Owner.FindMeta('IEnumCATEGORYINFO'));
   Result.RegisterTypeInfo(
@@ -4774,7 +4774,7 @@ end;
 { ICatRegister import }
 {---------------------}
 
-function SepiImportICatRegister(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportICatRegister(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface(Owner.FindMeta('ICatRegister'));
   Result.RegisterTypeInfo(
@@ -4803,7 +4803,7 @@ end;
 { ICatInformation import }
 {------------------------}
 
-function SepiImportICatInformation(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportICatInformation(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface(Owner.FindMeta('ICatInformation'));
   Result.RegisterTypeInfo(
@@ -4832,7 +4832,7 @@ end;
 { IBindHost import }
 {------------------}
 
-function SepiImportIBindHost(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIBindHost(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IBindHost));
@@ -4848,7 +4848,7 @@ end;
 { IOleUndoManager import }
 {------------------------}
 
-function SepiImportIOleUndoManager(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIOleUndoManager(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IOleUndoManager));
@@ -4864,7 +4864,7 @@ end;
 { tagQACONTAINER import }
 {-----------------------}
 
-function SepiImporttagQACONTAINER(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagQACONTAINER(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagQACONTAINER', False, True);
 
@@ -4893,7 +4893,7 @@ end;
 { tagQACONTROL import }
 {---------------------}
 
-function SepiImporttagQACONTROL(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagQACONTROL(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagQACONTROL', False, True);
 
@@ -4914,7 +4914,7 @@ end;
 { IQuickActivate import }
 {-----------------------}
 
-function SepiImportIQuickActivate(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIQuickActivate(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IQuickActivate));
@@ -4936,7 +4936,7 @@ end;
 { IObjectSafety import }
 {----------------------}
 
-function SepiImportIObjectSafety(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIObjectSafety(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IObjectSafety));
@@ -4956,7 +4956,7 @@ end;
 { IDispatchEx import }
 {--------------------}
 
-function SepiImportIDispatchEx(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIDispatchEx(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IDispatchEx));
@@ -4988,9 +4988,9 @@ end;
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiMetaRoot) : TSepiMetaUnit;
+function ImportUnit(Root : TSepiRoot) : TSepiUnit;
 begin
-  Result := TSepiMetaUnit.Create(Root, 'ActiveXTypes',
+  Result := TSepiUnit.Create(Root, 'ActiveXTypes',
     ['Messages', 'Windows']);
 
   // Types

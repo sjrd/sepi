@@ -19,12 +19,12 @@ implementation
 type
   TSepiImportsTCustomGroupBox = class(TCustomGroupBox)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTGroupBox = class(TGroupBox)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTCustomLabel = class(TCustomLabel)
@@ -37,12 +37,12 @@ type
     procedure SetTransparent(Value: Boolean);
     procedure SetLayout(Value: TTextLayout);
     procedure SetWordWrap(Value: Boolean);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTLabel = class(TLabel)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTCustomEdit = class(TCustomEdit)
@@ -58,32 +58,32 @@ type
     procedure SetPasswordChar(Value: Char);
     procedure SetReadOnly(Value: Boolean);
     procedure SetSelText(const Value: string);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTEdit = class(TEdit)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTCustomMemo = class(TCustomMemo)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTMemo = class(TMemo)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTCustomComboBoxStrings = class(TCustomComboBoxStrings)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTCustomCombo = class(TCustomCombo)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTCustomComboBox = class(TCustomComboBox)
@@ -91,47 +91,47 @@ type
     procedure SetCharCase(Value: TEditCharCase);
     procedure SetSelText(const Value: string);
     procedure SetSorted(Value: Boolean);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTComboBox = class(TComboBox)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTButtonActionLink = class(TButtonActionLink)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTButtonControl = class(TButtonControl)
   private
     procedure SetWordWrap(const Value: Boolean);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTButton = class(TButton)
   private
     procedure SetDefault(Value: Boolean);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTCustomCheckBox = class(TCustomCheckBox)
   private
     procedure SetAlignment(Value: TLeftRight);
     procedure SetState(Value: TCheckBoxState);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTCheckBox = class(TCheckBox)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTRadioButton = class(TRadioButton)
   private
     procedure SetAlignment(Value: TLeftRight);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTCustomListBox = class(TCustomListBox)
@@ -152,12 +152,12 @@ type
     procedure SetTopIndex(Value: Integer);
     function GetScrollWidth: Integer;
     procedure SetScrollWidth(const Value: Integer);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTListBox = class(TListBox)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTScrollBar = class(TScrollBar)
@@ -167,7 +167,7 @@ type
     procedure SetMin(Value: Integer);
     procedure SetPosition(Value: Integer);
     procedure SetPageSize(Value: Integer);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTCustomStaticText = class(TCustomStaticText)
@@ -178,12 +178,12 @@ type
     procedure SetShowAccelChar(Value: Boolean);
     procedure SetTransparent(const Value: Boolean);
     function GetTransparent: Boolean;
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTStaticText = class(TStaticText)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
 {------------------------}
@@ -191,7 +191,7 @@ type
 {------------------------}
 
 class function TSepiImportsTCustomGroupBox.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TCustomGroupBox));
@@ -240,7 +240,7 @@ end;
 {------------------}
 
 class function TSepiImportsTGroupBox.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TGroupBox));
@@ -345,7 +345,7 @@ begin
 end;
 
 class function TSepiImportsTCustomLabel.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TCustomLabel));
@@ -467,7 +467,7 @@ end;
 {---------------}
 
 class function TSepiImportsTLabel.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TLabel));
@@ -583,7 +583,7 @@ begin
 end;
 
 class function TSepiImportsTCustomEdit.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TCustomEdit));
@@ -781,7 +781,7 @@ end;
 {--------------}
 
 class function TSepiImportsTEdit.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TEdit));
@@ -857,7 +857,7 @@ end;
 {--------------------}
 
 class function TSepiImportsTCustomMemo.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TCustomMemo));
@@ -951,7 +951,7 @@ end;
 {--------------}
 
 class function TSepiImportsTMemo.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TMemo));
@@ -1028,7 +1028,7 @@ end;
 {-------------------------------}
 
 class function TSepiImportsTCustomComboBoxStrings.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TCustomComboBoxStrings));
@@ -1081,7 +1081,7 @@ end;
 {---------------------}
 
 class function TSepiImportsTCustomCombo.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass(Owner.FindMeta('TCustomCombo'));
   Result.RegisterTypeInfo(
@@ -1309,7 +1309,7 @@ begin
 end;
 
 class function TSepiImportsTCustomComboBox.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TCustomComboBox));
@@ -1444,7 +1444,7 @@ end;
 {------------------}
 
 class function TSepiImportsTComboBox.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TComboBox));
@@ -1528,7 +1528,7 @@ end;
 {--------------------------}
 
 class function TSepiImportsTButtonActionLink.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TButtonActionLink));
@@ -1563,7 +1563,7 @@ begin
 end;
 
 class function TSepiImportsTButtonControl.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass(Owner.FindMeta('TButtonControl'));
   Result.RegisterTypeInfo(
@@ -1637,7 +1637,7 @@ begin
 end;
 
 class function TSepiImportsTButton.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TButton));
@@ -1764,7 +1764,7 @@ begin
 end;
 
 class function TSepiImportsTCustomCheckBox.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TCustomCheckBox));
@@ -1848,7 +1848,7 @@ end;
 {------------------}
 
 class function TSepiImportsTCheckBox.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TCheckBox));
@@ -1917,7 +1917,7 @@ begin
 end;
 
 class function TSepiImportsTRadioButton.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TRadioButton));
@@ -2102,7 +2102,7 @@ begin
 end;
 
 class function TSepiImportsTCustomListBox.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TCustomListBox));
@@ -2376,7 +2376,7 @@ end;
 {-----------------}
 
 class function TSepiImportsTListBox.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TListBox));
@@ -2485,7 +2485,7 @@ begin
 end;
 
 class function TSepiImportsTScrollBar.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TScrollBar));
@@ -2651,7 +2651,7 @@ begin
 end;
 
 class function TSepiImportsTCustomStaticText.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TCustomStaticText));
@@ -2741,7 +2741,7 @@ end;
 {--------------------}
 
 class function TSepiImportsTStaticText.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TStaticText));
@@ -2804,7 +2804,7 @@ end;
 { TSelection import }
 {-------------------}
 
-function SepiImportTSelection(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTSelection(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TSelection', False, True);
 
@@ -2821,9 +2821,9 @@ end;
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiMetaRoot) : TSepiMetaUnit;
+function ImportUnit(Root : TSepiRoot) : TSepiUnit;
 begin
-  Result := TSepiMetaUnit.Create(Root, 'StdCtrls',
+  Result := TSepiUnit.Create(Root, 'StdCtrls',
     ['Messages', 'Windows', 'SysUtils', 'Classes', 'Controls', 'Forms', 'Menus', 'Graphics']);
 
   // Types

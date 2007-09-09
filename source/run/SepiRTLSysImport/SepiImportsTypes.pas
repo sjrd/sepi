@@ -19,7 +19,7 @@ implementation
 { TPoint import }
 {---------------}
 
-function SepiImportTPoint(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTPoint(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TPoint', True, True);
 
@@ -36,7 +36,7 @@ end;
 { TRect import }
 {--------------}
 
-function SepiImportTRect(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTRect(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TRect', True, True);
 
@@ -57,7 +57,7 @@ end;
 { tagSIZE import }
 {----------------}
 
-function SepiImporttagSIZE(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagSIZE(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagSIZE', True, True);
 
@@ -74,7 +74,7 @@ end;
 { TSmallPoint import }
 {--------------------}
 
-function SepiImportTSmallPoint(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTSmallPoint(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TSmallPoint', True, True);
 
@@ -101,9 +101,9 @@ begin
   Result := SmallPoint(XY);
 end;
 
-function ImportUnit(Root : TSepiMetaRoot) : TSepiMetaUnit;
+function ImportUnit(Root : TSepiRoot) : TSepiUnit;
 begin
-  Result := TSepiMetaUnit.Create(Root, 'Types', []);
+  Result := TSepiUnit.Create(Root, 'Types', []);
 
   // Types
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(TIntegerDynArray));
@@ -136,30 +136,30 @@ begin
   TSepiConstant.Create(Result, 'RT_RCDATA', LongWord(RT_RCDATA), 'PChar');
 
   // Routines
-  TSepiMetaMethod.Create(Result, 'EqualRect', @EqualRect,
+  TSepiMethod.Create(Result, 'EqualRect', @EqualRect,
     'function(const R1, R2: TRect): Boolean');
-  TSepiMetaMethod.Create(Result, 'Rect', @Rect,
+  TSepiMethod.Create(Result, 'Rect', @Rect,
     'function(Left, Top, Right, Bottom: Integer): TRect');
-  TSepiMetaMethod.Create(Result, 'Bounds', @Bounds,
+  TSepiMethod.Create(Result, 'Bounds', @Bounds,
     'function(ALeft, ATop, AWidth, AHeight: Integer): TRect');
-  TSepiMetaMethod.Create(Result, 'Point', @Point,
+  TSepiMethod.Create(Result, 'Point', @Point,
     'function(X, Y: Integer): TPoint');
-  TSepiMetaOverloadedMethod.Create(Result, 'SmallPoint');
-  TSepiMetaMethod.Create(Result, 'OL$SmallPoint$0', @SmallPoint_0,
+  TSepiOverloadedMethod.Create(Result, 'SmallPoint');
+  TSepiMethod.Create(Result, 'OL$SmallPoint$0', @SmallPoint_0,
     'function(X, Y: Integer): TSmallPoint');
-  TSepiMetaMethod.Create(Result, 'OL$SmallPoint$1', @SmallPoint_1,
+  TSepiMethod.Create(Result, 'OL$SmallPoint$1', @SmallPoint_1,
     'function(XY: LongWord): TSmallPoint');
-  TSepiMetaMethod.Create(Result, 'PtInRect', @PtInRect,
+  TSepiMethod.Create(Result, 'PtInRect', @PtInRect,
     'function(const Rect: TRect; const P: TPoint): Boolean');
-  TSepiMetaMethod.Create(Result, 'IntersectRect', @IntersectRect,
+  TSepiMethod.Create(Result, 'IntersectRect', @IntersectRect,
     'function(out Rect: TRect; const R1, R2: TRect): Boolean');
-  TSepiMetaMethod.Create(Result, 'UnionRect', @UnionRect,
+  TSepiMethod.Create(Result, 'UnionRect', @UnionRect,
     'function(out Rect: TRect; const R1, R2: TRect): Boolean');
-  TSepiMetaMethod.Create(Result, 'IsRectEmpty', @IsRectEmpty,
+  TSepiMethod.Create(Result, 'IsRectEmpty', @IsRectEmpty,
     'function(const Rect: TRect): Boolean');
-  TSepiMetaMethod.Create(Result, 'OffsetRect', @OffsetRect,
+  TSepiMethod.Create(Result, 'OffsetRect', @OffsetRect,
     'function(var Rect: TRect; DX: Integer; DY: Integer): Boolean');
-  TSepiMetaMethod.Create(Result, 'CenterPoint', @CenterPoint,
+  TSepiMethod.Create(Result, 'CenterPoint', @CenterPoint,
     'function(const Rect: TRect): TPoint');
 
   // Types

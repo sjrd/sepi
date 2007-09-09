@@ -18,40 +18,40 @@ implementation
 type
   TSepiImportsTCustomZlibStream = class(TCustomZlibStream)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTCompressionStream = class(TCompressionStream)
   private
     function GetCompressionRate: Single;
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTDecompressionStream = class(TDecompressionStream)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsEZlibError = class(EZlibError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsECompressionError = class(ECompressionError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsEDecompressionError = class(EDecompressionError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
 {--------------------}
 { TZStreamRec import }
 {--------------------}
 
-function SepiImportTZStreamRec(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTZStreamRec(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TZStreamRec', True, True);
 
@@ -81,7 +81,7 @@ end;
 {--------------------------}
 
 class function TSepiImportsTCustomZlibStream.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TCustomZlibStream));
@@ -122,7 +122,7 @@ begin
 end;
 
 class function TSepiImportsTCompressionStream.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TCompressionStream));
@@ -164,7 +164,7 @@ end;
 {-----------------------------}
 
 class function TSepiImportsTDecompressionStream.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TDecompressionStream));
@@ -199,7 +199,7 @@ end;
 {-------------------}
 
 class function TSepiImportsEZlibError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EZlibError));
@@ -216,7 +216,7 @@ end;
 {--------------------------}
 
 class function TSepiImportsECompressionError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(ECompressionError));
@@ -233,7 +233,7 @@ end;
 {----------------------------}
 
 class function TSepiImportsEDecompressionError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EDecompressionError));
@@ -249,9 +249,9 @@ end;
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiMetaRoot) : TSepiMetaUnit;
+function ImportUnit(Root : TSepiRoot) : TSepiUnit;
 begin
-  Result := TSepiMetaUnit.Create(Root, 'ZLib',
+  Result := TSepiUnit.Create(Root, 'ZLib',
     ['SysUtils', 'Classes']);
 
   // Types
@@ -268,11 +268,11 @@ begin
   TSepiImportsTDecompressionStream.SepiImport(Result);
 
   // Routines
-  TSepiMetaMethod.Create(Result, 'CompressBuf', @CompressBuf,
+  TSepiMethod.Create(Result, 'CompressBuf', @CompressBuf,
     'procedure(const InBuf: Pointer; InBytes: Integer; out OutBuf: Pointer ; out OutBytes: Integer )');
-  TSepiMetaMethod.Create(Result, 'DecompressBuf', @DecompressBuf,
+  TSepiMethod.Create(Result, 'DecompressBuf', @DecompressBuf,
     'procedure(const InBuf: Pointer; InBytes: Integer; OutEstimate: Integer ; out OutBuf: Pointer ; out OutBytes: Integer )');
-  TSepiMetaMethod.Create(Result, 'DecompressToUserBuf', @DecompressToUserBuf,
+  TSepiMethod.Create(Result, 'DecompressToUserBuf', @DecompressToUserBuf,
     'procedure(const InBuf: Pointer; InBytes: Integer; const OutBuf: Pointer ; BufSize: Integer )');
 
   // Constants
@@ -309,23 +309,23 @@ begin
   TSepiImportsEDecompressionError.SepiImport(Result);
 
   // Routines
-  TSepiMetaMethod.Create(Result, 'zlibAllocMem', @zlibAllocMem,
+  TSepiMethod.Create(Result, 'zlibAllocMem', @zlibAllocMem,
     'function(AppData: Pointer; Items, Size: Integer): Pointer');
-  TSepiMetaMethod.Create(Result, 'zlibFreeMem', @zlibFreeMem,
+  TSepiMethod.Create(Result, 'zlibFreeMem', @zlibFreeMem,
     'procedure(AppData, Block: Pointer)');
-  TSepiMetaMethod.Create(Result, 'deflateInit_', @deflateInit_,
+  TSepiMethod.Create(Result, 'deflateInit_', @deflateInit_,
     'function(var strm: TZStreamRec; level: Integer; version: PChar; recsize: Integer ) : Integer');
-  TSepiMetaMethod.Create(Result, 'deflate', @deflate,
+  TSepiMethod.Create(Result, 'deflate', @deflate,
     'function(var strm: TZStreamRec; flush: Integer): Integer');
-  TSepiMetaMethod.Create(Result, 'deflateEnd', @deflateEnd,
+  TSepiMethod.Create(Result, 'deflateEnd', @deflateEnd,
     'function(var strm: TZStreamRec): Integer');
-  TSepiMetaMethod.Create(Result, 'inflateInit_', @inflateInit_,
+  TSepiMethod.Create(Result, 'inflateInit_', @inflateInit_,
     'function(var strm: TZStreamRec; version: PChar; recsize: Integer ) : Integer');
-  TSepiMetaMethod.Create(Result, 'inflate', @inflate,
+  TSepiMethod.Create(Result, 'inflate', @inflate,
     'function(var strm: TZStreamRec; flush: Integer): Integer');
-  TSepiMetaMethod.Create(Result, 'inflateEnd', @inflateEnd,
+  TSepiMethod.Create(Result, 'inflateEnd', @inflateEnd,
     'function(var strm: TZStreamRec): Integer');
-  TSepiMetaMethod.Create(Result, 'inflateReset', @inflateReset,
+  TSepiMethod.Create(Result, 'inflateReset', @inflateReset,
     'function(var strm: TZStreamRec): Integer');
 
   Result.Complete;

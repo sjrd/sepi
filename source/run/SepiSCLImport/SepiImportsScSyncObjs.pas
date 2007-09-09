@@ -20,29 +20,29 @@ type
   private
     constructor Create_0(AOwner : TScCustomTaskQueue; AFreeOnFinished : boolean );
     constructor Create_1(AOwner : TScCustomTaskQueue);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTScCustomTaskQueue = class(TScCustomTaskQueue)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTScTaskQueue = class(TScTaskQueue)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTScCustomMessageTask = class(TScCustomMessageTask)
   private
     constructor Create_0(AOwner : TScCustomTaskQueue; const AMsg; AMsgSize : integer ; ADestObj : TObject ; AFreeOnFinished : boolean );
     constructor Create_1(AOwner : TScCustomTaskQueue; const AMsg; AMsgSize : integer ; ADestObj : TObject );
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTScMessageTask = class(TScMessageTask)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
 {----------------}
@@ -60,7 +60,7 @@ begin
 end;
 
 class function TSepiImportsTScTask.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TScTask));
@@ -124,7 +124,7 @@ end;
 {---------------------------}
 
 class function TSepiImportsTScCustomTaskQueue.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass(Owner.FindMeta('TScCustomTaskQueue'));
   Result.RegisterTypeInfo(
@@ -184,7 +184,7 @@ end;
 {---------------------}
 
 class function TSepiImportsTScTaskQueue.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TScTaskQueue));
@@ -216,7 +216,7 @@ begin
 end;
 
 class function TSepiImportsTScCustomMessageTask.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TScCustomMessageTask));
@@ -263,7 +263,7 @@ end;
 {-----------------------}
 
 class function TSepiImportsTScMessageTask.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TScMessageTask));
@@ -292,9 +292,9 @@ end;
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiMetaRoot) : TSepiMetaUnit;
+function ImportUnit(Root : TSepiRoot) : TSepiUnit;
 begin
-  Result := TSepiMetaUnit.Create(Root, 'ScSyncObjs',
+  Result := TSepiUnit.Create(Root, 'ScSyncObjs',
     ['Classes', 'Contnrs', 'SyncObjs', 'ScLists']);
 
   // Types
@@ -307,9 +307,9 @@ begin
   TSepiImportsTScMessageTask.SepiImport(Result);
 
   // Routines
-  TSepiMetaMethod.Create(Result, 'InterlockedIncrement', @InterlockedIncrement,
+  TSepiMethod.Create(Result, 'InterlockedIncrement', @InterlockedIncrement,
     'function(var I : integer) : integer');
-  TSepiMetaMethod.Create(Result, 'InterlockedDecrement', @InterlockedDecrement,
+  TSepiMethod.Create(Result, 'InterlockedDecrement', @InterlockedDecrement,
     'function(var I : integer) : integer');
 
   Result.Complete;

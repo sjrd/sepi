@@ -21,13 +21,13 @@ type
     function Execute_0: boolean;
     function Execute_1(Password : string; ShowErrorMes : boolean = True ) : boolean;
     function Execute_2(ShowErrorMes : boolean) : boolean;
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTSdAboutDialog = class(TSdAboutDialog)
   private
     procedure SetProgramIcon(New : TIcon);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTSdNumberDialog = class(TSdNumberDialog)
@@ -37,7 +37,7 @@ type
     function Execute_2(const ATitle, APrompt : string; AMin, AMax : integer ) : integer;
     function Execute_3(AMin, AMax : integer) : integer;
     function Execute_4: integer;
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
 {--------------------------}
@@ -60,7 +60,7 @@ begin
 end;
 
 class function TSepiImportsTSdPasswordDialog.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TSdPasswordDialog));
@@ -106,7 +106,7 @@ begin
 end;
 
 class function TSepiImportsTSdAboutDialog.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TSdAboutDialog));
@@ -206,7 +206,7 @@ begin
 end;
 
 class function TSepiImportsTSdNumberDialog.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TSdNumberDialog));
@@ -268,9 +268,9 @@ begin
   Result := QueryPassWord(Password, ShowErrorMes);
 end;
 
-function ImportUnit(Root : TSepiMetaRoot) : TSepiMetaUnit;
+function ImportUnit(Root : TSepiRoot) : TSepiUnit;
 begin
-  Result := TSepiMetaUnit.Create(Root, 'SdDialogs',
+  Result := TSepiUnit.Create(Root, 'SdDialogs',
     ['Classes', 'Dialogs', 'Controls', 'Graphics']);
 
   // Types
@@ -282,19 +282,19 @@ begin
   TSepiImportsTSdNumberDialog.SepiImport(Result);
 
   // Routines
-  TSepiMetaMethod.Create(Result, 'ShowMes', @ShowMes,
+  TSepiMethod.Create(Result, 'ShowMes', @ShowMes,
     'function(const Title, Text : string; Flags : LongWord ) : integer');
-  TSepiMetaMethod.Create(Result, 'ShowDialog', @ShowDialog,
+  TSepiMethod.Create(Result, 'ShowDialog', @ShowDialog,
     'function(const Title, Text : string; DlgType : TDialogType = dtInformation ; DlgButtons : TDialogButtons = dbOK ; DefButton : Byte = 1 ; AddFlags : LongWord = 0 ) : TDialogResult');
-  TSepiMetaMethod.Create(Result, 'ShowDialogRadio', @ShowDialogRadio,
+  TSepiMethod.Create(Result, 'ShowDialogRadio', @ShowDialogRadio,
     'function(const Title, Text : string; DlgType : TMsgDlgType; DlgButtons : TMsgDlgButtons ; DefButton : TModalResult ; const RadioTitles : array of string ; var Selected : integer ; OverButtons : boolean = False ) : Word');
-  TSepiMetaMethod.CreateOverloaded(Result, 'QueryPassword', @QueryPassword_0,
+  TSepiMethod.CreateOverloaded(Result, 'QueryPassword', @QueryPassword_0,
     'function: string');
-  TSepiMetaMethod.CreateOverloaded(Result, 'QueryPassWord', @QueryPassWord_1,
+  TSepiMethod.CreateOverloaded(Result, 'QueryPassWord', @QueryPassWord_1,
     'function(Password : string; ShowErrorMes : boolean = True ) : boolean');
-  TSepiMetaMethod.Create(Result, 'ShowAbout', @ShowAbout,
+  TSepiMethod.Create(Result, 'ShowAbout', @ShowAbout,
     'procedure(Title : string; ProgramIcon : TIcon; ProgramName : string; ProgramVersion : string ; Author : string ; AuthorEMail : string = '''' ; WebSite : string = '''' )');
-  TSepiMetaMethod.Create(Result, 'QueryNumber', @QueryNumber,
+  TSepiMethod.Create(Result, 'QueryNumber', @QueryNumber,
     'function(const Title, Prompt : string; Default, Min, Max : integer ) : integer');
 
   Result.Complete;

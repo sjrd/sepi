@@ -19,40 +19,40 @@ implementation
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiMetaRoot) : TSepiMetaUnit;
+function ImportUnit(Root : TSepiRoot) : TSepiUnit;
 begin
-  Result := TSepiMetaUnit.Create(Root, 'ScStrUtils', []);
+  Result := TSepiUnit.Create(Root, 'ScStrUtils', []);
 
   // Types
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(TCompareStrOption));
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(TCompareStrOptions));
 
   // Routines
-  TSepiMetaMethod.Create(Result, 'RightPos', @RightPos,
+  TSepiMethod.Create(Result, 'RightPos', @RightPos,
     'function(C : Char; const Str : string) : integer');
-  TSepiMetaMethod.Create(Result, 'NberSubStr', @NberSubStr,
+  TSepiMethod.Create(Result, 'NberSubStr', @NberSubStr,
     'function(const SubStr, Str : string) : integer');
-  TSepiMetaMethod.Create(Result, 'NberCharInStr', @NberCharInStr,
+  TSepiMethod.Create(Result, 'NberCharInStr', @NberCharInStr,
     'function(C : Char; const Str : string) : integer');
-  TSepiMetaMethod.Create(Result, 'CompareStringEx', @CompareStringEx,
+  TSepiMethod.Create(Result, 'CompareStringEx', @CompareStringEx,
     'function(const S1, S2 : string; CompareOptions : TCompareStrOptions = [] ) : integer');
-  TSepiMetaMethod.Create(Result, 'GetFirstToken', @GetFirstToken,
+  TSepiMethod.Create(Result, 'GetFirstToken', @GetFirstToken,
     'function(const S : string; Token : Char) : string');
-  TSepiMetaMethod.Create(Result, 'ExtractFirstToken', @ExtractFirstToken,
+  TSepiMethod.Create(Result, 'ExtractFirstToken', @ExtractFirstToken,
     'function(var S : string; Token : Char) : string');
-  TSepiMetaMethod.Create(Result, 'GetLastToken', @GetLastToken,
+  TSepiMethod.Create(Result, 'GetLastToken', @GetLastToken,
     'function(const S : string; Token : Char) : string');
-  TSepiMetaMethod.Create(Result, 'ExtractLastToken', @ExtractLastToken,
+  TSepiMethod.Create(Result, 'ExtractLastToken', @ExtractLastToken,
     'function(var S : string; Token : Char) : string');
-  TSepiMetaMethod.Create(Result, 'SplitToken', @SplitToken,
+  TSepiMethod.Create(Result, 'SplitToken', @SplitToken,
     'function(const S : string; Token : Char; out LeftStr, RightStr : string ) : boolean');
-  TSepiMetaMethod.Create(Result, 'GetXToken', @GetXToken,
+  TSepiMethod.Create(Result, 'GetXToken', @GetXToken,
     'function(const S : string; Token : Char; X : integer) : string');
-  TSepiMetaMethod.Create(Result, 'GetXWord', @GetXWord,
+  TSepiMethod.Create(Result, 'GetXWord', @GetXWord,
     'function(const S : string; X : integer) : string');
-  TSepiMetaMethod.Create(Result, 'PosWord', @PosWord,
+  TSepiMethod.Create(Result, 'PosWord', @PosWord,
     'function(const Wrd, Str : string; Index : integer = 1) : integer');
-  TSepiMetaMethod.Create(Result, 'HashOfStr', @HashOfStr,
+  TSepiMethod.Create(Result, 'HashOfStr', @HashOfStr,
     'function(const Str : string) : Cardinal');
 
   Result.Complete;

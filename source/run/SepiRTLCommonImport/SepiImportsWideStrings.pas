@@ -38,21 +38,21 @@ type
     procedure SetValueFromIndex(Index: Integer; const Value: WideString);
     procedure Error_0(const Msg: WideString; Data: Integer);
     procedure Error_1(Msg: PResStringRec; Data: Integer);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTWideStringList = class(TWideStringList)
   private
     procedure SetSorted(Value: Boolean);
     procedure SetCaseSensitive(const Value: Boolean);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
 {----------------------------}
 { IWideStringsAdapter import }
 {----------------------------}
 
-function SepiImportIWideStringsAdapter(Owner : TSepiMetaUnit) : TSepiInterface;
+function SepiImportIWideStringsAdapter(Owner : TSepiUnit) : TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IWideStringsAdapter));
@@ -173,7 +173,7 @@ begin
 end;
 
 class function TSepiImportsTWideStrings.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass(Owner.FindMeta('TWideStrings'));
   Result.RegisterTypeInfo(
@@ -397,7 +397,7 @@ end;
 { TWideStringItem import }
 {------------------------}
 
-function SepiImportTWideStringItem(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTWideStringItem(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWideStringItem', False, True,
     TypeInfo(TWideStringItem));
@@ -426,7 +426,7 @@ begin
 end;
 
 class function TSepiImportsTWideStringList.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass(Owner.FindMeta('TWideStringList'));
   Result.RegisterTypeInfo(
@@ -553,9 +553,9 @@ end;
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiMetaRoot) : TSepiMetaUnit;
+function ImportUnit(Root : TSepiRoot) : TSepiUnit;
 begin
-  Result := TSepiMetaUnit.Create(Root, 'WideStrings',
+  Result := TSepiUnit.Create(Root, 'WideStrings',
     ['Classes']);
 
   // Types

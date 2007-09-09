@@ -19,12 +19,12 @@ implementation
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiMetaRoot) : TSepiMetaUnit;
+function ImportUnit(Root : TSepiRoot) : TSepiUnit;
 begin
-  Result := TSepiMetaUnit.Create(Root, 'ScDateTimeUtils', []);
+  Result := TSepiUnit.Create(Root, 'ScDateTimeUtils', []);
 
   // Routines
-  TSepiMetaMethod.Create(Result, 'GetMonthName', @GetMonthName,
+  TSepiMethod.Create(Result, 'GetMonthName', @GetMonthName,
     'function(Month : integer; Maj : boolean = True) : string');
 
   Result.Complete;

@@ -22,12 +22,12 @@ type
     procedure SetCategory(const Value: string);
     procedure SetIndex(Value: Integer);
     procedure SetActionList(AActionList: TCustomActionList);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTActionListEnumerator = class(TActionListEnumerator)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTCustomActionList = class(TCustomActionList)
@@ -36,18 +36,18 @@ type
     function GetActionCount: Integer;
     procedure SetAction(Index: Integer; Value: TContainedAction);
     procedure SetState(const Value: TActionListState);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTActionList = class(TActionList)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTShortCutList = class(TShortCutList)
   private
     function GetShortCuts(Index: Integer): TShortCut;
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTCustomAction = class(TCustomAction)
@@ -64,17 +64,17 @@ type
     procedure SetVisible(Value: Boolean);
     function GetSecondaryShortCuts: TShortCutList;
     procedure SetSecondaryShortCuts(const Value: TShortCutList);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTAction = class(TAction)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTActionLink = class(TActionLink)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
 {-------------------------}
@@ -102,7 +102,7 @@ begin
 end;
 
 class function TSepiImportsTContainedAction.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TContainedAction));
@@ -173,7 +173,7 @@ end;
 {------------------------------}
 
 class function TSepiImportsTActionListEnumerator.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TActionListEnumerator));
@@ -226,7 +226,7 @@ begin
 end;
 
 class function TSepiImportsTCustomActionList.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass(Owner.FindMeta('TCustomActionList'));
   Result.RegisterTypeInfo(
@@ -325,7 +325,7 @@ end;
 {--------------------}
 
 class function TSepiImportsTActionList.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TActionList));
@@ -355,7 +355,7 @@ begin
 end;
 
 class function TSepiImportsTShortCutList.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TShortCutList));
@@ -447,7 +447,7 @@ begin
 end;
 
 class function TSepiImportsTCustomAction.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TCustomAction));
@@ -591,7 +591,7 @@ end;
 {----------------}
 
 class function TSepiImportsTAction.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TAction));
@@ -632,7 +632,7 @@ end;
 {--------------------}
 
 class function TSepiImportsTActionLink.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TActionLink));
@@ -716,9 +716,9 @@ end;
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiMetaRoot) : TSepiMetaUnit;
+function ImportUnit(Root : TSepiRoot) : TSepiUnit;
 begin
-  Result := TSepiMetaUnit.Create(Root, 'ActnList',
+  Result := TSepiUnit.Create(Root, 'ActnList',
     ['Classes', 'Messages', 'ImgList', 'Contnrs']);
 
   // Types
@@ -739,13 +739,13 @@ begin
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(TEnumActionProc));
 
   // Routines
-  TSepiMetaMethod.Create(Result, 'RegisterActions', @RegisterActions,
+  TSepiMethod.Create(Result, 'RegisterActions', @RegisterActions,
     'procedure(const CategoryName: string; const AClasses: array of TBasicActionClass ; Resource: TComponentClass )');
-  TSepiMetaMethod.Create(Result, 'UnRegisterActions', @UnRegisterActions,
+  TSepiMethod.Create(Result, 'UnRegisterActions', @UnRegisterActions,
     'procedure(const AClasses: array of TBasicActionClass)');
-  TSepiMetaMethod.Create(Result, 'EnumRegisteredActions', @EnumRegisteredActions,
+  TSepiMethod.Create(Result, 'EnumRegisteredActions', @EnumRegisteredActions,
     'procedure(Proc: TEnumActionProc; Info: Pointer)');
-  TSepiMetaMethod.Create(Result, 'CreateAction', @CreateAction,
+  TSepiMethod.Create(Result, 'CreateAction', @CreateAction,
     'function(AOwner: TComponent; ActionClass: TBasicActionClass): TBasicAction');
 
   // Constants

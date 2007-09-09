@@ -18,7 +18,7 @@ implementation
 type
   TSepiImportsERegistryException = class(ERegistryException)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTRegistry = class(TRegistry)
@@ -26,21 +26,21 @@ type
     procedure SetRootKey(Value: HKEY);
     constructor Create_0;
     constructor Create_1(AAccess: LongWord);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTRegIniFile = class(TRegIniFile)
   private
     constructor Create_0(const FileName: string);
     constructor Create_1(const FileName: string; AAccess: LongWord);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTRegistryIniFile = class(TRegistryIniFile)
   private
     constructor Create_0(const FileName: string);
     constructor Create_1(const FileName: string; AAccess: LongWord);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
 {---------------------------}
@@ -48,7 +48,7 @@ type
 {---------------------------}
 
 class function TSepiImportsERegistryException.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(ERegistryException));
@@ -64,7 +64,7 @@ end;
 { TRegKeyInfo import }
 {--------------------}
 
-function SepiImportTRegKeyInfo(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTRegKeyInfo(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TRegKeyInfo', False, True);
 
@@ -85,7 +85,7 @@ end;
 { TRegDataInfo import }
 {---------------------}
 
-function SepiImportTRegDataInfo(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImportTRegDataInfo(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TRegDataInfo', False, True);
 
@@ -118,7 +118,7 @@ begin
 end;
 
 class function TSepiImportsTRegistry.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TRegistry));
@@ -276,7 +276,7 @@ begin
 end;
 
 class function TSepiImportsTRegIniFile.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TRegIniFile));
@@ -338,7 +338,7 @@ begin
 end;
 
 class function TSepiImportsTRegistryIniFile.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TRegistryIniFile));
@@ -433,9 +433,9 @@ end;
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiMetaRoot) : TSepiMetaUnit;
+function ImportUnit(Root : TSepiRoot) : TSepiUnit;
 begin
-  Result := TSepiMetaUnit.Create(Root, 'Registry',
+  Result := TSepiUnit.Create(Root, 'Registry',
     ['Windows', 'Classes', 'SysUtils', 'IniFiles']);
 
   // Types

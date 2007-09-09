@@ -19,7 +19,7 @@ implementation
 { tagMONITORINFOA import }
 {------------------------}
 
-function SepiImporttagMONITORINFOA(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagMONITORINFOA(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagMONITORINFOA', False, True);
 
@@ -38,7 +38,7 @@ end;
 { tagMONITORINFOW import }
 {------------------------}
 
-function SepiImporttagMONITORINFOW(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagMONITORINFOW(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagMONITORINFOW', False, True);
 
@@ -57,7 +57,7 @@ end;
 { tagMONITORINFOEXA import }
 {--------------------------}
 
-function SepiImporttagMONITORINFOEXA(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagMONITORINFOEXA(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagMONITORINFOEXA', False, True);
 
@@ -77,7 +77,7 @@ end;
 { tagMONITORINFOEXW import }
 {--------------------------}
 
-function SepiImporttagMONITORINFOEXW(Owner : TSepiMetaUnit) : TSepiRecordType;
+function SepiImporttagMONITORINFOEXW(Owner : TSepiUnit) : TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagMONITORINFOEXW', False, True);
 
@@ -97,9 +97,9 @@ end;
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiMetaRoot) : TSepiMetaUnit;
+function ImportUnit(Root : TSepiRoot) : TSepiUnit;
 begin
-  Result := TSepiMetaUnit.Create(Root, 'MultiMonTypes',
+  Result := TSepiUnit.Create(Root, 'MultiMonTypes',
     ['Windows']);
 
   // Types

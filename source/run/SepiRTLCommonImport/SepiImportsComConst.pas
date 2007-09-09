@@ -19,9 +19,9 @@ implementation
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiMetaRoot) : TSepiMetaUnit;
+function ImportUnit(Root : TSepiRoot) : TSepiUnit;
 begin
-  Result := TSepiMetaUnit.Create(Root, 'ComConst', []);
+  Result := TSepiUnit.Create(Root, 'ComConst', []);
 
   // Constants
   TSepiConstant.Create(Result, 'SCreateRegKeyError', SCreateRegKeyError);

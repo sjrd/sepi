@@ -65,7 +65,7 @@ type
   {*
     Convention d'appel d'une méthode
   *}
-  TCallingConvention = (ccRegister, ccCdecl, ccPascal, ccStdCall, ccSafeCall);
+  TCallingConvention = (ccRegister, ccCDecl, ccPascal, ccStdCall, ccSafeCall);
 
   {*
     Type d'accesseur d'une propriété
@@ -77,14 +77,14 @@ type
   *}
   TPropertyStorageKind = (pskConstant, pskField, pskMethod);
 
-  TSepiMetaOverloadedMethod = class;
+  TSepiOverloadedMethod = class;
 
   {*
-    Meta-variable
+    Champ
     @author sjrd
     @version 1.0
   *}
-  TSepiMetaField = class(TSepiMeta)
+  TSepiField = class(TSepiMeta)
   private
     FType : TSepiType; /// Type du champ
     FOffset : integer; /// Offset
@@ -112,16 +112,16 @@ type
   end;
 
   {*
-    Meta-paramètre de méthode
+    Paramètre de méthode
     Les paramètres cachés ont aussi leur existence en tant que TSepiMetaParam.
-    Les cinq types de paramètres cachés sont Self (class ou instance), Result
+    Les cinq types de paramètres cachés sont Self (classe ou instance), Result
     (qui peut être passé par adresse ou pas), le paramètre spécial $Alloc des
     constructeurs, le paramètre spécial $Free des destructeurs et les
     paramètres High$xxx suivant chaque paramètre de type "open array".
     @author sjrd
     @version 1.0
   *}
-  TSepiMetaParam = class(TSepiMeta)
+  TSepiParam = class(TSepiMeta)
   private
     FHiddenKind : TSepiHiddenParamKind; /// Type de paramètre caché
     FKind : TSepiParamKind;             /// Type de paramètre
@@ -147,7 +147,7 @@ type
       AType : TSepiType; AKind : TSepiParamKind = pkValue;
       AOpenArray : boolean = False);
 
-    function Equals(AParam : TSepiMetaParam) : boolean;
+    function Equals(AParam : TSepiParam) : boolean;
     function CompatibleWith(AType : TSepiType) : boolean;
 
     property HiddenKind : TSepiHiddenParamKind read FHiddenKind;
@@ -180,11 +180,11 @@ type
     function CheckInherited(ASignature : TSepiMethodSignature) : boolean;
 
     function GetParamCount : integer;
-    function GetParams(Index : integer) : TSepiMetaParam;
+    function GetParams(Index : integer) : TSepiParam;
     function GetActualParamCount : integer;
-    function GetActualParams(Index : integer) : TSepiMetaParam;
+    function GetActualParams(Index : integer) : TSepiParam;
 
-    function GetHiddenParam(Kind : TSepiHiddenParamKind) : TSepiMetaParam;
+    function GetHiddenParam(Kind : TSepiHiddenParamKind) : TSepiParam;
   protected
     procedure ListReferences;
     procedure Save(Stream : TStream);
@@ -201,31 +201,31 @@ type
     property Kind : TMethodKind read FKind;
 
     property ParamCount : integer read GetParamCount;
-    property Params[index : integer] : TSepiMetaParam read GetParams;
+    property Params[index : integer] : TSepiParam read GetParams;
     property ActualParamCount : integer read GetActualParamCount;
-    property ActualParams[index : integer] : TSepiMetaParam
+    property ActualParams[index : integer] : TSepiParam
       read GetActualParams;
 
     property ReturnType : TSepiType read FReturnType;
     property CallingConvention : TCallingConvention read FCallingConvention;
 
-    property HiddenParam[Kind : TSepiHiddenParamKind] : TSepiMetaParam
+    property HiddenParam[Kind : TSepiHiddenParamKind] : TSepiParam
       read GetHiddenParam;
-    property SelfParam   : TSepiMetaParam index hpSelf   read GetHiddenParam;
-    property ResultParam : TSepiMetaParam index hpResult read GetHiddenParam;
-    property AllocParam  : TSepiMetaParam index hpAlloc  read GetHiddenParam;
-    property FreeParam   : TSepiMetaParam index hpFree   read GetHiddenParam;
+    property SelfParam   : TSepiParam index hpSelf   read GetHiddenParam;
+    property ResultParam : TSepiParam index hpResult read GetHiddenParam;
+    property AllocParam  : TSepiParam index hpAlloc  read GetHiddenParam;
+    property FreeParam   : TSepiParam index hpFree   read GetHiddenParam;
 
     property RegUsage : Byte read FRegUsage;
     property StackUsage : Word read FStackUsage;
   end;
 
   {*
-    Meta-méthode
+    Méthode ou routine
     @author sjrd
     @version 1.0
   *}
-  TSepiMetaMethod = class(TSepiMeta)
+  TSepiMethod = class(TSepiMeta)
   private
     FCode : Pointer;                   /// Adresse de code natif
     FCodeJumper : TJmpInstruction;     /// Jumper sur le code, si non native
@@ -233,13 +233,13 @@ type
     FLinkKind : TMethodLinkKind;       /// Type de liaison d'appel
     FFirstDeclaration : boolean;       /// Faux uniquement quand 'override'
     FAbstract : boolean;               /// Indique si la méthode est abstraite
-    FInherited : TSepiMetaMethod;      /// Méthode héritée
+    FInherited : TSepiMethod;          /// Méthode héritée
 
     FLinkIndex : integer; /// Offset de VMT ou index de DMT, selon la liaison
 
-    FIsOverloaded : boolean;                 /// Indique si surchargée
-    FOverloaded : TSepiMetaOverloadedMethod; /// Méthode surchargée (ou nil)
-    FOverloadIndex : Byte;                   /// Index de surcharge
+    FIsOverloaded : boolean;             /// Indique si surchargée
+    FOverloaded : TSepiOverloadedMethod; /// Méthode surchargée (ou nil)
+    FOverloadIndex : Byte;               /// Index de surcharge
 
     procedure MakeLink;
     procedure FindNativeCode;
@@ -272,7 +272,7 @@ type
     property LinkKind : TMethodLinkKind read FLinkKind;
     property FirstDeclaration : boolean read FFirstDeclaration;
     property IsAbstract : boolean read FAbstract;
-    property InheritedMethod : TSepiMetaMethod read FInherited;
+    property InheritedMethod : TSepiMethod read FInherited;
 
     property VMTOffset : integer read FLinkIndex;
     property DMTIndex : integer read FLinkIndex;
@@ -280,38 +280,38 @@ type
     property IMTIndex : integer read FLinkIndex;
 
     property IsOverloaded : boolean read FIsOverloaded;
-    property Overloaded : TSepiMetaOverloadedMethod read FOverloaded;
+    property Overloaded : TSepiOverloadedMethod read FOverloaded;
     property OverloadIndex : Byte read FOverloadIndex;
     property RealName : string read GetRealName;
   end;
 
   {*
-    Meta-méthode surchargée
+    Méthode ou routine surchargée
     @author sjrd
     @version 1.0
   *}
-  TSepiMetaOverloadedMethod = class(TSepiMeta)
+  TSepiOverloadedMethod = class(TSepiMeta)
   private
     FMethods : TObjectList; /// Liste des méthodes de même nom
 
     function FindInherited(
-      ASignature : TSepiMethodSignature) : TSepiMetaMethod;
+      ASignature : TSepiMethodSignature) : TSepiMethod;
 
     function GetMethodCount : integer;
-    function GetMethods(Index : integer) : TSepiMetaMethod;
+    function GetMethods(Index : integer) : TSepiMethod;
   public
     constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
     constructor Create(AOwner : TSepiMeta; const AName : string);
     destructor Destroy; override;
 
     function FindMethod(
-      ASignature : TSepiMethodSignature) : TSepiMetaMethod; overload;
+      ASignature : TSepiMethodSignature) : TSepiMethod; overload;
     function FindMethod(
-      const ATypes : array of TSepiType) : TSepiMetaMethod; overload;
+      const ATypes : array of TSepiType) : TSepiMethod; overload;
 
     property MethodCount : integer read GetMethodCount;
-    property Methods[index : integer] : TSepiMetaMethod read GetMethods;
-    property DefaultMethod : TSepiMetaMethod index 0 read GetMethods;
+    property Methods[index : integer] : TSepiMethod read GetMethods;
+    property DefaultMethod : TSepiMethod index 0 read GetMethods;
   end;
 
   {*
@@ -320,11 +320,11 @@ type
     @version 1.0
   *}
   TSepiPropertyAccess = record
-    Kind : TPropertyAccessKind;               /// Type d'accès
+    Kind : TPropertyAccessKind;           /// Type d'accès
     case TPropertyAccessKind of
-      pakNone : (Meta : TSepiMeta);           /// Meta d'accès (neutre)
-      pakField : (Field : TSepiMetaField);    /// Meta-champ d'accès
-      pakMethod : (Method : TSepiMetaMethod); /// Meta-méthode d'accès
+      pakNone : (Meta : TSepiMeta);       /// Meta d'accès (neutre)
+      pakField : (Field : TSepiField);    /// Champ d'accès
+      pakMethod : (Method : TSepiMethod); /// Méthode d'accès
   end;
 
   {*
@@ -333,20 +333,20 @@ type
     @version 1.0
   *}
   TSepiPropertyStorage = record
-    Kind : TPropertyStorageKind;              /// Type de stockage
-    Stored : boolean;                         /// Constante de stockage
+    Kind : TPropertyStorageKind;          /// Type de stockage
+    Stored : boolean;                     /// Constante de stockage
     case TPropertyStorageKind of
-      pskConstant : (Meta : TSepiMeta);       /// Meta de stockage (neutre)
-      pskField : (Field : TSepiMetaField);    /// Meta-champ de stockage
-      pskMethod : (Method : TSepiMetaMethod); /// Meta-méthode de stockage
+      pskConstant : (Meta : TSepiMeta);   /// Meta de stockage (neutre)
+      pskField : (Field : TSepiField);    /// Champ de stockage
+      pskMethod : (Method : TSepiMethod); /// Méthode de stockage
   end;
 
   {*
-    Meta-propriété
+    Propriété
     @author sjrd
     @version 1.0
   *}
-  TSepiMetaProperty = class(TSepiMeta)
+  TSepiProperty = class(TSepiMeta)
   private
     FSignature : TSepiMethodSignature; /// Signature
 
@@ -412,8 +412,8 @@ type
     FCompleted : boolean; /// Indique si le record est entièrement défini
 
     function PrivAddField(const FieldName : string; FieldType : TSepiType;
-      After : TSepiMetaField;
-      ForcePack : boolean = False) : TSepiMetaField;
+      After : TSepiField;
+      ForcePack : boolean = False) : TSepiField;
 
     procedure MakeTypeInfo;
   protected
@@ -429,21 +429,21 @@ type
       ATypeInfo : PTypeInfo = nil);
 
     function AddField(const FieldName : string; FieldType : TSepiType;
-      ForcePack : boolean = False) : TSepiMetaField; overload;
+      ForcePack : boolean = False) : TSepiField; overload;
     function AddField(const FieldName : string; FieldTypeInfo : PTypeInfo;
-      ForcePack : boolean = False) : TSepiMetaField; overload;
+      ForcePack : boolean = False) : TSepiField; overload;
     function AddField(const FieldName, FieldTypeName : string;
-      ForcePack : boolean = False) : TSepiMetaField; overload;
+      ForcePack : boolean = False) : TSepiField; overload;
 
     function AddFieldAfter(const FieldName : string; FieldType : TSepiType;
       const After : string;
-      ForcePack : boolean = False) : TSepiMetaField; overload;
+      ForcePack : boolean = False) : TSepiField; overload;
     function AddFieldAfter(const FieldName : string; FieldTypeInfo : PTypeInfo;
       const After : string;
-      ForcePack : boolean = False) : TSepiMetaField; overload;
+      ForcePack : boolean = False) : TSepiField; overload;
     function AddFieldAfter(const FieldName, FieldTypeName : string;
       const After : string;
-      ForcePack : boolean = False) : TSepiMetaField; overload;
+      ForcePack : boolean = False) : TSepiField; overload;
 
     procedure Complete;
 
@@ -490,15 +490,15 @@ type
       const AName : string) : TSepiInterface; overload;
 
     function AddMethod(const MethodName, ASignature : string;
-      ACallingConvention : TCallingConvention = ccRegister) : TSepiMetaMethod;
+      ACallingConvention : TCallingConvention = ccRegister) : TSepiMethod;
 
     function AddProperty(
       const AName, ASignature, AReadAccess, AWriteAccess : string;
       AIndex : integer = NoIndex;
-      AIsDefault : boolean = False) : TSepiMetaProperty; overload;
+      AIsDefault : boolean = False) : TSepiProperty; overload;
     function AddProperty(
       const AName, ASignature, AReadAccess, AWriteAccess : string;
-      AIsDefault : boolean) : TSepiMetaProperty; overload;
+      AIsDefault : boolean) : TSepiProperty; overload;
 
     procedure Complete;
 
@@ -598,51 +598,51 @@ type
     procedure AddInterface(const AIntfName : string); overload;
 
     function AddField(const FieldName : string; FieldType : TSepiType;
-      ForcePack : boolean = False) : TSepiMetaField; overload;
+      ForcePack : boolean = False) : TSepiField; overload;
     function AddField(const FieldName : string; FieldTypeInfo : PTypeInfo;
-      ForcePack : boolean = False) : TSepiMetaField; overload;
+      ForcePack : boolean = False) : TSepiField; overload;
     function AddField(const FieldName, FieldTypeName : string;
-      ForcePack : boolean = False) : TSepiMetaField; overload;
+      ForcePack : boolean = False) : TSepiField; overload;
 
     function AddMethod(const MethodName : string; ACode: Pointer;
       const ASignature : string; ALinkKind : TMethodLinkKind = mlkStatic;
       AAbstract : boolean = False; AMsgID : integer = 0;
-      ACallingConvention : TCallingConvention = ccRegister) : TSepiMetaMethod;
+      ACallingConvention : TCallingConvention = ccRegister) : TSepiMethod;
       overload;
     function AddMethod(const MethodName : string; ACode: Pointer;
       const ASignature : string;
-      ACallingConvention : TCallingConvention) : TSepiMetaMethod; overload;
+      ACallingConvention : TCallingConvention) : TSepiMethod; overload;
     function AddOverloadedMethod(const MethodName : string; ACode: Pointer;
       const ASignature : string; ALinkKind : TMethodLinkKind = mlkStatic;
       AAbstract : boolean = False; AMsgID : integer = 0;
-      ACallingConvention : TCallingConvention = ccRegister) : TSepiMetaMethod;
+      ACallingConvention : TCallingConvention = ccRegister) : TSepiMethod;
       overload;
     function AddOverloadedMethod(const MethodName : string; ACode: Pointer;
       const ASignature : string;
-      ACallingConvention : TCallingConvention) : TSepiMetaMethod; overload;
+      ACallingConvention : TCallingConvention) : TSepiMethod; overload;
 
     function AddProperty(
       const AName, ASignature, AReadAccess, AWriteAccess : string;
       AIndex : integer = NoIndex; ADefaultValue : integer = NoDefaultValue;
       const AStorage : string = '';
-      AIsDefault : boolean = False) : TSepiMetaProperty; overload;
+      AIsDefault : boolean = False) : TSepiProperty; overload;
     function AddProperty(
       const AName, ASignature, AReadAccess, AWriteAccess : string;
-      AIsDefault : boolean) : TSepiMetaProperty; overload;
+      AIsDefault : boolean) : TSepiProperty; overload;
 
     function RedefineProperty(const AName : string;
       const AReadAccess : string = ''; const AWriteAccess : string = '';
-      const AStorage : string = '') : TSepiMetaProperty; overload;
+      const AStorage : string = '') : TSepiProperty; overload;
     function RedefineProperty(
       const AName, AReadAccess, AWriteAccess : string; ADefaultValue : integer;
-      const AStorage : string = '') : TSepiMetaProperty; overload;
+      const AStorage : string = '') : TSepiProperty; overload;
 
     procedure Complete;
 
     function CompatibleWith(AType : TSepiType) : boolean; override;
     function ClassInheritsFrom(AParent : TSepiClass) : boolean;
 
-    function LookForMember(const MemberName : string; FromUnit : TSepiMetaUnit;
+    function LookForMember(const MemberName : string; FromUnit : TSepiUnit;
       FromClass : TSepiClass = nil) : TSepiMeta;
 
     property DelphiClass : TClass read FDelphiClass;
@@ -816,9 +816,9 @@ procedure MakePropertyAccessKind(var Access : TSepiPropertyAccess);
 begin
   with Access do
   begin
-    if Meta is TSepiMetaField then
+    if Meta is TSepiField then
       Kind := pakField
-    else if Meta is TSepiMetaMethod then
+    else if Meta is TSepiMethod then
       Kind := pakMethod
     else
       Kind := pakNone;
@@ -844,21 +844,21 @@ begin
     Storage.Stored := False;
     Storage.Meta := Owner.LookForMember(AStorage, Owner.OwningUnit, Owner);
 
-    if Storage.Meta is TSepiMetaField then
+    if Storage.Meta is TSepiField then
       Storage.Kind := pskField
     else
       Storage.Kind := pskMethod;
   end;
 end;
 
-{-----------------------}
-{ Classe TSepiMetaField }
-{-----------------------}
+{-------------------}
+{ Classe TSepiField }
+{-------------------}
 
 {*
   Charge un champ depuis un flux
 *}
-constructor TSepiMetaField.Load(AOwner : TSepiMeta; Stream : TStream);
+constructor TSepiField.Load(AOwner : TSepiMeta; Stream : TStream);
 begin
   inherited;
 
@@ -872,7 +872,7 @@ end;
   @param AName    Nom du champ
   @param AType    Type du champ
 *}
-constructor TSepiMetaField.Create(AOwner : TSepiMeta; const AName : string;
+constructor TSepiField.Create(AOwner : TSepiMeta; const AName : string;
   AType : TSepiType; AOffset : integer);
 begin
   inherited Create(AOwner, AName);
@@ -883,7 +883,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiMetaField.ListReferences;
+procedure TSepiField.ListReferences;
 begin
   inherited;
   OwningUnit.AddRef(FType);
@@ -892,16 +892,16 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiMetaField.Save(Stream : TStream);
+procedure TSepiField.Save(Stream : TStream);
 begin
   inherited;
   OwningUnit.WriteRef(Stream, FType);
   Stream.WriteBuffer(FOffset, 4);
 end;
 
-{-----------------------}
-{ Classe TSepiMetaParam }
-{-----------------------}
+{-------------------}
+{ Classe TSepiParam }
+{-------------------}
 
 {*
   Crée un paramètre caché
@@ -909,7 +909,7 @@ end;
   @param AHiddenKind   Type de paramètre caché (doit être différent de pkNormal)
   @param AType         Type du paramètre (uniquement pour AKind = pkResult)
 *}
-constructor TSepiMetaParam.CreateHidden(AOwner : TSepiMeta;
+constructor TSepiParam.CreateHidden(AOwner : TSepiMeta;
   AHiddenKind : TSepiHiddenParamKind; AType : TSepiType = nil);
 var AName : string;
 begin
@@ -952,7 +952,7 @@ end;
   @param AOwner      Propriétaire du paramètre
   @param ParamData   Pointeur vers les données du paramètre
 *}
-constructor TSepiMetaParam.RegisterParamData(AOwner : TSepiMeta;
+constructor TSepiParam.RegisterParamData(AOwner : TSepiMeta;
   var ParamData : Pointer);
 var AFlags : TParamFlags;
     AName, ATypeStr : string;
@@ -997,7 +997,7 @@ end;
   @param AOwner       Propriétaire du ou des paramètre(s)
   @param Definition   Définition Delphi du ou des paramètre(s)
 *}
-class procedure TSepiMetaParam.CreateFromString(AOwner : TSepiMeta;
+class procedure TSepiParam.CreateFromString(AOwner : TSepiMeta;
   const Definition : string);
 var NamePart, NamePart2, TypePart, KindStr, AName, ATypeStr : string;
     AKind : TSepiParamKind;
@@ -1048,7 +1048,7 @@ end;
 {*
   Charge un paramètre depuis un flux
 *}
-constructor TSepiMetaParam.Load(AOwner : TSepiMeta; Stream : TStream);
+constructor TSepiParam.Load(AOwner : TSepiMeta; Stream : TStream);
 begin
   inherited;
 
@@ -1070,7 +1070,7 @@ end;
   @param AKind        Type de paramètre
   @param AOpenArray   True pour un paramètre tableau ouvert
 *}
-constructor TSepiMetaParam.Create(AOwner : TSepiMeta; const AName : string;
+constructor TSepiParam.Create(AOwner : TSepiMeta; const AName : string;
   AType : TSepiType; AKind : TSepiParamKind = pkValue;
   AOpenArray : boolean = False);
 begin
@@ -1085,13 +1085,13 @@ begin
   MakeFlags;
 
   if OpenArray then
-    TSepiMetaParam.CreateHidden(Owner, hpOpenArrayHighValue);
+    TSepiParam.CreateHidden(Owner, hpOpenArrayHighValue);
 end;
 
 {*
   Construit la propriété Flags
 *}
-procedure TSepiMetaParam.MakeFlags;
+procedure TSepiParam.MakeFlags;
 begin
   // Param kind flag
   case FKind of
@@ -1118,7 +1118,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiMetaParam.ListReferences;
+procedure TSepiParam.ListReferences;
 begin
   inherited;
   OwningUnit.AddRef(FType);
@@ -1127,7 +1127,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiMetaParam.Save(Stream : TStream);
+procedure TSepiParam.Save(Stream : TStream);
 begin
   inherited;
 
@@ -1144,7 +1144,7 @@ end;
   @param AParam   Paramètre à comparer
   @return True si les paramètres sont identiques, False sinon
 *}
-function TSepiMetaParam.Equals(AParam : TSepiMetaParam) : boolean;
+function TSepiParam.Equals(AParam : TSepiParam) : boolean;
 begin
   Result := HiddenKind = AParam.HiddenKind;
   if Result and (HiddenKind = hpNormal) then
@@ -1157,7 +1157,7 @@ end;
   @param AType   Type à Tester
   @return True si le type est compatible, False sinon
 *}
-function TSepiMetaParam.CompatibleWith(AType : TSepiType) : boolean;
+function TSepiParam.CompatibleWith(AType : TSepiType) : boolean;
 begin
   if ByRef then
     Result := FType = AType
@@ -1185,16 +1185,16 @@ begin
   FKind := ATypeData.MethodKind;
   ParamData := @ATypeData.ParamList;
 
-  TSepiMetaParam.CreateHidden(FOwner, hpSelf);
+  TSepiParam.CreateHidden(FOwner, hpSelf);
   for I := 1 to ATypeData.ParamCount do
-    TSepiMetaParam.RegisterParamData(FOwner, ParamData);
+    TSepiParam.RegisterParamData(FOwner, ParamData);
 
   FCallingConvention := ccRegister;
 
   if Kind in [mkFunction, mkClassFunction]then
   begin
     FReturnType := FOwner.Root.FindType(PShortString(ParamData)^);
-    TSepiMetaParam.CreateHidden(FOwner, hpResult, ReturnType);
+    TSepiParam.CreateHidden(FOwner, hpResult, ReturnType);
   end else
     FReturnType := nil;
 
@@ -1267,12 +1267,12 @@ begin
 
   // Paramètres
   if (Kind in mkOfObject) and (CallingConvention <> ccPascal) then
-    TSepiMetaParam.CreateHidden(FOwner, hpSelf);
+    TSepiParam.CreateHidden(FOwner, hpSelf);
 
   if Kind = mkConstructor then
-    TSepiMetaParam.CreateHidden(FOwner, hpAlloc)
+    TSepiParam.CreateHidden(FOwner, hpAlloc)
   else if Kind = mkDestructor then
-    TSepiMetaParam.CreateHidden(FOwner, hpFree);
+    TSepiParam.CreateHidden(FOwner, hpFree);
 
   if ParamPos < ReturnTypePos then
   begin
@@ -1280,17 +1280,17 @@ begin
     begin
       inc(ParamPos);
       ParamEnd := MultiPos([';', ')', ']', ':'], ASignature, ParamPos);
-      TSepiMetaParam.CreateFromString(FOwner,
+      TSepiParam.CreateFromString(FOwner,
         Copy(ASignature, ParamPos, ParamEnd-ParamPos));
       ParamPos := ParamEnd;
     end;
   end;
 
   if ReturnType <> nil then
-    TSepiMetaParam.CreateHidden(FOwner, hpResult, ReturnType);
+    TSepiParam.CreateHidden(FOwner, hpResult, ReturnType);
 
   if (Kind in mkOfObject) and (CallingConvention = ccPascal) then
-    TSepiMetaParam.CreateHidden(FOwner, hpSelf);
+    TSepiParam.CreateHidden(FOwner, hpSelf);
 
   MakeCallInfo;
 end;
@@ -1300,7 +1300,7 @@ end;
 *}
 procedure TSepiMethodSignature.MakeCallInfo;
 var I, ParamCount : integer;
-    Param : TSepiMetaParam;
+    Param : TSepiParam;
 begin
   if CallingConvention = ccRegister then
     FRegUsage := 0
@@ -1399,8 +1399,8 @@ begin
   for I := 0 to Owner.ChildCount-1 do
   begin
     Child := Owner.Children[I];
-    if (Child is TSepiMetaParam) and
-       (TSepiMetaParam(Child).HiddenKind = hpNormal) then
+    if (Child is TSepiParam) and
+       (TSepiParam(Child).HiddenKind = hpNormal) then
       inc(Result);
   end;
 end;
@@ -1410,19 +1410,19 @@ end;
   @param Index   Index du paramètre à récupérer
   @return Paramètre situé à l'index Index
 *}
-function TSepiMethodSignature.GetParams(Index : integer) : TSepiMetaParam;
+function TSepiMethodSignature.GetParams(Index : integer) : TSepiParam;
 var I : integer;
     Child : TSepiMeta;
 begin
   for I := 0 to Owner.ChildCount-1 do
   begin
     Child := Owner.Children[I];
-    if (Child is TSepiMetaParam) and
-       (TSepiMetaParam(Child).HiddenKind = hpNormal) then
+    if (Child is TSepiParam) and
+       (TSepiParam(Child).HiddenKind = hpNormal) then
     begin
       if Index > 0 then dec(Index) else
       begin
-        Result := TSepiMetaParam(Child);
+        Result := TSepiParam(Child);
         exit;
       end;
     end;
@@ -1443,7 +1443,7 @@ begin
   for I := 0 to Owner.ChildCount-1 do
   begin
     Child := Owner.Children[I];
-    if Child is TSepiMetaParam then
+    if Child is TSepiParam then
       inc(Result);
   end;
 end;
@@ -1453,18 +1453,18 @@ end;
   @param Index   Index du paramètre à récupérer
   @return Paramètre situé à l'index Index
 *}
-function TSepiMethodSignature.GetActualParams(Index : integer) : TSepiMetaParam;
+function TSepiMethodSignature.GetActualParams(Index : integer) : TSepiParam;
 var I : integer;
     Child : TSepiMeta;
 begin
   for I := 0 to Owner.ChildCount-1 do
   begin
     Child := Owner.Children[I];
-    if Child is TSepiMetaParam then
+    if Child is TSepiParam then
     begin
       if Index > 0 then dec(Index) else
       begin
-        Result := TSepiMetaParam(Child);
+        Result := TSepiParam(Child);
         exit;
       end;
     end;
@@ -1479,7 +1479,7 @@ end;
   @return Le paramètre caché correspondant, ou nil s'il n'y en a pas
 *}
 function TSepiMethodSignature.GetHiddenParam(
-  Kind : TSepiHiddenParamKind) : TSepiMetaParam;
+  Kind : TSepiHiddenParamKind) : TSepiParam;
 var I : integer;
     Child : TSepiMeta;
 begin
@@ -1488,10 +1488,10 @@ begin
   for I := 0 to Owner.ChildCount-1 do
   begin
     Child := Owner.Children[I];
-    if (Child is TSepiMetaParam) and
-       (TSepiMetaParam(Child).HiddenKind = Kind) then
+    if (Child is TSepiParam) and
+       (TSepiParam(Child).HiddenKind = Kind) then
     begin
-      Result := TSepiMetaParam(Child);
+      Result := TSepiParam(Child);
       exit;
     end;
   end;
@@ -1561,14 +1561,14 @@ begin
   Result := True;
 end;
 
-{------------------------}
-{ Classe TSepiMetaMethod }
-{------------------------}
+{--------------------}
+{ Classe TSepiMethod }
+{--------------------}
 
 {*
   Charge une meta-méthode depuis un flux
 *}
-constructor TSepiMetaMethod.Load(AOwner : TSepiMeta; Stream : TStream);
+constructor TSepiMethod.Load(AOwner : TSepiMeta; Stream : TStream);
 begin
   inherited;
 
@@ -1613,7 +1613,7 @@ end;
   @param AMsgID       Pour les méthodes de message, le message intercepté
   @param ACallingConvention   Convention d'appel de la méthode
 *}
-constructor TSepiMetaMethod.Create(AOwner : TSepiMeta; const AName : string;
+constructor TSepiMethod.Create(AOwner : TSepiMeta; const AName : string;
   ACode : Pointer; const ASignature : string;
   ALinkKind : TMethodLinkKind = mlkStatic; AAbstract : boolean = False;
   AMsgID : integer = 0; ACallingConvention : TCallingConvention = ccRegister);
@@ -1621,7 +1621,7 @@ var SignPrefix : string;
 begin
   inherited Create(AOwner, AName);
 
-  if Owner is TSepiMetaUnit then
+  if Owner is TSepiUnit then
     SignPrefix := 'unit '
   else
     SignPrefix := '';
@@ -1656,16 +1656,16 @@ end;
   @param AMsgID       Pour les méthodes de message, le message intercepté
   @param ACallingConvention   Convention d'appel de la méthode
 *}
-constructor TSepiMetaMethod.CreateOverloaded(AOwner : TSepiMeta;
+constructor TSepiMethod.CreateOverloaded(AOwner : TSepiMeta;
   const AName : string; ACode : Pointer; const ASignature : string;
   ALinkKind : TMethodLinkKind = mlkStatic; AAbstract : boolean = False;
   AMsgID : integer = 0; ACallingConvention : TCallingConvention = ccRegister);
 begin
   FIsOverloaded := True;
-  FOverloaded := AOwner.GetMeta(AName) as TSepiMetaOverloadedMethod;
+  FOverloaded := AOwner.GetMeta(AName) as TSepiOverloadedMethod;
 
   if FOverloaded = nil then
-    FOverloaded := TSepiMetaOverloadedMethod.Create(AOwner, AName);
+    FOverloaded := TSepiOverloadedMethod.Create(AOwner, AName);
   FOverloadIndex := FOverloaded.MethodCount;
 
   FOverloaded.FMethods.Add(Self);
@@ -1677,7 +1677,7 @@ end;
 {*
   Détruit l'instance
 *}
-destructor TSepiMetaMethod.Destroy;
+destructor TSepiMethod.Destroy;
 begin
   FSignature.Free;
   inherited Destroy;
@@ -1687,7 +1687,7 @@ end;
   Met au point la liaison et l'index de liaison
   Par extension, recherche aussi la méthode héritée.
 *}
-procedure TSepiMetaMethod.MakeLink;
+procedure TSepiMethod.MakeLink;
 var OwningClass, Ancestor : TSepiClass;
     Meta : TSepiMeta;
     I : integer;
@@ -1720,13 +1720,13 @@ begin
       // Looking for the inherited method
       Meta := OwningClass.Parent.LookForMember(RealName,
         OwningUnit, OwningClass);
-      if Meta is TSepiMetaMethod then
+      if Meta is TSepiMethod then
       begin
-        if Signature.CheckInherited(TSepiMetaMethod(Meta).Signature) then
-          FInherited := TSepiMetaMethod(Meta);
+        if Signature.CheckInherited(TSepiMethod(Meta).Signature) then
+          FInherited := TSepiMethod(Meta);
       end else
-      if Meta is TSepiMetaOverloadedMethod then
-        FInherited := TSepiMetaOverloadedMethod(Meta).FindInherited(Signature);
+      if Meta is TSepiOverloadedMethod then
+        FInherited := TSepiOverloadedMethod(Meta).FindInherited(Signature);
     end else
     begin
       // Looking for an ancestor method which intercepts the same message ID
@@ -1736,11 +1736,11 @@ begin
         for I := 0 to Ancestor.ChildCount-1 do
         begin
           Meta := Ancestor.Children[I];
-          if (Meta is TSepiMetaMethod) and
-             (TSepiMetaMethod(Meta).LinkKind = mlkMessage) and
-             (TSepiMetaMethod(Meta).MsgID = FLinkIndex) then
+          if (Meta is TSepiMethod) and
+             (TSepiMethod(Meta).LinkKind = mlkMessage) and
+             (TSepiMethod(Meta).MsgID = FLinkIndex) then
           begin
-            FInherited := TSepiMetaMethod(Meta);
+            FInherited := TSepiMethod(Meta);
             Break;
           end;
         end;
@@ -1775,7 +1775,7 @@ end;
 {*
   Cherche le code d'une méthode native
 *}
-procedure TSepiMetaMethod.FindNativeCode;
+procedure TSepiMethod.FindNativeCode;
 begin
   case LinkKind of
     mlkVirtual : FCode := TSepiClass(Owner).VMTEntries[VMTOffset];
@@ -1792,7 +1792,7 @@ end;
   Nom réel, tel que déclaré (indépendant d'une surcharge ou non)
   @return Nom réel
 *}
-function TSepiMetaMethod.GetRealName : string;
+function TSepiMethod.GetRealName : string;
 begin
   if IsOverloaded then
     Result := Overloaded.Name
@@ -1803,7 +1803,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiMetaMethod.ListReferences;
+procedure TSepiMethod.ListReferences;
 begin
   inherited;
   Signature.ListReferences;
@@ -1813,7 +1813,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiMetaMethod.Save(Stream : TStream);
+procedure TSepiMethod.Save(Stream : TStream);
 var ALinkKind : TMethodLinkKind;
 begin
   inherited;
@@ -1841,7 +1841,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiMetaMethod.AfterConstruction;
+procedure TSepiMethod.AfterConstruction;
 begin
   inherited;
   if IsOverloaded then
@@ -1854,7 +1854,7 @@ end;
   seulement pour les méthodes non natives.
   @param ACode   Adresse de code
 *}
-procedure TSepiMetaMethod.SetCode(ACode : Pointer);
+procedure TSepiMethod.SetCode(ACode : Pointer);
 begin
   Assert(FCode = @FCodeJumper);
   Assert(FCodeJumper.OpCode = 0);
@@ -1867,7 +1867,7 @@ end;
   seulement pour les méthodes non natives.
   @param AMethod   Méthode de code
 *}
-procedure TSepiMetaMethod.SetCodeMethod(const AMethod : TMethod);
+procedure TSepiMethod.SetCodeMethod(const AMethod : TMethod);
 var I, MoveStackCount : integer;
     ACode : Pointer;
 begin
@@ -1898,14 +1898,14 @@ begin
   SetCode(ACode);
 end;
 
-{----------------------------------}
-{ Classe TSepiMetaOverloadedMethod }
-{----------------------------------}
+{------------------------------}
+{ Classe TSepiOverloadedMethod }
+{------------------------------}
 
 {*
   Charge une méthode surchargée depuis un flux
 *}
-constructor TSepiMetaOverloadedMethod.Load(AOwner : TSepiMeta;
+constructor TSepiOverloadedMethod.Load(AOwner : TSepiMeta;
   Stream : TStream);
 begin
   inherited;
@@ -1917,7 +1917,7 @@ end;
   @param AOwner   Propriétaire de la méthode
   @param AName    Nom de la méthode
 *}
-constructor TSepiMetaOverloadedMethod.Create(AOwner : TSepiMeta;
+constructor TSepiOverloadedMethod.Create(AOwner : TSepiMeta;
   const AName : string);
 begin
   inherited Create(AOwner, AName);
@@ -1927,7 +1927,7 @@ end;
 {*
   [@inheritDoc]
 *}
-destructor TSepiMetaOverloadedMethod.Destroy;
+destructor TSepiOverloadedMethod.Destroy;
 begin
   FMethods.Free;
   inherited;
@@ -1938,8 +1938,8 @@ end;
   @param ASignature   Signature à rechercher
   @return Méthode effective correspondante
 *}
-function TSepiMetaOverloadedMethod.FindInherited(
-  ASignature : TSepiMethodSignature) : TSepiMetaMethod;
+function TSepiOverloadedMethod.FindInherited(
+  ASignature : TSepiMethodSignature) : TSepiMethod;
 var I : integer;
 begin
   for I := 0 to MethodCount-1 do
@@ -1954,7 +1954,7 @@ end;
   Nombre de méthodes de même nom
   @return Nombre de méthodes de même nom
 *}
-function TSepiMetaOverloadedMethod.GetMethodCount : integer;
+function TSepiOverloadedMethod.GetMethodCount : integer;
 begin
   Result := FMethods.Count;
 end;
@@ -1964,10 +1964,10 @@ end;
   @param Index   Index de la méthode
   @return Méthode de même nom à l'index spécifié
 *}
-function TSepiMetaOverloadedMethod.GetMethods(
-  Index : integer) : TSepiMetaMethod;
+function TSepiOverloadedMethod.GetMethods(
+  Index : integer) : TSepiMethod;
 begin
-  Result := TSepiMetaMethod(FMethods[Index]);
+  Result := TSepiMethod(FMethods[Index]);
 end;
 
 {*
@@ -1975,8 +1975,8 @@ end;
   @param ASignature   Signature à rechercher
   @return Méthode effective correspondante
 *}
-function TSepiMetaOverloadedMethod.FindMethod(
-  ASignature : TSepiMethodSignature) : TSepiMetaMethod;
+function TSepiOverloadedMethod.FindMethod(
+  ASignature : TSepiMethodSignature) : TSepiMethod;
 var I : integer;
 begin
   for I := 0 to MethodCount-1 do
@@ -1992,8 +1992,8 @@ end;
   @param ATypes   Liste des types de paramètres
   @return Méthode effective correspondante
 *}
-function TSepiMetaOverloadedMethod.FindMethod(
-  const ATypes : array of TSepiType) : TSepiMetaMethod;
+function TSepiOverloadedMethod.FindMethod(
+  const ATypes : array of TSepiType) : TSepiMethod;
 var I : integer;
 begin
   for I := 0 to MethodCount-1 do
@@ -2004,14 +2004,14 @@ begin
   Result := nil;
 end;
 
-{--------------------------}
-{ Classe TSepiMetaProperty }
-{--------------------------}
+{----------------------}
+{ Classe TSepiProperty }
+{----------------------}
 
 {*
   Charge une propriété depuis un flux
 *}
-constructor TSepiMetaProperty.Load(AOwner : TSepiMeta; Stream : TStream);
+constructor TSepiProperty.Load(AOwner : TSepiMeta; Stream : TStream);
 begin
   inherited;
 
@@ -2041,7 +2041,7 @@ end;
   @param AStorage        Spécificateur de stockage
   @param AIsDefault      Indique si c'est la propriété tableau par défaut
 *}
-constructor TSepiMetaProperty.Create(AOwner : TSepiMeta;
+constructor TSepiProperty.Create(AOwner : TSepiMeta;
   const AName, ASignature, AReadAccess, AWriteAccess : string;
   AIndex : integer = NoIndex; ADefaultValue : integer = NoDefaultValue;
   const AStorage : string = ''; AIsDefault : boolean = False);
@@ -2083,7 +2083,7 @@ end;
   @param AWriteAccess   Accès en écriture à la propriété (peut être vide)
   @param AIsDefault     Indique si c'est la propriété tableau par défaut
 *}
-constructor TSepiMetaProperty.Create(AOwner : TSepiMeta;
+constructor TSepiProperty.Create(AOwner : TSepiMeta;
   const AName, ASignature, AReadAccess, AWriteAccess : string;
   AIsDefault : boolean);
 begin
@@ -2099,13 +2099,13 @@ end;
   @param AWriteAccess   Accès en écriture à la propriété
   @param AStorage       Spécificateur de stockage
 *}
-constructor TSepiMetaProperty.Redefine(AOwner : TSepiMeta;
+constructor TSepiProperty.Redefine(AOwner : TSepiMeta;
   const AName : string; const AReadAccess : string = '';
   const AWriteAccess : string = ''; const AStorage : string = '');
-var Previous : TSepiMetaProperty;
+var Previous : TSepiProperty;
 begin
   Previous := (AOwner as TSepiClass).Parent.LookForMember(
-    AName, AOwner.OwningUnit, TSepiClass(AOwner)) as TSepiMetaProperty;
+    AName, AOwner.OwningUnit, TSepiClass(AOwner)) as TSepiProperty;
 
   inherited Create(AOwner, AName);
 
@@ -2141,7 +2141,7 @@ end;
   @param ADefaultValue   Valeur par défaut de la propriété
   @param AStorage        Spécificateur de stockage
 *}
-constructor TSepiMetaProperty.Redefine(AOwner : TSepiMeta;
+constructor TSepiProperty.Redefine(AOwner : TSepiMeta;
   const AName, AReadAccess, AWriteAccess : string; ADefaultValue : integer;
   const AStorage : string = '');
 begin
@@ -2153,7 +2153,7 @@ end;
 {*
   Détruit l'instance
 *}
-destructor TSepiMetaProperty.Destroy;
+destructor TSepiProperty.Destroy;
 begin
   FSignature.Free;
   inherited;
@@ -2165,7 +2165,7 @@ end;
   des propriétés d'interface.
   @param PropInfo   Destination des informations
 *}
-procedure TSepiMetaProperty.MakePropInfo(PropInfo : PPropInfo);
+procedure TSepiProperty.MakePropInfo(PropInfo : PPropInfo);
 var ShortName : ShortString;
 begin
   // Property type RTTI
@@ -2233,7 +2233,7 @@ end;
   Type de la propriété
   @return Type de la propriété
 *}
-function TSepiMetaProperty.GetPropType : TSepiType;
+function TSepiProperty.GetPropType : TSepiType;
 begin
   Result := Signature.ReturnType;
 end;
@@ -2241,7 +2241,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiMetaProperty.ListReferences;
+procedure TSepiProperty.ListReferences;
 begin
   inherited;
   Signature.ListReferences;
@@ -2252,7 +2252,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiMetaProperty.Save(Stream : TStream);
+procedure TSepiProperty.Save(Stream : TStream);
 begin
   inherited;
 
@@ -2270,7 +2270,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiMetaProperty.Destroying;
+procedure TSepiProperty.Destroying;
 begin
   inherited;
 
@@ -2326,8 +2326,8 @@ end;
   @return Champ nouvellement ajouté
 *}
 function TSepiRecordType.PrivAddField(const FieldName : string;
-  FieldType : TSepiType; After : TSepiMetaField;
-  ForcePack : boolean = False) : TSepiMetaField;
+  FieldType : TSepiType; After : TSepiField;
+  ForcePack : boolean = False) : TSepiField;
 var Offset : integer;
 begin
   if After = nil then Offset := 0 else
@@ -2335,7 +2335,7 @@ begin
   if (not IsPacked) and (not ForcePack) then
     FieldType.AlignOffset(Offset);
 
-  Result := TSepiMetaField.Create(Self, FieldName, FieldType, Offset);
+  Result := TSepiField.Create(Self, FieldName, FieldType, Offset);
 end;
 
 {*
@@ -2352,7 +2352,7 @@ begin
   try
     // Listings the fields which need initialization
     for I := 0 to ChildCount-1 do
-      if TSepiMetaField(Children[I]).FieldType.NeedInit then
+      if TSepiField(Children[I]).FieldType.NeedInit then
         Fields.Add(Children[I]);
 
     // Creating the RTTI
@@ -2367,7 +2367,7 @@ begin
     // Field information
     for I := 0 to Fields.Count-1 do
     begin
-      with TSepiMetaField(Fields[I]) do
+      with TSepiField(Fields[I]) do
       begin
         FieldTable.Fields[I].TypeInfo :=
           TSepiRecordType(FieldType).TypeInfoRef;
@@ -2386,7 +2386,7 @@ procedure TSepiRecordType.ChildAdded(Child : TSepiMeta);
 begin
   inherited;
 
-  if Child is TSepiMetaField then with TSepiMetaField(Child) do
+  if Child is TSepiField then with TSepiField(Child) do
   begin
     if FieldType.NeedInit then
       FNeedInit := True;
@@ -2423,11 +2423,11 @@ end;
   @return Champ nouvellement ajouté
 *}
 function TSepiRecordType.AddField(const FieldName : string;
-  FieldType : TSepiType; ForcePack : boolean = False) : TSepiMetaField;
-var LastField : TSepiMetaField;
+  FieldType : TSepiType; ForcePack : boolean = False) : TSepiField;
+var LastField : TSepiField;
 begin
   if ChildCount = 0 then LastField := nil else
-    LastField := TSepiMetaField(Children[ChildCount-1]);
+    LastField := TSepiField(Children[ChildCount-1]);
 
   Result := PrivAddField(FieldName, FieldType, LastField, ForcePack);
 end;
@@ -2440,7 +2440,7 @@ end;
   @return Champ nouvellement ajouté
 *}
 function TSepiRecordType.AddField(const FieldName : string;
-  FieldTypeInfo : PTypeInfo; ForcePack : boolean = False) : TSepiMetaField;
+  FieldTypeInfo : PTypeInfo; ForcePack : boolean = False) : TSepiField;
 begin
   Result := AddField(FieldName, Root.FindType(FieldTypeInfo), ForcePack);
 end;
@@ -2453,7 +2453,7 @@ end;
   @return Champ nouvellement ajouté
 *}
 function TSepiRecordType.AddField(const FieldName, FieldTypeName : string;
-  ForcePack : boolean = False) : TSepiMetaField;
+  ForcePack : boolean = False) : TSepiField;
 begin
   Result := AddField(FieldName, Root.FindType(FieldTypeName), ForcePack);
 end;
@@ -2468,10 +2468,10 @@ end;
 *}
 function TSepiRecordType.AddFieldAfter(const FieldName : string;
   FieldType : TSepiType; const After : string;
-  ForcePack : boolean = False) : TSepiMetaField;
+  ForcePack : boolean = False) : TSepiField;
 begin
   Result := PrivAddField(FieldName, FieldType,
-    TSepiMetaField(FindMeta(After)), ForcePack);
+    TSepiField(FindMeta(After)), ForcePack);
 end;
 
 {*
@@ -2484,10 +2484,10 @@ end;
 *}
 function TSepiRecordType.AddFieldAfter(const FieldName : string;
   FieldTypeInfo : PTypeInfo; const After : string;
-  ForcePack : boolean = False) : TSepiMetaField;
+  ForcePack : boolean = False) : TSepiField;
 begin
   Result := PrivAddField(FieldName, Root.FindType(FieldTypeInfo),
-    TSepiMetaField(FindMeta(After)), ForcePack);
+    TSepiField(FindMeta(After)), ForcePack);
 end;
 
 {*
@@ -2500,10 +2500,10 @@ end;
 *}
 function TSepiRecordType.AddFieldAfter(
   const FieldName, FieldTypeName, After : string;
-  ForcePack : boolean = False) : TSepiMetaField;
+  ForcePack : boolean = False) : TSepiField;
 begin
   Result := PrivAddField(FieldName, Root.FindType(FieldTypeName),
-    TSepiMetaField(FindMeta(After)), ForcePack);
+    TSepiField(FindMeta(After)), ForcePack);
 end;
 
 {*
@@ -2722,9 +2722,9 @@ end;
   @param ACallingConvention   Convention d'appel de la méthode
 *}
 function TSepiInterface.AddMethod(const MethodName, ASignature : string;
-  ACallingConvention : TCallingConvention = ccRegister) : TSepiMetaMethod;
+  ACallingConvention : TCallingConvention = ccRegister) : TSepiMethod;
 begin
-  Result := TSepiMetaMethod.Create(Self, MethodName, nil, ASignature,
+  Result := TSepiMethod.Create(Self, MethodName, nil, ASignature,
     mlkInterface, False, 0, ACallingConvention);
 end;
 
@@ -2739,9 +2739,9 @@ end;
 *}
 function TSepiInterface.AddProperty(
   const AName, ASignature, AReadAccess, AWriteAccess : string;
-  AIndex : integer = NoIndex; AIsDefault : boolean = False) : TSepiMetaProperty;
+  AIndex : integer = NoIndex; AIsDefault : boolean = False) : TSepiProperty;
 begin
-  Result := TSepiMetaProperty.Create(Self, AName, ASignature,
+  Result := TSepiProperty.Create(Self, AName, ASignature,
     AReadAccess, AWriteAccess, AIndex, NoDefaultValue, '', AIsDefault);
 end;
 
@@ -2755,9 +2755,9 @@ end;
 *}
 function TSepiInterface.AddProperty(
   const AName, ASignature, AReadAccess, AWriteAccess : string;
-  AIsDefault : boolean) : TSepiMetaProperty;
+  AIsDefault : boolean) : TSepiProperty;
 begin
-  Result := TSepiMetaProperty.Create(Self, AName, ASignature,
+  Result := TSepiProperty.Create(Self, AName, ASignature,
     AReadAccess, AWriteAccess, AIsDefault);
 end;
 
@@ -2940,7 +2940,7 @@ const
 var Offset : LongInt;
     BigOffset : boolean;
     Methods : TObjectList;
-    Method, RealMethod : TSepiMetaMethod;
+    Method, RealMethod : TSepiMethod;
     Intf : TSepiInterface;
     I, RelocLength, AdjustInstrSize : integer;
     RelocEntry, IMTEntry : integer;
@@ -2959,8 +2959,8 @@ begin
     begin
       for I := Intf.ChildCount-1 downto 0 do
       begin
-        if not (Intf.Children[I] is TSepiMetaMethod) then Continue;
-        Method := TSepiMetaMethod(Intf.Children[I]);
+        if not (Intf.Children[I] is TSepiMethod) then Continue;
+        Method := TSepiMethod(Intf.Children[I]);
 
         AdjustInstrSize := AdjustInstrSizes[
           Method.Signature.CallingConvention = ccRegister, BigOffset];
@@ -2983,7 +2983,7 @@ begin
     // Filling the relocates thunks and the IMT
     for I := 0 to Methods.Count-1 do
     begin
-      Method := TSepiMetaMethod(Methods[I]);
+      Method := TSepiMethod(Methods[I]);
 
       // IMT entry
       PLongInt(IMTEntry)^ := RelocEntry;
@@ -3026,7 +3026,7 @@ begin
 
       // JumpInstruction
       RealMethod :=
-        LookforMember(Method.Name, OwningUnit, Self) as TSepiMetaMethod;
+        LookforMember(Method.Name, OwningUnit, Self) as TSepiMethod;
 
       // jmp Method.Code   E9 xx xx xx xx
       PByte(RelocEntry)^ := $E9;
@@ -3076,7 +3076,7 @@ procedure TSepiClass.MakeTypeInfo;
 var OwningUnitName : ShortString;
     TypeDataLength, I : integer;
     Props : TObjectList;
-    Prop : TSepiMetaProperty;
+    Prop : TSepiProperty;
     PropCount : PWord;
     PropInfo : PPropInfo;
 begin
@@ -3088,9 +3088,9 @@ begin
     inc(TypeDataLength);
 
     // Listing the published properties, and computing the type data length
-    for I := 0 to ChildCount-1 do if Children[I] is TSepiMetaProperty then
+    for I := 0 to ChildCount-1 do if Children[I] is TSepiProperty then
     begin
-      Prop := TSepiMetaProperty(Children[I]);
+      Prop := TSepiProperty(Children[I]);
       if Prop.Visibility <> mvPublished then Continue;
 
       Props.Add(Prop);
@@ -3116,7 +3116,7 @@ begin
     PropInfo := PPropInfo(Integer(PropCount) + 2);
     for I := 0 to Props.Count-1 do
     begin
-      TSepiMetaProperty(Props[I]).MakePropInfo(PropInfo);
+      TSepiProperty(Props[I]).MakePropInfo(PropInfo);
       PropInfo := SkipPackedShortString(@PropInfo.Name);
     end;
   finally
@@ -3169,8 +3169,8 @@ begin
     for I := 0 to ChildCount-1 do
     begin
       Meta := Children[I];
-      if (Meta is TSepiMetaField) and
-         TSepiMetaField(Meta).FieldType.NeedInit then
+      if (Meta is TSepiField) and
+         TSepiField(Meta).FieldType.NeedInit then
         Fields.Add(Meta);
     end;
 
@@ -3190,7 +3190,7 @@ begin
     // Field information
     for I := 0 to Fields.Count-1 do
     begin
-      with TSepiMetaField(Fields[I]) do
+      with TSepiField(Fields[I]) do
       begin
         InitTable.Fields[I].TypeInfo :=
           TSepiRecordType(FieldType).TypeInfoRef;
@@ -3220,7 +3220,7 @@ begin
     for I := 0 to ChildCount-1 do
     begin
       Meta := Children[I];
-      if (Meta is TSepiMetaField) and (Meta.Visibility = mvPublished) then
+      if (Meta is TSepiField) and (Meta.Visibility = mvPublished) then
         Fields.Add(Meta);
     end;
 
@@ -3239,7 +3239,7 @@ begin
     FieldInfo := PFieldInfo(Integer(FieldTable) + sizeof(TFieldTable));
     for I := 0 to Fields.Count-1 do
     begin
-      with TSepiMetaField(Fields[I]) do
+      with TSepiField(Fields[I]) do
       begin
         FieldInfo.Offset := Offset;
         FieldInfo.Index := I;
@@ -3272,7 +3272,7 @@ begin
     for I := 0 to ChildCount-1 do
     begin
       Meta := Children[I];
-      if (Meta is TSepiMetaMethod) and (Meta.Visibility = mvPublished) then
+      if (Meta is TSepiMethod) and (Meta.Visibility = mvPublished) then
         Methods.Add(Meta);
     end;
 
@@ -3291,7 +3291,7 @@ begin
     MethodInfo := PMethodInfo(Integer(MethodTable) + sizeof(TMethodTable));
     for I := 0 to Methods.Count-1 do
     begin
-      with TSepiMetaMethod(Methods[I]) do
+      with TSepiMethod(Methods[I]) do
       begin
         ShortName := Name;
         MethodInfo.Size := 7 + Length(ShortName);
@@ -3323,9 +3323,9 @@ begin
     for I := 0 to ChildCount-1 do
     begin
       Meta := Children[I];
-      if (Meta is TSepiMetaMethod) and
-         (TSepiMetaMethod(Meta).LinkKind in [mlkDynamic, mlkMessage]) and
-         (not TSepiMetaMethod(Meta).IsAbstract) then
+      if (Meta is TSepiMethod) and
+         (TSepiMethod(Meta).LinkKind in [mlkDynamic, mlkMessage]) and
+         (not TSepiMethod(Meta).IsAbstract) then
         Methods.Add(Meta);
     end;
     Count := Methods.Count;
@@ -3338,7 +3338,7 @@ begin
     CodeList := IndexList + 2*Count;
 
     // Filling the DMT
-    for I := 0 to Count-1 do with TSepiMetaMethod(Methods[I]) do
+    for I := 0 to Count-1 do with TSepiMethod(Methods[I]) do
     begin
       PSmallInt(IndexList + 2*I)^ := DMTIndex; // alias MsgID
       PPointer(CodeList + 4*I)^ := Code;
@@ -3355,7 +3355,7 @@ procedure TSepiClass.MakeVMT;
 var PVMT : Pointer;
     AbstractErrorProcAddress : Pointer;
     I : integer;
-    Method : TSepiMetaMethod;
+    Method : TSepiMethod;
 begin
   // Creating the VMT
   GetMem(PVMT, FVMTSize - vmtMinIndex);
@@ -3384,9 +3384,9 @@ begin
 
   // Setting the new method addresses
   AbstractErrorProcAddress := CompilerMagicRoutineAddress(@AbstractError);
-  for I := 0 to ChildCount-1 do if Children[I] is TSepiMetaMethod then
+  for I := 0 to ChildCount-1 do if Children[I] is TSepiMethod then
   begin
-    Method := TSepiMetaMethod(Children[I]);
+    Method := TSepiMethod(Children[I]);
     if Method.LinkKind = mlkVirtual then
     begin
       if Method.IsAbstract then
@@ -3456,7 +3456,7 @@ begin
   if State = msConstructing then
     TSepiClass(Child).FVisibility := FCurrentVisibility;
 
-  if Child is TSepiMetaField then with TSepiMetaField(Child) do
+  if Child is TSepiField then with TSepiField(Child) do
     FInstSize := Offset + FieldType.Size;
 end;
 
@@ -3570,14 +3570,14 @@ end;
   @return Champ nouvellement ajouté
 *}
 function TSepiClass.AddField(const FieldName : string; FieldType : TSepiType;
-  ForcePack : boolean = False) : TSepiMetaField;
+  ForcePack : boolean = False) : TSepiField;
 var Offset : integer;
 begin
   Offset := InstSize;
   if not ForcePack then
     FieldType.AlignOffset(Offset);
 
-  Result := TSepiMetaField.Create(Self, FieldName, FieldType, Offset);
+  Result := TSepiField.Create(Self, FieldName, FieldType, Offset);
 end;
 
 {*
@@ -3588,7 +3588,7 @@ end;
   @return Champ nouvellement ajouté
 *}
 function TSepiClass.AddField(const FieldName : string;
-  FieldTypeInfo : PTypeInfo; ForcePack : boolean = False) : TSepiMetaField;
+  FieldTypeInfo : PTypeInfo; ForcePack : boolean = False) : TSepiField;
 begin
   Result := AddField(FieldName, Root.FindType(FieldTypeInfo), ForcePack);
 end;
@@ -3601,7 +3601,7 @@ end;
   @return Champ nouvellement ajouté
 *}
 function TSepiClass.AddField(const FieldName, FieldTypeName : string;
-  ForcePack : boolean = False) : TSepiMetaField;
+  ForcePack : boolean = False) : TSepiField;
 begin
   Result := AddField(FieldName, Root.FindType(FieldTypeName), ForcePack);
 end;
@@ -3619,9 +3619,9 @@ end;
 function TSepiClass.AddMethod(const MethodName : string; ACode: Pointer;
   const ASignature : string; ALinkKind : TMethodLinkKind = mlkStatic;
   AAbstract : boolean = False; AMsgID : integer = 0;
-  ACallingConvention : TCallingConvention = ccRegister) : TSepiMetaMethod;
+  ACallingConvention : TCallingConvention = ccRegister) : TSepiMethod;
 begin
-  Result := TSepiMetaMethod.Create(Self, MethodName, ACode, ASignature,
+  Result := TSepiMethod.Create(Self, MethodName, ACode, ASignature,
     ALinkKind, AAbstract, AMsgID, ACallingConvention);
 end;
 
@@ -3634,9 +3634,9 @@ end;
 *}
 function TSepiClass.AddMethod(const MethodName : string; ACode: Pointer;
   const ASignature : string;
-  ACallingConvention : TCallingConvention) : TSepiMetaMethod;
+  ACallingConvention : TCallingConvention) : TSepiMethod;
 begin
-  Result := TSepiMetaMethod.Create(Self, MethodName, ACode, ASignature,
+  Result := TSepiMethod.Create(Self, MethodName, ACode, ASignature,
     mlkStatic, False, 0, ACallingConvention);
 end;
 
@@ -3653,9 +3653,9 @@ end;
 function TSepiClass.AddOverloadedMethod(const MethodName : string; ACode: Pointer;
   const ASignature : string; ALinkKind : TMethodLinkKind = mlkStatic;
   AAbstract : boolean = False; AMsgID : integer = 0;
-  ACallingConvention : TCallingConvention = ccRegister) : TSepiMetaMethod;
+  ACallingConvention : TCallingConvention = ccRegister) : TSepiMethod;
 begin
-  Result := TSepiMetaMethod.CreateOverloaded(Self, MethodName, ACode,
+  Result := TSepiMethod.CreateOverloaded(Self, MethodName, ACode,
     ASignature, ALinkKind, AAbstract, AMsgID, ACallingConvention);
 end;
 
@@ -3668,9 +3668,9 @@ end;
 *}
 function TSepiClass.AddOverloadedMethod(const MethodName : string;
   ACode: Pointer; const ASignature : string;
-  ACallingConvention : TCallingConvention) : TSepiMetaMethod;
+  ACallingConvention : TCallingConvention) : TSepiMethod;
 begin
-  Result := TSepiMetaMethod.CreateOverloaded(Self, MethodName, ACode,
+  Result := TSepiMethod.CreateOverloaded(Self, MethodName, ACode,
     ASignature, mlkStatic, False, 0, ACallingConvention);
 end;
 
@@ -3688,9 +3688,9 @@ function TSepiClass.AddProperty(
   const AName, ASignature, AReadAccess, AWriteAccess : string;
   AIndex : integer = NoIndex; ADefaultValue : integer = NoDefaultValue;
   const AStorage : string = '';
-  AIsDefault : boolean = False) : TSepiMetaProperty;
+  AIsDefault : boolean = False) : TSepiProperty;
 begin
-  Result := TSepiMetaProperty.Create(Self, AName, ASignature,
+  Result := TSepiProperty.Create(Self, AName, ASignature,
     AReadAccess, AWriteAccess, AIndex, ADefaultValue, AStorage, AIsDefault);
 end;
 
@@ -3704,9 +3704,9 @@ end;
 *}
 function TSepiClass.AddProperty(
   const AName, ASignature, AReadAccess, AWriteAccess : string;
-  AIsDefault : boolean) : TSepiMetaProperty;
+  AIsDefault : boolean) : TSepiProperty;
 begin
-  Result := TSepiMetaProperty.Create(Self, AName, ASignature,
+  Result := TSepiProperty.Create(Self, AName, ASignature,
     AReadAccess, AWriteAccess, AIsDefault);
 end;
 
@@ -3719,9 +3719,9 @@ end;
 *}
 function TSepiClass.RedefineProperty(const AName : string;
   const AReadAccess : string = ''; const AWriteAccess : string = '';
-  const AStorage : string = '') : TSepiMetaProperty;
+  const AStorage : string = '') : TSepiProperty;
 begin
-  Result := TSepiMetaProperty.Redefine(Self, AName,
+  Result := TSepiProperty.Redefine(Self, AName,
     AReadAccess, AWriteAccess, AStorage);
 end;
 
@@ -3735,9 +3735,9 @@ end;
 *}
 function TSepiClass.RedefineProperty(
   const AName, AReadAccess, AWriteAccess : string; ADefaultValue : integer;
-  const AStorage : string = '') : TSepiMetaProperty;
+  const AStorage : string = '') : TSepiProperty;
 begin
-  Result := TSepiMetaProperty.Redefine(Self, AName,
+  Result := TSepiProperty.Redefine(Self, AName,
     AReadAccess, AWriteAccess, ADefaultValue, AStorage);
 end;
 
@@ -3783,7 +3783,7 @@ end;
   @return Le membre correspondant, ou nil si non trouvé
 *}
 function TSepiClass.LookForMember(const MemberName : string;
-  FromUnit : TSepiMetaUnit; FromClass : TSepiClass = nil) : TSepiMeta;
+  FromUnit : TSepiUnit; FromClass : TSepiClass = nil) : TSepiMeta;
 begin
   if MemberName = '' then
   begin
@@ -4039,8 +4039,8 @@ end;
 
 initialization
   SepiRegisterMetaClasses([
-    TSepiMetaField, TSepiMetaParam, TSepiMetaMethod, TSepiMetaOverloadedMethod,
-    TSepiMetaProperty, TSepiRecordType, TSepiInterface, TSepiClass,
+    TSepiField, TSepiParam, TSepiMethod, TSepiOverloadedMethod,
+    TSepiProperty, TSepiRecordType, TSepiInterface, TSepiClass,
     TSepiMethodRefType, TSepiVariantType
   ]);
 end.

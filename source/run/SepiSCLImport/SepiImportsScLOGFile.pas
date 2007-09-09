@@ -21,7 +21,7 @@ type
     procedure Add_0(const Time, Title, Description : string);
     procedure Add_1(Time : TDateTime; const Title : string; const Description : string = '' );
     procedure Add_2(const Title : string; const Description : string = '' );
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
 {-------------------}
@@ -44,7 +44,7 @@ begin
 end;
 
 class function TSepiImportsTScLogFile.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TScLogFile));
@@ -79,9 +79,9 @@ end;
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiMetaRoot) : TSepiMetaUnit;
+function ImportUnit(Root : TSepiRoot) : TSepiUnit;
 begin
-  Result := TSepiMetaUnit.Create(Root, 'ScLOGFile',
+  Result := TSepiUnit.Create(Root, 'ScLOGFile',
     ['Classes']);
 
   // Types

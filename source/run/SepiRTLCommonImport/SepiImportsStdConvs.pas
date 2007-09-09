@@ -19,9 +19,9 @@ implementation
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiMetaRoot) : TSepiMetaUnit;
+function ImportUnit(Root : TSepiRoot) : TSepiUnit;
 begin
-  Result := TSepiMetaUnit.Create(Root, 'StdConvs',
+  Result := TSepiUnit.Create(Root, 'StdConvs',
     ['SysUtils', 'ConvUtils']);
 
   // Global variables
@@ -368,9 +368,9 @@ begin
   TSepiConstant.Create(Result, 'GramsPerStones', GramsPerStones);
 
   // Routines
-  TSepiMetaMethod.Create(Result, 'FahrenheitToCelsius', @FahrenheitToCelsius,
+  TSepiMethod.Create(Result, 'FahrenheitToCelsius', @FahrenheitToCelsius,
     'function(const AValue: Double): Double');
-  TSepiMetaMethod.Create(Result, 'CelsiusToFahrenheit', @CelsiusToFahrenheit,
+  TSepiMethod.Create(Result, 'CelsiusToFahrenheit', @CelsiusToFahrenheit,
     'function(const AValue: Double): Double');
 
   Result.Complete;

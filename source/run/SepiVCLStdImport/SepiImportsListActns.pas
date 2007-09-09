@@ -18,14 +18,14 @@ implementation
 type
   TSepiImportsTListControlItem = class(TListControlItem)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTListControlItems = class(TListControlItems)
   private
     function GetListItem(const Index: Integer): TListControlItem;
     procedure SetSortType(const Value: TListItemsSortType);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTCustomListAction = class(TCustomListAction)
@@ -33,38 +33,38 @@ type
     procedure SetActive(const Value: Boolean);
     procedure SetImages(const Value: TCustomImageList);
     procedure SetItemIndex(const Value: Integer);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTCustomVirtualListAction = class(TCustomVirtualListAction)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTVirtualListAction = class(TVirtualListAction)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTStaticListItems = class(TStaticListItems)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTCustomStaticListAction = class(TCustomStaticListAction)
   private
     procedure SetListitems(const Value: TStaticListItems);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTStaticListAction = class(TStaticListAction)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTListActionLink = class(TListActionLink)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
 {-------------------------}
@@ -72,7 +72,7 @@ type
 {-------------------------}
 
 class function TSepiImportsTListControlItem.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TListControlItem));
@@ -143,7 +143,7 @@ begin
 end;
 
 class function TSepiImportsTListControlItems.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass(Owner.FindMeta('TListControlItems'));
   Result.RegisterTypeInfo(
@@ -221,7 +221,7 @@ begin
 end;
 
 class function TSepiImportsTCustomListAction.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass(Owner.FindMeta('TCustomListAction'));
   Result.RegisterTypeInfo(
@@ -303,7 +303,7 @@ end;
 {---------------------------------}
 
 class function TSepiImportsTCustomVirtualListAction.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TCustomVirtualListAction));
@@ -337,7 +337,7 @@ end;
 {---------------------------}
 
 class function TSepiImportsTVirtualListAction.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TVirtualListAction));
@@ -371,7 +371,7 @@ end;
 {-------------------------}
 
 class function TSepiImportsTStaticListItems.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TStaticListItems));
@@ -405,7 +405,7 @@ begin
 end;
 
 class function TSepiImportsTCustomStaticListAction.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass(Owner.FindMeta('TCustomStaticListAction'));
   Result.RegisterTypeInfo(
@@ -479,7 +479,7 @@ end;
 {--------------------------}
 
 class function TSepiImportsTStaticListAction.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TStaticListAction));
@@ -514,7 +514,7 @@ end;
 {------------------------}
 
 class function TSepiImportsTListActionLink.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TListActionLink));
@@ -558,9 +558,9 @@ end;
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiMetaRoot) : TSepiMetaUnit;
+function ImportUnit(Root : TSepiRoot) : TSepiUnit;
 begin
-  Result := TSepiMetaUnit.Create(Root, 'ListActns',
+  Result := TSepiUnit.Create(Root, 'ListActns',
     ['Classes', 'Controls', 'ActnList', 'ImgList']);
 
   // Types

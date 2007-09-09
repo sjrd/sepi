@@ -18,146 +18,146 @@ implementation
 type
   TSepiImportsEMathsError = class(EMathsError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsEDivisionError = class(EDivisionError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsERootError = class(ERootError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsEDegreeError = class(EDegreeError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsENotDegreeZeroError = class(ENotDegreeZeroError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsEIntegerError = class(EIntegerError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsENotIntegerError = class(ENotIntegerError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsENaturalError = class(ENaturalError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsENotNaturalError = class(ENotNaturalError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsEEvalError = class(EEvalError)
   private
     constructor CreateEval_0(AExpression : string; AMessage : string);
     constructor CreateEval_1(AExpression : string; Format : string; Args : array of const);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsEWrongExpressionError = class(EWrongExpressionError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsEWrongCharacterError = class(EWrongCharacterError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsEOperationError = class(EOperationError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsEOpNotExistsError = class(EOpNotExistsError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsEOpRequestsError = class(EOpRequestsError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsEOpRequestsDegreeZeroError = class(EOpRequestsDegreeZeroError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsEOpRequestsIntegerError = class(EOpRequestsIntegerError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsEOpRequestsNaturalError = class(EOpRequestsNaturalError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsEOpRequestsCorrectIndexError = class(EOpRequestsCorrectIndexError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsEDivisionOpError = class(EDivisionOpError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsERootOpError = class(ERootOpError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsEBracketsError = class(EBracketsError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsETooManyBracketsError = class(ETooManyBracketsError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsEEquationError = class(EEquationError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsECannotSolveEquationError = class(ECannotSolveEquationError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsEDegreeTooHighError = class(EDegreeTooHighError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsEDegreeTooLowError = class(EDegreeTooLowError)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTComplexList = class(TComplexList)
   private
     function GetItems(Index : integer) : TComplex;
     procedure SetItems(Index : integer; New : TComplex);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTPolynom = class(TPolynom)
@@ -177,7 +177,7 @@ type
     procedure SetCoefficients(Exponent : integer; New : Extended);
     procedure SetAsExtended(New : Extended);
     procedure SetAsInteger(New : Int64);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTPolynomList = class(TPolynomList)
@@ -187,7 +187,7 @@ type
     function GetPolynoms(Index : integer) : TPolynom;
     procedure SetOwnsObjects(New : boolean);
     procedure SetPolynoms(Index : integer; New : TPolynom);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
 {--------------------}
@@ -195,7 +195,7 @@ type
 {--------------------}
 
 class function TSepiImportsEMathsError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EMathsError));
@@ -216,7 +216,7 @@ end;
 {-----------------------}
 
 class function TSepiImportsEDivisionError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EDivisionError));
@@ -243,7 +243,7 @@ end;
 {-------------------}
 
 class function TSepiImportsERootError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(ERootError));
@@ -270,7 +270,7 @@ end;
 {---------------------}
 
 class function TSepiImportsEDegreeError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EDegreeError));
@@ -296,7 +296,7 @@ end;
 {----------------------------}
 
 class function TSepiImportsENotDegreeZeroError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(ENotDegreeZeroError));
@@ -317,7 +317,7 @@ end;
 {----------------------}
 
 class function TSepiImportsEIntegerError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EIntegerError));
@@ -340,7 +340,7 @@ end;
 {-------------------------}
 
 class function TSepiImportsENotIntegerError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(ENotIntegerError));
@@ -361,7 +361,7 @@ end;
 {----------------------}
 
 class function TSepiImportsENaturalError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(ENaturalError));
@@ -384,7 +384,7 @@ end;
 {-------------------------}
 
 class function TSepiImportsENotNaturalError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(ENotNaturalError));
@@ -415,7 +415,7 @@ begin
 end;
 
 class function TSepiImportsEEvalError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass(Owner.FindMeta('EEvalError'));
   Result.RegisterTypeInfo(
@@ -443,7 +443,7 @@ end;
 {------------------------------}
 
 class function TSepiImportsEWrongExpressionError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EWrongExpressionError));
@@ -464,7 +464,7 @@ end;
 {-----------------------------}
 
 class function TSepiImportsEWrongCharacterError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EWrongCharacterError));
@@ -487,7 +487,7 @@ end;
 {------------------------}
 
 class function TSepiImportsEOperationError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EOperationError));
@@ -510,7 +510,7 @@ end;
 {--------------------------}
 
 class function TSepiImportsEOpNotExistsError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EOpNotExistsError));
@@ -535,7 +535,7 @@ end;
 {-------------------------}
 
 class function TSepiImportsEOpRequestsError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EOpRequestsError));
@@ -552,7 +552,7 @@ end;
 {-----------------------------------}
 
 class function TSepiImportsEOpRequestsDegreeZeroError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EOpRequestsDegreeZeroError));
@@ -578,7 +578,7 @@ end;
 {--------------------------------}
 
 class function TSepiImportsEOpRequestsIntegerError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EOpRequestsIntegerError));
@@ -601,7 +601,7 @@ end;
 {--------------------------------}
 
 class function TSepiImportsEOpRequestsNaturalError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EOpRequestsNaturalError));
@@ -624,7 +624,7 @@ end;
 {-------------------------------------}
 
 class function TSepiImportsEOpRequestsCorrectIndexError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EOpRequestsCorrectIndexError));
@@ -647,7 +647,7 @@ end;
 {-------------------------}
 
 class function TSepiImportsEDivisionOpError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EDivisionOpError));
@@ -674,7 +674,7 @@ end;
 {---------------------}
 
 class function TSepiImportsERootOpError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(ERootOpError));
@@ -701,7 +701,7 @@ end;
 {-----------------------}
 
 class function TSepiImportsEBracketsError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EBracketsError));
@@ -722,7 +722,7 @@ end;
 {------------------------------}
 
 class function TSepiImportsETooManyBracketsError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(ETooManyBracketsError));
@@ -746,7 +746,7 @@ end;
 {-----------------------}
 
 class function TSepiImportsEEquationError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EEquationError));
@@ -763,7 +763,7 @@ end;
 {----------------------------------}
 
 class function TSepiImportsECannotSolveEquationError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(ECannotSolveEquationError));
@@ -780,7 +780,7 @@ end;
 {----------------------------}
 
 class function TSepiImportsEDegreeTooHighError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EDegreeTooHighError));
@@ -797,7 +797,7 @@ end;
 {---------------------------}
 
 class function TSepiImportsEDegreeTooLowError.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EDegreeTooLowError));
@@ -824,7 +824,7 @@ begin
 end;
 
 class function TSepiImportsTComplexList.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass(Owner.FindMeta('TComplexList'));
   Result.RegisterTypeInfo(
@@ -953,7 +953,7 @@ begin
 end;
 
 class function TSepiImportsTPolynom.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass(Owner.FindMeta('TPolynom'));
   Result.RegisterTypeInfo(
@@ -1156,7 +1156,7 @@ begin
 end;
 
 class function TSepiImportsTPolynomList.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TPolynomList));
@@ -1223,9 +1223,9 @@ end;
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiMetaRoot) : TSepiMetaUnit;
+function ImportUnit(Root : TSepiRoot) : TSepiUnit;
 begin
-  Result := TSepiMetaUnit.Create(Root, 'ScMaths',
+  Result := TSepiUnit.Create(Root, 'ScMaths',
     ['Classes', 'SysUtils', 'Contnrs', 'Math', 'VarCmplx', 'ScUtils', 'ScStrUtils', 'ScLists', 'ScConsts']);
 
   // Constants
@@ -1275,25 +1275,25 @@ begin
   TSepiImportsTPolynomList.SepiImport(Result);
 
   // Routines
-  TSepiMetaMethod.Create(Result, 'IsInteger', @IsInteger,
+  TSepiMethod.Create(Result, 'IsInteger', @IsInteger,
     'function(X : Extended) : boolean');
-  TSepiMetaMethod.Create(Result, 'VerifyIsInteger', @VerifyIsInteger,
+  TSepiMethod.Create(Result, 'VerifyIsInteger', @VerifyIsInteger,
     'procedure(X : Extended)');
-  TSepiMetaMethod.Create(Result, 'AsInteger', @AsInteger,
+  TSepiMethod.Create(Result, 'AsInteger', @AsInteger,
     'function(X : Extended) : Int64');
-  TSepiMetaMethod.Create(Result, 'IsNatural', @IsNatural,
+  TSepiMethod.Create(Result, 'IsNatural', @IsNatural,
     'function(X : Int64) : boolean');
-  TSepiMetaMethod.Create(Result, 'VerifyIsNatural', @VerifyIsNatural,
+  TSepiMethod.Create(Result, 'VerifyIsNatural', @VerifyIsNatural,
     'procedure(X : Int64)');
-  TSepiMetaMethod.Create(Result, 'AsNatural', @AsNatural,
+  TSepiMethod.Create(Result, 'AsNatural', @AsNatural,
     'function(X : Int64) : Int64');
-  TSepiMetaMethod.Create(Result, 'Factorial', @Factorial,
+  TSepiMethod.Create(Result, 'Factorial', @Factorial,
     'function(X : Int64) : Int64');
-  TSepiMetaMethod.Create(Result, 'IntPower', @IntPower,
+  TSepiMethod.Create(Result, 'IntPower', @IntPower,
     'function(Base, Exponent : LongWord) : LongWord');
-  TSepiMetaMethod.Create(Result, 'DefaultScalarProd', @DefaultScalarProd,
+  TSepiMethod.Create(Result, 'DefaultScalarProd', @DefaultScalarProd,
     'function(Left, Right : TPolynom) : Extended');
-  TSepiMetaMethod.Create(Result, 'Eval', @Eval,
+  TSepiMethod.Create(Result, 'Eval', @Eval,
     'function(Expression : string; TestIsAborted : TTestIsAbortedProc = nil) : TPolynom');
 
   // Constants

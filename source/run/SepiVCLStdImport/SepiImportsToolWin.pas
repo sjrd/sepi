@@ -21,17 +21,17 @@ type
     procedure SetEdgeBorders(Value: TEdgeBorders);
     procedure SetEdgeInner(Value: TEdgeStyle);
     procedure SetEdgeOuter(Value: TEdgeStyle);
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTToolDockObject = class(TToolDockObject)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
   TSepiImportsTToolDockForm = class(TToolDockForm)
   private
-    class function SepiImport(Owner : TSepiMetaUnit) : TSepiClass;
+    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
   end;
 
 {--------------------}
@@ -54,7 +54,7 @@ begin
 end;
 
 class function TSepiImportsTToolWindow.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 const
   DefaultEdgeBorders : TEdgeBorders = [ebLeft, ebTop, ebRight, ebBottom];
 begin
@@ -119,7 +119,7 @@ end;
 {------------------------}
 
 class function TSepiImportsTToolDockObject.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TToolDockObject));
@@ -153,7 +153,7 @@ end;
 {----------------------}
 
 class function TSepiImportsTToolDockForm.SepiImport(
-  Owner : TSepiMetaUnit) : TSepiClass;
+  Owner : TSepiUnit) : TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TToolDockForm));
@@ -210,9 +210,9 @@ end;
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiMetaRoot) : TSepiMetaUnit;
+function ImportUnit(Root : TSepiRoot) : TSepiUnit;
 begin
-  Result := TSepiMetaUnit.Create(Root, 'ToolWin',
+  Result := TSepiUnit.Create(Root, 'ToolWin',
     ['Windows', 'Messages', 'Classes', 'Controls', 'Forms']);
 
   // Types

@@ -19,9 +19,9 @@ implementation
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiMetaRoot) : TSepiMetaUnit;
+function ImportUnit(Root : TSepiRoot) : TSepiUnit;
 begin
-  Result := TSepiMetaUnit.Create(Root, 'MaskUtils', []);
+  Result := TSepiUnit.Create(Root, 'MaskUtils', []);
 
   // Constants
   TSepiConstant.Create(Result, 'mDirReverse', mDirReverse);
@@ -47,31 +47,31 @@ begin
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(TEditMask));
 
   // Routines
-  TSepiMetaMethod.Create(Result, 'FormatMaskText', @FormatMaskText,
+  TSepiMethod.Create(Result, 'FormatMaskText', @FormatMaskText,
     'function(const EditMask: string; const Value: string): string');
-  TSepiMetaMethod.Create(Result, 'MaskGetMaskSave', @MaskGetMaskSave,
+  TSepiMethod.Create(Result, 'MaskGetMaskSave', @MaskGetMaskSave,
     'function(const EditMask: string): Boolean');
-  TSepiMetaMethod.Create(Result, 'MaskGetMaskBlank', @MaskGetMaskBlank,
+  TSepiMethod.Create(Result, 'MaskGetMaskBlank', @MaskGetMaskBlank,
     'function(const EditMask: string): Char');
-  TSepiMetaMethod.Create(Result, 'MaskGetFldSeparator', @MaskGetFldSeparator,
+  TSepiMethod.Create(Result, 'MaskGetFldSeparator', @MaskGetFldSeparator,
     'function(const EditMask: string): Integer');
-  TSepiMetaMethod.Create(Result, 'PadInputLiterals', @PadInputLiterals,
+  TSepiMethod.Create(Result, 'PadInputLiterals', @PadInputLiterals,
     'function(const EditMask: String; const Value: string; Blank: Char): string');
-  TSepiMetaMethod.Create(Result, 'MaskOffsetToOffset', @MaskOffsetToOffset,
+  TSepiMethod.Create(Result, 'MaskOffsetToOffset', @MaskOffsetToOffset,
     'function(const EditMask: String; MaskOffset: Integer): Integer');
-  TSepiMetaMethod.Create(Result, 'MaskOffsetToWideOffset', @MaskOffsetToWideOffset,
+  TSepiMethod.Create(Result, 'MaskOffsetToWideOffset', @MaskOffsetToWideOffset,
     'function(const EditMask: String; MaskOffset: Integer): Integer');
-  TSepiMetaMethod.Create(Result, 'IsLiteralChar', @IsLiteralChar,
+  TSepiMethod.Create(Result, 'IsLiteralChar', @IsLiteralChar,
     'function(const EditMask: string; Offset: Integer): Boolean');
-  TSepiMetaMethod.Create(Result, 'MaskGetCharType', @MaskGetCharType,
+  TSepiMethod.Create(Result, 'MaskGetCharType', @MaskGetCharType,
     'function(const EditMask: string; MaskOffset: Integer): TMaskCharType');
-  TSepiMetaMethod.Create(Result, 'MaskGetCurrentDirectives', @MaskGetCurrentDirectives,
+  TSepiMethod.Create(Result, 'MaskGetCurrentDirectives', @MaskGetCurrentDirectives,
     'function(const EditMask: string; MaskOffset: Integer): TMaskDirectives');
-  TSepiMetaMethod.Create(Result, 'MaskIntlLiteralToChar', @MaskIntlLiteralToChar,
+  TSepiMethod.Create(Result, 'MaskIntlLiteralToChar', @MaskIntlLiteralToChar,
     'function(IChar: Char): Char');
-  TSepiMetaMethod.Create(Result, 'OffsetToMaskOffset', @OffsetToMaskOffset,
+  TSepiMethod.Create(Result, 'OffsetToMaskOffset', @OffsetToMaskOffset,
     'function(const EditMask: string; Offset: Integer): Integer');
-  TSepiMetaMethod.Create(Result, 'MaskDoFormatText', @MaskDoFormatText,
+  TSepiMethod.Create(Result, 'MaskDoFormatText', @MaskDoFormatText,
     'function(const EditMask: string; const Value: string; Blank: Char): string');
 
   // Global variables

@@ -19,9 +19,9 @@ implementation
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiMetaRoot) : TSepiMetaUnit;
+function ImportUnit(Root : TSepiRoot) : TSepiUnit;
 begin
-  Result := TSepiMetaUnit.Create(Root, 'ScZLib',
+  Result := TSepiUnit.Create(Root, 'ScZLib',
     ['Classes', 'ZLib']);
 
   // Constants
@@ -31,9 +31,9 @@ begin
   TSepiConstant.Create(Result, 'clMaxComp', clMaxComp);
 
   // Routines
-  TSepiMetaMethod.Create(Result, 'CompressStream', @CompressStream,
+  TSepiMethod.Create(Result, 'CompressStream', @CompressStream,
     'procedure(Stream : TStream; Dest : TStream = nil; CompressionLevel : TCompressionLevel = clDefaultComp )');
-  TSepiMetaMethod.Create(Result, 'DecompressStream', @DecompressStream,
+  TSepiMethod.Create(Result, 'DecompressStream', @DecompressStream,
     'procedure(Stream : TStream; Dest : TStream = nil)');
 
   Result.Complete;

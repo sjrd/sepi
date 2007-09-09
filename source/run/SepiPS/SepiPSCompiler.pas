@@ -11,7 +11,7 @@ uses
   Classes, SepiReflectionCore;
 
 function SepiPSCompile(const Source : string; Output : TStream;
-  SepiUnit : TSepiMetaUnit; Errors : TStrings;
+  SepiUnit : TSepiUnit; Errors : TStrings;
   ExportUnexistingProcs : boolean = True) : boolean; overload;
 function SepiPSCompile(const Source : string; Output : TStream;
   const UnitName : string; Errors : TStrings;
@@ -37,8 +37,8 @@ type
     @version 1.0
   *}
   TCompilingContext = record
-    Root : TSepiMetaRoot;            /// Racine Sepi
-    SepiUnit : TSepiMetaUnit;        /// Unité Sepi à compiler
+    Root : TSepiRoot;            /// Racine Sepi
+    SepiUnit : TSepiUnit;        /// Unité Sepi à compiler
     UsesList : array of string;      /// Liste des uses explicites
     ExportUnexistingProcs : boolean; /// True exporte de PS vers Sepi
   end;
@@ -57,7 +57,7 @@ type
 function ScriptOnUses(Context : PCompilingContext; Sender : TPSPascalCompiler;
   const UnitName : string) : boolean;
 var I : integer;
-    SepiUnit : TSepiMetaUnit;
+    SepiUnit : TSepiUnit;
 begin
   try
     if AnsiSameText(UnitName, SystemUnitName) then
@@ -89,11 +89,11 @@ end;
   @param SepiMethod   Méthode Sepi
   @return True si les déclarations correspondent, False sinon
 *}
-function CheckExport(Root : TSepiMetaRoot; PSProc : TPSInternalProcedure;
-  SepiMethod : TSepiMetaMethod) : boolean;
+function CheckExport(Root : TSepiRoot; PSProc : TPSInternalProcedure;
+  SepiMethod : TSepiMethod) : boolean;
 var I : integer;
     ParameterCount : integer;
-    SepiParam : TSepiMetaParam;
+    SepiParam : TSepiParam;
     PSParam : TPSParameterDecl;
 begin
   Result := False;
@@ -151,7 +151,7 @@ end;
   @param PSProc     Procédure Pascal Script
   @return True si la routine a été importée, False sinon
 *}
-function ExportUnexisting(SepiUnit : TSepiMetaUnit;
+function ExportUnexisting(SepiUnit : TSepiUnit;
   PSProc : TPSInternalProcedure) : boolean;
 var Signature : string;
     I : integer;
@@ -197,7 +197,7 @@ begin
     end;
 
     // Add the method to the unit
-    TSepiMetaMethod.Create(SepiUnit, PSProc.OriginalName, nil, Signature);
+    TSepiMethod.Create(SepiUnit, PSProc.OriginalName, nil, Signature);
   end;
 
   Result := True;
@@ -238,7 +238,7 @@ begin
     end;
 
     // A match that isn't a method is a duplicate identifier
-    if (Meta <> nil) and (not (Meta is TSepiMetaMethod)) then
+    if (Meta <> nil) and (not (Meta is TSepiMethod)) then
     begin
       Sender.MakeError(SepiUnit.Name, ecDuplicateIdentifier, Proc.OriginalName);
       exit;
@@ -247,7 +247,7 @@ begin
     // Check the export or export an unexisting
     if Meta <> nil then
     begin
-      Result := CheckExport(Root, Proc, TSepiMetaMethod(Meta));
+      Result := CheckExport(Root, Proc, TSepiMethod(Meta));
       if not Result then
         Sender.MakeError(SepiUnit.Name, ecCustomError,
           sDeclDiffersFromPrevious);
@@ -275,9 +275,9 @@ end;
   @return True si la compilation s'est bien déroulée, False en cas d'erreur
 *}
 function SepiPSCompile(const Source : string; Output : TStream;
-  SepiUnit : TSepiMetaUnit; Errors : TStrings;
+  SepiUnit : TSepiUnit; Errors : TStrings;
   ExportUnexistingProcs : boolean = True) : boolean;
-var Root : TSepiMetaRoot;
+var Root : TSepiRoot;
     Context : TCompilingContext;
     Method : TMethod;
     OnUses, OnExportCheck : Pointer;
@@ -363,17 +363,17 @@ end;
 function SepiPSCompile(const Source : string; Output : TStream;
   const UnitName : string; Errors : TStrings;
   const OnLoadUnit : TSepiLoadUnitEvent = nil) : boolean;
-var Root : TSepiMetaRoot;
-    SepiUnit : TSepiMetaUnit;
+var Root : TSepiRoot;
+    SepiUnit : TSepiUnit;
 begin
-  Root := TSepiMetaRoot.Create;
+  Root := TSepiRoot.Create;
   try
     if Assigned(OnLoadUnit) then
       Root.OnLoadUnit := OnLoadUnit
     else
       @Root.OnLoadUnit := @SepiPSLoadUnit;
 
-    SepiUnit := TSepiMetaUnit.Create(Root, UnitName, []);
+    SepiUnit := TSepiUnit.Create(Root, UnitName, []);
 
     Result := SepiPSCompile(Source, Output, SepiUnit, Errors);
   finally
