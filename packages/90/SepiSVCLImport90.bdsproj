@@ -161,13 +161,14 @@
 			<VersionInfoKeys Name="CompanyName">SJRDoeraene</VersionInfoKeys>
 			<VersionInfoKeys Name="FileDescription">Sepi importer for SVCL units</VersionInfoKeys>
 			<VersionInfoKeys Name="FileVersion">1.0.0.0</VersionInfoKeys>
-			<VersionInfoKeys Name="InternalName">SepiSVCLImports90</VersionInfoKeys>
-			<VersionInfoKeys Name="LegalCopyright">Copyright (c) 2000-2006 Sébastien Doeraene</VersionInfoKeys>
+			<VersionInfoKeys Name="InternalName">SepiSVCLImports</VersionInfoKeys>
+			<VersionInfoKeys Name="LegalCopyright">Copyright (c) 2000-2007 SJRDoeraene</VersionInfoKeys>
 			<VersionInfoKeys Name="LegalTrademarks"></VersionInfoKeys>
 			<VersionInfoKeys Name="OriginalFilename">SepiSVCLImport90.bpl</VersionInfoKeys>
 			<VersionInfoKeys Name="ProductName">Sepi</VersionInfoKeys>
 			<VersionInfoKeys Name="ProductVersion">1.0</VersionInfoKeys>
 		</VersionInfoKeys>  <Excluded_Packages>
+      <Excluded_Packages Name="C:\Documents and Settings\Sepi\Mes documents\Projets Borland Studio\Bpl\JvDBD9D.bpl">JVCL Database Components</Excluded_Packages>
       <Excluded_Packages Name="C:\DOCUME~1\Sepi\MESDOC~1\PROJET~1\Bpl\JclUsesExpert90.bpl">JCL Uses Wizard</Excluded_Packages>
     </Excluded_Packages>
   </Delphi.Personality>
