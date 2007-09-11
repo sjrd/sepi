@@ -1194,7 +1194,8 @@ begin
   if Kind in [mkFunction, mkClassFunction]then
   begin
     FReturnType := FOwner.Root.FindType(PShortString(ParamData)^);
-    TSepiParam.CreateHidden(FOwner, hpResult, ReturnType);
+    if ReturnType.ParamBehavior.AlwaysByAddress then
+      TSepiParam.CreateHidden(FOwner, hpResult, ReturnType);
   end else
     FReturnType := nil;
 
@@ -1286,7 +1287,7 @@ begin
     end;
   end;
 
-  if ReturnType <> nil then
+  if (ReturnType <> nil) and ReturnType.ParamBehavior.AlwaysByAddress then
     TSepiParam.CreateHidden(FOwner, hpResult, ReturnType);
 
   if (Kind in mkOfObject) and (CallingConvention = ccPascal) then
@@ -1302,14 +1303,30 @@ procedure TSepiMethodSignature.MakeCallInfo;
 var I, ParamCount : integer;
     Param : TSepiParam;
 begin
-  if CallingConvention = ccRegister then
-    FRegUsage := 0
-  else
-    FRegUsage := 3;
-  FStackUsage := 0;
-
   ParamCount := ActualParamCount;
 
+  // First pass: by address vs by value and register vs stack
+  FRegUsage := 0;
+  for I := 0 to ParamCount-1 do
+  begin
+    Param := ActualParams[I];
+    with Param.ParamType, Param, FCallInfo do
+    begin
+      // By address or by value?
+      ByAddress := ByRef or (pfReference in Flags) or (ParamType = nil);
+
+      // In a register or in the stack?
+      if (CallingConvention = ccRegister) and (FRegUsage < 3) and
+         (ByAddress or (not ParamBehavior.AlwaysByStack)) then
+      begin
+        Byte(Place) := FRegUsage;
+        inc(FRegUsage);
+      end else Place := ppStack;
+    end;
+  end;
+
+  // Second pass: compute stack offsets and stack usage
+  FStackUsage := 0;
   for I := 0 to ParamCount-1 do
   begin
     // register and pascal calling conventions work in the opposite direction
@@ -1320,46 +1337,20 @@ begin
 
     with Param.ParamType, Param, FCallInfo do
     begin
-      // By address or by value?
-      if HiddenKind <> hpResult then
+      // Set stack offset and increment stack usage
+      if Place = ppStack then
       begin
-        ByAddress := ByRef or (pfReference in Flags) or (ParamType = nil);
-
-        if ByAddress or (not ParamBehavior.AlwaysByStack) then
-          Byte(Place) := FRegUsage
-        else
-          Place := ppStack;
-      end else
-      begin
-        ByAddress := ParamBehavior.AlwaysByAddress;
-        Place := ppEAX;
-        StackOffset := 0;
-      end;
-
-      // Where to place it?
-      if ByAddress or (HiddenKind <> hpResult) then
-      begin
-        if Place = ppStack then
+        StackOffset := FStackUsage;
+        if ByAddress then
+          inc(FStackUsage, 4) else
         begin
-          StackOffset := FStackUsage;
-          if ByAddress then
-            inc(FStackUsage, 4) else
-          begin
-            inc(FStackUsage, Size);
-            if FStackUsage mod 4 <> 0 then
-              FStackUsage := (FStackUsage and $FFFC) + 4;
-          end;
-        end else
-        begin
-          inc(FRegUsage);
-          StackOffset := 0;
+          inc(FStackUsage, Size);
+          if FStackUsage mod 4 <> 0 then
+            FStackUsage := (FStackUsage and $FFFC) + 4;
         end;
       end;
     end;
   end;
-
-  if CallingConvention <> ccRegister then
-    FRegUsage := 0;
 end;
 
 {*
@@ -1871,27 +1862,31 @@ procedure TSepiMethod.SetCodeMethod(const AMethod : TMethod);
 var I, MoveStackCount : integer;
     ACode : Pointer;
 begin
-  case Signature.CallingConvention of
-    ccRegister :
-    begin
-      with Signature do
+  with Signature do
+  begin
+    case CallingConvention of
+      ccRegister :
       begin
-        MoveStackCount := 0;
-        for I := 0 to ActualParamCount-1 do with ActualParams[I] do
+        if RegUsage < 3 then MoveStackCount := 0 else
         begin
-          if CallInfo.Place = ppECX then
+          // MoveStackCount = (last param before ECX).StackOffset div 4
+          MoveStackCount := StackUsage div 4;
+          for I := 0 to ActualParamCount-1 do with ActualParams[I] do
           begin
-            MoveStackCount := CallInfo.StackOffset div 4;
-            Break;
+            case CallInfo.Place of
+              ppECX : Break;
+              ppStack : MoveStackCount := CallInfo.StackOffset div 4;
+            end;
           end;
         end;
 
         ACode := MakeProcOfRegisterMethod(AMethod, RegUsage, MoveStackCount);
       end;
+
+      ccCDecl : ACode := MakeProcOfCDeclMethod(AMethod);
+      ccPascal : ACode := MakeProcOfPascalMethod(AMethod);
+      else ACode := MakeProcOfStdCallMethod(AMethod);
     end;
-    ccCDecl : ACode := MakeProcOfCDeclMethod(AMethod);
-    ccPascal : ACode := MakeProcOfPascalMethod(AMethod);
-    else ACode := MakeProcOfStdCallMethod(AMethod);
   end;
 
   AddPtrResource(ACode);
