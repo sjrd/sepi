@@ -18,40 +18,40 @@ implementation
 type
   TSepiImportsTCustomZlibStream = class(TCustomZlibStream)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTCompressionStream = class(TCompressionStream)
   private
     function GetCompressionRate: Single;
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTDecompressionStream = class(TDecompressionStream)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsEZlibError = class(EZlibError)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsECompressionError = class(ECompressionError)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsEDecompressionError = class(EDecompressionError)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
 {--------------------}
 { TZStreamRec import }
 {--------------------}
 
-function SepiImportTZStreamRec(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTZStreamRec(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TZStreamRec', True, True);
 
@@ -81,7 +81,7 @@ end;
 {--------------------------}
 
 class function TSepiImportsTCustomZlibStream.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TCustomZlibStream));
@@ -122,7 +122,7 @@ begin
 end;
 
 class function TSepiImportsTCompressionStream.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TCompressionStream));
@@ -131,7 +131,8 @@ begin
   begin
     CurrentVisibility := mvPrivate;
 
-    AddMethod('GetCompressionRate', @TSepiImportsTCompressionStream.GetCompressionRate,
+    AddMethod('GetCompressionRate',
+      @TSepiImportsTCompressionStream.GetCompressionRate,
       'function: Single');
 
     CurrentVisibility := mvPublic;
@@ -164,7 +165,7 @@ end;
 {-----------------------------}
 
 class function TSepiImportsTDecompressionStream.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TDecompressionStream));
@@ -199,7 +200,7 @@ end;
 {-------------------}
 
 class function TSepiImportsEZlibError.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EZlibError));
@@ -216,7 +217,7 @@ end;
 {--------------------------}
 
 class function TSepiImportsECompressionError.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(ECompressionError));
@@ -233,7 +234,7 @@ end;
 {----------------------------}
 
 class function TSepiImportsEDecompressionError.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EDecompressionError));
@@ -249,14 +250,15 @@ end;
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiRoot) : TSepiUnit;
+function ImportUnit(Root: TSepiRoot): TSepiUnit;
 begin
   Result := TSepiUnit.Create(Root, 'ZLib',
     ['SysUtils', 'Classes']);
 
   // Types
   TSepiMethodRefType.Create(Result, 'TAlloc',
-    'function(AppData: Pointer; Items, Size: Integer): Pointer', False, ccRegister);
+    'function(AppData: Pointer; Items, Size: Integer): Pointer',
+    False, ccRegister);
   TSepiMethodRefType.Create(Result, 'TFree',
     'procedure(AppData, Block: Pointer)', False, ccRegister);
   SepiImportTZStreamRec(Result);

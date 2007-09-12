@@ -27,7 +27,8 @@ begin
   Result := RandomFrom(AValues);
 end;
 
-function IfThen_0(AValue: Boolean; const ATrue: string; AFalse: string = '' ) : string;
+function IfThen_0(AValue: Boolean; const ATrue: string;
+  AFalse: string = ''): string;
 begin
   Result := IfThen(AValue, ATrue, AFalse);
 end;
@@ -42,27 +43,31 @@ begin
   Result := LeftStr(AText, ACount);
 end;
 
-function RightStr_0(const AText: AnsiString; const ACount: Integer): AnsiString;
+function RightStr_0(const AText: AnsiString;
+  const ACount: Integer): AnsiString;
 begin
   Result := RightStr(AText, ACount);
 end;
 
-function RightStr_1(const AText: WideString; const ACount: Integer): WideString;
+function RightStr_1(const AText: WideString;
+  const ACount: Integer): WideString;
 begin
   Result := RightStr(AText, ACount);
 end;
 
-function MidStr_0(const AText: AnsiString; const AStart, ACount: Integer): AnsiString;
+function MidStr_0(const AText: AnsiString;
+  const AStart, ACount: Integer): AnsiString;
 begin
   Result := MidStr(AText, AStart, ACount);
 end;
 
-function MidStr_1(const AText: WideString; const AStart, ACount: Integer): WideString;
+function MidStr_1(const AText: WideString;
+  const AStart, ACount: Integer): WideString;
 begin
   Result := MidStr(AText, AStart, ACount);
 end;
 
-function ImportUnit(Root : TSepiRoot) : TSepiUnit;
+function ImportUnit(Root: TSepiRoot): TSepiUnit;
 begin
   Result := TSepiUnit.Create(Root, 'StrUtils',
     ['SysUtils', 'Types']);
@@ -165,7 +170,7 @@ begin
   // Constants
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(TUnnamed_1));
   TSepiVariable.Create(Result, 'WordDelimiters',
-     WordDelimiters, TypeInfo(TUnnamed_1), True);
+    WordDelimiters, TypeInfo(TUnnamed_1), True);
 
   // Types
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(TStringSeachOption));

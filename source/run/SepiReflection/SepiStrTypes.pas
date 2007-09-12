@@ -18,21 +18,21 @@ type
   *}
   TSepiShortStringType = class(TSepiType)
   private
-    FMaxLength : integer; /// Longueur maximale
+    FMaxLength: Integer; /// Longueur maximale
   protected
-    procedure Save(Stream : TStream); override;
+    procedure Save(Stream: TStream); override;
 
     procedure ExtractTypeData; override;
 
-    function GetAlignment : integer; override;
+    function GetAlignment: Integer; override;
   public
-    constructor RegisterTypeInfo(AOwner : TSepiMeta;
-      ATypeInfo : PTypeInfo); override;
-    constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
-    constructor Create(AOwner : TSepiMeta; const AName : string;
-      AMaxLength : integer = 255);
+    constructor RegisterTypeInfo(AOwner: TSepiMeta;
+      ATypeInfo: PTypeInfo); override;
+    constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
+    constructor Create(AOwner: TSepiMeta; const AName: string;
+      AMaxLength: Integer = 255);
 
-    property MaxLength : integer read FMaxLength;
+    property MaxLength: Integer read FMaxLength;
   end;
 
   {*
@@ -42,19 +42,19 @@ type
   *}
   TSepiStringType = class(TSepiType)
   private
-    FIsUnicode : boolean; /// Indique si la chaîne est Unicode ou non
+    FIsUnicode: Boolean; /// Indique si la chaîne est Unicode ou non
   protected
-    procedure Save(Stream : TStream); override;
+    procedure Save(Stream: TStream); override;
 
     procedure ExtractTypeData; override;
   public
-    constructor RegisterTypeInfo(AOwner : TSepiMeta;
-      ATypeInfo : PTypeInfo); override;
-    constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
-    constructor Create(AOwner : TSepiMeta; const AName : string;
-      AIsUnicode : boolean = False);
+    constructor RegisterTypeInfo(AOwner: TSepiMeta;
+      ATypeInfo: PTypeInfo); override;
+    constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
+    constructor Create(AOwner: TSepiMeta; const AName: string;
+      AIsUnicode: Boolean = False);
 
-    property IsUnicode : boolean read FIsUnicode;
+    property IsUnicode: Boolean read FIsUnicode;
   end;
 
 implementation
@@ -71,8 +71,8 @@ const
 {*
   Recense un type chaîne courte natif
 *}
-constructor TSepiShortStringType.RegisterTypeInfo(AOwner : TSepiMeta;
-  ATypeInfo : PTypeInfo);
+constructor TSepiShortStringType.RegisterTypeInfo(AOwner: TSepiMeta;
+  ATypeInfo: PTypeInfo);
 begin
   inherited;
   ExtractTypeData;
@@ -81,7 +81,7 @@ end;
 {*
   Charge un type chaîne courte depuis un flux
 *}
-constructor TSepiShortStringType.Load(AOwner : TSepiMeta; Stream : TStream);
+constructor TSepiShortStringType.Load(AOwner: TSepiMeta; Stream: TStream);
 begin
   inherited;
 
@@ -97,8 +97,8 @@ end;
   @param AName        Nom du type
   @param AMaxLength   Longueur maximale
 *}
-constructor TSepiShortStringType.Create(AOwner : TSepiMeta;
-  const AName : string; AMaxLength : integer = 255);
+constructor TSepiShortStringType.Create(AOwner: TSepiMeta;
+  const AName: string; AMaxLength: Integer = 255);
 begin
   inherited Create(AOwner, AName, tkString);
 
@@ -111,7 +111,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiShortStringType.Save(Stream : TStream);
+procedure TSepiShortStringType.Save(Stream: TStream);
 begin
   inherited;
   Stream.WriteBuffer(TypeData^, ShortStringTypeDataLength);
@@ -132,7 +132,7 @@ end;
 {*
   [@inheritDoc]
 *}
-function TSepiShortStringType.GetAlignment : integer;
+function TSepiShortStringType.GetAlignment: Integer;
 begin
   Result := 1;
 end;
@@ -144,8 +144,8 @@ end;
 {*
   Recense un type chaîne longue natif
 *}
-constructor TSepiStringType.RegisterTypeInfo(AOwner : TSepiMeta;
-  ATypeInfo : PTypeInfo);
+constructor TSepiStringType.RegisterTypeInfo(AOwner: TSepiMeta;
+  ATypeInfo: PTypeInfo);
 begin
   inherited;
   ExtractTypeData;
@@ -154,7 +154,7 @@ end;
 {*
   Charge un type chaîne longue depuis un flux
 *}
-constructor TSepiStringType.Load(AOwner : TSepiMeta; Stream : TStream);
+constructor TSepiStringType.Load(AOwner: TSepiMeta; Stream: TStream);
 begin
   inherited;
 
@@ -170,9 +170,10 @@ end;
   @param AName        Nom du type
   @param AIsUnicode   Indique si la chaîne est Unicode ou non
 *}
-constructor TSepiStringType.Create(AOwner : TSepiMeta; const AName : string;
-  AIsUnicode : boolean = False);
-var AKind : TTypeKind;
+constructor TSepiStringType.Create(AOwner: TSepiMeta; const AName: string;
+  AIsUnicode: Boolean = False);
+var
+  AKind: TTypeKind;
 begin
   if AIsUnicode then AKind := tkWString else AKind := tkLString;
   inherited Create(AOwner, AName, AKind);
@@ -185,7 +186,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiStringType.Save(Stream : TStream);
+procedure TSepiStringType.Save(Stream: TStream);
 begin
   inherited;
   Stream.WriteBuffer(TypeData^, StringTypeDataLength);
@@ -206,6 +207,6 @@ end;
 initialization
   SepiRegisterMetaClasses([
     TSepiShortStringType, TSepiStringType
-  ]);
+    ]);
 end.
 

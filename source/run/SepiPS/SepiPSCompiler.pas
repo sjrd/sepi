@@ -10,12 +10,12 @@ interface
 uses
   Classes, SepiReflectionCore;
 
-function SepiPSCompile(const Source : string; Output : TStream;
-  SepiUnit : TSepiUnit; Errors : TStrings;
-  ExportUnexistingProcs : boolean = True) : boolean; overload;
-function SepiPSCompile(const Source : string; Output : TStream;
-  const UnitName : string; Errors : TStrings;
-  const OnLoadUnit : TSepiLoadUnitEvent = nil) : boolean; overload;
+function SepiPSCompile(const Source: string; Output: TStream;
+  SepiUnit: TSepiUnit; Errors: TStrings;
+  ExportUnexistingProcs: Boolean = True): Boolean; overload;
+function SepiPSCompile(const Source: string; Output: TStream;
+  const UnitName: string; Errors: TStrings;
+  const OnLoadUnit: TSepiLoadUnitEvent = nil): Boolean; overload;
 
 resourcestring
   sDeclDiffersFromPrevious = 'La déclaration diffère de la précédente';
@@ -37,9 +37,9 @@ type
     @version 1.0
   *}
   TCompilingContext = record
-    Root : TSepiRoot;                /// Racine Sepi
-    SepiUnit : TSepiUnit;            /// Unité Sepi à compiler
-    ExportUnexistingProcs : boolean; /// True exporte de PS vers Sepi
+    Root: TSepiRoot;                /// Racine Sepi
+    SepiUnit: TSepiUnit;            /// Unité Sepi à compiler
+    ExportUnexistingProcs: Boolean; /// True exporte de PS vers Sepi
   end;
 
 {-----------------}
@@ -53,10 +53,11 @@ type
   @param UnitName   Nom de l'unité à charger
   @return True si l'unité a été chargée, False si elle n'a pas pu être trouvée
 *}
-function ScriptOnUses(Context : PCompilingContext; Sender : TPSPascalCompiler;
-  const UnitName : string) : boolean;
-var I : integer;
-    SepiUnit : TSepiUnit;
+function ScriptOnUses(Context: PCompilingContext; Sender: TPSPascalCompiler;
+  const UnitName: string): Boolean;
+var
+  I: Integer;
+  SepiUnit: TSepiUnit;
 begin
   Result := True;
 
@@ -76,7 +77,7 @@ begin
       SepiImportUnitInPSCompiler(SepiUnit, Sender);
     end;
   except
-    on Error : ESepiUnitNotFoundError do
+    on Error: ESepiUnitNotFoundError do
       Result := False;
   end;
 end;
@@ -88,12 +89,13 @@ end;
   @param SepiMethod   Méthode Sepi
   @return True si les déclarations correspondent, False sinon
 *}
-function CheckExport(Root : TSepiRoot; PSProc : TPSInternalProcedure;
-  SepiMethod : TSepiMethod) : boolean;
-var I : integer;
-    ParameterCount : integer;
-    SepiParam : TSepiParam;
-    PSParam : TPSParameterDecl;
+function CheckExport(Root: TSepiRoot; PSProc: TPSInternalProcedure;
+  SepiMethod: TSepiMethod): Boolean;
+var
+  I: Integer;
+  ParameterCount: Integer;
+  SepiParam: TSepiParam;
+  PSParam: TPSParameterDecl;
 begin
   Result := False;
 
@@ -109,8 +111,8 @@ begin
     //   (in register calling conv, Result will always be last)
     ParameterCount := ActualParamCount;
     if (ParameterCount > 0) and
-       (ActualParams[ParameterCount-1].HiddenKind = hpResult) then
-      dec(ParameterCount);
+      (ActualParams[ParameterCount-1].HiddenKind = hpResult) then
+      Dec(ParameterCount);
     if ParameterCount <> ParamCount then
       exit;
 
@@ -121,11 +123,11 @@ begin
       PSParam := Params[I];
 
       case PSParam.Mode of
-        pmIn :
+        pmIn:
           if (pfVar in SepiParam.Flags) or
-             (pfOut in SepiParam.Flags) then exit;
-        pmOut : if not (pfOut in SepiParam.Flags) then exit;
-        pmInOut : if not (pfVar in SepiParam.Flags) then exit;
+            (pfOut in SepiParam.Flags) then exit;
+        pmOut: if not (pfOut in SepiParam.Flags) then exit;
+        pmInOut: if not (pfVar in SepiParam.Flags) then exit;
       end;
 
       if SepiParam.ParamType <> Root.GetType(PSParam.aType.Name) then
@@ -153,12 +155,13 @@ end;
   @param PSProc     Procédure Pascal Script
   @return True si la routine a été importée, False sinon
 *}
-function ExportUnexisting(SepiUnit : TSepiUnit;
-  PSProc : TPSInternalProcedure) : boolean;
-var Signature : string;
-    I : integer;
-    PSParam : TPSParameterDecl;
-    SepiType : TSepiType;
+function ExportUnexisting(SepiUnit: TSepiUnit;
+  PSProc: TPSInternalProcedure): Boolean;
+var
+  Signature: string;
+  I: Integer;
+  PSParam: TPSParameterDecl;
+  SepiType: TSepiType;
 begin
   Signature := '';
   Result := False;
@@ -213,11 +216,12 @@ end;
   @param ProcDecl   Déclaration de la procédure
   @return True si la déclaration est valide, False sinon
 *}
-function ScriptOnExportCheck(Context : PCompilingContext;
-  Sender : TPSPascalCompiler; Proc : TPSInternalProcedure;
-  const ProcDecl : string) : boolean;
-var Meta : TSepiMeta;
-    ClassName, MethodName : string;
+function ScriptOnExportCheck(Context: PCompilingContext;
+  Sender: TPSPascalCompiler; Proc: TPSInternalProcedure;
+  const ProcDecl: string): Boolean;
+var
+  Meta: TSepiMeta;
+  ClassName, MethodName: string;
 begin
   if AnsiSameText(Proc.Name, '!MAIN') then
     Proc.OriginalName := '$MAIN';
@@ -229,7 +233,7 @@ begin
     Meta := SepiUnit.GetMeta(Proc.OriginalName);
 
     if (Meta = nil) and
-       SplitToken(Proc.OriginalName, '_', ClassName, MethodName) then
+      SplitToken(Proc.OriginalName, '_', ClassName, MethodName) then
     begin
       Meta := SepiUnit.GetMeta(ClassName);
       if Meta is TSepiClass then
@@ -242,7 +246,8 @@ begin
     // A match that isn't a method is a duplicate identifier
     if (Meta <> nil) and (not (Meta is TSepiMethod)) then
     begin
-      Sender.MakeError(SepiUnit.Name, ecDuplicateIdentifier, Proc.OriginalName);
+      Sender.MakeError(SepiUnit.Name, ecDuplicateIdentifier,
+        Proc.OriginalName);
       exit;
     end;
 
@@ -257,8 +262,8 @@ begin
     begin
       Result := True;
       if Context.ExportUnexistingProcs and
-         ((not AnsiSameText(Proc.OriginalName, '$MAIN')) or
-          (not Sender.IsUnit)) then
+        ((not AnsiSameText(Proc.OriginalName, '$MAIN')) or
+        (not Sender.IsUnit)) then
       begin
         if not ExportUnexisting(SepiUnit, Proc) then
           Sender.MakeWarning(Proc.DeclareUnit, ewCustomWarning,
@@ -276,16 +281,17 @@ end;
   @param Errors       Liste de chaînes où enregister les erreurs
   @return True si la compilation s'est bien déroulée, False en cas d'erreur
 *}
-function SepiPSCompile(const Source : string; Output : TStream;
-  SepiUnit : TSepiUnit; Errors : TStrings;
-  ExportUnexistingProcs : boolean = True) : boolean;
-var Root : TSepiRoot;
-    Context : TCompilingContext;
-    Method : TMethod;
-    OnUses, OnExportCheck : Pointer;
-    Compiler: TPSPascalCompiler;
-    I : integer;
-    Compiled : string;
+function SepiPSCompile(const Source: string; Output: TStream;
+  SepiUnit: TSepiUnit; Errors: TStrings;
+  ExportUnexistingProcs: Boolean = True): Boolean;
+var
+  Root: TSepiRoot;
+  Context: TCompilingContext;
+  Method: TMethod;
+  OnUses, OnExportCheck: Pointer;
+  Compiler: TPSPascalCompiler;
+  I: Integer;
+  Compiled: string;
 begin
   Compiled := '';
 
@@ -317,7 +323,7 @@ begin
           Compiler.Compile(Source);
         except
           // work around a bug of PS (or is it my use of it that's wrong?)
-          on Error : EInvalidPointer do;
+          on Error: EInvalidPointer do;
         end;
 
         SepiUnit.Complete;
@@ -353,11 +359,12 @@ end;
   @param OnLoadUnit   Méthode de call-back pour le chargement d'une unité
   @return True si la compilation s'est bien déroulée, False en cas d'erreur
 *}
-function SepiPSCompile(const Source : string; Output : TStream;
-  const UnitName : string; Errors : TStrings;
-  const OnLoadUnit : TSepiLoadUnitEvent = nil) : boolean;
-var Root : TSepiRoot;
-    SepiUnit : TSepiUnit;
+function SepiPSCompile(const Source: string; Output: TStream;
+  const UnitName: string; Errors: TStrings;
+  const OnLoadUnit: TSepiLoadUnitEvent = nil): Boolean;
+var
+  Root: TSepiRoot;
+  SepiUnit: TSepiUnit;
 begin
   Root := TSepiRoot.Create;
   try

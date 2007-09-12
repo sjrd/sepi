@@ -18,47 +18,47 @@ implementation
 type
   TSepiImportsEInvalidGraphic = class(EInvalidGraphic)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsEInvalidGraphicOperation = class(EInvalidGraphicOperation)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTGraphicsObject = class(TGraphicsObject)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTFont = class(TFont)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTPen = class(TPen)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTBrush = class(TBrush)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTFontRecall = class(TFontRecall)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTPenRecall = class(TPenRecall)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTBrushRecall = class(TBrushRecall)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTCanvas = class(TCanvas)
@@ -79,14 +79,15 @@ type
     procedure Rectangle_0(X1, Y1, X2, Y2: Integer);
     procedure Rectangle_1(const Rect: TRect);
     procedure TextRect_0(Rect: TRect; X, Y: Integer; const Text: string);
-    procedure TextRect_1(var Rect: TRect; var Text: string; TextFormat: TTextFormat = []);
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    procedure TextRect_1(var Rect: TRect; var Text: string;
+      TextFormat: TTextFormat = []);
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTGraphic = class(TGraphic)
   private
     procedure SetModified(Value: Boolean);
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTPicture = class(TPicture)
@@ -100,22 +101,22 @@ type
     procedure SetGraphic(Value: TGraphic);
     procedure SetIcon(Value: TIcon);
     procedure SetMetafile(Value: TMetafile);
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTMetafileCanvas = class(TMetafileCanvas)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTSharedImage = class(TSharedImage)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTMetafileImage = class(TMetafileImage)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTMetafile = class(TMetafile)
@@ -130,12 +131,12 @@ type
     procedure SetInch(Value: Word);
     procedure SetMMHeight(Value: Integer);
     procedure SetMMWidth(Value: Integer);
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTBitmapImage = class(TBitmapImage)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTBitmap = class(TBitmap)
@@ -152,26 +153,26 @@ type
     procedure SetPixelFormat(Value: TPixelFormat);
     procedure SetTransparentColor(Value: TColor);
     procedure SetTransparentMode(Value: TTransparentMode);
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTIconImage = class(TIconImage)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTIcon = class(TIcon)
   private
     function GetHandle: HICON;
     procedure SetHandle(Value: HICON);
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
 {----------------------}
 { TCursorOrIcon import }
 {----------------------}
 
-function SepiImportTCursorOrIcon(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTCursorOrIcon(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TCursorOrIcon', True, True);
 
@@ -189,7 +190,7 @@ end;
 { TIconRec import }
 {-----------------}
 
-function SepiImportTIconRec(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTIconRec(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TIconRec', True, True);
 
@@ -212,7 +213,7 @@ end;
 {------------------------}
 
 class function TSepiImportsEInvalidGraphic.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EInvalidGraphic));
@@ -229,7 +230,7 @@ end;
 {---------------------------------}
 
 class function TSepiImportsEInvalidGraphicOperation.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EInvalidGraphicOperation));
@@ -245,7 +246,7 @@ end;
 { TResData import }
 {-----------------}
 
-function SepiImportTResData(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTResData(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TResData', False, True);
 
@@ -261,7 +262,7 @@ end;
 { TFontData import }
 {------------------}
 
-function SepiImportTFontData(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTFontData(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TFontData', False, True);
 
@@ -283,7 +284,7 @@ end;
 { TPenData import }
 {-----------------}
 
-function SepiImportTPenData(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTPenData(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TPenData', False, True);
 
@@ -302,7 +303,7 @@ end;
 { TBrushData import }
 {-------------------}
 
-function SepiImportTBrushData(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTBrushData(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TBrushData', False, True);
 
@@ -321,7 +322,7 @@ end;
 { TResource import }
 {------------------}
 
-function SepiImportTResource(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTResource(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TResource', False, True);
 
@@ -345,7 +346,7 @@ end;
 {------------------------}
 
 class function TSepiImportsTGraphicsObject.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TGraphicsObject));
@@ -386,7 +387,7 @@ end;
 { IChangeNotifier import }
 {------------------------}
 
-function SepiImportIChangeNotifier(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIChangeNotifier(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IChangeNotifier));
@@ -405,7 +406,7 @@ end;
 {--------------}
 
 class function TSepiImportsTFont.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TFont));
@@ -511,7 +512,7 @@ end;
 {-------------}
 
 class function TSepiImportsTPen.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TPen));
@@ -586,7 +587,7 @@ end;
 {---------------}
 
 class function TSepiImportsTBrush.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TBrush));
@@ -653,7 +654,7 @@ end;
 {--------------------}
 
 class function TSepiImportsTFontRecall.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TFontRecall));
@@ -674,7 +675,7 @@ end;
 {-------------------}
 
 class function TSepiImportsTPenRecall.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TPenRecall));
@@ -695,7 +696,7 @@ end;
 {---------------------}
 
 class function TSepiImportsTBrushRecall.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TBrushRecall));
@@ -790,18 +791,21 @@ begin
   Rectangle(Rect);
 end;
 
-procedure TSepiImportsTCanvas.TextRect_0(Rect: TRect; X, Y: Integer; const Text: string);
+procedure TSepiImportsTCanvas.TextRect_0(Rect: TRect; X, Y: Integer;
+  const Text: string);
 begin
   TextRect(Rect, X, Y, Text);
 end;
 
-procedure TSepiImportsTCanvas.TextRect_1(var Rect: TRect; var Text: string; TextFormat: TTextFormat = []);
+procedure TSepiImportsTCanvas.TextRect_1(var Rect: TRect;
+  var
+    Text: string; TextFormat: TTextFormat = []);
 begin
   TextRect(Rect, Text, TextFormat);
 end;
 
 class function TSepiImportsTCanvas.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TCanvas));
@@ -833,7 +837,8 @@ begin
       'procedure(ABrush: TObject)');
     AddMethod('DeselectHandles', nil,
       'procedure');
-    AddMethod('GetCanvasOrientation', @TSepiImportsTCanvas.GetCanvasOrientation,
+    AddMethod('GetCanvasOrientation',
+      @TSepiImportsTCanvas.GetCanvasOrientation,
       'function: TCanvasOrientation');
     AddMethod('GetClipRect', @TSepiImportsTCanvas.GetClipRect,
       'function: TRect');
@@ -993,7 +998,7 @@ begin
 end;
 
 class function TSepiImportsTGraphic.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass(Owner.FindMeta('TGraphic'));
   Result.RegisterTypeInfo(
@@ -1162,7 +1167,7 @@ begin
 end;
 
 class function TSepiImportsTPicture.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TPicture));
@@ -1233,22 +1238,28 @@ begin
       'procedure(const Filename: string)');
     AddMethod('SaveToFile', @TSepiImportsTPicture.SaveToFile,
       'procedure(const Filename: string)');
-    AddMethod('LoadFromClipboardFormat', @TSepiImportsTPicture.LoadFromClipboardFormat,
+    AddMethod('LoadFromClipboardFormat',
+      @TSepiImportsTPicture.LoadFromClipboardFormat,
       'procedure(AFormat: Word; AData: THandle; APalette: HPALETTE )');
-    AddMethod('SaveToClipboardFormat', @TSepiImportsTPicture.SaveToClipboardFormat,
+    AddMethod('SaveToClipboardFormat',
+      @TSepiImportsTPicture.SaveToClipboardFormat,
       'procedure(var AFormat: Word; var AData: THandle; var APalette: HPALETTE )');
-    AddMethod('SupportsClipboardFormat', @TSepiImportsTPicture.SupportsClipboardFormat,
+    AddMethod('SupportsClipboardFormat',
+      @TSepiImportsTPicture.SupportsClipboardFormat,
       'class function(AFormat: Word): Boolean');
     AddMethod('Assign', @TSepiImportsTPicture.Assign,
       'procedure(Source: TPersistent)',
       mlkOverride);
     AddMethod('RegisterFileFormat', @TSepiImportsTPicture.RegisterFileFormat,
       'class procedure(const AExtension, ADescription: string; AGraphicClass: TGraphicClass )');
-    AddMethod('RegisterFileFormatRes', @TSepiImportsTPicture.RegisterFileFormatRes,
+    AddMethod('RegisterFileFormatRes',
+      @TSepiImportsTPicture.RegisterFileFormatRes,
       'class procedure(const AExtension: String; ADescriptionResID: Integer ; AGraphicClass: TGraphicClass )');
-    AddMethod('RegisterClipboardFormat', @TSepiImportsTPicture.RegisterClipboardFormat,
+    AddMethod('RegisterClipboardFormat',
+      @TSepiImportsTPicture.RegisterClipboardFormat,
       'class procedure(AFormat: Word; AGraphicClass: TGraphicClass )');
-    AddMethod('UnregisterGraphicClass', @TSepiImportsTPicture.UnregisterGraphicClass,
+    AddMethod('UnregisterGraphicClass',
+      @TSepiImportsTPicture.UnregisterGraphicClass,
       'class procedure(AClass: TGraphicClass)');
 
     AddProperty('Bitmap', 'property: TBitmap',
@@ -1279,7 +1290,7 @@ end;
 {------------------------}
 
 class function TSepiImportsTMetafileCanvas.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TMetafileCanvas));
@@ -1294,7 +1305,8 @@ begin
 
     AddMethod('Create', @TSepiImportsTMetafileCanvas.Create,
       'constructor(AMetafile: TMetafile; ReferenceDevice: HDC)');
-    AddMethod('CreateWithComment', @TSepiImportsTMetafileCanvas.CreateWithComment,
+    AddMethod('CreateWithComment',
+      @TSepiImportsTMetafileCanvas.CreateWithComment,
       'constructor(AMetafile: TMetafile; ReferenceDevice: HDC; const CreatedBy, Description: String )');
     AddMethod('Destroy', @TSepiImportsTMetafileCanvas.Destroy,
       'destructor',
@@ -1309,7 +1321,7 @@ end;
 {---------------------}
 
 class function TSepiImportsTSharedImage.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TSharedImage));
@@ -1342,7 +1354,7 @@ end;
 {-----------------------}
 
 class function TSepiImportsTMetafileImage.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TMetafileImage));
@@ -1430,7 +1442,7 @@ begin
 end;
 
 class function TSepiImportsTMetafile.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass(Owner.FindMeta('TMetafile'));
   Result.RegisterTypeInfo(
@@ -1532,10 +1544,12 @@ begin
     AddMethod('SaveToStream', @TSepiImportsTMetafile.SaveToStream,
       'procedure(Stream: TStream)',
       mlkOverride);
-    AddMethod('LoadFromClipboardFormat', @TSepiImportsTMetafile.LoadFromClipboardFormat,
+    AddMethod('LoadFromClipboardFormat',
+      @TSepiImportsTMetafile.LoadFromClipboardFormat,
       'procedure(AFormat: Word; AData: THandle; APalette: HPALETTE )',
       mlkOverride);
-    AddMethod('SaveToClipboardFormat', @TSepiImportsTMetafile.SaveToClipboardFormat,
+    AddMethod('SaveToClipboardFormat',
+      @TSepiImportsTMetafile.SaveToClipboardFormat,
       'procedure(var AFormat: Word; var AData: THandle; var APalette: HPALETTE )',
       mlkOverride);
     AddMethod('Assign', @TSepiImportsTMetafile.Assign,
@@ -1569,7 +1583,7 @@ end;
 {---------------------}
 
 class function TSepiImportsTBitmapImage.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TBitmapImage));
@@ -1668,7 +1682,7 @@ begin
 end;
 
 class function TSepiImportsTBitmap.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass(Owner.FindMeta('TBitmap'));
   Result.RegisterTypeInfo(
@@ -1797,13 +1811,15 @@ begin
       'procedure');
     AddMethod('HandleAllocated', @TSepiImportsTBitmap.HandleAllocated,
       'function: Boolean');
-    AddMethod('LoadFromClipboardFormat', @TSepiImportsTBitmap.LoadFromClipboardFormat,
+    AddMethod('LoadFromClipboardFormat',
+      @TSepiImportsTBitmap.LoadFromClipboardFormat,
       'procedure(AFormat: Word; AData: THandle; APalette: HPALETTE )',
       mlkOverride);
     AddMethod('LoadFromStream', @TSepiImportsTBitmap.LoadFromStream,
       'procedure(Stream: TStream)',
       mlkOverride);
-    AddMethod('LoadFromResourceName', @TSepiImportsTBitmap.LoadFromResourceName,
+    AddMethod('LoadFromResourceName',
+      @TSepiImportsTBitmap.LoadFromResourceName,
       'procedure(Instance: THandle; const ResName: String)');
     AddMethod('LoadFromResourceID', @TSepiImportsTBitmap.LoadFromResourceID,
       'procedure(Instance: THandle; ResID: Integer)');
@@ -1815,7 +1831,8 @@ begin
       'function: HBITMAP');
     AddMethod('ReleasePalette', @TSepiImportsTBitmap.ReleasePalette,
       'function: HPALETTE');
-    AddMethod('SaveToClipboardFormat', @TSepiImportsTBitmap.SaveToClipboardFormat,
+    AddMethod('SaveToClipboardFormat',
+      @TSepiImportsTBitmap.SaveToClipboardFormat,
       'procedure(var Format: Word; var Data: THandle; var APalette: HPALETTE )',
       mlkOverride);
     AddMethod('SaveToStream', @TSepiImportsTBitmap.SaveToStream,
@@ -1853,7 +1870,7 @@ end;
 {-------------------}
 
 class function TSepiImportsTIconImage.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TIconImage));
@@ -1897,7 +1914,7 @@ begin
 end;
 
 class function TSepiImportsTIcon.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass(Owner.FindMeta('TIcon'));
   Result.RegisterTypeInfo(
@@ -1958,7 +1975,8 @@ begin
       mlkOverride);
     AddMethod('HandleAllocated', @TSepiImportsTIcon.HandleAllocated,
       'function: Boolean');
-    AddMethod('LoadFromClipboardFormat', @TSepiImportsTIcon.LoadFromClipboardFormat,
+    AddMethod('LoadFromClipboardFormat',
+      @TSepiImportsTIcon.LoadFromClipboardFormat,
       'procedure(AFormat: Word; AData: THandle; APalette: HPALETTE )',
       mlkOverride);
     AddMethod('LoadFromResourceName', @TSepiImportsTIcon.LoadFromResourceName,
@@ -1970,7 +1988,8 @@ begin
       mlkOverride);
     AddMethod('ReleaseHandle', @TSepiImportsTIcon.ReleaseHandle,
       'function: HICON');
-    AddMethod('SaveToClipboardFormat', @TSepiImportsTIcon.SaveToClipboardFormat,
+    AddMethod('SaveToClipboardFormat',
+      @TSepiImportsTIcon.SaveToClipboardFormat,
       'procedure(var Format: Word; var Data: THandle; var APalette: HPALETTE )',
       mlkOverride);
     AddMethod('SaveToStream', @TSepiImportsTIcon.SaveToStream,
@@ -1988,7 +2007,7 @@ end;
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiRoot) : TSepiUnit;
+function ImportUnit(Root: TSepiRoot): TSepiUnit;
 begin
   Result := TSepiUnit.Create(Root, 'Graphics',
     ['Windows', 'SysUtils', 'Classes']);
@@ -2025,8 +2044,10 @@ begin
   TSepiConstant.Create(Result, 'clInfoText', clInfoText);
   TSepiConstant.Create(Result, 'clInfoBk', clInfoBk);
   TSepiConstant.Create(Result, 'clHotLight', clHotLight);
-  TSepiConstant.Create(Result, 'clGradientActiveCaption', clGradientActiveCaption);
-  TSepiConstant.Create(Result, 'clGradientInactiveCaption', clGradientInactiveCaption);
+  TSepiConstant.Create(Result, 'clGradientActiveCaption',
+    clGradientActiveCaption);
+  TSepiConstant.Create(Result, 'clGradientInactiveCaption',
+    clGradientInactiveCaption);
   TSepiConstant.Create(Result, 'clMenuHighlight', clMenuHighlight);
   TSepiConstant.Create(Result, 'clMenuBar', clMenuBar);
   TSepiConstant.Create(Result, 'clBlack', clBlack);
@@ -2107,7 +2128,8 @@ begin
   TSepiConstant.Create(Result, 'clWebDarkSalmon', clWebDarkSalmon);
   TSepiConstant.Create(Result, 'clWebRosyBrown', clWebRosyBrown);
   TSepiConstant.Create(Result, 'clWebPaleGoldenrod', clWebPaleGoldenrod);
-  TSepiConstant.Create(Result, 'clWebLightGoldenrodYellow', clWebLightGoldenrodYellow);
+  TSepiConstant.Create(Result, 'clWebLightGoldenrodYellow',
+    clWebLightGoldenrodYellow);
   TSepiConstant.Create(Result, 'clWebOlive', clWebOlive);
   TSepiConstant.Create(Result, 'clWebForestGreen', clWebForestGreen);
   TSepiConstant.Create(Result, 'clWebGreenYellow', clWebGreenYellow);
@@ -2131,7 +2153,8 @@ begin
   TSepiConstant.Create(Result, 'clWebLimeGreen', clWebLimeGreen);
   TSepiConstant.Create(Result, 'clWebLime', clWebLime);
   TSepiConstant.Create(Result, 'clWebSpringGreen', clWebSpringGreen);
-  TSepiConstant.Create(Result, 'clWebMediumSpringGreen', clWebMediumSpringGreen);
+  TSepiConstant.Create(Result, 'clWebMediumSpringGreen',
+    clWebMediumSpringGreen);
   TSepiConstant.Create(Result, 'clWebDarkSeaGreen', clWebDarkSeaGreen);
   TSepiConstant.Create(Result, 'clWebLightSeaGreen', clWebLightSeaGreen);
   TSepiConstant.Create(Result, 'clWebPaleTurquoise', clWebPaleTurquoise);

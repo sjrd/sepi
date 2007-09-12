@@ -23,7 +23,7 @@ type
     function GetFormatCount: Integer;
     function GetFormats(Index: Integer): Word;
     procedure SetAsText(const Value: string);
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
 {-------------------}
@@ -56,7 +56,7 @@ begin
 end;
 
 class function TSepiImportsTClipboard.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TClipboard));
@@ -158,16 +158,16 @@ end;
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiRoot) : TSepiUnit;
+function ImportUnit(Root: TSepiRoot): TSepiUnit;
 begin
   Result := TSepiUnit.Create(Root, 'Clipbrd',
     ['Windows', 'Messages', 'Classes', 'Graphics']);
 
   // Global variables
   TSepiVariable.Create(Result, 'CF_PICTURE',
-     CF_PICTURE, TypeInfo(Word));
+    CF_PICTURE, TypeInfo(Word));
   TSepiVariable.Create(Result, 'CF_COMPONENT',
-     CF_COMPONENT, TypeInfo(Word));
+    CF_COMPONENT, TypeInfo(Word));
 
   // Types
   TSepiImportsTClipboard.SepiImport(Result);

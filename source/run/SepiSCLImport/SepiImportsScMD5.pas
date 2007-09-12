@@ -19,16 +19,16 @@ implementation
 { TMD5Digest import }
 {-------------------}
 
-function SepiImportTMD5Digest(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTMD5Digest(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TMD5Digest', False, True);
 
   with Result do
   begin
-    AddFieldAfter('A', System.TypeInfo(LongInt), '');
-    AddField('B', System.TypeInfo(LongInt), True);
-    AddField('C', System.TypeInfo(LongInt), True);
-    AddField('D', System.TypeInfo(LongInt), True);
+    AddFieldAfter('A', System.TypeInfo(Longint), '');
+    AddField('B', System.TypeInfo(Longint), True);
+    AddField('C', System.TypeInfo(Longint), True);
+    AddField('D', System.TypeInfo(Longint), True);
     AddFieldAfter('V', '$1', '');
 
     Complete;
@@ -39,7 +39,7 @@ end;
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiRoot) : TSepiUnit;
+function ImportUnit(Root: TSepiRoot): TSepiUnit;
 begin
   Result := TSepiUnit.Create(Root, 'ScMD5',
     ['Windows', 'SysUtils', 'Classes']);

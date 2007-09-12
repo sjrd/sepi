@@ -10,7 +10,7 @@ interface
 resourcestring
   sScLanguage = 'Français (Belgique)';
 
-// Common consts
+  // Common consts
   sScYes = 'Oui';
   sScNo = 'Non';
   sScColon = ' :';
@@ -20,7 +20,7 @@ resourcestring
   sScAuthor = 'Auteur';
   sScWrongPassword = 'Mot de passe incorrect';
 
-// Months consts
+  // Months consts
   sJanuary = 'janvier';
   sFebruary = 'février';
   sMarch = 'mars';
@@ -34,15 +34,17 @@ resourcestring
   sNovember = 'novembre';
   sDecember = 'décembre';
 
-// Lists errors
+  // Lists errors
   sScNotInMustPairsOfChars = 'NotIn doit contenir des paires de caractères';
-  sScDelimMustDifferentThanNotIn = 'Delim et NotIn ne peuvent contenir un même caractère';
+  sScDelimMustDifferentThanNotIn =
+    'Delim et NotIn ne peuvent contenir un même caractère';
   sScIndexOutOfRange = 'Index liste hors bornes (%d)';
   sScWrongIntSize = 'Taille d''entier incorrecte : %d';
-  sScWrongLongWord = '''%s'' n''est pas une valeur entière non signée correcte';
+  sScWrongLongWord =
+    '''%s'' n''est pas une valeur entière non signée correcte';
   sScListIsNotEmpty = 'La liste n''est pas vide';
 
-// Extra errors
+  // Extra errors
   sScWrongBase = 'La base %d est incorrecte';
   sScWrongInteger = 'Impossible de convertir "%s" en entier';
   sScWrongFloat = 'Impossible de convertir "%s" en valeur à virgule flottante';
@@ -52,7 +54,7 @@ resourcestring
   sScSetOf = 'ensemble de %s';
   sScWrongEnumSet = 'Impossible de convertir "%s" en %s';
 
-// Maths errors
+  // Maths errors
   sScErrorMaths = 'Erreur de mathématiques :'+#10;
   sScErrorDegree = 'Erreur avec le degré %s';
   sScErrorNotDegreeZero = '%s n''est pas de degré 0';
@@ -71,13 +73,18 @@ resourcestring
   sScErrorOpNotExists = 'L''opérateur %s n''existe pas';
   sScErrorOpIsNotBinary = 'L''opérateur %s n''est pas un opérateur binaire';
   sScErrorOpIsNotUnary = 'L''opérateur %s n''est pas un opérateur binaire';
-  sScErrorOpRequestsDegreeZero = 'L''opérateur %s requiert un monome de degré 0 (%s est de degré %d)';
-  sScErrorOpRequestsInteger = 'L''opérateur %s requiert un entier (%f n''est pas un entier)';
-  sScErrorOpRequestsNatural = 'L''opérateur %s requiert un naturel (%d n''est pas un naturel)';
-  sScErrorOpRequestsCorrectIndex = 'L''opérateur %s requiert un index de liste correct (%d n''est pas valable)';
+  sScErrorOpRequestsDegreeZero =
+    'L''opérateur %s requiert un monome de degré 0 (%s est de degré %d)';
+  sScErrorOpRequestsInteger =
+    'L''opérateur %s requiert un entier (%f n''est pas un entier)';
+  sScErrorOpRequestsNatural =
+    'L''opérateur %s requiert un naturel (%d n''est pas un naturel)';
+  sScErrorOpRequestsCorrectIndex =
+    'L''opérateur %s requiert un index de liste correct (%d n''est pas valable)';
   sScErrorBrackets = 'Erreur de parenthèses';
   sScErrorTooManyBrackets = '%d parenthèses %s en trop';
 
 implementation
 
 end.
+

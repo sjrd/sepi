@@ -18,33 +18,37 @@ implementation
 type
   TSepiImportsTScLogFile = class(TScLogFile)
   private
-    procedure Add_0(const Time, Title, Description : string);
-    procedure Add_1(Time : TDateTime; const Title : string; const Description : string = '' );
-    procedure Add_2(const Title : string; const Description : string = '' );
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    procedure Add_0(const Time, Title, Description: string);
+    procedure Add_1(Time: TDateTime; const Title: string;
+      const Description: string = '');
+    procedure Add_2(const Title: string; const Description: string = '');
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
 {-------------------}
 { TScLogFile import }
 {-------------------}
 
-procedure TSepiImportsTScLogFile.Add_0(const Time, Title, Description : string);
+procedure TSepiImportsTScLogFile.Add_0(
+  const Time, Title, Description: string);
 begin
   Add(Time, Title, Description);
 end;
 
-procedure TSepiImportsTScLogFile.Add_1(Time : TDateTime; const Title : string; const Description : string = '' );
+procedure TSepiImportsTScLogFile.Add_1(Time: TDateTime;
+  const Title: string; const Description: string = '');
 begin
   Add(Time, Title, Description);
 end;
 
-procedure TSepiImportsTScLogFile.Add_2(const Title : string; const Description : string = '' );
+procedure TSepiImportsTScLogFile.Add_2(const Title: string;
+  const Description: string = '');
 begin
   Add(Title, Description);
 end;
 
 class function TSepiImportsTScLogFile.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TScLogFile));
@@ -79,7 +83,7 @@ end;
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiRoot) : TSepiUnit;
+function ImportUnit(Root: TSepiRoot): TSepiUnit;
 begin
   Result := TSepiUnit.Create(Root, 'ScLOGFile',
     ['Classes']);

@@ -19,7 +19,7 @@ implementation
 { _LARGE_INTEGER import }
 {-----------------------}
 
-function SepiImport_LARGE_INTEGER(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_LARGE_INTEGER(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_LARGE_INTEGER', False, True);
 
@@ -37,7 +37,7 @@ end;
 { ULARGE_INTEGER import }
 {-----------------------}
 
-function SepiImportULARGE_INTEGER(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportULARGE_INTEGER(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'ULARGE_INTEGER', False, True);
 
@@ -55,7 +55,7 @@ end;
 { _LIST_ENTRY import }
 {--------------------}
 
-function SepiImport_LIST_ENTRY(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_LIST_ENTRY(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_LIST_ENTRY', False, True);
 
@@ -72,7 +72,7 @@ end;
 { _ACL import }
 {-------------}
 
-function SepiImport_ACL(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_ACL(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_ACL', False, True);
 
@@ -92,7 +92,7 @@ end;
 { _SECURITY_DESCRIPTOR import }
 {-----------------------------}
 
-function SepiImport_SECURITY_DESCRIPTOR(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_SECURITY_DESCRIPTOR(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_SECURITY_DESCRIPTOR', False, True);
 
@@ -114,9 +114,10 @@ end;
 { _RTL_CRITICAL_SECTION_DEBUG import }
 {------------------------------------}
 
-function SepiImport_RTL_CRITICAL_SECTION_DEBUG(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_RTL_CRITICAL_SECTION_DEBUG(Owner: TSepiUnit): TSepiRecordType;
 begin
-  Result := TSepiRecordType.Create(Owner, '_RTL_CRITICAL_SECTION_DEBUG', False, True);
+  Result := TSepiRecordType.Create(Owner, '_RTL_CRITICAL_SECTION_DEBUG',
+    False, True);
 
   with Result do
   begin
@@ -136,9 +137,10 @@ end;
 { _RTL_CRITICAL_SECTION import }
 {------------------------------}
 
-function SepiImport_RTL_CRITICAL_SECTION(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_RTL_CRITICAL_SECTION(Owner: TSepiUnit): TSepiRecordType;
 begin
-  Result := TSepiRecordType.Create(Owner, '_RTL_CRITICAL_SECTION', False, True);
+  Result := TSepiRecordType.Create(Owner, '_RTL_CRITICAL_SECTION',
+    False, True);
 
   with Result do
   begin
@@ -157,7 +159,7 @@ end;
 { _POINTL import }
 {----------------}
 
-function SepiImport_POINTL(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_POINTL(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_POINTL', True, True);
 
@@ -174,7 +176,7 @@ end;
 { _OVERLAPPED import }
 {--------------------}
 
-function SepiImport_OVERLAPPED(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_OVERLAPPED(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_OVERLAPPED', False, True);
 
@@ -194,7 +196,7 @@ end;
 { _SECURITY_ATTRIBUTES import }
 {-----------------------------}
 
-function SepiImport_SECURITY_ATTRIBUTES(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_SECURITY_ATTRIBUTES(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_SECURITY_ATTRIBUTES', False, True);
 
@@ -212,7 +214,7 @@ end;
 { _PROCESS_INFORMATION import }
 {-----------------------------}
 
-function SepiImport_PROCESS_INFORMATION(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_PROCESS_INFORMATION(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_PROCESS_INFORMATION', False, True);
 
@@ -231,7 +233,7 @@ end;
 { _FILETIME import }
 {------------------}
 
-function SepiImport_FILETIME(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_FILETIME(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_FILETIME', False, True);
 
@@ -248,7 +250,7 @@ end;
 { _SYSTEMTIME import }
 {--------------------}
 
-function SepiImport_SYSTEMTIME(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_SYSTEMTIME(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_SYSTEMTIME', False, True);
 
@@ -271,7 +273,7 @@ end;
 { _WIN32_FIND_DATAA import }
 {--------------------------}
 
-function SepiImport_WIN32_FIND_DATAA(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_WIN32_FIND_DATAA(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_WIN32_FIND_DATAA', False, True);
 
@@ -296,7 +298,7 @@ end;
 { _WIN32_FIND_DATAW import }
 {--------------------------}
 
-function SepiImport_WIN32_FIND_DATAW(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_WIN32_FIND_DATAW(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_WIN32_FIND_DATAW', False, True);
 
@@ -321,9 +323,10 @@ end;
 { _WIN32_FILE_ATTRIBUTE_DATA import }
 {-----------------------------------}
 
-function SepiImport_WIN32_FILE_ATTRIBUTE_DATA(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_WIN32_FILE_ATTRIBUTE_DATA(Owner: TSepiUnit): TSepiRecordType;
 begin
-  Result := TSepiRecordType.Create(Owner, '_WIN32_FILE_ATTRIBUTE_DATA', False, True);
+  Result := TSepiRecordType.Create(Owner, '_WIN32_FILE_ATTRIBUTE_DATA',
+    False, True);
 
   with Result do
   begin
@@ -342,7 +345,7 @@ end;
 { tagBITMAP import }
 {------------------}
 
-function SepiImporttagBITMAP(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImporttagBITMAP(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagBITMAP', True, True);
 
@@ -364,7 +367,7 @@ end;
 { tagBITMAPINFOHEADER import }
 {----------------------------}
 
-function SepiImporttagBITMAPINFOHEADER(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImporttagBITMAPINFOHEADER(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagBITMAPINFOHEADER', True, True);
 
@@ -390,7 +393,7 @@ end;
 { tagBITMAPFILEHEADER import }
 {----------------------------}
 
-function SepiImporttagBITMAPFILEHEADER(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImporttagBITMAPFILEHEADER(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagBITMAPFILEHEADER', True, True);
 
@@ -410,7 +413,7 @@ end;
 { tagFONTSIGNATURE import }
 {-------------------------}
 
-function SepiImporttagFONTSIGNATURE(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImporttagFONTSIGNATURE(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagFONTSIGNATURE', True, True);
 
@@ -427,7 +430,7 @@ end;
 { tagTEXTMETRICA import }
 {-----------------------}
 
-function SepiImporttagTEXTMETRICA(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImporttagTEXTMETRICA(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagTEXTMETRICA', False, True);
 
@@ -462,7 +465,7 @@ end;
 { tagTEXTMETRICW import }
 {-----------------------}
 
-function SepiImporttagTEXTMETRICW(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImporttagTEXTMETRICW(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagTEXTMETRICW', False, True);
 
@@ -497,7 +500,7 @@ end;
 { tagNEWTEXTMETRICA import }
 {--------------------------}
 
-function SepiImporttagNEWTEXTMETRICA(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImporttagNEWTEXTMETRICA(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagNEWTEXTMETRICA', False, True);
 
@@ -536,7 +539,7 @@ end;
 { tagNEWTEXTMETRICW import }
 {--------------------------}
 
-function SepiImporttagNEWTEXTMETRICW(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImporttagNEWTEXTMETRICW(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagNEWTEXTMETRICW', False, True);
 
@@ -575,7 +578,7 @@ end;
 { tagNEWTEXTMETRICEXA import }
 {----------------------------}
 
-function SepiImporttagNEWTEXTMETRICEXA(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImporttagNEWTEXTMETRICEXA(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagNEWTEXTMETRICEXA', True, True);
 
@@ -592,7 +595,7 @@ end;
 { tagNEWTEXTMETRICEXW import }
 {----------------------------}
 
-function SepiImporttagNEWTEXTMETRICEXW(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImporttagNEWTEXTMETRICEXW(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagNEWTEXTMETRICEXW', True, True);
 
@@ -609,7 +612,7 @@ end;
 { tagPALETTEENTRY import }
 {------------------------}
 
-function SepiImporttagPALETTEENTRY(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImporttagPALETTEENTRY(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagPALETTEENTRY', True, True);
 
@@ -628,7 +631,7 @@ end;
 { tagLOGPALETTE import }
 {----------------------}
 
-function SepiImporttagLOGPALETTE(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImporttagLOGPALETTE(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagLOGPALETTE', True, True);
 
@@ -646,7 +649,7 @@ end;
 { TMaxLogPalette import }
 {-----------------------}
 
-function SepiImportTMaxLogPalette(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTMaxLogPalette(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TMaxLogPalette', True, True);
 
@@ -664,7 +667,7 @@ end;
 { tagLOGFONTA import }
 {--------------------}
 
-function SepiImporttagLOGFONTA(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImporttagLOGFONTA(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagLOGFONTA', True, True);
 
@@ -693,7 +696,7 @@ end;
 { tagLOGFONTW import }
 {--------------------}
 
-function SepiImporttagLOGFONTW(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImporttagLOGFONTW(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagLOGFONTW', True, True);
 
@@ -722,7 +725,7 @@ end;
 { _devicemodeA import }
 {---------------------}
 
-function SepiImport_devicemodeA(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_devicemodeA(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_devicemodeA', True, True);
 
@@ -771,7 +774,7 @@ end;
 { _devicemodeW import }
 {---------------------}
 
-function SepiImport_devicemodeW(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_devicemodeW(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_devicemodeW', True, True);
 
@@ -820,7 +823,7 @@ end;
 { tagDIBSECTION import }
 {----------------------}
 
-function SepiImporttagDIBSECTION(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImporttagDIBSECTION(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagDIBSECTION', True, True);
 
@@ -840,7 +843,7 @@ end;
 { tagWNDCLASSA import }
 {---------------------}
 
-function SepiImporttagWNDCLASSA(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImporttagWNDCLASSA(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagWNDCLASSA', True, True);
 
@@ -865,7 +868,7 @@ end;
 { tagWNDCLASSW import }
 {---------------------}
 
-function SepiImporttagWNDCLASSW(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImporttagWNDCLASSW(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagWNDCLASSW', True, True);
 
@@ -890,7 +893,7 @@ end;
 { tagMSG import }
 {---------------}
 
-function SepiImporttagMSG(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImporttagMSG(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagMSG', True, True);
 
@@ -911,7 +914,7 @@ end;
 { tagWINDOWPOS import }
 {---------------------}
 
-function SepiImporttagWINDOWPOS(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImporttagWINDOWPOS(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagWINDOWPOS', True, True);
 
@@ -933,7 +936,7 @@ end;
 { tagNMHDR import }
 {-----------------}
 
-function SepiImporttagNMHDR(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImporttagNMHDR(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagNMHDR', True, True);
 
@@ -951,7 +954,7 @@ end;
 { _NETRESOURCEA import }
 {----------------------}
 
-function SepiImport_NETRESOURCEA(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_NETRESOURCEA(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_NETRESOURCEA', True, True);
 
@@ -974,7 +977,7 @@ end;
 { _NETRESOURCEW import }
 {----------------------}
 
-function SepiImport_NETRESOURCEW(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_NETRESOURCEW(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_NETRESOURCEW', True, True);
 
@@ -997,7 +1000,7 @@ end;
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiRoot) : TSepiUnit;
+function ImportUnit(Root: TSepiRoot): TSepiUnit;
 begin
   Result := TSepiUnit.Create(Root, 'Windows',
     ['Types']);
@@ -1060,23 +1063,31 @@ begin
 
   // Types
   TSepiTypeAlias.Create(Result, 'SECURITY_DESCRIPTOR_CONTROL', TypeInfo(Word));
-  TSepiPointerType.Create(Result, 'PSECURITY_DESCRIPTOR_CONTROL', TypeInfo(WORD), True);
-  TSepiPointerType.Create(Result, 'PSecurityDescriptor', 'TSecurityDescriptor', True);
+  TSepiPointerType.Create(Result, 'PSECURITY_DESCRIPTOR_CONTROL',
+    TypeInfo(Word), True);
+  TSepiPointerType.Create(Result, 'PSecurityDescriptor',
+    'TSecurityDescriptor', True);
   SepiImport_SECURITY_DESCRIPTOR(Result);
   TSepiTypeAlias.Create(Result, 'TSecurityDescriptor', '_SECURITY_DESCRIPTOR');
   TSepiTypeAlias.Create(Result, 'SECURITY_DESCRIPTOR', '_SECURITY_DESCRIPTOR');
 
   // Types
-  TSepiPointerType.Create(Result, 'PRTLCriticalSection', 'TRTLCriticalSection', True);
-  TSepiPointerType.Create(Result, 'PRTLCriticalSectionDebug', 'TRTLCriticalSectionDebug', True);
+  TSepiPointerType.Create(Result, 'PRTLCriticalSection',
+    'TRTLCriticalSection', True);
+  TSepiPointerType.Create(Result, 'PRTLCriticalSectionDebug',
+    'TRTLCriticalSectionDebug', True);
   TSepiArrayType.Create(Result, '$1',
     [0, 1], TypeInfo(DWORD), True);
   SepiImport_RTL_CRITICAL_SECTION_DEBUG(Result);
-  TSepiTypeAlias.Create(Result, 'TRTLCriticalSectionDebug', '_RTL_CRITICAL_SECTION_DEBUG');
-  TSepiTypeAlias.Create(Result, 'RTL_CRITICAL_SECTION_DEBUG', '_RTL_CRITICAL_SECTION_DEBUG');
+  TSepiTypeAlias.Create(Result, 'TRTLCriticalSectionDebug',
+    '_RTL_CRITICAL_SECTION_DEBUG');
+  TSepiTypeAlias.Create(Result, 'RTL_CRITICAL_SECTION_DEBUG',
+    '_RTL_CRITICAL_SECTION_DEBUG');
   SepiImport_RTL_CRITICAL_SECTION(Result);
-  TSepiTypeAlias.Create(Result, 'TRTLCriticalSection', '_RTL_CRITICAL_SECTION');
-  TSepiTypeAlias.Create(Result, 'RTL_CRITICAL_SECTION', '_RTL_CRITICAL_SECTION');
+  TSepiTypeAlias.Create(Result, 'TRTLCriticalSection',
+    '_RTL_CRITICAL_SECTION');
+  TSepiTypeAlias.Create(Result, 'RTL_CRITICAL_SECTION',
+    '_RTL_CRITICAL_SECTION');
 
   // Types
   TSepiTypeAlias.Create(Result, 'WPARAM', TypeInfo(Longint));
@@ -1153,11 +1164,13 @@ begin
   SepiImport_OVERLAPPED(Result);
   TSepiTypeAlias.Create(Result, 'TOverlapped', '_OVERLAPPED');
   TSepiTypeAlias.Create(Result, 'OVERLAPPED', '_OVERLAPPED');
-  TSepiPointerType.Create(Result, 'PSecurityAttributes', 'TSecurityAttributes', True);
+  TSepiPointerType.Create(Result, 'PSecurityAttributes',
+    'TSecurityAttributes', True);
   SepiImport_SECURITY_ATTRIBUTES(Result);
   TSepiTypeAlias.Create(Result, 'TSecurityAttributes', '_SECURITY_ATTRIBUTES');
   TSepiTypeAlias.Create(Result, 'SECURITY_ATTRIBUTES', '_SECURITY_ATTRIBUTES');
-  TSepiPointerType.Create(Result, 'PProcessInformation', 'TProcessInformation', True);
+  TSepiPointerType.Create(Result, 'PProcessInformation',
+    'TProcessInformation', True);
   SepiImport_PROCESS_INFORMATION(Result);
   TSepiTypeAlias.Create(Result, 'TProcessInformation', '_PROCESS_INFORMATION');
   TSepiTypeAlias.Create(Result, 'PROCESS_INFORMATION', '_PROCESS_INFORMATION');
@@ -1189,21 +1202,26 @@ begin
   TSepiTypeAlias.Create(Result, 'WIN32_FIND_DATAA', '_WIN32_FIND_DATAA');
   TSepiTypeAlias.Create(Result, 'WIN32_FIND_DATAW', '_WIN32_FIND_DATAW');
   TSepiTypeAlias.Create(Result, 'WIN32_FIND_DATA', 'WIN32_FIND_DATAA');
-  TSepiPointerType.Create(Result, 'PWin32FileAttributeData', 'TWin32FileAttributeData', True);
+  TSepiPointerType.Create(Result, 'PWin32FileAttributeData',
+    'TWin32FileAttributeData', True);
   SepiImport_WIN32_FILE_ATTRIBUTE_DATA(Result);
-  TSepiTypeAlias.Create(Result, 'TWin32FileAttributeData', '_WIN32_FILE_ATTRIBUTE_DATA');
-  TSepiTypeAlias.Create(Result, 'WIN32_FILE_ATTRIBUTE_DATA', '_WIN32_FILE_ATTRIBUTE_DATA');
+  TSepiTypeAlias.Create(Result, 'TWin32FileAttributeData',
+    '_WIN32_FILE_ATTRIBUTE_DATA');
+  TSepiTypeAlias.Create(Result, 'WIN32_FILE_ATTRIBUTE_DATA',
+    '_WIN32_FILE_ATTRIBUTE_DATA');
 
   // Types
   TSepiPointerType.Create(Result, 'PBitmap', 'TBitmap', True);
   SepiImporttagBITMAP(Result);
   TSepiTypeAlias.Create(Result, 'TBitmap', 'tagBITMAP');
   TSepiTypeAlias.Create(Result, 'BITMAP', 'tagBITMAP');
-  TSepiPointerType.Create(Result, 'PBitmapInfoHeader', 'TBitmapInfoHeader', True);
+  TSepiPointerType.Create(Result, 'PBitmapInfoHeader',
+    'TBitmapInfoHeader', True);
   SepiImporttagBITMAPINFOHEADER(Result);
   TSepiTypeAlias.Create(Result, 'TBitmapInfoHeader', 'tagBITMAPINFOHEADER');
   TSepiTypeAlias.Create(Result, 'BITMAPINFOHEADER', 'tagBITMAPINFOHEADER');
-  TSepiPointerType.Create(Result, 'PBitmapFileHeader', 'TBitmapFileHeader', True);
+  TSepiPointerType.Create(Result, 'PBitmapFileHeader',
+    'TBitmapFileHeader', True);
   SepiImporttagBITMAPFILEHEADER(Result);
   TSepiTypeAlias.Create(Result, 'TBitmapFileHeader', 'tagBITMAPFILEHEADER');
   TSepiTypeAlias.Create(Result, 'BITMAPFILEHEADER', 'tagBITMAPFILEHEADER');
@@ -1248,11 +1266,13 @@ begin
   TSepiTypeAlias.Create(Result, 'NEWTEXTMETRICA', 'tagNEWTEXTMETRICA');
   TSepiTypeAlias.Create(Result, 'NEWTEXTMETRICW', 'tagNEWTEXTMETRICW');
   TSepiTypeAlias.Create(Result, 'NEWTEXTMETRIC', 'NEWTEXTMETRICA');
-  TSepiPointerType.Create(Result, 'PNewTextMetricExA', 'TNewTextMetricExA', True);
+  TSepiPointerType.Create(Result, 'PNewTextMetricExA',
+    'TNewTextMetricExA', True);
   SepiImporttagNEWTEXTMETRICEXA(Result);
   TSepiTypeAlias.Create(Result, 'TNewTextMetricExA', 'tagNEWTEXTMETRICEXA');
   TSepiTypeAlias.Create(Result, 'NEWTEXTMETRICEXA', 'tagNEWTEXTMETRICEXA');
-  TSepiPointerType.Create(Result, 'PNewTextMetricExW', 'TNewTextMetricExW', True);
+  TSepiPointerType.Create(Result, 'PNewTextMetricExW',
+    'TNewTextMetricExW', True);
   SepiImporttagNEWTEXTMETRICEXW(Result);
   TSepiTypeAlias.Create(Result, 'TNewTextMetricExW', 'tagNEWTEXTMETRICEXW');
   TSepiTypeAlias.Create(Result, 'NEWTEXTMETRICEXW', 'tagNEWTEXTMETRICEXW');

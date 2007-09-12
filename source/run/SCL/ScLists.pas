@@ -28,7 +28,7 @@ type
   *}
   TCompareStrings = class(TStrings)
   public
-    function CompareStrings(const S1, S2 : string) : integer; override;
+    function CompareStrings(const S1, S2: string): Integer; override;
   end;
 
   {*
@@ -41,26 +41,27 @@ type
   *}
   StringsOps = class
   public
-    class function IndexOf(Strings : TStrings; const Str : string;
-      BeginSearchAt : integer = 0; EndSearchAt : integer = -1) : integer;
+    class function IndexOf(Strings: TStrings; const Str: string;
+      BeginSearchAt: Integer = 0; EndSearchAt: Integer = -1): Integer;
 
-    class function FindText(Strings : TStrings; const Str : string;
-      BeginSearchAt : integer = 0; EndSearchAt : integer = -1) : integer;
-    class function FindFirstWord(Strings : TStrings; const Word : string;
-      BeginSearchAt : integer = 0; EndSearchAt : integer = -1) : integer;
-    class function FindAtPos(Strings : TStrings; const SubStr : string;
-      Position : integer = 1; BeginSearchAt : integer = 0;
-      EndSearchAt : integer = -1) : integer;
+    class function FindText(Strings: TStrings; const Str: string;
+      BeginSearchAt: Integer = 0; EndSearchAt: Integer = -1): Integer;
+    class function FindFirstWord(Strings: TStrings; const Word: string;
+      BeginSearchAt: Integer = 0; EndSearchAt: Integer = -1): Integer;
+    class function FindAtPos(Strings: TStrings; const SubStr: string;
+      Position: Integer = 1; BeginSearchAt: Integer = 0;
+      EndSearchAt: Integer = -1): Integer;
 
-    class procedure CopyFrom(Strings : TStrings; Source : TStrings;
-      Index : integer = 0; Count : integer = -1);
-    class procedure AddFrom(Strings : TStrings; Source : TStrings;
-      Index : integer = 0; Count : integer = -1);
+    class procedure CopyFrom(Strings: TStrings; Source: TStrings;
+      Index: Integer = 0; Count: Integer = -1);
+    class procedure AddFrom(Strings: TStrings; Source: TStrings;
+      Index: Integer = 0; Count: Integer = -1);
 
-    class procedure FromString(Strings : TStrings; const Str, Delim : string;
-      const NotIn : string = '');
-    class procedure AddFromString(Strings : TStrings; const Str, Delim : string;
-      const NotIn : string = '');
+    class procedure FromString(Strings: TStrings; const Str, Delim: string;
+      const NotIn: string = '');
+    class procedure AddFromString(Strings: TStrings;
+      const Str, Delim: string;
+      const NotIn: string = '');
   end;
 
   {*
@@ -73,42 +74,42 @@ type
   *}
   TScStrings = class(TStringList)
   private
-    FIndex : integer; /// Index interne
+    FIndex: Integer; /// Index interne
 
-    function GetHasMoreString : boolean;
-    procedure SetIndex(New : integer);
+    function GetHasMoreString: Boolean;
+    procedure SetIndex(New: Integer);
   public
     constructor Create;
-    constructor CreateFromFile(const FileName : TFileName);
-    constructor CreateFromString(const Str, Delim : string;
-      const NotIn : string = '');
-    constructor CreateAssign(Source : TPersistent);
+    constructor CreateFromFile(const FileName: TFileName);
+    constructor CreateFromString(const Str, Delim: string;
+      const NotIn: string = '');
+    constructor CreateAssign(Source: TPersistent);
 
-    function IndexOfEx(const Str : string; BeginSearchAt : integer = 0;
-      EndSearchAt : integer = -1) : integer;
+    function IndexOfEx(const Str: string; BeginSearchAt: Integer = 0;
+      EndSearchAt: Integer = -1): Integer;
 
-    function FindText(const Str : string; BeginSearchAt : integer = 0;
-      EndSearchAt : integer = -1) : integer;
-    function FindFirstWord(const Word : string; BeginSearchAt : integer = 0;
-      EndSearchAt : integer = -1) : integer;
-    function FindAtPos(const SubStr : string; Position : integer = 1;
-      BeginSearchAt : integer = 0; EndSearchAt : integer = -1) : integer;
+    function FindText(const Str: string; BeginSearchAt: Integer = 0;
+      EndSearchAt: Integer = -1): Integer;
+    function FindFirstWord(const Word: string; BeginSearchAt: Integer = 0;
+      EndSearchAt: Integer = -1): Integer;
+    function FindAtPos(const SubStr: string; Position: Integer = 1;
+      BeginSearchAt: Integer = 0; EndSearchAt: Integer = -1): Integer;
 
-    procedure CopyFrom(Source : TStrings; Index : integer = 0;
-      Count : integer = -1);
-    procedure AddFrom(Source : TStrings; Index : integer = 0;
-      Count : integer = -1);
+    procedure CopyFrom(Source: TStrings; Index: Integer = 0;
+      Count: Integer = -1);
+    procedure AddFrom(Source: TStrings; Index: Integer = 0;
+      Count: Integer = -1);
 
-    procedure FromString(const Str, Delim : string;
-      const NotIn : string = '');
-    procedure AddFromString(const Str, Delim : string;
-      const NotIn : string = '');
+    procedure FromString(const Str, Delim: string;
+      const NotIn: string = '');
+    procedure AddFromString(const Str, Delim: string;
+      const NotIn: string = '');
 
     procedure Reset;
-    function NextString : string;
+    function NextString: string;
 
-    property HasMoreString : boolean read GetHasMoreString;
-    property Index : integer read FIndex write SetIndex;
+    property HasMoreString: Boolean read GetHasMoreString;
+    property Index: Integer read FIndex write SetIndex;
   end;
 
   TScList = class;
@@ -127,48 +128,48 @@ type
   *}
   TScList = class(TPersistent)
   private
-    FStream : TMemoryStream; /// Flux mémoire interne contenant la liste
-    FItemSize : integer;     /// Taille en octets d'un élément de la liste
+    FStream: TMemoryStream; /// Flux mémoire interne contenant la liste
+    FItemSize: Integer;     /// Taille en octets d'un élément de la liste
 
-    function GetCount : integer;
-    procedure SetCount(New : integer);
-    function GetHasMoreValue : boolean;
-    function GetIndex : integer;
-    procedure SetIndex(New : integer);
+    function GetCount: Integer;
+    procedure SetCount(New: Integer);
+    function GetHasMoreValue: Boolean;
+    function GetIndex: Integer;
+    procedure SetIndex(New: Integer);
   protected
-    procedure DefineProperties(Filer : TFiler); override;
+    procedure DefineProperties(Filer: TFiler); override;
 
-    procedure AssignTo(Dest : TPersistent); override;
+    procedure AssignTo(Dest: TPersistent); override;
 
-    function IsAssignClass(ScListClass : TScListClass) : boolean; virtual;
+    function IsAssignClass(ScListClass: TScListClass): Boolean; virtual;
 
     { Les méthodes suivantes doivent être appellées par les méthodes de même
       nom (sans le _) des descendants }
     procedure _Read(var Buffer);
     procedure _Write(var Buffer);
-    procedure _GetItems(AIndex : integer; var Buffer);
-    procedure _SetItems(AIndex : integer; var Buffer);
-    function _Add(var Buffer) : integer;
-    function _Insert(AIndex : integer; var Buffer) : integer;
-    procedure _Delete(AIndex : integer; var Buffer);
+    procedure _GetItems(AIndex: Integer; var Buffer);
+    procedure _SetItems(AIndex: Integer; var Buffer);
+    function _Add(var Buffer): Integer;
+    function _Insert(AIndex: Integer; var Buffer): Integer;
+    procedure _Delete(AIndex: Integer; var Buffer);
 
-    property ItemSize : integer read FItemSize;
+    property ItemSize: Integer read FItemSize;
   public
-    constructor Create(ItemSize : integer);
+    constructor Create(ItemSize: Integer);
     destructor Destroy; override;
 
-    procedure Assign(Source : TPersistent); override;
+    procedure Assign(Source: TPersistent); override;
     procedure Clear;
     procedure Reset;
 
-    procedure LoadFromStream(Stream : TStream);
-    procedure SaveToStream(Stream : TStream);
-    procedure LoadFromFile(const FileName : TFileName);
-    procedure SaveToFile(const FileName : TFileName);
+    procedure LoadFromStream(Stream: TStream);
+    procedure SaveToStream(Stream: TStream);
+    procedure LoadFromFile(const FileName: TFileName);
+    procedure SaveToFile(const FileName: TFileName);
 
-    property Count : integer read GetCount write SetCount;
-    property HasMoreValue : boolean read GetHasMoreValue;
-    property Index : integer read GetIndex write SetIndex;
+    property Count: Integer read GetCount write SetCount;
+    property HasMoreValue: Boolean read GetHasMoreValue;
+    property Index: Integer read GetIndex write SetIndex;
   end;
 
   {*
@@ -178,26 +179,26 @@ type
   *}
   TIntegerList = class(TScList)
   private
-    function GetItems(Index : integer) : Int64;
-    procedure SetItems(Index : integer; New : Int64);
-    procedure MakeItGood(var Value : Int64);
+    function GetItems(Index: Integer): Int64;
+    procedure SetItems(Index: Integer; New: Int64);
+    procedure MakeItGood(var Value: Int64);
   protected
-    procedure AssignTo(Dest : TPersistent); override;
+    procedure AssignTo(Dest: TPersistent); override;
 
-    function IsAssignClass(ScListClass : TScListClass) : boolean; override;
+    function IsAssignClass(ScListClass: TScListClass): Boolean; override;
   public
-    constructor Create(IntSize : integer = 4);
-    constructor CreateAssign(Source : TPersistent; IntSize : integer = 4);
+    constructor Create(IntSize: Integer = 4);
+    constructor CreateAssign(Source: TPersistent; IntSize: Integer = 4);
 
-    procedure Assign(Source : TPersistent); override;
+    procedure Assign(Source: TPersistent); override;
 
-    function Read : Int64;
-    procedure Write(New : Int64);
-    function Add(New : Int64) : integer;
-    function Insert(Index : integer; New : Int64) : integer;
-    function Delete(Index : integer) : Int64;
+    function Read: Int64;
+    procedure Write(New: Int64);
+    function Add(New: Int64): Integer;
+    function Insert(Index: Integer; New: Int64): Integer;
+    function Delete(Index: Integer): Int64;
 
-    property Items[index : integer] : Int64
+    property Items[Index: Integer]: Int64
       read GetItems write SetItems; default;
   end;
 
@@ -208,26 +209,26 @@ type
   *}
   TUnsignedIntList = class(TScList)
   private
-    function GetItems(Index : integer) : LongWord;
-    procedure SetItems(Index : integer; New : LongWord);
-    procedure MakeItGood(var Value : LongWord);
+    function GetItems(Index: Integer): LongWord;
+    procedure SetItems(Index: Integer; New: LongWord);
+    procedure MakeItGood(var Value: LongWord);
   protected
-    procedure AssignTo(Dest : TPersistent); override;
+    procedure AssignTo(Dest: TPersistent); override;
 
-    function IsAssignClass(ScListClass : TScListClass) : boolean; override;
+    function IsAssignClass(ScListClass: TScListClass): Boolean; override;
   public
-    constructor Create(IntSize : integer = 4);
-    constructor CreateAssign(Source : TPersistent; IntSize : integer = 4);
+    constructor Create(IntSize: Integer = 4);
+    constructor CreateAssign(Source: TPersistent; IntSize: Integer = 4);
 
-    procedure Assign(Source : TPersistent); override;
+    procedure Assign(Source: TPersistent); override;
 
-    function Read : LongWord;
-    procedure Write(New : LongWord);
-    function Add(New : LongWord) : integer;
-    function Insert(Index : integer; New : LongWord) : integer;
-    function Delete(Index : integer) : LongWord;
+    function Read: LongWord;
+    procedure Write(New: LongWord);
+    function Add(New: LongWord): Integer;
+    function Insert(Index: Integer; New: LongWord): Integer;
+    function Delete(Index: Integer): LongWord;
 
-    property Items[index : integer] : LongWord
+    property Items[Index: Integer]: LongWord
       read GetItems write SetItems; default;
   end;
 
@@ -238,25 +239,25 @@ type
   *}
   TExtendedList = class(TScList)
   private
-    function GetItems(Index : integer) : Extended;
-    procedure SetItems(Index : integer; New : Extended);
+    function GetItems(Index: Integer): Extended;
+    procedure SetItems(Index: Integer; New: Extended);
   protected
-    procedure AssignTo(Dest : TPersistent); override;
+    procedure AssignTo(Dest: TPersistent); override;
 
-    function IsAssignClass(ScListClass : TScListClass) : boolean; override;
+    function IsAssignClass(ScListClass: TScListClass): Boolean; override;
   public
     constructor Create;
-    constructor CreateAssign(Source : TPersistent);
+    constructor CreateAssign(Source: TPersistent);
 
-    procedure Assign(Source : TPersistent); override;
+    procedure Assign(Source: TPersistent); override;
 
-    function Read : Extended;
-    procedure Write(New : Extended);
-    function Add(New : Extended) : integer;
-    function Insert(Index : integer; New : Extended) : integer;
-    function Delete(Index : integer) : Extended;
+    function Read: Extended;
+    procedure Write(New: Extended);
+    function Add(New: Extended): Integer;
+    function Insert(Index: Integer; New: Extended): Integer;
+    function Delete(Index: Integer): Extended;
 
-    property Items[index : integer] : Extended
+    property Items[Index: Integer]: Extended
       read GetItems write SetItems; default;
   end;
 
@@ -269,7 +270,7 @@ type
   *}
   TScWaitingQueue = class(TQueue)
   public
-    procedure Cancel(AItem : Pointer);
+    procedure Cancel(AItem: Pointer);
   end;
 
   {*
@@ -281,7 +282,7 @@ type
   *}
   TScWaitingObjectQueue = class(TObjectQueue)
   public
-    procedure Cancel(AObject : TObject);
+    procedure Cancel(AObject: TObject);
   end;
 
   {*
@@ -291,8 +292,9 @@ type
     @param Data       Données associées à la clef
     @param Continue   Positionner à False pour interrompre l'énumération
   *}
-  TValueBucketProc = procedure(Info : Pointer; const Key, Data;
-    var Continue : boolean);
+  TValueBucketProc = procedure(Info: Pointer; const Key, Data;
+    var
+    Continue: Boolean);
 
   {*
     Méthode de call-back pour la méthode ForEach de TCustomValueBucketList
@@ -301,7 +303,8 @@ type
     @param Continue   Positionner à False pour interrompre l'énumération
   *}
   TValueBucketEvent = procedure(const Key, Data;
-    var Continue : boolean) of object;
+    var
+    Continue: Boolean) of object;
 
   {*
     Classe de base pour les tables associatives hashées par valeur
@@ -316,32 +319,32 @@ type
   *}
   TCustomValueBucketList = class(TObject)
   private
-    FBuckets : TBucketArray; /// Boîtes de hashage
-    FBucketCount : integer;  /// Nombre de boîtes de hashage (défaut = 16)
-    FListLocked : boolean;   /// Indique si la liste est verrouillée
-    FClearing : boolean;     /// Indique si la liste est en train d'être vidée
+    FBuckets: TBucketArray; /// Boîtes de hashage
+    FBucketCount: Integer;  /// Nombre de boîtes de hashage (défaut = 16)
+    FListLocked: Boolean;   /// Indique si la liste est verrouillée
+    FClearing: Boolean;     /// Indique si la liste est en train d'être vidée
 
-    FKeySize : integer;    /// Taille du type des clefs
-    FKeyInfo : PTypeInfo;  /// RTTI du type des clefs (si need-init)
-    FDataSize : integer;   /// Taille du type des données
-    FDataInfo : PTypeInfo; /// RTTI du type des données (si need-init)
+    FKeySize: Integer;    /// Taille du type des clefs
+    FKeyInfo: PTypeInfo;  /// RTTI du type des clefs (si need-init)
+    FDataSize: Integer;   /// Taille du type des données
+    FDataInfo: PTypeInfo; /// RTTI du type des données (si need-init)
 
-    constructor Create(AKeySize : integer; AKeyInfo : PTypeInfo;
-      ADataSize : integer; ADataInfo : PTypeInfo); overload;
+    constructor Create(AKeySize: Integer; AKeyInfo: PTypeInfo;
+      ADataSize: Integer; ADataInfo: PTypeInfo); overload;
 
-    procedure AssignCallBack(const Key, Data; var Continue : boolean);
+    procedure AssignCallBack(const Key, Data; var Continue: Boolean);
 
-    function GetIsEmpty : boolean;
-    procedure SetBucketCount(Value : integer);
+    function GetIsEmpty: Boolean;
+    procedure SetBucketCount(Value: Integer);
   protected
-    function BucketFor(const Key) : Cardinal; virtual;
-    function KeyEquals(const Key1, Key2) : boolean; virtual;
+    function BucketFor(const Key): Cardinal; virtual;
+    function KeyEquals(const Key1, Key2): Boolean; virtual;
 
     function FindItem(const Key;
-      out Bucket, Index : integer) : boolean; virtual;
-    procedure AddItem(Bucket : integer; const Key, Data); virtual;
-    procedure DeleteItem(Bucket, Index : integer); virtual;
-    procedure ExtractItem(Bucket, Index : integer; out Data); virtual;
+      out Bucket, Index: Integer): Boolean; virtual;
+    procedure AddItem(Bucket: Integer; const Key, Data); virtual;
+    procedure DeleteItem(Bucket, Index: Integer); virtual;
+    procedure ExtractItem(Bucket, Index: Integer; out Data); virtual;
 
     procedure GetData(const Key; out Data);
     procedure SetData(const Key, Data);
@@ -350,30 +353,30 @@ type
     procedure ExtractData(const Key; out Data);
     procedure Clear;
 
-    procedure Assign(Source : TCustomValueBucketList); virtual;
+    procedure Assign(Source: TCustomValueBucketList); virtual;
 
-    property Buckets : TBucketArray read FBuckets;
-    property BucketCount : integer read FBucketCount write SetBucketCount;
+    property Buckets: TBucketArray read FBuckets;
+    property BucketCount: Integer read FBucketCount write SetBucketCount;
 
-    property KeySize : integer read FKeySize;
-    property KeyInfo : PTypeInfo read FKeyInfo;
-    property DataSize : integer read FDataSize;
-    property DataInfo : PTypeInfo read FDataInfo;
+    property KeySize: Integer read FKeySize;
+    property KeyInfo: PTypeInfo read FKeyInfo;
+    property DataSize: Integer read FDataSize;
+    property DataInfo: PTypeInfo read FDataInfo;
   public
-    constructor Create(AKeySize, ADataSize : integer); overload;
-    constructor Create(AKeySize : integer; ADataInfo : PTypeInfo); overload;
-    constructor Create(AKeyInfo : PTypeInfo; ADataSize : integer); overload;
-    constructor Create(AKeyInfo, ADataInfo : PTypeInfo); overload;
+    constructor Create(AKeySize, ADataSize: Integer); overload;
+    constructor Create(AKeySize: Integer; ADataInfo: PTypeInfo); overload;
+    constructor Create(AKeyInfo: PTypeInfo; ADataSize: Integer); overload;
+    constructor Create(AKeyInfo, ADataInfo: PTypeInfo); overload;
     destructor Destroy; override;
 
-    function ForEach(Proc : TValueBucketProc;
-      Info : Pointer = nil) : boolean; overload;
-    function ForEach(Event : TValueBucketEvent) : boolean; overload;
+    function ForEach(Proc: TValueBucketProc;
+      Info: Pointer = nil): Boolean; overload;
+    function ForEach(Event: TValueBucketEvent): Boolean; overload;
 
-    function Exists(const Key) : boolean;
-    function Find(const Key; out Data) : boolean;
+    function Exists(const Key): Boolean;
+    function Find(const Key; out Data): Boolean;
 
-    property IsEmpty : boolean read GetIsEmpty;
+    property IsEmpty: Boolean read GetIsEmpty;
   end;
 
   {*
@@ -395,14 +398,14 @@ type
     procedure Extract(const Key; out Data);
     procedure Clear;
 
-    procedure Assign(Source : TCustomValueBucketList); override;
+    procedure Assign(Source: TCustomValueBucketList); override;
 
     /// [@inheritDoc]
     property BucketCount;
   end;
 
 var
-  AppParams : TScStrings; /// Liste des paramètres envoyés à l'application
+  AppParams: TScStrings; /// Liste des paramètres envoyés à l'application
 
 implementation
 
@@ -424,7 +427,7 @@ const
   @return 0 si les chaînes sont équivalente, un nombre positif si la première
           est supérieure à la seconde, un nombre négatif dans le cas inverse
 *}
-function TCompareStrings.CompareStrings(const S1, S2 : string) : integer;
+function TCompareStrings.CompareStrings(const S1, S2: string): Integer;
 begin
   Result := (inherited CompareStrings(S1, S2));
 end;
@@ -445,8 +448,8 @@ end;
   @param EndSearchAt     Index jusqu'auquel chercher (jusqu'à la fin si -1)
   @return Index de la première chaîne correspondant à Str, ou -1 si non trouvée
 *}
-class function StringsOps.IndexOf(Strings : TStrings; const Str : string;
-  BeginSearchAt : integer = 0; EndSearchAt : integer = -1) : integer;
+class function StringsOps.IndexOf(Strings: TStrings; const Str: string;
+  BeginSearchAt: Integer = 0; EndSearchAt: Integer = -1): Integer;
 begin
   with TCompareStrings(Strings) do
   begin
@@ -458,7 +461,7 @@ begin
     while Result <= EndSearchAt do
     begin
       if CompareStrings(Str, Strings[BeginSearchAt]) = 0 then exit else
-        inc(BeginSearchAt);
+        Inc(BeginSearchAt);
     end;
     Result := -1;
   end;
@@ -474,9 +477,10 @@ end;
   @param EndSearchAt     Index jusqu'auquel chercher (jusqu'à la fin si -1)
   @return Index de la première chaîne contenant Str, ou -1 si non trouvée
 *}
-class function StringsOps.FindText(Strings : TStrings; const Str : string;
-  BeginSearchAt : integer = 0; EndSearchAt : integer = -1) : integer;
-var I, Len : integer;
+class function StringsOps.FindText(Strings: TStrings; const Str: string;
+  BeginSearchAt: Integer = 0; EndSearchAt: Integer = -1): Integer;
+var
+  I, Len: Integer;
 begin
   with TCompareStrings(Strings) do
   begin
@@ -490,7 +494,7 @@ begin
     begin
       for I := Length(Strings[Result])-Len+1 downto 1 do
         if CompareStrings(Str, Copy(Strings[Result], I, Len)) = 0 then exit;
-      inc(Result);
+      Inc(Result);
     end;
     Result := -1;
   end;
@@ -507,8 +511,9 @@ end;
   @param EndSearchAt     Index jusqu'auquel chercher (jusqu'à la fin si -1)
   @return Index de la première chaîne contenant Word, ou -1 si non trouvée
 *}
-class function StringsOps.FindFirstWord(Strings : TStrings; const Word : string;
-  BeginSearchAt : integer = 0; EndSearchAt : integer = -1) : integer;
+class function StringsOps.FindFirstWord(Strings: TStrings;
+  const Word: string;
+  BeginSearchAt: Integer = 0; EndSearchAt: Integer = -1): Integer;
 begin
   with TCompareStrings(Strings) do
   begin
@@ -522,7 +527,7 @@ begin
       if CompareStrings(Word, GetXWord(Trim(Strings[Result]), 1)) = 0 then
         exit
       else
-        inc(Result);
+        Inc(Result);
     end;
     Result := -1;
   end;
@@ -539,10 +544,11 @@ end;
   @param EndSearchAt     Index jusqu'auquel chercher (jusqu'à la fin si -1)
   @return Index de la première chaîne contenant Word, ou -1 si non trouvée
 *}
-class function StringsOps.FindAtPos(Strings : TStrings; const SubStr : string;
-  Position : integer = 1; BeginSearchAt : integer = 0;
-  EndSearchAt : integer = -1) : integer;
-var Len : integer;
+class function StringsOps.FindAtPos(Strings: TStrings; const SubStr: string;
+  Position: Integer = 1; BeginSearchAt: Integer = 0;
+  EndSearchAt: Integer = -1): Integer;
+var
+  Len: Integer;
 begin
   with TCompareStrings(Strings) do
   begin
@@ -557,7 +563,7 @@ begin
       if CompareStrings(SubStr, Copy(Strings[Result], Position, Len)) = 0 then
         exit
       else
-        inc(Result);
+        Inc(Result);
     end;
     Result := -1;
   end;
@@ -572,8 +578,8 @@ end;
   @param Index     Index où commencer la copie
   @param Count     Nombre de chaînes à copier
 *}
-class procedure StringsOps.CopyFrom(Strings : TStrings; Source : TStrings;
-  Index : integer = 0; Count : integer = -1);
+class procedure StringsOps.CopyFrom(Strings: TStrings; Source: TStrings;
+  Index: Integer = 0; Count: Integer = -1);
 begin
   Strings.Clear;
   AddFrom(Strings, Source, Index, Count);
@@ -588,9 +594,10 @@ end;
   @param Index     Index où commencer la copie
   @param Count     Nombre de chaînes à copier
 *}
-class procedure StringsOps.AddFrom(Strings : TStrings; Source : TStrings;
-  Index : integer = 0; Count : integer = -1);
-var I, EndAt : integer;
+class procedure StringsOps.AddFrom(Strings: TStrings; Source: TStrings;
+  Index: Integer = 0; Count: Integer = -1);
+var
+  I, EndAt: Integer;
 begin
   // On s'assure que Index et Count sont des entrées correctes
   if Index < 0 then exit;
@@ -615,8 +622,8 @@ end;
   @throws EListError NotIn contient un nombre impair de caractères
   @throws EListError Delim et NotIn contiennent un même caractère
 *}
-class procedure StringsOps.FromString(Strings : TStrings;
-  const Str, Delim : string; const NotIn : string = '');
+class procedure StringsOps.FromString(Strings: TStrings;
+  const Str, Delim: string; const NotIn: string = '');
 begin
   Strings.Clear;
   AddFromString(Strings, Str, Delim, NotIn);
@@ -633,11 +640,12 @@ end;
   @throws EListError NotIn contient un nombre impair de caractères
   @throws EListError Delim et NotIn contiennent un même caractère
 *}
-class procedure StringsOps.AddFromString(Strings : TStrings;
-  const Str, Delim : string; const NotIn : string = '');
-var I, J, Len : integer;
-    NotIn1, NotIn2 : string;
-    C : Char;
+class procedure StringsOps.AddFromString(Strings: TStrings;
+  const Str, Delim: string; const NotIn: string = '');
+var
+  I, J, Len: Integer;
+  NotIn1, NotIn2: string;
+  C: Char;
 begin
   with Strings do
   begin
@@ -647,13 +655,13 @@ begin
 
     // On vérifie qu'il n'y a pas d'interférence entre Delim et NotIn
     for I := 1 to Length(NotIn) do if Pos(NotIn[I], Delim) > 0 then
-      raise EListError.Create(sScDelimMustDifferentThanNotIn);
+        raise EListError.Create(sScDelimMustDifferentThanNotIn);
 
     // Séparation de NotIn en NotIn1 et NotIn2
     NotIn1 := '';
     NotIn2 := '';
     for I := 1 to Length(NotIn) do if (I mod 2) = 1 then
-      NotIn1 := NotIn1+NotIn[I] else NotIn2 := NotIn2+NotIn[I];
+        NotIn1 := NotIn1+NotIn[I] else NotIn2 := NotIn2+NotIn[I];
 
     Len := Length(Str);
 
@@ -662,7 +670,7 @@ begin
     begin
       // On boucle jusqu'à trouver un caractère qui n'est pas dans Delim
       // On ignore de ce fait plusieurs caractères de Delim à la suite
-      while (I <= Len) and (Pos(Str[I], Delim) <> 0) do inc(I);
+      while (I <= Len) and (Pos(Str[I], Delim) <> 0) do Inc(I);
       if (I > Len) then Break;
 
       // On recherche le caractère de Delim suivant
@@ -674,10 +682,10 @@ begin
         if Pos(Str[J], NotIn1) > 0 then
         begin
           C := NotIn2[Pos(Str[J], NotIn1)];
-          inc(J);
-          while (J <= Len) and (Str[J] <> C) do inc(J);
+          Inc(J);
+          while (J <= Len) and (Str[J] <> C) do Inc(J);
         end;
-        inc(J);
+        Inc(J);
       end;
 
       // On ajoute la sous-chaîne repérée par les caractères de Delim
@@ -708,7 +716,7 @@ end;
   Crée une nouvelle instance de TScStrings chargée à partir d'un fichier
   @param FileName   Nom du fichier à partir duquel charger la liste de chaînes
 *}
-constructor TScStrings.CreateFromFile(const FileName : TFileName);
+constructor TScStrings.CreateFromFile(const FileName: TFileName);
 begin
   Create;
   LoadFromFile(FileName);
@@ -722,8 +730,8 @@ end;
   @throws EListError NotIn contient un nombre impair de caractères
   @throws EListError Delim et NotIn contiennent un même caractère
 *}
-constructor TScStrings.CreateFromString(const Str, Delim : string;
-  const NotIn : string = '');
+constructor TScStrings.CreateFromString(const Str, Delim: string;
+  const NotIn: string = '');
 begin
   Create;
   FromString(Str, Delim, NotIn);
@@ -733,7 +741,7 @@ end;
   Crée une nouvelle instance de TScStrings assignée à partir d'une source
   @param Source   Objet source à copier dans la liste de chaînes
 *}
-constructor TScStrings.CreateAssign(Source : TPersistent);
+constructor TScStrings.CreateAssign(Source: TPersistent);
 begin
   Create;
   Assign(Source);
@@ -743,7 +751,7 @@ end;
   Indique s'il y a encore des chaînes à lire
   @return True s'il y a encore des chaînes à lire, False sinon
 *}
-function TScStrings.GetHasMoreString : boolean;
+function TScStrings.GetHasMoreString: Boolean;
 begin
   Result := Index < Count;
 end;
@@ -752,7 +760,7 @@ end;
   Modifie l'index interne
   @param New   Nouvelle valeur de l'index interne
 *}
-procedure TScStrings.SetIndex(New : integer);
+procedure TScStrings.SetIndex(New: Integer);
 begin
   if New >= 0 then FIndex := New;
 end;
@@ -766,8 +774,8 @@ end;
   @param EndSearchAt     Index jusqu'auquel chercher (jusqu'à la fin si -1)
   @return Index de la première chaîne correspondant à Str, ou -1 si non trouvée
 *}
-function TScStrings.IndexOfEx(const Str : string; BeginSearchAt : integer = 0;
-  EndSearchAt : integer = -1) : integer;
+function TScStrings.IndexOfEx(const Str: string; BeginSearchAt: Integer = 0;
+  EndSearchAt: Integer = -1): Integer;
 begin
   Result := StringsOps.IndexOf(Self, Str, BeginSearchAt, EndSearchAt);
 end;
@@ -781,8 +789,8 @@ end;
   @param EndSearchAt     Index jusqu'auquel chercher (jusqu'à la fin si -1)
   @return Index de la première chaîne contenant Str, ou -1 si non trouvée
 *}
-function TScStrings.FindText(const Str : string; BeginSearchAt : integer = 0;
-  EndSearchAt : integer = -1) : integer;
+function TScStrings.FindText(const Str: string; BeginSearchAt: Integer = 0;
+  EndSearchAt: Integer = -1): Integer;
 begin
   Result := StringsOps.FindText(Self, Text, BeginSearchAt, EndSearchAt);
 end;
@@ -797,8 +805,8 @@ end;
   @param EndSearchAt     Index jusqu'auquel chercher (jusqu'à la fin si -1)
   @return Index de la première chaîne contenant Word, ou -1 si non trouvée
 *}
-function TScStrings.FindFirstWord(const Word : string;
-  BeginSearchAt : integer = 0; EndSearchAt : integer = -1) : integer;
+function TScStrings.FindFirstWord(const Word: string;
+  BeginSearchAt: Integer = 0; EndSearchAt: Integer = -1): Integer;
 begin
   Result := StringsOps.FindFirstWord(Self, Word, BeginSearchAt, EndSearchAt);
 end;
@@ -813,8 +821,8 @@ end;
   @param EndSearchAt     Index jusqu'auquel chercher (jusqu'à la fin si -1)
   @return Index de la première chaîne contenant Word, ou -1 si non trouvée
 *}
-function TScStrings.FindAtPos(const SubStr : string; Position : integer = 1;
-  BeginSearchAt : integer = 0; EndSearchAt : integer = -1) : integer;
+function TScStrings.FindAtPos(const SubStr: string; Position: Integer = 1;
+  BeginSearchAt: Integer = 0; EndSearchAt: Integer = -1): Integer;
 begin
   Result := StringsOps.FindAtPos(Self, SubStr, Position, BeginSearchAt,
     EndSearchAt);
@@ -828,8 +836,8 @@ end;
   @param Index     Index où commencer la copie
   @param Count     Nombre de chaînes à copier
 *}
-procedure TScStrings.CopyFrom(Source : TStrings; Index : integer = 0;
-  Count : integer = -1);
+procedure TScStrings.CopyFrom(Source: TStrings; Index: Integer = 0;
+  Count: Integer = -1);
 begin
   StringsOps.CopyFrom(Self, Source, Index, Count);
 end;
@@ -842,8 +850,8 @@ end;
   @param Index     Index où commencer la copie
   @param Count     Nombre de chaînes à copier
 *}
-procedure TScStrings.AddFrom(Source : TStrings; Index : integer = 0;
-  Count : integer = -1);
+procedure TScStrings.AddFrom(Source: TStrings; Index: Integer = 0;
+  Count: Integer = -1);
 begin
   StringsOps.AddFrom(Self, Source, Index, Count);
 end;
@@ -858,8 +866,8 @@ end;
   @throws EListError NotIn contient un nombre impair de caractères
   @throws EListError Delim et NotIn contiennent un même caractère
 *}
-procedure TScStrings.FromString(const Str, Delim : string;
-  const NotIn : string = '');
+procedure TScStrings.FromString(const Str, Delim: string;
+  const NotIn: string = '');
 begin
   StringsOps.FromString(Self, Str, Delim, NotIn);
 end;
@@ -874,8 +882,8 @@ end;
   @throws EListError NotIn contient un nombre impair de caractères
   @throws EListError Delim et NotIn contiennent un même caractère
 *}
-procedure TScStrings.AddFromString(const Str, Delim : string;
-  const NotIn : string = '');
+procedure TScStrings.AddFromString(const Str, Delim: string;
+  const NotIn: string = '');
 begin
   StringsOps.AddFromString(Self, Str, Delim, NotIn);
 end;
@@ -892,10 +900,10 @@ end;
   Lit la chaîne suivante dans la liste de chaîne
   @return La chaîne suivante
 *}
-function TScStrings.NextString : string;
+function TScStrings.NextString: string;
 begin
   if HasMoreString then Result := Strings[Index] else Result := '';
-  inc(FIndex);
+  Inc(FIndex);
 end;
 
 {$ENDREGION}
@@ -910,7 +918,7 @@ end;
   Crée une nouvelle instance de TScList
   @param ItemSize   Taille en octets d'un élément de la liste
 *}
-constructor TScList.Create(ItemSize : integer);
+constructor TScList.Create(ItemSize: Integer);
 begin
   FStream := TMemoryStream.Create;
   FItemSize := ItemSize;
@@ -929,7 +937,7 @@ end;
   Nombre d'éléments de la liste
   @return Nombre d'éléments de la liste
 *}
-function TScList.GetCount : integer;
+function TScList.GetCount: Integer;
 begin
   Result := FStream.Size div FItemSize;
 end;
@@ -938,7 +946,7 @@ end;
   Modifie le nombre d'éléments de la liste
   @param New   Nouveau nombre d'éléments de la liste
 *}
-procedure TScList.SetCount(New : integer);
+procedure TScList.SetCount(New: Integer);
 begin
   if New <= 0 then FStream.SetSize(0) else
     FStream.SetSize(New*FItemSize);
@@ -948,7 +956,7 @@ end;
   Indique s'il y a encore des éléments à lire
   @return True s'il y a encore des éléments à lire, False sinon
 *}
-function TScList.GetHasMoreValue : boolean;
+function TScList.GetHasMoreValue: Boolean;
 begin
   Result := FStream.Position < FStream.Size;
 end;
@@ -957,7 +965,7 @@ end;
   Index interne de la liste
   @return Index interne de la liste
 *}
-function TScList.GetIndex : integer;
+function TScList.GetIndex: Integer;
 begin
   Result := FStream.Position div FItemSize;
 end;
@@ -967,7 +975,7 @@ end;
   @param New   Nouvelle valeur de l'index interne
   @throws EListError Index de liste hors bornes
 *}
-procedure TScList.SetIndex(New : integer);
+procedure TScList.SetIndex(New: Integer);
 begin
   // On vérifie que New est bien un index correct
   if (New < 0) or (New > Count) then
@@ -980,7 +988,7 @@ end;
   Propose une interface pour les méthodes traitant des données non publiées
   @param Filer   Objet lecteur ou écrivain
 *}
-procedure TScList.DefineProperties(Filer : TFiler);
+procedure TScList.DefineProperties(Filer: TFiler);
 begin
   inherited;
   { La ligne suivante crée une propriété publiée fictive qui permet
@@ -993,17 +1001,17 @@ end;
   Copie les propriétés d'un objet dans l'objet destination
   @param Dest   Objet destination dans lequel copier la liste
 *}
-procedure TScList.AssignTo(Dest : TPersistent);
+procedure TScList.AssignTo(Dest: TPersistent);
 begin
   { On autorise l'assignation ssi Dest.ClassType fait partie de la liste des
     classes d'assignation et que les tailles d'élements sont les mêmes }
   if (Dest is TScList) and
-     (TScList(Dest).FItemSize = FItemSize) and
-     IsAssignClass(TScListClass(Dest.ClassType)) then
+    (TScList(Dest).FItemSize = FItemSize) and
+    IsAssignClass(TScListClass(Dest.ClassType)) then
   begin
     TScList(Dest).FStream.LoadFromStream(FStream);
   end else
-  inherited;
+    inherited;
 end;
 
 {*
@@ -1013,7 +1021,7 @@ end;
   @param ScListClass   Classe à tester
   @return True si ScListClass est une classe d'assignation, False sinon
 *}
-function TScList.IsAssignClass(ScListClass : TScListClass) : boolean;
+function TScList.IsAssignClass(ScListClass: TScListClass): Boolean;
 begin
   // Si on remonte jusqu'ici, c'est que ce n'est pas une classe d'assignation
   Result := False;
@@ -1045,7 +1053,7 @@ end;
   @param Buffer   Buffer non typé dans lequel enregistré l'élément lu
   @throws EListError Index de liste hors bornes
 *}
-procedure TScList._GetItems(AIndex : integer; var Buffer);
+procedure TScList._GetItems(AIndex: Integer; var Buffer);
 begin
   // On vérifie que AIndex est un index correct
   if (AIndex < 0) or (AIndex >= Count) then
@@ -1061,7 +1069,7 @@ end;
   @param Buffer   Buffer non typé contenant l'élément à écrire
   @throws EListError Index de liste hors bornes
 *}
-procedure TScList._SetItems(AIndex : integer; var Buffer);
+procedure TScList._SetItems(AIndex: Integer; var Buffer);
 begin
   // On vérifie que AIndex est un index correct
   if (AIndex < 0) or (AIndex >= Count) then
@@ -1076,7 +1084,7 @@ end;
   @param Buffer   Buffer non typé contenant l'élément à ajouter
   @return Index de l'élément ajouté
 *}
-function TScList._Add(var Buffer) : integer;
+function TScList._Add(var Buffer): Integer;
 begin
   Result := Count;
   Index := Result;
@@ -1090,8 +1098,9 @@ end;
   @return Index de l'élément inséré
   @throws EListError Index de liste hors bornes
 *}
-function TScList._Insert(AIndex : integer; var Buffer) : integer;
-var Temp : TMemoryStream;
+function TScList._Insert(AIndex: Integer; var Buffer): Integer;
+var
+  Temp: TMemoryStream;
 begin
   // On vérifie que AIndex est un index correct
   if (AIndex < 0) or (AIndex > Count) then
@@ -1127,8 +1136,9 @@ end;
   @param Buffer   Buffer non typé dans lequel enregistré l'élément supprimé
   @throws EListError Index de liste hors bornes
 *}
-procedure TScList._Delete(AIndex : integer; var Buffer);
-var Temp : TMemoryStream;
+procedure TScList._Delete(AIndex: Integer; var Buffer);
+var
+  Temp: TMemoryStream;
 begin
   // On vérifie que AIndex est un index correct
   if (AIndex < 0) or (AIndex >= Count) then
@@ -1161,17 +1171,17 @@ end;
   un autre.
   @param Source   Objet source à copier
 *}
-procedure TScList.Assign(Source : TPersistent);
+procedure TScList.Assign(Source: TPersistent);
 begin
   { On autorise l'assignation ssi Source.ClassType fait partie de la liste des
     classes d'assignation et que les tailles d'élements sont les mêmes. }
   if (Source is TScList) and
-     (TScList(Source).FItemSize = FItemSize) and
-     IsAssignClass(TScListClass(Source.ClassType)) then
+    (TScList(Source).FItemSize = FItemSize) and
+    IsAssignClass(TScListClass(Source.ClassType)) then
   begin
     FStream.LoadFromStream(TScList(Source).FStream);
   end else
-  inherited;
+    inherited;
 end;
 
 {*
@@ -1195,8 +1205,9 @@ end;
   La liste doit avoir été enregistrée au moyen de SaveToStream.
   @param Stream   Flux depuis lequel lire la liste
 *}
-procedure TScList.LoadFromStream(Stream : TStream);
-var Size : Int64;
+procedure TScList.LoadFromStream(Stream: TStream);
+var
+  Size: Int64;
 begin
   // On lit la taille sur 8 octets (Int64)
   Stream.Read(Size, 8);
@@ -1211,8 +1222,9 @@ end;
   La liste pourra être relue avec LoadFromStream.
   @param Stream   Flux dans lequel enregistrer la liste
 *}
-procedure TScList.SaveToStream(Stream : TStream);
-var Size : Int64;
+procedure TScList.SaveToStream(Stream: TStream);
+var
+  Size: Int64;
 begin
   // On écrit la taille sur 8 octets (Int64)
   Size := FStream.Size;
@@ -1226,8 +1238,9 @@ end;
   La liste doit avoir été enregistrée au moyen de SaveToFile.
   @param FileName   Nom du fichier depuis lequel lire la liste
 *}
-procedure TScList.LoadFromFile(const FileName : TFileName);
-var FileStream : TFileStream;
+procedure TScList.LoadFromFile(const FileName: TFileName);
+var
+  FileStream: TFileStream;
 begin
   FileStream := TFileStream.Create(FileName, fmOpenRead or fmShareDenyNone);
   try
@@ -1242,8 +1255,9 @@ end;
   La liste pourra être relue avec LoadFromFile.
   @param FileName   Nom du fichier dans lequel enregistrer la liste
 *}
-procedure TScList.SaveToFile(const FileName : TFileName);
-var FileStream : TFileStream;
+procedure TScList.SaveToFile(const FileName: TFileName);
+var
+  FileStream: TFileStream;
 begin
   FileStream := TFileStream.Create(FileName, fmCreate or fmShareDenyNone);
   try
@@ -1266,7 +1280,7 @@ end;
   @param IntSize   Taille en octets des entiers (entre 1 et 8 inclus)
   @throws EIntListError Taille d'entier incorrecte
 *}
-constructor TIntegerList.Create(IntSize : integer = 4);
+constructor TIntegerList.Create(IntSize: Integer = 4);
 begin
   // On vérifie que IntSize est entre 1 et 8 inclus
   if (IntSize < 1) or (IntSize > 8) then
@@ -1281,8 +1295,8 @@ end;
   @param IntSize   Taille en octets des entiers (entre 1 et 8 inclus)
   @throws EIntListError Taille d'entier incorrecte
 *}
-constructor TIntegerList.CreateAssign(Source : TPersistent;
-  IntSize : integer = 4);
+constructor TIntegerList.CreateAssign(Source: TPersistent;
+  IntSize: Integer = 4);
 begin
   Create(IntSize);
   Assign(Source);
@@ -1294,7 +1308,7 @@ end;
   @return Valeur de l'élément à l'index Index
   @throws EListError Index de liste hors bornes
 *}
-function TIntegerList.GetItems(Index : integer) : Int64;
+function TIntegerList.GetItems(Index: Integer): Int64;
 begin
   _GetItems(Index, Result);
   MakeItGood(Result);
@@ -1306,7 +1320,7 @@ end;
   @param New     Nouvelle valeur de l'élément à l'index Index
   @throws EListError Index de liste hors bornes
 *}
-procedure TIntegerList.SetItems(Index : integer; New : Int64);
+procedure TIntegerList.SetItems(Index: Integer; New: Int64);
 begin
   _SetItems(Index, New);
 end;
@@ -1317,16 +1331,17 @@ end;
   entier stocké sur un nombre quelconque d'octets en Int64 (sur 8 octets)
   @param Value   Valeur à traiter
 *}
-procedure TIntegerList.MakeItGood(var Value : Int64);
+procedure TIntegerList.MakeItGood(var Value: Int64);
 type
   TRecVal = record
-    case integer of
-      1 : (Int : Int64);
-      2 : (Ints : array[1..8] of Shortint);
+    case Integer of
+      1: (Int: Int64);
+      2: (Ints: array[1..8] of Shortint);
   end;
-var RecVal : TRecVal;
-    I : integer;
-    FillWith : Shortint;
+var
+  RecVal: TRecVal;
+  I: Integer;
+  FillWith: Shortint;
 begin
   // On s'évite un travail inutile si Value est déjà stocké sur 8 octets
   if ItemSize = 8 then exit;
@@ -1350,8 +1365,9 @@ end;
   Copie les propriétés d'un objet dans l'objet destination
   @param Dest   Objet destination dans lequel copier la liste
 *}
-procedure TIntegerList.AssignTo(Dest : TPersistent);
-var DestStrings : TStrings;
+procedure TIntegerList.AssignTo(Dest: TPersistent);
+var
+  DestStrings: TStrings;
 begin
   // Si Dest est un TStrings on le remplit avec les formes chaînes des éléments
   if Dest is TStrings then
@@ -1364,7 +1380,7 @@ begin
     while HasMoreValue do
       DestStrings.Append(IntToStr(Read));
   end else
-  inherited;
+    inherited;
 end;
 
 {*
@@ -1374,10 +1390,10 @@ end;
   @param ScListClass   Classe à tester
   @return True si ScListClass est une classe d'assignation, False sinon
 *}
-function TIntegerList.IsAssignClass(ScListClass : TScListClass) : boolean;
+function TIntegerList.IsAssignClass(ScListClass: TScListClass): Boolean;
 begin
   if ScListClass.InheritsFrom(TIntegerList) then Result := True else
-  Result := inherited IsAssignClass(ScListClass);
+    Result := inherited IsAssignClass(ScListClass);
 end;
 
 {*
@@ -1386,9 +1402,10 @@ end;
   un autre.
   @param Source   Objet source à copier
 *}
-procedure TIntegerList.Assign(Source : TPersistent);
-var SourceStrings : TStrings;
-    I : integer;
+procedure TIntegerList.Assign(Source: TPersistent);
+var
+  SourceStrings: TStrings;
+  I: Integer;
 begin
   // Si Source est un TStrings, on convertit les chaînes en entiers
   if Source is TStrings then
@@ -1398,14 +1415,14 @@ begin
     for I := 0 to SourceStrings.Count-1 do
       Add(StrToInt64(SourceStrings[I]));
   end else
-  inherited;
+    inherited;
 end;
 
 {*
   Lit un élément de la liste à la position courante
   @return L'élément lu
 *}
-function TIntegerList.Read : Int64;
+function TIntegerList.Read: Int64;
 begin
   _Read(Result);
   MakeItGood(Result);
@@ -1415,7 +1432,7 @@ end;
   Écrit un élément dans la liste à la position courante
   @param New   Élémént à écrire
 *}
-procedure TIntegerList.Write(New : Int64);
+procedure TIntegerList.Write(New: Int64);
 begin
   _Write(New);
 end;
@@ -1425,7 +1442,7 @@ end;
   @param New   Élémént à ajouter
   @return Index de l'élément ajouté
 *}
-function TIntegerList.Add(New : Int64) : integer;
+function TIntegerList.Add(New: Int64): Integer;
 begin
   Result := _Add(New);
 end;
@@ -1436,7 +1453,7 @@ end;
   @param New     Élémént à insérer
   @return Index de l'élément inséré
 *}
-function TIntegerList.Insert(Index : integer; New : Int64) : integer;
+function TIntegerList.Insert(Index: Integer; New: Int64): Integer;
 begin
   Result := _Insert(Index, New);
 end;
@@ -1446,7 +1463,7 @@ end;
   @param Index   Index de l'élément à supprimer
   @return L'élément supprimé
 *}
-function TIntegerList.Delete(Index : integer) : Int64;
+function TIntegerList.Delete(Index: Integer): Int64;
 begin
   _Delete(Index, Result);
   MakeItGood(Result);
@@ -1465,7 +1482,7 @@ end;
   @param IntSize   Taille en octets des entiers (entre 1 et 4 inclus)
   @throws EIntListError Taille d'entier incorrecte
 *}
-constructor TUnsignedIntList.Create(IntSize : integer = 4);
+constructor TUnsignedIntList.Create(IntSize: Integer = 4);
 begin
   // On vérifie que IntSize est entre 1 et 4 inclus
   if (IntSize < 1) or (IntSize > 4) then
@@ -1480,8 +1497,8 @@ end;
   @param IntSize   Taille en octets des entiers (entre 1 et 4 inclus)
   @throws EIntListError Taille d'entier incorrecte
 *}
-constructor TUnsignedIntList.CreateAssign(Source : TPersistent;
-  IntSize : integer = 4);
+constructor TUnsignedIntList.CreateAssign(Source: TPersistent;
+  IntSize: Integer = 4);
 begin
   Create(IntSize);
   Assign(Source);
@@ -1493,7 +1510,7 @@ end;
   @return Valeur de l'élément à l'index Index
   @throws EListError Index de liste hors bornes
 *}
-function TUnsignedIntList.GetItems(Index : integer) : LongWord;
+function TUnsignedIntList.GetItems(Index: Integer): LongWord;
 begin
   _GetItems(Index, Result);
   MakeItGood(Result);
@@ -1505,7 +1522,7 @@ end;
   @param New     Nouvelle valeur de l'élément à l'index Index
   @throws EListError Index de liste hors bornes
 *}
-procedure TUnsignedIntList.SetItems(Index : integer; New : LongWord);
+procedure TUnsignedIntList.SetItems(Index: Integer; New: LongWord);
 begin
   _SetItems(Index, New);
 end;
@@ -1516,15 +1533,16 @@ end;
   entier stocké sur un nombre quelconque d'octets en LongWord (sur 4 octets)
   @param Value   Valeur à traiter
 *}
-procedure TUnsignedIntList.MakeItGood(var Value : LongWord);
+procedure TUnsignedIntList.MakeItGood(var Value: LongWord);
 type
   TRecVal = record
-    case integer of
-      1 : (Int : LongWord);
-      2 : (Ints : array[1..4] of Byte);
+    case Integer of
+      1: (Int: LongWord);
+      2: (Ints: array[1..4] of Byte);
   end;
-var RecVal : TRecVal;
-    I : integer;
+var
+  RecVal: TRecVal;
+  I: Integer;
 begin
   // On s'évite un travail inutile si Value est déjà stocké sur 4 octets
   if ItemSize = 4 then exit;
@@ -1543,8 +1561,9 @@ end;
   Copie les propriétés d'un objet dans l'objet destination
   @param Dest   Objet destination dans lequel copier la liste
 *}
-procedure TUnsignedIntList.AssignTo(Dest : TPersistent);
-var DestStrings : TStrings;
+procedure TUnsignedIntList.AssignTo(Dest: TPersistent);
+var
+  DestStrings: TStrings;
 begin
   // Si Dest est un TStrings on le remplit avec les formes chaînes des éléments
   if Dest is TStrings then
@@ -1557,7 +1576,7 @@ begin
     while HasMoreValue do
       DestStrings.Append(IntToStr(Read));
   end else
-  inherited;
+    inherited;
 end;
 
 {*
@@ -1567,10 +1586,10 @@ end;
   @param ScListClass   Classe à tester
   @return True si ScListClass est une classe d'assignation, False sinon
 *}
-function TUnsignedIntList.IsAssignClass(ScListClass : TScListClass) : boolean;
+function TUnsignedIntList.IsAssignClass(ScListClass: TScListClass): Boolean;
 begin
   if ScListClass.InheritsFrom(TUnsignedIntList) then Result := True else
-  Result := inherited IsAssignClass(ScListClass);
+    Result := inherited IsAssignClass(ScListClass);
 end;
 
 {*
@@ -1579,10 +1598,11 @@ end;
   un autre.
   @param Source   Objet source à copier
 *}
-procedure TUnsignedIntList.Assign(Source : TPersistent);
-var SourceStrings : TStrings;
-    I : integer;
-    Val : Int64;
+procedure TUnsignedIntList.Assign(Source: TPersistent);
+var
+  SourceStrings: TStrings;
+  I: Integer;
+  Val: Int64;
 begin
   // Si Source est un TStrings, on convertit les chaînes en entiers
   if Source is TStrings then
@@ -1598,14 +1618,14 @@ begin
       Add(Val);
     end;
   end else
-  inherited;
+    inherited;
 end;
 
 {*
   Lit un élément de la liste à la position courante
   @return L'élément lu
 *}
-function TUnsignedIntList.Read : LongWord;
+function TUnsignedIntList.Read: LongWord;
 begin
   _Read(Result);
   MakeItGood(Result);
@@ -1615,7 +1635,7 @@ end;
   Écrit un élément dans la liste à la position courante
   @param New   Élémént à écrire
 *}
-procedure TUnsignedIntList.Write(New : LongWord);
+procedure TUnsignedIntList.Write(New: LongWord);
 begin
   _Write(New);
 end;
@@ -1625,7 +1645,7 @@ end;
   @param New   Élémént à ajouter
   @return Index de l'élément ajouté
 *}
-function TUnsignedIntList.Add(New : LongWord) : integer;
+function TUnsignedIntList.Add(New: LongWord): Integer;
 begin
   Result := _Add(New);
 end;
@@ -1636,7 +1656,7 @@ end;
   @param New     Élémént à insérer
   @return Index de l'élément inséré
 *}
-function TUnsignedIntList.Insert(Index : integer; New : LongWord) : integer;
+function TUnsignedIntList.Insert(Index: Integer; New: LongWord): Integer;
 begin
   Result := _Insert(Index, New);
 end;
@@ -1646,7 +1666,7 @@ end;
   @param Index   Index de l'élément à supprimer
   @return L'élément supprimé
 *}
-function TUnsignedIntList.Delete(Index : integer) : LongWord;
+function TUnsignedIntList.Delete(Index: Integer): LongWord;
 begin
   _Delete(Index, Result);
   MakeItGood(Result);
@@ -1672,7 +1692,7 @@ end;
   Crée une nouvelle instance de TExtendedList, copie d'une autre source
   @param Source    Objet source à copier
 *}
-constructor TExtendedList.CreateAssign(Source : TPersistent);
+constructor TExtendedList.CreateAssign(Source: TPersistent);
 begin
   Create;
   Assign(Source);
@@ -1684,7 +1704,7 @@ end;
   @return Valeur de l'élément à l'index Index
   @throws EListError Index de liste hors bornes
 *}
-function TExtendedList.GetItems(Index : integer) : Extended;
+function TExtendedList.GetItems(Index: Integer): Extended;
 begin
   _GetItems(Index, Result);
 end;
@@ -1695,7 +1715,7 @@ end;
   @param New     Nouvelle valeur de l'élément à l'index Index
   @throws EListError Index de liste hors bornes
 *}
-procedure TExtendedList.SetItems(Index : integer; New : Extended);
+procedure TExtendedList.SetItems(Index: Integer; New: Extended);
 begin
   _SetItems(Index, New);
 end;
@@ -1704,8 +1724,9 @@ end;
   Copie les propriétés d'un objet dans l'objet destination
   @param Dest   Objet destination dans lequel copier la liste
 *}
-procedure TExtendedList.AssignTo(Dest : TPersistent);
-var DestStrings : TStrings;
+procedure TExtendedList.AssignTo(Dest: TPersistent);
+var
+  DestStrings: TStrings;
 begin
   // Si Dest est un TStrings on le remplit avec les formes chaînes des éléments
   if Dest is TStrings then
@@ -1718,7 +1739,7 @@ begin
     while HasMoreValue do
       DestStrings.Append(FloatToStr(Read));
   end else
-  inherited;
+    inherited;
 end;
 
 {*
@@ -1728,10 +1749,10 @@ end;
   @param ScListClass   Classe à tester
   @return True si ScListClass est une classe d'assignation, False sinon
 *}
-function TExtendedList.IsAssignClass(ScListClass : TScListClass) : boolean;
+function TExtendedList.IsAssignClass(ScListClass: TScListClass): Boolean;
 begin
   if ScListClass.InheritsFrom(TExtendedList) then Result := True else
-  Result := inherited IsAssignClass(ScListClass);
+    Result := inherited IsAssignClass(ScListClass);
 end;
 
 {*
@@ -1740,9 +1761,10 @@ end;
   un autre.
   @param Source   Objet source à copier
 *}
-procedure TExtendedList.Assign(Source : TPersistent);
-var SourceStrings : TStrings;
-    I : integer;
+procedure TExtendedList.Assign(Source: TPersistent);
+var
+  SourceStrings: TStrings;
+  I: Integer;
 begin
   // Si Source est un TStrings, on convertit les chaînes en nombres flottants
   if Source is TStrings then
@@ -1752,14 +1774,14 @@ begin
     for I := 0 to SourceStrings.Count-1 do
       Write(StrToFloat(SourceStrings[I]));
   end else
-  inherited;
+    inherited;
 end;
 
 {*
   Lit un élément de la liste à la position courante
   @return L'élément lu
 *}
-function TExtendedList.Read : Extended;
+function TExtendedList.Read: Extended;
 begin
   _Read(Result);
 end;
@@ -1768,7 +1790,7 @@ end;
   Écrit un élément dans la liste à la position courante
   @param New   Élémént à écrire
 *}
-procedure TExtendedList.Write(New : Extended);
+procedure TExtendedList.Write(New: Extended);
 begin
   _Write(New);
 end;
@@ -1778,7 +1800,7 @@ end;
   @param New   Élémént à ajouter
   @return Index de l'élément ajouté
 *}
-function TExtendedList.Add(New : Extended) : integer;
+function TExtendedList.Add(New: Extended): Integer;
 begin
   Result := _Add(New);
 end;
@@ -1789,7 +1811,7 @@ end;
   @param New     Élémént à insérer
   @return Index de l'élément inséré
 *}
-function TExtendedList.Insert(Index : integer; New : Extended) : integer;
+function TExtendedList.Insert(Index: Integer; New: Extended): Integer;
 begin
   Result := _Insert(Index, New);
 end;
@@ -1799,7 +1821,7 @@ end;
   @param Index   Index de l'élément à supprimer
   @return L'élément supprimé
 *}
-function TExtendedList.Delete(Index : integer) : Extended;
+function TExtendedList.Delete(Index: Integer): Extended;
 begin
   _Delete(Index, Result);
 end;
@@ -1815,7 +1837,7 @@ end;
   Annule un élément de la file, en le supprimant
   @param AItem   Élément à supprimer
 *}
-procedure TScWaitingQueue.Cancel(AItem : Pointer);
+procedure TScWaitingQueue.Cancel(AItem: Pointer);
 begin
   List.Remove(AItem);
 end;
@@ -1828,7 +1850,7 @@ end;
   Annule un objet de la file, en le supprimant
   @param AObject   Objet à supprimer
 *}
-procedure TScWaitingObjectQueue.Cancel(AObject : TObject);
+procedure TScWaitingObjectQueue.Cancel(AObject: TObject);
 begin
   List.Remove(AObject);
 end;
@@ -1848,8 +1870,8 @@ end;
   @param ADataSize   Taille du type des données
   @param ADataInfo   RTTI du type des données
 *}
-constructor TCustomValueBucketList.Create(AKeySize : integer;
-  AKeyInfo : PTypeInfo; ADataSize : integer; ADataInfo : PTypeInfo);
+constructor TCustomValueBucketList.Create(AKeySize: Integer;
+  AKeyInfo: PTypeInfo; ADataSize: Integer; ADataInfo: PTypeInfo);
 begin
   inherited Create;
 
@@ -1887,7 +1909,7 @@ end;
   @param AKeySize    Taille du type des clefs
   @param ADataSize   Taille du type des données
 *}
-constructor TCustomValueBucketList.Create(AKeySize, ADataSize : integer);
+constructor TCustomValueBucketList.Create(AKeySize, ADataSize: Integer);
 begin
   Create(AKeySize, nil, ADataSize, nil);
 end;
@@ -1897,8 +1919,8 @@ end;
   @param AKeySize    Taille du type des clefs
   @param ADataInfo   RTTI du type des données
 *}
-constructor TCustomValueBucketList.Create(AKeySize : integer;
-  ADataInfo : PTypeInfo);
+constructor TCustomValueBucketList.Create(AKeySize: Integer;
+  ADataInfo: PTypeInfo);
 begin
   Create(AKeySize, nil, 0, ADataInfo);
 end;
@@ -1908,8 +1930,8 @@ end;
   @param AKeyInfo    RTTI du type des clefs
   @param ADataSize   Taille du type des données
 *}
-constructor TCustomValueBucketList.Create(AKeyInfo : PTypeInfo;
-  ADataSize : integer);
+constructor TCustomValueBucketList.Create(AKeyInfo: PTypeInfo;
+  ADataSize: Integer);
 begin
   Create(0, AKeyInfo, ADataSize, nil);
 end;
@@ -1919,7 +1941,7 @@ end;
   @param AKeyInfo    RTTI du type des clefs
   @param ADataInfo   RTTI du type des données
 *}
-constructor TCustomValueBucketList.Create(AKeyInfo, ADataInfo : PTypeInfo);
+constructor TCustomValueBucketList.Create(AKeyInfo, ADataInfo: PTypeInfo);
 begin
   Create(0, AKeyInfo, 0, ADataInfo);
 end;
@@ -1940,7 +1962,8 @@ end;
   @param Continue   Positionner à False pour interrompre l'énumération
 *}
 procedure TCustomValueBucketList.AssignCallBack(const Key, Data;
-  var Continue : boolean);
+  var
+    Continue: Boolean);
 begin
   AddData(Key, Data);
 end;
@@ -1949,8 +1972,9 @@ end;
   True si la liste est vide, False sinon
   @return True si la liste est vide, False sinon
 *}
-function TCustomValueBucketList.GetIsEmpty : boolean;
-var I : integer;
+function TCustomValueBucketList.GetIsEmpty: Boolean;
+var
+  I: Integer;
 begin
   Result := False;
   for I := 0 to BucketCount-1 do
@@ -1964,7 +1988,7 @@ end;
   @param Value   Nouvelle valeur
   @throws EListError La liste n'est pas vide
 *}
-procedure TCustomValueBucketList.SetBucketCount(Value : integer);
+procedure TCustomValueBucketList.SetBucketCount(Value: Integer);
 begin
   if not IsEmpty then
     raise EListError.Create(sScListIsNotEmpty);
@@ -1987,7 +2011,7 @@ end;
   @param Key   Clef
   @return Numéro de la boîte de hashage pour la clef Key
 *}
-function TCustomValueBucketList.BucketFor(const Key) : Cardinal;
+function TCustomValueBucketList.BucketFor(const Key): Cardinal;
 begin
   if KeySize >= 4 then Result := Cardinal(Key) else
   begin
@@ -2009,8 +2033,9 @@ end;
   @param Key2   Seconde clef
   @return True si les clefs sont identiques, False sinon
 *}
-function TCustomValueBucketList.KeyEquals(const Key1, Key2) : boolean;
-var I : integer;
+function TCustomValueBucketList.KeyEquals(const Key1, Key2): Boolean;
+var
+  I: Integer;
 begin
   Result := False;
 
@@ -2031,18 +2056,18 @@ end;
   @return True si la paire a été trouvée, False sinon
 *}
 function TCustomValueBucketList.FindItem(const Key;
-  out Bucket, Index : integer) : boolean;
+  out Bucket, Index: Integer): Boolean;
 begin
   Result := True;
   Bucket := BucketFor(Key);
   Index := 0;
 
   with Buckets[Bucket] do while Index < Count do
-  begin
-    if KeyEquals(Items[Index].Item^, Key) then
-      exit;
-    inc(Index);
-  end;
+    begin
+      if KeyEquals(Items[Index].Item^, Key) then
+        exit;
+      Inc(Index);
+    end;
 
   Result := False;
 end;
@@ -2055,9 +2080,10 @@ end;
   @param Key      Clef
   @param Data     Données
 *}
-procedure TCustomValueBucketList.AddItem(Bucket : integer; const Key, Data);
-var FKey, FData : Pointer;
-    Delta, Size : integer;
+procedure TCustomValueBucketList.AddItem(Bucket: Integer; const Key, Data);
+var
+  FKey, FData: Pointer;
+  Delta, Size: Integer;
 begin
   GetMem(FKey, KeySize);
   if Assigned(KeyInfo) then
@@ -2089,7 +2115,7 @@ begin
       Item := FKey;
       Data := FData;
     end;
-    inc(Count);
+    Inc(Count);
   end;
 end;
 
@@ -2098,8 +2124,9 @@ end;
   @param Bucket   Index de la boîte
   @param Index    Index dans la boîte
 *}
-procedure TCustomValueBucketList.DeleteItem(Bucket, Index : integer);
-var Ptr : Pointer;
+procedure TCustomValueBucketList.DeleteItem(Bucket, Index: Integer);
+var
+  Ptr: Pointer;
 begin
   with Buckets[Bucket] do
   begin
@@ -2121,7 +2148,7 @@ begin
       else
         Move(Items[Index+1], Items[Index],
           (Count-Index) * sizeof(TBucketItem));
-      dec(Count);
+      Dec(Count);
     end;
   end;
 end;
@@ -2132,7 +2159,8 @@ end;
   @param Index    Index dans la boîte
   @param Data     En sortie : les données de la paire qui est supprimée
 *}
-procedure TCustomValueBucketList.ExtractItem(Bucket, Index : integer; out Data);
+procedure TCustomValueBucketList.ExtractItem(Bucket, Index: Integer;
+  out Data);
 begin
   CopyData(Buckets[Bucket].Items[Index].Data^, Data, DataSize, DataInfo);
   DeleteItem(Bucket, Index);
@@ -2145,7 +2173,8 @@ end;
   @throws EListError Élément non trouvé
 *}
 procedure TCustomValueBucketList.GetData(const Key; out Data);
-var Bucket, Index : integer;
+var
+  Bucket, Index: Integer;
 begin
   if not FindItem(Key, Bucket, Index) then
     raise EListError.CreateFmt(SItemNotFound, [Integer(@Key)]);
@@ -2160,7 +2189,8 @@ end;
   @throws EListError Élément non trouvé
 *}
 procedure TCustomValueBucketList.SetData(const Key, Data);
-var Bucket, Index : integer;
+var
+  Bucket, Index: Integer;
 begin
   if not FindItem(Key, Bucket, Index) then
     raise EListError.CreateFmt(SItemNotFound, [Integer(@Key)]);
@@ -2176,7 +2206,8 @@ end;
   @throws EListError Élément dupliqué
 *}
 procedure TCustomValueBucketList.AddData(const Key, Data);
-var Bucket, Index : integer;
+var
+  Bucket, Index: Integer;
 begin
   if FListLocked then
     raise EListError.Create(SBucketListLocked);
@@ -2192,7 +2223,8 @@ end;
   @throws EListError Liste verrouillée lors d'une opération ForEach active
 *}
 procedure TCustomValueBucketList.RemoveData(const Key);
-var Bucket, Index : integer;
+var
+  Bucket, Index: Integer;
 begin
   if FListLocked then
     raise EListError.Create(SBucketListLocked);
@@ -2208,7 +2240,8 @@ end;
   @throws EListError Liste verrouillée lors d'une opération ForEach active
 *}
 procedure TCustomValueBucketList.ExtractData(const Key; out Data);
-var Bucket, Index : integer;
+var
+  Bucket, Index: Integer;
 begin
   if FListLocked then
     raise EListError.Create(SBucketListLocked);
@@ -2220,7 +2253,8 @@ end;
   Vide la liste
 *}
 procedure TCustomValueBucketList.Clear;
-var Bucket, Index : integer;
+var
+  Bucket, Index: Integer;
 begin
   // Copied and adapted from Contnrs.pas: TCustomBucketList.Clear
   if FListLocked then
@@ -2248,10 +2282,11 @@ end;
   @return False si ForEach a été interrompu par le paramètre Continue,
           True sinon
 *}
-function TCustomValueBucketList.ForEach(Proc : TValueBucketProc;
-  Info : Pointer = nil) : boolean;
-var Bucket, Index : integer;
-    OldListLocked : boolean;
+function TCustomValueBucketList.ForEach(Proc: TValueBucketProc;
+  Info: Pointer = nil): Boolean;
+var
+  Bucket, Index: Integer;
+  OldListLocked: Boolean;
 begin
   // Copied and adapted from Contnrs.pas: TCustomBucketList.ForEach
   Result := True;
@@ -2279,7 +2314,7 @@ end;
   @return False si ForEach a été interrompu par le paramètre Continue,
           True sinon
 *}
-function TCustomValueBucketList.ForEach(Event : TValueBucketEvent) : boolean;
+function TCustomValueBucketList.ForEach(Event: TValueBucketEvent): Boolean;
 begin
   with TMethod(Event) do
     Result := ForEach(TValueBucketProc(Code), Data);
@@ -2292,10 +2327,10 @@ end;
   @param Source   Liste source
   @throws EConvertError La liste source n'a pas le même type d'élément
 *}
-procedure TCustomValueBucketList.Assign(Source : TCustomValueBucketList);
+procedure TCustomValueBucketList.Assign(Source: TCustomValueBucketList);
 begin
   if (Source.KeySize <> KeySize) or (Source.KeyInfo <> KeyInfo) or
-     (Source.DataSize <> DataSize) or (Source.DataInfo <> DataInfo) then
+    (Source.DataSize <> DataSize) or (Source.DataInfo <> DataInfo) then
     raise EConvertError.CreateResFmt(@SAssignError,
       [Source.ClassName, ClassName]);
 
@@ -2308,8 +2343,9 @@ end;
   @param Key   Clef à rechercher
   @return True si la clef est référencée, False sinon
 *}
-function TCustomValueBucketList.Exists(const Key) : boolean;
-var Bucket, Index : integer;
+function TCustomValueBucketList.Exists(const Key): Boolean;
+var
+  Bucket, Index: Integer;
 begin
   Result := FindItem(Key, Bucket, Index);
 end;
@@ -2320,8 +2356,9 @@ end;
   @param Data   En sortie : données associées à la clef, si elle existe
   @return True si la clef a été trouvée, False sinon
 *}
-function TCustomValueBucketList.Find(const Key; out Data) : boolean;
-var Bucket, Index : integer;
+function TCustomValueBucketList.Find(const Key; out Data): Boolean;
+var
+  Bucket, Index: Integer;
 begin
   Result := FindItem(Key, Bucket, Index);
   if Result then
@@ -2406,7 +2443,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TValueBucketList.Assign(Source : TCustomValueBucketList);
+procedure TValueBucketList.Assign(Source: TCustomValueBucketList);
 begin
   inherited;
 end;
@@ -2417,7 +2454,8 @@ end;
 { Initialization et Finalization }
 {--------------------------------}
 
-var I : integer; /// Variable de contrôle de boucle interne
+var
+  I: Integer; /// Variable de contrôle de boucle interne
 
 initialization
   AppParams := TScStrings.Create;

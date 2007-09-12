@@ -19,7 +19,7 @@ implementation
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiRoot) : TSepiUnit;
+function ImportUnit(Root: TSepiRoot): TSepiUnit;
 begin
   Result := TSepiUnit.Create(Root, 'ScConsts', []);
 
@@ -45,8 +45,10 @@ begin
   TSepiConstant.Create(Result, 'sOctober', sOctober);
   TSepiConstant.Create(Result, 'sNovember', sNovember);
   TSepiConstant.Create(Result, 'sDecember', sDecember);
-  TSepiConstant.Create(Result, 'sScNotInMustPairsOfChars', sScNotInMustPairsOfChars);
-  TSepiConstant.Create(Result, 'sScDelimMustDifferentThanNotIn', sScDelimMustDifferentThanNotIn);
+  TSepiConstant.Create(Result, 'sScNotInMustPairsOfChars',
+    sScNotInMustPairsOfChars);
+  TSepiConstant.Create(Result, 'sScDelimMustDifferentThanNotIn',
+    sScDelimMustDifferentThanNotIn);
   TSepiConstant.Create(Result, 'sScIndexOutOfRange', sScIndexOutOfRange);
   TSepiConstant.Create(Result, 'sScWrongIntSize', sScWrongIntSize);
   TSepiConstant.Create(Result, 'sScWrongLongWord', sScWrongLongWord);
@@ -68,21 +70,29 @@ begin
   TSepiConstant.Create(Result, 'sScErrorNotNatural', sScErrorNotNatural);
   TSepiConstant.Create(Result, 'sScErrorDivision', sScErrorDivision);
   TSepiConstant.Create(Result, 'sScErrorDivByZero', sScErrorDivByZero);
-  TSepiConstant.Create(Result, 'sSjrdErrorAbortDivision', sSjrdErrorAbortDivision);
+  TSepiConstant.Create(Result, 'sSjrdErrorAbortDivision',
+    sSjrdErrorAbortDivision);
   TSepiConstant.Create(Result, 'sScErrorRoot', sScErrorRoot);
   TSepiConstant.Create(Result, 'sScErrorEval', sScErrorEval);
-  TSepiConstant.Create(Result, 'sScErrorWrongExpression', sScErrorWrongExpression);
-  TSepiConstant.Create(Result, 'sScErrorWrongCharacter', sScErrorWrongCharacter);
+  TSepiConstant.Create(Result, 'sScErrorWrongExpression',
+    sScErrorWrongExpression);
+  TSepiConstant.Create(Result, 'sScErrorWrongCharacter',
+    sScErrorWrongCharacter);
   TSepiConstant.Create(Result, 'sScErrorOperation', sScErrorOperation);
   TSepiConstant.Create(Result, 'sScErrorOpNotExists', sScErrorOpNotExists);
   TSepiConstant.Create(Result, 'sScErrorOpIsNotBinary', sScErrorOpIsNotBinary);
   TSepiConstant.Create(Result, 'sScErrorOpIsNotUnary', sScErrorOpIsNotUnary);
-  TSepiConstant.Create(Result, 'sScErrorOpRequestsDegreeZero', sScErrorOpRequestsDegreeZero);
-  TSepiConstant.Create(Result, 'sScErrorOpRequestsInteger', sScErrorOpRequestsInteger);
-  TSepiConstant.Create(Result, 'sScErrorOpRequestsNatural', sScErrorOpRequestsNatural);
-  TSepiConstant.Create(Result, 'sScErrorOpRequestsCorrectIndex', sScErrorOpRequestsCorrectIndex);
+  TSepiConstant.Create(Result, 'sScErrorOpRequestsDegreeZero',
+    sScErrorOpRequestsDegreeZero);
+  TSepiConstant.Create(Result, 'sScErrorOpRequestsInteger',
+    sScErrorOpRequestsInteger);
+  TSepiConstant.Create(Result, 'sScErrorOpRequestsNatural',
+    sScErrorOpRequestsNatural);
+  TSepiConstant.Create(Result, 'sScErrorOpRequestsCorrectIndex',
+    sScErrorOpRequestsCorrectIndex);
   TSepiConstant.Create(Result, 'sScErrorBrackets', sScErrorBrackets);
-  TSepiConstant.Create(Result, 'sScErrorTooManyBrackets', sScErrorTooManyBrackets);
+  TSepiConstant.Create(Result, 'sScErrorTooManyBrackets',
+    sScErrorTooManyBrackets);
 
   Result.Complete;
 end;

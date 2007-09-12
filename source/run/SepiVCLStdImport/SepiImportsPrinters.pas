@@ -18,7 +18,7 @@ implementation
 type
   TSepiImportsEPrinter = class(EPrinter)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTPrinter = class(TPrinter)
@@ -35,7 +35,7 @@ type
     function GetPrinters: TStrings;
     procedure SetNumCopies(Value: Integer);
     procedure SetOrientation(Value: TPrinterOrientation);
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
 {-----------------}
@@ -43,7 +43,7 @@ type
 {-----------------}
 
 class function TSepiImportsEPrinter.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EPrinter));
@@ -120,7 +120,7 @@ begin
 end;
 
 class function TSepiImportsTPrinter.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TPrinter));
@@ -240,7 +240,7 @@ end;
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiRoot) : TSepiUnit;
+function ImportUnit(Root: TSepiRoot): TSepiUnit;
 begin
   Result := TSepiUnit.Create(Root, 'Printers',
     ['Windows', 'WinSpoolTypes', 'SysUtils', 'Classes', 'Graphics', 'Forms']);

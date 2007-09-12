@@ -18,7 +18,7 @@ implementation
 type
   TSepiImportsTComponentFactory = class(TComponentFactory)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
 {--------------------------}
@@ -26,7 +26,7 @@ type
 {--------------------------}
 
 class function TSepiImportsTComponentFactory.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TComponentFactory));
@@ -45,7 +45,8 @@ begin
 
     AddMethod('Create', @TSepiImportsTComponentFactory.Create,
       'constructor(ComServer: TComServerObject; ComponentClass: TComponentClass ; const ClassID: TGUID ; Instancing: TClassInstancing ; ThreadingModel: TThreadingModel = tmSingle )');
-    AddMethod('CreateComObject', @TSepiImportsTComponentFactory.CreateComObject,
+    AddMethod('CreateComObject',
+      @TSepiImportsTComponentFactory.CreateComObject,
       'function(const Controller: IUnknown): TComObject',
       mlkOverride);
     AddMethod('UpdateRegistry', @TSepiImportsTComponentFactory.UpdateRegistry,
@@ -60,7 +61,7 @@ end;
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiRoot) : TSepiUnit;
+function ImportUnit(Root: TSepiRoot): TSepiUnit;
 begin
   Result := TSepiUnit.Create(Root, 'VCLCom',
     ['ActiveXTypes', 'ComObj', 'Classes']);

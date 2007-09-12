@@ -33,13 +33,13 @@ type
     { Déclarations privées }
   public
     { Composants non disponibles dans Turbo Explorer }
-    URLLabelEMail : TSvURLLabel;   /// Label pour l'e-mail de l'auteur
-    URLLabelWebSite : TSvURLLabel; /// Label pour le site Web
+    URLLabelEMail: TSvURLLabel;   /// Label pour l'e-mail de l'auteur
+    URLLabelWebSite: TSvURLLabel; /// Label pour le site Web
 
     { Déclarations publiques }
-    class procedure ShowAbout(Title : string; ProgramIcon : TGraphic;
-      ProgramName : string; ProgramVersion : string; Author : string;
-      AuthorEMail : string = ''; WebSite : string = '');
+    class procedure ShowAbout(Title: string; ProgramIcon: TGraphic;
+      ProgramName: string; ProgramVersion: string; Author: string;
+      AuthorEMail: string = ''; WebSite: string = '');
   end;
 
 implementation
@@ -87,28 +87,29 @@ end;
   @param AuthorEMail      Adresse e-mail de l'auteur (optionnel)
   @param WebSite          Site Web du programme (optionnel)
 *}
-class procedure TSdAboutForm.ShowAbout(Title : string; ProgramIcon : TGraphic;
-  ProgramName : string; ProgramVersion : string; Author : string;
-  AuthorEMail : string; WebSite : string);
+class procedure TSdAboutForm.ShowAbout(Title: string; ProgramIcon: TGraphic;
+  ProgramName: string; ProgramVersion: string; Author: string;
+  AuthorEMail: string; WebSite: string);
 begin
   with Create(nil) do
-  try
-    Caption := Title;
-    ImageProgramIcon.Picture.Assign(ProgramIcon);
-    LabelProgramName.Caption := ProgramName;
-    LabelProgramVersion.Caption := ProgramVersion;
-    LabelAuthor.Caption := Author;
-    if AuthorEMail = '' then URLLabelEMail.Visible := False else
-    begin
-      URLLabelEMail.Caption := GetFirstToken(AuthorEMail, '?'); {don't localize}
-      URLLabelEMail.URL := 'mailto:'+AuthorEMail; {don't localize}
+    try
+      Caption := Title;
+      ImageProgramIcon.Picture.Assign(ProgramIcon);
+      LabelProgramName.Caption := ProgramName;
+      LabelProgramVersion.Caption := ProgramVersion;
+      LabelAuthor.Caption := Author;
+      if AuthorEMail = '' then URLLabelEMail.Visible := False else
+      begin
+        URLLabelEMail.Caption := GetFirstToken(AuthorEMail, '?');
+        {don't localize}
+        URLLabelEMail.URL := 'mailto:'+AuthorEMail; {don't localize}
+      end;
+      if WebSite = '' then URLLabelWebSite.Visible := False else
+        URLLabelWebSite.Caption := WebSite;
+      ShowModal;
+    finally
+      Free;
     end;
-    if WebSite = '' then URLLabelWebSite.Visible := False else
-      URLLabelWebSite.Caption := WebSite;
-    ShowModal;
-  finally
-    Free;
-  end;
 end;
 
 end.

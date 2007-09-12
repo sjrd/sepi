@@ -11,14 +11,14 @@ uses
   Classes, ZLib;
 
 const
-  clNoComp      = ZLib.clNone;    /// Pas de compression
+  clNoComp = ZLib.clNone;         /// Pas de compression
   clFastestComp = ZLib.clFastest; /// Compression la plus rapide
   clDefaultComp = ZLib.clDefault; /// Compression par défaut
-  clMaxComp     = ZLib.clMax;     /// Compression maximale
+  clMaxComp = ZLib.clMax;         /// Compression maximale
 
-procedure CompressStream(Stream : TStream; Dest : TStream = nil;
-  CompressionLevel : TCompressionLevel = clDefaultComp);
-procedure DecompressStream(Stream : TStream; Dest : TStream = nil);
+procedure CompressStream(Stream: TStream; Dest: TStream = nil;
+  CompressionLevel: TCompressionLevel = clDefaultComp);
+procedure DecompressStream(Stream: TStream; Dest: TStream = nil);
 
 implementation
 
@@ -28,9 +28,10 @@ implementation
   @param Dest               Flux de destination (ou nil pour Stream, plus lent)
   @param CompressionLevel   Niveau de compression
 *}
-procedure CompressStream(Stream : TStream; Dest : TStream = nil;
-  CompressionLevel : TCompressionLevel = clDefaultComp);
-var Destination : TStream;
+procedure CompressStream(Stream: TStream; Dest: TStream = nil;
+  CompressionLevel: TCompressionLevel = clDefaultComp);
+var
+  Destination: TStream;
 begin
   if Dest = Stream then Dest := nil;
 
@@ -44,11 +45,11 @@ begin
 
   // Création, utilisation et libération du flux de compression
   with TCompressionStream.Create(CompressionLevel, Destination) do
-  try
-    CopyFrom(Stream, 0);
-  finally
-    Free;
-  end;
+    try
+      CopyFrom(Stream, 0);
+    finally
+      Free;
+    end;
 
   // Si Dest vaut nil, on recopie Destination dans Stream
   if Dest = nil then
@@ -65,10 +66,11 @@ end;
   @param Stream   Flux à décompresser
   @param Dest     Flux de destination (ou nil pour Stream, plus lent)
 *}
-procedure DecompressStream(Stream : TStream; Dest : TStream = nil);
-var Destination : TStream;
-    Buffer : array [0..1023] of Byte;
-    Copied : integer;
+procedure DecompressStream(Stream: TStream; Dest: TStream = nil);
+var
+  Destination: TStream;
+  Buffer: array [0..1023] of Byte;
+  Copied: Integer;
 begin
   if Dest = Stream then Dest := nil;
 
@@ -82,15 +84,15 @@ begin
 
   // Création, utilisation et libération du flux de décompression
   with TDecompressionStream.Create(Stream) do
-  try
-    Position := 0;
-    repeat
-      Copied := Read(Buffer, 1024);
-      Destination.Write(Buffer, Copied);
-    until Copied < 1024;
-  finally
-    Free;
-  end;
+    try
+      Position := 0;
+      repeat
+        Copied := Read(Buffer, 1024);
+        Destination.Write(Buffer, Copied);
+      until Copied < 1024;
+    finally
+      Free;
+    end;
 
   // Si Dest vaut nil, on recopie Destination dans Stream
   if Dest = nil then

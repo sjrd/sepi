@@ -18,7 +18,7 @@ implementation
 type
   TSepiImportsTChangeLink = class(TChangeLink)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTCustomImageList = class(TCustomImageList)
@@ -31,15 +31,26 @@ type
     procedure SetHandle(Value: HImageList);
     procedure SetHeight(Value: Integer);
     procedure SetWidth(Value: Integer);
-    procedure Draw_0(Canvas: TCanvas; X, Y, Index: Integer; Enabled: Boolean = True );
-    procedure Draw_1(Canvas: TCanvas; X, Y, Index: Integer; ADrawingStyle: TDrawingStyle ; AImageType: TImageType ; Enabled: Boolean = True );
-    procedure DrawOverlay_0(Canvas: TCanvas; X, Y: Integer; ImageIndex: Integer ; Overlay: TOverlay ; Enabled: Boolean = True );
-    procedure DrawOverlay_1(Canvas: TCanvas; X, Y: Integer; ImageIndex: Integer ; Overlay: TOverlay ; ADrawingStyle: TDrawingStyle ; AImageType: TImageType ; Enabled: Boolean = True );
+    procedure Draw_0(Canvas: TCanvas; X, Y, Index: Integer;
+      Enabled: Boolean = True);
+    procedure Draw_1(Canvas: TCanvas; X, Y, Index: Integer;
+      ADrawingStyle: TDrawingStyle; AImageType: TImageType;
+      Enabled: Boolean = True);
+    procedure DrawOverlay_0(Canvas: TCanvas; X, Y: Integer;
+      ImageIndex: Integer; Overlay: TOverlay; Enabled: Boolean = True);
+    procedure DrawOverlay_1(Canvas: TCanvas; X, Y: Integer;
+      ImageIndex: Integer; Overlay: TOverlay; ADrawingStyle: TDrawingStyle;
+      AImageType: TImageType; Enabled: Boolean = True);
     procedure GetIcon_0(Index: Integer; Image: TIcon);
-    procedure GetIcon_1(Index: Integer; Image: TIcon; ADrawingStyle: TDrawingStyle; AImageType: TImageType );
-    function GetInstRes_0(Instance: THandle; ResType: TResType; const Name: string; Width: Integer ; LoadFlags: TLoadResources ; MaskColor: TColor ) : Boolean;
-    function GetInstRes_1(Instance: THandle; ResType: TResType; ResID: DWORD; Width: Integer ; LoadFlags: TLoadResources ; MaskColor: TColor ) : Boolean;
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    procedure GetIcon_1(Index: Integer; Image: TIcon;
+      ADrawingStyle: TDrawingStyle; AImageType: TImageType);
+    function GetInstRes_0(Instance: THandle; ResType: TResType;
+      const Name: string; Width: Integer; LoadFlags: TLoadResources;
+      MaskColor: TColor): Boolean;
+    function GetInstRes_1(Instance: THandle; ResType: TResType;
+      ResID: DWORD; Width: Integer; LoadFlags: TLoadResources;
+      MaskColor: TColor): Boolean;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
 {--------------------}
@@ -47,7 +58,7 @@ type
 {--------------------}
 
 class function TSepiImportsTChangeLink.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TChangeLink));
@@ -121,24 +132,33 @@ begin
   Width := Value;
 end;
 
-procedure TSepiImportsTCustomImageList.Draw_0(Canvas: TCanvas; X, Y, Index: Integer; Enabled: Boolean = True );
+procedure TSepiImportsTCustomImageList.Draw_0(Canvas: TCanvas;
+  X, Y, Index: Integer; Enabled: Boolean = True);
 begin
   Draw(Canvas, X, Y, Index, Enabled);
 end;
 
-procedure TSepiImportsTCustomImageList.Draw_1(Canvas: TCanvas; X, Y, Index: Integer; ADrawingStyle: TDrawingStyle ; AImageType: TImageType ; Enabled: Boolean = True );
+procedure TSepiImportsTCustomImageList.Draw_1(Canvas: TCanvas;
+  X, Y, Index: Integer; ADrawingStyle: TDrawingStyle;
+  AImageType: TImageType; Enabled: Boolean = True);
 begin
   Draw(Canvas, X, Y, Index, ADrawingStyle, AImageType, Enabled);
 end;
 
-procedure TSepiImportsTCustomImageList.DrawOverlay_0(Canvas: TCanvas; X, Y: Integer; ImageIndex: Integer ; Overlay: TOverlay ; Enabled: Boolean = True );
+procedure TSepiImportsTCustomImageList.DrawOverlay_0(Canvas: TCanvas;
+  X, Y: Integer; ImageIndex: Integer; Overlay: TOverlay;
+  Enabled: Boolean = True);
 begin
   DrawOverlay(Canvas, X, Y, ImageIndex, Overlay, Enabled);
 end;
 
-procedure TSepiImportsTCustomImageList.DrawOverlay_1(Canvas: TCanvas; X, Y: Integer; ImageIndex: Integer ; Overlay: TOverlay ; ADrawingStyle: TDrawingStyle ; AImageType: TImageType ; Enabled: Boolean = True );
+procedure TSepiImportsTCustomImageList.DrawOverlay_1(Canvas: TCanvas;
+  X, Y: Integer; ImageIndex: Integer; Overlay: TOverlay;
+  ADrawingStyle: TDrawingStyle; AImageType: TImageType;
+  Enabled: Boolean = True);
 begin
-  DrawOverlay(Canvas, X, Y, ImageIndex, Overlay, ADrawingStyle, AImageType, Enabled);
+  DrawOverlay(Canvas, X, Y, ImageIndex, Overlay, ADrawingStyle,
+    AImageType, Enabled);
 end;
 
 procedure TSepiImportsTCustomImageList.GetIcon_0(Index: Integer; Image: TIcon);
@@ -146,23 +166,28 @@ begin
   GetIcon(Index, Image);
 end;
 
-procedure TSepiImportsTCustomImageList.GetIcon_1(Index: Integer; Image: TIcon; ADrawingStyle: TDrawingStyle; AImageType: TImageType );
+procedure TSepiImportsTCustomImageList.GetIcon_1(Index: Integer;
+  Image: TIcon; ADrawingStyle: TDrawingStyle; AImageType: TImageType);
 begin
   GetIcon(Index, Image, ADrawingStyle, AImageType);
 end;
 
-function TSepiImportsTCustomImageList.GetInstRes_0(Instance: THandle; ResType: TResType; const Name: string; Width: Integer ; LoadFlags: TLoadResources ; MaskColor: TColor ) : Boolean;
+function TSepiImportsTCustomImageList.GetInstRes_0(Instance: THandle;
+  ResType: TResType; const Name: string; Width: Integer;
+  LoadFlags: TLoadResources; MaskColor: TColor): Boolean;
 begin
   Result := GetInstRes(Instance, ResType, Name, Width, LoadFlags, MaskColor);
 end;
 
-function TSepiImportsTCustomImageList.GetInstRes_1(Instance: THandle; ResType: TResType; ResID: DWORD; Width: Integer ; LoadFlags: TLoadResources ; MaskColor: TColor ) : Boolean;
+function TSepiImportsTCustomImageList.GetInstRes_1(Instance: THandle;
+  ResType: TResType; ResID: DWORD; Width: Integer;
+  LoadFlags: TLoadResources; MaskColor: TColor): Boolean;
 begin
   Result := GetInstRes(Instance, ResType, ResID, Width, LoadFlags, MaskColor);
 end;
 
 class function TSepiImportsTCustomImageList.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass(Owner.FindMeta('TCustomImageList'));
   Result.RegisterTypeInfo(
@@ -244,7 +269,8 @@ begin
     AddMethod('Change', @TSepiImportsTCustomImageList.Change,
       'procedure',
       mlkDynamic);
-    AddMethod('DefineProperties', @TSepiImportsTCustomImageList.DefineProperties,
+    AddMethod('DefineProperties',
+      @TSepiImportsTCustomImageList.DefineProperties,
       'procedure(Filer: TFiler)',
       mlkOverride);
     AddMethod('DoDraw', @TSepiImportsTCustomImageList.DoDraw,
@@ -295,9 +321,11 @@ begin
       'procedure(Canvas: TCanvas; X, Y, Index: Integer; Enabled: Boolean = True )');
     AddOverloadedMethod('Draw', @TSepiImportsTCustomImageList.Draw_1,
       'procedure(Canvas: TCanvas; X, Y, Index: Integer; ADrawingStyle: TDrawingStyle ; AImageType: TImageType ; Enabled: Boolean = True )');
-    AddOverloadedMethod('DrawOverlay', @TSepiImportsTCustomImageList.DrawOverlay_0,
+    AddOverloadedMethod('DrawOverlay',
+      @TSepiImportsTCustomImageList.DrawOverlay_0,
       'procedure(Canvas: TCanvas; X, Y: Integer; ImageIndex: Integer ; Overlay: TOverlay ; Enabled: Boolean = True )');
-    AddOverloadedMethod('DrawOverlay', @TSepiImportsTCustomImageList.DrawOverlay_1,
+    AddOverloadedMethod('DrawOverlay',
+      @TSepiImportsTCustomImageList.DrawOverlay_1,
       'procedure(Canvas: TCanvas; X, Y: Integer; ImageIndex: Integer ; Overlay: TOverlay ; ADrawingStyle: TDrawingStyle ; AImageType: TImageType ; Enabled: Boolean = True )');
     AddMethod('FileLoad', @TSepiImportsTCustomImageList.FileLoad,
       'function(ResType: TResType; const Name: string; MaskColor: TColor ) : Boolean');
@@ -316,9 +344,11 @@ begin
       'function: HBITMAP');
     AddMethod('GetResource', @TSepiImportsTCustomImageList.GetResource,
       'function(ResType: TResType; const Name: string; Width: Integer ; LoadFlags: TLoadResources ; MaskColor: TColor ) : Boolean');
-    AddOverloadedMethod('GetInstRes', @TSepiImportsTCustomImageList.GetInstRes_0,
+    AddOverloadedMethod('GetInstRes',
+      @TSepiImportsTCustomImageList.GetInstRes_0,
       'function(Instance: THandle; ResType: TResType; const Name: string; Width: Integer ; LoadFlags: TLoadResources ; MaskColor: TColor ) : Boolean');
-    AddOverloadedMethod('GetInstRes', @TSepiImportsTCustomImageList.GetInstRes_1,
+    AddOverloadedMethod('GetInstRes',
+      @TSepiImportsTCustomImageList.GetInstRes_1,
       'function(Instance: THandle; ResType: TResType; ResID: DWORD; Width: Integer ; LoadFlags: TLoadResources ; MaskColor: TColor ) : Boolean');
     AddMethod('HandleAllocated', @TSepiImportsTCustomImageList.HandleAllocated,
       'function: Boolean');
@@ -344,7 +374,8 @@ begin
       'procedure(Index: Integer; Image: TIcon)');
     AddMethod('ReplaceMasked', @TSepiImportsTCustomImageList.ReplaceMasked,
       'procedure(Index: Integer; NewImage: TBitmap; MaskColor: TColor)');
-    AddMethod('UnRegisterChanges', @TSepiImportsTCustomImageList.UnRegisterChanges,
+    AddMethod('UnRegisterChanges',
+      @TSepiImportsTCustomImageList.UnRegisterChanges,
       'procedure(Value: TChangeLink)');
 
     AddProperty('Count', 'property: Integer',
@@ -392,7 +423,7 @@ end;
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiRoot) : TSepiUnit;
+function ImportUnit(Root: TSepiRoot): TSepiUnit;
 begin
   Result := TSepiUnit.Create(Root, 'ImgList',
     ['Windows', 'Classes', 'Graphics']);

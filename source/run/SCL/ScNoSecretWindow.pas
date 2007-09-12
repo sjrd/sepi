@@ -15,4 +15,4 @@ initialization
   // Simule une DLL
   IsLibrary := True;
 end.
- 
+

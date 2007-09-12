@@ -19,7 +19,8 @@ implementation
 { Unit import }
 {-------------}
 
-function VarConvertCreate_0(const AValue: Double; const AType: TConvType): Variant;
+function VarConvertCreate_0(const AValue: Double;
+  const AType: TConvType): Variant;
 begin
   Result := VarConvertCreate(AValue, AType);
 end;
@@ -34,12 +35,13 @@ begin
   Result := VarAsConvert(AValue);
 end;
 
-function VarAsConvert_1(const AValue: Variant; const AType: TConvType): Variant;
+function VarAsConvert_1(const AValue: Variant;
+  const AType: TConvType): Variant;
 begin
   Result := VarAsConvert(AValue, AType);
 end;
 
-function ImportUnit(Root : TSepiRoot) : TSepiUnit;
+function ImportUnit(Root: TSepiRoot): TSepiUnit;
 begin
   Result := TSepiUnit.Create(Root, 'VarConv',
     ['SysUtils', 'Variants', 'ConvUtils']);

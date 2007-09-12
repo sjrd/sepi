@@ -19,7 +19,7 @@ implementation
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiRoot) : TSepiUnit;
+function ImportUnit(Root: TSepiRoot): TSepiUnit;
 begin
   Result := TSepiUnit.Create(Root, 'MaskUtils', []);
 
@@ -65,7 +65,8 @@ begin
     'function(const EditMask: string; Offset: Integer): Boolean');
   TSepiMethod.Create(Result, 'MaskGetCharType', @MaskGetCharType,
     'function(const EditMask: string; MaskOffset: Integer): TMaskCharType');
-  TSepiMethod.Create(Result, 'MaskGetCurrentDirectives', @MaskGetCurrentDirectives,
+  TSepiMethod.Create(Result, 'MaskGetCurrentDirectives',
+    @MaskGetCurrentDirectives,
     'function(const EditMask: string; MaskOffset: Integer): TMaskDirectives');
   TSepiMethod.Create(Result, 'MaskIntlLiteralToChar', @MaskIntlLiteralToChar,
     'function(IChar: Char): Char');
@@ -76,11 +77,11 @@ begin
 
   // Global variables
   TSepiVariable.Create(Result, 'DefaultBlank',
-     DefaultBlank, TypeInfo(Char));
+    DefaultBlank, TypeInfo(Char));
   TSepiVariable.Create(Result, 'MaskFieldSeparator',
-     MaskFieldSeparator, TypeInfo(Char));
+    MaskFieldSeparator, TypeInfo(Char));
   TSepiVariable.Create(Result, 'MaskNoSave',
-     MaskNoSave, TypeInfo(Char));
+    MaskNoSave, TypeInfo(Char));
 
   Result.Complete;
 end;

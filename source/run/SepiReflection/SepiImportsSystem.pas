@@ -18,35 +18,35 @@ implementation
 type
   TSepiImportsTObject = class(TObject)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTInterfacedObject = class(TInterfacedObject)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTAggregatedObject = class(TAggregatedObject)
   private
     function GetController: IInterface;
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTContainedObject = class(TContainedObject)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTClassHelperBase = class(TClassHelperBase)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
 {--------------}
 { TGUID import }
 {--------------}
 
-function SepiImportTGUID(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTGUID(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TGUID', True, True);
 
@@ -65,7 +65,7 @@ end;
 { TInterfaceEntry import }
 {------------------------}
 
-function SepiImportTInterfaceEntry(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTInterfaceEntry(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TInterfaceEntry', True, True);
 
@@ -84,7 +84,7 @@ end;
 { TInterfaceTable import }
 {------------------------}
 
-function SepiImportTInterfaceTable(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTInterfaceTable(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TInterfaceTable', True, True);
 
@@ -101,7 +101,7 @@ end;
 { TMethod import }
 {----------------}
 
-function SepiImportTMethod(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTMethod(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TMethod', False, True);
 
@@ -118,7 +118,7 @@ end;
 { TDispatchMessage import }
 {-------------------------}
 
-function SepiImportTDispatchMessage(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTDispatchMessage(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TDispatchMessage', False, True);
 
@@ -135,7 +135,7 @@ end;
 {----------------}
 
 class function TSepiImportsTObject.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(Owner, TypeInfo(TObject));
   TSepiMetaClass.Create(Owner, 'TClass', Result, True);
@@ -209,7 +209,7 @@ end;
 { IInterface import }
 {-------------------}
 
-function SepiImportIInterface(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIInterface(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IInterface));
@@ -231,7 +231,7 @@ end;
 { IInvokable import }
 {-------------------}
 
-function SepiImportIInvokable(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIInvokable(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IInvokable));
@@ -247,7 +247,7 @@ end;
 { IDispatch import }
 {------------------}
 
-function SepiImportIDispatch(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIDispatch(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IDispatch));
@@ -259,7 +259,8 @@ begin
     AddMethod('GetTypeInfo',
       'function(Index, LocaleID: Integer; out TypeInfo): HResult', ccStdCall);
     AddMethod('GetIDsOfNames',
-      'function(const IID: TGUID; Names: Pointer; NameCount, LocaleID: Integer ; DispIDs: Pointer ) : HResult', ccStdCall);
+      'function(const IID: TGUID; Names: Pointer; NameCount, LocaleID: Integer ; DispIDs: Pointer ) : HResult',
+      ccStdCall);
     AddMethod('Invoke',
       'function(DispID: Integer; const IID: TGUID; LocaleID: Integer; Flags: Word ; var Params ; VarResult, ExcepInfo, ArgErr: Pointer ) : HResult', ccStdCall);
 
@@ -272,7 +273,7 @@ end;
 {--------------------------}
 
 class function TSepiImportsTInterfacedObject.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TInterfacedObject));
@@ -297,10 +298,12 @@ begin
 
     CurrentVisibility := mvPublic;
 
-    AddMethod('AfterConstruction', @TSepiImportsTInterfacedObject.AfterConstruction,
+    AddMethod('AfterConstruction',
+      @TSepiImportsTInterfacedObject.AfterConstruction,
       'procedure',
       mlkOverride);
-    AddMethod('BeforeDestruction', @TSepiImportsTInterfacedObject.BeforeDestruction,
+    AddMethod('BeforeDestruction',
+      @TSepiImportsTInterfacedObject.BeforeDestruction,
       'procedure',
       mlkOverride);
     AddMethod('NewInstance', @TSepiImportsTInterfacedObject.NewInstance,
@@ -324,7 +327,7 @@ begin
 end;
 
 class function TSepiImportsTAggregatedObject.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TAggregatedObject));
@@ -367,7 +370,7 @@ end;
 {-------------------------}
 
 class function TSepiImportsTContainedObject.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TContainedObject));
@@ -391,7 +394,7 @@ end;
 {-------------------------}
 
 class function TSepiImportsTClassHelperBase.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TClassHelperBase));
@@ -415,7 +418,7 @@ end;
 { TVarArrayBound import }
 {-----------------------}
 
-function SepiImportTVarArrayBound(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTVarArrayBound(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TVarArrayBound', True, True);
 
@@ -432,7 +435,7 @@ end;
 { TVarArray import }
 {------------------}
 
-function SepiImportTVarArray(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTVarArray(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TVarArray', True, True);
 
@@ -453,7 +456,7 @@ end;
 { TVarData import }
 {-----------------}
 
-function SepiImportTVarData(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTVarData(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TVarData', True, True);
 
@@ -463,7 +466,7 @@ begin
     AddFieldAfter('Reserved1', System.TypeInfo(Word), 'VType');
     AddFieldAfter('Reserved2', System.TypeInfo(Word), 'Reserved1');
     AddField('Reserved3', System.TypeInfo(Word), True);
-    AddFieldAfter('VSmallInt', System.TypeInfo(SmallInt), 'Reserved3');
+    AddFieldAfter('VSmallInt', System.TypeInfo(Smallint), 'Reserved3');
     AddFieldAfter('VInteger', System.TypeInfo(Integer), 'Reserved3');
     AddFieldAfter('VSingle', System.TypeInfo(Single), 'Reserved3');
     AddFieldAfter('VDouble', System.TypeInfo(Double), 'Reserved3');
@@ -474,7 +477,7 @@ begin
     AddFieldAfter('VError', System.TypeInfo(HRESULT), 'Reserved3');
     AddFieldAfter('VBoolean', System.TypeInfo(WordBool), 'Reserved3');
     AddFieldAfter('VUnknown', 'Pointer', 'Reserved3');
-    AddFieldAfter('VShortInt', System.TypeInfo(ShortInt), 'Reserved3');
+    AddFieldAfter('VShortInt', System.TypeInfo(Shortint), 'Reserved3');
     AddFieldAfter('VByte', System.TypeInfo(Byte), 'Reserved3');
     AddFieldAfter('VWord', System.TypeInfo(Word), 'Reserved3');
     AddFieldAfter('VLongWord', System.TypeInfo(LongWord), 'Reserved3');
@@ -496,7 +499,7 @@ end;
 { TCallDesc import }
 {------------------}
 
-function SepiImportTCallDesc(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTCallDesc(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TCallDesc', True, True);
 
@@ -515,7 +518,7 @@ end;
 { TDispDesc import }
 {------------------}
 
-function SepiImportTDispDesc(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTDispDesc(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TDispDesc', True, True);
 
@@ -533,7 +536,7 @@ end;
 { TFileRec import }
 {-----------------}
 
-function SepiImportTFileRec(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTFileRec(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TFileRec', True, True);
 
@@ -562,7 +565,7 @@ end;
 { TTextRec import }
 {-----------------}
 
-function SepiImportTTextRec(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTTextRec(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TTextRec', True, True);
 
@@ -591,7 +594,7 @@ end;
 { TResStringRec import }
 {----------------------}
 
-function SepiImportTResStringRec(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTResStringRec(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TResStringRec', True, True);
 
@@ -648,12 +651,14 @@ begin
   Result := Random;
 end;
 
-function UnicodeToUtf8_0(Dest: PChar; MaxDestBytes: Cardinal; Source: PWideChar; SourceChars: Cardinal): Cardinal;
+function UnicodeToUtf8_0(Dest: PChar; MaxDestBytes: Cardinal;
+  Source: PWideChar; SourceChars: Cardinal): Cardinal;
 begin
   Result := UnicodeToUtf8(Dest, MaxDestBytes, Source, SourceChars);
 end;
 
-function Utf8ToUnicode_0(Dest: PWideChar; MaxDestChars: Cardinal; Source: PChar; SourceBytes: Cardinal): Cardinal;
+function Utf8ToUnicode_0(Dest: PWideChar; MaxDestChars: Cardinal;
+  Source: PChar; SourceBytes: Cardinal): Cardinal;
 begin
   Result := Utf8ToUnicode(Dest, MaxDestChars, Source, SourceBytes);
 end;
@@ -678,7 +683,7 @@ begin
   Result := StringOfChar(ch, Count);
 end;
 
-function ImportUnit(Root : TSepiRoot) : TSepiUnit;
+function ImportUnit(Root: TSepiRoot): TSepiUnit;
 begin
   Result := TSepiUnit.Create(Root, SystemUnitName, []);
 
@@ -691,7 +696,7 @@ begin
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(Int64));
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(Byte));
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(Word));
-  TSepiTypeAlias.Create(Result, 'Longword', TypeInfo(Longword));
+  TSepiTypeAlias.Create(Result, 'Longword', TypeInfo(LongWord));
 
   // Character types
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(Char));
@@ -731,7 +736,7 @@ begin
   TSepiConstant.Create(Result, 'RTLVersion', RTLVersion);
   TSepiConstant.Create(Result, 'CompilerVersion', CompilerVersion);
   {$IF DECLARED(GPL)}
-    TSepiConstant.Create(Result, 'GPL', GPL);
+  TSepiConstant.Create(Result, 'GPL', GPL);
   {$IFEND}
   TSepiConstant.Create(Result, 'True', True);
   TSepiConstant.Create(Result, 'False', False);
@@ -823,7 +828,8 @@ begin
   TSepiConstant.Create(Result, 'S_FALSE', S_FALSE);
   TSepiConstant.Create(Result, 'E_NOINTERFACE',
     E_NOINTERFACE, TypeInfo(HRESULT));
-  TSepiConstant.Create(Result, 'E_UNEXPECTED', E_UNEXPECTED, TypeInfo(HRESULT));
+  TSepiConstant.Create(Result, 'E_UNEXPECTED', E_UNEXPECTED,
+    TypeInfo(HRESULT));
   TSepiConstant.Create(Result, 'E_NOTIMPL', E_NOTIMPL, TypeInfo(HRESULT));
 
   { Classes and interfaces }
@@ -832,7 +838,8 @@ begin
   SepiImportIInvokable(Result);
   SepiImportIDispatch(Result);
   TSepiImportsTInterfacedObject.SepiImport(Result);
-  TSepiMetaClass.Create(Result, 'TInterfacedClass', TypeInfo(TInterfacedObject), True);
+  TSepiMetaClass.Create(Result, 'TInterfacedClass',
+    TypeInfo(TInterfacedObject), True);
   TSepiImportsTAggregatedObject.SepiImport(Result);
   TSepiImportsTContainedObject.SepiImport(Result);
   TSepiImportsTClassHelperBase.SepiImport(Result);
@@ -866,9 +873,9 @@ begin
   TSepiPointerType.Create(Result, 'PInteger', TypeInfo(Integer), True);
   TSepiPointerType.Create(Result, 'PCardinal', TypeInfo(Cardinal), True);
   TSepiPointerType.Create(Result, 'PWord', TypeInfo(Word), True);
-  TSepiPointerType.Create(Result, 'PSmallInt', TypeInfo(SmallInt), True);
+  TSepiPointerType.Create(Result, 'PSmallInt', TypeInfo(Smallint), True);
   TSepiPointerType.Create(Result, 'PByte', TypeInfo(Byte), True);
-  TSepiPointerType.Create(Result, 'PShortInt', TypeInfo(ShortInt), True);
+  TSepiPointerType.Create(Result, 'PShortInt', TypeInfo(Shortint), True);
   TSepiPointerType.Create(Result, 'PInt64', TypeInfo(Int64), True);
   TSepiPointerType.Create(Result, 'PLongWord', TypeInfo(LongWord), True);
   TSepiPointerType.Create(Result, 'PSingle', TypeInfo(Single), True);
@@ -896,22 +903,24 @@ begin
   SepiImportTVarArrayBound(Result);
   TSepiArrayType.Create(Result, 'TVarArrayBoundArray',
     [0, 0], 'TVarArrayBound', True);
-  TSepiPointerType.Create(Result, 'PVarArrayBoundArray', 'TVarArrayBoundArray', True);
+  TSepiPointerType.Create(Result, 'PVarArrayBoundArray',
+    'TVarArrayBoundArray', True);
   TSepiArrayType.Create(Result, 'TVarArrayCoorArray',
     [0, 0], TypeInfo(Integer), True);
-  TSepiPointerType.Create(Result, 'PVarArrayCoorArray', 'TVarArrayCoorArray', True);
+  TSepiPointerType.Create(Result, 'PVarArrayCoorArray',
+    'TVarArrayCoorArray', True);
   TSepiPointerType.Create(Result, 'PVarArray', 'TVarArray', True);
   SepiImportTVarArray(Result);
   TSepiTypeAlias.Create(Result, 'TVarType', TypeInfo(Word));
   TSepiPointerType.Create(Result, 'PVarData', 'TVarData', True);
   TSepiArrayType.Create(Result, '$3',
-    [0, 2], TypeInfo(LongInt), True);
+    [0, 2], TypeInfo(Longint), True);
   TSepiArrayType.Create(Result, '$4',
     [0, 6], TypeInfo(Word), True);
   TSepiArrayType.Create(Result, '$5',
     [0, 13], TypeInfo(Byte), True);
   TSepiArrayType.Create(Result, '$6',
-    [0, 3], TypeInfo(LongInt), True);
+    [0, 3], TypeInfo(Longint), True);
   SepiImportTVarData(Result);
   TSepiTypeAlias.Create(Result, 'TVarOp', TypeInfo(Integer));
 
@@ -960,7 +969,7 @@ begin
 
   // Global variables
   TSepiVariable.Create(Result, 'DefaultTextLineBreakStyle',
-     DefaultTextLineBreakStyle, TypeInfo(TTextLineBreakStyle));
+    DefaultTextLineBreakStyle, TypeInfo(TTextLineBreakStyle));
 
   // Constants
   TSepiConstant.Create(Result, 'sLineBreak', sLineBreak);

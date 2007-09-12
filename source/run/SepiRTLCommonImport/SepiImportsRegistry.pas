@@ -18,7 +18,7 @@ implementation
 type
   TSepiImportsERegistryException = class(ERegistryException)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTRegistry = class(TRegistry)
@@ -26,21 +26,21 @@ type
     procedure SetRootKey(Value: HKEY);
     constructor Create_0;
     constructor Create_1(AAccess: LongWord);
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTRegIniFile = class(TRegIniFile)
   private
     constructor Create_0(const FileName: string);
     constructor Create_1(const FileName: string; AAccess: LongWord);
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTRegistryIniFile = class(TRegistryIniFile)
   private
     constructor Create_0(const FileName: string);
     constructor Create_1(const FileName: string; AAccess: LongWord);
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
 {---------------------------}
@@ -48,7 +48,7 @@ type
 {---------------------------}
 
 class function TSepiImportsERegistryException.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(ERegistryException));
@@ -64,7 +64,7 @@ end;
 { TRegKeyInfo import }
 {--------------------}
 
-function SepiImportTRegKeyInfo(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTRegKeyInfo(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TRegKeyInfo', False, True);
 
@@ -85,7 +85,7 @@ end;
 { TRegDataInfo import }
 {---------------------}
 
-function SepiImportTRegDataInfo(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTRegDataInfo(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TRegDataInfo', False, True);
 
@@ -118,7 +118,7 @@ begin
 end;
 
 class function TSepiImportsTRegistry.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TRegistry));
@@ -270,13 +270,14 @@ begin
   Create(FileName);
 end;
 
-constructor TSepiImportsTRegIniFile.Create_1(const FileName: string; AAccess: LongWord);
+constructor TSepiImportsTRegIniFile.Create_1(const FileName: string;
+  AAccess: LongWord);
 begin
   Create(FileName, AAccess);
 end;
 
 class function TSepiImportsTRegIniFile.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TRegIniFile));
@@ -332,13 +333,14 @@ begin
   Create(FileName);
 end;
 
-constructor TSepiImportsTRegistryIniFile.Create_1(const FileName: string; AAccess: LongWord);
+constructor TSepiImportsTRegistryIniFile.Create_1(const FileName: string;
+  AAccess: LongWord);
 begin
   Create(FileName, AAccess);
 end;
 
 class function TSepiImportsTRegistryIniFile.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TRegistryIniFile));
@@ -376,7 +378,8 @@ begin
     AddMethod('ReadTime', @TSepiImportsTRegistryIniFile.ReadTime,
       'function(const Section, Name: string; Default: TDateTime): TDateTime',
       mlkOverride);
-    AddMethod('ReadBinaryStream', @TSepiImportsTRegistryIniFile.ReadBinaryStream,
+    AddMethod('ReadBinaryStream',
+      @TSepiImportsTRegistryIniFile.ReadBinaryStream,
       'function(const Section, Name: string; Value: TStream): Integer',
       mlkOverride);
     AddMethod('WriteDate', @TSepiImportsTRegistryIniFile.WriteDate,
@@ -397,7 +400,8 @@ begin
     AddMethod('WriteTime', @TSepiImportsTRegistryIniFile.WriteTime,
       'procedure(const Section, Name: string; Value: TDateTime)',
       mlkOverride);
-    AddMethod('WriteBinaryStream', @TSepiImportsTRegistryIniFile.WriteBinaryStream,
+    AddMethod('WriteBinaryStream',
+      @TSepiImportsTRegistryIniFile.WriteBinaryStream,
       'procedure(const Section, Name: string; Value: TStream)',
       mlkOverride);
     AddMethod('ReadSection', @TSepiImportsTRegistryIniFile.ReadSection,
@@ -409,7 +413,8 @@ begin
     AddOverloadedMethod('ReadSections', nil,
       'procedure(const Section: string; Strings: TStrings)',
       mlkOverride);
-    AddMethod('ReadSectionValues', @TSepiImportsTRegistryIniFile.ReadSectionValues,
+    AddMethod('ReadSectionValues',
+      @TSepiImportsTRegistryIniFile.ReadSectionValues,
       'procedure(const Section: string; Strings: TStrings)',
       mlkOverride);
     AddMethod('EraseSection', @TSepiImportsTRegistryIniFile.EraseSection,
@@ -433,7 +438,7 @@ end;
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiRoot) : TSepiUnit;
+function ImportUnit(Root: TSepiRoot): TSepiUnit;
 begin
   Result := TSepiUnit.Create(Root, 'Registry',
     ['Windows', 'Classes', 'SysUtils', 'IniFiles']);

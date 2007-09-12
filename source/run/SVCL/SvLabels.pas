@@ -9,7 +9,7 @@ interface
 
 uses
 {$IFDEF MSWINDOWS}
-  Controls, Graphics, StdCtrls, Menus, ClipBrd,
+  Controls, Graphics, StdCtrls, Menus, Clipbrd,
 {$ENDIF}
 {$IFDEF LINUX}
   QControls, QGraphics, QStdCtrls, QMenus, QClipBrd,
@@ -30,16 +30,16 @@ type
   *}
   TSvCustomURLLabel = class(TCustomLabel)
   private
-    FURL : string;     /// URL vers laquelle renvoyer (vide utilise Caption)
-    Menu : TPopupMenu; /// Menu contextuel par défaut
+    FURL: string;     /// URL vers laquelle renvoyer (vide utilise Caption)
+    Menu: TPopupMenu; /// Menu contextuel par défaut
 
-    function RealURL : string;
+    function RealURL: string;
 
-    procedure MenuCopyClick(Sender : TObject);
-    procedure MenuRunClick(Sender : TObject);
+    procedure MenuCopyClick(Sender: TObject);
+    procedure MenuRunClick(Sender: TObject);
 
-    function IsFontStored : boolean;
-    function IsPopupMenuStored : boolean;
+    function IsFontStored: Boolean;
+    function IsPopupMenuStored: Boolean;
   protected
     /// [@inheritDoc]
     property Cursor default crHandPoint;
@@ -47,9 +47,9 @@ type
     property Font stored IsFontStored;
     /// [@inheritDoc]
     property PopupMenu stored IsPopupMenuStored;
-    property URL : string read FURL write FURL;
+    property URL: string read FURL write FURL;
   public
-    constructor Create(AOwner : TComponent); override;
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
     procedure Click; override;
@@ -118,42 +118,43 @@ implementation
   Crée une instance de TSvCustomURLLabel
   @param AOwner   Propriétaire
 *}
-constructor TSvCustomURLLabel.Create(AOwner : TComponent);
-var TempMenu : TMenuItem;
+constructor TSvCustomURLLabel.Create(AOwner: TComponent);
+var
+  TempMenu: TMenuItem;
 begin
-   inherited Create(AOwner);
+  inherited Create(AOwner);
 
-   Cursor := crHandPoint;
-   with Font do
-   begin
-     Color := clBlue;
-     Style := [fsUnderline];
-   end;
+  Cursor := crHandPoint;
+  with Font do
+  begin
+    Color := clBlue;
+    Style := [fsUnderline];
+  end;
 
-   Menu := TPopupMenu.Create(Self);
-   Menu.Name := 'PopupMenu'; {don't localize}
+  Menu := TPopupMenu.Create(Self);
+  Menu.Name := 'PopupMenu'; {don't localize}
 
-   TempMenu := TMenuItem.Create(Menu);
-   with TempMenu do
-   begin
-     Name := 'MenuCopy'; {don't localize}
-     Caption := sCopyCaption;
-     Hint := sCopyHint;
-     OnClick := MenuCopyClick;
-   end;
-   Menu.Items.Add(TempMenu);
+  TempMenu := TMenuItem.Create(Menu);
+  with TempMenu do
+  begin
+    Name := 'MenuCopy'; {don't localize}
+    Caption := sCopyCaption;
+    Hint := sCopyHint;
+    OnClick := MenuCopyClick;
+  end;
+  Menu.Items.Add(TempMenu);
 
-   TempMenu := TMenuItem.Create(Menu);
-   with TempMenu do
-   begin
-     Name := 'MenuRun'; {don't localize}
-     Caption := sRunCaption;
-     Hint := sRunHint;
-     OnClick := MenuRunClick;
-   end;
-   Menu.Items.Add(TempMenu);
+  TempMenu := TMenuItem.Create(Menu);
+  with TempMenu do
+  begin
+    Name := 'MenuRun'; {don't localize}
+    Caption := sRunCaption;
+    Hint := sRunHint;
+    OnClick := MenuRunClick;
+  end;
+  Menu.Items.Add(TempMenu);
 
-   PopupMenu := Menu;
+  PopupMenu := Menu;
 end;
 
 {*
@@ -161,15 +162,15 @@ end;
 *}
 destructor TSvCustomURLLabel.Destroy;
 begin
-   Menu.Free;
-   inherited;
+  Menu.Free;
+  inherited;
 end;
 
 {*
   Détermine l'URL exacte vers laquelle renvoyer
   @return URL exacte vers laquelle renvoyer
 *}
-function TSvCustomURLLabel.RealURL : string;
+function TSvCustomURLLabel.RealURL: string;
 begin
   if URL = '' then Result := Caption else Result := URL;
 end;
@@ -178,7 +179,7 @@ end;
   Exécuté lorsque le menu Copier a été sélectionné
   @param Sender   Objet qui a déclenché l'événement
 *}
-procedure TSvCustomURLLabel.MenuCopyClick(Sender : TObject);
+procedure TSvCustomURLLabel.MenuCopyClick(Sender: TObject);
 begin
   Clipboard.AsText := RealURL;
 end;
@@ -187,7 +188,7 @@ end;
   Exécuté lorsque le menu Lancher a été sélectionné
   @param Sender   Objet qui a déclenché l'événement
 *}
-procedure TSvCustomURLLabel.MenuRunClick(Sender : TObject);
+procedure TSvCustomURLLabel.MenuRunClick(Sender: TObject);
 begin
   Click;
 end;
@@ -196,7 +197,7 @@ end;
   Indique si la fonte doit être stockée dans un flux dfm
   @return True : il faut toujours sauvegarder la fonte
 *}
-function TSvCustomURLLabel.IsFontStored : boolean;
+function TSvCustomURLLabel.IsFontStored: Boolean;
 begin
   Result := True;
 end;
@@ -205,7 +206,7 @@ end;
   Indique si le menu popup doit être stocké dans un flux dfm
   @return True si le menu popup est différent de celui par défaut, False sinon
 *}
-function TSvCustomURLLabel.IsPopupMenuStored : boolean;
+function TSvCustomURLLabel.IsPopupMenuStored: Boolean;
 begin
   Result := PopupMenu <> Menu;
 end;
@@ -217,10 +218,10 @@ procedure TSvCustomURLLabel.Click;
 begin
   inherited Click;
   {$IFDEF MSWINDOWS}
-    RunURL(RealURL);
+  RunURL(RealURL);
   {$ENDIF}
   {$IFDEF LINUX}
-    assert(False); {to-do}
+  assert(False); {to-do}
   {$ENDIF}
 end;
 

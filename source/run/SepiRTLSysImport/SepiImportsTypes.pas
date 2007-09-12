@@ -19,7 +19,7 @@ implementation
 { TPoint import }
 {---------------}
 
-function SepiImportTPoint(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTPoint(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TPoint', True, True);
 
@@ -36,7 +36,7 @@ end;
 { TRect import }
 {--------------}
 
-function SepiImportTRect(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTRect(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TRect', True, True);
 
@@ -57,7 +57,7 @@ end;
 { tagSIZE import }
 {----------------}
 
-function SepiImporttagSIZE(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImporttagSIZE(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagSIZE', True, True);
 
@@ -74,14 +74,14 @@ end;
 { TSmallPoint import }
 {--------------------}
 
-function SepiImportTSmallPoint(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTSmallPoint(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TSmallPoint', True, True);
 
   with Result do
   begin
-    AddField('x', System.TypeInfo(SmallInt));
-    AddField('y', System.TypeInfo(SmallInt));
+    AddField('x', System.TypeInfo(Smallint));
+    AddField('y', System.TypeInfo(Smallint));
 
     Complete;
   end;
@@ -101,7 +101,7 @@ begin
   Result := SmallPoint(XY);
 end;
 
-function ImportUnit(Root : TSepiRoot) : TSepiUnit;
+function ImportUnit(Root: TSepiRoot): TSepiUnit;
 begin
   Result := TSepiUnit.Create(Root, 'Types', []);
 

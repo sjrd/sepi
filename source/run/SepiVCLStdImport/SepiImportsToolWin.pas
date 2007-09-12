@@ -21,17 +21,17 @@ type
     procedure SetEdgeBorders(Value: TEdgeBorders);
     procedure SetEdgeInner(Value: TEdgeStyle);
     procedure SetEdgeOuter(Value: TEdgeStyle);
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTToolDockObject = class(TToolDockObject)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTToolDockForm = class(TToolDockForm)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
 {--------------------}
@@ -54,9 +54,9 @@ begin
 end;
 
 class function TSepiImportsTToolWindow.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 const
-  DefaultEdgeBorders : TEdgeBorders = [ebLeft, ebTop, ebRight, ebBottom];
+  DefaultEdgeBorders: TEdgeBorders = [ebLeft, ebTop, ebRight, ebBottom];
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TToolWindow));
@@ -119,7 +119,7 @@ end;
 {------------------------}
 
 class function TSepiImportsTToolDockObject.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TToolDockObject));
@@ -131,10 +131,12 @@ begin
     AddMethod('AdjustDockRect', @TSepiImportsTToolDockObject.AdjustDockRect,
       'procedure(ARect: TRect)',
       mlkOverride);
-    AddMethod('DrawDragDockImage', @TSepiImportsTToolDockObject.DrawDragDockImage,
+    AddMethod('DrawDragDockImage',
+      @TSepiImportsTToolDockObject.DrawDragDockImage,
       'procedure',
       mlkOverride);
-    AddMethod('EraseDragDockImage', @TSepiImportsTToolDockObject.EraseDragDockImage,
+    AddMethod('EraseDragDockImage',
+      @TSepiImportsTToolDockObject.EraseDragDockImage,
       'procedure',
       mlkOverride);
 
@@ -153,7 +155,7 @@ end;
 {----------------------}
 
 class function TSepiImportsTToolDockForm.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TToolDockForm));
@@ -210,7 +212,7 @@ end;
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiRoot) : TSepiUnit;
+function ImportUnit(Root: TSepiRoot): TSepiUnit;
 begin
   Result := TSepiUnit.Create(Root, 'ToolWin',
     ['Windows', 'Messages', 'Classes', 'Controls', 'Forms']);

@@ -17,7 +17,7 @@ const
     the particular type needs initialization. }
   NeedInitTypeKinds = [
     tkLString, tkWString, tkVariant, tkArray, tkRecord, tkInterface, tkDynArray
-  ];
+    ];
 
 type
   /// Pointeur vers TRecordField
@@ -29,8 +29,8 @@ type
     @version 1.0
   *}
   TRecordField = packed record
-    TypeInfo : PPTypeInfo; /// RTTI du type du champ
-    Offset : integer;      /// Offset du champ dans le record
+    TypeInfo: PPTypeInfo; /// RTTI du type du champ
+    Offset: Integer;      /// Offset du champ dans le record
   end;
 
   /// Pointeur vers TRecordTypeData
@@ -42,9 +42,9 @@ type
     @version 1.0
   *}
   TRecordTypeData = packed record
-    Size : integer;                       /// Taille du type
-    FieldCount : integer;                 /// Nombre de champs
-    Fields : array[0..0] of TRecordField; /// Champs (0..FieldCount-1)
+    Size: Integer;                       /// Taille du type
+    FieldCount: Integer;                 /// Nombre de champs
+    Fields: array[0..0] of TRecordField; /// Champs (0..FieldCount-1)
   end;
 
   /// Pointeur vers TArrayTypeData
@@ -56,16 +56,16 @@ type
     @version 1.0
   *}
   TArrayTypeData = packed record
-    Size : integer;      /// Taille du type
-    Count : integer;     /// Nombre d'éléments (linéarisés)
-    ElType : PPTypeInfo; /// RTTI du type des éléments
+    Size: Integer;      /// Taille du type
+    Count: Integer;     /// Nombre d'éléments (linéarisés)
+    ElType: PPTypeInfo; /// RTTI du type des éléments
   end;
 
-function TypeSize(TypeInfo : PTypeInfo) : integer;
+function TypeSize(TypeInfo: PTypeInfo): Integer;
 
-procedure CopyData(const Source; var Dest; Size : integer;
-  TypeInfo : PTypeInfo); overload;
-procedure CopyData(const Source; var Dest; TypeInfo : PTypeInfo); overload;
+procedure CopyData(const Source; var Dest; Size: Integer;
+  TypeInfo: PTypeInfo); overload;
+procedure CopyData(const Source; var Dest; TypeInfo: PTypeInfo); overload;
 
 implementation
 
@@ -80,14 +80,15 @@ uses
   @param TypeInfo   RTTI du type
   @return Taille du type, ou -1 si c'est impossible à déterminer
 *}
-function TypeSize(TypeInfo : PTypeInfo) : integer;
+function TypeSize(TypeInfo: PTypeInfo): Integer;
 const
-  TypeKindToSize : array[TTypeKind] of integer = (
+  TypeKindToSize: array[TTypeKind] of Integer = (
     -1, 0, 1, 0, 0, 0, 0, 4, 8, 2, 4, 4, 16, 0, 0, 4, 8, 4
   );
-  OrdTypeToSize : array[TOrdType] of integer = (1, 1, 2, 2, 4, 4);
-  FloatTypeToSize : array[TFloatType] of integer = (4, 8, 10, 8, 8);
-var TypeData : PTypeData;
+  OrdTypeToSize: array[TOrdType] of Integer = (1, 1, 2, 2, 4, 4);
+  FloatTypeToSize: array[TFloatType] of Integer = (4, 8, 10, 8, 8);
+var
+  TypeData: PTypeData;
 begin
   Result := TypeKindToSize[TypeInfo.Kind];
 
@@ -96,15 +97,15 @@ begin
     TypeData := GetTypeData(TypeInfo);
     case TypeInfo.Kind of
       tkInteger,
-      tkEnumeration : Result := OrdTypeToSize[TypeData.OrdType];
-      tkFloat       : Result := FloatTypeToSize[TypeData.FloatType];
-      tkString      : Result := TypeData.MaxLength+1;
-      tkArray       : Result := PArrayTypeData (TypeData).Size;
-      tkRecord      : Result := PRecordTypeData(TypeData).Size;
+      tkEnumeration: Result := OrdTypeToSize[TypeData.OrdType];
+      tkFloat: Result := FloatTypeToSize[TypeData.FloatType];
+      tkString: Result := TypeData.MaxLength+1;
+      tkArray: Result := PArrayTypeData(TypeData).Size;
+      tkRecord: Result := PRecordTypeData(TypeData).Size;
 
       { Though tkSet has also the OrdType field, it isn't always reliable,
         since it can be out of range for large sets. }
-      tkSet :
+      tkSet:
       begin
         with GetTypeData(TypeData.CompType^)^ do
           Result := (MaxValue - MinValue) div 8 + 1;
@@ -124,8 +125,8 @@ end;
   @param Size       Taille du type de la variable
   @param TypeInfo   RTTI du type de la variable (si requiert une initialisation)
 *}
-procedure CopyData(const Source; var Dest; Size : integer;
-  TypeInfo : PTypeInfo);
+procedure CopyData(const Source; var Dest; Size: Integer;
+  TypeInfo: PTypeInfo);
 begin
   if Assigned(TypeInfo) and (TypeInfo.Kind in NeedInitTypeKinds) then
     CopyData(Source, Dest, TypeInfo)
@@ -141,18 +142,18 @@ end;
   @param Dest       Variable destination
   @param TypeInfo   RTTI du type de la variable
 *}
-procedure CopyData(const Source; var Dest; TypeInfo : PTypeInfo);
+procedure CopyData(const Source; var Dest; TypeInfo: PTypeInfo);
 begin
   case TypeInfo.Kind of
-    tkLString : AnsiString(Dest) := AnsiString(Source);
-    tkWString : WideString(Dest) := WideString(Source);
-    tkVariant : Variant(Dest) := Variant(Source);
-    tkArray :
+    tkLString: AnsiString(Dest) := AnsiString(Source);
+    tkWString: WideString(Dest) := WideString(Source);
+    tkVariant: Variant(Dest) := Variant(Source);
+    tkArray:
       with PArrayTypeData(GetTypeData(TypeInfo))^ do
         CopyArray(@Dest, @Source, ElType^, Count);
-    tkRecord : CopyRecord(@Dest, @Source, TypeInfo);
-    tkInterface : IInterface(Dest) := IInterface(Source);
-    tkDynArray : DynArrayCopy(Pointer(Source), TypeInfo, Pointer(Dest));
+    tkRecord: CopyRecord(@Dest, @Source, TypeInfo);
+    tkInterface: IInterface(Dest) := IInterface(Source);
+    tkDynArray: DynArrayCopy(Pointer(Source), TypeInfo, Pointer(Dest));
     else Move(Source, Dest, TypeSize(TypeInfo));
   end;
 end;

@@ -19,7 +19,7 @@ implementation
 { tagOFNA import }
 {----------------}
 
-function SepiImporttagOFNA(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImporttagOFNA(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagOFNA', True, True);
 
@@ -57,7 +57,7 @@ end;
 { tagOFNW import }
 {----------------}
 
-function SepiImporttagOFNW(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImporttagOFNW(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagOFNW', True, True);
 
@@ -95,7 +95,7 @@ end;
 { _OFNOTIFYA import }
 {-------------------}
 
-function SepiImport_OFNOTIFYA(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_OFNOTIFYA(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_OFNOTIFYA', True, True);
 
@@ -113,7 +113,7 @@ end;
 { _OFNOTIFYW import }
 {-------------------}
 
-function SepiImport_OFNOTIFYW(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_OFNOTIFYW(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_OFNOTIFYW', True, True);
 
@@ -131,7 +131,7 @@ end;
 { _OFNOTIFYEXA import }
 {---------------------}
 
-function SepiImport_OFNOTIFYEXA(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_OFNOTIFYEXA(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_OFNOTIFYEXA', True, True,
     TypeInfo(_OFNOTIFYEXA));
@@ -151,7 +151,7 @@ end;
 { _OFNOTIFYEXW import }
 {---------------------}
 
-function SepiImport_OFNOTIFYEXW(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_OFNOTIFYEXW(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_OFNOTIFYEXW', True, True,
     TypeInfo(_OFNOTIFYEXW));
@@ -171,7 +171,7 @@ end;
 { tagCHOOSECOLORA import }
 {------------------------}
 
-function SepiImporttagCHOOSECOLORA(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImporttagCHOOSECOLORA(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagCHOOSECOLORA', True, True);
 
@@ -195,7 +195,7 @@ end;
 { tagCHOOSECOLORW import }
 {------------------------}
 
-function SepiImporttagCHOOSECOLORW(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImporttagCHOOSECOLORW(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagCHOOSECOLORW', True, True);
 
@@ -219,7 +219,7 @@ end;
 { tagFINDREPLACEA import }
 {------------------------}
 
-function SepiImporttagFINDREPLACEA(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImporttagFINDREPLACEA(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagFINDREPLACEA', True, True);
 
@@ -245,7 +245,7 @@ end;
 { tagFINDREPLACEW import }
 {------------------------}
 
-function SepiImporttagFINDREPLACEW(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImporttagFINDREPLACEW(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagFINDREPLACEW', True, True);
 
@@ -271,7 +271,7 @@ end;
 { tagCHOOSEFONTA import }
 {-----------------------}
 
-function SepiImporttagCHOOSEFONTA(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImporttagCHOOSEFONTA(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagCHOOSEFONTA', True, True);
 
@@ -302,7 +302,7 @@ end;
 { tagCHOOSEFONTW import }
 {-----------------------}
 
-function SepiImporttagCHOOSEFONTW(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImporttagCHOOSEFONTW(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagCHOOSEFONTW', True, True);
 
@@ -333,7 +333,7 @@ end;
 { tagPDA import }
 {---------------}
 
-function SepiImporttagPDA(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImporttagPDA(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagPDA', True, True);
 
@@ -367,7 +367,7 @@ end;
 { tagPDW import }
 {---------------}
 
-function SepiImporttagPDW(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImporttagPDW(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagPDW', True, True);
 
@@ -401,7 +401,7 @@ end;
 { tagDEVNAMES import }
 {--------------------}
 
-function SepiImporttagDEVNAMES(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImporttagDEVNAMES(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagDEVNAMES', False, True);
 
@@ -420,7 +420,7 @@ end;
 { tagPSDA import }
 {----------------}
 
-function SepiImporttagPSDA(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImporttagPSDA(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagPSDA', True, True);
 
@@ -449,7 +449,7 @@ end;
 { tagPSDW import }
 {----------------}
 
-function SepiImporttagPSDW(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImporttagPSDW(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagPSDW', True, True);
 
@@ -478,7 +478,7 @@ end;
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiRoot) : TSepiUnit;
+function ImportUnit(Root: TSepiRoot): TSepiUnit;
 begin
   Result := TSepiUnit.Create(Root, 'CommDlgTypes',
     ['Windows', 'Messages', 'ShlObjTypes']);
@@ -488,10 +488,12 @@ begin
   TSepiPointerType.Create(Result, 'POpenFilenameW', 'TOpenFilenameW', True);
   TSepiTypeAlias.Create(Result, 'POpenFilename', 'POpenFilenameA');
   TSepiMethodRefType.Create(Result, '$1',
-    'function(Wnd: HWND; Msg: UINT; wParam: WPARAM; lParam: LPARAM): UINT', False, ccStdCall);
+    'function(Wnd: HWND; Msg: UINT; wParam: WPARAM; lParam: LPARAM): UINT',
+    False, ccStdCall);
   SepiImporttagOFNA(Result);
   TSepiMethodRefType.Create(Result, '$2',
-    'function(Wnd: HWND; Msg: UINT; wParam: WPARAM; lParam: LPARAM): UINT', False, ccStdCall);
+    'function(Wnd: HWND; Msg: UINT; wParam: WPARAM; lParam: LPARAM): UINT',
+    False, ccStdCall);
   SepiImporttagOFNW(Result);
   TSepiTypeAlias.Create(Result, 'tagOFN', 'tagOFNA');
   TSepiTypeAlias.Create(Result, 'TOpenFilenameA', 'tagOFNA');
@@ -514,8 +516,10 @@ begin
   TSepiTypeAlias.Create(Result, 'OFNOTIFYA', '_OFNOTIFYA');
   TSepiTypeAlias.Create(Result, 'OFNOTIFYW', '_OFNOTIFYW');
   TSepiTypeAlias.Create(Result, 'OFNOTIFY', 'OFNOTIFYA');
-  TSepiPointerType.Create(Result, 'POFNotifyExA', TypeInfo(TOFNotifyExA), True);
-  TSepiPointerType.Create(Result, 'POFNotifyExW', TypeInfo(TOFNotifyExW), True);
+  TSepiPointerType.Create(Result, 'POFNotifyExA',
+    TypeInfo(TOFNotifyExA), True);
+  TSepiPointerType.Create(Result, 'POFNotifyExW',
+    TypeInfo(TOFNotifyExW), True);
   TSepiTypeAlias.Create(Result, 'POFNotifyEx', 'POFNotifyExA');
   SepiImport_OFNOTIFYEXA(Result);
   SepiImport_OFNOTIFYEXW(Result);
@@ -533,11 +537,13 @@ begin
   TSepiTypeAlias.Create(Result, 'PChooseColor', 'PChooseColorA');
   TSepiPointerType.Create(Result, '$3', TypeInfo(COLORREF), True);
   TSepiMethodRefType.Create(Result, '$4',
-    'function(Wnd: HWND; Message: UINT; wParam: WPARAM; lParam: LPARAM): UINT', False, ccStdCall);
+    'function(Wnd: HWND; Message: UINT; wParam: WPARAM; lParam: LPARAM): UINT',
+    False, ccStdCall);
   SepiImporttagCHOOSECOLORA(Result);
   TSepiPointerType.Create(Result, '$5', TypeInfo(COLORREF), True);
   TSepiMethodRefType.Create(Result, '$6',
-    'function(Wnd: HWND; Message: UINT; wParam: WPARAM; lParam: LPARAM): UINT', False, ccStdCall);
+    'function(Wnd: HWND; Message: UINT; wParam: WPARAM; lParam: LPARAM): UINT',
+    False, ccStdCall);
   SepiImporttagCHOOSECOLORW(Result);
   TSepiTypeAlias.Create(Result, 'tagCHOOSECOLOR', 'tagCHOOSECOLORA');
   TSepiTypeAlias.Create(Result, 'TChooseColorA', 'tagCHOOSECOLORA');
@@ -549,10 +555,12 @@ begin
   TSepiPointerType.Create(Result, 'PFindReplaceW', 'TFindReplaceW', True);
   TSepiTypeAlias.Create(Result, 'PFindReplace', 'PFindReplaceA');
   TSepiMethodRefType.Create(Result, '$7',
-    'function(Wnd: HWND; Message: UINT; wParam: WPARAM; lParam: LPARAM): UINT', False, ccStdCall);
+    'function(Wnd: HWND; Message: UINT; wParam: WPARAM; lParam: LPARAM): UINT',
+    False, ccStdCall);
   SepiImporttagFINDREPLACEA(Result);
   TSepiMethodRefType.Create(Result, '$8',
-    'function(Wnd: HWND; Message: UINT; wParam: WPARAM; lParam: LPARAM): UINT', False, ccStdCall);
+    'function(Wnd: HWND; Message: UINT; wParam: WPARAM; lParam: LPARAM): UINT',
+    False, ccStdCall);
   SepiImporttagFINDREPLACEW(Result);
   TSepiTypeAlias.Create(Result, 'tagFINDREPLACE', 'tagFINDREPLACEA');
   TSepiTypeAlias.Create(Result, 'TFindReplaceA', 'tagFINDREPLACEA');
@@ -567,10 +575,12 @@ begin
   TSepiPointerType.Create(Result, 'PChooseFontW', 'TChooseFontW', True);
   TSepiTypeAlias.Create(Result, 'PChooseFont', 'PChooseFontA');
   TSepiMethodRefType.Create(Result, '$9',
-    'function(Wnd: HWND; Message: UINT; wParam: WPARAM; lParam: LPARAM): UINT', False, ccStdCall);
+    'function(Wnd: HWND; Message: UINT; wParam: WPARAM; lParam: LPARAM): UINT',
+    False, ccStdCall);
   SepiImporttagCHOOSEFONTA(Result);
   TSepiMethodRefType.Create(Result, '$10',
-    'function(Wnd: HWND; Message: UINT; wParam: WPARAM; lParam: LPARAM): UINT', False, ccStdCall);
+    'function(Wnd: HWND; Message: UINT; wParam: WPARAM; lParam: LPARAM): UINT',
+    False, ccStdCall);
   SepiImporttagCHOOSEFONTW(Result);
   TSepiTypeAlias.Create(Result, 'tagCHOOSEFONT', 'tagCHOOSEFONTA');
   TSepiTypeAlias.Create(Result, 'TChooseFontA', 'tagCHOOSEFONTA');
@@ -582,14 +592,18 @@ begin
   TSepiPointerType.Create(Result, 'PPrintDlgW', 'TPrintDlgW', True);
   TSepiTypeAlias.Create(Result, 'PPrintDlg', 'PPrintDlgA');
   TSepiMethodRefType.Create(Result, '$11',
-    'function(Wnd: HWND; Message: UINT; wParam: WPARAM; lParam: LPARAM): UINT', False, ccStdCall);
+    'function(Wnd: HWND; Message: UINT; wParam: WPARAM; lParam: LPARAM): UINT',
+    False, ccStdCall);
   TSepiMethodRefType.Create(Result, '$12',
-    'function(Wnd: HWND; Message: UINT; wParam: WPARAM; lParam: LPARAM): UINT', False, ccStdCall);
+    'function(Wnd: HWND; Message: UINT; wParam: WPARAM; lParam: LPARAM): UINT',
+    False, ccStdCall);
   SepiImporttagPDA(Result);
   TSepiMethodRefType.Create(Result, '$13',
-    'function(Wnd: HWND; Message: UINT; wParam: WPARAM; lParam: LPARAM): UINT', False, ccStdCall);
+    'function(Wnd: HWND; Message: UINT; wParam: WPARAM; lParam: LPARAM): UINT',
+    False, ccStdCall);
   TSepiMethodRefType.Create(Result, '$14',
-    'function(Wnd: HWND; Message: UINT; wParam: WPARAM; lParam: LPARAM): UINT', False, ccStdCall);
+    'function(Wnd: HWND; Message: UINT; wParam: WPARAM; lParam: LPARAM): UINT',
+    False, ccStdCall);
   SepiImporttagPDW(Result);
   TSepiTypeAlias.Create(Result, 'tagPD', 'tagPDA');
   TSepiTypeAlias.Create(Result, 'TPrintDlgA', 'tagPDA');
@@ -607,14 +621,18 @@ begin
   TSepiPointerType.Create(Result, 'PPageSetupDlgW', 'TPageSetupDlgW', True);
   TSepiTypeAlias.Create(Result, 'PPageSetupDlg', 'PPageSetupDlgA');
   TSepiMethodRefType.Create(Result, '$15',
-    'function(Wnd: HWND; Message: UINT; wParam: WPARAM; lParam: LPARAM): UINT', False, ccStdCall);
+    'function(Wnd: HWND; Message: UINT; wParam: WPARAM; lParam: LPARAM): UINT',
+    False, ccStdCall);
   TSepiMethodRefType.Create(Result, '$16',
-    'function(Wnd: HWND; Message: UINT; wParam: WPARAM; lParam: LPARAM): UINT', False, ccStdCall);
+    'function(Wnd: HWND; Message: UINT; wParam: WPARAM; lParam: LPARAM): UINT',
+    False, ccStdCall);
   SepiImporttagPSDA(Result);
   TSepiMethodRefType.Create(Result, '$17',
-    'function(Wnd: HWND; Message: UINT; wParam: WPARAM; lParam: LPARAM): UINT', False, ccStdCall);
+    'function(Wnd: HWND; Message: UINT; wParam: WPARAM; lParam: LPARAM): UINT',
+    False, ccStdCall);
   TSepiMethodRefType.Create(Result, '$18',
-    'function(Wnd: HWND; Message: UINT; wParam: WPARAM; lParam: LPARAM): UINT', False, ccStdCall);
+    'function(Wnd: HWND; Message: UINT; wParam: WPARAM; lParam: LPARAM): UINT',
+    False, ccStdCall);
   SepiImporttagPSDW(Result);
   TSepiTypeAlias.Create(Result, 'tagPSD', 'tagPSDA');
   TSepiTypeAlias.Create(Result, 'TPageSetupDlgA', 'tagPSDA');

@@ -18,17 +18,17 @@ implementation
 type
   TSepiImportsTPublishableVariantType = class(TPublishableVariantType)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsEPropertyError = class(EPropertyError)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsEPropertyConvertError = class(EPropertyConvertError)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
 {--------------------------------}
@@ -36,7 +36,7 @@ type
 {--------------------------------}
 
 class function TSepiImportsTPublishableVariantType.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TPublishableVariantType));
@@ -68,7 +68,7 @@ end;
 { TTypeInfo import }
 {------------------}
 
-function SepiImportTTypeInfo(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTTypeInfo(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TTypeInfo', False, True);
 
@@ -85,7 +85,7 @@ end;
 { TTypeData import }
 {------------------}
 
-function SepiImportTTypeData(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTTypeData(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TTypeData', True, True);
 
@@ -96,13 +96,14 @@ begin
     AddFieldAfter('MaxValue', System.TypeInfo(Longint), 'MinValue');
     AddFieldAfter('BaseType', 'PPTypeInfo', 'MaxValue');
     AddFieldAfter('NameList', System.TypeInfo(ShortStringBase), 'BaseType');
-    AddFieldAfter('EnumUnitName', System.TypeInfo(ShortStringBase), 'NameList');
+    AddFieldAfter('EnumUnitName', System.TypeInfo(ShortStringBase),
+      'NameList');
     AddFieldAfter('CompType', 'PPTypeInfo', 'OrdType');
     AddFieldAfter('FloatType', System.TypeInfo(TFloatType), '');
     AddFieldAfter('MaxLength', System.TypeInfo(Byte), '');
     AddFieldAfter('ClassType', 'TClass', '');
     AddFieldAfter('ParentInfo', 'PPTypeInfo', 'ClassType');
-    AddFieldAfter('PropCount', System.TypeInfo(SmallInt), 'ParentInfo');
+    AddFieldAfter('PropCount', System.TypeInfo(Smallint), 'ParentInfo');
     AddFieldAfter('UnitName', System.TypeInfo(ShortStringBase), 'PropCount');
     AddFieldAfter('MethodKind', System.TypeInfo(TMethodKind), '');
     AddFieldAfter('ParamCount', System.TypeInfo(Byte), 'MethodKind');
@@ -127,7 +128,7 @@ end;
 { $2 import }
 {-----------}
 
-function SepiImport_2(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_2(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '$2', False, True);
 
@@ -142,7 +143,7 @@ end;
 { TPropData import }
 {------------------}
 
-function SepiImportTPropData(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTPropData(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TPropData', True, True);
 
@@ -159,7 +160,7 @@ end;
 { TPropInfo import }
 {------------------}
 
-function SepiImportTPropInfo(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTPropInfo(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TPropInfo', True, True);
 
@@ -171,7 +172,7 @@ begin
     AddField('StoredProc', 'Pointer');
     AddField('Index', System.TypeInfo(Integer));
     AddField('Default', System.TypeInfo(Longint));
-    AddField('NameIndex', System.TypeInfo(SmallInt));
+    AddField('NameIndex', System.TypeInfo(Smallint));
     AddField('Name', System.TypeInfo(ShortString));
 
     Complete;
@@ -183,7 +184,7 @@ end;
 {-----------------------}
 
 class function TSepiImportsEPropertyError.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EPropertyError));
@@ -200,7 +201,7 @@ end;
 {------------------------------}
 
 class function TSepiImportsEPropertyConvertError.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EPropertyConvertError));
@@ -226,12 +227,14 @@ begin
   Result := PropType(AClass, PropName);
 end;
 
-function PropIsType_0(Instance: TObject; const PropName: string; TypeKind: TTypeKind ) : Boolean;
+function PropIsType_0(Instance: TObject; const PropName: string;
+  TypeKind: TTypeKind): Boolean;
 begin
   Result := PropIsType(Instance, PropName, TypeKind);
 end;
 
-function PropIsType_1(AClass: TClass; const PropName: string; TypeKind: TTypeKind ) : Boolean;
+function PropIsType_1(AClass: TClass; const PropName: string;
+  TypeKind: TTypeKind): Boolean;
 begin
   Result := PropIsType(AClass, PropName, TypeKind);
 end;
@@ -256,7 +259,8 @@ begin
   Result := GetOrdProp(Instance, PropName);
 end;
 
-procedure SetOrdProp_0(Instance: TObject; const PropName: string; Value: Longint );
+procedure SetOrdProp_0(Instance: TObject; const PropName: string;
+  Value: Longint);
 begin
   SetOrdProp(Instance, PropName, Value);
 end;
@@ -266,32 +270,38 @@ begin
   Result := GetEnumProp(Instance, PropName);
 end;
 
-procedure SetEnumProp_0(Instance: TObject; const PropName: string; const Value: string );
+procedure SetEnumProp_0(Instance: TObject; const PropName: string;
+  const Value: string);
 begin
   SetEnumProp(Instance, PropName, Value);
 end;
 
-function GetSetProp_0(Instance: TObject; const PropName: string; Brackets: Boolean = False ) : string;
+function GetSetProp_0(Instance: TObject; const PropName: string;
+  Brackets: Boolean = False): string;
 begin
   Result := GetSetProp(Instance, PropName, Brackets);
 end;
 
-procedure SetSetProp_0(Instance: TObject; const PropName: string; const Value: string );
+procedure SetSetProp_0(Instance: TObject; const PropName: string;
+  const Value: string);
 begin
   SetSetProp(Instance, PropName, Value);
 end;
 
-function GetObjectProp_0(Instance: TObject; const PropName: string; MinClass: TClass = nil ) : TObject;
+function GetObjectProp_0(Instance: TObject; const PropName: string;
+  MinClass: TClass = nil): TObject;
 begin
   Result := GetObjectProp(Instance, PropName, MinClass);
 end;
 
-procedure SetObjectProp_0(Instance: TObject; const PropName: string; Value: TObject );
+procedure SetObjectProp_0(Instance: TObject; const PropName: string;
+  Value: TObject);
 begin
   SetObjectProp(Instance, PropName, Value);
 end;
 
-function GetObjectPropClass_0(Instance: TObject; const PropName: string): TClass;
+function GetObjectPropClass_0(Instance: TObject;
+  const PropName: string): TClass;
 begin
   Result := GetObjectPropClass(Instance, PropName);
 end;
@@ -301,17 +311,20 @@ begin
   Result := GetStrProp(Instance, PropName);
 end;
 
-procedure SetStrProp_0(Instance: TObject; const PropName: string; const Value: string );
+procedure SetStrProp_0(Instance: TObject; const PropName: string;
+  const Value: string);
 begin
   SetStrProp(Instance, PropName, Value);
 end;
 
-function GetWideStrProp_0(Instance: TObject; const PropName: string): WideString;
+function GetWideStrProp_0(Instance: TObject;
+  const PropName: string): WideString;
 begin
   Result := GetWideStrProp(Instance, PropName);
 end;
 
-procedure SetWideStrProp_0(Instance: TObject; const PropName: string; const Value: WideString );
+procedure SetWideStrProp_0(Instance: TObject; const PropName: string;
+  const Value: WideString);
 begin
   SetWideStrProp(Instance, PropName, Value);
 end;
@@ -321,7 +334,8 @@ begin
   Result := GetFloatProp(Instance, PropName);
 end;
 
-procedure SetFloatProp_0(Instance: TObject; const PropName: string; const Value: Extended );
+procedure SetFloatProp_0(Instance: TObject; const PropName: string;
+  const Value: Extended);
 begin
   SetFloatProp(Instance, PropName, Value);
 end;
@@ -331,7 +345,8 @@ begin
   Result := GetVariantProp(Instance, PropName);
 end;
 
-procedure SetVariantProp_0(Instance: TObject; const PropName: string; const Value: Variant );
+procedure SetVariantProp_0(Instance: TObject; const PropName: string;
+  const Value: Variant);
 begin
   SetVariantProp(Instance, PropName, Value);
 end;
@@ -341,7 +356,8 @@ begin
   Result := GetMethodProp(Instance, PropName);
 end;
 
-procedure SetMethodProp_0(Instance: TObject; const PropName: string; const Value: TMethod );
+procedure SetMethodProp_0(Instance: TObject; const PropName: string;
+  const Value: TMethod);
 begin
   SetMethodProp(Instance, PropName, Value);
 end;
@@ -351,17 +367,20 @@ begin
   Result := GetInt64Prop(Instance, PropName);
 end;
 
-procedure SetInt64Prop_0(Instance: TObject; const PropName: string; const Value: Int64 );
+procedure SetInt64Prop_0(Instance: TObject; const PropName: string;
+  const Value: Int64);
 begin
   SetInt64Prop(Instance, PropName, Value);
 end;
 
-function GetInterfaceProp_0(Instance: TObject; const PropName: string): IInterface;
+function GetInterfaceProp_0(Instance: TObject;
+  const PropName: string): IInterface;
 begin
   Result := GetInterfaceProp(Instance, PropName);
 end;
 
-procedure SetInterfaceProp_0(Instance: TObject; const PropName: string; const Value: IInterface );
+procedure SetInterfaceProp_0(Instance: TObject; const PropName: string;
+  const Value: IInterface);
 begin
   SetInterfaceProp(Instance, PropName, Value);
 end;
@@ -371,42 +390,50 @@ begin
   Result := GetDynArrayProp(Instance, PropName);
 end;
 
-procedure SetDynArrayProp_0(Instance: TObject; const PropName: string; const Value: Pointer );
+procedure SetDynArrayProp_0(Instance: TObject; const PropName: string;
+  const Value: Pointer);
 begin
   SetDynArrayProp(Instance, PropName, Value);
 end;
 
-function GetPropValue_0(Instance: TObject; const PropName: string; PreferStrings: Boolean = True ) : Variant;
+function GetPropValue_0(Instance: TObject; const PropName: string;
+  PreferStrings: Boolean = True): Variant;
 begin
   Result := GetPropValue(Instance, PropName, PreferStrings);
 end;
 
-procedure SetPropValue_0(Instance: TObject; const PropName: string; const Value: Variant );
+procedure SetPropValue_0(Instance: TObject; const PropName: string;
+  const Value: Variant);
 begin
   SetPropValue(Instance, PropName, Value);
 end;
 
-function GetPropInfo_0(Instance: TObject; const PropName: string; AKinds: TTypeKinds = [] ) : PPropInfo;
+function GetPropInfo_0(Instance: TObject; const PropName: string;
+  AKinds: TTypeKinds = []): PPropInfo;
 begin
   Result := GetPropInfo(Instance, PropName, AKinds);
 end;
 
-function GetPropInfo_1(AClass: TClass; const PropName: string; AKinds: TTypeKinds = [] ) : PPropInfo;
+function GetPropInfo_1(AClass: TClass; const PropName: string;
+  AKinds: TTypeKinds = []): PPropInfo;
 begin
   Result := GetPropInfo(AClass, PropName, AKinds);
 end;
 
-function GetPropInfo_2(TypeInfo: PTypeInfo; const PropName: string ) : PPropInfo;
+function GetPropInfo_2(TypeInfo: PTypeInfo;
+  const PropName: string): PPropInfo;
 begin
   Result := GetPropInfo(TypeInfo, PropName);
 end;
 
-function GetPropInfo_3(TypeInfo: PTypeInfo; const PropName: string; AKinds: TTypeKinds ) : PPropInfo;
+function GetPropInfo_3(TypeInfo: PTypeInfo; const PropName: string;
+  AKinds: TTypeKinds): PPropInfo;
 begin
   Result := GetPropInfo(TypeInfo, PropName, AKinds);
 end;
 
-function GetPropList_0(TypeInfo: PTypeInfo; TypeKinds: TTypeKinds; PropList: PPropList ; SortList: Boolean = True ) : Integer;
+function GetPropList_0(TypeInfo: PTypeInfo; TypeKinds: TTypeKinds;
+  PropList: PPropList; SortList: Boolean = True): Integer;
 begin
   Result := GetPropList(TypeInfo, TypeKinds, PropList, SortList);
 end;
@@ -426,12 +453,14 @@ begin
   Result := IsStoredProp(Instance, PropInfo);
 end;
 
-function GetPropValue_1(Instance: TObject; PropInfo: PPropInfo; PreferStrings: Boolean = True ) : Variant;
+function GetPropValue_1(Instance: TObject; PropInfo: PPropInfo;
+  PreferStrings: Boolean = True): Variant;
 begin
   Result := GetPropValue(Instance, PropInfo, PreferStrings);
 end;
 
-procedure SetPropValue_1(Instance: TObject; PropInfo: PPropInfo; const Value: Variant );
+procedure SetPropValue_1(Instance: TObject; PropInfo: PPropInfo;
+  const Value: Variant);
 begin
   SetPropValue(Instance, PropInfo, Value);
 end;
@@ -441,7 +470,8 @@ begin
   Result := GetOrdProp(Instance, PropInfo);
 end;
 
-procedure SetOrdProp_1(Instance: TObject; PropInfo: PPropInfo; Value: Longint );
+procedure SetOrdProp_1(Instance: TObject; PropInfo: PPropInfo;
+  Value: Longint);
 begin
   SetOrdProp(Instance, PropInfo, Value);
 end;
@@ -451,27 +481,32 @@ begin
   Result := GetEnumProp(Instance, PropInfo);
 end;
 
-procedure SetEnumProp_1(Instance: TObject; PropInfo: PPropInfo; const Value: string );
+procedure SetEnumProp_1(Instance: TObject; PropInfo: PPropInfo;
+  const Value: string);
 begin
   SetEnumProp(Instance, PropInfo, Value);
 end;
 
-function GetSetProp_1(Instance: TObject; PropInfo: PPropInfo; Brackets: Boolean = False ) : string;
+function GetSetProp_1(Instance: TObject; PropInfo: PPropInfo;
+  Brackets: Boolean = False): string;
 begin
   Result := GetSetProp(Instance, PropInfo, Brackets);
 end;
 
-procedure SetSetProp_1(Instance: TObject; PropInfo: PPropInfo; const Value: string );
+procedure SetSetProp_1(Instance: TObject; PropInfo: PPropInfo;
+  const Value: string);
 begin
   SetSetProp(Instance, PropInfo, Value);
 end;
 
-function GetObjectProp_1(Instance: TObject; PropInfo: PPropInfo; MinClass: TClass = nil ) : TObject;
+function GetObjectProp_1(Instance: TObject; PropInfo: PPropInfo;
+  MinClass: TClass = nil): TObject;
 begin
   Result := GetObjectProp(Instance, PropInfo, MinClass);
 end;
 
-procedure SetObjectProp_1(Instance: TObject; PropInfo: PPropInfo; Value: TObject ; ValidateClass: Boolean = True );
+procedure SetObjectProp_1(Instance: TObject; PropInfo: PPropInfo;
+  Value: TObject; ValidateClass: Boolean = True);
 begin
   SetObjectProp(Instance, PropInfo, Value, ValidateClass);
 end;
@@ -491,7 +526,8 @@ begin
   Result := GetStrProp(Instance, PropInfo);
 end;
 
-procedure SetStrProp_1(Instance: TObject; PropInfo: PPropInfo; const Value: string );
+procedure SetStrProp_1(Instance: TObject; PropInfo: PPropInfo;
+  const Value: string);
 begin
   SetStrProp(Instance, PropInfo, Value);
 end;
@@ -501,7 +537,8 @@ begin
   Result := GetWideStrProp(Instance, PropInfo);
 end;
 
-procedure SetWideStrProp_1(Instance: TObject; PropInfo: PPropInfo; const Value: WideString );
+procedure SetWideStrProp_1(Instance: TObject; PropInfo: PPropInfo;
+  const Value: WideString);
 begin
   SetWideStrProp(Instance, PropInfo, Value);
 end;
@@ -511,7 +548,8 @@ begin
   Result := GetFloatProp(Instance, PropInfo);
 end;
 
-procedure SetFloatProp_1(Instance: TObject; PropInfo: PPropInfo; const Value: Extended );
+procedure SetFloatProp_1(Instance: TObject; PropInfo: PPropInfo;
+  const Value: Extended);
 begin
   SetFloatProp(Instance, PropInfo, Value);
 end;
@@ -521,7 +559,8 @@ begin
   Result := GetVariantProp(Instance, PropInfo);
 end;
 
-procedure SetVariantProp_1(Instance: TObject; PropInfo: PPropInfo; const Value: Variant );
+procedure SetVariantProp_1(Instance: TObject; PropInfo: PPropInfo;
+  const Value: Variant);
 begin
   SetVariantProp(Instance, PropInfo, Value);
 end;
@@ -531,7 +570,8 @@ begin
   Result := GetMethodProp(Instance, PropInfo);
 end;
 
-procedure SetMethodProp_1(Instance: TObject; PropInfo: PPropInfo; const Value: TMethod );
+procedure SetMethodProp_1(Instance: TObject; PropInfo: PPropInfo;
+  const Value: TMethod);
 begin
   SetMethodProp(Instance, PropInfo, Value);
 end;
@@ -541,17 +581,20 @@ begin
   Result := GetInt64Prop(Instance, PropInfo);
 end;
 
-procedure SetInt64Prop_1(Instance: TObject; PropInfo: PPropInfo; const Value: Int64 );
+procedure SetInt64Prop_1(Instance: TObject; PropInfo: PPropInfo;
+  const Value: Int64);
 begin
   SetInt64Prop(Instance, PropInfo, Value);
 end;
 
-function GetInterfaceProp_1(Instance: TObject; PropInfo: PPropInfo): IInterface;
+function GetInterfaceProp_1(Instance: TObject;
+  PropInfo: PPropInfo): IInterface;
 begin
   Result := GetInterfaceProp(Instance, PropInfo);
 end;
 
-procedure SetInterfaceProp_1(Instance: TObject; PropInfo: PPropInfo; const Value: IInterface );
+procedure SetInterfaceProp_1(Instance: TObject; PropInfo: PPropInfo;
+  const Value: IInterface);
 begin
   SetInterfaceProp(Instance, PropInfo, Value);
 end;
@@ -561,12 +604,13 @@ begin
   Result := GetDynArrayProp(Instance, PropInfo);
 end;
 
-procedure SetDynArrayProp_1(Instance: TObject; PropInfo: PPropInfo; const Value: Pointer );
+procedure SetDynArrayProp_1(Instance: TObject; PropInfo: PPropInfo;
+  const Value: Pointer);
 begin
   SetDynArrayProp(Instance, PropInfo, Value);
 end;
 
-function ImportUnit(Root : TSepiRoot) : TSepiUnit;
+function ImportUnit(Root: TSepiRoot): TSepiUnit;
 begin
   Result := TSepiUnit.Create(Root, 'TypInfo',
     ['Variants', 'SysUtils']);
@@ -807,9 +851,9 @@ begin
   TSepiArrayType.Create(Result, '$3',
     [Integer(Low(Boolean)), Integer(High(Boolean))], TypeInfo(string), True);
   TSepiVariable.Create(Result, 'BooleanIdents',
-     BooleanIdents, '$3');
+    BooleanIdents, '$3');
   TSepiVariable.Create(Result, 'DotSep',
-     DotSep, TypeInfo(string));
+    DotSep, TypeInfo(string));
 
   // Routines
   TSepiMethod.Create(Result, 'SetToString', @SetToString,

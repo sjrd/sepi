@@ -18,9 +18,9 @@ type
   *}
   TSepiAboutDialog = class(TComponent)
   private
-    FDialog : TSdAboutDialog; /// Boîte de dialogue générique
+    FDialog: TSdAboutDialog; /// Boîte de dialogue générique
   public
-    constructor Create(AOwner : TComponent); override;
+    constructor Create(AOwner: TComponent); override;
 
     procedure Execute;
   end;
@@ -31,7 +31,7 @@ implementation
   Crée une instance de TSepiAboutDialog
   @param AOwner   Propriétaire
 *}
-constructor TSepiAboutDialog.Create(AOwner : TComponent);
+constructor TSepiAboutDialog.Create(AOwner: TComponent);
 begin
   inherited;
   FDialog := TSdAboutDialog.Create(Self);

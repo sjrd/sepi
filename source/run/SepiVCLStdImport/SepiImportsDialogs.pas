@@ -19,7 +19,7 @@ implementation
 type
   TSepiImportsTCommonDialog = class(TCommonDialog)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTOpenDialog = class(TOpenDialog)
@@ -30,40 +30,40 @@ type
     procedure SetInitialDir(const Value: string);
     function DoExecute_0(Func: Pointer): Bool;
     function DoExecute_1(Func: Pointer; ParentWnd: HWND): Bool;
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTSaveDialog = class(TSaveDialog)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTColorDialog = class(TColorDialog)
   private
     procedure SetCustomColors(Value: TStrings);
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTFontDialog = class(TFontDialog)
   private
     procedure SetFont(Value: TFont);
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTPrinterSetupDialog = class(TPrinterSetupDialog)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTPrintDialog = class(TPrintDialog)
   private
     procedure SetNumCopies(Value: Integer);
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTPageSetupDialog = class(TPageSetupDialog)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTFindDialog = class(TFindDialog)
@@ -76,12 +76,12 @@ type
     procedure SetLeft(Value: Integer);
     procedure SetPosition(const Value: TPoint);
     procedure SetTop(Value: Integer);
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTReplaceDialog = class(TReplaceDialog)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
 {----------------------}
@@ -89,7 +89,7 @@ type
 {----------------------}
 
 class function TSepiImportsTCommonDialog.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TCommonDialog));
@@ -211,15 +211,16 @@ begin
   Result := DoExecute(Func);
 end;
 
-function TSepiImportsTOpenDialog.DoExecute_1(Func: Pointer; ParentWnd: HWND): Bool;
+function TSepiImportsTOpenDialog.DoExecute_1(Func: Pointer;
+  ParentWnd: HWND): Bool;
 begin
   Result := DoExecute(Func, ParentWnd);
 end;
 
 class function TSepiImportsTOpenDialog.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 const
-  DefaultOptions : TOpenOptions = [ofHideReadOnly, ofEnableSizing];
+  DefaultOptions: TOpenOptions = [ofHideReadOnly, ofEnableSizing];
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TOpenDialog));
@@ -352,7 +353,7 @@ end;
 {--------------------}
 
 class function TSepiImportsTSaveDialog.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TSaveDialog));
@@ -377,7 +378,7 @@ begin
 end;
 
 class function TSepiImportsTColorDialog.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TColorDialog));
@@ -432,9 +433,9 @@ begin
 end;
 
 class function TSepiImportsTFontDialog.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 const
-  DefaultOptions : TFontDialogOptions = [fdEffects];
+  DefaultOptions: TFontDialogOptions = [fdEffects];
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TFontDialog));
@@ -508,7 +509,7 @@ end;
 {----------------------------}
 
 class function TSepiImportsTPrinterSetupDialog.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TPrinterSetupDialog));
@@ -535,7 +536,7 @@ begin
 end;
 
 class function TSepiImportsTPrintDialog.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TPrintDialog));
@@ -602,9 +603,9 @@ end;
 {-------------------------}
 
 class function TSepiImportsTPageSetupDialog.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 const
-  DefaultOptions : TPageSetupDialogOptions = [psoDefaultMinMargins];
+  DefaultOptions: TPageSetupDialogOptions = [psoDefaultMinMargins];
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TPageSetupDialog));
@@ -740,9 +741,9 @@ begin
 end;
 
 class function TSepiImportsTFindDialog.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 const
-  DefaultOptions : TFindOptions = [frDown];
+  DefaultOptions: TFindOptions = [frDown];
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TFindDialog));
@@ -839,7 +840,7 @@ end;
 {-----------------------}
 
 class function TSepiImportsTReplaceDialog.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TReplaceDialog));
@@ -865,11 +866,11 @@ end;
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiRoot) : TSepiUnit;
+function ImportUnit(Root: TSepiRoot): TSepiUnit;
 begin
   Result := TSepiUnit.Create(Root, 'Dialogs',
     ['Windows', 'Messages', 'SysUtils', 'CommDlgTypes', 'Printers', 'Classes',
-     'Graphics', 'Controls', 'Forms', 'StdCtrls']);
+    'Graphics', 'Controls', 'Forms', 'StdCtrls']);
 
   // Constants
   TSepiConstant.Create(Result, 'MaxCustomColors', MaxCustomColors);
@@ -900,7 +901,8 @@ begin
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(TPrintDialogOption));
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(TPrintDialogOptions));
   TSepiImportsTPrintDialog.SepiImport(Result);
-  TSepiTypeAlias.Create(Result, 'TPrinterOrientation', TypeInfo(Printers.TPrinterOrientation));
+  TSepiTypeAlias.Create(Result, 'TPrinterOrientation',
+    TypeInfo(Printers.TPrinterOrientation));
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(TPageSetupDialogOption));
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(TPageSetupDialogOptions));
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(TPrinterKind));

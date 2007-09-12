@@ -27,8 +27,8 @@ type
     @version 1.0
   *}
   TSepiVersion = record
-    MajVersion : integer; /// Version majeure
-    MinVersion : integer; /// Version mineure
+    MajVersion: Integer; /// Version majeure
+    MinVersion: Integer; /// Version mineure
   end;
 
   {*
@@ -38,40 +38,40 @@ type
   *}
   TSepi = class
   private
-    FName : string;          /// Nom du projet Sepi
-    FVersion : TSepiVersion; /// Version courante de Sepi
-    FAuthor : string;        /// Auteur de Sepi
-    FAuthorEMail : string;   /// Adresse e-mail de l'auteur
-    FWebSite : string;       /// Site Web de Sepi
-    FPath : string;          /// Dossier d'installation des run-time Sepi
+    FName: string;          /// Nom du projet Sepi
+    FVersion: TSepiVersion; /// Version courante de Sepi
+    FAuthor: string;        /// Auteur de Sepi
+    FAuthorEMail: string;   /// Adresse e-mail de l'auteur
+    FWebSite: string;       /// Site Web de Sepi
+    FPath: string;          /// Dossier d'installation des run-time Sepi
 
-    FormatPackageFileName : string; /// Format des noms de fichiers package
-    FPackages : TList;              /// Liste des packages chargés
+    FormatPackageFileName: string; /// Format des noms de fichiers package
+    FPackages: TList;              /// Liste des packages chargés
 
-    function FindPackage(FileName : TFileName) : Pointer;
-    function GetPackHandle(FileName : TFileName) : HMODULE;
+    function FindPackage(FileName: TFileName): Pointer;
+    function GetPackHandle(FileName: TFileName): HMODULE;
   public
     constructor Create;
     destructor Destroy; override;
 
-    function LoadPackage(FileName : TFileName) : HMODULE; overload;
-    procedure UnloadPackage(FileName : TFileName); overload;
+    function LoadPackage(FileName: TFileName): HMODULE; overload;
+    procedure UnloadPackage(FileName: TFileName); overload;
 
-    property Name : string read FName;
-    property Version : TSepiVersion read FVersion;
-    property Author : string read FAuthor;
-    property AuthorEMail : string read FAuthorEMail;
-    property WebSite : string read FWebSite;
-    property Path : string read FPath;
+    property Name: string read FName;
+    property Version: TSepiVersion read FVersion;
+    property Author: string read FAuthor;
+    property AuthorEMail: string read FAuthorEMail;
+    property WebSite: string read FWebSite;
+    property Path: string read FPath;
 
-    property PackageHandle[FileName : TFileName] : HMODULE read GetPackHandle;
+    property PackageHandle[FileName: TFileName]: HMODULE read GetPackHandle;
   end;
 
 const {don't localize}
   SepiEnvVarName = 'SEPI'; /// Nom de la variable d'environnement de Sepi
 
 var
-  Sepi : TSepi; /// Objet maître universel de Sepi - instance unique de TSepi
+  Sepi: TSepi; /// Objet maître universel de Sepi - instance unique de TSepi
 
 implementation
 
@@ -90,9 +90,9 @@ type
     @version 1.0
   *}
   TSepiPackage = record
-    FileName : string[20];
-    Handle : HMODULE;
-    Counter : integer;
+    FileName: string[20];
+    Handle: HMODULE;
+    Counter: Integer;
   end;
 
 {--------------}
@@ -127,7 +127,8 @@ end;
   Détruit l'instance
 *}
 destructor TSepi.Destroy;
-var I : integer;
+var
+  I: Integer;
 begin
   for I := 0 to FPackages.Count-1 do
     SysUtils.UnloadPackage(PSepiPackage(FPackages[I]).Handle);
@@ -140,8 +141,9 @@ end;
   @param FileName   Nom du package à trouver
   @return Un pointeur sur les informations sur ce package
 *}
-function TSepi.FindPackage(FileName : TFileName) : Pointer;
-var I : integer;
+function TSepi.FindPackage(FileName: TFileName): Pointer;
+var
+  I: Integer;
 begin
   {$IFDEF MSWINDOWS} FileName := AnsiLowerCase(FileName); {$ENDIF}
   for I := 0 to FPackages.Count-1 do
@@ -160,8 +162,9 @@ end;
   @param FileName   Nom d'un package
   @return Handle du package, ou 0 si celui-ci n'a jamais été chargé
 *}
-function TSepi.GetPackHandle(FileName : TFileName) : HMODULE;
-var Package : PSepiPackage;
+function TSepi.GetPackHandle(FileName: TFileName): HMODULE;
+var
+  Package: PSepiPackage;
 begin
   Package := PSepiPackage(FindPackage(FileName));
   if Assigned(Package) then Result := Package.Handle else Result := 0;
@@ -173,13 +176,14 @@ end;
   @param FileName   Nom du package à charger
   @return Handle du package nouvellement chargé
 *}
-function TSepi.LoadPackage(FileName : TFileName) : HMODULE;
-var Package : PSepiPackage;
+function TSepi.LoadPackage(FileName: TFileName): HMODULE;
+var
+  Package: PSepiPackage;
 begin
   Package := PSepiPackage(FindPackage(FileName));
   if Assigned(Package) then
   begin
-    inc(Package.Counter);
+    Inc(Package.Counter);
     Result := Package.Handle;
   end else
   begin
@@ -200,13 +204,14 @@ end;
   Tout appel à UnloadPackage doit être compensé par un appel à LoadPackage.
   @param FileName   Nom du package à décharger
 *}
-procedure TSepi.UnloadPackage(FileName : TFileName);
-var Package : PSepiPackage;
+procedure TSepi.UnloadPackage(FileName: TFileName);
+var
+  Package: PSepiPackage;
 begin
   Package := PSepiPackage(FindPackage(FileName));
   if Assigned(Package) then
   begin
-    dec(Package.Counter);
+    Dec(Package.Counter);
     if Package.Counter = 0 then
     begin
       FPackages.Remove(Package);

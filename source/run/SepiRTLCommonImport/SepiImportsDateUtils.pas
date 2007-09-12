@@ -44,7 +44,7 @@ begin
   Result := WeekOfTheYear(AValue);
 end;
 
-function WeekOfTheYear_1(const AValue: TDateTime; var AYear: Word ) : Word;
+function WeekOfTheYear_1(const AValue: TDateTime; var AYear: Word): Word;
 begin
   Result := WeekOfTheYear(AValue, AYear);
 end;
@@ -54,12 +54,14 @@ begin
   Result := WeekOfTheMonth(AValue);
 end;
 
-function WeekOfTheMonth_1(const AValue: TDateTime; var AYear, AMonth : Word ) : Word;
+function WeekOfTheMonth_1(const AValue: TDateTime;
+  var
+    AYear, AMonth: Word): Word;
 begin
   Result := WeekOfTheMonth(AValue, AYear, AMonth);
 end;
 
-function ImportUnit(Root : TSepiRoot) : TSepiUnit;
+function ImportUnit(Root: TSepiRoot): TSepiUnit;
 begin
   Result := TSepiUnit.Create(Root, 'DateUtils',
     ['SysUtils', 'Math', 'Types']);
@@ -349,7 +351,8 @@ begin
     'procedure(const AValue: TDateTime; out AYear, AMonth, ANthDayOfWeek , ADayOfWeek : Word )');
   TSepiMethod.Create(Result, 'EncodeDayOfWeekInMonth', @EncodeDayOfWeekInMonth,
     'function(const AYear, AMonth, ANthDayOfWeek, ADayOfWeek : Word ) : TDateTime');
-  TSepiMethod.Create(Result, 'TryEncodeDayOfWeekInMonth', @TryEncodeDayOfWeekInMonth,
+  TSepiMethod.Create(Result, 'TryEncodeDayOfWeekInMonth',
+    @TryEncodeDayOfWeekInMonth,
     'function(const AYear, AMonth, ANthDayOfWeek, ADayOfWeek : Word ; out AValue: TDateTime ) : Boolean');
   TSepiMethod.Create(Result, 'InvalidDateTimeError', @InvalidDateTimeError,
     'procedure(const AYear, AMonth, ADay, AHour, AMinute, ASecond , AMilliSecond : Word ; const ABaseDate: TDateTime = 0 )');
@@ -357,21 +360,27 @@ begin
     'procedure(const AYear, AWeekOfYear, ADayOfWeek: Word)');
   TSepiMethod.Create(Result, 'InvalidDateDayError', @InvalidDateDayError,
     'procedure(const AYear, ADayOfYear: Word)');
-  TSepiMethod.Create(Result, 'InvalidDateMonthWeekError', @InvalidDateMonthWeekError,
+  TSepiMethod.Create(Result, 'InvalidDateMonthWeekError',
+    @InvalidDateMonthWeekError,
     'procedure(const AYear, AMonth, AWeekOfMonth, ADayOfWeek : Word )');
-  TSepiMethod.Create(Result, 'InvalidDayOfWeekInMonthError', @InvalidDayOfWeekInMonthError,
+  TSepiMethod.Create(Result, 'InvalidDayOfWeekInMonthError',
+    @InvalidDayOfWeekInMonthError,
     'procedure(const AYear, AMonth, ANthDayOfWeek, ADayOfWeek : Word )');
   TSepiMethod.Create(Result, 'DateTimeToJulianDate', @DateTimeToJulianDate,
     'function(const AValue: TDateTime): Double');
   TSepiMethod.Create(Result, 'JulianDateToDateTime', @JulianDateToDateTime,
     'function(const AValue: Double): TDateTime');
-  TSepiMethod.Create(Result, 'TryJulianDateToDateTime', @TryJulianDateToDateTime,
+  TSepiMethod.Create(Result, 'TryJulianDateToDateTime',
+    @TryJulianDateToDateTime,
     'function(const AValue: Double; out ADateTime: TDateTime ) : Boolean');
-  TSepiMethod.Create(Result, 'DateTimeToModifiedJulianDate', @DateTimeToModifiedJulianDate,
+  TSepiMethod.Create(Result, 'DateTimeToModifiedJulianDate',
+    @DateTimeToModifiedJulianDate,
     'function(const AValue: TDateTime): Double');
-  TSepiMethod.Create(Result, 'ModifiedJulianDateToDateTime', @ModifiedJulianDateToDateTime,
+  TSepiMethod.Create(Result, 'ModifiedJulianDateToDateTime',
+    @ModifiedJulianDateToDateTime,
     'function(const AValue: Double): TDateTime');
-  TSepiMethod.Create(Result, 'TryModifiedJulianDateToDateTime', @TryModifiedJulianDateToDateTime,
+  TSepiMethod.Create(Result, 'TryModifiedJulianDateToDateTime',
+    @TryModifiedJulianDateToDateTime,
     'function(const AValue: Double; out ADateTime: TDateTime ) : Boolean');
   TSepiMethod.Create(Result, 'DateTimeToUnix', @DateTimeToUnix,
     'function(const AValue: TDateTime): Int64');
@@ -399,14 +408,14 @@ begin
   TSepiArrayType.Create(Result, '$1',
     [Integer(Low(Boolean)), Integer(High(Boolean))], TypeInfo(Word), True);
   TSepiVariable.Create(Result, 'DaysPerYear',
-     DaysPerYear, '$1', True);
+    DaysPerYear, '$1', True);
   TSepiConstant.Create(Result, 'RecodeLeaveFieldAsIs', RecodeLeaveFieldAsIs);
 
   // Global variables
   TSepiVariable.Create(Result, 'ApproxDaysPerMonth',
-     ApproxDaysPerMonth, TypeInfo(Double));
+    ApproxDaysPerMonth, TypeInfo(Double));
   TSepiVariable.Create(Result, 'ApproxDaysPerYear',
-     ApproxDaysPerYear, TypeInfo(Double));
+    ApproxDaysPerYear, TypeInfo(Double));
 
   Result.Complete;
 end;

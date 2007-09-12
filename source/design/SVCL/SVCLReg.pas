@@ -20,14 +20,14 @@ implementation
 procedure Register;
 begin
   RegisterComponents('SVCL',
-  [
-  // SvEdits
+    [
+    // SvEdits
     TSvNumberEdit,
-  // SvImages
+    // SvImages
     TSvDropImage,
-  // SvLabels
+    // SvLabels
     TSvURLLabel
-  ]);
+    ]);
 end;
 
 end.

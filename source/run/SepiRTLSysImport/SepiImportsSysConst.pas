@@ -19,7 +19,7 @@ implementation
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiRoot) : TSepiUnit;
+function ImportUnit(Root: TSepiRoot): TSepiUnit;
 begin
   Result := TSepiUnit.Create(Root, 'SysConst', []);
 
@@ -78,26 +78,35 @@ begin
   TSepiConstant.Create(Result, 'SInvalidVarCast', SInvalidVarCast);
   TSepiConstant.Create(Result, 'SInvalidVarOp', SInvalidVarOp);
   TSepiConstant.Create(Result, 'SInvalidVarNullOp', SInvalidVarNullOp);
-  TSepiConstant.Create(Result, 'SInvalidVarOpWithHResultWithPrefix', SInvalidVarOpWithHResultWithPrefix);
+  TSepiConstant.Create(Result, 'SInvalidVarOpWithHResultWithPrefix',
+    SInvalidVarOpWithHResultWithPrefix);
   TSepiConstant.Create(Result, 'SVarTypeRangeCheck1', SVarTypeRangeCheck1);
   TSepiConstant.Create(Result, 'SVarTypeRangeCheck2', SVarTypeRangeCheck2);
-  TSepiConstant.Create(Result, 'SVarTypeOutOfRangeWithPrefix', SVarTypeOutOfRangeWithPrefix);
-  TSepiConstant.Create(Result, 'SVarTypeAlreadyUsedWithPrefix', SVarTypeAlreadyUsedWithPrefix);
-  TSepiConstant.Create(Result, 'SVarTypeNotUsableWithPrefix', SVarTypeNotUsableWithPrefix);
+  TSepiConstant.Create(Result, 'SVarTypeOutOfRangeWithPrefix',
+    SVarTypeOutOfRangeWithPrefix);
+  TSepiConstant.Create(Result, 'SVarTypeAlreadyUsedWithPrefix',
+    SVarTypeAlreadyUsedWithPrefix);
+  TSepiConstant.Create(Result, 'SVarTypeNotUsableWithPrefix',
+    SVarTypeNotUsableWithPrefix);
   TSepiConstant.Create(Result, 'SVarTypeTooManyCustom', SVarTypeTooManyCustom);
-  TSepiConstant.Create(Result, 'SVarTypeCouldNotConvert', SVarTypeCouldNotConvert);
-  TSepiConstant.Create(Result, 'SVarTypeConvertOverflow', SVarTypeConvertOverflow);
+  TSepiConstant.Create(Result, 'SVarTypeCouldNotConvert',
+    SVarTypeCouldNotConvert);
+  TSepiConstant.Create(Result, 'SVarTypeConvertOverflow',
+    SVarTypeConvertOverflow);
   TSepiConstant.Create(Result, 'SVarOverflow', SVarOverflow);
   TSepiConstant.Create(Result, 'SVarInvalid', SVarInvalid);
   TSepiConstant.Create(Result, 'SVarBadType', SVarBadType);
   TSepiConstant.Create(Result, 'SVarNotImplemented', SVarNotImplemented);
   TSepiConstant.Create(Result, 'SVarOutOfMemory', SVarOutOfMemory);
   TSepiConstant.Create(Result, 'SVarUnexpected', SVarUnexpected);
-  TSepiConstant.Create(Result, 'SVarDataClearRecursing', SVarDataClearRecursing);
+  TSepiConstant.Create(Result, 'SVarDataClearRecursing',
+    SVarDataClearRecursing);
   TSepiConstant.Create(Result, 'SVarDataCopyRecursing', SVarDataCopyRecursing);
-  TSepiConstant.Create(Result, 'SVarDataCopyNoIndRecursing', SVarDataCopyNoIndRecursing);
+  TSepiConstant.Create(Result, 'SVarDataCopyNoIndRecursing',
+    SVarDataCopyNoIndRecursing);
   TSepiConstant.Create(Result, 'SVarDataInitRecursing', SVarDataInitRecursing);
-  TSepiConstant.Create(Result, 'SVarDataCastToRecursing', SVarDataCastToRecursing);
+  TSepiConstant.Create(Result, 'SVarDataCastToRecursing',
+    SVarDataCastToRecursing);
   TSepiConstant.Create(Result, 'SVarIsEmpty', SVarIsEmpty);
   TSepiConstant.Create(Result, 'sUnknownFromType', sUnknownFromType);
   TSepiConstant.Create(Result, 'sUnknownToType', sUnknownToType);
@@ -107,8 +116,10 @@ begin
   TSepiConstant.Create(Result, 'SSafecallException', SSafecallException);
   TSepiConstant.Create(Result, 'SAssertError', SAssertError);
   TSepiConstant.Create(Result, 'SAbstractError', SAbstractError);
-  TSepiConstant.Create(Result, 'SModuleAccessViolation', SModuleAccessViolation);
-  TSepiConstant.Create(Result, 'SCannotReadPackageInfo', SCannotReadPackageInfo);
+  TSepiConstant.Create(Result, 'SModuleAccessViolation',
+    SModuleAccessViolation);
+  TSepiConstant.Create(Result, 'SCannotReadPackageInfo',
+    SCannotReadPackageInfo);
   TSepiConstant.Create(Result, 'sErrorLoadingPackage', sErrorLoadingPackage);
   TSepiConstant.Create(Result, 'SInvalidPackageFile', SInvalidPackageFile);
   TSepiConstant.Create(Result, 'SInvalidPackageHandle', SInvalidPackageHandle);
@@ -155,7 +166,8 @@ begin
   TSepiConstant.Create(Result, 'SLongDayNameFri', SLongDayNameFri);
   TSepiConstant.Create(Result, 'SLongDayNameSat', SLongDayNameSat);
   TSepiConstant.Create(Result, 'SCannotCreateDir', SCannotCreateDir);
-  TSepiConstant.Create(Result, 'SCodesetConversionError', SCodesetConversionError);
+  TSepiConstant.Create(Result, 'SCodesetConversionError',
+    SCodesetConversionError);
 
   Result.Complete;
 end;

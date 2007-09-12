@@ -29,7 +29,7 @@ type
     procedure SetStyle(Value: TScrollBarStyle);
     procedure SetThumbSize(Value: Integer);
     procedure SetVisible(Value: Boolean);
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTScrollingWinControl = class(TScrollingWinControl)
@@ -37,23 +37,23 @@ type
     procedure SetAutoScroll(Value: Boolean);
     procedure SetHorzScrollBar(Value: TControlScrollBar);
     procedure SetVertScrollBar(Value: TControlScrollBar);
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTScrollBox = class(TScrollBox)
   private
     procedure SetBorderStyle(Value: TBorderStyle);
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTCustomFrame = class(TCustomFrame)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTFrame = class(TFrame)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTCustomForm = class(TCustomForm)
@@ -93,23 +93,23 @@ type
     procedure SetAlphaBlendValue(const Value: Byte);
     procedure SetTransparentColor(const Value: Boolean);
     procedure SetTransparentColorValue(const Value: TColor);
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTCustomActiveForm = class(TCustomActiveForm)
   private
     procedure SetAxBorderStyle(Value: TActiveFormBorderStyle);
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTForm = class(TForm)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTCustomDockForm = class(TCustomDockForm)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTMonitor = class(TMonitor)
@@ -121,7 +121,7 @@ type
     function GetBoundsRect: TRect;
     function GetWorkareaRect: TRect;
     function GetPrimary: Boolean;
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTScreen = class(TScreen)
@@ -156,7 +156,7 @@ type
     procedure SetIconFont(Value: TFont);
     procedure SetMenuFont(Value: TFont);
     function GetPrimaryMonitor: TMonitor;
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTApplication = class(TApplication)
@@ -175,7 +175,7 @@ type
     procedure SetIcon(Value: TIcon);
     procedure SetShowHint(Value: Boolean);
     procedure SetTitle(const Value: string);
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
 {--------------------------}
@@ -233,7 +233,7 @@ begin
 end;
 
 class function TSepiImportsTControlScrollBar.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TControlScrollBar));
@@ -309,13 +309,15 @@ begin
     AddMethod('Assign', @TSepiImportsTControlScrollBar.Assign,
       'procedure(Source: TPersistent)',
       mlkOverride);
-    AddMethod('ChangeBiDiPosition', @TSepiImportsTControlScrollBar.ChangeBiDiPosition,
+    AddMethod('ChangeBiDiPosition',
+      @TSepiImportsTControlScrollBar.ChangeBiDiPosition,
       'procedure');
 
     AddProperty('Kind', 'property: TScrollBarKind',
       'FKind', '');
 
-    AddMethod('IsScrollBarVisible', @TSepiImportsTControlScrollBar.IsScrollBarVisible,
+    AddMethod('IsScrollBarVisible',
+      @TSepiImportsTControlScrollBar.IsScrollBarVisible,
       'function: Boolean');
 
     AddProperty('ScrollPos', 'property: Integer',
@@ -376,18 +378,20 @@ begin
   AutoScroll := Value;
 end;
 
-procedure TSepiImportsTScrollingWinControl.SetHorzScrollBar(Value: TControlScrollBar);
+procedure TSepiImportsTScrollingWinControl.SetHorzScrollBar(
+  Value: TControlScrollBar);
 begin
   HorzScrollBar := Value;
 end;
 
-procedure TSepiImportsTScrollingWinControl.SetVertScrollBar(Value: TControlScrollBar);
+procedure TSepiImportsTScrollingWinControl.SetVertScrollBar(
+  Value: TControlScrollBar);
 begin
   VertScrollBar := Value;
 end;
 
 class function TSepiImportsTScrollingWinControl.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass(Owner.FindMeta('TScrollingWinControl'));
   Result.RegisterTypeInfo(
@@ -409,9 +413,11 @@ begin
       'procedure(M, D: Integer)');
     AddMethod('SetAutoScroll', @TSepiImportsTScrollingWinControl.SetAutoScroll,
       'procedure(Value: Boolean)');
-    AddMethod('SetHorzScrollBar', @TSepiImportsTScrollingWinControl.SetHorzScrollBar,
+    AddMethod('SetHorzScrollBar',
+      @TSepiImportsTScrollingWinControl.SetHorzScrollBar,
       'procedure(Value: TControlScrollBar)');
-    AddMethod('SetVertScrollBar', @TSepiImportsTScrollingWinControl.SetVertScrollBar,
+    AddMethod('SetVertScrollBar',
+      @TSepiImportsTScrollingWinControl.SetVertScrollBar,
       'procedure(Value: TControlScrollBar)');
     AddMethod('UpdateScrollBars', nil,
       'procedure');
@@ -430,16 +436,19 @@ begin
 
     CurrentVisibility := mvProtected;
 
-    AddMethod('AdjustClientRect', @TSepiImportsTScrollingWinControl.AdjustClientRect,
+    AddMethod('AdjustClientRect',
+      @TSepiImportsTScrollingWinControl.AdjustClientRect,
       'procedure(var Rect: TRect)',
       mlkOverride);
     AddMethod('AlignControls', @TSepiImportsTScrollingWinControl.AlignControls,
       'procedure(AControl: TControl; var ARect: TRect)',
       mlkOverride);
-    AddMethod('AutoScrollEnabled', @TSepiImportsTScrollingWinControl.AutoScrollEnabled,
+    AddMethod('AutoScrollEnabled',
+      @TSepiImportsTScrollingWinControl.AutoScrollEnabled,
       'function: Boolean',
       mlkVirtual);
-    AddMethod('AutoScrollInView', @TSepiImportsTScrollingWinControl.AutoScrollInView,
+    AddMethod('AutoScrollInView',
+      @TSepiImportsTScrollingWinControl.AutoScrollInView,
       'procedure(AControl: TControl)',
       mlkVirtual);
     AddMethod('ChangeScale', @TSepiImportsTScrollingWinControl.ChangeScale,
@@ -451,7 +460,8 @@ begin
     AddMethod('CreateWnd', @TSepiImportsTScrollingWinControl.CreateWnd,
       'procedure',
       mlkOverride);
-    AddMethod('DoFlipChildren', @TSepiImportsTScrollingWinControl.DoFlipChildren,
+    AddMethod('DoFlipChildren',
+      @TSepiImportsTScrollingWinControl.DoFlipChildren,
       'procedure',
       mlkOverride);
 
@@ -471,9 +481,11 @@ begin
     AddMethod('Destroy', @TSepiImportsTScrollingWinControl.Destroy,
       'destructor',
       mlkOverride);
-    AddMethod('DisableAutoRange', @TSepiImportsTScrollingWinControl.DisableAutoRange,
+    AddMethod('DisableAutoRange',
+      @TSepiImportsTScrollingWinControl.DisableAutoRange,
       'procedure');
-    AddMethod('EnableAutoRange', @TSepiImportsTScrollingWinControl.EnableAutoRange,
+    AddMethod('EnableAutoRange',
+      @TSepiImportsTScrollingWinControl.EnableAutoRange,
       'procedure');
     AddMethod('ScrollInView', @TSepiImportsTScrollingWinControl.ScrollInView,
       'procedure(AControl: TControl)');
@@ -501,7 +513,7 @@ begin
 end;
 
 class function TSepiImportsTScrollBox.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TScrollBox));
@@ -608,7 +620,7 @@ end;
 {---------------------}
 
 class function TSepiImportsTCustomFrame.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TCustomFrame));
@@ -642,7 +654,7 @@ end;
 {---------------}
 
 class function TSepiImportsTFrame.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TFrame));
@@ -714,7 +726,7 @@ end;
 { IDesignerHook import }
 {----------------------}
 
-function SepiImportIDesignerHook(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIDesignerHook(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IDesignerHook));
@@ -730,13 +742,15 @@ begin
     AddMethod('SetIsControl',
       'procedure(Value: Boolean)', ccRegister);
     AddMethod('IsDesignMsg',
-      'function(Sender: TControl; var Message: TMessage): Boolean', ccRegister);
+      'function(Sender: TControl; var Message: TMessage): Boolean',
+      ccRegister);
     AddMethod('PaintGrid',
       'procedure', ccRegister);
     AddMethod('PaintMenu',
       'procedure', ccRegister);
     AddMethod('ValidateRename',
-      'procedure(AComponent: TComponent; const CurName, NewName: string )', ccRegister);
+      'procedure(AComponent: TComponent; const CurName, NewName: string )',
+      ccRegister);
     AddMethod('UniqueName',
       'function(const BaseName: string): string', ccRegister);
     AddMethod('GetRoot',
@@ -754,7 +768,7 @@ end;
 { IOleForm import }
 {-----------------}
 
-function SepiImportIOleForm(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIOleForm(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IOleForm));
@@ -774,7 +788,7 @@ end;
 { TPopupWnd import }
 {------------------}
 
-function SepiImportTPopupWnd(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTPopupWnd(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TPopupWnd', False, True);
 
@@ -961,15 +975,16 @@ begin
   TransparentColor := Value;
 end;
 
-procedure TSepiImportsTCustomForm.SetTransparentColorValue(const Value: TColor);
+procedure TSepiImportsTCustomForm.SetTransparentColorValue(
+  const Value: TColor);
 begin
   TransparentColorValue := Value;
 end;
 
 class function TSepiImportsTCustomForm.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 const
-  DefaultBorderIcons : TBorderIcons = [biSystemMenu, biMinimize, biMaximize];
+  DefaultBorderIcons: TBorderIcons = [biSystemMenu, biMinimize, biMaximize];
 begin
   Result := TSepiClass(Owner.FindMeta('TCustomForm'));
   Result.RegisterTypeInfo(
@@ -1091,7 +1106,8 @@ begin
       'procedure(Value: Boolean)');
     AddMethod('SetActiveControl', @TSepiImportsTCustomForm.SetActiveControl,
       'procedure(Control: TWinControl)');
-    AddMethod('SetActiveOleControl', @TSepiImportsTCustomForm.SetActiveOleControl,
+    AddMethod('SetActiveOleControl',
+      @TSepiImportsTCustomForm.SetActiveOleControl,
       'procedure(Control: TWinControl)');
     AddMethod('SetBorderIcons', @TSepiImportsTCustomForm.SetBorderIcons,
       'procedure(Value: TBorderIcons)');
@@ -1283,11 +1299,14 @@ begin
       'procedure');
     AddMethod('SetAlphaBlend', @TSepiImportsTCustomForm.SetAlphaBlend,
       'procedure(const Value: Boolean)');
-    AddMethod('SetAlphaBlendValue', @TSepiImportsTCustomForm.SetAlphaBlendValue,
+    AddMethod('SetAlphaBlendValue',
+      @TSepiImportsTCustomForm.SetAlphaBlendValue,
       'procedure(const Value: Byte)');
-    AddMethod('SetTransparentColor', @TSepiImportsTCustomForm.SetTransparentColor,
+    AddMethod('SetTransparentColor',
+      @TSepiImportsTCustomForm.SetTransparentColor,
       'procedure(const Value: Boolean)');
-    AddMethod('SetTransparentColorValue', @TSepiImportsTCustomForm.SetTransparentColorValue,
+    AddMethod('SetTransparentColorValue',
+      @TSepiImportsTCustomForm.SetTransparentColorValue,
       'procedure(const Value: TColor)');
     AddMethod('InitAlphaBlending', nil,
       'procedure(var Params: TCreateParams)');
@@ -1316,7 +1335,8 @@ begin
     AddMethod('CreateParams', @TSepiImportsTCustomForm.CreateParams,
       'procedure(var Params: TCreateParams)',
       mlkOverride);
-    AddMethod('CreateWindowHandle', @TSepiImportsTCustomForm.CreateWindowHandle,
+    AddMethod('CreateWindowHandle',
+      @TSepiImportsTCustomForm.CreateWindowHandle,
       'procedure(const Params: TCreateParams)',
       mlkOverride);
     AddMethod('CreateWnd', @TSepiImportsTCustomForm.CreateWnd,
@@ -1331,7 +1351,8 @@ begin
     AddMethod('DestroyHandle', @TSepiImportsTCustomForm.DestroyHandle,
       'procedure',
       mlkOverride);
-    AddMethod('DestroyWindowHandle', @TSepiImportsTCustomForm.DestroyWindowHandle,
+    AddMethod('DestroyWindowHandle',
+      @TSepiImportsTCustomForm.DestroyWindowHandle,
       'procedure',
       mlkOverride);
     AddMethod('DoClose', @TSepiImportsTCustomForm.DoClose,
@@ -1361,7 +1382,8 @@ begin
     AddMethod('GetOwnerWindow', @TSepiImportsTCustomForm.GetOwnerWindow,
       'function: HWND',
       mlkDynamic);
-    AddMethod('HandleCreateException', @TSepiImportsTCustomForm.HandleCreateException,
+    AddMethod('HandleCreateException',
+      @TSepiImportsTCustomForm.HandleCreateException,
       'function: Boolean',
       mlkDynamic);
     AddMethod('Loaded', @TSepiImportsTCustomForm.Loaded,
@@ -1685,13 +1707,14 @@ end;
 { TCustomActiveForm import }
 {--------------------------}
 
-procedure TSepiImportsTCustomActiveForm.SetAxBorderStyle(Value: TActiveFormBorderStyle);
+procedure TSepiImportsTCustomActiveForm.SetAxBorderStyle(
+  Value: TActiveFormBorderStyle);
 begin
   AxBorderStyle := Value;
 end;
 
 class function TSepiImportsTCustomActiveForm.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TCustomActiveForm));
@@ -1702,7 +1725,8 @@ begin
 
     AddField('FAxBorderStyle', System.TypeInfo(TActiveFormBorderStyle));
 
-    AddMethod('SetAxBorderStyle', @TSepiImportsTCustomActiveForm.SetAxBorderStyle,
+    AddMethod('SetAxBorderStyle',
+      @TSepiImportsTCustomActiveForm.SetAxBorderStyle,
       'procedure(Value: TActiveFormBorderStyle)');
 
     CurrentVisibility := mvProtected;
@@ -1777,7 +1801,7 @@ end;
 {--------------}
 
 class function TSepiImportsTForm.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass(Owner.FindMeta('TForm'));
   Result.RegisterTypeInfo(
@@ -1914,7 +1938,7 @@ end;
 {------------------------}
 
 class function TSepiImportsTCustomDockForm.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TCustomDockForm));
@@ -1947,7 +1971,8 @@ begin
     AddMethod('DoAddDockClient', @TSepiImportsTCustomDockForm.DoAddDockClient,
       'procedure(Client: TControl; const ARect: TRect)',
       mlkOverride);
-    AddMethod('DoRemoveDockClient', @TSepiImportsTCustomDockForm.DoRemoveDockClient,
+    AddMethod('DoRemoveDockClient',
+      @TSepiImportsTCustomDockForm.DoRemoveDockClient,
       'procedure(Client: TControl)',
       mlkOverride);
     AddMethod('GetSiteInfo', @TSepiImportsTCustomDockForm.GetSiteInfo,
@@ -2018,7 +2043,7 @@ begin
 end;
 
 class function TSepiImportsTMonitor.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass(Owner.FindMeta('TMonitor'));
   Result.RegisterTypeInfo(
@@ -2075,7 +2100,7 @@ end;
 { TCursorRec import }
 {-------------------}
 
-function SepiImportTCursorRec(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTCursorRec(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TCursorRec', False, True);
 
@@ -2244,7 +2269,7 @@ begin
 end;
 
 class function TSepiImportsTScreen.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TScreen));
@@ -2484,7 +2509,7 @@ end;
 { THintInfo import }
 {------------------}
 
-function SepiImportTHintInfo(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTHintInfo(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'THintInfo', False, True,
     TypeInfo(THintInfo));
@@ -2511,7 +2536,7 @@ end;
 { TCMHintShow import }
 {--------------------}
 
-function SepiImportTCMHintShow(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTCMHintShow(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TCMHintShow', False, True);
 
@@ -2530,7 +2555,7 @@ end;
 { TCMHintShowPause import }
 {-------------------------}
 
-function SepiImportTCMHintShowPause(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTCMHintShowPause(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TCMHintShowPause', False, True);
 
@@ -2549,7 +2574,7 @@ end;
 { TPopupForm import }
 {-------------------}
 
-function SepiImportTPopupForm(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTPopupForm(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TPopupForm', False, True);
 
@@ -2638,7 +2663,7 @@ begin
 end;
 
 class function TSepiImportsTApplication.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TApplication));
@@ -2726,11 +2751,13 @@ begin
       'function(Command: Word; Data: Integer; var CallHelp: Boolean): Boolean');
     AddMethod('DoShowOwnedPopups', nil,
       'procedure(Show: Boolean)');
-    AddMethod('GetCurrentHelpFile', @TSepiImportsTApplication.GetCurrentHelpFile,
+    AddMethod('GetCurrentHelpFile',
+      @TSepiImportsTApplication.GetCurrentHelpFile,
       'function: string');
     AddMethod('GetDialogHandle', @TSepiImportsTApplication.GetDialogHandle,
       'function: HWND');
-    AddMethod('GetActiveFormHandle', @TSepiImportsTApplication.GetActiveFormHandle,
+    AddMethod('GetActiveFormHandle',
+      @TSepiImportsTApplication.GetActiveFormHandle,
       'function: HWND');
     AddMethod('GetMainFormHandle', @TSepiImportsTApplication.GetMainFormHandle,
       'function: HWND');
@@ -2797,7 +2824,8 @@ begin
       'function(var Msg: TMsg): Boolean');
     AddMethod('IsShortCut', @TSepiImportsTApplication.IsShortCut,
       'function(var Message: TWMKey): Boolean');
-    AddMethod('IsPreProcessMessage', @TSepiImportsTApplication.IsPreProcessMessage,
+    AddMethod('IsPreProcessMessage',
+      @TSepiImportsTApplication.IsPreProcessMessage,
       'function(var Msg: TMsg): Boolean');
 
     CurrentVisibility := mvPublic;
@@ -2844,7 +2872,8 @@ begin
       'procedure(Control: TControl; var Message: TMessage)');
     AddMethod('HookMainWindow', @TSepiImportsTApplication.HookMainWindow,
       'procedure(Hook: TWindowHook)');
-    AddMethod('HookSynchronizeWakeup', @TSepiImportsTApplication.HookSynchronizeWakeup,
+    AddMethod('HookSynchronizeWakeup',
+      @TSepiImportsTApplication.HookSynchronizeWakeup,
       'procedure');
     AddMethod('Initialize', @TSepiImportsTApplication.Initialize,
       'procedure');
@@ -2858,7 +2887,8 @@ begin
       'procedure');
     AddMethod('ModalFinished', @TSepiImportsTApplication.ModalFinished,
       'procedure');
-    AddMethod('NormalizeAllTopMosts', @TSepiImportsTApplication.NormalizeAllTopMosts,
+    AddMethod('NormalizeAllTopMosts',
+      @TSepiImportsTApplication.NormalizeAllTopMosts,
       'procedure');
     AddMethod('NormalizeTopMosts', @TSepiImportsTApplication.NormalizeTopMosts,
       'procedure');
@@ -2878,15 +2908,19 @@ begin
       'procedure');
     AddMethod('UnhookMainWindow', @TSepiImportsTApplication.UnhookMainWindow,
       'procedure(Hook: TWindowHook)');
-    AddMethod('UnhookSynchronizeWakeup', @TSepiImportsTApplication.UnhookSynchronizeWakeup,
+    AddMethod('UnhookSynchronizeWakeup',
+      @TSepiImportsTApplication.UnhookSynchronizeWakeup,
       'procedure');
     AddMethod('UpdateAction', @TSepiImportsTApplication.UpdateAction,
       'function(Action: TBasicAction): Boolean');
-    AddMethod('UseRightToLeftAlignment', @TSepiImportsTApplication.UseRightToLeftAlignment,
+    AddMethod('UseRightToLeftAlignment',
+      @TSepiImportsTApplication.UseRightToLeftAlignment,
       'function: Boolean');
-    AddMethod('UseRightToLeftReading', @TSepiImportsTApplication.UseRightToLeftReading,
+    AddMethod('UseRightToLeftReading',
+      @TSepiImportsTApplication.UseRightToLeftReading,
       'function: Boolean');
-    AddMethod('UseRightToLeftScrollBar', @TSepiImportsTApplication.UseRightToLeftScrollBar,
+    AddMethod('UseRightToLeftScrollBar',
+      @TSepiImportsTApplication.UseRightToLeftScrollBar,
       'function: Boolean');
 
     AddProperty('Active', 'property: Boolean',
@@ -2999,7 +3033,8 @@ end;
 { Unit import }
 {-------------}
 
-function KeyboardStateToShiftState_0(const KeyboardState: TKeyboardState): TShiftState;
+function KeyboardStateToShiftState_0(
+  const KeyboardState: TKeyboardState): TShiftState;
 begin
   Result := KeyboardStateToShiftState(KeyboardState);
 end;
@@ -3009,7 +3044,7 @@ begin
   Result := KeyboardStateToShiftState;
 end;
 
-function ImportUnit(Root : TSepiRoot) : TSepiUnit;
+function ImportUnit(Root: TSepiRoot): TSepiUnit;
 begin
   Result := TSepiUnit.Create(Root, 'Forms',
     ['Messages', 'Windows', 'SysUtils', 'Classes', 'Graphics', 'Menus',
@@ -3030,7 +3065,8 @@ begin
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(TBorderStyle));
   TSepiImportsTScrollBox.SepiImport(Result);
   TSepiImportsTCustomFrame.SepiImport(Result);
-  TSepiMetaClass.Create(Result, 'TCustomFrameClass', TypeInfo(TCustomFrame), True);
+  TSepiMetaClass.Create(Result, 'TCustomFrameClass',
+    TypeInfo(TCustomFrame), True);
   TSepiImportsTFrame.SepiImport(Result);
   SepiImportIDesignerHook(Result);
   SepiImportIOleForm(Result);
@@ -3053,7 +3089,8 @@ begin
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(THelpEvent));
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(TPopupMode));
   TSepiImportsTCustomForm.SepiImport(Result);
-  TSepiMetaClass.Create(Result, 'TCustomFormClass', TypeInfo(TCustomForm), True);
+  TSepiMetaClass.Create(Result, 'TCustomFormClass',
+    TypeInfo(TCustomForm), True);
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(TActiveFormBorderStyle));
   TSepiImportsTCustomActiveForm.SepiImport(Result);
   TSepiImportsTForm.SepiImport(Result);
@@ -3089,11 +3126,13 @@ begin
   TSepiVariable.Create(Result, 'Ctl3DBtnWndProc',
     Ctl3DBtnWndProc, 'Pointer');
   TSepiMethodRefType.Create(Result, '$1',
-    'function(Window: HWnd; Msg, wParam, lParam: Longint): Longint', False, ccStdCall);
+    'function(Window: HWnd; Msg, wParam, lParam: Longint): Longint',
+    False, ccStdCall);
   TSepiVariable.Create(Result, 'Ctl3DDlgFramePaint',
     @Ctl3DDlgFramePaint, '$1');
   TSepiMethodRefType.Create(Result, '$2',
-    'function(Window: HWnd; Msg, wParam, lParam: Longint): Longint', False, ccStdCall);
+    'function(Window: HWnd; Msg, wParam, lParam: Longint): Longint',
+    False, ccStdCall);
   TSepiVariable.Create(Result, 'Ctl3DCtlColorEx',
     @Ctl3DCtlColorEx, '$2');
   TSepiVariable.Create(Result, 'HintWindowClass',
@@ -3115,9 +3154,11 @@ begin
   TSepiMethod.Create(Result, 'KeyDataToShiftState', @KeyDataToShiftState,
     'function(KeyData: Longint): TShiftState');
   TSepiOverloadedMethod.Create(Result, 'KeyboardStateToShiftState');
-  TSepiMethod.Create(Result, 'OL$KeyboardStateToShiftState$0', @KeyboardStateToShiftState_0,
+  TSepiMethod.Create(Result, 'OL$KeyboardStateToShiftState$0',
+    @KeyboardStateToShiftState_0,
     'function(const KeyboardState: TKeyboardState): TShiftState');
-  TSepiMethod.Create(Result, 'OL$KeyboardStateToShiftState$1', @KeyboardStateToShiftState_1,
+  TSepiMethod.Create(Result, 'OL$KeyboardStateToShiftState$1',
+    @KeyboardStateToShiftState_1,
     'function: TShiftState');
   TSepiMethod.Create(Result, 'ForegroundTask', @ForegroundTask,
     'function: Boolean');
@@ -3133,7 +3174,8 @@ begin
 
   // Types
   TSepiMethodRefType.Create(Result, 'TSetLayeredWindowAttributes',
-    'function(Hwnd: THandle; crKey: COLORREF; bAlpha: Byte; dwFlags: DWORD): Boolean', False, ccStdCall);
+    'function(Hwnd: THandle; crKey: COLORREF; bAlpha: Byte; dwFlags: DWORD): Boolean',
+    False, ccStdCall);
 
   // Global variables
   TSepiVariable.Create(Result, 'SetLayeredWindowAttributes',

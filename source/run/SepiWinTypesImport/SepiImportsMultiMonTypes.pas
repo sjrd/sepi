@@ -19,7 +19,7 @@ implementation
 { tagMONITORINFOA import }
 {------------------------}
 
-function SepiImporttagMONITORINFOA(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImporttagMONITORINFOA(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagMONITORINFOA', False, True);
 
@@ -38,7 +38,7 @@ end;
 { tagMONITORINFOW import }
 {------------------------}
 
-function SepiImporttagMONITORINFOW(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImporttagMONITORINFOW(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagMONITORINFOW', False, True);
 
@@ -57,7 +57,7 @@ end;
 { tagMONITORINFOEXA import }
 {--------------------------}
 
-function SepiImporttagMONITORINFOEXA(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImporttagMONITORINFOEXA(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagMONITORINFOEXA', False, True);
 
@@ -77,7 +77,7 @@ end;
 { tagMONITORINFOEXW import }
 {--------------------------}
 
-function SepiImporttagMONITORINFOEXW(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImporttagMONITORINFOEXW(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagMONITORINFOEXW', False, True);
 
@@ -97,7 +97,7 @@ end;
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiRoot) : TSepiUnit;
+function ImportUnit(Root: TSepiRoot): TSepiUnit;
 begin
   Result := TSepiUnit.Create(Root, 'MultiMonTypes',
     ['Windows']);
@@ -131,8 +131,10 @@ begin
   TSepiTypeAlias.Create(Result, 'MONITORINFOEXA', 'tagMONITORINFOEXA');
   TSepiTypeAlias.Create(Result, 'MONITORINFOEXW', 'tagMONITORINFOEXW');
   TSepiTypeAlias.Create(Result, 'MONITORINFOEX', 'MONITORINFOEXA');
-  TSepiPointerType.Create(Result, 'LPMONITORINFOEXA', 'tagMONITORINFOEXA', True);
-  TSepiPointerType.Create(Result, 'LPMONITORINFOEXW', 'tagMONITORINFOEXW', True);
+  TSepiPointerType.Create(Result, 'LPMONITORINFOEXA',
+    'tagMONITORINFOEXA', True);
+  TSepiPointerType.Create(Result, 'LPMONITORINFOEXW',
+    'tagMONITORINFOEXW', True);
   TSepiTypeAlias.Create(Result, 'LPMONITORINFOEX', 'LPMONITORINFOEXA');
   TSepiPointerType.Create(Result, 'PMonitorInfoExA', 'tagMONITORINFOEX', True);
   TSepiPointerType.Create(Result, 'PMonitorInfoExW', 'tagMONITORINFOEX', True);
@@ -141,22 +143,28 @@ begin
   TSepiTypeAlias.Create(Result, 'TMonitorInfoExW', 'tagMONITORINFOEX');
   TSepiTypeAlias.Create(Result, 'TMonitorInfoEx', 'TMonitorInfoExA');
   TSepiMethodRefType.Create(Result, 'TMonitorEnumProc',
-    'function(hm: HMONITOR; dc: HDC; r: PRect; l: LPARAM): Boolean', False, ccStdCall);
+    'function(hm: HMONITOR; dc: HDC; r: PRect; l: LPARAM): Boolean',
+    False, ccStdCall);
   TSepiMethodRefType.Create(Result, 'TGetSystemMetrics',
     'function(nIndex: Integer): Integer', False, ccStdCall);
   TSepiMethodRefType.Create(Result, 'TMonitorFromWindow',
     'function(hWnd: HWND; dwFlags: DWORD): HMONITOR', False, ccStdCall);
   TSepiMethodRefType.Create(Result, 'TMonitorFromRect',
-    'function(lprcScreenCoords: PRect; dwFlags: DWORD): HMONITOR', False, ccStdCall);
+    'function(lprcScreenCoords: PRect; dwFlags: DWORD): HMONITOR',
+    False, ccStdCall);
   TSepiMethodRefType.Create(Result, 'TMonitorFromPoint',
-    'function(ptScreenCoords: TPoint; dwFlags: DWORD): HMONITOR', False, ccStdCall);
+    'function(ptScreenCoords: TPoint; dwFlags: DWORD): HMONITOR',
+    False, ccStdCall);
   TSepiMethodRefType.Create(Result, 'TGetMonitorInfoA',
-    'function(hMonitor: HMONITOR; lpMonitorInfo: PMonitorInfoA): Boolean', False, ccStdCall);
+    'function(hMonitor: HMONITOR; lpMonitorInfo: PMonitorInfoA): Boolean',
+    False, ccStdCall);
   TSepiMethodRefType.Create(Result, 'TGetMonitorInfoW',
-    'function(hMonitor: HMONITOR; lpMonitorInfo: PMonitorInfoW): Boolean', False, ccStdCall);
+    'function(hMonitor: HMONITOR; lpMonitorInfo: PMonitorInfoW): Boolean',
+    False, ccStdCall);
   TSepiTypeAlias.Create(Result, 'TGetMonitorInfo', 'TGetMonitorInfoA');
   TSepiMethodRefType.Create(Result, 'TEnumDisplayMonitors',
-    'function(hdc: HDC; lprcIntersect: PRect; lpfnEnumProc: TMonitorEnumProc; lData: LPARAM ) : Boolean', False, ccStdCall);
+    'function(hdc: HDC; lprcIntersect: PRect; lpfnEnumProc: TMonitorEnumProc; lData: LPARAM ) : Boolean',
+    False, ccStdCall);
 
   Result.Complete;
 end;

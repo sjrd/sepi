@@ -17,8 +17,8 @@ type
     @version 1.0
   *}
   TDimInfo = record
-    MinValue : integer;
-    MaxValue : integer;
+    MinValue: Integer;
+    MaxValue: Integer;
   end;
 
   {*
@@ -28,43 +28,43 @@ type
   *}
   TSepiArrayType = class(TSepiType)
   private
-    FDimCount : integer;             /// Nombre de dimensions
-    FDimensions : array of TDimInfo; /// Dimensions
-    FElementType : TSepiType;        /// Type des éléments
+    FDimCount: Integer;             /// Nombre de dimensions
+    FDimensions: array of TDimInfo; /// Dimensions
+    FElementType: TSepiType;        /// Type des éléments
 
     procedure MakeSize;
     procedure MakeTypeInfo;
 
-    function GetDimensions(Index, Kind : integer) : integer;
+    function GetDimensions(Index, Kind: Integer): Integer;
   protected
     procedure ListReferences; override;
-    procedure Save(Stream : TStream); override;
+    procedure Save(Stream: TStream); override;
 
-    function GetAlignment : integer; override;
+    function GetAlignment: Integer; override;
   public
-    constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
-    constructor Create(AOwner : TSepiMeta; const AName : string;
-      const ADimensions : array of integer; AElementType : TSepiType;
-      AIsNative : boolean = False; ATypeInfo : PTypeInfo = nil); overload;
-    constructor Create(AOwner : TSepiMeta; const AName : string;
-      const ADimensions : array of integer; AElementTypeInfo : PTypeInfo;
-      AIsNative : boolean = False; ATypeInfo : PTypeInfo = nil); overload;
-    constructor Create(AOwner : TSepiMeta; const AName : string;
-      const ADimensions : array of integer; const AElementTypeName : string;
-      AIsNative : boolean = False; ATypeInfo : PTypeInfo = nil); overload;
+    constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
+    constructor Create(AOwner: TSepiMeta; const AName: string;
+      const ADimensions: array of Integer; AElementType: TSepiType;
+      AIsNative: Boolean = False; ATypeInfo: PTypeInfo = nil); overload;
+    constructor Create(AOwner: TSepiMeta; const AName: string;
+      const ADimensions: array of Integer; AElementTypeInfo: PTypeInfo;
+      AIsNative: Boolean = False; ATypeInfo: PTypeInfo = nil); overload;
+    constructor Create(AOwner: TSepiMeta; const AName: string;
+      const ADimensions: array of Integer; const AElementTypeName: string;
+      AIsNative: Boolean = False; ATypeInfo: PTypeInfo = nil); overload;
 
-    function CompatibleWith(AType : TSepiType) : boolean; override;
+    function CompatibleWith(AType: TSepiType): Boolean; override;
 
-    property DimCount : integer read FDimCount;
+    property DimCount: Integer read FDimCount;
 
     /// Bornes inférieures des dimensions
-    property MinValues [index : integer] : integer index 1 read GetDimensions;
+    property MinValues[Index: Integer]: Integer index 1 read GetDimensions;
     /// Bornes supérieures des dimensions
-    property MaxValues [index : integer] : integer index 2 read GetDimensions;
+    property MaxValues[Index: Integer]: Integer index 2 read GetDimensions;
     /// Nombres d'éléments des dimensions
-    property Dimensions[index : integer] : integer index 3 read GetDimensions;
+    property Dimensions[Index: Integer]: Integer index 3 read GetDimensions;
 
-    property ElementType : TSepiType read FElementType;
+    property ElementType: TSepiType read FElementType;
   end;
 
   {*
@@ -74,27 +74,27 @@ type
   *}
   TSepiDynArrayType = class(TSepiType)
   private
-    FElementType : TSepiType; /// Type des éléments
+    FElementType: TSepiType; /// Type des éléments
 
     procedure MakeTypeInfo;
   protected
     procedure ListReferences; override;
-    procedure Save(Stream : TStream); override;
+    procedure Save(Stream: TStream); override;
 
     procedure ExtractTypeData; override;
   public
-    constructor RegisterTypeInfo(AOwner : TSepiMeta;
-      ATypeInfo : PTypeInfo); override;
-    constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
-    constructor Create(AOwner : TSepiMeta; const AName : string;
-      AElementType : TSepiType);
+    constructor RegisterTypeInfo(AOwner: TSepiMeta;
+      ATypeInfo: PTypeInfo); override;
+    constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
+    constructor Create(AOwner: TSepiMeta; const AName: string;
+      AElementType: TSepiType);
 
-    procedure SetElementType(AElementType : TSepiType); overload;
-    procedure SetElementType(const AElementTypeName : string); overload;
+    procedure SetElementType(AElementType: TSepiType); overload;
+    procedure SetElementType(const AElementTypeName: string); overload;
 
-    function CompatibleWith(AType : TSepiType) : boolean; override;
+    function CompatibleWith(AType: TSepiType): Boolean; override;
 
-    property ElementType : TSepiType read FElementType;
+    property ElementType: TSepiType read FElementType;
   end;
 
 implementation
@@ -102,17 +102,17 @@ implementation
 type
   PArrayTypeData = ^TArrayTypeData;
   TArrayTypeData = packed record
-    Size : Cardinal;
-    Count : Cardinal;
-    ElemType : PPTypeInfo;
-    ElemOffset : Cardinal; // always 0
+    Size: Cardinal;
+    Count: Cardinal;
+    ElemType: PPTypeInfo;
+    ElemOffset: Cardinal; // always 0
   end;
 
 const
   // Tailles de structure TTypeData en fonction des types
   ArrayTypeDataLength = sizeof(TArrayTypeData);
   DynArrayTypeDataLengthBase =
-    sizeof(Longint) + 2*sizeof(Pointer) + sizeof(integer);
+    sizeof(Longint) + 2*sizeof(Pointer) + sizeof(Integer);
 
 {-----------------------}
 { Classe TSepiArrayType }
@@ -121,7 +121,7 @@ const
 {*
   Charge un type entier depuis un flux
 *}
-constructor TSepiArrayType.Load(AOwner : TSepiMeta; Stream : TStream);
+constructor TSepiArrayType.Load(AOwner: TSepiMeta; Stream: TStream);
 begin
   inherited;
 
@@ -148,9 +148,9 @@ end;
   @param AIsNative      Indique si le type tableau est natif
   @param ATypeInfo      RTTI du type tableau natif
 *}
-constructor TSepiArrayType.Create(AOwner : TSepiMeta; const AName : string;
-  const ADimensions : array of integer; AElementType : TSepiType;
-  AIsNative : boolean = False; ATypeInfo : PTypeInfo = nil);
+constructor TSepiArrayType.Create(AOwner: TSepiMeta; const AName: string;
+  const ADimensions: array of Integer; AElementType: TSepiType;
+  AIsNative: Boolean = False; ATypeInfo: PTypeInfo = nil);
 begin
   inherited Create(AOwner, AName, tkArray);
 
@@ -180,9 +180,9 @@ end;
   @param AIsNative          Indique si le type tableau est natif
   @param ATypeInfo          RTTI du type tableau natif
 *}
-constructor TSepiArrayType.Create(AOwner : TSepiMeta; const AName : string;
-  const ADimensions : array of integer; AElementTypeInfo : PTypeInfo;
-  AIsNative : boolean = False; ATypeInfo : PTypeInfo = nil);
+constructor TSepiArrayType.Create(AOwner: TSepiMeta; const AName: string;
+  const ADimensions: array of Integer; AElementTypeInfo: PTypeInfo;
+  AIsNative: Boolean = False; ATypeInfo: PTypeInfo = nil);
 begin
   Create(AOwner, AName, ADimensions, AOwner.Root.FindType(AElementTypeInfo),
     AIsNative, ATypeInfo);
@@ -197,9 +197,9 @@ end;
   @param AIsNative          Indique si le type tableau est natif
   @param ATypeInfo          RTTI du type tableau natif
 *}
-constructor TSepiArrayType.Create(AOwner : TSepiMeta; const AName : string;
-  const ADimensions : array of integer; const AElementTypeName : string;
-  AIsNative : boolean = False; ATypeInfo : PTypeInfo = nil);
+constructor TSepiArrayType.Create(AOwner: TSepiMeta; const AName: string;
+  const ADimensions: array of Integer; const AElementTypeName: string;
+  AIsNative: Boolean = False; ATypeInfo: PTypeInfo = nil);
 begin
   Create(AOwner, AName, ADimensions, AOwner.Root.FindType(AElementTypeName),
     AIsNative, ATypeInfo);
@@ -209,7 +209,8 @@ end;
   Calcule la taille du tableau et la range dans FSize
 *}
 procedure TSepiArrayType.MakeSize;
-var I : integer;
+var
+  I: Integer;
 begin
   FSize := FElementType.Size;
   for I := 0 to DimCount-1 do
@@ -236,12 +237,15 @@ end;
 {*
   Récupère une information sur une dimension
 *}
-function TSepiArrayType.GetDimensions(Index, Kind : integer) : integer;
+function TSepiArrayType.GetDimensions(Index, Kind: Integer): Integer;
 begin
-  with FDimensions[Index] do case Kind of
-    1 : Result := MinValue;
-    2 : Result := MaxValue;
-    else Result := MaxValue-MinValue+1;
+  with FDimensions[Index] do
+  begin
+    case Kind of
+      1: Result := MinValue;
+      2: Result := MaxValue;
+      else Result := MaxValue-MinValue+1;
+    end;
   end;
 end;
 
@@ -257,7 +261,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiArrayType.Save(Stream : TStream);
+procedure TSepiArrayType.Save(Stream: TStream);
 begin
   inherited;
   Stream.WriteBuffer(FDimCount, 1);
@@ -268,7 +272,7 @@ end;
 {*
   [@inheritDoc]
 *}
-function TSepiArrayType.GetAlignment : integer;
+function TSepiArrayType.GetAlignment: Integer;
 begin
   Result := ElementType.Alignment;
 end;
@@ -276,7 +280,7 @@ end;
 {*
   [@inheritDoc]
 *}
-function TSepiArrayType.CompatibleWith(AType : TSepiType) : boolean;
+function TSepiArrayType.CompatibleWith(AType: TSepiType): Boolean;
 begin
   Result := False;
 end;
@@ -288,8 +292,8 @@ end;
 {*
   Recense un type tableau dynamique natif
 *}
-constructor TSepiDynArrayType.RegisterTypeInfo(AOwner : TSepiMeta;
-  ATypeInfo : PTypeInfo);
+constructor TSepiDynArrayType.RegisterTypeInfo(AOwner: TSepiMeta;
+  ATypeInfo: PTypeInfo);
 begin
   inherited;
   ExtractTypeData;
@@ -298,7 +302,7 @@ end;
 {*
   Charge un type tableau dynamique depuis un flux
 *}
-constructor TSepiDynArrayType.Load(AOwner : TSepiMeta; Stream : TStream);
+constructor TSepiDynArrayType.Load(AOwner: TSepiMeta; Stream: TStream);
 begin
   inherited;
 
@@ -313,8 +317,8 @@ end;
   @param AName          Nom du type
   @param AElementType   Type des éléments
 *}
-constructor TSepiDynArrayType.Create(AOwner : TSepiMeta; const AName : string;
-  AElementType : TSepiType);
+constructor TSepiDynArrayType.Create(AOwner: TSepiMeta; const AName: string;
+  AElementType: TSepiType);
 begin
   inherited Create(AOwner, AName, tkDynArray);
 
@@ -326,8 +330,9 @@ end;
   Construit les RTTI du type tableau dynamique
 *}
 procedure TSepiDynArrayType.MakeTypeInfo;
-var UnitName : ShortString;
-    TypeDataLength : integer;
+var
+  UnitName: ShortString;
+  TypeDataLength: Integer;
 begin
   UnitName := OwningUnit.Name;
   TypeDataLength := DynArrayTypeDataLengthBase + Length(UnitName) + 1;
@@ -373,7 +378,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiDynArrayType.Save(Stream : TStream);
+procedure TSepiDynArrayType.Save(Stream: TStream);
 begin
   inherited;
   OwningUnit.WriteRef(Stream, FElementType);
@@ -401,7 +406,7 @@ end;
   RegisterTypeInfo.
   @param AElementType   Type des éléments
 *}
-procedure TSepiDynArrayType.SetElementType(AElementType : TSepiType);
+procedure TSepiDynArrayType.SetElementType(AElementType: TSepiType);
 begin
   Assert(Native and (FElementType = nil));
   FElementType := AElementType;
@@ -414,7 +419,7 @@ end;
   RegisterTypeInfo.
   @param AElementTypeName   Nom du type des éléments
 *}
-procedure TSepiDynArrayType.SetElementType(const AElementTypeName : string);
+procedure TSepiDynArrayType.SetElementType(const AElementTypeName: string);
 begin
   SetElementType(Root.FindType(AElementTypeName));
 end;
@@ -422,7 +427,7 @@ end;
 {*
   [@inheritDoc]
 *}
-function TSepiDynArrayType.CompatibleWith(AType : TSepiType) : boolean;
+function TSepiDynArrayType.CompatibleWith(AType: TSepiType): Boolean;
 begin
   Result := False;
 end;
@@ -430,6 +435,6 @@ end;
 initialization
   SepiRegisterMetaClasses([
     TSepiArrayType, TSepiDynArrayType
-  ]);
+    ]);
 end.
 

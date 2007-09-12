@@ -18,14 +18,14 @@ implementation
 type
   TSepiImportsEHelpSystemException = class(EHelpSystemException)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
 {----------------------}
 { IHelpSelector import }
 {----------------------}
 
-function SepiImportIHelpSelector(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIHelpSelector(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IHelpSelector));
@@ -45,7 +45,7 @@ end;
 { IHelpSelector2 import }
 {-----------------------}
 
-function SepiImportIHelpSelector2(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIHelpSelector2(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IHelpSelector2));
@@ -63,7 +63,7 @@ end;
 { IHelpSystem import }
 {--------------------}
 
-function SepiImportIHelpSystem(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIHelpSystem(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IHelpSystem));
@@ -73,7 +73,8 @@ begin
     AddMethod('ShowHelp',
       'procedure(const HelpKeyword, HelpFileName: String)', ccRegister);
     AddMethod('ShowContextHelp',
-      'procedure(const ContextID: Longint; const HelpFileName: String)', ccRegister);
+      'procedure(const ContextID: Longint; const HelpFileName: String)',
+      ccRegister);
     AddMethod('ShowTableOfContents',
       'procedure', ccRegister);
     AddMethod('ShowTopicHelp',
@@ -81,7 +82,8 @@ begin
     AddMethod('AssignHelpSelector',
       'procedure(Selector: IHelpSelector)', ccRegister);
     AddMethod('Hook',
-      'function(Handle: Longint; HelpFile: String; Comand: Word; Data: Longint): Boolean', ccRegister);
+      'function(Handle: Longint; HelpFile: String; Comand: Word; Data: Longint): Boolean',
+      ccRegister);
 
     Complete;
   end;
@@ -91,7 +93,7 @@ end;
 { IHelpSystem2 import }
 {---------------------}
 
-function SepiImportIHelpSystem2(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIHelpSystem2(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IHelpSystem2));
@@ -99,7 +101,8 @@ begin
   with Result do
   begin
     AddMethod('UnderstandsKeyword',
-      'function(const HelpKeyword, HelpFileName: String): Boolean', ccRegister);
+      'function(const HelpKeyword, HelpFileName: String): Boolean',
+      ccRegister);
 
     Complete;
   end;
@@ -109,7 +112,7 @@ end;
 { ICustomHelpViewer import }
 {--------------------------}
 
-function SepiImportICustomHelpViewer(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportICustomHelpViewer(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(ICustomHelpViewer));
@@ -143,7 +146,7 @@ end;
 { IExtendedHelpViewer import }
 {----------------------------}
 
-function SepiImportIExtendedHelpViewer(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIExtendedHelpViewer(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IExtendedHelpViewer));
@@ -155,9 +158,11 @@ begin
     AddMethod('DisplayTopic',
       'procedure(const Topic: String)', ccRegister);
     AddMethod('UnderstandsContext',
-      'function(const ContextID: Integer; const HelpFileName: String ) : Boolean', ccRegister);
+      'function(const ContextID: Integer; const HelpFileName: String ) : Boolean',
+      ccRegister);
     AddMethod('DisplayHelpByContext',
-      'procedure(const ContextID: Integer; const HelpFileName: String )', ccRegister);
+      'procedure(const ContextID: Integer; const HelpFileName: String )',
+      ccRegister);
 
     Complete;
   end;
@@ -167,7 +172,7 @@ end;
 { ISpecialWinHelpViewer import }
 {------------------------------}
 
-function SepiImportISpecialWinHelpViewer(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportISpecialWinHelpViewer(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(ISpecialWinHelpViewer));
@@ -175,7 +180,8 @@ begin
   with Result do
   begin
     AddMethod('CallWinHelp',
-      'function(Handle: LongInt; const HelpFile: String; Command: Word; Data: LongInt ) : Boolean', ccRegister);
+      'function(Handle: LongInt; const HelpFile: String; Command: Word; Data: LongInt ) : Boolean',
+      ccRegister);
 
     Complete;
   end;
@@ -185,7 +191,7 @@ end;
 { IHelpSystemFlags import }
 {-------------------------}
 
-function SepiImportIHelpSystemFlags(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIHelpSystemFlags(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IHelpSystemFlags));
@@ -205,7 +211,7 @@ end;
 { IHelpManager import }
 {---------------------}
 
-function SepiImportIHelpManager(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIHelpManager(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IHelpManager));
@@ -228,7 +234,7 @@ end;
 {-----------------------------}
 
 class function TSepiImportsEHelpSystemException.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EHelpSystemException));
@@ -254,7 +260,7 @@ begin
   Result := GetHelpSystem(System);
 end;
 
-function ImportUnit(Root : TSepiRoot) : TSepiUnit;
+function ImportUnit(Root: TSepiRoot): TSepiUnit;
 begin
   Result := TSepiUnit.Create(Root, 'HelpIntfs',
     ['SysUtils', 'Classes']);

@@ -35,16 +35,17 @@ type
     @param UnitName   Nom de l'unité à charger
     @return L'unité chargée, ou nil si l'unité n'est pas trouvée
   *}
-  TSepiLoadUnitEvent = function(Sender : TSepiRoot;
-    const UnitName : string) : TSepiUnit of object;
+  TSepiLoadUnitEvent = function(Sender: TSepiRoot;
+    const UnitName: string): TSepiUnit of object;
 
   {*
     Type de l'événement OnGetMethodCode de TSepiUnit
     @param Sender   Méthode déclenchant l'événement (toujours TSepiMethod)
     @param Code     Adresse de code de la méthode
   *}
-  TGetMethodCodeEvent = procedure(Sender : TObject;
-    var Code : Pointer) of object;
+  TGetMethodCodeEvent = procedure(Sender: TObject;
+    var
+    Code: Pointer) of object;
 
   {*
     Déclenchée si l'on tente de recréer un meta (second appel au constructeur)
@@ -81,23 +82,23 @@ type
   *}
   TSepiMetaList = class(THashedStringList)
   private
-    function GetMetas(Index : integer) : TSepiMeta;
-    procedure SetMetas(Index : integer; Value : TSepiMeta);
-    function GetMetaFromName(const Name : string) : TSepiMeta;
-    procedure SetMetaFromName(const Name : string; Value : TSepiMeta);
+    function GetMetas(Index: Integer): TSepiMeta;
+    procedure SetMetas(Index: Integer; Value: TSepiMeta);
+    function GetMetaFromName(const Name: string): TSepiMeta;
+    procedure SetMetaFromName(const Name: string; Value: TSepiMeta);
   protected
-    procedure InsertItem(Index : Integer; const S : string;
-      AObject : TObject); override;
+    procedure InsertItem(Index: Integer; const S: string;
+      AObject: TObject); override;
   public
     constructor Create;
 
-    function AddMeta(Meta : TSepiMeta) : integer;
-    function IndexOfMeta(Meta : TSepiMeta) : integer;
-    function Remove(Meta : TSepiMeta) : integer;
+    function AddMeta(Meta: TSepiMeta): Integer;
+    function IndexOfMeta(Meta: TSepiMeta): Integer;
+    function Remove(Meta: TSepiMeta): Integer;
 
-    property Metas[index : integer] : TSepiMeta
+    property Metas[Index: Integer]: TSepiMeta
       read GetMetas write SetMetas; default;
-    property MetaFromName[const Name : string] : TSepiMeta
+    property MetaFromName[const Name: string]: TSepiMeta
       read GetMetaFromName write SetMetaFromName;
   end;
 
@@ -110,65 +111,66 @@ type
   *}
   TSepiMeta = class
   private
-    FIsForward : boolean;        /// True tant que le meta n'a pas été construit
-    FState : TSepiMetaState;     /// État
-    FOwner : TSepiMeta;          /// Propriétaire
-    FRoot : TSepiRoot;           /// Racine
-    FOwningUnit : TSepiUnit;     /// Unité contenante
-    FName : string;              /// Nom
-    FForwards : TStrings;        /// Liste des enfants forwards
-    FChildren : TSepiMetaList;   /// Liste des enfants
-    FObjResources : TObjectList; /// Liste des ressources objet
-    FPtrResources : TList;       /// Liste des ressources pointeur
+    FIsForward: Boolean;
+    /// True tant que le meta n'a pas été construit
+    FState: TSepiMetaState;     /// État
+    FOwner: TSepiMeta;          /// Propriétaire
+    FRoot: TSepiRoot;           /// Racine
+    FOwningUnit: TSepiUnit;     /// Unité contenante
+    FName: string;              /// Nom
+    FForwards: TStrings;        /// Liste des enfants forwards
+    FChildren: TSepiMetaList;   /// Liste des enfants
+    FObjResources: TObjectList; /// Liste des ressources objet
+    FPtrResources: TList;       /// Liste des ressources pointeur
 
-    procedure AddChild(Child : TSepiMeta);
-    procedure RemoveChild(Child : TSepiMeta);
+    procedure AddChild(Child: TSepiMeta);
+    procedure RemoveChild(Child: TSepiMeta);
 
-    function GetChildCount : integer;
-    function GetChildren(Index : integer) : TSepiMeta;
+    function GetChildCount: Integer;
+    function GetChildren(Index: Integer): TSepiMeta;
   protected
-    FVisibility : TMemberVisibility; /// Visibilité
+    FVisibility: TMemberVisibility; /// Visibilité
 
-    procedure LoadChildren(Stream : TStream);
-    procedure SaveChildren(Stream : TStream);
+    procedure LoadChildren(Stream: TStream);
+    procedure SaveChildren(Stream: TStream);
 
-    procedure AddForward(const ChildName : string; Child : TObject);
-    procedure ChildAdded(Child : TSepiMeta); virtual;
-    procedure ChildRemoving(Child : TSepiMeta); virtual;
+    procedure AddForward(const ChildName: string; Child: TObject);
+    procedure ChildAdded(Child: TSepiMeta); virtual;
+    procedure ChildRemoving(Child: TSepiMeta); virtual;
 
     procedure Loaded; virtual;
 
     procedure ListReferences; virtual;
-    procedure Save(Stream : TStream); virtual;
+    procedure Save(Stream: TStream); virtual;
 
     procedure Destroying; virtual;
 
-    property State : TSepiMetaState read FState;
+    property State: TSepiMetaState read FState;
   public
-    constructor Load(AOwner : TSepiMeta; Stream : TStream); virtual;
-    constructor Create(AOwner : TSepiMeta; const AName : string);
+    constructor Load(AOwner: TSepiMeta; Stream: TStream); virtual;
+    constructor Create(AOwner: TSepiMeta; const AName: string);
     destructor Destroy; override;
     procedure AfterConstruction; override;
     procedure BeforeDestruction; override;
 
-    class function NewInstance : TObject; override;
+    class function NewInstance: TObject; override;
 
-    function GetFullName : string;
-    function GetMeta(const Name : string) : TSepiMeta;
-    function FindMeta(const Name : string) : TSepiMeta;
+    function GetFullName: string;
+    function GetMeta(const Name: string): TSepiMeta;
+    function FindMeta(const Name: string): TSepiMeta;
 
-    procedure AddObjResource(Obj : TObject);
-    procedure AddPtrResource(Ptr : Pointer);
+    procedure AddObjResource(Obj: TObject);
+    procedure AddPtrResource(Ptr: Pointer);
 
-    property IsForward : boolean read FIsForward;
-    property Owner : TSepiMeta read FOwner;
-    property Root : TSepiRoot read FRoot;
-    property OwningUnit : TSepiUnit read FOwningUnit;
-    property Name : string read FName;
-    property Visibility : TMemberVisibility read FVisibility write FVisibility;
+    property IsForward: Boolean read FIsForward;
+    property Owner: TSepiMeta read FOwner;
+    property Root: TSepiRoot read FRoot;
+    property OwningUnit: TSepiUnit read FOwningUnit;
+    property Name: string read FName;
+    property Visibility: TMemberVisibility read FVisibility write FVisibility;
 
-    property ChildCount : integer read GetChildCount;
-    property Children[index : integer] : TSepiMeta read GetChildren;
+    property ChildCount: Integer read GetChildCount;
+    property Children[Index: Integer]: TSepiMeta read GetChildren;
   end;
 
   {*
@@ -182,8 +184,8 @@ type
     @version 1.0
   *}
   TSepiTypeParamBehavior = record
-    AlwaysByAddress : boolean; /// Le type est toujours passé par adresse
-    AlwaysByStack : boolean;   /// Le type est toujours passé sur la pile
+    AlwaysByAddress: Boolean; /// Le type est toujours passé par adresse
+    AlwaysByStack: Boolean;   /// Le type est toujours passé sur la pile
   end;
 
   {*
@@ -193,54 +195,54 @@ type
   *}
   TSepiType = class(TSepiMeta)
   private
-    FKind : TTypeKind;         /// Type de type
-    FNative : boolean;         /// Indique si le type est un type natif Delphi
-    FTypeInfoLength : integer; /// Taille des RTTI créées (ou 0 si non créées)
-    FTypeInfo : PTypeInfo;     /// RTTI (Runtime Type Information)
-    FTypeData : PTypeData;     /// RTTD (Runtime Type Data)
-    FTypeInfoRef : PPTypeInfo; /// Référence aux RTTI
+    FKind: TTypeKind;         /// Type de type
+    FNative: Boolean;         /// Indique si le type est un type natif Delphi
+    FTypeInfoLength: Integer; /// Taille des RTTI créées (ou 0 si non créées)
+    FTypeInfo: PTypeInfo;     /// RTTI (Runtime Type Information)
+    FTypeData: PTypeData;     /// RTTD (Runtime Type Data)
+    FTypeInfoRef: PPTypeInfo; /// Référence aux RTTI
   protected
-    FSize : integer;     /// Taille d'une variable de ce type
-    FNeedInit : boolean; /// Indique si ce type requiert une initialisation
+    FSize: Integer;     /// Taille d'une variable de ce type
+    FNeedInit: Boolean; /// Indique si ce type requiert une initialisation
 
-    FParamBehavior : TSepiTypeParamBehavior; /// Comportement comme paramètre
+    FParamBehavior: TSepiTypeParamBehavior; /// Comportement comme paramètre
 
-    procedure Save(Stream : TStream); override;
+    procedure Save(Stream: TStream); override;
 
-    procedure ForceNative(ATypeInfo : PTypeInfo = nil);
-    procedure AllocateTypeInfo(TypeDataLength : integer = 0);
+    procedure ForceNative(ATypeInfo: PTypeInfo = nil);
+    procedure AllocateTypeInfo(TypeDataLength: Integer = 0);
     procedure ExtractTypeData; virtual;
 
-    function GetAlignment : integer; virtual;
+    function GetAlignment: Integer; virtual;
 
-    property TypeInfoRef : PPTypeInfo read FTypeInfoRef;
+    property TypeInfoRef: PPTypeInfo read FTypeInfoRef;
   public
-    constructor RegisterTypeInfo(AOwner : TSepiMeta;
-      ATypeInfo : PTypeInfo); virtual;
-    constructor Clone(AOwner : TSepiMeta; const AName : string;
-      Source : TSepiType); virtual;
-    constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
-    constructor Create(AOwner : TSepiMeta; const AName : string;
-      AKind : TTypeKind);
+    constructor RegisterTypeInfo(AOwner: TSepiMeta;
+      ATypeInfo: PTypeInfo); virtual;
+    constructor Clone(AOwner: TSepiMeta; const AName: string;
+      Source: TSepiType); virtual;
+    constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
+    constructor Create(AOwner: TSepiMeta; const AName: string;
+      AKind: TTypeKind);
     destructor Destroy; override;
 
-    class function NewInstance : TObject; override;
+    class function NewInstance: TObject; override;
 
-    class function LoadFromTypeInfo(AOwner : TSepiMeta;
-      ATypeInfo : PTypeInfo) : TSepiType;
+    class function LoadFromTypeInfo(AOwner: TSepiMeta;
+      ATypeInfo: PTypeInfo): TSepiType;
 
-    procedure AlignOffset(var Offset : integer);
+    procedure AlignOffset(var Offset: Integer);
 
-    function CompatibleWith(AType : TSepiType) : boolean; virtual;
+    function CompatibleWith(AType: TSepiType): Boolean; virtual;
 
-    property Kind : TTypeKind read FKind;
-    property Native : boolean read FNative;
-    property TypeInfo : PTypeInfo read FTypeInfo;
-    property TypeData : PTypeData read FTypeData;
-    property Size : integer read FSize;
-    property NeedInit : boolean read FNeedInit;
-    property Alignment : integer read GetAlignment;
-    property ParamBehavior : TSepiTypeParamBehavior read FParamBehavior;
+    property Kind: TTypeKind read FKind;
+    property Native: Boolean read FNative;
+    property TypeInfo: PTypeInfo read FTypeInfo;
+    property TypeData: PTypeData read FTypeData;
+    property Size: Integer read FSize;
+    property NeedInit: Boolean read FNeedInit;
+    property Alignment: Integer read GetAlignment;
+    property ParamBehavior: TSepiTypeParamBehavior read FParamBehavior;
   end;
 
   {*
@@ -255,30 +257,31 @@ type
   *}
   TSepiRoot = class(TSepiMeta)
   private
-    FSearchOrder : TObjectList;       /// Ordre de recherche
-    FOnLoadUnit : TSepiLoadUnitEvent; /// Déclenché au chargement d'une unité
+    FSearchOrder: TObjectList;       /// Ordre de recherche
+    FOnLoadUnit: TSepiLoadUnitEvent; /// Déclenché au chargement d'une unité
 
-    function GetUnitCount : integer;
-    function GetUnits(Index : integer) : TSepiUnit;
+    function GetUnitCount: Integer;
+    function GetUnits(Index: Integer): TSepiUnit;
   protected
-    procedure ChildAdded(Child : TSepiMeta); override;
+    procedure ChildAdded(Child: TSepiMeta); override;
   public
     constructor Create;
     destructor Destroy; override;
 
-    function LoadUnit(const UnitName : string) : TSepiUnit;
-    procedure UnloadUnit(const UnitName : string);
+    function LoadUnit(const UnitName: string): TSepiUnit;
+    procedure UnloadUnit(const UnitName: string);
 
-    function GetType(TypeInfo : PTypeInfo) : TSepiType; overload;
-    function GetType(const TypeName : string) : TSepiType; overload;
+    function GetType(TypeInfo: PTypeInfo): TSepiType; overload;
+    function GetType(const TypeName: string): TSepiType; overload;
 
-    function FindType(TypeInfo : PTypeInfo) : TSepiType; overload;
-    function FindType(const TypeName : string) : TSepiType; overload;
+    function FindType(TypeInfo: PTypeInfo): TSepiType; overload;
+    function FindType(const TypeName: string): TSepiType; overload;
 
-    property UnitCount : integer read GetUnitCount;
-    property Units[index : integer] : TSepiUnit read GetUnits;
+    property UnitCount: Integer read GetUnitCount;
+    property Units[Index: Integer]: TSepiUnit read GetUnits;
 
-    property OnLoadUnit : TSepiLoadUnitEvent read FOnLoadUnit write FOnLoadUnit;
+    property OnLoadUnit: TSepiLoadUnitEvent
+      read FOnLoadUnit write FOnLoadUnit;
   end;
 
   {*
@@ -289,47 +292,47 @@ type
   TSepiUnit = class(TSepiType)
   private
     /// Déclenché pour chaque méthode au chargement, pour obtenir son code
-    FOnGetMethodCode : TGetMethodCodeEvent;
+    FOnGetMethodCode: TGetMethodCodeEvent;
 
-    FRefCount : integer;                    /// Compteur de références
-    FUsesList : TStrings;                   /// Liste des uses
-    FCurrentVisibility : TMemberVisibility; /// Visibilité courante
+    FRefCount: Integer;                    /// Compteur de références
+    FUsesList: TStrings;                   /// Liste des uses
+    FCurrentVisibility: TMemberVisibility; /// Visibilité courante
 
-    FReferences : array of TStrings; /// Références en chargement/sauvegarde
+    FReferences: array of TStrings; /// Références en chargement/sauvegarde
 
-    function AddUses(AUnit : TSepiUnit) : integer;
+    function AddUses(AUnit: TSepiUnit): Integer;
 
-    procedure SetCurrentVisibility(Value : TMemberVisibility);
+    procedure SetCurrentVisibility(Value: TMemberVisibility);
 
-    function GetUsedUnitCount : integer;
-    function GetUsedUnits(Index : integer) : TSepiUnit;
+    function GetUsedUnitCount: Integer;
+    function GetUsedUnits(Index: Integer): TSepiUnit;
   protected
-    procedure Save(Stream : TStream); override;
+    procedure Save(Stream: TStream); override;
   public
-    constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
-    constructor Create(AOwner : TSepiMeta; const AName : string;
-      const AUses : array of string);
+    constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
+    constructor Create(AOwner: TSepiMeta; const AName: string;
+      const AUses: array of string);
     destructor Destroy; override;
 
-    procedure MoreUses(const AUses : array of string);
+    procedure MoreUses(const AUses: array of string);
 
     procedure Complete;
 
-    procedure SaveToStream(Stream : TStream);
-    class function LoadFromStream(AOwner : TSepiMeta; Stream : TStream;
-      const AOnGetMethodCode : TGetMethodCodeEvent = nil) : TSepiUnit;
+    procedure SaveToStream(Stream: TStream);
+    class function LoadFromStream(AOwner: TSepiMeta; Stream: TStream;
+      const AOnGetMethodCode: TGetMethodCodeEvent = nil): TSepiUnit;
 
-    procedure ReadRef(Stream : TStream; out Ref);
-    procedure AddRef(Ref : TSepiMeta);
-    procedure WriteRef(Stream : TStream; Ref : TSepiMeta);
+    procedure ReadRef(Stream: TStream; out Ref);
+    procedure AddRef(Ref: TSepiMeta);
+    procedure WriteRef(Stream: TStream; Ref: TSepiMeta);
 
-    property CurrentVisibility : TMemberVisibility
+    property CurrentVisibility: TMemberVisibility
       read FCurrentVisibility write SetCurrentVisibility;
 
-    property UsedUnitCount : integer read GetUsedUnitCount;
-    property UsedUnits[index : integer] : TSepiUnit read GetUsedUnits;
+    property UsedUnitCount: Integer read GetUsedUnitCount;
+    property UsedUnits[Index: Integer]: TSepiUnit read GetUsedUnits;
 
-    property OnGetMethodCode : TGetMethodCodeEvent read FOnGetMethodCode;
+    property OnGetMethodCode: TGetMethodCodeEvent read FOnGetMethodCode;
   end;
 
   {*
@@ -339,20 +342,20 @@ type
   *}
   TSepiTypeAlias = class(TSepiMeta)
   private
-    FDest : TSepiType; /// Type destination
+    FDest: TSepiType; /// Type destination
   protected
     procedure ListReferences; override;
-    procedure Save(Stream : TStream); override;
+    procedure Save(Stream: TStream); override;
   public
-    constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
-    constructor Create(AOwner : TSepiMeta; const AName : string;
-      ADest : TSepiType); overload;
-    constructor Create(AOwner : TSepiMeta; const AName : string;
-      ADest : PTypeInfo); overload;
-    constructor Create(AOwner : TSepiMeta;
-      const AName, ADest : string); overload;
+    constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
+    constructor Create(AOwner: TSepiMeta; const AName: string;
+      ADest: TSepiType); overload;
+    constructor Create(AOwner: TSepiMeta; const AName: string;
+      ADest: PTypeInfo); overload;
+    constructor Create(AOwner: TSepiMeta;
+      const AName, ADest: string); overload;
 
-    property Dest : TSepiType read FDest;
+    property Dest: TSepiType read FDest;
   end;
 
   {*
@@ -362,24 +365,24 @@ type
   *}
   TSepiConstant = class(TSepiMeta)
   private
-    FType : TSepiType;   /// Type de la constante
-    FValuePtr : Pointer; /// Pointeur sur la valeur
-    FStrValue : string;  /// Contenu de la valeur de type chaîne
+    FType: TSepiType;   /// Type de la constante
+    FValuePtr: Pointer; /// Pointeur sur la valeur
+    FStrValue: string;  /// Contenu de la valeur de type chaîne
   protected
     procedure ListReferences; override;
-    procedure Save(Stream : TStream); override;
+    procedure Save(Stream: TStream); override;
   public
-    constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
-    constructor Create(AOwner : TSepiMeta; const AName : string;
-      const AValue : Variant; AType : TSepiType); overload;
-    constructor Create(AOwner : TSepiMeta; const AName : string;
-      const AValue : Variant; ATypeInfo : PTypeInfo = nil); overload;
-    constructor Create(AOwner : TSepiMeta; const AName : string;
-      const AValue : Variant; const ATypeName : string); overload;
+    constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
+    constructor Create(AOwner: TSepiMeta; const AName: string;
+      const AValue: Variant; AType: TSepiType); overload;
+    constructor Create(AOwner: TSepiMeta; const AName: string;
+      const AValue: Variant; ATypeInfo: PTypeInfo = nil); overload;
+    constructor Create(AOwner: TSepiMeta; const AName: string;
+      const AValue: Variant; const ATypeName: string); overload;
     destructor Destroy; override;
 
-    property ConstType : TSepiType read FType;
-    property ValuePtr : Pointer read FValuePtr;
+    property ConstType: TSepiType read FType;
+    property ValuePtr: Pointer read FValuePtr;
   end;
 
   {*
@@ -389,39 +392,39 @@ type
   *}
   TSepiVariable = class(TSepiMeta)
   private
-    FIsConst : boolean;  /// Indique si la variable est une constante typée
-    FType : TSepiType;   /// Type de la constante
-    FValue : Pointer;    /// Pointeur sur la variable
-    FOwnValue : boolean; /// Indique si Sepi a alloué la variable
+    FIsConst: Boolean;  /// Indique si la variable est une constante typée
+    FType: TSepiType;   /// Type de la constante
+    FValue: Pointer;    /// Pointeur sur la variable
+    FOwnValue: Boolean; /// Indique si Sepi a alloué la variable
   protected
     procedure ListReferences; override;
-    procedure Save(Stream : TStream); override;
+    procedure Save(Stream: TStream); override;
 
     procedure Destroying; override;
   public
-    constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
+    constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
 
-    constructor Create(AOwner : TSepiMeta; const AName : string;
-      const AValue; AType : TSepiType; AIsConst : boolean = False); overload;
-    constructor Create(AOwner : TSepiMeta; const AName : string;
-      const AValue; ATypeInfo : PTypeInfo;
-      AIsConst : boolean = False); overload;
-    constructor Create(AOwner : TSepiMeta; const AName : string;
-      const AValue; const ATypeName : string;
-      AIsConst : boolean = False); overload;
+    constructor Create(AOwner: TSepiMeta; const AName: string;
+      const AValue; AType: TSepiType; AIsConst: Boolean = False); overload;
+    constructor Create(AOwner: TSepiMeta; const AName: string;
+      const AValue; ATypeInfo: PTypeInfo;
+      AIsConst: Boolean = False); overload;
+    constructor Create(AOwner: TSepiMeta; const AName: string;
+      const AValue; const ATypeName: string;
+      AIsConst: Boolean = False); overload;
 
-    constructor Create(AOwner : TSepiMeta; const AName : string;
-      AType : TSepiType; AIsConst : boolean = False); overload;
-    constructor Create(AOwner : TSepiMeta; const AName : string;
-      ATypeInfo : PTypeInfo; AIsConst : boolean = False); overload;
-    constructor Create(AOwner : TSepiMeta; const AName : string;
-      const ATypeName : string; AIsConst : boolean = False); overload;
+    constructor Create(AOwner: TSepiMeta; const AName: string;
+      AType: TSepiType; AIsConst: Boolean = False); overload;
+    constructor Create(AOwner: TSepiMeta; const AName: string;
+      ATypeInfo: PTypeInfo; AIsConst: Boolean = False); overload;
+    constructor Create(AOwner: TSepiMeta; const AName: string;
+      const ATypeName: string; AIsConst: Boolean = False); overload;
 
     destructor Destroy; override;
 
-    property IsConst : boolean read FIsConst;
-    property VarType : TSepiType read FType;
-    property Value : Pointer read FValue;
+    property IsConst: Boolean read FIsConst;
+    property VarType: TSepiType read FType;
+    property Value: Pointer read FValue;
   end;
 
   {*
@@ -431,21 +434,21 @@ type
   *}
   TSepiUnitLoadTask = class(TScTask)
   private
-    FRoot : TSepiRoot;  /// Racine Sepi
-    FUnitName : string; /// Nom de l'unité à charger/décharger
-    FIsLoad : boolean;  /// True pour charger, False pour décharger
+    FRoot: TSepiRoot;  /// Racine Sepi
+    FUnitName: string; /// Nom de l'unité à charger/décharger
+    FIsLoad: Boolean;  /// True pour charger, False pour décharger
   protected
     procedure Execute; override;
   public
-    constructor Create(AOwner : TScCustomTaskQueue; ARoot : TSepiRoot;
-      const AUnitName : string; AIsLoad : boolean;
-      AFreeOnFinished : boolean); overload;
-    constructor Create(AOwner : TScCustomTaskQueue; ARoot : TSepiRoot;
-      const AUnitName : string; AIsLoad : boolean); overload;
+    constructor Create(AOwner: TScCustomTaskQueue; ARoot: TSepiRoot;
+      const AUnitName: string; AIsLoad: Boolean;
+      AFreeOnFinished: Boolean); overload;
+    constructor Create(AOwner: TScCustomTaskQueue; ARoot: TSepiRoot;
+      const AUnitName: string; AIsLoad: Boolean); overload;
 
-    property Root : TSepiRoot read FRoot;
-    property UnitName : string read FUnitName;
-    property IsLoad : boolean read FIsLoad;
+    property Root: TSepiRoot read FRoot;
+    property UnitName: string read FUnitName;
+    property IsLoad: Boolean read FIsLoad;
   end;
 
   {*
@@ -455,36 +458,36 @@ type
   *}
   TSepiAsynchronousRootManager = class(TScTaskQueue)
   private
-    FOwnsRoot : boolean; /// Indique si l'on possède la racine
-    FRoot : TSepiRoot;   /// Meta-racine gérée
+    FOwnsRoot: Boolean; /// Indique si l'on possède la racine
+    FRoot: TSepiRoot;   /// Meta-racine gérée
   public
-    constructor Create(ARoot : TSepiRoot = nil);
+    constructor Create(ARoot: TSepiRoot = nil);
     destructor Destroy; override;
 
-    procedure LoadUnit(const UnitName : string);
-    procedure UnloadUnit(const UnitName : string);
+    procedure LoadUnit(const UnitName: string);
+    procedure UnloadUnit(const UnitName: string);
 
-    property Root : TSepiRoot read FRoot;
+    property Root: TSepiRoot read FRoot;
   end;
 
   {*
     Type de routine call-back pour l'import d'une unité sous Sepi
   *}
-  TSepiImportUnitFunc = function(Root : TSepiRoot) : TSepiUnit;
+  TSepiImportUnitFunc = function(Root: TSepiRoot): TSepiUnit;
 
-procedure SepiRegisterMetaClasses(const MetaClasses : array of TSepiMetaClass);
+procedure SepiRegisterMetaClasses(const MetaClasses: array of TSepiMetaClass);
 
-procedure SepiRegisterImportedUnit(const UnitName : string;
-  ImportFunc : TSepiImportUnitFunc);
-procedure SepiUnregisterImportedUnit(const UnitName : string);
+procedure SepiRegisterImportedUnit(const UnitName: string;
+  ImportFunc: TSepiImportUnitFunc);
+procedure SepiUnregisterImportedUnit(const UnitName: string);
 
 const {don't localize}
   SystemUnitName = 'System'; /// Nom de l'unité System.pas
 
 const
   /// Comportement par des défaut d'un type comme paramètre
-  DefaultTypeParamBehavior : TSepiTypeParamBehavior = (
-    AlwaysByAddress : False; AlwaysByStack : False
+  DefaultTypeParamBehavior: TSepiTypeParamBehavior = (
+    AlwaysByAddress: False; AlwaysByStack: False
   );
 
 implementation
@@ -493,15 +496,16 @@ uses
   SepiOrdTypes, SepiStrTypes, SepiArrayTypes, SepiMembers, SepiImportsSystem;
 
 var
-  SepiMetaClasses : TStrings = nil;
-  SepiImportedUnits : TStrings = nil;
+  SepiMetaClasses: TStrings = nil;
+  SepiImportedUnits: TStrings = nil;
 
 {*
   Recense des classes de meta
   @param MetaClasses   Classes de meta à recenser
 *}
-procedure SepiRegisterMetaClasses(const MetaClasses : array of TSepiMetaClass);
-var I : integer;
+procedure SepiRegisterMetaClasses(const MetaClasses: array of TSepiMetaClass);
+var
+  I: Integer;
 begin
   if not Assigned(SepiMetaClasses) then
   begin
@@ -529,8 +533,9 @@ end;
   @return La classe de meta dont le nom correspond
   @throws EClassNotFound La classe recherchée n'existe pas
 *}
-function SepiFindMetaClass(const MetaClassName : string) : TSepiMetaClass;
-var Index : integer;
+function SepiFindMetaClass(const MetaClassName: string): TSepiMetaClass;
+var
+  Index: Integer;
 begin
   if not Assigned(SepiMetaClasses) then Index := -1 else
     Index := SepiMetaClasses.IndexOf(MetaClassName);
@@ -545,8 +550,8 @@ end;
   @param UnitName     Nom de l'unité
   @param ImportFunc   Routine de call-back pour l'import de l'unité
 *}
-procedure SepiRegisterImportedUnit(const UnitName : string;
-  ImportFunc : TSepiImportUnitFunc);
+procedure SepiRegisterImportedUnit(const UnitName: string;
+  ImportFunc: TSepiImportUnitFunc);
 begin
   if not Assigned(SepiImportedUnits) then
   begin
@@ -565,8 +570,9 @@ end;
   Supprime un recensement d'import d'unité
   @param UnitName   Nom de l'unité
 *}
-procedure SepiUnregisterImportedUnit(const UnitName : string);
-var Index : integer;
+procedure SepiUnregisterImportedUnit(const UnitName: string);
+var
+  Index: Integer;
 begin
   if not Assigned(SepiImportedUnits) then exit;
   Index := SepiImportedUnits.IndexOf(UnitName);
@@ -581,8 +587,9 @@ end;
   @param UnitName   Nom de l'unité
   @return Routine de call-back pour l'import de l'unité, ou nil si n'existe pas
 *}
-function SepiImportedUnit(const UnitName : string) : TSepiImportUnitFunc;
-var Index : integer;
+function SepiImportedUnit(const UnitName: string): TSepiImportUnitFunc;
+var
+  Index: Integer;
 begin
   if not Assigned(SepiImportedUnits) then Result := nil else
   begin
@@ -610,7 +617,7 @@ end;
   @param Index   Index du meta à obtenir
   @return Meta à l'index spécifié
 *}
-function TSepiMetaList.GetMetas(Index : integer) : TSepiMeta;
+function TSepiMetaList.GetMetas(Index: Integer): TSepiMeta;
 begin
   Result := TSepiMeta(Objects[Index]);
 end;
@@ -622,7 +629,7 @@ end;
   @param Index   Index du meta à modifier
   @param Value   Référence au nouveau meta
 *}
-procedure TSepiMetaList.SetMetas(Index : integer; Value : TSepiMeta);
+procedure TSepiMetaList.SetMetas(Index: Integer; Value: TSepiMeta);
 begin
   if Assigned(Objects[Index]) then
     Error(@SSepiMetaAlreadyAssigned, Index);
@@ -634,8 +641,9 @@ end;
   @param Name   Nom d'un meta
   @return Le meta dont le nom a été spécifié, ou nil s'il n'existe pas
 *}
-function TSepiMetaList.GetMetaFromName(const Name : string) : TSepiMeta;
-var Index : integer;
+function TSepiMetaList.GetMetaFromName(const Name: string): TSepiMeta;
+var
+  Index: Integer;
 begin
   Index := IndexOf(Name);
   if Index < 0 then Result := nil else
@@ -649,8 +657,10 @@ end;
   @param Name    Nom du meta
   @param Value   Référence au meta
 *}
-procedure TSepiMetaList.SetMetaFromName(const Name : string; Value : TSepiMeta);
-var Index : integer;
+procedure TSepiMetaList.SetMetaFromName(const Name: string;
+  Value: TSepiMeta);
+var
+  Index: Integer;
 begin
   Index := IndexOf(Name);
   if Index < 0 then AddObject(Name, Value) else
@@ -663,8 +673,8 @@ end;
   @param S         Chaîne à ajouter
   @param AObject   Objet à ajouter
 *}
-procedure TSepiMetaList.InsertItem(Index : Integer; const S : string;
-  AObject : TObject);
+procedure TSepiMetaList.InsertItem(Index: Integer; const S: string;
+  AObject: TObject);
 begin
   if IndexOf(S) >= 0 then
     raise EListError.CreateFmt(SSepiMetaAlreadyExists, [S]);
@@ -676,7 +686,7 @@ end;
   @param Meta   Meta à ajouter
   @return Index du meta nouvellement ajouté
 *}
-function TSepiMetaList.AddMeta(Meta : TSepiMeta) : integer;
+function TSepiMetaList.AddMeta(Meta: TSepiMeta): Integer;
 begin
   Result := AddObject(Meta.Name, Meta);
 end;
@@ -686,7 +696,7 @@ end;
   @param Meta   Meta à chercher
   @return L'index du meta dans la liste, ou nil s'il n'existe pas
 *}
-function TSepiMetaList.IndexOfMeta(Meta : TSepiMeta) : integer;
+function TSepiMetaList.IndexOfMeta(Meta: TSepiMeta): Integer;
 begin
   Result := IndexOf(Meta.Name);
 end;
@@ -696,7 +706,7 @@ end;
   @param Meta   Meta à supprimer
   @return L'index auquel se trouvait le meta
 *}
-function TSepiMetaList.Remove(Meta : TSepiMeta) : integer;
+function TSepiMetaList.Remove(Meta: TSepiMeta): Integer;
 begin
   Result := IndexOfMeta(Meta);
   Delete(Result);
@@ -711,7 +721,7 @@ end;
   @param AOwner   Propriétaire du meta
   @param Stream   Flux depuis lequel charger le meta
 *}
-constructor TSepiMeta.Load(AOwner : TSepiMeta; Stream : TStream);
+constructor TSepiMeta.Load(AOwner: TSepiMeta; Stream: TStream);
 begin
   Create(AOwner, ReadStrFromStream(Stream));
   Stream.ReadBuffer(FVisibility, 1);
@@ -723,7 +733,7 @@ end;
   @param AOwner   Propriétaire du meta
   @param AName    Nom du meta
 *}
-constructor TSepiMeta.Create(AOwner : TSepiMeta; const AName : string);
+constructor TSepiMeta.Create(AOwner: TSepiMeta; const AName: string);
 begin
   if not IsForward then
     raise ESepiMetaAlreadyCreated.CreateFmt(SSepiMetaAlreadyCreated, [Name]);
@@ -755,7 +765,8 @@ end;
   Détruit l'instance
 *}
 destructor TSepiMeta.Destroy;
-var I : integer;
+var
+  I: Integer;
 begin
   if State <> msDestroying then // only if an error has occured in constructor
     Destroying;
@@ -787,7 +798,7 @@ end;
   appelée ailleurs.
   @param Child   Enfant à ajouter
 *}
-procedure TSepiMeta.AddChild(Child : TSepiMeta);
+procedure TSepiMeta.AddChild(Child: TSepiMeta);
 begin
   FChildren.AddMeta(Child);
 end;
@@ -798,8 +809,9 @@ end;
   être appelée ailleurs.
   @param Child   Enfant à supprimer
 *}
-procedure TSepiMeta.RemoveChild(Child : TSepiMeta);
-var Index : integer;
+procedure TSepiMeta.RemoveChild(Child: TSepiMeta);
+var
+  Index: Integer;
 begin
   if State <> msDestroying then
   begin
@@ -814,7 +826,7 @@ end;
   Nombre d'enfants
   @return Nombre d'enfants
 *}
-function TSepiMeta.GetChildCount : integer;
+function TSepiMeta.GetChildCount: Integer;
 begin
   Result := FChildren.Count;
 end;
@@ -824,7 +836,7 @@ end;
   @param Index   Index de l'enfant à récupérer
   @return Enfant à l'index spécifié
 *}
-function TSepiMeta.GetChildren(Index : integer) : TSepiMeta;
+function TSepiMeta.GetChildren(Index: Integer): TSepiMeta;
 begin
   Result := TSepiMeta(FChildren[Index]);
 end;
@@ -833,10 +845,11 @@ end;
   Charge les enfants depuis un flux
   @param Stream   Flux depuis lequel charger les enfants
 *}
-procedure TSepiMeta.LoadChildren(Stream : TStream);
-var Count, I : integer;
-    ForwardChild : TObject;
-    IsForward : boolean;
+procedure TSepiMeta.LoadChildren(Stream: TStream);
+var
+  Count, I: Integer;
+  ForwardChild: TObject;
+  IsForward: Boolean;
 begin
   // Forwards
   Stream.ReadBuffer(Count, 4);
@@ -862,10 +875,11 @@ end;
   Enregistre les enfants dans un flux
   @param Stream   Flux dans lequel enregistrer les enfants
 *}
-procedure TSepiMeta.SaveChildren(Stream : TStream);
-var Count, I : integer;
-    Child : TSepiMeta;
-    IsForward : boolean;
+procedure TSepiMeta.SaveChildren(Stream: TStream);
+var
+  Count, I: Integer;
+  Child: TSepiMeta;
+  IsForward: Boolean;
 begin
   // Forwards
   Count := FForwards.Count;
@@ -900,7 +914,7 @@ end;
   @param ChildName   Nom de l'enfant
   @param Child       Enfant à ajouter
 *}
-procedure TSepiMeta.AddForward(const ChildName : string; Child : TObject);
+procedure TSepiMeta.AddForward(const ChildName: string; Child: TObject);
 begin
   FForwards.AddObject(ChildName, Child);
 end;
@@ -909,7 +923,7 @@ end;
   Appelé lorsqu'un enfant vient d'être ajouté
   @param Child   Enfant qui vient d'être ajouté
 *}
-procedure TSepiMeta.ChildAdded(Child : TSepiMeta);
+procedure TSepiMeta.ChildAdded(Child: TSepiMeta);
 begin
 end;
 
@@ -917,7 +931,7 @@ end;
   Appelé lorsqu'un enfant va être supprimé
   @param Child   Enfant sur le point d'être supprimé
 *}
-procedure TSepiMeta.ChildRemoving(Child : TSepiMeta);
+procedure TSepiMeta.ChildRemoving(Child: TSepiMeta);
 begin
 end;
 
@@ -925,7 +939,8 @@ end;
   Appelé lorsque l'unité contenante est complètement chargée/créée
 *}
 procedure TSepiMeta.Loaded;
-var I : integer;
+var
+  I: Integer;
 begin
   // Already created children
   for I := 0 to FChildren.Count-1 do
@@ -944,7 +959,8 @@ end;
   Liste les références auprès de l'unité contenante, pour préparer la sauvegarde
 *}
 procedure TSepiMeta.ListReferences;
-var I : integer;
+var
+  I: Integer;
 begin
   for I := 0 to FChildren.Count-1 do
     FChildren[I].ListReferences;
@@ -954,7 +970,7 @@ end;
   Enregistre le meta dans un flux
   @param Stream   Flux dans lequel enregistrer le meta
 *}
-procedure TSepiMeta.Save(Stream : TStream);
+procedure TSepiMeta.Save(Stream: TStream);
 begin
   WriteStrToStream(Stream, Name);
   Stream.WriteBuffer(FVisibility, 1);
@@ -964,10 +980,12 @@ end;
   Appelé lorsque l'environnement Sepi est sur le point d'être détruit
 *}
 procedure TSepiMeta.Destroying;
-var I : integer;
+var
+  I: Integer;
 begin
   FState := msDestroying;
-  if Assigned(FChildren) then // could not be if an error occured in constructor
+  if Assigned(FChildren) then
+    // could not be if an error occured in constructor
     for I := 0 to ChildCount-1 do
       Children[I].Destroying;
 end;
@@ -1000,7 +1018,7 @@ end;
   Crée une nouvelle instance de TSepiMeta
   @return Instance créée
 *}
-class function TSepiMeta.NewInstance : TObject;
+class function TSepiMeta.NewInstance: TObject;
 begin
   Result := inherited NewInstance;
   TSepiMeta(Result).FIsForward := True;
@@ -1010,7 +1028,7 @@ end;
   Nom qualifié du meta, depuis l'unité contenante
   @return Nom qualifié du meta
 *}
-function TSepiMeta.GetFullName : string;
+function TSepiMeta.GetFullName: string;
 begin
   if Assigned(FOwner) and (FOwner.Name <> '') then
     Result := FOwner.GetFullName+'.'+Name
@@ -1023,9 +1041,10 @@ end;
   @param Name   Nom du meta à trouver
   @return Le meta correspondant, ou nil s'il n'a pas été trouvé
 *}
-function TSepiMeta.GetMeta(const Name : string) : TSepiMeta;
-var I : integer;
-    MetaName, Field : string;
+function TSepiMeta.GetMeta(const Name: string): TSepiMeta;
+var
+  I: Integer;
+  MetaName, Field: string;
 begin
   if not SplitToken(Name, '.', MetaName, Field) then
     Field := '';
@@ -1051,7 +1070,7 @@ end;
   @return Le meta correspondant
   @throws ESepiMetaNotFoundError Le meta n'a pas été trouvé
 *}
-function TSepiMeta.FindMeta(const Name : string) : TSepiMeta;
+function TSepiMeta.FindMeta(const Name: string): TSepiMeta;
 begin
   Result := GetMeta(Name);
   if (Result = nil) and (Name <> '') then
@@ -1064,7 +1083,7 @@ end;
   sera libéré lui-même.
   @param Obj   Objet à ajouter aux ressources
 *}
-procedure TSepiMeta.AddObjResource(Obj : TObject);
+procedure TSepiMeta.AddObjResource(Obj: TObject);
 begin
   FObjResources.Add(Obj);
 end;
@@ -1075,7 +1094,7 @@ end;
   meta sera libéré lui-même.
   @param Ptr   Pointeur à ajouter aux ressources
 *}
-procedure TSepiMeta.AddPtrResource(Ptr : Pointer);
+procedure TSepiMeta.AddPtrResource(Ptr: Pointer);
 begin
   FPtrResources.Add(Ptr);
 end;
@@ -1089,8 +1108,8 @@ end;
   @param AOwner      Propriétaire du type
   @param ATypeInfo   RTTI du type à recenser
 *}
-constructor TSepiType.RegisterTypeInfo(AOwner : TSepiMeta;
-  ATypeInfo : PTypeInfo);
+constructor TSepiType.RegisterTypeInfo(AOwner: TSepiMeta;
+  ATypeInfo: PTypeInfo);
 begin
   inherited Create(AOwner, AnsiReplaceStr(ATypeInfo.Name, '.', '$$'));
 
@@ -1109,8 +1128,8 @@ end;
   @param AName    Nom du type
   @param Source   Type à cloner
 *}
-constructor TSepiType.Clone(AOwner : TSepiMeta; const AName : string;
-  Source : TSepiType);
+constructor TSepiType.Clone(AOwner: TSepiMeta; const AName: string;
+  Source: TSepiType);
 begin
   inherited Create(AOwner, AName);
 
@@ -1129,7 +1148,7 @@ end;
   @param AOwner   Propriétaire du type
   @param Stream   Flux depuis lequel charger le type
 *}
-constructor TSepiType.Load(AOwner : TSepiMeta; Stream : TStream);
+constructor TSepiType.Load(AOwner: TSepiMeta; Stream: TStream);
 begin
   inherited;
 
@@ -1149,8 +1168,8 @@ end;
   @param AName    Nom du type
   @param AKind    Type de type
 *}
-constructor TSepiType.Create(AOwner : TSepiMeta; const AName : string;
-  AKind : TTypeKind);
+constructor TSepiType.Create(AOwner: TSepiMeta; const AName: string;
+  AKind: TTypeKind);
 begin
   inherited Create(AOwner, AName);
 
@@ -1175,7 +1194,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TSepiType.Save(Stream : TStream);
+procedure TSepiType.Save(Stream: TStream);
 begin
   inherited;
   Stream.WriteBuffer(FKind, 1);
@@ -1187,7 +1206,7 @@ end;
   pas toujours, même natifs, de RTTI.
   @param ATypeInfo   RTTI à fixer (peut être nil)
 *}
-procedure TSepiType.ForceNative(ATypeInfo : PTypeInfo = nil);
+procedure TSepiType.ForceNative(ATypeInfo: PTypeInfo = nil);
 begin
   FNative := True;
   FTypeInfo := ATypeInfo;
@@ -1205,9 +1224,10 @@ end;
   type.
   @param TypeDataLength   Taille des données de type
 *}
-procedure TSepiType.AllocateTypeInfo(TypeDataLength : integer = 0);
-var ShortName : ShortString;
-    NameLength : integer;
+procedure TSepiType.AllocateTypeInfo(TypeDataLength: Integer = 0);
+var
+  ShortName: ShortString;
+  NameLength: Integer;
 begin
   ShortName := Name;
   NameLength := Length(Name)+1; // 1 byte for string length
@@ -1233,7 +1253,7 @@ end;
   l'alignement.
   @return Alignement du type
 *}
-function TSepiType.GetAlignment : integer;
+function TSepiType.GetAlignment: Integer;
 begin
   Result := Size;
 end;
@@ -1242,7 +1262,7 @@ end;
   Crée une nouvelle instance de TSepiType
   @return Instance créée
 *}
-class function TSepiType.NewInstance : TObject;
+class function TSepiType.NewInstance: TObject;
 begin
   Result := inherited NewInstance;
   TSepiType(Result).FTypeInfoRef := @TSepiType(Result).FTypeInfo;
@@ -1254,16 +1274,17 @@ end;
   @param ATypeInfo   RTTI du type à recenser
   @return Type nouvellement créé
 *}
-class function TSepiType.LoadFromTypeInfo(AOwner : TSepiMeta;
-  ATypeInfo : PTypeInfo) : TSepiType;
+class function TSepiType.LoadFromTypeInfo(AOwner: TSepiMeta;
+  ATypeInfo: PTypeInfo): TSepiType;
 const
-  TypeClasses : array[TTypeKind] of TSepiTypeClass = (
+  TypeClasses: array[TTypeKind] of TSepiTypeClass = (
     nil, TSepiIntegerType, TSepiCharType, TSepiEnumType, TSepiFloatType,
     TSepiShortStringType, TSepiSetType, TSepiClass, TSepiMethodRefType,
     TSepiCharType, TSepiStringType, TSepiStringType, TSepiVariantType,
     nil, nil, TSepiInterface, TSepiInt64Type, TSepiDynArrayType
   );
-var TypeClass : TSepiTypeClass;
+var
+  TypeClass: TSepiTypeClass;
 begin
   TypeClass := TypeClasses[ATypeInfo.Kind];
   if Assigned(TypeClass) then
@@ -1272,11 +1293,11 @@ begin
     begin
       with GetTypeData(ATypeInfo)^ do
         if (BaseType^ = System.TypeInfo(Boolean)) or
-           (GetTypeData(BaseType^).MinValue < 0) then
+          (GetTypeData(BaseType^).MinValue < 0) then
           TypeClass := TSepiBooleanType;
     end;
 
-    Result := TypeClass.RegisterTypeInfo(AOwner, ATypeInfo)
+    Result := TypeClass.RegisterTypeInfo(AOwner, ATypeInfo);
   end else raise EAbstractError.Create(SSepiNoRegisterTypeInfo);
 end;
 
@@ -1284,12 +1305,13 @@ end;
   Aligne l'offset donné conformément à la propriété Alignment
   @param Offset   Offset à aligner
 *}
-procedure TSepiType.AlignOffset(var Offset : integer);
-var Disalign : integer;
+procedure TSepiType.AlignOffset(var Offset: Integer);
+var
+  Disalign: Integer;
 begin
   Disalign := Offset mod Alignment;
   if Disalign > 0 then
-    inc(Offset, Alignment-Disalign);
+    Inc(Offset, Alignment-Disalign);
 end;
 
 {*
@@ -1299,7 +1321,7 @@ end;
   @param AType   Type avec lequel tester la compatibilité
   @return True si les types sont compatibles, False sinon
 *}
-function TSepiType.CompatibleWith(AType : TSepiType) : boolean;
+function TSepiType.CompatibleWith(AType: TSepiType): Boolean;
 begin
   Result := AType.FKind = FKind;
 end;
@@ -1335,7 +1357,7 @@ end;
   Nombre d'unités
   @return Nombre d'unités
 *}
-function TSepiRoot.GetUnitCount : integer;
+function TSepiRoot.GetUnitCount: Integer;
 begin
   Result := FChildren.Count;
 end;
@@ -1345,7 +1367,7 @@ end;
   @param Index   Index de l'unité à récupérer
   @return Unité à l'index spécifié
 *}
-function TSepiRoot.GetUnits(Index : integer) : TSepiUnit;
+function TSepiRoot.GetUnits(Index: Integer): TSepiUnit;
 begin
   Result := TSepiUnit(FChildren.Objects[Index]);
 end;
@@ -1353,9 +1375,10 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiRoot.ChildAdded(Child : TSepiMeta);
-var CurrentUnit : TSepiUnit;
-    I : integer;
+procedure TSepiRoot.ChildAdded(Child: TSepiMeta);
+var
+  CurrentUnit: TSepiUnit;
+  I: Integer;
 begin
   inherited;
 
@@ -1376,8 +1399,9 @@ end;
   @param UnitName   Nom de l'unité à charger
   @return Unité chargée
 *}
-function TSepiRoot.LoadUnit(const UnitName : string) : TSepiUnit;
-var ImportFunc : TSepiImportUnitFunc;
+function TSepiRoot.LoadUnit(const UnitName: string): TSepiUnit;
+var
+  ImportFunc: TSepiImportUnitFunc;
 begin
   Result := TSepiUnit(GetMeta(UnitName));
 
@@ -1394,15 +1418,16 @@ begin
   if Result = nil then
     raise ESepiUnitNotFoundError.CreateFmt(SSepiUnitNotFound, [UnitName]);
 
-  inc(Result.FRefCount);
+  Inc(Result.FRefCount);
 end;
 
 {*
   Décharge une unité
   @param UnitName   Nom de l'unité à charger
 *}
-procedure TSepiRoot.UnloadUnit(const UnitName : string);
-var MetaUnit : TSepiUnit;
+procedure TSepiRoot.UnloadUnit(const UnitName: string);
+var
+  MetaUnit: TSepiUnit;
 begin
   if State = msDestroying then exit;
 
@@ -1410,7 +1435,7 @@ begin
   if MetaUnit = nil then
     raise ESepiUnitNotFoundError.CreateFmt(SSepiUnitNotFound, [UnitName]);
 
-  dec(MetaUnit.FRefCount);
+  Dec(MetaUnit.FRefCount);
   if MetaUnit.FRefCount = 0 then
   begin
     Assert(FChildren.IndexOfObject(MetaUnit) = FChildren.Count-1);
@@ -1423,11 +1448,12 @@ end;
   @param TypeInfo   Informations de type du type recherché
   @return Le type correspondant (nil si non trouvé)
 *}
-function TSepiRoot.GetType(TypeInfo : PTypeInfo) : TSepiType;
-var TypeName : string;
-    I : integer;
-    Meta : TSepiMeta;
-    First : TSepiType;
+function TSepiRoot.GetType(TypeInfo: PTypeInfo): TSepiType;
+var
+  TypeName: string;
+  I: Integer;
+  Meta: TSepiMeta;
+  First: TSepiType;
 begin
   if TypeInfo = nil then
   begin
@@ -1464,9 +1490,10 @@ end;
   @param TypeName   Nom du type recherché
   @return Le type correspondant (ou nil si non trouvé)
 *}
-function TSepiRoot.GetType(const TypeName : string) : TSepiType;
-var I : integer;
-    Meta : TSepiMeta;
+function TSepiRoot.GetType(const TypeName: string): TSepiType;
+var
+  I: Integer;
+  Meta: TSepiMeta;
 begin
   if TypeName = '' then
   begin
@@ -1493,7 +1520,7 @@ end;
   @return Le type correspondant aux informations de type données
   @throw ESepiMetaNotFoundError Aucun type enregistré correspondant
 *}
-function TSepiRoot.FindType(TypeInfo : PTypeInfo) : TSepiType;
+function TSepiRoot.FindType(TypeInfo: PTypeInfo): TSepiType;
 begin
   if TypeInfo = nil then Result := nil else
   begin
@@ -1510,7 +1537,7 @@ end;
   @return Le type correspondant au nom donné
   @throw ESepiMetaNotFoundError Aucun type enregistré correspondant
 *}
-function TSepiRoot.FindType(const TypeName : string) : TSepiType;
+function TSepiRoot.FindType(const TypeName: string): TSepiType;
 begin
   if TypeName = '' then Result := nil else
   begin
@@ -1527,9 +1554,10 @@ end;
 {*
   Charge une unité depuis un flux
 *}
-constructor TSepiUnit.Load(AOwner : TSepiMeta; Stream : TStream);
-var UsesCount, RefCount, I, J : integer;
-    Str : string;
+constructor TSepiUnit.Load(AOwner: TSepiMeta; Stream: TStream);
+var
+  UsesCount, RefCount, I, J: Integer;
+  Str: string;
 begin
   Stream.ReadBuffer(UsesCount, 4);
   SetLength(FReferences, UsesCount+1);
@@ -1574,8 +1602,8 @@ end;
   @param AOwner   Propriétaire de l'unité (la racine)
   @param AName    Nom de l'unité
 *}
-constructor TSepiUnit.Create(AOwner : TSepiMeta; const AName : string;
-  const AUses : array of string);
+constructor TSepiUnit.Create(AOwner: TSepiMeta; const AName: string;
+  const AUses: array of string);
 begin
   Assert(AOwner is TSepiRoot);
 
@@ -1597,7 +1625,8 @@ end;
   [@inheritDoc]
 *}
 destructor TSepiUnit.Destroy;
-var I : integer;
+var
+  I: Integer;
 begin
   inherited;
 
@@ -1614,7 +1643,7 @@ end;
   @param AUnit   Unité à ajouter aux uses
   @return Index de la nouvelle unité dans les uses
 *}
-function TSepiUnit.AddUses(AUnit : TSepiUnit) : integer;
+function TSepiUnit.AddUses(AUnit: TSepiUnit): Integer;
 begin
   if AUnit = Self then Result := -1 else
   begin
@@ -1637,7 +1666,7 @@ end;
   Change la visibilité courante
   @param Value   Nouvelle visibilité
 *}
-procedure TSepiUnit.SetCurrentVisibility(Value : TMemberVisibility);
+procedure TSepiUnit.SetCurrentVisibility(Value: TMemberVisibility);
 begin
   if Value in [mvPublic, mvPublished] then
     FCurrentVisibility := mvPublic
@@ -1649,7 +1678,7 @@ end;
   Nombre d'unités utilisées
   @return Nombre d'unité utilisées
 *}
-function TSepiUnit.GetUsedUnitCount : integer;
+function TSepiUnit.GetUsedUnitCount: Integer;
 begin
   Result := FUsesList.Count;
 end;
@@ -1659,7 +1688,7 @@ end;
   @param Index   Index de l'unité utilisée
   @return Unité utilisée dont l'index est spécifié
 *}
-function TSepiUnit.GetUsedUnits(Index : integer) : TSepiUnit;
+function TSepiUnit.GetUsedUnits(Index: Integer): TSepiUnit;
 begin
   Result := TSepiUnit(FUsesList.Objects[Index]);
 end;
@@ -1667,7 +1696,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiUnit.Save(Stream : TStream);
+procedure TSepiUnit.Save(Stream: TStream);
 begin
   inherited;
   SaveChildren(Stream);
@@ -1679,8 +1708,9 @@ end;
   construction.
   @param AUses   Uses à ajouter
 *}
-procedure TSepiUnit.MoreUses(const AUses : array of string);
-var I : integer;
+procedure TSepiUnit.MoreUses(const AUses: array of string);
+var
+  I: Integer;
 begin
   for I := Low(AUses) to High(AUses) do
     if FUsesList.IndexOf(AUses[I]) < 0 then
@@ -1699,9 +1729,10 @@ end;
 {*
   Enregistre l'unité dans un flux
 *}
-procedure TSepiUnit.SaveToStream(Stream : TStream);
-var UsesCount, RefCount, I, J : integer;
-    RefList : TStrings;
+procedure TSepiUnit.SaveToStream(Stream: TStream);
+var
+  UsesCount, RefCount, I, J: Integer;
+  RefList: TStrings;
 begin
   UsesCount := FUsesList.Count;
   SetLength(FReferences, UsesCount+1);
@@ -1745,9 +1776,9 @@ end;
   @param AOnGetMethodCode   Méthode de call-back pour récupérer le code d'une
                             méthode
 *}
-class function TSepiUnit.LoadFromStream(AOwner : TSepiMeta;
-  Stream : TStream;
-  const AOnGetMethodCode : TGetMethodCodeEvent = nil) : TSepiUnit;
+class function TSepiUnit.LoadFromStream(AOwner: TSepiMeta;
+  Stream: TStream;
+  const AOnGetMethodCode: TGetMethodCodeEvent = nil): TSepiUnit;
 begin
   Result := TSepiUnit(NewInstance);
   Result.FOnGetMethodCode := AOnGetMethodCode;
@@ -1763,9 +1794,10 @@ end;
   @param Stream   Flux dans lequel écrire la référence
   @param Ref      Variable de type TSepiMeta où stocker la référence lue
 *}
-procedure TSepiUnit.ReadRef(Stream : TStream; out Ref);
-var UnitIndex, RefIndex : integer;
-    RefList : TStrings;
+procedure TSepiUnit.ReadRef(Stream: TStream; out Ref);
+var
+  UnitIndex, RefIndex: Integer;
+  RefList: TStrings;
 begin
   // Reading unit index and checking for nil reference
   UnitIndex := 0;
@@ -1800,9 +1832,10 @@ end;
   d'accès assurée.
   @param Ref   Référence à ajouter
 *}
-procedure TSepiUnit.AddRef(Ref : TSepiMeta);
-var UnitIndex : integer;
-    RefList : TStrings;
+procedure TSepiUnit.AddRef(Ref: TSepiMeta);
+var
+  UnitIndex: Integer;
+  RefList: TStrings;
 begin
   if Ref = nil then exit;
 
@@ -1824,8 +1857,9 @@ end;
   @param Stream   Flux dans lequel écrire la référence
   @param Ref      Référence à écrire
 *}
-procedure TSepiUnit.WriteRef(Stream : TStream; Ref : TSepiMeta);
-var UnitIndex, RefIndex : integer;
+procedure TSepiUnit.WriteRef(Stream: TStream; Ref: TSepiMeta);
+var
+  UnitIndex, RefIndex: Integer;
 begin
   if Ref = nil then
   begin
@@ -1849,7 +1883,7 @@ end;
 {*
   Charge un alias de type depuis un flux
 *}
-constructor TSepiTypeAlias.Load(AOwner : TSepiMeta; Stream : TStream);
+constructor TSepiTypeAlias.Load(AOwner: TSepiMeta; Stream: TStream);
 begin
   inherited;
   OwningUnit.ReadRef(Stream, FDest);
@@ -1861,8 +1895,8 @@ end;
   @param AName    Nom de l'alias de type
   @param ADest    Destination de l'alias
 *}
-constructor TSepiTypeAlias.Create(AOwner : TSepiMeta; const AName : string;
-  ADest : TSepiType);
+constructor TSepiTypeAlias.Create(AOwner: TSepiMeta; const AName: string;
+  ADest: TSepiType);
 begin
   inherited Create(AOwner, AName);
   FDest := ADest;
@@ -1874,8 +1908,8 @@ end;
   @param AName    Nom de l'alias de type
   @param ADest    RTTI de la destination de l'alias
 *}
-constructor TSepiTypeAlias.Create(AOwner : TSepiMeta; const AName : string;
-  ADest : PTypeInfo);
+constructor TSepiTypeAlias.Create(AOwner: TSepiMeta; const AName: string;
+  ADest: PTypeInfo);
 begin
   Create(AOwner, AName, AOwner.Root.FindType(ADest));
 end;
@@ -1886,8 +1920,8 @@ end;
   @param AName    Nom de l'alias de type
   @param ADest    Nom de la destination de l'alias
 *}
-constructor TSepiTypeAlias.Create(AOwner : TSepiMeta;
-  const AName, ADest : string);
+constructor TSepiTypeAlias.Create(AOwner: TSepiMeta;
+  const AName, ADest: string);
 begin
   Create(AOwner, AName, AOwner.Root.FindType(ADest));
 end;
@@ -1904,7 +1938,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiTypeAlias.Save(Stream : TStream);
+procedure TSepiTypeAlias.Save(Stream: TStream);
 begin
   inherited;
   OwningUnit.WriteRef(Stream, FDest);
@@ -1917,7 +1951,7 @@ end;
 {*
   Charge une constante depuis un flux
 *}
-constructor TSepiConstant.Load(AOwner : TSepiMeta; Stream : TStream);
+constructor TSepiConstant.Load(AOwner: TSepiMeta; Stream: TStream);
 begin
   inherited;
 
@@ -1939,8 +1973,8 @@ end;
   @param AValue   Valeur de la constante
   @param AType    Type de la constante
 *}
-constructor TSepiConstant.Create(AOwner : TSepiMeta;
-  const AName : string; const AValue : Variant; AType : TSepiType);
+constructor TSepiConstant.Create(AOwner: TSepiMeta;
+  const AName: string; const AValue: Variant; AType: TSepiType);
 begin
   inherited Create(AOwner, AName);
 
@@ -1962,30 +1996,31 @@ end;
   @param AValue      Valeur de la constante
   @param ATypeInfo   RTTI du type de la constante (déterminé par VType si nil)
 *}
-constructor TSepiConstant.Create(AOwner : TSepiMeta;
-  const AName : string; const AValue : Variant; ATypeInfo : PTypeInfo = nil);
+constructor TSepiConstant.Create(AOwner: TSepiMeta;
+  const AName: string; const AValue: Variant; ATypeInfo: PTypeInfo = nil);
 begin
   if ATypeInfo = nil then
   begin
     case VarType(AValue) of
-      varSmallint : ATypeInfo := System.TypeInfo(Smallint);
-      varInteger  : ATypeInfo := System.TypeInfo(Integer);
-      varSingle   : ATypeInfo := System.TypeInfo(Single);
-      varDouble   : ATypeInfo := System.TypeInfo(Double);
-      varCurrency : ATypeInfo := System.TypeInfo(Currency);
-      varDate     : ATypeInfo := System.TypeInfo(TDateTime);
-      varError    : ATypeInfo := System.TypeInfo(HRESULT);
-      varBoolean  : ATypeInfo := System.TypeInfo(Boolean);
-      varShortInt : ATypeInfo := System.TypeInfo(ShortInt);
-      varByte     : ATypeInfo := System.TypeInfo(Byte);
-      varWord     : ATypeInfo := System.TypeInfo(Word);
-      varLongWord : ATypeInfo := System.TypeInfo(LongWord);
-      varInt64    : ATypeInfo := System.TypeInfo(Int64);
+      varSmallint: ATypeInfo := System.TypeInfo(Smallint);
+      varInteger: ATypeInfo := System.TypeInfo(Integer);
+      varSingle: ATypeInfo := System.TypeInfo(Single);
+      varDouble: ATypeInfo := System.TypeInfo(Double);
+      varCurrency: ATypeInfo := System.TypeInfo(Currency);
+      varDate: ATypeInfo := System.TypeInfo(TDateTime);
+      varError: ATypeInfo := System.TypeInfo(HRESULT);
+      varBoolean: ATypeInfo := System.TypeInfo(Boolean);
+      varShortInt: ATypeInfo := System.TypeInfo(Shortint);
+      varByte: ATypeInfo := System.TypeInfo(Byte);
+      varWord: ATypeInfo := System.TypeInfo(Word);
+      varLongWord: ATypeInfo := System.TypeInfo(LongWord);
+      varInt64: ATypeInfo := System.TypeInfo(Int64);
 
-      varOleStr, varStrArg, varString : ATypeInfo := System.TypeInfo(string);
+      varOleStr, varStrArg, varString: ATypeInfo := System.TypeInfo(string);
 
-      else raise ESepiBadConstTypeError.CreateFmt(
-        SSepiBadConstType, [VarType(AValue)]);
+      else
+        raise ESepiBadConstTypeError.CreateFmt(
+          SSepiBadConstType, [VarType(AValue)]);
     end;
   end;
 
@@ -1999,8 +2034,8 @@ end;
   @param AValue      Valeur de la constante
   @param ATypeName   Nom du type de la constante
 *}
-constructor TSepiConstant.Create(AOwner : TSepiMeta;
-  const AName : string; const AValue : Variant; const ATypeName : string);
+constructor TSepiConstant.Create(AOwner: TSepiMeta;
+  const AName: string; const AValue: Variant; const ATypeName: string);
 begin
   Create(AOwner, AName, AValue, AOwner.Root.FindType(ATypeName));
 end;
@@ -2026,7 +2061,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiConstant.Save(Stream : TStream);
+procedure TSepiConstant.Save(Stream: TStream);
 begin
   inherited;
   OwningUnit.WriteRef(Stream, FType);
@@ -2044,7 +2079,7 @@ end;
 {*
   Charge une variable ou une constante typée depuis un flux
 *}
-constructor TSepiVariable.Load(AOwner : TSepiMeta; Stream : TStream);
+constructor TSepiVariable.Load(AOwner: TSepiMeta; Stream: TStream);
 begin
   inherited;
 
@@ -2069,8 +2104,8 @@ end;
   @param AType      Type de la variable
   @param AIsConst   Indique si c'est une constante typée
 *}
-constructor TSepiVariable.Create(AOwner : TSepiMeta; const AName : string;
-  const AValue; AType : TSepiType; AIsConst : boolean = False);
+constructor TSepiVariable.Create(AOwner: TSepiMeta; const AName: string;
+  const AValue; AType: TSepiType; AIsConst: Boolean = False);
 begin
   inherited Create(AOwner, AName);
 
@@ -2088,8 +2123,8 @@ end;
   @param ATypeInfo   RTTI du type de la variable
   @param AIsConst    Indique si c'est une constante typée
 *}
-constructor TSepiVariable.Create(AOwner : TSepiMeta; const AName : string;
-  const AValue; ATypeInfo : PTypeInfo; AIsConst : boolean = False);
+constructor TSepiVariable.Create(AOwner: TSepiMeta; const AName: string;
+  const AValue; ATypeInfo: PTypeInfo; AIsConst: Boolean = False);
 begin
   Create(AOwner, AName, AValue, AOwner.Root.FindType(ATypeInfo), AIsConst);
 end;
@@ -2102,8 +2137,8 @@ end;
   @param ATypeName   Nom du type de la variable
   @param AIsConst    Indique si c'est une constante typée
 *}
-constructor TSepiVariable.Create(AOwner : TSepiMeta; const AName : string;
-  const AValue; const ATypeName : string; AIsConst : boolean = False);
+constructor TSepiVariable.Create(AOwner: TSepiMeta; const AName: string;
+  const AValue; const ATypeName: string; AIsConst: Boolean = False);
 begin
   Create(AOwner, AName, AValue, AOwner.Root.FindType(ATypeName), AIsConst);
 end;
@@ -2115,8 +2150,8 @@ end;
   @param AType      Type de la variable
   @param AIsConst   Indique si c'est une constante typée
 *}
-constructor TSepiVariable.Create(AOwner : TSepiMeta; const AName : string;
-  AType : TSepiType; AIsConst : boolean = False);
+constructor TSepiVariable.Create(AOwner: TSepiMeta; const AName: string;
+  AType: TSepiType; AIsConst: Boolean = False);
 begin
   inherited Create(AOwner, AName);
 
@@ -2135,8 +2170,8 @@ end;
   @param ATypeInfo   RTTI du type de la variable
   @param AIsConst    Indique si c'est une constante typée
 *}
-constructor TSepiVariable.Create(AOwner : TSepiMeta; const AName : string;
-  ATypeInfo : PTypeInfo; AIsConst : boolean = False);
+constructor TSepiVariable.Create(AOwner: TSepiMeta; const AName: string;
+  ATypeInfo: PTypeInfo; AIsConst: Boolean = False);
 begin
   Create(AOwner, AName, AOwner.Root.FindType(ATypeInfo), AIsConst);
 end;
@@ -2148,8 +2183,8 @@ end;
   @param ATypeName   Nom du type de la variable
   @param AIsConst    Indique si c'est une constante typée
 *}
-constructor TSepiVariable.Create(AOwner : TSepiMeta; const AName : string;
-  const ATypeName : string; AIsConst : boolean = False);
+constructor TSepiVariable.Create(AOwner: TSepiMeta; const AName: string;
+  const ATypeName: string; AIsConst: Boolean = False);
 begin
   Create(AOwner, AName, AOwner.Root.FindType(ATypeName), AIsConst);
 end;
@@ -2177,7 +2212,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiVariable.Save(Stream : TStream);
+procedure TSepiVariable.Save(Stream: TStream);
 begin
   inherited;
   OwningUnit.WriteRef(Stream, FType);
@@ -2211,9 +2246,9 @@ end;
   @param AIsLoad           True pour charger, False pour décharger
   @param AFreeOnFinished   Indique si doit se détruire automatiquement
 *}
-constructor TSepiUnitLoadTask.Create(AOwner : TScCustomTaskQueue;
-  ARoot : TSepiRoot; const AUnitName : string; AIsLoad : boolean;
-  AFreeOnFinished : boolean);
+constructor TSepiUnitLoadTask.Create(AOwner: TScCustomTaskQueue;
+  ARoot: TSepiRoot; const AUnitName: string; AIsLoad: Boolean;
+  AFreeOnFinished: Boolean);
 begin
   inherited Create(AOwner, AFreeOnFinished);
   FRoot := ARoot;
@@ -2228,8 +2263,8 @@ end;
   @param AUnitName   Nom de l'unité à charger/décharger
   @param AIsLoad     True pour charger, False pour décharger
 *}
-constructor TSepiUnitLoadTask.Create(AOwner : TScCustomTaskQueue;
-  ARoot : TSepiRoot; const AUnitName : string; AIsLoad : boolean);
+constructor TSepiUnitLoadTask.Create(AOwner: TScCustomTaskQueue;
+  ARoot: TSepiRoot; const AUnitName: string; AIsLoad: Boolean);
 begin
   inherited Create(AOwner);
   FRoot := ARoot;
@@ -2256,7 +2291,7 @@ end;
   Crée un nouveau gestionnaire de racine
   @param ARoot   Racine à gérer (si nil, la racine est créée et libérée)
 *}
-constructor TSepiAsynchronousRootManager.Create(ARoot : TSepiRoot = nil);
+constructor TSepiAsynchronousRootManager.Create(ARoot: TSepiRoot = nil);
 begin
   inherited Create;
 
@@ -2282,7 +2317,7 @@ end;
   Demande le chargement d'une unité
   @param UnitName   Unité à charger
 *}
-procedure TSepiAsynchronousRootManager.LoadUnit(const UnitName : string);
+procedure TSepiAsynchronousRootManager.LoadUnit(const UnitName: string);
 begin
   TSepiUnitLoadTask.Create(Self, Root, UnitName, True);
 end;
@@ -2291,7 +2326,7 @@ end;
   Demande le déchargement d'une unité
   @param UnitName   Unité à charger
 *}
-procedure TSepiAsynchronousRootManager.UnloadUnit(const UnitName : string);
+procedure TSepiAsynchronousRootManager.UnloadUnit(const UnitName: string);
 begin
   TSepiUnitLoadTask.Create(Self, Root, UnitName, False);
 end;
@@ -2299,7 +2334,7 @@ end;
 initialization
   SepiRegisterMetaClasses([
     TSepiUnit, TSepiTypeAlias, TSepiConstant, TSepiVariable
-  ]);
+    ]);
 finalization
   SepiMetaClasses.Free;
   SepiImportedUnits.Free;

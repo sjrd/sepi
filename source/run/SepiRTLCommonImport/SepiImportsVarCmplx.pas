@@ -39,7 +39,7 @@ begin
   Result := VarComplexCreate(AText);
 end;
 
-function ImportUnit(Root : TSepiRoot) : TSepiUnit;
+function ImportUnit(Root: TSepiRoot): TSepiUnit;
 begin
   Result := TSepiUnit.Create(Root, 'VarCmplx',
     ['Variants']);
@@ -94,7 +94,8 @@ begin
     'function(const AValue: Variant): Variant');
   TSepiMethod.Create(Result, 'VarComplexTimesNegI', @VarComplexTimesNegI,
     'function(const AValue: Variant): Variant');
-  TSepiMethod.Create(Result, 'VarComplexTimesImaginary', @VarComplexTimesImaginary,
+  TSepiMethod.Create(Result, 'VarComplexTimesImaginary',
+    @VarComplexTimesImaginary,
     'function(const AValue: Variant; const AFactor: Double): Variant');
   TSepiMethod.Create(Result, 'VarComplexTimesReal', @VarComplexTimesReal,
     'function(const AValue: Variant; const AFactor: Double): Variant');
@@ -153,11 +154,11 @@ begin
 
   // Global variables
   TSepiVariable.Create(Result, 'ComplexNumberSymbol',
-     ComplexNumberSymbol, TypeInfo(string));
+    ComplexNumberSymbol, TypeInfo(string));
   TSepiVariable.Create(Result, 'ComplexNumberSymbolBeforeImaginary',
-     ComplexNumberSymbolBeforeImaginary, TypeInfo(Boolean));
+    ComplexNumberSymbolBeforeImaginary, TypeInfo(Boolean));
   TSepiVariable.Create(Result, 'ComplexNumberDefuzzAtZero',
-     ComplexNumberDefuzzAtZero, TypeInfo(Boolean));
+    ComplexNumberDefuzzAtZero, TypeInfo(Boolean));
 
   Result.Complete;
 end;

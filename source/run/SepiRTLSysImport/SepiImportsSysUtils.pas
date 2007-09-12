@@ -26,8 +26,8 @@ type
     function GetName(Index: Integer): string;
     function GetNameFromLocaleID(ID: LCID): string;
     function GetNameFromLCID(const ID: string): string;
-    function GetCount: integer;
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    function GetCount: Integer;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsException = class(Exception)
@@ -35,172 +35,176 @@ type
     constructor CreateRes_0(Ident: Integer);
     constructor CreateRes_1(ResStringRec: PResStringRec);
     constructor CreateResFmt_0(Ident: Integer; const Args: array of const);
-    constructor CreateResFmt_1(ResStringRec: PResStringRec; const Args: array of const);
+    constructor CreateResFmt_1(ResStringRec: PResStringRec;
+      const Args: array of const);
     constructor CreateResHelp_0(Ident: Integer; AHelpContext: Integer);
-    constructor CreateResHelp_1(ResStringRec: PResStringRec; AHelpContext: Integer);
-    constructor CreateResFmtHelp_0(ResStringRec: PResStringRec; const Args: array of const; AHelpContext: Integer );
-    constructor CreateResFmtHelp_1(Ident: Integer; const Args: array of const; AHelpContext: Integer );
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    constructor CreateResHelp_1(ResStringRec: PResStringRec;
+      AHelpContext: Integer);
+    constructor CreateResFmtHelp_0(ResStringRec: PResStringRec;
+      const Args: array of const; AHelpContext: Integer);
+    constructor CreateResFmtHelp_1(Ident: Integer;
+      const Args: array of const; AHelpContext: Integer);
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsEAbort = class(EAbort)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsEHeapException = class(EHeapException)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsEOutOfMemory = class(EOutOfMemory)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsEInOutError = class(EInOutError)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsEExternal = class(EExternal)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsEExternalException = class(EExternalException)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsEIntError = class(EIntError)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsEDivByZero = class(EDivByZero)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsERangeError = class(ERangeError)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsEIntOverflow = class(EIntOverflow)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsEMathError = class(EMathError)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsEInvalidOp = class(EInvalidOp)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsEZeroDivide = class(EZeroDivide)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsEOverflow = class(EOverflow)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsEUnderflow = class(EUnderflow)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsEInvalidPointer = class(EInvalidPointer)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsEInvalidCast = class(EInvalidCast)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsEConvertError = class(EConvertError)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsEAccessViolation = class(EAccessViolation)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsEPrivilege = class(EPrivilege)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsEControlC = class(EControlC)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsEVariantError = class(EVariantError)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsEPropReadOnly = class(EPropReadOnly)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsEPropWriteOnly = class(EPropWriteOnly)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsEAssertionFailed = class(EAssertionFailed)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsEAbstractError = class(EAbstractError)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsEIntfCastError = class(EIntfCastError)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsEInvalidContainer = class(EInvalidContainer)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsEInvalidInsert = class(EInvalidInsert)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsEPackageError = class(EPackageError)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsEOSError = class(EOSError)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsESafecallException = class(ESafecallException)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TUnnamed_20 = array of String;
@@ -211,24 +215,25 @@ type
 
   TSepiImportsTSimpleRWSync = class(TSimpleRWSync)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTThreadLocalCounter = class(TThreadLocalCounter)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
-  TSepiImportsTMultiReadExclusiveWriteSynchronizer = class(TMultiReadExclusiveWriteSynchronizer)
+  TSepiImportsTMultiReadExclusiveWriteSynchronizer =
+    class(TMultiReadExclusiveWriteSynchronizer)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
 {----------------}
 { WordRec import }
 {----------------}
 
-function SepiImportWordRec(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportWordRec(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'WordRec', True, True);
 
@@ -246,7 +251,7 @@ end;
 { LongRec import }
 {----------------}
 
-function SepiImportLongRec(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportLongRec(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'LongRec', True, True);
 
@@ -265,7 +270,7 @@ end;
 { Int64Rec import }
 {-----------------}
 
-function SepiImportInt64Rec(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportInt64Rec(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'Int64Rec', True, True);
 
@@ -285,7 +290,7 @@ end;
 { TSearchRec import }
 {-------------------}
 
-function SepiImportTSearchRec(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTSearchRec(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TSearchRec', False, True,
     TypeInfo(TSearchRec));
@@ -308,7 +313,7 @@ end;
 { TFloatRec import }
 {------------------}
 
-function SepiImportTFloatRec(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTFloatRec(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TFloatRec', True, True);
 
@@ -326,7 +331,7 @@ end;
 { TTimeStamp import }
 {-------------------}
 
-function SepiImportTTimeStamp(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTTimeStamp(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TTimeStamp', False, True);
 
@@ -343,7 +348,7 @@ end;
 { TSysLocale import }
 {-------------------}
 
-function SepiImportTSysLocale(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTSysLocale(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TSysLocale', True, True);
 
@@ -363,7 +368,7 @@ end;
 { TLangRec import }
 {-----------------}
 
-function SepiImportTLangRec(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTLangRec(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TLangRec', True, True,
     TypeInfo(TLangRec));
@@ -412,13 +417,13 @@ begin
   Result := NameFromLCID[ID];
 end;
 
-function TSepiImportsTLanguages.GetCount: integer;
+function TSepiImportsTLanguages.GetCount: Integer;
 begin
   Result := Count;
 end;
 
 class function TSepiImportsTLanguages.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TLanguages));
@@ -440,7 +445,8 @@ begin
       'function(Index: Integer): LCID');
     AddMethod('GetName', @TSepiImportsTLanguages.GetName,
       'function(Index: Integer): string');
-    AddMethod('GetNameFromLocaleID', @TSepiImportsTLanguages.GetNameFromLocaleID,
+    AddMethod('GetNameFromLocaleID',
+      @TSepiImportsTLanguages.GetNameFromLocaleID,
       'function(ID: LCID): string');
     AddMethod('GetNameFromLCID', @TSepiImportsTLanguages.GetNameFromLCID,
       'function(const ID: string): string');
@@ -487,38 +493,45 @@ begin
   CreateRes(ResStringRec);
 end;
 
-constructor TSepiImportsException.CreateResFmt_0(Ident: Integer; const Args: array of const);
+constructor TSepiImportsException.CreateResFmt_0(Ident: Integer;
+  const Args: array of const);
 begin
   CreateResFmt(Ident, Args);
 end;
 
-constructor TSepiImportsException.CreateResFmt_1(ResStringRec: PResStringRec; const Args: array of const);
+constructor TSepiImportsException.CreateResFmt_1(ResStringRec: PResStringRec;
+  const Args: array of const);
 begin
   CreateResFmt(ResStringRec, Args);
 end;
 
-constructor TSepiImportsException.CreateResHelp_0(Ident: Integer; AHelpContext: Integer);
+constructor TSepiImportsException.CreateResHelp_0(Ident: Integer;
+  AHelpContext: Integer);
 begin
   CreateResHelp(Ident, AHelpContext);
 end;
 
-constructor TSepiImportsException.CreateResHelp_1(ResStringRec: PResStringRec; AHelpContext: Integer);
+constructor TSepiImportsException.CreateResHelp_1(ResStringRec: PResStringRec;
+  AHelpContext: Integer);
 begin
   CreateResHelp(ResStringRec, AHelpContext);
 end;
 
-constructor TSepiImportsException.CreateResFmtHelp_0(ResStringRec: PResStringRec; const Args: array of const; AHelpContext: Integer );
+constructor TSepiImportsException.CreateResFmtHelp_0(
+  ResStringRec: PResStringRec;
+  const Args: array of const; AHelpContext: Integer);
 begin
   CreateResFmtHelp(ResStringRec, Args, AHelpContext);
 end;
 
-constructor TSepiImportsException.CreateResFmtHelp_1(Ident: Integer; const Args: array of const; AHelpContext: Integer );
+constructor TSepiImportsException.CreateResFmtHelp_1(Ident: Integer;
+  const Args: array of const; AHelpContext: Integer);
 begin
   CreateResFmtHelp(Ident, Args, AHelpContext);
 end;
 
 class function TSepiImportsException.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(Exception));
@@ -556,9 +569,11 @@ begin
       'constructor(Ident: Integer; AHelpContext: Integer)');
     AddMethod('OL$CreateResHelp$1', @TSepiImportsException.CreateResHelp_1,
       'constructor(ResStringRec: PResStringRec; AHelpContext: Integer)');
-    AddMethod('OL$CreateResFmtHelp$0', @TSepiImportsException.CreateResFmtHelp_0,
+    AddMethod('OL$CreateResFmtHelp$0',
+      @TSepiImportsException.CreateResFmtHelp_0,
       'constructor(ResStringRec: PResStringRec; const Args: array of const; AHelpContext: Integer )');
-    AddMethod('OL$CreateResFmtHelp$1', @TSepiImportsException.CreateResFmtHelp_1,
+    AddMethod('OL$CreateResFmtHelp$1',
+      @TSepiImportsException.CreateResFmtHelp_1,
       'constructor(Ident: Integer; const Args: array of const; AHelpContext: Integer )');
 
     AddProperty('HelpContext', 'property: Integer',
@@ -575,7 +590,7 @@ end;
 {---------------}
 
 class function TSepiImportsEAbort.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EAbort));
@@ -592,7 +607,7 @@ end;
 {-----------------------}
 
 class function TSepiImportsEHeapException.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EHeapException));
@@ -618,7 +633,7 @@ end;
 {---------------------}
 
 class function TSepiImportsEOutOfMemory.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EOutOfMemory));
@@ -635,7 +650,7 @@ end;
 {--------------------}
 
 class function TSepiImportsEInOutError.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EInOutError));
@@ -654,7 +669,7 @@ end;
 { TExceptionRecord import }
 {-------------------------}
 
-function SepiImportTExceptionRecord(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTExceptionRecord(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TExceptionRecord', False, True);
 
@@ -676,7 +691,7 @@ end;
 {------------------}
 
 class function TSepiImportsEExternal.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EExternal));
@@ -696,7 +711,7 @@ end;
 {---------------------------}
 
 class function TSepiImportsEExternalException.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EExternalException));
@@ -713,7 +728,7 @@ end;
 {------------------}
 
 class function TSepiImportsEIntError.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EIntError));
@@ -730,7 +745,7 @@ end;
 {-------------------}
 
 class function TSepiImportsEDivByZero.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EDivByZero));
@@ -747,7 +762,7 @@ end;
 {--------------------}
 
 class function TSepiImportsERangeError.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(ERangeError));
@@ -764,7 +779,7 @@ end;
 {---------------------}
 
 class function TSepiImportsEIntOverflow.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EIntOverflow));
@@ -781,7 +796,7 @@ end;
 {-------------------}
 
 class function TSepiImportsEMathError.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EMathError));
@@ -798,7 +813,7 @@ end;
 {-------------------}
 
 class function TSepiImportsEInvalidOp.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EInvalidOp));
@@ -815,7 +830,7 @@ end;
 {--------------------}
 
 class function TSepiImportsEZeroDivide.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EZeroDivide));
@@ -832,7 +847,7 @@ end;
 {------------------}
 
 class function TSepiImportsEOverflow.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EOverflow));
@@ -849,7 +864,7 @@ end;
 {-------------------}
 
 class function TSepiImportsEUnderflow.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EUnderflow));
@@ -866,7 +881,7 @@ end;
 {------------------------}
 
 class function TSepiImportsEInvalidPointer.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EInvalidPointer));
@@ -883,7 +898,7 @@ end;
 {---------------------}
 
 class function TSepiImportsEInvalidCast.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EInvalidCast));
@@ -900,7 +915,7 @@ end;
 {----------------------}
 
 class function TSepiImportsEConvertError.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EConvertError));
@@ -917,7 +932,7 @@ end;
 {-------------------------}
 
 class function TSepiImportsEAccessViolation.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EAccessViolation));
@@ -934,7 +949,7 @@ end;
 {-------------------}
 
 class function TSepiImportsEPrivilege.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EPrivilege));
@@ -951,7 +966,7 @@ end;
 {------------------}
 
 class function TSepiImportsEControlC.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EControlC));
@@ -968,7 +983,7 @@ end;
 {----------------------}
 
 class function TSepiImportsEVariantError.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EVariantError));
@@ -985,7 +1000,7 @@ end;
 {----------------------}
 
 class function TSepiImportsEPropReadOnly.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EPropReadOnly));
@@ -1002,7 +1017,7 @@ end;
 {-----------------------}
 
 class function TSepiImportsEPropWriteOnly.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EPropWriteOnly));
@@ -1019,7 +1034,7 @@ end;
 {-------------------------}
 
 class function TSepiImportsEAssertionFailed.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EAssertionFailed));
@@ -1036,7 +1051,7 @@ end;
 {-----------------------}
 
 class function TSepiImportsEAbstractError.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EAbstractError));
@@ -1053,7 +1068,7 @@ end;
 {-----------------------}
 
 class function TSepiImportsEIntfCastError.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EIntfCastError));
@@ -1070,7 +1085,7 @@ end;
 {--------------------------}
 
 class function TSepiImportsEInvalidContainer.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EInvalidContainer));
@@ -1087,7 +1102,7 @@ end;
 {-----------------------}
 
 class function TSepiImportsEInvalidInsert.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EInvalidInsert));
@@ -1104,7 +1119,7 @@ end;
 {----------------------}
 
 class function TSepiImportsEPackageError.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EPackageError));
@@ -1121,7 +1136,7 @@ end;
 {-----------------}
 
 class function TSepiImportsEOSError.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EOSError));
@@ -1141,7 +1156,7 @@ end;
 {---------------------------}
 
 class function TSepiImportsESafecallException.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(ESafecallException));
@@ -1157,7 +1172,7 @@ end;
 { TFormatSettings import }
 {------------------------}
 
-function SepiImportTFormatSettings(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTFormatSettings(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TFormatSettings', False, True,
     TypeInfo(TFormatSettings));
@@ -1193,7 +1208,7 @@ end;
 { IReadWriteSync import }
 {-----------------------}
 
-function SepiImportIReadWriteSync(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIReadWriteSync(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IReadWriteSync));
@@ -1218,7 +1233,7 @@ end;
 {----------------------}
 
 class function TSepiImportsTSimpleRWSync.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TSimpleRWSync));
@@ -1255,7 +1270,7 @@ end;
 { TThreadInfo import }
 {--------------------}
 
-function SepiImportTThreadInfo(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTThreadInfo(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TThreadInfo', False, True);
 
@@ -1275,7 +1290,7 @@ end;
 {----------------------------}
 
 class function TSepiImportsTThreadLocalCounter.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TThreadLocalCounter));
@@ -1312,7 +1327,7 @@ end;
 {---------------------------------------------}
 
 class function TSepiImportsTMultiReadExclusiveWriteSynchronizer.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TMultiReadExclusiveWriteSynchronizer));
@@ -1347,16 +1362,21 @@ begin
 
     AddMethod('Create', @TSepiImportsTMultiReadExclusiveWriteSynchronizer.Create,
       'constructor');
-    AddMethod('Destroy', @TSepiImportsTMultiReadExclusiveWriteSynchronizer.Destroy,
+    AddMethod('Destroy',
+      @TSepiImportsTMultiReadExclusiveWriteSynchronizer.Destroy,
       'destructor',
       mlkOverride);
-    AddMethod('BeginRead', @TSepiImportsTMultiReadExclusiveWriteSynchronizer.BeginRead,
+    AddMethod('BeginRead',
+      @TSepiImportsTMultiReadExclusiveWriteSynchronizer.BeginRead,
       'procedure');
-    AddMethod('EndRead', @TSepiImportsTMultiReadExclusiveWriteSynchronizer.EndRead,
+    AddMethod('EndRead',
+      @TSepiImportsTMultiReadExclusiveWriteSynchronizer.EndRead,
       'procedure');
-    AddMethod('BeginWrite', @TSepiImportsTMultiReadExclusiveWriteSynchronizer.BeginWrite,
+    AddMethod('BeginWrite',
+      @TSepiImportsTMultiReadExclusiveWriteSynchronizer.BeginWrite,
       'function: Boolean');
-    AddMethod('EndWrite', @TSepiImportsTMultiReadExclusiveWriteSynchronizer.EndWrite,
+    AddMethod('EndWrite',
+      @TSepiImportsTMultiReadExclusiveWriteSynchronizer.EndWrite,
       'procedure');
 
     AddProperty('RevisionLevel', 'property: Cardinal',
@@ -1395,7 +1415,8 @@ begin
   Result := CompareStr(S1, S2);
 end;
 
-function CompareStr_1(const S1, S2: string; LocaleOptions: TLocaleOptions): Integer;
+function CompareStr_1(const S1, S2: string;
+  LocaleOptions: TLocaleOptions): Integer;
 begin
   Result := CompareStr(S1, S2, LocaleOptions);
 end;
@@ -1405,7 +1426,8 @@ begin
   Result := SameStr(S1, S2);
 end;
 
-function SameStr_1(const S1, S2: string; LocaleOptions: TLocaleOptions): Boolean;
+function SameStr_1(const S1, S2: string;
+  LocaleOptions: TLocaleOptions): Boolean;
 begin
   Result := SameStr(S1, S2, LocaleOptions);
 end;
@@ -1415,7 +1437,8 @@ begin
   Result := CompareText(S1, S2);
 end;
 
-function CompareText_1(const S1, S2: string; LocaleOptions: TLocaleOptions): Integer;
+function CompareText_1(const S1, S2: string;
+  LocaleOptions: TLocaleOptions): Integer;
 begin
   Result := CompareText(S1, S2, LocaleOptions);
 end;
@@ -1425,7 +1448,8 @@ begin
   Result := SameText(S1, S2);
 end;
 
-function SameText_1(const S1, S2: string; LocaleOptions: TLocaleOptions): Boolean;
+function SameText_1(const S1, S2: string;
+  LocaleOptions: TLocaleOptions): Boolean;
 begin
   Result := SameText(S1, S2, LocaleOptions);
 end;
@@ -1495,7 +1519,8 @@ begin
   Result := FileSeek(Handle, Offset, Origin);
 end;
 
-function FileSeek_1(Handle: Integer; const Offset: Int64; Origin: Integer): Int64;
+function FileSeek_1(Handle: Integer; const Offset: Int64;
+  Origin: Integer): Int64;
 begin
   Result := FileSeek(Handle, Offset, Origin);
 end;
@@ -1510,84 +1535,102 @@ begin
   Result := FileSetDate(Handle, Age);
 end;
 
-function Format_0(const Format: string; const Args: array of const ) : string;
+function Format_0(const Format: string; const Args: array of const): string;
 begin
   Result := SysUtils.Format(Format, Args);
 end;
 
-function Format_1(const Format: string; const Args: array of const; const FormatSettings: TFormatSettings ) : string;
+function Format_1(const Format: string; const Args: array of const;
+  const FormatSettings: TFormatSettings): string;
 begin
   Result := SysUtils.Format(Format, Args, FormatSettings);
 end;
 
-procedure FmtStr_0(var Result: string; const Format: string; const Args: array of const );
+procedure FmtStr_0(var Result: string; const Format: string;
+  const Args: array of const);
 begin
   FmtStr(Result, Format, Args);
 end;
 
-procedure FmtStr_1(var Result: string; const Format: string; const Args: array of const ; const FormatSettings: TFormatSettings );
+procedure FmtStr_1(var Result: string; const Format: string;
+  const Args: array of const; const FormatSettings: TFormatSettings);
 begin
   FmtStr(Result, Format, Args, FormatSettings);
 end;
 
-function StrFmt_0(Buffer, Format: PChar; const Args: array of const ) : PChar;
+function StrFmt_0(Buffer, Format: PChar; const Args: array of const): PChar;
 begin
   Result := StrFmt(Buffer, Format, Args);
 end;
 
-function StrFmt_1(Buffer, Format: PChar; const Args: array of const; const FormatSettings: TFormatSettings ) : PChar;
+function StrFmt_1(Buffer, Format: PChar; const Args: array of const;
+  const FormatSettings: TFormatSettings): PChar;
 begin
   Result := StrFmt(Buffer, Format, Args, FormatSettings);
 end;
 
-function StrLFmt_0(Buffer: PChar; MaxBufLen: Cardinal; Format: PChar; const Args: array of const ) : PChar;
+function StrLFmt_0(Buffer: PChar; MaxBufLen: Cardinal;
+  Format: PChar; const Args: array of const): PChar;
 begin
   Result := StrLFmt(Buffer, MaxBufLen, Format, Args);
 end;
 
-function StrLFmt_1(Buffer: PChar; MaxBufLen: Cardinal; Format: PChar; const Args: array of const ; const FormatSettings: TFormatSettings ) : PChar;
+function StrLFmt_1(Buffer: PChar; MaxBufLen: Cardinal;
+  Format: PChar; const Args: array of const;
+  const FormatSettings: TFormatSettings): PChar;
 begin
   Result := StrLFmt(Buffer, MaxBufLen, Format, Args, FormatSettings);
 end;
 
-function FormatBuf_0(var Buffer; BufLen: Cardinal; const Format; FmtLen: Cardinal ; const Args: array of const ) : Cardinal;
+function FormatBuf_0(var Buffer; BufLen: Cardinal; const Format;
+  FmtLen: Cardinal; const Args: array of const): Cardinal;
 begin
   Result := FormatBuf(Buffer, BufLen, Format, FmtLen, Args);
 end;
 
-function FormatBuf_1(var Buffer; BufLen: Cardinal; const Format; FmtLen: Cardinal ; const Args: array of const ; const FormatSettings: TFormatSettings ) : Cardinal;
+function FormatBuf_1(var Buffer; BufLen: Cardinal; const Format;
+  FmtLen: Cardinal; const Args: array of const;
+  const FormatSettings: TFormatSettings): Cardinal;
 begin
   Result := FormatBuf(Buffer, BufLen, Format, FmtLen, Args, FormatSettings);
 end;
 
-function WideFormat_0(const Format: WideString; const Args: array of const ) : WideString;
+function WideFormat_0(const Format: WideString;
+  const Args: array of const): WideString;
 begin
   Result := WideFormat(Format, Args);
 end;
 
-function WideFormat_1(const Format: WideString; const Args: array of const ; const FormatSettings: TFormatSettings ) : WideString;
+function WideFormat_1(const Format: WideString; const Args: array of const;
+  const FormatSettings: TFormatSettings): WideString;
 begin
   Result := WideFormat(Format, Args, FormatSettings);
 end;
 
-procedure WideFmtStr_0(var Result: WideString; const Format: WideString; const Args: array of const );
+procedure WideFmtStr_0(var Result: WideString; const Format: WideString;
+  const Args: array of const);
 begin
   WideFmtStr(Result, Format, Args);
 end;
 
-procedure WideFmtStr_1(var Result: WideString; const Format: WideString; const Args: array of const ; const FormatSettings: TFormatSettings );
+procedure WideFmtStr_1(var Result: WideString; const Format: WideString;
+  const Args: array of const; const FormatSettings: TFormatSettings);
 begin
   WideFmtStr(Result, Format, Args, FormatSettings);
 end;
 
-function WideFormatBuf_0(var Buffer; BufLen: Cardinal; const Format; FmtLen: Cardinal ; const Args: array of const ) : Cardinal;
+function WideFormatBuf_0(var Buffer; BufLen: Cardinal; const Format;
+  FmtLen: Cardinal; const Args: array of const): Cardinal;
 begin
   Result := WideFormatBuf(Buffer, BufLen, Format, FmtLen, Args);
 end;
 
-function WideFormatBuf_1(var Buffer; BufLen: Cardinal; const Format; FmtLen: Cardinal ; const Args: array of const ; const FormatSettings: TFormatSettings ) : Cardinal;
+function WideFormatBuf_1(var Buffer; BufLen: Cardinal; const Format;
+  FmtLen: Cardinal; const Args: array of const;
+  const FormatSettings: TFormatSettings): Cardinal;
 begin
-  Result := WideFormatBuf(Buffer, BufLen, Format, FmtLen, Args, FormatSettings);
+  Result := WideFormatBuf(Buffer, BufLen, Format, FmtLen, Args,
+    FormatSettings);
 end;
 
 function FloatToStr_0(Value: Extended): string;
@@ -1595,7 +1638,8 @@ begin
   Result := FloatToStr(Value);
 end;
 
-function FloatToStr_1(Value: Extended; const FormatSettings: TFormatSettings ) : string;
+function FloatToStr_1(Value: Extended;
+  const FormatSettings: TFormatSettings): string;
 begin
   Result := FloatToStr(Value, FormatSettings);
 end;
@@ -1605,39 +1649,50 @@ begin
   Result := CurrToStr(Value);
 end;
 
-function CurrToStr_1(Value: Currency; const FormatSettings: TFormatSettings ) : string;
+function CurrToStr_1(Value: Currency;
+  const FormatSettings: TFormatSettings): string;
 begin
   Result := CurrToStr(Value, FormatSettings);
 end;
 
-function FloatToStrF_0(Value: Extended; Format: TFloatFormat; Precision, Digits: Integer ) : string;
+function FloatToStrF_0(Value: Extended; Format: TFloatFormat;
+  Precision, Digits: Integer): string;
 begin
   Result := FloatToStrF(Value, Format, Precision, Digits);
 end;
 
-function FloatToStrF_1(Value: Extended; Format: TFloatFormat; Precision, Digits: Integer ; const FormatSettings: TFormatSettings ) : string;
+function FloatToStrF_1(Value: Extended; Format: TFloatFormat;
+  Precision, Digits: Integer; const FormatSettings: TFormatSettings): string;
 begin
   Result := FloatToStrF(Value, Format, Precision, Digits, FormatSettings);
 end;
 
-function CurrToStrF_0(Value: Currency; Format: TFloatFormat; Digits: Integer ) : string;
+function CurrToStrF_0(Value: Currency; Format: TFloatFormat;
+  Digits: Integer): string;
 begin
   Result := CurrToStrF(Value, Format, Digits);
 end;
 
-function CurrToStrF_1(Value: Currency; Format: TFloatFormat; Digits: Integer ; const FormatSettings: TFormatSettings ) : string;
+function CurrToStrF_1(Value: Currency; Format: TFloatFormat;
+  Digits: Integer; const FormatSettings: TFormatSettings): string;
 begin
   Result := CurrToStrF(Value, Format, Digits, FormatSettings);
 end;
 
-function FloatToText_0(BufferArg: PChar; const Value; ValueType: TFloatValue; Format: TFloatFormat ; Precision, Digits: Integer ) : Integer;
+function FloatToText_0(BufferArg: PChar; const Value;
+  ValueType: TFloatValue; Format: TFloatFormat;
+  Precision, Digits: Integer): Integer;
 begin
-  Result := FloatToText(BufferArg, Value, ValueType, Format, Precision, Digits);
+  Result := FloatToText(BufferArg, Value, ValueType, Format,
+    Precision, Digits);
 end;
 
-function FloatToText_1(BufferArg: PChar; const Value; ValueType: TFloatValue; Format: TFloatFormat ; Precision, Digits: Integer ; const FormatSettings: TFormatSettings ) : Integer;
+function FloatToText_1(BufferArg: PChar; const Value;
+  ValueType: TFloatValue; Format: TFloatFormat; Precision, Digits: Integer;
+  const FormatSettings: TFormatSettings): Integer;
 begin
-  Result := FloatToText(BufferArg, Value, ValueType, Format, Precision, Digits, FormatSettings);
+  Result := FloatToText(BufferArg, Value, ValueType, Format,
+    Precision, Digits, FormatSettings);
 end;
 
 function FormatFloat_0(const Format: string; Value: Extended): string;
@@ -1645,7 +1700,8 @@ begin
   Result := FormatFloat(Format, Value);
 end;
 
-function FormatFloat_1(const Format: string; Value: Extended; const FormatSettings: TFormatSettings ) : string;
+function FormatFloat_1(const Format: string; Value: Extended;
+  const FormatSettings: TFormatSettings): string;
 begin
   Result := FormatFloat(Format, Value, FormatSettings);
 end;
@@ -1655,17 +1711,21 @@ begin
   Result := FormatCurr(Format, Value);
 end;
 
-function FormatCurr_1(const Format: string; Value: Currency; const FormatSettings: TFormatSettings ) : string;
+function FormatCurr_1(const Format: string; Value: Currency;
+  const FormatSettings: TFormatSettings): string;
 begin
   Result := FormatCurr(Format, Value, FormatSettings);
 end;
 
-function FloatToTextFmt_0(Buf: PChar; const Value; ValueType: TFloatValue; Format: PChar ) : Integer;
+function FloatToTextFmt_0(Buf: PChar; const Value;
+  ValueType: TFloatValue; Format: PChar): Integer;
 begin
   Result := FloatToTextFmt(Buf, Value, ValueType, Format);
 end;
 
-function FloatToTextFmt_1(Buf: PChar; const Value; ValueType: TFloatValue; Format: PChar ; const FormatSettings: TFormatSettings ) : Integer;
+function FloatToTextFmt_1(Buf: PChar; const Value;
+  ValueType: TFloatValue; Format: PChar;
+  const FormatSettings: TFormatSettings): Integer;
 begin
   Result := FloatToTextFmt(Buf, Value, ValueType, Format, FormatSettings);
 end;
@@ -1675,17 +1735,19 @@ begin
   Result := StrToFloat(S);
 end;
 
-function StrToFloat_1(const S: string; const FormatSettings: TFormatSettings ) : Extended;
+function StrToFloat_1(const S: string;
+  const FormatSettings: TFormatSettings): Extended;
 begin
   Result := StrToFloat(S, FormatSettings);
 end;
 
-function StrToFloatDef_0(const S: string; const Default: Extended ) : Extended;
+function StrToFloatDef_0(const S: string; const Default: Extended): Extended;
 begin
   Result := StrToFloatDef(S, Default);
 end;
 
-function StrToFloatDef_1(const S: string; const Default: Extended; const FormatSettings: TFormatSettings ) : Extended;
+function StrToFloatDef_1(const S: string; const Default: Extended;
+  const FormatSettings: TFormatSettings): Extended;
 begin
   Result := StrToFloatDef(S, Default, FormatSettings);
 end;
@@ -1695,7 +1757,8 @@ begin
   Result := TryStrToFloat(S, Value);
 end;
 
-function TryStrToFloat_1(const S: string; out Value: Extended; const FormatSettings: TFormatSettings ) : Boolean;
+function TryStrToFloat_1(const S: string; out Value: Extended;
+  const FormatSettings: TFormatSettings): Boolean;
 begin
   Result := TryStrToFloat(S, Value, FormatSettings);
 end;
@@ -1705,7 +1768,8 @@ begin
   Result := TryStrToFloat(S, Value);
 end;
 
-function TryStrToFloat_3(const S: string; out Value: Double; const FormatSettings: TFormatSettings ) : Boolean;
+function TryStrToFloat_3(const S: string; out Value: Double;
+  const FormatSettings: TFormatSettings): Boolean;
 begin
   Result := TryStrToFloat(S, Value, FormatSettings);
 end;
@@ -1715,7 +1779,8 @@ begin
   Result := TryStrToFloat(S, Value);
 end;
 
-function TryStrToFloat_5(const S: string; out Value: Single; const FormatSettings: TFormatSettings ) : Boolean;
+function TryStrToFloat_5(const S: string; out Value: Single;
+  const FormatSettings: TFormatSettings): Boolean;
 begin
   Result := TryStrToFloat(S, Value, FormatSettings);
 end;
@@ -1725,17 +1790,19 @@ begin
   Result := StrToCurr(S);
 end;
 
-function StrToCurr_1(const S: string; const FormatSettings: TFormatSettings ) : Currency;
+function StrToCurr_1(const S: string;
+  const FormatSettings: TFormatSettings): Currency;
 begin
   Result := StrToCurr(S, FormatSettings);
 end;
 
-function StrToCurrDef_0(const S: string; const Default: Currency ) : Currency;
+function StrToCurrDef_0(const S: string; const Default: Currency): Currency;
 begin
   Result := StrToCurrDef(S, Default);
 end;
 
-function StrToCurrDef_1(const S: string; const Default: Currency; const FormatSettings: TFormatSettings ) : Currency;
+function StrToCurrDef_1(const S: string; const Default: Currency;
+  const FormatSettings: TFormatSettings): Currency;
 begin
   Result := StrToCurrDef(S, Default, FormatSettings);
 end;
@@ -1745,17 +1812,20 @@ begin
   Result := TryStrToCurr(S, Value);
 end;
 
-function TryStrToCurr_1(const S: string; out Value: Currency; const FormatSettings: TFormatSettings ) : Boolean;
+function TryStrToCurr_1(const S: string; out Value: Currency;
+  const FormatSettings: TFormatSettings): Boolean;
 begin
   Result := TryStrToCurr(S, Value, FormatSettings);
 end;
 
-function TextToFloat_0(Buffer: PChar; var Value; ValueType: TFloatValue ) : Boolean;
+function TextToFloat_0(Buffer: PChar; var Value;
+  ValueType: TFloatValue): Boolean;
 begin
   Result := TextToFloat(Buffer, Value, ValueType);
 end;
 
-function TextToFloat_1(Buffer: PChar; var Value; ValueType: TFloatValue; const FormatSettings: TFormatSettings ) : Boolean;
+function TextToFloat_1(Buffer: PChar; var Value; ValueType: TFloatValue;
+  const FormatSettings: TFormatSettings): Boolean;
 begin
   Result := TextToFloat(Buffer, Value, ValueType, FormatSettings);
 end;
@@ -1765,7 +1835,8 @@ begin
   Result := DateToStr(DateTime);
 end;
 
-function DateToStr_1(const DateTime: TDateTime; const FormatSettings: TFormatSettings ) : string;
+function DateToStr_1(const DateTime: TDateTime;
+  const FormatSettings: TFormatSettings): string;
 begin
   Result := DateToStr(DateTime, FormatSettings);
 end;
@@ -1775,7 +1846,8 @@ begin
   Result := TimeToStr(DateTime);
 end;
 
-function TimeToStr_1(const DateTime: TDateTime; const FormatSettings: TFormatSettings ) : string;
+function TimeToStr_1(const DateTime: TDateTime;
+  const FormatSettings: TFormatSettings): string;
 begin
   Result := TimeToStr(DateTime, FormatSettings);
 end;
@@ -1785,7 +1857,8 @@ begin
   Result := DateTimeToStr(DateTime);
 end;
 
-function DateTimeToStr_1(const DateTime: TDateTime; const FormatSettings: TFormatSettings ) : string;
+function DateTimeToStr_1(const DateTime: TDateTime;
+  const FormatSettings: TFormatSettings): string;
 begin
   Result := DateTimeToStr(DateTime, FormatSettings);
 end;
@@ -1795,17 +1868,20 @@ begin
   Result := StrToDate(S);
 end;
 
-function StrToDate_1(const S: string; const FormatSettings: TFormatSettings ) : TDateTime;
+function StrToDate_1(const S: string;
+  const FormatSettings: TFormatSettings): TDateTime;
 begin
   Result := StrToDate(S, FormatSettings);
 end;
 
-function StrToDateDef_0(const S: string; const Default: TDateTime ) : TDateTime;
+function StrToDateDef_0(const S: string;
+  const Default: TDateTime): TDateTime;
 begin
   Result := StrToDateDef(S, Default);
 end;
 
-function StrToDateDef_1(const S: string; const Default: TDateTime; const FormatSettings: TFormatSettings ) : TDateTime;
+function StrToDateDef_1(const S: string; const Default: TDateTime;
+  const FormatSettings: TFormatSettings): TDateTime;
 begin
   Result := StrToDateDef(S, Default, FormatSettings);
 end;
@@ -1815,7 +1891,8 @@ begin
   Result := TryStrToDate(S, Value);
 end;
 
-function TryStrToDate_1(const S: string; out Value: TDateTime; const FormatSettings: TFormatSettings ) : Boolean;
+function TryStrToDate_1(const S: string; out Value: TDateTime;
+  const FormatSettings: TFormatSettings): Boolean;
 begin
   Result := TryStrToDate(S, Value, FormatSettings);
 end;
@@ -1825,17 +1902,20 @@ begin
   Result := StrToTime(S);
 end;
 
-function StrToTime_1(const S: string; const FormatSettings: TFormatSettings ) : TDateTime;
+function StrToTime_1(const S: string;
+  const FormatSettings: TFormatSettings): TDateTime;
 begin
   Result := StrToTime(S, FormatSettings);
 end;
 
-function StrToTimeDef_0(const S: string; const Default: TDateTime ) : TDateTime;
+function StrToTimeDef_0(const S: string;
+  const Default: TDateTime): TDateTime;
 begin
   Result := StrToTimeDef(S, Default);
 end;
 
-function StrToTimeDef_1(const S: string; const Default: TDateTime; const FormatSettings: TFormatSettings ) : TDateTime;
+function StrToTimeDef_1(const S: string; const Default: TDateTime;
+  const FormatSettings: TFormatSettings): TDateTime;
 begin
   Result := StrToTimeDef(S, Default, FormatSettings);
 end;
@@ -1845,7 +1925,8 @@ begin
   Result := TryStrToTime(S, Value);
 end;
 
-function TryStrToTime_1(const S: string; out Value: TDateTime; const FormatSettings: TFormatSettings ) : Boolean;
+function TryStrToTime_1(const S: string; out Value: TDateTime;
+  const FormatSettings: TFormatSettings): Boolean;
 begin
   Result := TryStrToTime(S, Value, FormatSettings);
 end;
@@ -1855,52 +1936,60 @@ begin
   Result := StrToDateTime(S);
 end;
 
-function StrToDateTime_1(const S: string; const FormatSettings: TFormatSettings ) : TDateTime;
+function StrToDateTime_1(const S: string;
+  const FormatSettings: TFormatSettings): TDateTime;
 begin
   Result := StrToDateTime(S, FormatSettings);
 end;
 
-function StrToDateTimeDef_0(const S: string; const Default: TDateTime ) : TDateTime;
+function StrToDateTimeDef_0(const S: string;
+  const Default: TDateTime): TDateTime;
 begin
   Result := StrToDateTimeDef(S, Default);
 end;
 
-function StrToDateTimeDef_1(const S: string; const Default: TDateTime; const FormatSettings: TFormatSettings ) : TDateTime;
+function StrToDateTimeDef_1(const S: string; const Default: TDateTime;
+  const FormatSettings: TFormatSettings): TDateTime;
 begin
   Result := StrToDateTimeDef(S, Default, FormatSettings);
 end;
 
-function TryStrToDateTime_0(const S: string; out Value: TDateTime ) : Boolean;
+function TryStrToDateTime_0(const S: string; out Value: TDateTime): Boolean;
 begin
   Result := TryStrToDateTime(S, Value);
 end;
 
-function TryStrToDateTime_1(const S: string; out Value: TDateTime; const FormatSettings: TFormatSettings ) : Boolean;
+function TryStrToDateTime_1(const S: string; out Value: TDateTime;
+  const FormatSettings: TFormatSettings): Boolean;
 begin
   Result := TryStrToDateTime(S, Value, FormatSettings);
 end;
 
-function FormatDateTime_0(const Format: string; DateTime: TDateTime ) : string;
+function FormatDateTime_0(const Format: string; DateTime: TDateTime): string;
 begin
   Result := FormatDateTime(Format, DateTime);
 end;
 
-function FormatDateTime_1(const Format: string; DateTime: TDateTime; const FormatSettings: TFormatSettings ) : string;
+function FormatDateTime_1(const Format: string; DateTime: TDateTime;
+  const FormatSettings: TFormatSettings): string;
 begin
   Result := FormatDateTime(Format, DateTime, FormatSettings);
 end;
 
-procedure DateTimeToString_0(var Result: string; const Format: string; DateTime: TDateTime );
+procedure DateTimeToString_0(var Result: string; const Format: string;
+  DateTime: TDateTime);
 begin
   DateTimeToString(Result, Format, DateTime);
 end;
 
-procedure DateTimeToString_1(var Result: string; const Format: string; DateTime: TDateTime ; const FormatSettings: TFormatSettings );
+procedure DateTimeToString_1(var Result: string; const Format: string;
+  DateTime: TDateTime; const FormatSettings: TFormatSettings);
 begin
   DateTimeToString(Result, Format, DateTime, FormatSettings);
 end;
 
-function WrapText_0(const Line, BreakStr: string; const BreakChars: TSysCharSet; MaxCol: Integer ) : string;
+function WrapText_0(const Line, BreakStr: string;
+  const BreakChars: TSysCharSet; MaxCol: Integer): string;
 begin
   Result := WrapText(Line, BreakStr, BreakChars, MaxCol);
 end;
@@ -1910,7 +1999,8 @@ begin
   Result := WrapText(Line, MaxCol);
 end;
 
-function FindCmdLineSwitch_0(const Switch: string; const Chars: TSysCharSet; IgnoreCase: Boolean ) : Boolean;
+function FindCmdLineSwitch_0(const Switch: string; const Chars: TSysCharSet;
+  IgnoreCase: Boolean): Boolean;
 begin
   Result := FindCmdLineSwitch(Switch, Chars, IgnoreCase);
 end;
@@ -1920,17 +2010,20 @@ begin
   Result := FindCmdLineSwitch(Switch);
 end;
 
-function FindCmdLineSwitch_2(const Switch: string; IgnoreCase: Boolean): Boolean;
+function FindCmdLineSwitch_2(const Switch: string;
+  IgnoreCase: Boolean): Boolean;
 begin
   Result := FindCmdLineSwitch(Switch, IgnoreCase);
 end;
 
-function Supports_0(const Instance: IInterface; const IID: TGUID; out Intf): Boolean;
+function Supports_0(const Instance: IInterface; const IID: TGUID;
+  out Intf): Boolean;
 begin
   Result := Supports(Instance, IID, Intf);
 end;
 
-function Supports_1(const Instance: TObject; const IID: TGUID; out Intf): Boolean;
+function Supports_1(const Instance: TObject; const IID: TGUID;
+  out Intf): Boolean;
 begin
   Result := Supports(Instance, IID, Intf);
 end;
@@ -1965,7 +2058,7 @@ begin
   Result := GetEnvironmentVariable(Name);
 end;
 
-function ImportUnit(Root : TSepiRoot) : TSepiUnit;
+function ImportUnit(Root: TSepiRoot): TSepiUnit;
 begin
   Result := TSepiUnit.Create(Root, 'SysUtils',
     ['Windows', 'SysConst']);
@@ -2041,7 +2134,8 @@ begin
   TSepiImportsEHeapException.SepiImport(Result);
   TSepiImportsEOutOfMemory.SepiImport(Result);
   TSepiImportsEInOutError.SepiImport(Result);
-  TSepiPointerType.Create(Result, 'PExceptionRecord', 'TExceptionRecord', True);
+  TSepiPointerType.Create(Result, 'PExceptionRecord',
+    'TExceptionRecord', True);
   TSepiArrayType.Create(Result, '$9',
     [0, 14], TypeInfo(Cardinal), True);
   SepiImportTExceptionRecord(Result);
@@ -2076,23 +2170,23 @@ begin
 
   // Global variables
   TSepiVariable.Create(Result, 'EmptyStr',
-     EmptyStr, TypeInfo(string));
+    EmptyStr, TypeInfo(string));
   TSepiVariable.Create(Result, 'NullStr',
-     NullStr, 'PString');
+    NullStr, 'PString');
   TSepiVariable.Create(Result, 'EmptyWideStr',
-     EmptyWideStr, TypeInfo(WideString));
+    EmptyWideStr, TypeInfo(WideString));
   TSepiVariable.Create(Result, 'NullWideStr',
-     NullWideStr, 'PWideString');
+    NullWideStr, 'PWideString');
   TSepiVariable.Create(Result, 'Win32Platform',
-     Win32Platform, TypeInfo(Integer));
+    Win32Platform, TypeInfo(Integer));
   TSepiVariable.Create(Result, 'Win32MajorVersion',
-     Win32MajorVersion, TypeInfo(Integer));
+    Win32MajorVersion, TypeInfo(Integer));
   TSepiVariable.Create(Result, 'Win32MinorVersion',
-     Win32MinorVersion, TypeInfo(Integer));
+    Win32MinorVersion, TypeInfo(Integer));
   TSepiVariable.Create(Result, 'Win32BuildNumber',
-     Win32BuildNumber, TypeInfo(Integer));
+    Win32BuildNumber, TypeInfo(Integer));
   TSepiVariable.Create(Result, 'Win32CSDVersion',
-     Win32CSDVersion, TypeInfo(string));
+    Win32CSDVersion, TypeInfo(string));
 
   // Routines
   TSepiMethod.Create(Result, 'CheckWin32Version', @CheckWin32Version,
@@ -2102,55 +2196,55 @@ begin
 
   // Global variables
   TSepiVariable.Create(Result, 'CurrencyString',
-     CurrencyString, TypeInfo(string));
+    CurrencyString, TypeInfo(string));
   TSepiVariable.Create(Result, 'CurrencyFormat',
-     CurrencyFormat, TypeInfo(Byte));
+    CurrencyFormat, TypeInfo(Byte));
   TSepiVariable.Create(Result, 'NegCurrFormat',
-     NegCurrFormat, TypeInfo(Byte));
+    NegCurrFormat, TypeInfo(Byte));
   TSepiVariable.Create(Result, 'ThousandSeparator',
-     ThousandSeparator, TypeInfo(Char));
+    ThousandSeparator, TypeInfo(Char));
   TSepiVariable.Create(Result, 'DecimalSeparator',
-     DecimalSeparator, TypeInfo(Char));
+    DecimalSeparator, TypeInfo(Char));
   TSepiVariable.Create(Result, 'CurrencyDecimals',
-     CurrencyDecimals, TypeInfo(Byte));
+    CurrencyDecimals, TypeInfo(Byte));
   TSepiVariable.Create(Result, 'DateSeparator',
-     DateSeparator, TypeInfo(Char));
+    DateSeparator, TypeInfo(Char));
   TSepiVariable.Create(Result, 'ShortDateFormat',
-     ShortDateFormat, TypeInfo(string));
+    ShortDateFormat, TypeInfo(string));
   TSepiVariable.Create(Result, 'LongDateFormat',
-     LongDateFormat, TypeInfo(string));
+    LongDateFormat, TypeInfo(string));
   TSepiVariable.Create(Result, 'TimeSeparator',
-     TimeSeparator, TypeInfo(Char));
+    TimeSeparator, TypeInfo(Char));
   TSepiVariable.Create(Result, 'TimeAMString',
-     TimeAMString, TypeInfo(string));
+    TimeAMString, TypeInfo(string));
   TSepiVariable.Create(Result, 'TimePMString',
-     TimePMString, TypeInfo(string));
+    TimePMString, TypeInfo(string));
   TSepiVariable.Create(Result, 'ShortTimeFormat',
-     ShortTimeFormat, TypeInfo(string));
+    ShortTimeFormat, TypeInfo(string));
   TSepiVariable.Create(Result, 'LongTimeFormat',
-     LongTimeFormat, TypeInfo(string));
+    LongTimeFormat, TypeInfo(string));
   TSepiArrayType.Create(Result, '$10',
     [1, 12], TypeInfo(string), True);
   TSepiVariable.Create(Result, 'ShortMonthNames',
-     ShortMonthNames, '$10');
+    ShortMonthNames, '$10');
   TSepiArrayType.Create(Result, '$11',
     [1, 12], TypeInfo(string), True);
   TSepiVariable.Create(Result, 'LongMonthNames',
-     LongMonthNames, '$11');
+    LongMonthNames, '$11');
   TSepiArrayType.Create(Result, '$12',
     [1, 7], TypeInfo(string), True);
   TSepiVariable.Create(Result, 'ShortDayNames',
-     ShortDayNames, '$12');
+    ShortDayNames, '$12');
   TSepiArrayType.Create(Result, '$13',
     [1, 7], TypeInfo(string), True);
   TSepiVariable.Create(Result, 'LongDayNames',
-     LongDayNames, '$13');
+    LongDayNames, '$13');
   TSepiVariable.Create(Result, 'SysLocale',
-     SysLocale, 'TSysLocale');
+    SysLocale, 'TSysLocale');
   TSepiVariable.Create(Result, 'TwoDigitYearCenturyWindow',
-     TwoDigitYearCenturyWindow, TypeInfo(Word));
+    TwoDigitYearCenturyWindow, TypeInfo(Word));
   TSepiVariable.Create(Result, 'ListSeparator',
-     ListSeparator, TypeInfo(Char));
+    ListSeparator, TypeInfo(Char));
 
   // Types
   TSepiArrayType.Create(Result, '$14',
@@ -2171,11 +2265,11 @@ begin
   TSepiArrayType.Create(Result, '$18',
     [1, MaxEraCount], TypeInfo(string), True);
   TSepiVariable.Create(Result, 'EraNames',
-     EraNames, '$18');
+    EraNames, '$18');
   TSepiArrayType.Create(Result, '$19',
     [1, MaxEraCount], TypeInfo(Integer), True);
   TSepiVariable.Create(Result, 'EraYearOffsets',
-     EraYearOffsets, '$19');
+    EraYearOffsets, '$19');
 
   // Constants
   TSepiConstant.Create(Result, 'PathDelim', PathDelim);
@@ -2303,10 +2397,10 @@ begin
   // Global variables
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(TUnnamed_20));
   TSepiVariable.Create(Result, 'TrueBoolStrs',
-     TrueBoolStrs, TypeInfo(TUnnamed_20));
+    TrueBoolStrs, TypeInfo(TUnnamed_20));
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(TUnnamed_21));
   TSepiVariable.Create(Result, 'FalseBoolStrs',
-     FalseBoolStrs, TypeInfo(TUnnamed_21));
+    FalseBoolStrs, TypeInfo(TUnnamed_21));
 
   // Constants
   TSepiConstant.Create(Result, 'DefaultTrueBoolStr', DefaultTrueBoolStr);
@@ -2509,9 +2603,9 @@ begin
 
   // Constants
   TSepiVariable.Create(Result, 'MinCurrency',
-     MinCurrency, TypeInfo(Currency), True);
+    MinCurrency, TypeInfo(Currency), True);
   TSepiVariable.Create(Result, 'MaxCurrency',
-     MaxCurrency, TypeInfo(Currency), True);
+    MaxCurrency, TypeInfo(Currency), True);
 
   // Routines
   TSepiMethod.Create(Result, 'FloatToCurr', @FloatToCurr,
@@ -2638,7 +2732,7 @@ begin
   TSepiArrayType.Create(Result, '$22',
     [Integer(Low(Boolean)), Integer(High(Boolean))], 'TDayTable', True);
   TSepiVariable.Create(Result, 'MonthDays',
-     MonthDays, '$22', True);
+    MonthDays, '$22', True);
 
   // Routines
   TSepiMethod.CreateOverloaded(Result, 'DateToStr', @DateToStr_0,
@@ -2700,9 +2794,9 @@ begin
 
   // Constants
   TSepiVariable.Create(Result, 'MinDateTime',
-     MinDateTime, TypeInfo(TDateTime), True);
+    MinDateTime, TypeInfo(TDateTime), True);
   TSepiVariable.Create(Result, 'MaxDateTime',
-     MaxDateTime, TypeInfo(TDateTime), True);
+    MaxDateTime, TypeInfo(TDateTime), True);
 
   // Routines
   TSepiMethod.Create(Result, 'FloatToDateTime', @FloatToDateTime,
@@ -2717,7 +2811,8 @@ begin
     'function(Locale, LocaleType: Integer; Default: Char): Char');
   TSepiMethod.Create(Result, 'GetFormatSettings', @GetFormatSettings,
     'procedure');
-  TSepiMethod.Create(Result, 'GetLocaleFormatSettings', @GetLocaleFormatSettings,
+  TSepiMethod.Create(Result, 'GetLocaleFormatSettings',
+    @GetLocaleFormatSettings,
     'procedure(LCID: Integer; var FormatSettings: TFormatSettings )');
   TSepiMethod.Create(Result, 'Sleep', @Sleep,
     'procedure(milliseconds: Cardinal)');
@@ -2737,7 +2832,7 @@ begin
   // Global variables
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(TUnnamed_23));
   TSepiVariable.Create(Result, 'LeadBytes',
-     LeadBytes, TypeInfo(TUnnamed_23));
+    LeadBytes, TypeInfo(TUnnamed_23));
 
   // Routines
   TSepiMethod.Create(Result, 'ByteType', @ByteType,
@@ -2764,13 +2859,17 @@ begin
     'function(const S: string; Index: Integer): Boolean');
   TSepiMethod.Create(Result, 'IsDelimiter', @IsDelimiter,
     'function(const Delimiters, S: string; Index: Integer): Boolean');
-  TSepiMethod.Create(Result, 'IncludeTrailingPathDelimiter', @IncludeTrailingPathDelimiter,
+  TSepiMethod.Create(Result, 'IncludeTrailingPathDelimiter',
+    @IncludeTrailingPathDelimiter,
     'function(const S: string): string');
-  TSepiMethod.Create(Result, 'IncludeTrailingBackslash', @IncludeTrailingBackslash,
+  TSepiMethod.Create(Result, 'IncludeTrailingBackslash',
+    @IncludeTrailingBackslash,
     'function(const S: string): string');
-  TSepiMethod.Create(Result, 'ExcludeTrailingPathDelimiter', @ExcludeTrailingPathDelimiter,
+  TSepiMethod.Create(Result, 'ExcludeTrailingPathDelimiter',
+    @ExcludeTrailingPathDelimiter,
     'function(const S: string): string');
-  TSepiMethod.Create(Result, 'ExcludeTrailingBackslash', @ExcludeTrailingBackslash,
+  TSepiMethod.Create(Result, 'ExcludeTrailingBackslash',
+    @ExcludeTrailingBackslash,
     'function(const S: string): string');
   TSepiMethod.Create(Result, 'LastDelimiter', @LastDelimiter,
     'function(const Delimiters, S: string): Integer');
@@ -2806,11 +2905,14 @@ begin
   //TSepiConstant.Create(Result, 'SwitchChars', SwitchChars);
 
   // Routines
-  TSepiMethod.CreateOverloaded(Result, 'FindCmdLineSwitch', @FindCmdLineSwitch_0,
+  TSepiMethod.CreateOverloaded(Result, 'FindCmdLineSwitch',
+    @FindCmdLineSwitch_0,
     'function(const Switch: string; const Chars: TSysCharSet; IgnoreCase: Boolean ) : Boolean');
-  TSepiMethod.CreateOverloaded(Result, 'FindCmdLineSwitch', @FindCmdLineSwitch_1,
+  TSepiMethod.CreateOverloaded(Result, 'FindCmdLineSwitch',
+    @FindCmdLineSwitch_1,
     'function(const Switch: string): Boolean');
-  TSepiMethod.CreateOverloaded(Result, 'FindCmdLineSwitch', @FindCmdLineSwitch_2,
+  TSepiMethod.CreateOverloaded(Result, 'FindCmdLineSwitch',
+    @FindCmdLineSwitch_2,
     'function(const Switch: string; IgnoreCase: Boolean): Boolean');
   TSepiMethod.Create(Result, 'FreeAndNil', @FreeAndNil,
     'procedure(var Obj)');
@@ -2899,11 +3001,12 @@ begin
 
   // Global variables
   TSepiVariable.Create(Result, 'HexDisplayPrefix',
-     HexDisplayPrefix, TypeInfo(string));
+    HexDisplayPrefix, TypeInfo(string));
 
   // Global variables
   TSepiMethodRefType.Create(Result, '$24',
-    'function(Directory: PChar; var FreeAvailable, TotalSpace : TLargeInteger ; TotalFree: PLargeInteger ) : Bool', False, ccStdCall);
+    'function(Directory: PChar; var FreeAvailable, TotalSpace : TLargeInteger ; TotalFree: PLargeInteger ) : Bool',
+    False, ccStdCall);
   TSepiVariable.Create(Result, 'GetDiskFreeSpaceEx',
     @GetDiskFreeSpaceEx, '$24');
 
@@ -2926,10 +3029,12 @@ begin
   TSepiImportsTMultiReadExclusiveWriteSynchronizer.SepiImport(Result);
 
   // Types
-  TSepiTypeAlias.Create(Result, 'TMREWSync', TypeInfo(TMultiReadExclusiveWriteSynchronizer));
+  TSepiTypeAlias.Create(Result, 'TMREWSync',
+    TypeInfo(TMultiReadExclusiveWriteSynchronizer));
 
   // Routines
-  TSepiMethod.CreateOverloaded(Result, 'GetEnvironmentVariable', @GetEnvironmentVariable_0,
+  TSepiMethod.CreateOverloaded(Result, 'GetEnvironmentVariable',
+    @GetEnvironmentVariable_0,
     'function(const Name: string): string');
 
   Result.Complete;

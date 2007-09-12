@@ -19,296 +19,298 @@ implementation
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiRoot) : TSepiUnit;
+function ImportUnit(Root: TSepiRoot): TSepiUnit;
 begin
   Result := TSepiUnit.Create(Root, 'StdConvs',
     ['SysUtils', 'ConvUtils']);
 
   // Global variables
   TSepiVariable.Create(Result, 'cbDistance',
-     cbDistance, TypeInfo(TConvFamily));
+    cbDistance, TypeInfo(TConvFamily));
   TSepiVariable.Create(Result, 'duMicromicrons',
-     duMicromicrons, TypeInfo(TConvType));
+    duMicromicrons, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'duAngstroms',
-     duAngstroms, TypeInfo(TConvType));
+    duAngstroms, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'duMillimicrons',
-     duMillimicrons, TypeInfo(TConvType));
+    duMillimicrons, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'duMicrons',
-     duMicrons, TypeInfo(TConvType));
+    duMicrons, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'duMillimeters',
-     duMillimeters, TypeInfo(TConvType));
+    duMillimeters, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'duCentimeters',
-     duCentimeters, TypeInfo(TConvType));
+    duCentimeters, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'duDecimeters',
-     duDecimeters, TypeInfo(TConvType));
+    duDecimeters, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'duMeters',
-     duMeters, TypeInfo(TConvType));
+    duMeters, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'duDecameters',
-     duDecameters, TypeInfo(TConvType));
+    duDecameters, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'duHectometers',
-     duHectometers, TypeInfo(TConvType));
+    duHectometers, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'duKilometers',
-     duKilometers, TypeInfo(TConvType));
+    duKilometers, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'duMegameters',
-     duMegameters, TypeInfo(TConvType));
+    duMegameters, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'duGigameters',
-     duGigameters, TypeInfo(TConvType));
+    duGigameters, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'duInches',
-     duInches, TypeInfo(TConvType));
+    duInches, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'duFeet',
-     duFeet, TypeInfo(TConvType));
+    duFeet, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'duYards',
-     duYards, TypeInfo(TConvType));
+    duYards, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'duMiles',
-     duMiles, TypeInfo(TConvType));
+    duMiles, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'duNauticalMiles',
-     duNauticalMiles, TypeInfo(TConvType));
+    duNauticalMiles, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'duAstronomicalUnits',
-     duAstronomicalUnits, TypeInfo(TConvType));
+    duAstronomicalUnits, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'duLightYears',
-     duLightYears, TypeInfo(TConvType));
+    duLightYears, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'duParsecs',
-     duParsecs, TypeInfo(TConvType));
+    duParsecs, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'duCubits',
-     duCubits, TypeInfo(TConvType));
+    duCubits, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'duFathoms',
-     duFathoms, TypeInfo(TConvType));
+    duFathoms, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'duFurlongs',
-     duFurlongs, TypeInfo(TConvType));
+    duFurlongs, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'duHands',
-     duHands, TypeInfo(TConvType));
+    duHands, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'duPaces',
-     duPaces, TypeInfo(TConvType));
+    duPaces, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'duRods',
-     duRods, TypeInfo(TConvType));
+    duRods, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'duChains',
-     duChains, TypeInfo(TConvType));
+    duChains, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'duLinks',
-     duLinks, TypeInfo(TConvType));
+    duLinks, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'duPicas',
-     duPicas, TypeInfo(TConvType));
+    duPicas, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'duPoints',
-     duPoints, TypeInfo(TConvType));
+    duPoints, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'cbArea',
-     cbArea, TypeInfo(TConvFamily));
+    cbArea, TypeInfo(TConvFamily));
   TSepiVariable.Create(Result, 'auSquareMillimeters',
-     auSquareMillimeters, TypeInfo(TConvType));
+    auSquareMillimeters, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'auSquareCentimeters',
-     auSquareCentimeters, TypeInfo(TConvType));
+    auSquareCentimeters, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'auSquareDecimeters',
-     auSquareDecimeters, TypeInfo(TConvType));
+    auSquareDecimeters, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'auSquareMeters',
-     auSquareMeters, TypeInfo(TConvType));
+    auSquareMeters, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'auSquareDecameters',
-     auSquareDecameters, TypeInfo(TConvType));
+    auSquareDecameters, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'auSquareHectometers',
-     auSquareHectometers, TypeInfo(TConvType));
+    auSquareHectometers, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'auSquareKilometers',
-     auSquareKilometers, TypeInfo(TConvType));
+    auSquareKilometers, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'auSquareInches',
-     auSquareInches, TypeInfo(TConvType));
+    auSquareInches, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'auSquareFeet',
-     auSquareFeet, TypeInfo(TConvType));
+    auSquareFeet, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'auSquareYards',
-     auSquareYards, TypeInfo(TConvType));
+    auSquareYards, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'auSquareMiles',
-     auSquareMiles, TypeInfo(TConvType));
+    auSquareMiles, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'auAcres',
-     auAcres, TypeInfo(TConvType));
+    auAcres, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'auCentares',
-     auCentares, TypeInfo(TConvType));
+    auCentares, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'auAres',
-     auAres, TypeInfo(TConvType));
+    auAres, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'auHectares',
-     auHectares, TypeInfo(TConvType));
+    auHectares, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'auSquareRods',
-     auSquareRods, TypeInfo(TConvType));
+    auSquareRods, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'cbVolume',
-     cbVolume, TypeInfo(TConvFamily));
+    cbVolume, TypeInfo(TConvFamily));
   TSepiVariable.Create(Result, 'vuCubicMillimeters',
-     vuCubicMillimeters, TypeInfo(TConvType));
+    vuCubicMillimeters, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'vuCubicCentimeters',
-     vuCubicCentimeters, TypeInfo(TConvType));
+    vuCubicCentimeters, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'vuCubicDecimeters',
-     vuCubicDecimeters, TypeInfo(TConvType));
+    vuCubicDecimeters, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'vuCubicMeters',
-     vuCubicMeters, TypeInfo(TConvType));
+    vuCubicMeters, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'vuCubicDecameters',
-     vuCubicDecameters, TypeInfo(TConvType));
+    vuCubicDecameters, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'vuCubicHectometers',
-     vuCubicHectometers, TypeInfo(TConvType));
+    vuCubicHectometers, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'vuCubicKilometers',
-     vuCubicKilometers, TypeInfo(TConvType));
+    vuCubicKilometers, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'vuCubicInches',
-     vuCubicInches, TypeInfo(TConvType));
+    vuCubicInches, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'vuCubicFeet',
-     vuCubicFeet, TypeInfo(TConvType));
+    vuCubicFeet, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'vuCubicYards',
-     vuCubicYards, TypeInfo(TConvType));
+    vuCubicYards, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'vuCubicMiles',
-     vuCubicMiles, TypeInfo(TConvType));
+    vuCubicMiles, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'vuMilliLiters',
-     vuMilliLiters, TypeInfo(TConvType));
+    vuMilliLiters, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'vuCentiLiters',
-     vuCentiLiters, TypeInfo(TConvType));
+    vuCentiLiters, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'vuDeciLiters',
-     vuDeciLiters, TypeInfo(TConvType));
+    vuDeciLiters, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'vuLiters',
-     vuLiters, TypeInfo(TConvType));
+    vuLiters, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'vuDecaLiters',
-     vuDecaLiters, TypeInfo(TConvType));
+    vuDecaLiters, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'vuHectoLiters',
-     vuHectoLiters, TypeInfo(TConvType));
+    vuHectoLiters, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'vuKiloLiters',
-     vuKiloLiters, TypeInfo(TConvType));
+    vuKiloLiters, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'vuAcreFeet',
-     vuAcreFeet, TypeInfo(TConvType));
+    vuAcreFeet, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'vuAcreInches',
-     vuAcreInches, TypeInfo(TConvType));
+    vuAcreInches, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'vuCords',
-     vuCords, TypeInfo(TConvType));
+    vuCords, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'vuCordFeet',
-     vuCordFeet, TypeInfo(TConvType));
+    vuCordFeet, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'vuDecisteres',
-     vuDecisteres, TypeInfo(TConvType));
+    vuDecisteres, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'vuSteres',
-     vuSteres, TypeInfo(TConvType));
+    vuSteres, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'vuDecasteres',
-     vuDecasteres, TypeInfo(TConvType));
+    vuDecasteres, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'vuFluidGallons',
-     vuFluidGallons, TypeInfo(TConvType));
+    vuFluidGallons, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'vuFluidQuarts',
-     vuFluidQuarts, TypeInfo(TConvType));
+    vuFluidQuarts, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'vuFluidPints',
-     vuFluidPints, TypeInfo(TConvType));
+    vuFluidPints, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'vuFluidCups',
-     vuFluidCups, TypeInfo(TConvType));
+    vuFluidCups, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'vuFluidGills',
-     vuFluidGills, TypeInfo(TConvType));
+    vuFluidGills, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'vuFluidOunces',
-     vuFluidOunces, TypeInfo(TConvType));
+    vuFluidOunces, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'vuFluidTablespoons',
-     vuFluidTablespoons, TypeInfo(TConvType));
+    vuFluidTablespoons, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'vuFluidTeaspoons',
-     vuFluidTeaspoons, TypeInfo(TConvType));
+    vuFluidTeaspoons, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'vuDryGallons',
-     vuDryGallons, TypeInfo(TConvType));
+    vuDryGallons, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'vuDryQuarts',
-     vuDryQuarts, TypeInfo(TConvType));
+    vuDryQuarts, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'vuDryPints',
-     vuDryPints, TypeInfo(TConvType));
+    vuDryPints, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'vuDryPecks',
-     vuDryPecks, TypeInfo(TConvType));
+    vuDryPecks, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'vuDryBuckets',
-     vuDryBuckets, TypeInfo(TConvType));
+    vuDryBuckets, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'vuDryBushels',
-     vuDryBushels, TypeInfo(TConvType));
+    vuDryBushels, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'vuUKGallons',
-     vuUKGallons, TypeInfo(TConvType));
+    vuUKGallons, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'vuUKPottles',
-     vuUKPottles, TypeInfo(TConvType));
+    vuUKPottles, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'vuUKQuarts',
-     vuUKQuarts, TypeInfo(TConvType));
+    vuUKQuarts, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'vuUKPints',
-     vuUKPints, TypeInfo(TConvType));
+    vuUKPints, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'vuUKGills',
-     vuUKGills, TypeInfo(TConvType));
+    vuUKGills, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'vuUKOunces',
-     vuUKOunces, TypeInfo(TConvType));
+    vuUKOunces, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'vuUKPecks',
-     vuUKPecks, TypeInfo(TConvType));
+    vuUKPecks, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'vuUKBuckets',
-     vuUKBuckets, TypeInfo(TConvType));
+    vuUKBuckets, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'vuUKBushels',
-     vuUKBushels, TypeInfo(TConvType));
+    vuUKBushels, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'cbMass',
-     cbMass, TypeInfo(TConvFamily));
+    cbMass, TypeInfo(TConvFamily));
   TSepiVariable.Create(Result, 'muNanograms',
-     muNanograms, TypeInfo(TConvType));
+    muNanograms, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'muMicrograms',
-     muMicrograms, TypeInfo(TConvType));
+    muMicrograms, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'muMilligrams',
-     muMilligrams, TypeInfo(TConvType));
+    muMilligrams, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'muCentigrams',
-     muCentigrams, TypeInfo(TConvType));
+    muCentigrams, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'muDecigrams',
-     muDecigrams, TypeInfo(TConvType));
+    muDecigrams, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'muGrams',
-     muGrams, TypeInfo(TConvType));
+    muGrams, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'muDecagrams',
-     muDecagrams, TypeInfo(TConvType));
+    muDecagrams, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'muHectograms',
-     muHectograms, TypeInfo(TConvType));
+    muHectograms, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'muKilograms',
-     muKilograms, TypeInfo(TConvType));
+    muKilograms, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'muMetricTons',
-     muMetricTons, TypeInfo(TConvType));
+    muMetricTons, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'muDrams',
-     muDrams, TypeInfo(TConvType));
+    muDrams, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'muGrains',
-     muGrains, TypeInfo(TConvType));
+    muGrains, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'muLongTons',
-     muLongTons, TypeInfo(TConvType));
+    muLongTons, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'muTons',
-     muTons, TypeInfo(TConvType));
+    muTons, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'muOunces',
-     muOunces, TypeInfo(TConvType));
+    muOunces, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'muPounds',
-     muPounds, TypeInfo(TConvType));
+    muPounds, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'muStones',
-     muStones, TypeInfo(TConvType));
+    muStones, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'cbTemperature',
-     cbTemperature, TypeInfo(TConvFamily));
+    cbTemperature, TypeInfo(TConvFamily));
   TSepiVariable.Create(Result, 'tuCelsius',
-     tuCelsius, TypeInfo(TConvType));
+    tuCelsius, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'tuKelvin',
-     tuKelvin, TypeInfo(TConvType));
+    tuKelvin, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'tuFahrenheit',
-     tuFahrenheit, TypeInfo(TConvType));
+    tuFahrenheit, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'tuRankine',
-     tuRankine, TypeInfo(TConvType));
+    tuRankine, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'tuReaumur',
-     tuReaumur, TypeInfo(TConvType));
+    tuReaumur, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'cbTime',
-     cbTime, TypeInfo(TConvFamily));
+    cbTime, TypeInfo(TConvFamily));
   TSepiVariable.Create(Result, 'tuMilliSeconds',
-     tuMilliSeconds, TypeInfo(TConvType));
+    tuMilliSeconds, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'tuSeconds',
-     tuSeconds, TypeInfo(TConvType));
+    tuSeconds, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'tuMinutes',
-     tuMinutes, TypeInfo(TConvType));
+    tuMinutes, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'tuHours',
-     tuHours, TypeInfo(TConvType));
+    tuHours, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'tuDays',
-     tuDays, TypeInfo(TConvType));
+    tuDays, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'tuWeeks',
-     tuWeeks, TypeInfo(TConvType));
+    tuWeeks, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'tuFortnights',
-     tuFortnights, TypeInfo(TConvType));
+    tuFortnights, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'tuMonths',
-     tuMonths, TypeInfo(TConvType));
+    tuMonths, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'tuYears',
-     tuYears, TypeInfo(TConvType));
+    tuYears, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'tuDecades',
-     tuDecades, TypeInfo(TConvType));
+    tuDecades, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'tuCenturies',
-     tuCenturies, TypeInfo(TConvType));
+    tuCenturies, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'tuMillennia',
-     tuMillennia, TypeInfo(TConvType));
+    tuMillennia, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'tuDateTime',
-     tuDateTime, TypeInfo(TConvType));
+    tuDateTime, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'tuJulianDate',
-     tuJulianDate, TypeInfo(TConvType));
+    tuJulianDate, TypeInfo(TConvType));
   TSepiVariable.Create(Result, 'tuModifiedJulianDate',
-     tuModifiedJulianDate, TypeInfo(TConvType));
+    tuModifiedJulianDate, TypeInfo(TConvType));
 
   // Constants
   TSepiConstant.Create(Result, 'MetersPerInch', MetersPerInch);
   TSepiConstant.Create(Result, 'MetersPerFoot', MetersPerFoot);
   TSepiConstant.Create(Result, 'MetersPerYard', MetersPerYard);
   TSepiConstant.Create(Result, 'MetersPerMile', MetersPerMile);
-  TSepiConstant.Create(Result, 'MetersPerNauticalMiles', MetersPerNauticalMiles);
-  TSepiConstant.Create(Result, 'MetersPerAstronomicalUnit', MetersPerAstronomicalUnit);
+  TSepiConstant.Create(Result, 'MetersPerNauticalMiles',
+    MetersPerNauticalMiles);
+  TSepiConstant.Create(Result, 'MetersPerAstronomicalUnit',
+    MetersPerAstronomicalUnit);
   TSepiConstant.Create(Result, 'MetersPerLightSecond', MetersPerLightSecond);
   TSepiConstant.Create(Result, 'MetersPerLightYear', MetersPerLightYear);
   TSepiConstant.Create(Result, 'MetersPerParsec', MetersPerParsec);
@@ -322,43 +324,73 @@ begin
   TSepiConstant.Create(Result, 'MetersPerLink', MetersPerLink);
   TSepiConstant.Create(Result, 'MetersPerPoint', MetersPerPoint);
   TSepiConstant.Create(Result, 'MetersPerPica', MetersPerPica);
-  TSepiConstant.Create(Result, 'SquareMetersPerSquareInch', SquareMetersPerSquareInch);
-  TSepiConstant.Create(Result, 'SquareMetersPerSquareFoot', SquareMetersPerSquareFoot);
-  TSepiConstant.Create(Result, 'SquareMetersPerSquareYard', SquareMetersPerSquareYard);
-  TSepiConstant.Create(Result, 'SquareMetersPerSquareMile', SquareMetersPerSquareMile);
+  TSepiConstant.Create(Result, 'SquareMetersPerSquareInch',
+    SquareMetersPerSquareInch);
+  TSepiConstant.Create(Result, 'SquareMetersPerSquareFoot',
+    SquareMetersPerSquareFoot);
+  TSepiConstant.Create(Result, 'SquareMetersPerSquareYard',
+    SquareMetersPerSquareYard);
+  TSepiConstant.Create(Result, 'SquareMetersPerSquareMile',
+    SquareMetersPerSquareMile);
   TSepiConstant.Create(Result, 'SquareMetersPerAcre', SquareMetersPerAcre);
-  TSepiConstant.Create(Result, 'SquareMetersPerSquareRod', SquareMetersPerSquareRod);
-  TSepiConstant.Create(Result, 'CubicMetersPerCubicInch', CubicMetersPerCubicInch);
-  TSepiConstant.Create(Result, 'CubicMetersPerCubicFoot', CubicMetersPerCubicFoot);
-  TSepiConstant.Create(Result, 'CubicMetersPerCubicYard', CubicMetersPerCubicYard);
-  TSepiConstant.Create(Result, 'CubicMetersPerCubicMile', CubicMetersPerCubicMile);
-  TSepiConstant.Create(Result, 'CubicMetersPerAcreFoot', CubicMetersPerAcreFoot);
-  TSepiConstant.Create(Result, 'CubicMetersPerAcreInch', CubicMetersPerAcreInch);
+  TSepiConstant.Create(Result, 'SquareMetersPerSquareRod',
+    SquareMetersPerSquareRod);
+  TSepiConstant.Create(Result, 'CubicMetersPerCubicInch',
+    CubicMetersPerCubicInch);
+  TSepiConstant.Create(Result, 'CubicMetersPerCubicFoot',
+    CubicMetersPerCubicFoot);
+  TSepiConstant.Create(Result, 'CubicMetersPerCubicYard',
+    CubicMetersPerCubicYard);
+  TSepiConstant.Create(Result, 'CubicMetersPerCubicMile',
+    CubicMetersPerCubicMile);
+  TSepiConstant.Create(Result, 'CubicMetersPerAcreFoot',
+    CubicMetersPerAcreFoot);
+  TSepiConstant.Create(Result, 'CubicMetersPerAcreInch',
+    CubicMetersPerAcreInch);
   TSepiConstant.Create(Result, 'CubicMetersPerCord', CubicMetersPerCord);
-  TSepiConstant.Create(Result, 'CubicMetersPerCordFoot', CubicMetersPerCordFoot);
-  TSepiConstant.Create(Result, 'CubicMetersPerUSFluidGallon', CubicMetersPerUSFluidGallon);
-  TSepiConstant.Create(Result, 'CubicMetersPerUSFluidQuart', CubicMetersPerUSFluidQuart);
-  TSepiConstant.Create(Result, 'CubicMetersPerUSFluidPint', CubicMetersPerUSFluidPint);
-  TSepiConstant.Create(Result, 'CubicMetersPerUSFluidCup', CubicMetersPerUSFluidCup);
-  TSepiConstant.Create(Result, 'CubicMetersPerUSFluidGill', CubicMetersPerUSFluidGill);
-  TSepiConstant.Create(Result, 'CubicMetersPerUSFluidOunce', CubicMetersPerUSFluidOunce);
-  TSepiConstant.Create(Result, 'CubicMetersPerUSFluidTablespoon', CubicMetersPerUSFluidTablespoon);
-  TSepiConstant.Create(Result, 'CubicMetersPerUSFluidTeaspoon', CubicMetersPerUSFluidTeaspoon);
-  TSepiConstant.Create(Result, 'CubicMetersPerUSDryGallon', CubicMetersPerUSDryGallon);
-  TSepiConstant.Create(Result, 'CubicMetersPerUSDryQuart', CubicMetersPerUSDryQuart);
-  TSepiConstant.Create(Result, 'CubicMetersPerUSDryPint', CubicMetersPerUSDryPint);
-  TSepiConstant.Create(Result, 'CubicMetersPerUSDryPeck', CubicMetersPerUSDryPeck);
-  TSepiConstant.Create(Result, 'CubicMetersPerUSDryBucket', CubicMetersPerUSDryBucket);
-  TSepiConstant.Create(Result, 'CubicMetersPerUSDryBushel', CubicMetersPerUSDryBushel);
-  TSepiConstant.Create(Result, 'CubicMetersPerUKGallon', CubicMetersPerUKGallon);
-  TSepiConstant.Create(Result, 'CubicMetersPerUKPottle', CubicMetersPerUKPottle);
+  TSepiConstant.Create(Result, 'CubicMetersPerCordFoot',
+    CubicMetersPerCordFoot);
+  TSepiConstant.Create(Result, 'CubicMetersPerUSFluidGallon',
+    CubicMetersPerUSFluidGallon);
+  TSepiConstant.Create(Result, 'CubicMetersPerUSFluidQuart',
+    CubicMetersPerUSFluidQuart);
+  TSepiConstant.Create(Result, 'CubicMetersPerUSFluidPint',
+    CubicMetersPerUSFluidPint);
+  TSepiConstant.Create(Result, 'CubicMetersPerUSFluidCup',
+    CubicMetersPerUSFluidCup);
+  TSepiConstant.Create(Result, 'CubicMetersPerUSFluidGill',
+    CubicMetersPerUSFluidGill);
+  TSepiConstant.Create(Result, 'CubicMetersPerUSFluidOunce',
+    CubicMetersPerUSFluidOunce);
+  TSepiConstant.Create(Result, 'CubicMetersPerUSFluidTablespoon',
+    CubicMetersPerUSFluidTablespoon);
+  TSepiConstant.Create(Result, 'CubicMetersPerUSFluidTeaspoon',
+    CubicMetersPerUSFluidTeaspoon);
+  TSepiConstant.Create(Result, 'CubicMetersPerUSDryGallon',
+    CubicMetersPerUSDryGallon);
+  TSepiConstant.Create(Result, 'CubicMetersPerUSDryQuart',
+    CubicMetersPerUSDryQuart);
+  TSepiConstant.Create(Result, 'CubicMetersPerUSDryPint',
+    CubicMetersPerUSDryPint);
+  TSepiConstant.Create(Result, 'CubicMetersPerUSDryPeck',
+    CubicMetersPerUSDryPeck);
+  TSepiConstant.Create(Result, 'CubicMetersPerUSDryBucket',
+    CubicMetersPerUSDryBucket);
+  TSepiConstant.Create(Result, 'CubicMetersPerUSDryBushel',
+    CubicMetersPerUSDryBushel);
+  TSepiConstant.Create(Result, 'CubicMetersPerUKGallon',
+    CubicMetersPerUKGallon);
+  TSepiConstant.Create(Result, 'CubicMetersPerUKPottle',
+    CubicMetersPerUKPottle);
   TSepiConstant.Create(Result, 'CubicMetersPerUKQuart', CubicMetersPerUKQuart);
   TSepiConstant.Create(Result, 'CubicMetersPerUKPint', CubicMetersPerUKPint);
   TSepiConstant.Create(Result, 'CubicMetersPerUKGill', CubicMetersPerUKGill);
   TSepiConstant.Create(Result, 'CubicMetersPerUKOunce', CubicMetersPerUKOunce);
   TSepiConstant.Create(Result, 'CubicMetersPerUKPeck', CubicMetersPerUKPeck);
-  TSepiConstant.Create(Result, 'CubicMetersPerUKBucket', CubicMetersPerUKBucket);
-  TSepiConstant.Create(Result, 'CubicMetersPerUKBushel', CubicMetersPerUKBushel);
+  TSepiConstant.Create(Result, 'CubicMetersPerUKBucket',
+    CubicMetersPerUKBucket);
+  TSepiConstant.Create(Result, 'CubicMetersPerUKBushel',
+    CubicMetersPerUKBushel);
   TSepiConstant.Create(Result, 'GramsPerPound', GramsPerPound);
   TSepiConstant.Create(Result, 'GramsPerDrams', GramsPerDrams);
   TSepiConstant.Create(Result, 'GramsPerGrains', GramsPerGrains);

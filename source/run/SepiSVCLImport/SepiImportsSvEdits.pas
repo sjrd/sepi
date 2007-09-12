@@ -19,24 +19,24 @@ type
   TSepiImportsTSvCustomNumberEdit = class(TSvCustomNumberEdit)
   private
     function GetValue: Double;
-    procedure SetValue(New : Double);
-    function GetInt: integer;
-    procedure SetInt(New : integer);
-    procedure SetPrefix(New : string);
-    procedure SetSuffix(New : string);
-    procedure SetAllowNegative(New : boolean);
-    procedure SetAllowFrac(New : boolean);
-    procedure SetSeparator(New : Char);
-    procedure SetHasMinValue(New : boolean);
-    procedure SetHasMaxValue(New : boolean);
-    procedure SetMinValue(New : Double);
-    procedure SetMaxValue(New : Double);
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    procedure SetValue(New: Double);
+    function GetInt: Integer;
+    procedure SetInt(New: Integer);
+    procedure SetPrefix(New: string);
+    procedure SetSuffix(New: string);
+    procedure SetAllowNegative(New: Boolean);
+    procedure SetAllowFrac(New: Boolean);
+    procedure SetSeparator(New: Char);
+    procedure SetHasMinValue(New: Boolean);
+    procedure SetHasMaxValue(New: Boolean);
+    procedure SetMinValue(New: Double);
+    procedure SetMaxValue(New: Double);
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTSvNumberEdit = class(TSvNumberEdit)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
 {----------------------------}
@@ -48,68 +48,68 @@ begin
   Result := Value;
 end;
 
-procedure TSepiImportsTSvCustomNumberEdit.SetValue(New : Double);
+procedure TSepiImportsTSvCustomNumberEdit.SetValue(New: Double);
 begin
   Value := New;
 end;
 
-function TSepiImportsTSvCustomNumberEdit.GetInt: integer;
+function TSepiImportsTSvCustomNumberEdit.GetInt: Integer;
 begin
   Result := Int;
 end;
 
-procedure TSepiImportsTSvCustomNumberEdit.SetInt(New : integer);
+procedure TSepiImportsTSvCustomNumberEdit.SetInt(New: Integer);
 begin
   Int := New;
 end;
 
-procedure TSepiImportsTSvCustomNumberEdit.SetPrefix(New : string);
+procedure TSepiImportsTSvCustomNumberEdit.SetPrefix(New: string);
 begin
   Prefix := New;
 end;
 
-procedure TSepiImportsTSvCustomNumberEdit.SetSuffix(New : string);
+procedure TSepiImportsTSvCustomNumberEdit.SetSuffix(New: string);
 begin
   Suffix := New;
 end;
 
-procedure TSepiImportsTSvCustomNumberEdit.SetAllowNegative(New : boolean);
+procedure TSepiImportsTSvCustomNumberEdit.SetAllowNegative(New: Boolean);
 begin
   AllowNegative := New;
 end;
 
-procedure TSepiImportsTSvCustomNumberEdit.SetAllowFrac(New : boolean);
+procedure TSepiImportsTSvCustomNumberEdit.SetAllowFrac(New: Boolean);
 begin
   AllowFrac := New;
 end;
 
-procedure TSepiImportsTSvCustomNumberEdit.SetSeparator(New : Char);
+procedure TSepiImportsTSvCustomNumberEdit.SetSeparator(New: Char);
 begin
   Separator := New;
 end;
 
-procedure TSepiImportsTSvCustomNumberEdit.SetHasMinValue(New : boolean);
+procedure TSepiImportsTSvCustomNumberEdit.SetHasMinValue(New: Boolean);
 begin
   HasMinValue := New;
 end;
 
-procedure TSepiImportsTSvCustomNumberEdit.SetHasMaxValue(New : boolean);
+procedure TSepiImportsTSvCustomNumberEdit.SetHasMaxValue(New: Boolean);
 begin
   HasMaxValue := New;
 end;
 
-procedure TSepiImportsTSvCustomNumberEdit.SetMinValue(New : Double);
+procedure TSepiImportsTSvCustomNumberEdit.SetMinValue(New: Double);
 begin
   MinValue := New;
 end;
 
-procedure TSepiImportsTSvCustomNumberEdit.SetMaxValue(New : Double);
+procedure TSepiImportsTSvCustomNumberEdit.SetMaxValue(New: Double);
 begin
   MaxValue := New;
 end;
 
 class function TSepiImportsTSvCustomNumberEdit.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TSvCustomNumberEdit));
@@ -121,11 +121,11 @@ begin
     AddField('FReadingValue', System.TypeInfo(Double));
     AddField('FPrefix', System.TypeInfo(string));
     AddField('FSuffix', System.TypeInfo(string));
-    AddField('FAllowNegative', System.TypeInfo(boolean));
-    AddField('FAllowFrac', System.TypeInfo(boolean));
+    AddField('FAllowNegative', System.TypeInfo(Boolean));
+    AddField('FAllowFrac', System.TypeInfo(Boolean));
     AddField('FSeparator', System.TypeInfo(Char));
-    AddField('FHasMinValue', System.TypeInfo(boolean));
-    AddField('FHasMaxValue', System.TypeInfo(boolean));
+    AddField('FHasMinValue', System.TypeInfo(Boolean));
+    AddField('FHasMaxValue', System.TypeInfo(Boolean));
     AddField('FMinValue', System.TypeInfo(Double));
     AddField('FMaxValue', System.TypeInfo(Double));
 
@@ -141,15 +141,18 @@ begin
       'procedure(New : string)');
     AddMethod('SetSuffix', @TSepiImportsTSvCustomNumberEdit.SetSuffix,
       'procedure(New : string)');
-    AddMethod('SetAllowNegative', @TSepiImportsTSvCustomNumberEdit.SetAllowNegative,
+    AddMethod('SetAllowNegative',
+      @TSepiImportsTSvCustomNumberEdit.SetAllowNegative,
       'procedure(New : boolean)');
     AddMethod('SetAllowFrac', @TSepiImportsTSvCustomNumberEdit.SetAllowFrac,
       'procedure(New : boolean)');
     AddMethod('SetSeparator', @TSepiImportsTSvCustomNumberEdit.SetSeparator,
       'procedure(New : Char)');
-    AddMethod('SetHasMinValue', @TSepiImportsTSvCustomNumberEdit.SetHasMinValue,
+    AddMethod('SetHasMinValue',
+      @TSepiImportsTSvCustomNumberEdit.SetHasMinValue,
       'procedure(New : boolean)');
-    AddMethod('SetHasMaxValue', @TSepiImportsTSvCustomNumberEdit.SetHasMaxValue,
+    AddMethod('SetHasMaxValue',
+      @TSepiImportsTSvCustomNumberEdit.SetHasMaxValue,
       'procedure(New : boolean)');
     AddMethod('SetMinValue', @TSepiImportsTSvCustomNumberEdit.SetMinValue,
       'procedure(New : Double)');
@@ -215,7 +218,7 @@ end;
 {----------------------}
 
 class function TSepiImportsTSvNumberEdit.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TSvNumberEdit));
@@ -292,7 +295,7 @@ end;
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiRoot) : TSepiUnit;
+function ImportUnit(Root: TSepiRoot): TSepiUnit;
 begin
   Result := TSepiUnit.Create(Root, 'SvEdits',
     ['Windows', 'Messages', 'SysUtils', 'Classes', 'ScUtils', 'StdCtrls']);

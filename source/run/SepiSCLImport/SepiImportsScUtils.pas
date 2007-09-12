@@ -19,15 +19,15 @@ implementation
 { T3DPoint import }
 {-----------------}
 
-function SepiImportT3DPoint(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportT3DPoint(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'T3DPoint', False, True);
 
   with Result do
   begin
-    AddField('X', System.TypeInfo(integer));
-    AddField('Y', System.TypeInfo(integer));
-    AddField('Z', System.TypeInfo(integer));
+    AddField('X', System.TypeInfo(Integer));
+    AddField('Y', System.TypeInfo(Integer));
+    AddField('Z', System.TypeInfo(Integer));
 
     Complete;
   end;
@@ -37,42 +37,42 @@ end;
 { Unit import }
 {-------------}
 
-function IIF_0(Cond : boolean; Int1, Int2 : integer) : integer;
+function IIF_0(Cond: Boolean; Int1, Int2: Integer): Integer;
 begin
   Result := IIF(Cond, Int1, Int2);
 end;
 
-function IIF_1(Cond : boolean; Flo1, Flo2 : Double ) : Double;
+function IIF_1(Cond: Boolean; Flo1, Flo2: Double): Double;
 begin
   Result := IIF(Cond, Flo1, Flo2);
 end;
 
-function IIF_2(Cond : boolean; Chr1, Chr2 : Char  ) : Char;
+function IIF_2(Cond: Boolean; Chr1, Chr2: Char): Char;
 begin
   Result := IIF(Cond, Chr1, Chr2);
 end;
 
-function IIF_3(Cond : boolean; const Str1, Str2 : string) : string;
+function IIF_3(Cond: Boolean; const Str1, Str2: string): string;
 begin
   Result := IIF(Cond, Str1, Str2);
 end;
 
-function IIF_4(Cond : boolean; Obj1, Obj2 : TObject) : TObject;
+function IIF_4(Cond: Boolean; Obj1, Obj2: TObject): TObject;
 begin
   Result := IIF(Cond, Obj1, Obj2);
 end;
 
-function IIF_5(Cond : boolean; Ptr1, Ptr2 : Pointer) : Pointer;
+function IIF_5(Cond: Boolean; Ptr1, Ptr2: Pointer): Pointer;
 begin
   Result := IIF(Cond, Ptr1, Ptr2);
 end;
 
-function IIF_6(Cond : boolean; Var1, Var2 : Variant) : Variant;
+function IIF_6(Cond: Boolean; Var1, Var2: Variant): Variant;
 begin
   Result := IIF(Cond, Var1, Var2);
 end;
 
-function ImportUnit(Root : TSepiRoot) : TSepiUnit;
+function ImportUnit(Root: TSepiRoot): TSepiUnit;
 begin
   Result := TSepiUnit.Create(Root, 'ScUtils',
     ['Types', 'SysUtils', 'Classes']);
@@ -83,11 +83,11 @@ begin
 
   // Constants
   TSepiVariable.Create(Result, 'NoPoint',
-     NoPoint, 'TPoint', True);
+    NoPoint, 'TPoint', True);
   TSepiVariable.Create(Result, 'No3DPoint',
-     No3DPoint, 'T3DPoint', True);
+    No3DPoint, 'T3DPoint', True);
   TSepiVariable.Create(Result, 'NoGUID',
-     NoGUID, 'TGUID', True);
+    NoGUID, 'TGUID', True);
 
   // Routines
   TSepiMethod.Create(Result, 'Dir', @Dir,

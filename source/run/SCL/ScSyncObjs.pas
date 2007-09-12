@@ -29,33 +29,33 @@ type
   *}
   TScTask = class
   private
-    FOwner : TScCustomTaskQueue; /// File propriétaire de la tâche
-    FState : TScTaskState;       /// État de la tâche
-    FFreeOnFinished : boolean;   /// Se libère automatiquement
+    FOwner: TScCustomTaskQueue; /// File propriétaire de la tâche
+    FState: TScTaskState;       /// État de la tâche
+    FFreeOnFinished: Boolean;   /// Se libère automatiquement
 
-    FWaitForCount : integer; /// Nombre d'exécutions de WaitFor en cours
+    FWaitForCount: Integer; /// Nombre d'exécutions de WaitFor en cours
 
-    FFatalException : TObject; /// Exception non interceptée
+    FFatalException: TObject; /// Exception non interceptée
 
-    procedure Finish(AFatalException : TObject = nil);
+    procedure Finish(AFatalException: TObject = nil);
   protected
     {*
       Exécute l'action
     *}
     procedure Execute; virtual; abstract;
 
-    function Cancel(ForceFree : boolean = False) : boolean;
+    function Cancel(ForceFree: Boolean = False): Boolean;
 
-    property Owner : TScCustomTaskQueue read FOwner;
-    property State : TScTaskState read FState;
-    property FreeOnFinished : boolean
+    property Owner: TScCustomTaskQueue read FOwner;
+    property State: TScTaskState read FState;
+    property FreeOnFinished: Boolean
       read FFreeOnFinished write FFreeOnFinished;
 
-    property FatalException : TObject read FFatalException;
+    property FatalException: TObject read FFatalException;
   public
-    constructor Create(AOwner : TScCustomTaskQueue;
-      AFreeOnFinished : boolean); overload;
-    constructor Create(AOwner : TScCustomTaskQueue); overload;
+    constructor Create(AOwner: TScCustomTaskQueue;
+      AFreeOnFinished: Boolean); overload;
+    constructor Create(AOwner: TScCustomTaskQueue); overload;
     destructor Destroy; override;
 
     procedure AfterConstruction; override;
@@ -88,35 +88,35 @@ type
   *}
   TScCustomTaskQueue = class(TThread)
   private
-    FWaitingQueue : TScWaitingObjectQueue; /// File des messages en attente
-    FCriticalSection : TCriticalSection;   /// Section critique sur la liste
+    FWaitingQueue: TScWaitingObjectQueue; /// File des messages en attente
+    FCriticalSection: TCriticalSection;   /// Section critique sur la liste
 
     /// Valeur par défaut de la propriété FreeOnFinished des tâches de la file
-    FDefaultFreeOnFinished : boolean;
+    FDefaultFreeOnFinished: Boolean;
 
     /// Indique si le thread d'exécution doit se terminer en cas d'exception
-    FTerminateOnException : boolean;
+    FTerminateOnException: Boolean;
 
-    FReady : boolean; /// Indique si la file a terminé son travail
+    FReady: Boolean; /// Indique si la file a terminé son travail
 
-    procedure Push(Task : TScTask);
-    procedure Cancel(Task : TScTask);
-    function Pop : TScTask;
+    procedure Push(Task: TScTask);
+    procedure Cancel(Task: TScTask);
+    function Pop: TScTask;
   protected
     procedure Execute; override;
 
-    property WaitingQueue : TScWaitingObjectQueue read FWaitingQueue;
-    property CriticalSection : TCriticalSection read FCriticalSection;
+    property WaitingQueue: TScWaitingObjectQueue read FWaitingQueue;
+    property CriticalSection: TCriticalSection read FCriticalSection;
 
-    property DefaultFreeOnFinished : boolean
+    property DefaultFreeOnFinished: Boolean
       read FDefaultFreeOnFinished write FDefaultFreeOnFinished;
-    property TerminateOnException : boolean
+    property TerminateOnException: Boolean
       read FTerminateOnException write FTerminateOnException;
 
-    property Ready : boolean read FReady;
+    property Ready: Boolean read FReady;
   public
-    constructor Create(ADefaultFreeOnFinished : boolean = True;
-      ATerminateOnException : boolean = True);
+    constructor Create(ADefaultFreeOnFinished: Boolean = True;
+      ATerminateOnException: Boolean = True);
     destructor Destroy; override;
 
     procedure BeforeDestruction; override;
@@ -145,23 +145,23 @@ type
   *}
   TScCustomMessageTask = class(TScTask)
   private
-    FMsg : Pointer;     /// Pointeur sur le message
-    FMsgSize : integer; /// Taille du message
-    FDestObj : TObject; /// Objet auquel délivrer le message
+    FMsg: Pointer;     /// Pointeur sur le message
+    FMsgSize: Integer; /// Taille du message
+    FDestObj: TObject; /// Objet auquel délivrer le message
   protected
     procedure Execute; override;
 
     procedure GetMsg(out Msg);
 
-    property Msg : Pointer read FMsg;
-    property MsgSize : integer read FMsgSize;
-    property DestObj : TObject read FDestObj;
+    property Msg: Pointer read FMsg;
+    property MsgSize: Integer read FMsgSize;
+    property DestObj: TObject read FDestObj;
   public
-    constructor Create(AOwner : TScCustomTaskQueue; const AMsg;
-      AMsgSize : integer; ADestObj : TObject;
-      AFreeOnFinished : boolean); overload;
-    constructor Create(AOwner : TScCustomTaskQueue; const AMsg;
-      AMsgSize : integer; ADestObj : TObject); overload;
+    constructor Create(AOwner: TScCustomTaskQueue; const AMsg;
+      AMsgSize: Integer; ADestObj: TObject;
+      AFreeOnFinished: Boolean); overload;
+    constructor Create(AOwner: TScCustomTaskQueue; const AMsg;
+      AMsgSize: Integer; ADestObj: TObject); overload;
     destructor Destroy; override;
   end;
 
@@ -173,7 +173,7 @@ type
   *}
   TScMessageTask = class(TScCustomMessageTask)
   public
-    function Cancel(ForceFree : boolean = False) : boolean;
+    function Cancel(ForceFree: Boolean = False): Boolean;
     procedure GetMsg(out Msg);
 
     property Owner;
@@ -186,8 +186,8 @@ type
     property FatalException;
   end;
 
-function InterlockedIncrement(var I : integer) : integer;
-function InterlockedDecrement(var I : integer) : integer;
+function InterlockedIncrement(var I: Integer): Integer;
+function InterlockedDecrement(var I: Integer): Integer;
 
 implementation
 
@@ -200,7 +200,7 @@ implementation
   @param Compteur à incrémenter
   @return Nouvelle valeur du compteur
 *}
-function InterlockedIncrement(var I : integer) : integer;
+function InterlockedIncrement(var I: Integer): Integer;
 asm
         MOV     EDX,1
    LOCK XADD    [EAX],EDX
@@ -212,7 +212,7 @@ end;
   @param Compteur à décrémenter
   @return Nouvelle valeur du compteur
 *}
-function InterlockedDecrement(var I : integer) : integer;
+function InterlockedDecrement(var I: Integer): Integer;
 asm
         MOV     EDX,-1
    LOCK XADD    [EAX],EDX
@@ -228,8 +228,8 @@ end;
   @param AOwner            File de tâches propriétaire
   @param AFreeOnFinished   Indique si doit se détruire automatiquement
 *}
-constructor TScTask.Create(AOwner : TScCustomTaskQueue;
-  AFreeOnFinished : boolean);
+constructor TScTask.Create(AOwner: TScCustomTaskQueue;
+  AFreeOnFinished: Boolean);
 begin
   inherited Create;
 
@@ -244,7 +244,7 @@ end;
   Crée une tâche
   @param AOwner   File de tâches propriétaire
 *}
-constructor TScTask.Create(AOwner : TScCustomTaskQueue);
+constructor TScTask.Create(AOwner: TScCustomTaskQueue);
 begin
   Create(AOwner, AOwner.DefaultFreeOnFinished);
 end;
@@ -262,7 +262,7 @@ end;
   Termine la tâche
   @param AFatalException   Exception non interceptée
 *}
-procedure TScTask.Finish(AFatalException : TObject = nil);
+procedure TScTask.Finish(AFatalException: TObject = nil);
 begin
   Assert(State in [tsWaiting, tsProcessing]);
   FFatalException := AFatalException;
@@ -282,7 +282,7 @@ end;
   @param ForceFree   À True, force la libération, même si FreeOnFinished = False
   @return True si réussi, False si la tâche était déjà en cours ou terminée
 *}
-function TScTask.Cancel(ForceFree : boolean = False) : boolean;
+function TScTask.Cancel(ForceFree: Boolean = False): Boolean;
 begin
   Owner.CriticalSection.Acquire;
   try
@@ -338,7 +338,8 @@ end;
   la violation d'accès lors de la libération de l'objet TScTask.
 *}
 procedure TScTask.RaiseException;
-var ExceptObject : TObject;
+var
+  ExceptObject: TObject;
 begin
   if FatalException <> nil then
   begin
@@ -357,8 +358,8 @@ end;
   @param ADefaultFreeOnFinished   Valeur de la propriété DefaultFreeOnFinished
   @param ATerminateOnException    Valeur de la propriété TerminateOnException
 *}
-constructor TScCustomTaskQueue.Create(ADefaultFreeOnFinished : boolean = True;
-  ATerminateOnException : boolean = True);
+constructor TScCustomTaskQueue.Create(ADefaultFreeOnFinished: Boolean = True;
+  ATerminateOnException: Boolean = True);
 begin
   inherited Create(True);
 
@@ -385,7 +386,7 @@ end;
   Ajoute une tâche à la file
   @param Task   Tâche à ajouter
 *}
-procedure TScCustomTaskQueue.Push(Task : TScTask);
+procedure TScCustomTaskQueue.Push(Task: TScTask);
 begin
   CriticalSection.Acquire;
   try
@@ -403,7 +404,7 @@ end;
   Retire une tâche de la file d'attente
   @param Task   Tâche à retirer
 *}
-procedure TScCustomTaskQueue.Cancel(Task : TScTask);
+procedure TScCustomTaskQueue.Cancel(Task: TScTask);
 begin
   CriticalSection.Acquire;
   try
@@ -418,7 +419,7 @@ end;
   Récupère la tâche suivante dans la file d'attente
   @return La prochaine tâche dans la file, ou nil si aucune tâche
 *}
-function TScCustomTaskQueue.Pop : TScTask;
+function TScCustomTaskQueue.Pop: TScTask;
 begin
   CriticalSection.Acquire;
   try
@@ -436,8 +437,9 @@ end;
   [@inheritDoc]
 *}
 procedure TScCustomTaskQueue.Execute;
-var Task : TScTask;
-    ExceptObject : TObject;
+var
+  Task: TScTask;
+  ExceptObject: TObject;
 begin
   try
     while not Terminated do
@@ -511,9 +513,9 @@ end;
   @param ADestObj          Objet auquel délivrer le message
   @param AFreeOnFinished   Valeur de la propriété FreeOnFinished
 *}
-constructor TScCustomMessageTask.Create(AOwner : TScCustomTaskQueue;
-  const AMsg; AMsgSize : integer; ADestObj : TObject;
-  AFreeOnFinished : boolean);
+constructor TScCustomMessageTask.Create(AOwner: TScCustomTaskQueue;
+  const AMsg; AMsgSize: Integer; ADestObj: TObject;
+  AFreeOnFinished: Boolean);
 begin
   inherited Create(AOwner, AFreeOnFinished);
 
@@ -530,8 +532,8 @@ end;
   @param AMsgSize   Taille du message
   @param ADestObj   Objet auquel délivrer le message
 *}
-constructor TScCustomMessageTask.Create(AOwner : TScCustomTaskQueue;
-  const AMsg; AMsgSize : integer; ADestObj : TObject);
+constructor TScCustomMessageTask.Create(AOwner: TScCustomTaskQueue;
+  const AMsg; AMsgSize: Integer; ADestObj: TObject);
 begin
   Create(AOwner, AMsg, AMsgSize, ADestObj, AOwner.DefaultFreeOnFinished);
 end;
@@ -569,7 +571,7 @@ end;
 {*
   [@inheritDoc]
 *}
-function TScMessageTask.Cancel(ForceFree : boolean = False) : boolean;
+function TScMessageTask.Cancel(ForceFree: Boolean = False): Boolean;
 begin
   Result := inherited Cancel(ForceFree);
 end;

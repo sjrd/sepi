@@ -18,83 +18,84 @@ implementation
 type
   TSepiImportsEIntListError = class(EIntListError)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTCompareStrings = class(TCompareStrings)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsStringsOps = class(StringsOps)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTScStrings = class(TScStrings)
   private
-    function GetHasMoreString: boolean;
-    procedure SetIndex(New : integer);
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    function GetHasMoreString: Boolean;
+    procedure SetIndex(New: Integer);
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTScList = class(TScList)
   private
-    function GetCount: integer;
-    procedure SetCount(New : integer);
-    function GetHasMoreValue: boolean;
-    function GetIndex: integer;
-    procedure SetIndex(New : integer);
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    function GetCount: Integer;
+    procedure SetCount(New: Integer);
+    function GetHasMoreValue: Boolean;
+    function GetIndex: Integer;
+    procedure SetIndex(New: Integer);
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTIntegerList = class(TIntegerList)
   private
-    function GetItems(Index : integer) : Int64;
-    procedure SetItems(Index : integer; New : Int64);
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    function GetItems(Index: Integer): Int64;
+    procedure SetItems(Index: Integer; New: Int64);
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTUnsignedIntList = class(TUnsignedIntList)
   private
-    function GetItems(Index : integer) : LongWord;
-    procedure SetItems(Index : integer; New : LongWord);
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    function GetItems(Index: Integer): LongWord;
+    procedure SetItems(Index: Integer; New: LongWord);
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTExtendedList = class(TExtendedList)
   private
-    function GetItems(Index : integer) : Extended;
-    procedure SetItems(Index : integer; New : Extended);
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    function GetItems(Index: Integer): Extended;
+    procedure SetItems(Index: Integer; New: Extended);
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTScWaitingQueue = class(TScWaitingQueue)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTScWaitingObjectQueue = class(TScWaitingObjectQueue)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTCustomValueBucketList = class(TCustomValueBucketList)
   private
-    function GetIsEmpty: boolean;
-    procedure SetBucketCount(Value : integer);
-    constructor Create_1(AKeySize, ADataSize : integer);
-    constructor Create_2(AKeySize : integer; ADataInfo : PTypeInfo);
-    constructor Create_3(AKeyInfo : PTypeInfo; ADataSize : integer);
-    constructor Create_4(AKeyInfo, ADataInfo : PTypeInfo);
-    function ForEach_0(Proc : TValueBucketProc; Info : Pointer = nil ) : boolean;
-    function ForEach_1(Event : TValueBucketEvent) : boolean;
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    function GetIsEmpty: Boolean;
+    procedure SetBucketCount(Value: Integer);
+    constructor Create_1(AKeySize, ADataSize: Integer);
+    constructor Create_2(AKeySize: Integer; ADataInfo: PTypeInfo);
+    constructor Create_3(AKeyInfo: PTypeInfo; ADataSize: Integer);
+    constructor Create_4(AKeyInfo, ADataInfo: PTypeInfo);
+    function ForEach_0(Proc: TValueBucketProc;
+      Info: Pointer = nil): Boolean;
+    function ForEach_1(Event: TValueBucketEvent): Boolean;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTValueBucketList = class(TValueBucketList)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
 {----------------------}
@@ -102,7 +103,7 @@ type
 {----------------------}
 
 class function TSepiImportsEIntListError.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EIntListError));
@@ -119,7 +120,7 @@ end;
 {------------------------}
 
 class function TSepiImportsTCompareStrings.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TCompareStrings));
@@ -141,7 +142,7 @@ end;
 {-------------------}
 
 class function TSepiImportsStringsOps.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(StringsOps));
@@ -175,18 +176,18 @@ end;
 { TScStrings import }
 {-------------------}
 
-function TSepiImportsTScStrings.GetHasMoreString: boolean;
+function TSepiImportsTScStrings.GetHasMoreString: Boolean;
 begin
   Result := HasMoreString;
 end;
 
-procedure TSepiImportsTScStrings.SetIndex(New : integer);
+procedure TSepiImportsTScStrings.SetIndex(New: Integer);
 begin
   Index := New;
 end;
 
 class function TSepiImportsTScStrings.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TScStrings));
@@ -195,7 +196,7 @@ begin
   begin
     CurrentVisibility := mvPrivate;
 
-    AddField('FIndex', System.TypeInfo(integer));
+    AddField('FIndex', System.TypeInfo(Integer));
 
     AddMethod('GetHasMoreString', @TSepiImportsTScStrings.GetHasMoreString,
       'function: boolean');
@@ -246,33 +247,33 @@ end;
 { TScList import }
 {----------------}
 
-function TSepiImportsTScList.GetCount: integer;
+function TSepiImportsTScList.GetCount: Integer;
 begin
   Result := Count;
 end;
 
-procedure TSepiImportsTScList.SetCount(New : integer);
+procedure TSepiImportsTScList.SetCount(New: Integer);
 begin
   Count := New;
 end;
 
-function TSepiImportsTScList.GetHasMoreValue: boolean;
+function TSepiImportsTScList.GetHasMoreValue: Boolean;
 begin
   Result := HasMoreValue;
 end;
 
-function TSepiImportsTScList.GetIndex: integer;
+function TSepiImportsTScList.GetIndex: Integer;
 begin
   Result := Index;
 end;
 
-procedure TSepiImportsTScList.SetIndex(New : integer);
+procedure TSepiImportsTScList.SetIndex(New: Integer);
 begin
   Index := New;
 end;
 
 class function TSepiImportsTScList.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass(Owner.FindMeta('TScList'));
   Result.RegisterTypeInfo(
@@ -283,7 +284,7 @@ begin
     CurrentVisibility := mvPrivate;
 
     AddField('FStream', System.TypeInfo(TMemoryStream));
-    AddField('FItemSize', System.TypeInfo(integer));
+    AddField('FItemSize', System.TypeInfo(Integer));
 
     AddMethod('GetCount', @TSepiImportsTScList.GetCount,
       'function: integer');
@@ -363,18 +364,18 @@ end;
 { TIntegerList import }
 {---------------------}
 
-function TSepiImportsTIntegerList.GetItems(Index : integer) : Int64;
+function TSepiImportsTIntegerList.GetItems(Index: Integer): Int64;
 begin
   Result := Items[Index];
 end;
 
-procedure TSepiImportsTIntegerList.SetItems(Index : integer; New : Int64);
+procedure TSepiImportsTIntegerList.SetItems(Index: Integer; New: Int64);
 begin
   Items[Index] := New;
 end;
 
 class function TSepiImportsTIntegerList.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TIntegerList));
@@ -430,18 +431,19 @@ end;
 { TUnsignedIntList import }
 {-------------------------}
 
-function TSepiImportsTUnsignedIntList.GetItems(Index : integer) : LongWord;
+function TSepiImportsTUnsignedIntList.GetItems(Index: Integer): LongWord;
 begin
   Result := Items[Index];
 end;
 
-procedure TSepiImportsTUnsignedIntList.SetItems(Index : integer; New : LongWord);
+procedure TSepiImportsTUnsignedIntList.SetItems(Index: Integer;
+  New: LongWord);
 begin
   Items[Index] := New;
 end;
 
 class function TSepiImportsTUnsignedIntList.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TUnsignedIntList));
@@ -497,18 +499,18 @@ end;
 { TExtendedList import }
 {----------------------}
 
-function TSepiImportsTExtendedList.GetItems(Index : integer) : Extended;
+function TSepiImportsTExtendedList.GetItems(Index: Integer): Extended;
 begin
   Result := Items[Index];
 end;
 
-procedure TSepiImportsTExtendedList.SetItems(Index : integer; New : Extended);
+procedure TSepiImportsTExtendedList.SetItems(Index: Integer; New: Extended);
 begin
   Items[Index] := New;
 end;
 
 class function TSepiImportsTExtendedList.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TExtendedList));
@@ -563,7 +565,7 @@ end;
 {------------------------}
 
 class function TSepiImportsTScWaitingQueue.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TScWaitingQueue));
@@ -584,7 +586,7 @@ end;
 {------------------------------}
 
 class function TSepiImportsTScWaitingObjectQueue.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TScWaitingObjectQueue));
@@ -604,48 +606,54 @@ end;
 { TCustomValueBucketList import }
 {-------------------------------}
 
-function TSepiImportsTCustomValueBucketList.GetIsEmpty: boolean;
+function TSepiImportsTCustomValueBucketList.GetIsEmpty: Boolean;
 begin
   Result := IsEmpty;
 end;
 
-procedure TSepiImportsTCustomValueBucketList.SetBucketCount(Value : integer);
+procedure TSepiImportsTCustomValueBucketList.SetBucketCount(Value: Integer);
 begin
   BucketCount := Value;
 end;
 
-constructor TSepiImportsTCustomValueBucketList.Create_1(AKeySize, ADataSize : integer);
+constructor TSepiImportsTCustomValueBucketList.Create_1(
+  AKeySize, ADataSize: Integer);
 begin
   Create(AKeySize, ADataSize);
 end;
 
-constructor TSepiImportsTCustomValueBucketList.Create_2(AKeySize : integer; ADataInfo : PTypeInfo);
+constructor TSepiImportsTCustomValueBucketList.Create_2(AKeySize: Integer;
+  ADataInfo: PTypeInfo);
 begin
   Create(AKeySize, ADataInfo);
 end;
 
-constructor TSepiImportsTCustomValueBucketList.Create_3(AKeyInfo : PTypeInfo; ADataSize : integer);
+constructor TSepiImportsTCustomValueBucketList.Create_3(AKeyInfo: PTypeInfo;
+  ADataSize: Integer);
 begin
   Create(AKeyInfo, ADataSize);
 end;
 
-constructor TSepiImportsTCustomValueBucketList.Create_4(AKeyInfo, ADataInfo : PTypeInfo);
+constructor TSepiImportsTCustomValueBucketList.Create_4(
+  AKeyInfo, ADataInfo: PTypeInfo);
 begin
   Create(AKeyInfo, ADataInfo);
 end;
 
-function TSepiImportsTCustomValueBucketList.ForEach_0(Proc : TValueBucketProc; Info : Pointer = nil ) : boolean;
+function TSepiImportsTCustomValueBucketList.ForEach_0(Proc: TValueBucketProc;
+  Info: Pointer = nil): Boolean;
 begin
   Result := ForEach(Proc, Info);
 end;
 
-function TSepiImportsTCustomValueBucketList.ForEach_1(Event : TValueBucketEvent) : boolean;
+function TSepiImportsTCustomValueBucketList.ForEach_1(Event:
+  TValueBucketEvent): Boolean;
 begin
   Result := ForEach(Event);
 end;
 
 class function TSepiImportsTCustomValueBucketList.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TCustomValueBucketList));
@@ -655,12 +663,12 @@ begin
     CurrentVisibility := mvPrivate;
 
     AddField('FBuckets', System.TypeInfo(TBucketArray));
-    AddField('FBucketCount', System.TypeInfo(integer));
-    AddField('FListLocked', System.TypeInfo(boolean));
-    AddField('FClearing', System.TypeInfo(boolean));
-    AddField('FKeySize', System.TypeInfo(integer));
+    AddField('FBucketCount', System.TypeInfo(Integer));
+    AddField('FListLocked', System.TypeInfo(Boolean));
+    AddField('FClearing', System.TypeInfo(Boolean));
+    AddField('FKeySize', System.TypeInfo(Integer));
     AddField('FKeyInfo', 'PTypeInfo');
-    AddField('FDataSize', System.TypeInfo(integer));
+    AddField('FDataSize', System.TypeInfo(Integer));
     AddField('FDataInfo', 'PTypeInfo');
 
     AddOverloadedMethod('Create', nil,
@@ -669,7 +677,8 @@ begin
       'procedure(const Key, Data; var Continue : boolean)');
     AddMethod('GetIsEmpty', @TSepiImportsTCustomValueBucketList.GetIsEmpty,
       'function: boolean');
-    AddMethod('SetBucketCount', @TSepiImportsTCustomValueBucketList.SetBucketCount,
+    AddMethod('SetBucketCount',
+      @TSepiImportsTCustomValueBucketList.SetBucketCount,
       'procedure(Value : integer)');
 
     CurrentVisibility := mvProtected;
@@ -734,9 +743,11 @@ begin
     AddMethod('Destroy', @TSepiImportsTCustomValueBucketList.Destroy,
       'destructor',
       mlkOverride);
-    AddOverloadedMethod('ForEach', @TSepiImportsTCustomValueBucketList.ForEach_0,
+    AddOverloadedMethod('ForEach',
+      @TSepiImportsTCustomValueBucketList.ForEach_0,
       'function(Proc : TValueBucketProc; Info : Pointer = nil ) : boolean');
-    AddOverloadedMethod('ForEach', @TSepiImportsTCustomValueBucketList.ForEach_1,
+    AddOverloadedMethod('ForEach',
+      @TSepiImportsTCustomValueBucketList.ForEach_1,
       'function(Event : TValueBucketEvent) : boolean');
     AddMethod('Exists', @TSepiImportsTCustomValueBucketList.Exists,
       'function(const Key) : boolean');
@@ -755,7 +766,7 @@ end;
 {-------------------------}
 
 class function TSepiImportsTValueBucketList.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TValueBucketList));
@@ -790,7 +801,7 @@ end;
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiRoot) : TSepiUnit;
+function ImportUnit(Root: TSepiRoot): TSepiUnit;
 begin
   Result := TSepiUnit.Create(Root, 'ScLists',
     ['SysUtils', 'Classes', 'Contnrs', 'TypInfo']);

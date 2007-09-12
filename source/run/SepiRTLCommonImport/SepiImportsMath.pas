@@ -18,7 +18,7 @@ implementation
 type
   TSepiImportsEInvalidArgument = class(EInvalidArgument)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
 {-------------------------}
@@ -26,7 +26,7 @@ type
 {-------------------------}
 
 class function TSepiImportsEInvalidArgument.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EInvalidArgument));
@@ -122,17 +122,20 @@ begin
   Result := Sign(AValue);
 end;
 
-function CompareValue_0(const A, B: Extended; Epsilon: Extended = 0): TValueRelationship;
+function CompareValue_0(const A, B: Extended;
+  Epsilon: Extended = 0): TValueRelationship;
 begin
   Result := CompareValue(A, B, Epsilon);
 end;
 
-function CompareValue_1(const A, B: Double; Epsilon: Double = 0): TValueRelationship;
+function CompareValue_1(const A, B: Double;
+  Epsilon: Double = 0): TValueRelationship;
 begin
   Result := CompareValue(A, B, Epsilon);
 end;
 
-function CompareValue_2(const A, B: Single; Epsilon: Single = 0): TValueRelationship;
+function CompareValue_2(const A, B: Single;
+  Epsilon: Single = 0): TValueRelationship;
 begin
   Result := CompareValue(A, B, Epsilon);
 end;
@@ -177,17 +180,20 @@ begin
   Result := IsZero(A, Epsilon);
 end;
 
-function IfThen_0(AValue: Boolean; const ATrue: Integer; const AFalse: Integer = 0): Integer;
+function IfThen_0(AValue: Boolean; const ATrue: Integer;
+  const AFalse: Integer = 0): Integer;
 begin
   Result := IfThen(AValue, ATrue, AFalse);
 end;
 
-function IfThen_1(AValue: Boolean; const ATrue: Int64; const AFalse: Int64 = 0): Int64;
+function IfThen_1(AValue: Boolean; const ATrue: Int64;
+  const AFalse: Int64 = 0): Int64;
 begin
   Result := IfThen(AValue, ATrue, AFalse);
 end;
 
-function IfThen_2(AValue: Boolean; const ATrue: Double; const AFalse: Double = 0.0): Double;
+function IfThen_2(AValue: Boolean; const ATrue: Double;
+  const AFalse: Double = 0.0): Double;
 begin
   Result := IfThen(AValue, ATrue, AFalse);
 end;
@@ -237,7 +243,7 @@ begin
   Result := EnsureRange(AValue, AMin, AMax);
 end;
 
-function ImportUnit(Root : TSepiRoot) : TSepiUnit;
+function ImportUnit(Root: TSepiRoot): TSepiUnit;
 begin
   Result := TSepiUnit.Create(Root, 'Math',
     ['SysUtils', 'Types']);

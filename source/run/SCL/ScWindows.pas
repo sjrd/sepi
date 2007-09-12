@@ -19,25 +19,26 @@ type
   *}
   TSoundType = (stFileName, stResource, stSysSound);
 
-procedure CreateShellLink(const Source, Dest : string;
-  const Description : string = ''; const IconLocation : string = '';
-  IconIndex : integer = 0; const Arguments : string = '';
-  const WorkDir : string = ''; ShowCommand : integer = SW_SHOW);
+procedure CreateShellLink(const Source, Dest: string;
+  const Description: string = ''; const IconLocation: string = '';
+  IconIndex: Integer = 0; const Arguments: string = '';
+  const WorkDir: string = ''; ShowCommand: Integer = SW_SHOW);
 
-function ExecuteSound(const Sound : string; SoundType : TSoundType = stFileName;
-  Synchronous : boolean = False; Module : HMODULE = 0;
-  AddFlags : LongWord = 0) : boolean;
+function ExecuteSound(const Sound: string;
+  SoundType: TSoundType = stFileName;
+  Synchronous: Boolean = False; Module: HMODULE = 0;
+  AddFlags: LongWord = 0): Boolean;
 
 {$REGION 'Modification des ressources'}
 
-function BeginUpdateRes(const FileName : string) : integer;
-procedure AddResource(ResHandle : integer; const ResName : string;
-  Resource : TStream; const ResType : string = 'RCDATA');
-procedure DelResource(ResHandle : integer; const ResName : string);
-procedure EndUpdateRes(ResHandle : integer; Cancel : boolean = False);
-procedure AddResToFile(const FileName, ResName : string; Resource : TStream;
-  const ResType : string = 'RCDATA');
-procedure DelResInFile(const FileName, ResName : string);
+function BeginUpdateRes(const FileName: string): Integer;
+procedure AddResource(ResHandle: Integer; const ResName: string;
+  Resource: TStream; const ResType: string = 'RCDATA');
+procedure DelResource(ResHandle: Integer; const ResName: string);
+procedure EndUpdateRes(ResHandle: Integer; Cancel: Boolean = False);
+procedure AddResToFile(const FileName, ResName: string; Resource: TStream;
+  const ResType: string = 'RCDATA');
+procedure DelResInFile(const FileName, ResName: string);
 
 {$ENDREGION}
 
@@ -58,11 +59,12 @@ uses
   @param WorkDir        Répertoire de travail pour l'exécution du raccourci
   @param ShowCommand    Commande d'affichage de la destination
 *}
-procedure CreateShellLink(const Source, Dest : string;
-  const Description : string = ''; const IconLocation : string = '';
-  IconIndex : integer = 0; const Arguments : string = '';
-  const WorkDir : string = ''; ShowCommand : integer = SW_SHOW);
-var Link : IShellLink;
+procedure CreateShellLink(const Source, Dest: string;
+  const Description: string = ''; const IconLocation: string = '';
+  IconIndex: Integer = 0; const Arguments: string = '';
+  const WorkDir: string = ''; ShowCommand: Integer = SW_SHOW);
+var
+  Link: IShellLink;
 begin
   // Création de l'objet ShellLink
   Link := CreateComObject(CLSID_ShellLink) as IShellLink;
@@ -95,16 +97,18 @@ end;
   @param AddFlags      Flags additionnels à passer à MMSystem.PlaySound
   @return True si le son a été correctement exécuté, False sinon
 *}
-function ExecuteSound(const Sound : string; SoundType : TSoundType = stFileName;
-  Synchronous : boolean = False; Module : HMODULE = 0;
-  AddFlags : LongWord = 0) : boolean;
-var Flags : LongWord;
+function ExecuteSound(const Sound: string;
+  SoundType: TSoundType = stFileName;
+  Synchronous: Boolean = False; Module: HMODULE = 0;
+  AddFlags: LongWord = 0): Boolean;
+var
+  Flags: LongWord;
 begin
   Flags := AddFlags;
   case SoundType of
-    stFileName : Flags := Flags or SND_FILENAME; // Fichier son
-    stResource : Flags := Flags or SND_RESOURCE; // Ressource son
-    stSysSound : Flags := Flags or SND_ALIAS;    // Alias son système
+    stFileName: Flags := Flags or SND_FILENAME; // Fichier son
+    stResource: Flags := Flags or SND_RESOURCE; // Ressource son
+    stSysSound: Flags := Flags or SND_ALIAS;    // Alias son système
   end;
   if not Synchronous then Flags := Flags or SND_ASYNC; // Asynchrône ?
   if SoundType <> stResource then Module := 0;
@@ -124,7 +128,7 @@ end;
   @param FileName   Nom du fichier module
   @return Handle de ressources
 *}
-function BeginUpdateRes(const FileName : string) : integer;
+function BeginUpdateRes(const FileName: string): Integer;
 begin
   // Appel de Windows.BeginUpdateResource
   Result := BeginUpdateResource(PChar(FileName), False);
@@ -140,10 +144,11 @@ end;
   @param Resource    Flux contenant la ressource
   @param ResType     Type de ressource
 *}
-procedure AddResource(ResHandle : integer; const ResName : string;
-  Resource : TStream; const ResType : string = 'RCDATA');
-var MemRes : TMemoryStream;
-    MustFreeRes, OK : boolean;
+procedure AddResource(ResHandle: Integer; const ResName: string;
+  Resource: TStream; const ResType: string = 'RCDATA');
+var
+  MemRes: TMemoryStream;
+  MustFreeRes, OK: Boolean;
 begin
   MustFreeRes := False;
   // On met dans MemRes un flux mémoire qui contient les données de la ressource
@@ -155,7 +160,7 @@ begin
   end;
   // Appel de Windows.UpdateResource
   OK := UpdateResource(ResHandle, PChar(ResType), PChar(ResName), 0,
-                       MemRes.Memory, MemRes.Size);
+    MemRes.Memory, MemRes.Size);
   // On supprime le flux mémoire si on l'a créé
   if MustFreeRes then MemRes.Free;
   // Si UpdateResource a renvoyé False, il y a eu une erreur
@@ -167,11 +172,11 @@ end;
   @param ResHandle   Handle de ressources obtenu par BeginUpdateRes
   @param ResName     Nom de la ressource à supprimer
 *}
-procedure DelResource(ResHandle : integer; const ResName : string);
+procedure DelResource(ResHandle: Integer; const ResName: string);
 begin
   // Appel de Windows.UpdateResource
   if not UpdateResource(ResHandle, '', PChar(ResName), 0, nil, 0) then
-  // Si UpdateResource a renvoyé False, il y a eu une erreur
+    // Si UpdateResource a renvoyé False, il y a eu une erreur
     RaiseLastOSError;
 end;
 
@@ -180,11 +185,11 @@ end;
   @param ResHandle   Handle de ressources obtenu par BeginUpdateRes
   @param Cancel      Indique s'il faut annuler les modifications faites
 *}
-procedure EndUpdateRes(ResHandle : integer; Cancel : boolean = False);
+procedure EndUpdateRes(ResHandle: Integer; Cancel: Boolean = False);
 begin
   // Appel de Windows.EndUpdateResource
   if not EndUpdateResource(ResHandle, Cancel) then
-  // Si EndUpdateResource a renvoyé False, il y a eu une erreur
+    // Si EndUpdateResource a renvoyé False, il y a eu une erreur
     RaiseLastOSError;
 end;
 
@@ -195,9 +200,10 @@ end;
   @param Resource   Flux contenant la ressource
   @param ResType    Type de ressource
 *}
-procedure AddResToFile(const FileName, ResName : string; Resource : TStream;
-  const ResType : string = 'RCDATA');
-var ResHandle : integer;
+procedure AddResToFile(const FileName, ResName: string; Resource: TStream;
+  const ResType: string = 'RCDATA');
+var
+  ResHandle: Integer;
 begin
   ResHandle := BeginUpdateRes(FileName);
   try
@@ -214,8 +220,9 @@ end;
   @param FileName   Nom du fichier module
   @param ResName    Nom de la ressource à supprimer
 *}
-procedure DelResInFile(const FileName, ResName : string);
-var ResHandle : integer;
+procedure DelResInFile(const FileName, ResName: string);
+var
+  ResHandle: Integer;
 begin
   ResHandle := BeginUpdateRes(FileName);
   try

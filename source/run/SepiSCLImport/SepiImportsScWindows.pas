@@ -19,7 +19,7 @@ implementation
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiRoot) : TSepiUnit;
+function ImportUnit(Root: TSepiRoot): TSepiUnit;
 begin
   Result := TSepiUnit.Create(Root, 'ScWindows',
     ['Windows', 'SysUtils', 'Classes']);

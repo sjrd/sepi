@@ -19,7 +19,7 @@ implementation
 { TMethodInfoHeader import }
 {--------------------------}
 
-function SepiImportTMethodInfoHeader(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTMethodInfoHeader(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TMethodInfoHeader', True, True);
 
@@ -37,7 +37,7 @@ end;
 { TReturnInfo import }
 {--------------------}
 
-function SepiImportTReturnInfo(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTReturnInfo(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TReturnInfo', True, True);
 
@@ -56,7 +56,7 @@ end;
 { TParamInfo import }
 {-------------------}
 
-function SepiImportTParamInfo(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTParamInfo(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TParamInfo', True, True);
 
@@ -75,7 +75,7 @@ end;
 { IMethodHandler import }
 {-----------------------}
 
-function SepiImportIMethodHandler(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIMethodHandler(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IMethodHandler));
@@ -83,7 +83,8 @@ begin
   with Result do
   begin
     AddMethod('Execute',
-      'function(const Args: array of Variant): Variant', SepiMembers.ccRegister);
+      'function(const Args: array of Variant): Variant',
+      SepiMembers.ccRegister);
     AddMethod('InstanceToVariant',
       'function(Instance: TObject): Variant', SepiMembers.ccRegister);
 
@@ -95,7 +96,7 @@ end;
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiRoot) : TSepiUnit;
+function ImportUnit(Root: TSepiRoot): TSepiUnit;
 begin
   Result := TSepiUnit.Create(Root, 'ObjAuto',
     ['TypInfo']);
@@ -111,7 +112,8 @@ begin
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(TParamFlags));
   TSepiPointerType.Create(Result, 'PPointer', 'Pointer', True);
   TSepiPointerType.Create(Result, 'PWord', TypeInfo(Word), True);
-  TSepiPointerType.Create(Result, 'PMethodInfoHeader', 'TMethodInfoHeader', True);
+  TSepiPointerType.Create(Result, 'PMethodInfoHeader',
+    'TMethodInfoHeader', True);
   SepiImportTMethodInfoHeader(Result);
   TSepiPointerType.Create(Result, 'PReturnInfo', 'TReturnInfo', True);
   TSepiPointerType.Create(Result, '$1', 'PTypeInfo', True);

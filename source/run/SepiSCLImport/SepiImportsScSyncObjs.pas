@@ -18,49 +18,53 @@ implementation
 type
   TSepiImportsTScTask = class(TScTask)
   private
-    constructor Create_0(AOwner : TScCustomTaskQueue; AFreeOnFinished : boolean );
-    constructor Create_1(AOwner : TScCustomTaskQueue);
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    constructor Create_0(AOwner: TScCustomTaskQueue;
+      AFreeOnFinished: Boolean);
+    constructor Create_1(AOwner: TScCustomTaskQueue);
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTScCustomTaskQueue = class(TScCustomTaskQueue)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTScTaskQueue = class(TScTaskQueue)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTScCustomMessageTask = class(TScCustomMessageTask)
   private
-    constructor Create_0(AOwner : TScCustomTaskQueue; const AMsg; AMsgSize : integer ; ADestObj : TObject ; AFreeOnFinished : boolean );
-    constructor Create_1(AOwner : TScCustomTaskQueue; const AMsg; AMsgSize : integer ; ADestObj : TObject );
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    constructor Create_0(AOwner: TScCustomTaskQueue; const AMsg;
+      AMsgSize: Integer; ADestObj: TObject; AFreeOnFinished: Boolean);
+    constructor Create_1(AOwner: TScCustomTaskQueue; const AMsg;
+      AMsgSize: Integer; ADestObj: TObject);
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTScMessageTask = class(TScMessageTask)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
 {----------------}
 { TScTask import }
 {----------------}
 
-constructor TSepiImportsTScTask.Create_0(AOwner : TScCustomTaskQueue; AFreeOnFinished : boolean );
+constructor TSepiImportsTScTask.Create_0(AOwner: TScCustomTaskQueue;
+  AFreeOnFinished: Boolean);
 begin
   Create(AOwner, AFreeOnFinished);
 end;
 
-constructor TSepiImportsTScTask.Create_1(AOwner : TScCustomTaskQueue);
+constructor TSepiImportsTScTask.Create_1(AOwner: TScCustomTaskQueue);
 begin
   Create(AOwner);
 end;
 
 class function TSepiImportsTScTask.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TScTask));
@@ -71,8 +75,8 @@ begin
 
     AddField('FOwner', System.TypeInfo(TScCustomTaskQueue));
     AddField('FState', System.TypeInfo(TScTaskState));
-    AddField('FFreeOnFinished', System.TypeInfo(boolean));
-    AddField('FWaitForCount', System.TypeInfo(integer));
+    AddField('FFreeOnFinished', System.TypeInfo(Boolean));
+    AddField('FWaitForCount', System.TypeInfo(Integer));
     AddField('FFatalException', System.TypeInfo(TObject));
 
     AddMethod('Finish', nil,
@@ -124,7 +128,7 @@ end;
 {---------------------------}
 
 class function TSepiImportsTScCustomTaskQueue.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass(Owner.FindMeta('TScCustomTaskQueue'));
   Result.RegisterTypeInfo(
@@ -136,9 +140,9 @@ begin
 
     AddField('FWaitingQueue', System.TypeInfo(TScWaitingObjectQueue));
     AddField('FCriticalSection', System.TypeInfo(TCriticalSection));
-    AddField('FDefaultFreeOnFinished', System.TypeInfo(boolean));
-    AddField('FTerminateOnException', System.TypeInfo(boolean));
-    AddField('FReady', System.TypeInfo(boolean));
+    AddField('FDefaultFreeOnFinished', System.TypeInfo(Boolean));
+    AddField('FTerminateOnException', System.TypeInfo(Boolean));
+    AddField('FReady', System.TypeInfo(Boolean));
 
     AddMethod('Push', nil,
       'procedure(Task : TScTask)');
@@ -171,7 +175,8 @@ begin
     AddMethod('Destroy', @TSepiImportsTScCustomTaskQueue.Destroy,
       'destructor',
       mlkOverride);
-    AddMethod('BeforeDestruction', @TSepiImportsTScCustomTaskQueue.BeforeDestruction,
+    AddMethod('BeforeDestruction',
+      @TSepiImportsTScCustomTaskQueue.BeforeDestruction,
       'procedure',
       mlkOverride);
 
@@ -184,7 +189,7 @@ end;
 {---------------------}
 
 class function TSepiImportsTScTaskQueue.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TScTaskQueue));
@@ -205,18 +210,23 @@ end;
 { TScCustomMessageTask import }
 {-----------------------------}
 
-constructor TSepiImportsTScCustomMessageTask.Create_0(AOwner : TScCustomTaskQueue; const AMsg; AMsgSize : integer ; ADestObj : TObject ; AFreeOnFinished : boolean );
+constructor TSepiImportsTScCustomMessageTask.Create_0(
+  AOwner: TScCustomTaskQueue;
+  const AMsg; AMsgSize: Integer; ADestObj: TObject;
+  AFreeOnFinished: Boolean);
 begin
   Create(AOwner, AMsg, AMsgSize, ADestObj, AFreeOnFinished);
 end;
 
-constructor TSepiImportsTScCustomMessageTask.Create_1(AOwner : TScCustomTaskQueue; const AMsg; AMsgSize : integer ; ADestObj : TObject );
+constructor TSepiImportsTScCustomMessageTask.Create_1(
+  AOwner: TScCustomTaskQueue;
+  const AMsg; AMsgSize: Integer; ADestObj: TObject);
 begin
   Create(AOwner, AMsg, AMsgSize, ADestObj);
 end;
 
 class function TSepiImportsTScCustomMessageTask.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TScCustomMessageTask));
@@ -226,7 +236,7 @@ begin
     CurrentVisibility := mvPrivate;
 
     AddField('FMsg', 'Pointer');
-    AddField('FMsgSize', System.TypeInfo(integer));
+    AddField('FMsgSize', System.TypeInfo(Integer));
     AddField('FDestObj', System.TypeInfo(TObject));
 
     CurrentVisibility := mvProtected;
@@ -263,7 +273,7 @@ end;
 {-----------------------}
 
 class function TSepiImportsTScMessageTask.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TScMessageTask));
@@ -292,7 +302,7 @@ end;
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiRoot) : TSepiUnit;
+function ImportUnit(Root: TSepiRoot): TSepiUnit;
 begin
   Result := TSepiUnit.Create(Root, 'ScSyncObjs',
     ['Classes', 'Contnrs', 'SyncObjs', 'ScLists']);

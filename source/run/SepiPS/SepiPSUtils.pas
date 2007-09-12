@@ -10,12 +10,12 @@ interface
 uses
   SepiMembers, uPSUtils;
 
-function HandleOverloaded(const Name : string;
-  out PSName, SecondName : string) : boolean;
+function HandleOverloaded(const Name: string;
+  out PSName, SecondName: string): Boolean;
 
 const
   /// Tableau de conversion des conventions d'appel Sepi vers Pascal Script
-  CallingConvSepiToPS : array[TCallingConvention] of TPSCallingConvention = (
+  CallingConvSepiToPS: array[TCallingConvention] of TPSCallingConvention = (
     cdRegister, cdCdecl, cdPascal, cdStdCall, cdSafecall
   );
 
@@ -31,9 +31,10 @@ uses
   @param SecondName   Variante Pascal Script (seulement si renvoie True)
   @return True si SecondName doit être utilisé, False sinon
 *}
-function HandleOverloaded(const Name : string;
-  out PSName, SecondName : string) : boolean;
-var StrOverloadIndex : string;
+function HandleOverloaded(const Name: string;
+  out PSName, SecondName: string): Boolean;
+var
+  StrOverloadIndex: string;
 begin
   if AnsiStartsText('OL$', Name) then
   begin

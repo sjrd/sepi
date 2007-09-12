@@ -335,7 +335,8 @@ end;
 {-------------------------}
 
 constructor TSepiRecordValue.Create(AType : TSepiType);
-var I : integer;
+var
+  I : integer;
 begin
   inherited;
   FType := TSepiRecordType(AType);
@@ -346,7 +347,8 @@ begin
 end;
 
 function TSepiRecordValue.GetValues(VarName : string) : TSepiValue;
-var I : integer;
+var
+  I : integer;
 begin
   for I := 0 to Length(FValues)-1 do
   begin
@@ -360,7 +362,8 @@ begin
 end;
 
 procedure TSepiRecordValue.Load(Stream : TStream);
-var I : integer;
+var
+  I : integer;
 begin
   for I := 0 to Length(FValues)-1 do
     FValues[I].Load(Stream);
@@ -399,7 +402,8 @@ end;
 {------------------------}
 
 constructor TSepiArrayValue.Create(AType : TSepiType);
-var Size, I : integer;
+var
+  Size, I : integer;
 begin
   inherited;
   FType := TSepiArrayType(AType);
@@ -414,7 +418,8 @@ begin
 end;
 
 destructor TSepiArrayValue.Destroy;
-var I : integer;
+var
+  I : integer;
 begin
   if Assigned(FValues[0]) then for I := 0 to Length(FValues)-1 do
     FValues[I].Free;
@@ -423,7 +428,8 @@ begin
 end;
 
 function TSepiArrayValue.GetValues(Indices : array of integer) : TSepiValue;
-var Index, I : integer;
+var
+  Index, I : integer;
 begin
   if Length(Indices) <> FType.DimCount then
     raise Exception.Create('');
@@ -442,7 +448,8 @@ begin
 end;
 
 procedure TSepiArrayValue.Load(Stream : TStream);
-var I : integer;
+var
+  I : integer;
 begin
   for I := 0 to Length(FValues)-1 do
     FValues[I].Load(Stream);
@@ -471,7 +478,8 @@ begin
 end;
 
 procedure TSepiDynArrayValue.SetCount(Value : integer);
-var I : integer;
+var
+  I : integer;
 begin
   FValues.Count := Value;
 
@@ -488,7 +496,8 @@ begin
 end;
 
 procedure TSepiDynArrayValue.Load(Stream : TStream);
-var I : integer;
+var
+  I : integer;
 begin
   Stream.ReadBuffer(I, 4);
   Count := I;
@@ -568,7 +577,8 @@ type
       0 : (PointerValue : Pointer);
       1 : (IntValue : integer);
   end;
-var PointerToInt : TPointerToInt;
+var
+  PointerToInt : TPointerToInt;
 begin
   inherited Create(AMethod.Code);
   PointerToInt.PointerValue := AMethod.Data;
@@ -577,7 +587,8 @@ begin
 end;
 
 destructor TSepiDelegateToDelphiMethod.Destroy;
-var InstanceType : TSepiType;
+var
+  InstanceType : TSepiType;
 begin
   InstanceType := FInstance.ValueType;
   FInstance.Free;
@@ -624,7 +635,8 @@ begin
 end;
 
 procedure TSepiDelegateValue.Include(DelegateItem : TSepiDelegateItem);
-var I : integer;
+var
+  I : integer;
 begin
   for I := 0 to FValues.Count-1 do
     if TSepiDelegateItem(FValues[I]).Equals(DelegateItem) then exit;
@@ -632,7 +644,8 @@ begin
 end;
 
 procedure TSepiDelegateValue.Exclude(DelegateItem : TSepiDelegateItem);
-var I : integer;
+var
+  I : integer;
 begin
   for I := 0 to FValues.Count-1 do
   begin
@@ -645,7 +658,8 @@ begin
 end;
 
 procedure TSepiDelegateValue.CallProc(Params : TObjectList);
-var I : integer;
+var
+  I : integer;
 begin
   for I := 0 to FValues.Count-1 do
     TSepiDelegateItem(FValues[I]).CallProc(Params);

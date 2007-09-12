@@ -31,9 +31,9 @@ type
     { Déclarations privées }
   public
     { Déclarations publiques }
-    class function QueryPassword : string; overload;
-    class function QueryPassword(Password : string;
-      ShowErrorMes : boolean = True) : boolean; overload;
+    class function QueryPassword: string; overload;
+    class function QueryPassword(Password: string;
+      ShowErrorMes: Boolean = True): Boolean; overload;
   end;
 
 implementation
@@ -47,16 +47,16 @@ uses
   Demande un mot de passe à l'utilisateur
   @return Le mot de passe qu'a saisi l'utilisateur
 *}
-class function TSdPasswordForm.QueryPassword : string;
+class function TSdPasswordForm.QueryPassword: string;
 begin
   with Create(Application) do
-  try
-    ActiveControl := EditPassWord;
-    if ShowModal <> mrOK then Result := '' else
-      Result := EditPassWord.Text;
-  finally
-    Release;
-  end;
+    try
+      ActiveControl := EditPassWord;
+      if ShowModal <> mrOk then Result := '' else
+        Result := EditPassWord.Text;
+    finally
+      Release;
+    end;
 end;
 
 {*
@@ -65,9 +65,10 @@ end;
   @param ShowErrorMes   Indique s'il faut notifier sur erreur
   @return True si l'utilisateur a saisi le bon mot de passe, False sinon
 *}
-class function TSdPasswordForm.QueryPassword(Password : string;
-  ShowErrorMes : boolean = True) : boolean;
-var Passwd : string;
+class function TSdPasswordForm.QueryPassword(Password: string;
+  ShowErrorMes: Boolean = True): Boolean;
+var
+  Passwd: string;
 begin
   if Password = '' then Passwd := '' else
     Passwd := QueryPassword;

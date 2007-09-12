@@ -7,7 +7,7 @@ unit SepiPSExecuter;
 
 interface
 
-procedure SepiPSExecute(const UnitName : string);
+procedure SepiPSExecute(const UnitName: string);
 
 implementation
 
@@ -18,12 +18,13 @@ uses
   Exécute un script Sepi-PS
   @param UnitName   Nom de l'unité à charger pour exécution
 *}
-procedure SepiPSExecute(const UnitName : string);
-var Root : TSepiRoot;
-    Method : TMethod;
-    SepiUnit : TSepiUnit;
-    SepiMainProc : TSepiMethod;
-    MainProc : procedure;
+procedure SepiPSExecute(const UnitName: string);
+var
+  Root: TSepiRoot;
+  Method: TMethod;
+  SepiUnit: TSepiUnit;
+  SepiMainProc: TSepiMethod;
+  MainProc: procedure;
 begin
   Root := TSepiRoot.Create;
   try

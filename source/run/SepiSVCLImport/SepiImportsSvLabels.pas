@@ -18,12 +18,12 @@ implementation
 type
   TSepiImportsTSvCustomURLLabel = class(TSvCustomURLLabel)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTSvURLLabel = class(TSvURLLabel)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
 {--------------------------}
@@ -31,7 +31,7 @@ type
 {--------------------------}
 
 class function TSepiImportsTSvCustomURLLabel.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TSvCustomURLLabel));
@@ -86,7 +86,7 @@ end;
 {--------------------}
 
 class function TSepiImportsTSvURLLabel.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TSvURLLabel));
@@ -147,10 +147,11 @@ end;
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiRoot) : TSepiUnit;
+function ImportUnit(Root: TSepiRoot): TSepiUnit;
 begin
   Result := TSepiUnit.Create(Root, 'SvLabels',
-    ['Controls', 'Graphics', 'StdCtrls', 'Menus', 'ClipBrd', 'Classes', 'ScUtils']);
+    ['Controls', 'Graphics', 'StdCtrls', 'Menus', 'ClipBrd',
+    'Classes', 'ScUtils']);
 
   // Constants
   TSepiConstant.Create(Result, 'sCopyCaption', sCopyCaption);

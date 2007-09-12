@@ -10,16 +10,16 @@ interface
 uses
   SepiReflectionCore, uPSRuntime;
 
-procedure SepiRegisterClassesInPSExecuter(SepiRoot : TSepiRoot;
-  PSExecuter : TPSExec);
-procedure SepiRegisterProcsInPSExecuter(SepiUnit : TSepiUnit;
-  PSExecuter : TPSExec);
-procedure SepiRegisterVarsInPSExecuter(SepiUnit : TSepiUnit;
-  PSExecuter : TPSExec);
+procedure SepiRegisterClassesInPSExecuter(SepiRoot: TSepiRoot;
+  PSExecuter: TPSExec);
+procedure SepiRegisterProcsInPSExecuter(SepiUnit: TSepiUnit;
+  PSExecuter: TPSExec);
+procedure SepiRegisterVarsInPSExecuter(SepiUnit: TSepiUnit;
+  PSExecuter: TPSExec);
 
-function SepiLoadPSExecuter(SepiRoot : TSepiRoot;
-  const SepiUnits : array of TSepiUnit; PSExecuter : TPSExec;
-  const Compiled : string) : boolean;
+function SepiLoadPSExecuter(SepiRoot: TSepiRoot;
+  const SepiUnits: array of TSepiUnit; PSExecuter: TPSExec;
+  const Compiled: string): Boolean;
 
 implementation
 
@@ -36,9 +36,9 @@ type
   *}
   TProtectedPSExec = class(TPSExec)
   public
-    function InnerfuseCall(_Self, Address : Pointer;
-      CallingConv : TPSCallingConvention; Params : TPSList;
-      ReturnValue : PPSVariantIFC) : boolean; reintroduce;
+    function InnerfuseCall(_Self, Address: Pointer;
+      CallingConv: TPSCallingConvention; Params: TPSList;
+      ReturnValue: PPSVariantIFC): Boolean; reintroduce;
   end;
 
 resourcestring
@@ -57,9 +57,9 @@ resourcestring
   @param ReturnValue   Emplacement où enregistrer la valeur de retour
   @return True si l'appel s'est déroulé sans exception, False sinon
 *}
-function TProtectedPSExec.InnerfuseCall(_Self, Address : Pointer;
-  CallingConv : TPSCallingConvention; Params : TPSList;
-  ReturnValue : PPSVariantIFC) : boolean;
+function TProtectedPSExec.InnerfuseCall(_Self, Address: Pointer;
+  CallingConv: TPSCallingConvention; Params: TPSList;
+  ReturnValue: PPSVariantIFC): Boolean;
 begin
   Result := inherited InnerfuseCall(_Self, Address, CallingConv,
     Params, ReturnValue);
@@ -77,10 +77,10 @@ end;
   @param Stack    Pile des paramètres
   @return True si l'appel est réussi, False sinon
 *}
-function ClassCallProcMethod(Caller : TPSExec; Method : TPSExternalProcRec;
-  Global, Stack : TPSStack) : boolean;
+function ClassCallProcMethod(Caller: TPSExec; Method: TPSExternalProcRec;
+  Global, Stack: TPSStack): Boolean;
 
-  function NewSpecialParam(Data : Pointer) : PPSVariantIFC;
+  function NewSpecialParam(Data: Pointer): PPSVariantIFC;
   begin
     New(Result);
     Result.Dta := Data;
@@ -88,21 +88,22 @@ function ClassCallProcMethod(Caller : TPSExec; Method : TPSExternalProcRec;
     Result.VarParam := False;
   end;
 
-var SepiMethod : TSepiMethod;
-    Signature : TSepiMethodSignature;
-    TrueBoolValue : integer;
-    CallingConv : TPSCallingConvention;
-    HasResult : boolean;
-    I, J : integer;
-    SelfParam, Param : PIFVariant;
-    PSClassType : PIFTypeRec;
-    Self : Pointer;
-    ClassType : TClass;
-    ParamList : TPSList;
-    ResultValue : PPSVariantIFC;
-    CurrStack : Cardinal;
-    ProcPtr : Pointer;
-    ExceptObject : TObject;
+var
+  SepiMethod: TSepiMethod;
+  Signature: TSepiMethodSignature;
+  TrueBoolValue: Integer;
+  CallingConv: TPSCallingConvention;
+  HasResult: Boolean;
+  I, J: Integer;
+  SelfParam, Param: PIFVariant;
+  PSClassType: PIFTypeRec;
+  Self: Pointer;
+  ClassType: TClass;
+  ParamList: TPSList;
+  ResultValue: PPSVariantIFC;
+  CurrStack: Cardinal;
+  ProcPtr: Pointer;
+  ExceptObject: TObject;
 begin
   Result := False;
   SepiMethod := TSepiMethod(Method.Ext1);
@@ -147,7 +148,7 @@ begin
     // Set up the parameter list
     CurrStack := Stack.Count - Signature.ParamCount - 2;
     if not HasResult then
-      inc(CurrStack);
+      Inc(CurrStack);
 
     for I := 0 to Signature.ParamCount do // 0 for there is also the Self param
       ParamList.Add(nil);
@@ -169,7 +170,7 @@ begin
     if Signature.Kind in [mkConstructor, mkDestructor] then
     begin
       ParamList[1-J] := NewSpecialParam(@TrueBoolValue);
-      dec(J);
+      Dec(J);
     end;
 
     // Normal parameters
@@ -177,7 +178,7 @@ begin
     begin
       Param := Stack[CurrStack];
       ParamList[I-J] := NewPPSVariantIFC(Param, Signature.Params[I-1].ByRef);
-      inc(CurrStack);
+      Inc(CurrStack);
     end;
 
     // Set up the return value
@@ -189,10 +190,10 @@ begin
     try
       // Find the method code
       case SepiMethod.LinkKind of
-        mlkStatic : ProcPtr := SepiMethod.Code;
-        mlkVirtual :
+        mlkStatic: ProcPtr := SepiMethod.Code;
+        mlkVirtual:
           ProcPtr := GetClassVirtualCode(ClassType, SepiMethod.VMTOffset);
-        mlkDynamic, mlkMessage :
+        mlkDynamic, mlkMessage:
           ProcPtr := GetClassDynamicCode(ClassType, SepiMethod.DMTIndex);
         else exit;
       end;
@@ -229,14 +230,15 @@ end;
   @param Stack    Pile des paramètres
   @return True si l'appel est réussi, False sinon
 *}
-function ClassCallProcField(Caller : TPSExec; Method : TPSExternalProcRec;
-  Global, Stack : TPSStack) : boolean;
-var SepiField : TSepiField;
-    FieldType : TSepiType;
-    IsWriteAccess : boolean;
-    SelfParam, ValueParam : PIFVariant;
-    Value : PPSVariantIFC;
-    SourceData, DestData : Pointer;
+function ClassCallProcField(Caller: TPSExec; Method: TPSExternalProcRec;
+  Global, Stack: TPSStack): Boolean;
+var
+  SepiField: TSepiField;
+  FieldType: TSepiType;
+  IsWriteAccess: Boolean;
+  SelfParam, ValueParam: PIFVariant;
+  Value: PPSVariantIFC;
+  SourceData, DestData: Pointer;
 begin
   Result := False;
   SepiField := TSepiField(Method.Ext1);
@@ -256,16 +258,16 @@ begin
       if (SelfParam = nil) or (SelfParam.FType.BaseType <> btClass) then
         exit;
       DestData := PPSVariantClass(SelfParam).Data;
-      inc(Integer(DestData), SepiField.Offset);
+      Inc(Integer(DestData), SepiField.Offset);
     end else
 
-    // Read access
+      // Read access
     begin
       SelfParam := Stack[Stack.Count-2];
       if (SelfParam = nil) or (SelfParam.FType.BaseType <> btClass) then
         exit;
       SourceData := PPSVariantClass(SelfParam).Data;
-      inc(Integer(SourceData), SepiField.Offset);
+      Inc(Integer(SourceData), SepiField.Offset);
 
       ValueParam := Stack[Stack.Count-1];
       Value := NewPPSVariantIFC(ValueParam, True);
@@ -288,13 +290,14 @@ end;
   @param Tag      Tag de callback : racine Sepi
   @return True si la méthode a bien été trouvée et importée, False sinon
 *}
-function SepiSpecialProcImport(Sender : TPSExec; Method : TPSExternalProcRec;
-  Tag : Pointer) : boolean;
-var Root : TSepiRoot;
-    Decl, ClassName, MethodName : string;
-    IsWriteAccess : boolean;
-    MetaClass, Meta : TSepiMeta;
-    Pos : integer;
+function SepiSpecialProcImport(Sender: TPSExec; Method: TPSExternalProcRec;
+  Tag: Pointer): Boolean;
+var
+  Root: TSepiRoot;
+  Decl, ClassName, MethodName: string;
+  IsWriteAccess: Boolean;
+  MetaClass, Meta: TSepiMeta;
+  Pos: Integer;
 begin
   Result := False;
   Root := TSepiRoot(Tag);
@@ -372,9 +375,10 @@ end;
   @param Routine      Routine Sepi
   @param PSExecuter   Intepréteur Pascal Script
 *}
-procedure ImportRoutine(PSExecuter : TPSExec; Routine : TSepiMethod);
-var CallingConv : TPSCallingConvention;
-    PSName, SecondName : string;
+procedure ImportRoutine(PSExecuter: TPSExec; Routine: TSepiMethod);
+var
+  CallingConv: TPSCallingConvention;
+  PSName, SecondName: string;
 begin
   with Routine do
   begin
@@ -390,9 +394,10 @@ end;
   @param Variable     Variable Sepi
   @param PSExecuter   Intepréteur Pascal Script
 *}
-procedure ImportVariable(PSExecuter : TPSExec; Variable : TSepiVariable);
-var PSVar : PIFVariant;
-    VariantVar : TPSVariantIFC;
+procedure ImportVariable(PSExecuter: TPSExec; Variable: TSepiVariable);
+var
+  PSVar: PIFVariant;
+  VariantVar: TPSVariantIFC;
 begin
   PSVar := PSExecuter.GetVar2(Variable.Name);
   if PSVar = nil then exit; // its type couldn't be imported
@@ -410,10 +415,11 @@ end;
   @param SepiUnit     Unité Sepi
   @param PSExecuter   Intepréteur Pascal Script
 *}
-procedure SepiImportUnitInPSExecuter(SepiUnit : TSepiUnit;
-  PSExecuter : TPSExec);
-var I : integer;
-    Child : TSepiMeta;
+procedure SepiImportUnitInPSExecuter(SepiUnit: TSepiUnit;
+  PSExecuter: TPSExec);
+var
+  I: Integer;
+  Child: TSepiMeta;
 begin
   for I := 0 to SepiUnit.ChildCount-1 do
   begin
@@ -431,8 +437,8 @@ end;
   @param SepiRoot     Racine Sepi
   @param PSExecuter   Interpréteur Pascal Script
 *}
-procedure SepiRegisterClassesInPSExecuter(SepiRoot : TSepiRoot;
-  PSExecuter : TPSExec);
+procedure SepiRegisterClassesInPSExecuter(SepiRoot: TSepiRoot;
+  PSExecuter: TPSExec);
 begin
   PSExecuter.AddSpecialProcImport('class',
     SepiSpecialProcImport, SepiRoot);
@@ -443,10 +449,11 @@ end;
   @param SepiUnit     Unité Sepi
   @param PSExecuter   Interpréteur Pascal Script
 *}
-procedure SepiRegisterProcsInPSExecuter(SepiUnit : TSepiUnit;
-  PSExecuter : TPSExec);
-var I : integer;
-    Child : TSepiMeta;
+procedure SepiRegisterProcsInPSExecuter(SepiUnit: TSepiUnit;
+  PSExecuter: TPSExec);
+var
+  I: Integer;
+  Child: TSepiMeta;
 begin
   for I := 0 to SepiUnit.ChildCount-1 do
   begin
@@ -461,10 +468,11 @@ end;
   @param SepiUnit     Unité Sepi
   @param PSExecuter   Interpréteur Pascal Script
 *}
-procedure SepiRegisterVarsInPSExecuter(SepiUnit : TSepiUnit;
-  PSExecuter : TPSExec);
-var I : integer;
-    Child : TSepiMeta;
+procedure SepiRegisterVarsInPSExecuter(SepiUnit: TSepiUnit;
+  PSExecuter: TPSExec);
+var
+  I: Integer;
+  Child: TSepiMeta;
 begin
   for I := 0 to SepiUnit.ChildCount-1 do
   begin
@@ -487,10 +495,11 @@ end;
   @param Compiled     Données compilées Pascal Script
   @return True si le chargement s'est bien passé, False sinon
 *}
-function SepiLoadPSExecuter(SepiRoot : TSepiRoot;
-  const SepiUnits : array of TSepiUnit; PSExecuter : TPSExec;
-  const Compiled : string) : boolean;
-var I : integer;
+function SepiLoadPSExecuter(SepiRoot: TSepiRoot;
+  const SepiUnits: array of TSepiUnit; PSExecuter: TPSExec;
+  const Compiled: string): Boolean;
+var
+  I: Integer;
 begin
   SepiRegisterClassesInPSExecuter(SepiRoot, PSExecuter);
   for I := Low(SepiUnits) to High(SepiUnits) do

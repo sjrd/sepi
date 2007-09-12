@@ -13,18 +13,19 @@ uses
 
 procedure AbstractError;
 
-procedure Initialize(var Value; TypeInfo : PTypeInfo; Count : Cardinal = 1);
-procedure Finalize(var Value; TypeInfo : PTypeInfo; Count : Cardinal = 1);
+procedure Initialize(var Value; TypeInfo: PTypeInfo; Count: Cardinal = 1);
+procedure Finalize(var Value; TypeInfo: PTypeInfo; Count: Cardinal = 1);
 
-procedure CopyArray(Dest, Source, TypeInfo : Pointer; Count : integer);
-procedure CopyRecord(Dest, Source, TypeInfo : Pointer);
-procedure DynArrayCopy(Source : Pointer; TypeInfo : Pointer;
-  var Dest : Pointer);
-procedure DynArrayCopyRange(Source : Pointer; TypeInfo : Pointer;
-  Index, Count : integer; var Dest : Pointer);
+procedure CopyArray(Dest, Source, TypeInfo: Pointer; Count: Integer);
+procedure CopyRecord(Dest, Source, TypeInfo: Pointer);
+procedure DynArrayCopy(Source: Pointer; TypeInfo: Pointer;
+  var
+    Dest: Pointer);
+procedure DynArrayCopyRange(Source: Pointer; TypeInfo: Pointer;
+  Index, Count: Integer; var Dest: Pointer);
 
 function CompilerMagicRoutineAddress(
-  CompilerMagicRoutineAlias : Pointer) : Pointer;
+  CompilerMagicRoutineAlias: Pointer): Pointer;
 
 implementation
 
@@ -42,7 +43,7 @@ end;
   @param TypeInfo   RTTI du type de la variable
   @param Count      Nombre d'éléments dans la variable
 *}
-procedure Initialize(var Value; TypeInfo : PTypeInfo; Count : Cardinal = 1);
+procedure Initialize(var Value; TypeInfo: PTypeInfo; Count: Cardinal = 1);
 asm
         JMP     System.@InitializeArray
 end;
@@ -53,7 +54,7 @@ end;
   @param TypeInfo   RTTI du type de la variable
   @param Count      Nombre d'éléments dans la variable
 *}
-procedure Finalize(var Value; TypeInfo : PTypeInfo; Count : Cardinal = 1);
+procedure Finalize(var Value; TypeInfo: PTypeInfo; Count: Cardinal = 1);
 asm
         JMP     System.@FinalizeArray
 end;
@@ -65,7 +66,7 @@ end;
   @param TypeInfo   RTTI du type des éléments du tableau
   @param Count      Nombre d'éléments dans le tableau
 *}
-procedure CopyArray(Dest, Source, TypeInfo : Pointer; Count : integer);
+procedure CopyArray(Dest, Source, TypeInfo: Pointer; Count: Integer);
 asm
         JMP     System.@CopyArray
 end;
@@ -76,7 +77,7 @@ end;
   @param Source     Pointeur sur le record source
   @param TypeInfo   RTTI du type record
 *}
-procedure CopyRecord(Dest, Source, TypeInfo : Pointer);
+procedure CopyRecord(Dest, Source, TypeInfo: Pointer);
 asm
         JMP     System.@CopyRecord
 end;
@@ -87,8 +88,9 @@ end;
   @param TypeInfo   RTTI du type tableau dynamique
   @param Dest       Tableau destination sous forme de pointeur
 *}
-procedure DynArrayCopy(Source : Pointer; TypeInfo : Pointer;
-  var Dest : Pointer);
+procedure DynArrayCopy(Source: Pointer; TypeInfo: Pointer;
+  var
+    Dest: Pointer);
 asm
         JMP     System.@DynArrayCopy
 end;
@@ -101,8 +103,8 @@ end;
   @param Count      Nombre d'éléments à copier
   @param Dest       Tableau destination sous forme de pointeur
 *}
-procedure DynArrayCopyRange(Source : Pointer; TypeInfo : Pointer;
-  Index, Count : integer; var Dest : Pointer);
+procedure DynArrayCopyRange(Source: Pointer; TypeInfo: Pointer;
+  Index, Count: Integer; var Dest: Pointer);
 asm
         JMP     System.@DynArrayCopyRange
 end;
@@ -115,19 +117,19 @@ end;
   @return Pointeur sur le code de la routine réelle
 *}
 function CompilerMagicRoutineAddress(
-  CompilerMagicRoutineAlias : Pointer) : Pointer;
+  CompilerMagicRoutineAlias: Pointer): Pointer;
 begin
   // Handle an optional module redirector
   if PWord(CompilerMagicRoutineAlias)^ = $25FF then // JMP dword ptr [] op code
   begin
-    inc(Integer(CompilerMagicRoutineAlias), 2);
+    Inc(Integer(CompilerMagicRoutineAlias), 2);
     CompilerMagicRoutineAlias := PPointer(CompilerMagicRoutineAlias)^;
     CompilerMagicRoutineAlias := PPointer(CompilerMagicRoutineAlias)^;
   end;
 
   // Handle the actual alias
   Assert(PByte(CompilerMagicRoutineAlias)^ = $E9); // JMP op code
-  inc(Integer(CompilerMagicRoutineAlias));
+  Inc(Integer(CompilerMagicRoutineAlias));
   Result := Pointer(Integer(CompilerMagicRoutineAlias) +
     PInteger(CompilerMagicRoutineAlias)^ + 4);
 end;

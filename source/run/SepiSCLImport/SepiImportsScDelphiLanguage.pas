@@ -19,14 +19,14 @@ implementation
 { TJmpInstruction import }
 {------------------------}
 
-function SepiImportTJmpInstruction(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTJmpInstruction(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TJmpInstruction', True, True);
 
   with Result do
   begin
     AddField('OpCode', System.TypeInfo(Byte));
-    AddField('Argument', System.TypeInfo(integer));
+    AddField('Argument', System.TypeInfo(Integer));
 
     Complete;
   end;
@@ -36,7 +36,7 @@ end;
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiRoot) : TSepiUnit;
+function ImportUnit(Root: TSepiRoot): TSepiUnit;
 begin
   Result := TSepiUnit.Create(Root, 'ScDelphiLanguage',
     ['SysUtils', 'TypInfo', 'ScUtils']);
@@ -97,9 +97,11 @@ begin
     'procedure(var Instruction; Dest : Pointer)');
   TSepiMethod.Create(Result, 'MakeCall', @MakeCall,
     'procedure(var Instruction; Dest : Pointer)');
-  TSepiMethod.Create(Result, 'MakeProcOfRegisterMethod', @MakeProcOfRegisterMethod,
+  TSepiMethod.Create(Result, 'MakeProcOfRegisterMethod',
+    @MakeProcOfRegisterMethod,
     'function(const Method : TMethod; UsedRegCount : Byte ) : Pointer');
-  TSepiMethod.Create(Result, 'MakeProcOfStdCallMethod', @MakeProcOfStdCallMethod,
+  TSepiMethod.Create(Result, 'MakeProcOfStdCallMethod',
+    @MakeProcOfStdCallMethod,
     'function(const Method : TMethod) : Pointer');
   TSepiMethod.Create(Result, 'MakeProcOfPascalMethod', @MakeProcOfPascalMethod,
     'function(const Method : TMethod) : Pointer');

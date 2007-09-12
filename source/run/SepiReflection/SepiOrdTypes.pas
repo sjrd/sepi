@@ -24,13 +24,13 @@ type
 
   TSepiOrdType = class(TSepiType)
   private
-    FMinValue : Longint; /// Valeur minimale
-    FMaxValue : Longint; /// Valeur maximale
+    FMinValue: Longint; /// Valeur minimale
+    FMaxValue: Longint; /// Valeur maximale
   protected
     procedure ExtractTypeData; override;
   public
-    property MinValue : Longint read FMinValue;
-    property MaxValue : Longint read FMaxValue;
+    property MinValue: Longint read FMinValue;
+    property MaxValue: Longint read FMaxValue;
   end;
 
   {*
@@ -40,25 +40,25 @@ type
   *}
   TSepiIntegerType = class(TSepiOrdType)
   private
-    FSigned : boolean;         /// Indique si l'entier est signé ou non
-    FNeedRangeCheck : boolean; /// Indique s'il faut vérifier les étendues
+    FSigned: Boolean;         /// Indique si l'entier est signé ou non
+    FNeedRangeCheck: Boolean; /// Indique s'il faut vérifier les étendues
   protected
-    procedure Save(Stream : TStream); override;
+    procedure Save(Stream: TStream); override;
 
     procedure ExtractTypeData; override;
   public
-    constructor RegisterTypeInfo(AOwner : TSepiMeta;
-      ATypeInfo : PTypeInfo); override;
-    constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
-    constructor Create(AOwner : TSepiMeta; const AName : string;
-      AMinValue : Longint = -MaxInt-1; AMaxValue : Longint = MaxInt;
-      ASigned : boolean = True);
+    constructor RegisterTypeInfo(AOwner: TSepiMeta;
+      ATypeInfo: PTypeInfo); override;
+    constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
+    constructor Create(AOwner: TSepiMeta; const AName: string;
+      AMinValue: Longint = -MaxInt-1; AMaxValue: Longint = MaxInt;
+      ASigned: Boolean = True);
 
-    function InRange(Value : Longint) : boolean;
-    procedure CheckInRange(Value : Longint);
+    function InRange(Value: Longint): Boolean;
+    procedure CheckInRange(Value: Longint);
 
-    property Signed : boolean read FSigned;
-    property NeedRangeCheck : boolean read FNeedRangeCheck;
+    property Signed: Boolean read FSigned;
+    property NeedRangeCheck: Boolean read FNeedRangeCheck;
   end;
 
   {*
@@ -68,29 +68,29 @@ type
   *}
   TSepiCharType = class(TSepiOrdType)
   private
-    FIsUnicode : boolean;      /// Indique si le caractère est Unicode
-    FChrMinValue : WideChar;   /// Valeur minimale
-    FChrMaxValue : WideChar;   /// Valeur maximale
-    FNeedRangeCheck : boolean; /// Indique s'il faut vérifier les étendues
+    FIsUnicode: Boolean;      /// Indique si le caractère est Unicode
+    FChrMinValue: WideChar;   /// Valeur minimale
+    FChrMaxValue: WideChar;   /// Valeur maximale
+    FNeedRangeCheck: Boolean; /// Indique s'il faut vérifier les étendues
   protected
-    procedure Save(Stream : TStream); override;
+    procedure Save(Stream: TStream); override;
 
     procedure ExtractTypeData; override;
   public
-    constructor RegisterTypeInfo(AOwner : TSepiMeta;
-      ATypeInfo : PTypeInfo); override;
-    constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
-    constructor Create(AOwner : TSepiMeta; const AName : string;
-      AMinValue : WideChar = #0; AMaxValue : WideChar = #255;
-      AForceUnicode : boolean = False);
+    constructor RegisterTypeInfo(AOwner: TSepiMeta;
+      ATypeInfo: PTypeInfo); override;
+    constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
+    constructor Create(AOwner: TSepiMeta; const AName: string;
+      AMinValue: WideChar = #0; AMaxValue: WideChar = #255;
+      AForceUnicode: Boolean = False);
 
-    function InRange(Value : WideChar) : boolean;
-    procedure CheckInRange(Value : WideChar);
+    function InRange(Value: WideChar): Boolean;
+    procedure CheckInRange(Value: WideChar);
 
-    property IsUnicode : boolean read FIsUnicode;
-    property ChrMinValue : WideChar read FChrMinValue;
-    property ChrMaxValue : WideChar read FChrMaxValue;
-    property NeedRangeCheck : boolean read FNeedRangeCheck;
+    property IsUnicode: Boolean read FIsUnicode;
+    property ChrMinValue: WideChar read FChrMinValue;
+    property ChrMaxValue: WideChar read FChrMaxValue;
+    property NeedRangeCheck: Boolean read FNeedRangeCheck;
   end;
 
   {*
@@ -100,26 +100,26 @@ type
   *}
   TSepiInt64Type = class(TSepiType)
   private
-    FMinValue : Int64;         /// Valeur minimale
-    FMaxValue : Int64;         /// Valeur maximale
-    FNeedRangeCheck : boolean; /// Indique s'il faut vérifier les étendues
+    FMinValue: Int64;         /// Valeur minimale
+    FMaxValue: Int64;         /// Valeur maximale
+    FNeedRangeCheck: Boolean; /// Indique s'il faut vérifier les étendues
   protected
-    procedure Save(Stream : TStream); override;
+    procedure Save(Stream: TStream); override;
 
     procedure ExtractTypeData; override;
   public
-    constructor RegisterTypeInfo(AOwner : TSepiMeta;
-      ATypeInfo : PTypeInfo); override;
-    constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
-    constructor Create(AOwner : TSepiMeta; const AName : string;
-      AMinValue : Int64 = MinInt64; AMaxValue : Int64 = MaxInt64);
+    constructor RegisterTypeInfo(AOwner: TSepiMeta;
+      ATypeInfo: PTypeInfo); override;
+    constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
+    constructor Create(AOwner: TSepiMeta; const AName: string;
+      AMinValue: Int64 = MinInt64; AMaxValue: Int64 = MaxInt64);
 
-    function InRange(Value : Int64) : boolean;
-    procedure CheckInRange(Value : Int64);
+    function InRange(Value: Int64): Boolean;
+    procedure CheckInRange(Value: Int64);
 
-    property MinValue : Int64 read FMinValue;
-    property MaxValue : Int64 read FMaxValue;
-    property NeedRangeCheck : boolean read FNeedRangeCheck;
+    property MinValue: Int64 read FMinValue;
+    property MaxValue: Int64 read FMaxValue;
+    property NeedRangeCheck: Boolean read FNeedRangeCheck;
   end;
 
   {*
@@ -129,21 +129,21 @@ type
   *}
   TSepiFloatType = class(TSepiType)
   private
-    FFloatType : TFloatType; /// Type de flottant
+    FFloatType: TFloatType; /// Type de flottant
   protected
-    procedure Save(Stream : TStream); override;
+    procedure Save(Stream: TStream); override;
 
     procedure ExtractTypeData; override;
 
-    function GetAlignment : integer; override;
+    function GetAlignment: Integer; override;
   public
-    constructor RegisterTypeInfo(AOwner : TSepiMeta;
-      ATypeInfo : PTypeInfo); override;
-    constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
-    constructor Create(AOwner : TSepiMeta; const AName : string;
-      AFloatType : TFloatType = ftDouble);
+    constructor RegisterTypeInfo(AOwner: TSepiMeta;
+      ATypeInfo: PTypeInfo); override;
+    constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
+    constructor Create(AOwner: TSepiMeta; const AName: string;
+      AFloatType: TFloatType = ftDouble);
 
-    property FloatType : TFloatType read FFloatType;
+    property FloatType: TFloatType read FFloatType;
   end;
 
   {*
@@ -154,17 +154,17 @@ type
   *}
   TSepiBooleanType = class(TSepiOrdType)
   private
-    FBooleanKind : TBooleanKind;
+    FBooleanKind: TBooleanKind;
   protected
-    procedure Save(Stream : TStream); override;
+    procedure Save(Stream: TStream); override;
 
     procedure ExtractTypeData; override;
   public
-    constructor RegisterTypeInfo(AOwner : TSepiMeta;
-      ATypeInfo : PTypeInfo); override;
-    constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
+    constructor RegisterTypeInfo(AOwner: TSepiMeta;
+      ATypeInfo: PTypeInfo); override;
+    constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
 
-    property BooleanKind : TBooleanKind read FBooleanKind;
+    property BooleanKind: TBooleanKind read FBooleanKind;
   end;
 
   {*
@@ -174,33 +174,33 @@ type
   *}
   TSepiEnumType = class(TSepiOrdType)
   private
-    TypeDataLength : integer;        /// Taille des données de type (non natif)
-    FBaseType : TSepiEnumType;       /// Type de base (peut être Self)
-    FValueCount : integer;           /// Nombre de valeurs
-    FValues : array of PShortString; /// Noms des valeurs
+    TypeDataLength: Integer;        /// Taille des données de type (non natif)
+    FBaseType: TSepiEnumType;       /// Type de base (peut être Self)
+    FValueCount: Integer;           /// Nombre de valeurs
+    FValues: array of PShortString; /// Noms des valeurs
 
     procedure CreateConstants;
 
-    function GetNames(Value : integer) : string;
-    function GetValues(const Name : string) : integer;
+    function GetNames(Value: Integer): string;
+    function GetValues(const Name: string): Integer;
   protected
     procedure ListReferences; override;
-    procedure Save(Stream : TStream); override;
+    procedure Save(Stream: TStream); override;
 
     procedure ExtractTypeData; override;
   public
-    constructor RegisterTypeInfo(AOwner : TSepiMeta;
-      ATypeInfo : PTypeInfo); override;
-    constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
-    constructor Create(AOwner : TSepiMeta; const AName : string;
-      const AValues : array of string);
+    constructor RegisterTypeInfo(AOwner: TSepiMeta;
+      ATypeInfo: PTypeInfo); override;
+    constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
+    constructor Create(AOwner: TSepiMeta; const AName: string;
+      const AValues: array of string);
 
-    function CompatibleWith(AType : TSepiType) : boolean; override;
+    function CompatibleWith(AType: TSepiType): Boolean; override;
 
-    property BaseType : TSepiEnumType read FBaseType;
-    property ValueCount : integer read FValueCount;
-    property Names[Value : integer] : string read GetNames;
-    property Values[const Name : string] : integer read GetValues;
+    property BaseType: TSepiEnumType read FBaseType;
+    property ValueCount: Integer read FValueCount;
+    property Names[Value: Integer]: string read GetNames;
+    property Values[const Name: string]: Integer read GetValues;
   end;
 
   {*
@@ -210,26 +210,26 @@ type
   *}
   TSepiSetType = class(TSepiType)
   private
-    FCompType : TSepiOrdType;  /// Type des éléments
+    FCompType: TSepiOrdType;  /// Type des éléments
   protected
     procedure ListReferences; override;
-    procedure Save(Stream : TStream); override;
+    procedure Save(Stream: TStream); override;
 
     procedure ExtractTypeData; override;
 
-    function GetAlignment : integer; override;
+    function GetAlignment: Integer; override;
   public
-    constructor RegisterTypeInfo(AOwner : TSepiMeta;
-      ATypeInfo : PTypeInfo); override;
-    constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
-    constructor Create(AOwner : TSepiMeta; const AName : string;
-      ACompType : TSepiOrdType); overload;
-    constructor Create(AOwner : TSepiMeta; const AName : string;
-      ACompType : PTypeInfo); overload;
+    constructor RegisterTypeInfo(AOwner: TSepiMeta;
+      ATypeInfo: PTypeInfo); override;
+    constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
+    constructor Create(AOwner: TSepiMeta; const AName: string;
+      ACompType: TSepiOrdType); overload;
+    constructor Create(AOwner: TSepiMeta; const AName: string;
+      ACompType: PTypeInfo); overload;
 
-    function CompatibleWith(AType : TSepiType) : boolean; override;
+    function CompatibleWith(AType: TSepiType): Boolean; override;
 
-    property CompType : TSepiOrdType read FCompType;
+    property CompType: TSepiOrdType read FCompType;
   end;
 
   {*
@@ -238,11 +238,11 @@ type
     @version 1.0
   *}
   TSepiForwardPointerInfo = record
-    Owner : TSepiMeta;
-    Name : string;
-    PointToTypeInfo : PTypeInfo;
-    PointToName : string;
-    IsNative : boolean;
+    Owner: TSepiMeta;
+    Name: string;
+    PointToTypeInfo: PTypeInfo;
+    PointToName: string;
+    IsNative: Boolean;
   end;
   PSepiForwardPointerInfo = ^TSepiForwardPointerInfo;
 
@@ -253,26 +253,26 @@ type
   *}
   TSepiPointerType = class(TSepiOrdType)
   private
-    FPointTo : TSepiType; /// Type vers lequel pointe le pointeur
+    FPointTo: TSepiType; /// Type vers lequel pointe le pointeur
 
-    FForwardInfo : PSepiForwardPointerInfo; /// Infos conservées en forward
+    FForwardInfo: PSepiForwardPointerInfo; /// Infos conservées en forward
   protected
     procedure Loaded; override;
 
     procedure ListReferences; override;
-    procedure Save(Stream : TStream); override;
+    procedure Save(Stream: TStream); override;
   public
-    constructor Load(AOwner : TSepiMeta; Stream : TStream); override;
-    constructor Create(AOwner : TSepiMeta; const AName : string;
-      APointTo : TSepiType; AIsNative : boolean = False); overload;
-    constructor Create(AOwner : TSepiMeta; const AName : string;
-      APointTo : PTypeInfo; AIsNative : boolean = False); overload;
-    constructor Create(AOwner : TSepiMeta; const AName, APointTo : string;
-      AIsNative : boolean = False); overload;
+    constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
+    constructor Create(AOwner: TSepiMeta; const AName: string;
+      APointTo: TSepiType; AIsNative: Boolean = False); overload;
+    constructor Create(AOwner: TSepiMeta; const AName: string;
+      APointTo: PTypeInfo; AIsNative: Boolean = False); overload;
+    constructor Create(AOwner: TSepiMeta; const AName, APointTo: string;
+      AIsNative: Boolean = False); overload;
 
-    class function NewInstance : TObject; override;
+    class function NewInstance: TObject; override;
 
-    property PointTo : TSepiType read FPointTo;
+    property PointTo: TSepiType read FPointTo;
   end;
 
 implementation
@@ -298,9 +298,9 @@ begin
   inherited;
 
   case TypeData.OrdType of
-    otSByte, otUByte : FSize := 1;
-    otSWord, otUWord : FSize := 2;
-    otSLong, otULong : FSize := 4;
+    otSByte, otUByte: FSize := 1;
+    otSWord, otUWord: FSize := 2;
+    otSLong, otULong: FSize := 4;
   end;
 
   FMinValue := TypeData.MinValue;
@@ -314,8 +314,8 @@ end;
 {*
   Recense un type entier natif
 *}
-constructor TSepiIntegerType.RegisterTypeInfo(AOwner : TSepiMeta;
-  ATypeInfo : PTypeInfo);
+constructor TSepiIntegerType.RegisterTypeInfo(AOwner: TSepiMeta;
+  ATypeInfo: PTypeInfo);
 begin
   inherited;
   ExtractTypeData;
@@ -324,7 +324,7 @@ end;
 {*
   Charge un type entier depuis un flux
 *}
-constructor TSepiIntegerType.Load(AOwner : TSepiMeta; Stream : TStream);
+constructor TSepiIntegerType.Load(AOwner: TSepiMeta; Stream: TStream);
 begin
   inherited;
 
@@ -342,9 +342,9 @@ end;
   @param AMaxValue   Valeur maximale
   @param ASigned     Indique si l'entier est signé ou non
 *}
-constructor TSepiIntegerType.Create(AOwner : TSepiMeta; const AName : string;
-  AMinValue : Longint = -MaxInt-1; AMaxValue : Longint = MaxInt;
-  ASigned : boolean = True);
+constructor TSepiIntegerType.Create(AOwner: TSepiMeta; const AName: string;
+  AMinValue: Longint = -MaxInt-1; AMaxValue: Longint = MaxInt;
+  ASigned: Boolean = True);
 begin
   inherited Create(AOwner, AName, tkInteger);
 
@@ -357,7 +357,7 @@ begin
       TypeData.OrdType := otSLong else
     if (AMinValue < -128) or (AMaxValue >= 128) then
       TypeData.OrdType := otSWord else
-    TypeData.OrdType := otSByte;
+      TypeData.OrdType := otSByte;
   end else
   begin
     // Unsigned
@@ -365,7 +365,7 @@ begin
       TypeData.OrdType := otULong else
     if AMaxValue >= 256 then
       TypeData.OrdType := otUWord else
-    TypeData.OrdType := otUByte;
+      TypeData.OrdType := otUByte;
   end;
 
   TypeData.MinValue := AMinValue;
@@ -377,7 +377,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiIntegerType.Save(Stream : TStream);
+procedure TSepiIntegerType.Save(Stream: TStream);
 begin
   inherited;
   Stream.WriteBuffer(TypeData^, IntegerTypeDataLength);
@@ -399,7 +399,7 @@ end;
   @param Value   Valeur à tester
   @return True si Value est dans l'intervalle supporté, False sinon
 *}
-function TSepiIntegerType.InRange(Value : Longint) : boolean;
+function TSepiIntegerType.InRange(Value: Longint): Boolean;
 begin
   Result := (Value >= FMinValue) and (Value <= FMaxValue);
 end;
@@ -409,7 +409,7 @@ end;
   @param Value   Valeur à tester
   @throws ERangeError Value n'était pas dans l'intervalle supporté
 *}
-procedure TSepiIntegerType.CheckInRange(Value : Longint);
+procedure TSepiIntegerType.CheckInRange(Value: Longint);
 begin
   if not InRange(Value) then
     raise ERangeError.CreateRes(@SRangeError);
@@ -422,8 +422,8 @@ end;
 {*
   Recense un type caractère natif
 *}
-constructor TSepiCharType.RegisterTypeInfo(AOwner : TSepiMeta;
-  ATypeInfo : PTypeInfo);
+constructor TSepiCharType.RegisterTypeInfo(AOwner: TSepiMeta;
+  ATypeInfo: PTypeInfo);
 begin
   inherited;
   ExtractTypeData;
@@ -432,7 +432,7 @@ end;
 {*
   Charge un type caractère depuis un flux
 *}
-constructor TSepiCharType.Load(AOwner : TSepiMeta; Stream : TStream);
+constructor TSepiCharType.Load(AOwner: TSepiMeta; Stream: TStream);
 begin
   inherited;
 
@@ -450,10 +450,11 @@ end;
   @param AMaxValue       Valeur maximale
   @param AForceUnicode   Positionné à True, force l'utilisation d'Unicode
 *}
-constructor TSepiCharType.Create(AOwner : TSepiMeta; const AName : string;
-  AMinValue : WideChar = #0; AMaxValue : WideChar = #255;
-  AForceUnicode : boolean = False);
-var AKind : TTypeKind;
+constructor TSepiCharType.Create(AOwner: TSepiMeta; const AName: string;
+  AMinValue: WideChar = #0; AMaxValue: WideChar = #255;
+  AForceUnicode: Boolean = False);
+var
+  AKind: TTypeKind;
 begin
   if AForceUnicode or (AMaxValue > #255) then
     AKind := tkWChar
@@ -477,7 +478,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiCharType.Save(Stream : TStream);
+procedure TSepiCharType.Save(Stream: TStream);
 begin
   inherited;
   Stream.WriteBuffer(TypeData^, CharTypeDataLength);
@@ -505,7 +506,7 @@ end;
   @param Value   Valeur à tester
   @return True si Value est dans l'intervalle supporté, False sinon
 *}
-function TSepiCharType.InRange(Value : WideChar) : boolean;
+function TSepiCharType.InRange(Value: WideChar): Boolean;
 begin
   Result := (Value >= FChrMinValue) and (Value <= FChrMaxValue);
 end;
@@ -515,7 +516,7 @@ end;
   @param Value   Valeur à tester
   @throws ERangeError Value n'était pas dans l'intervalle supporté
 *}
-procedure TSepiCharType.CheckInRange(Value : WideChar);
+procedure TSepiCharType.CheckInRange(Value: WideChar);
 begin
   if not InRange(Value) then
     raise ERangeError.CreateRes(@SRangeError);
@@ -528,8 +529,8 @@ end;
 {*
   Recense un type entier 64 bits natif
 *}
-constructor TSepiInt64Type.RegisterTypeInfo(AOwner : TSepiMeta;
-  ATypeInfo : PTypeInfo);
+constructor TSepiInt64Type.RegisterTypeInfo(AOwner: TSepiMeta;
+  ATypeInfo: PTypeInfo);
 begin
   inherited;
   ExtractTypeData;
@@ -538,7 +539,7 @@ end;
 {*
   Charge un type entier 64 bits depuis un flux
 *}
-constructor TSepiInt64Type.Load(AOwner : TSepiMeta; Stream : TStream);
+constructor TSepiInt64Type.Load(AOwner: TSepiMeta; Stream: TStream);
 begin
   inherited;
 
@@ -555,8 +556,8 @@ end;
   @param AMinValue   Valeur minimale
   @param AMaxValue   Valeur maximale
 *}
-constructor TSepiInt64Type.Create(AOwner : TSepiMeta; const AName : string;
-  AMinValue : Int64 = MinInt64; AMaxValue : Int64 = MaxInt64);
+constructor TSepiInt64Type.Create(AOwner: TSepiMeta; const AName: string;
+  AMinValue: Int64 = MinInt64; AMaxValue: Int64 = MaxInt64);
 begin
   inherited Create(AOwner, AName, tkInt64);
 
@@ -571,7 +572,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiInt64Type.Save(Stream : TStream);
+procedure TSepiInt64Type.Save(Stream: TStream);
 begin
   inherited;
   Stream.WriteBuffer(TypeData^, Int64TypeDataLength);
@@ -597,7 +598,7 @@ end;
   @param Value   Valeur à tester
   @return True si Value est dans l'intervalle supporté, False sinon
 *}
-function TSepiInt64Type.InRange(Value : Int64) : boolean;
+function TSepiInt64Type.InRange(Value: Int64): Boolean;
 begin
   Result := (Value >= FMinValue) and (Value <= FMaxValue);
 end;
@@ -607,7 +608,7 @@ end;
   @param Value   Valeur à tester
   @throws ERangeError Value n'était pas dans l'intervalle supporté
 *}
-procedure TSepiInt64Type.CheckInRange(Value : Int64);
+procedure TSepiInt64Type.CheckInRange(Value: Int64);
 begin
   if not InRange(Value) then
     raise ERangeError.CreateRes(@SRangeError);
@@ -620,8 +621,8 @@ end;
 {*
   Recense un type flottant natif
 *}
-constructor TSepiFloatType.RegisterTypeInfo(AOwner : TSepiMeta;
-  ATypeInfo : PTypeInfo);
+constructor TSepiFloatType.RegisterTypeInfo(AOwner: TSepiMeta;
+  ATypeInfo: PTypeInfo);
 begin
   inherited;
   ExtractTypeData;
@@ -630,7 +631,7 @@ end;
 {*
   Charge un type flottant depuis un flux
 *}
-constructor TSepiFloatType.Load(AOwner : TSepiMeta; Stream : TStream);
+constructor TSepiFloatType.Load(AOwner: TSepiMeta; Stream: TStream);
 begin
   inherited;
 
@@ -646,8 +647,8 @@ end;
   @param AName        Nom du type
   @param AFloatType   Type de flottant
 *}
-constructor TSepiFloatType.Create(AOwner : TSepiMeta; const AName : string;
-  AFloatType : TFloatType = ftDouble);
+constructor TSepiFloatType.Create(AOwner: TSepiMeta; const AName: string;
+  AFloatType: TFloatType = ftDouble);
 begin
   inherited Create(AOwner, AName, tkFloat);
 
@@ -660,7 +661,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiFloatType.Save(Stream : TStream);
+procedure TSepiFloatType.Save(Stream: TStream);
 begin
   inherited;
   Stream.WriteBuffer(TypeData^, FloatTypeDataLength);
@@ -676,9 +677,9 @@ begin
   FFloatType := TypeData.FloatType;
 
   case FFloatType of
-    ftSingle : FSize := 4;
-    ftDouble, ftComp, ftCurr : FSize := 8;
-    ftExtended : FSize := 10;
+    ftSingle: FSize := 4;
+    ftDouble, ftComp, ftCurr: FSize := 8;
+    ftExtended: FSize := 10;
   end;
 
   FParamBehavior.AlwaysByStack := True;
@@ -687,7 +688,7 @@ end;
 {*
   [@inheritDoc]
 *}
-function TSepiFloatType.GetAlignment : integer;
+function TSepiFloatType.GetAlignment: Integer;
 begin
   if FloatType = ftExtended then
     Result := 8
@@ -702,8 +703,8 @@ end;
 {*
   Recense un type booléen natif
 *}
-constructor TSepiBooleanType.RegisterTypeInfo(AOwner : TSepiMeta;
-  ATypeInfo : PTypeInfo);
+constructor TSepiBooleanType.RegisterTypeInfo(AOwner: TSepiMeta;
+  ATypeInfo: PTypeInfo);
 begin
   inherited;
   ExtractTypeData;
@@ -712,7 +713,7 @@ end;
 {*
   Charge un type booléen depuis un flux
 *}
-constructor TSepiBooleanType.Load(AOwner : TSepiMeta; Stream : TStream);
+constructor TSepiBooleanType.Load(AOwner: TSepiMeta; Stream: TStream);
 begin
   inherited;
 
@@ -725,7 +726,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiBooleanType.Save(Stream : TStream);
+procedure TSepiBooleanType.Save(Stream: TStream);
 begin
   inherited;
   Stream.WriteBuffer(TypeData^, EnumTypeDataLength);
@@ -739,9 +740,9 @@ begin
   inherited;
 
   case TypeData.OrdType of
-    otSByte : FBooleanKind := bkByteBool;
-    otSWord : FBooleanKind := bkWordBool;
-    otSLong : FBooleanKind := bkLongBool;
+    otSByte: FBooleanKind := bkByteBool;
+    otSWord: FBooleanKind := bkWordBool;
+    otSLong: FBooleanKind := bkLongBool;
     else FBooleanKind := bkBoolean;
   end;
 end;
@@ -753,8 +754,8 @@ end;
 {*
   Recense un type énuméré natif
 *}
-constructor TSepiEnumType.RegisterTypeInfo(AOwner : TSepiMeta;
-  ATypeInfo : PTypeInfo);
+constructor TSepiEnumType.RegisterTypeInfo(AOwner: TSepiMeta;
+  ATypeInfo: PTypeInfo);
 begin
   inherited;
   TypeDataLength := 0; // not used
@@ -765,7 +766,7 @@ end;
 {*
   Charge un type énuméré depuis un flux
 *}
-constructor TSepiEnumType.Load(AOwner : TSepiMeta; Stream : TStream);
+constructor TSepiEnumType.Load(AOwner: TSepiMeta; Stream: TStream);
 begin
   inherited;
 
@@ -785,11 +786,12 @@ end;
   @param AName     Nom du type
   @param AValues   Noms des éléments de l'énumération
 *}
-constructor TSepiEnumType.Create(AOwner : TSepiMeta; const AName : string;
-  const AValues : array of string);
-var I, Len : integer;
-    Current : PChar;
-    OwningUnitName : ShortString;
+constructor TSepiEnumType.Create(AOwner: TSepiMeta; const AName: string;
+  const AValues: array of string);
+var
+  I, Len: Integer;
+  Current: PChar;
+  OwningUnitName: ShortString;
 begin
   inherited Create(AOwner, AName, tkEnumeration);
 
@@ -798,9 +800,9 @@ begin
   // Calcul de la taille des données de type et allocation de celles-ci
   TypeDataLength := EnumTypeDataLength;
   for I := Low(AValues) to High(AValues) do
-    inc(TypeDataLength, Length(AValues[I]));
-  inc(TypeDataLength, Length(AValues)); // Longueurs des chaînes
-  inc(TypeDataLength, Length(OwningUnit.Name)+1);
+    Inc(TypeDataLength, Length(AValues[I]));
+  Inc(TypeDataLength, Length(AValues)); // Longueurs des chaînes
+  Inc(TypeDataLength, Length(OwningUnit.Name)+1);
   AllocateTypeInfo(TypeDataLength);
 
   // Initialisation des variables privées
@@ -825,11 +827,11 @@ begin
 
     // Recopie du nom dans les données de type
     Current[0] := Chr(Len);
-    inc(Current);
+    Inc(Current);
     Move(AValues[Low(AValues)+I][1], Current^, Len);
 
     // Passage à l'élément suivant
-    inc(Current, Len);
+    Inc(Current, Len);
   end;
 
   // Enregistrement du nom de l'unité dans les données de type
@@ -844,7 +846,8 @@ end;
   Crée les constantes énumérées
 *}
 procedure TSepiEnumType.CreateConstants;
-var Value : integer;
+var
+  Value: Integer;
 begin
   if BaseType <> Self then exit;
   for Value := MinValue to MaxValue do
@@ -856,7 +859,7 @@ end;
   @param Value   Valeur d'élément d'énumération
   @return Nom de la valeur Value
 *}
-function TSepiEnumType.GetNames(Value : integer) : string;
+function TSepiEnumType.GetNames(Value: Integer): string;
 begin
   Result := BaseType.FValues[Value]^;
 end;
@@ -866,7 +869,7 @@ end;
   @param Name   Nom d'élément d'énumération
   @return Valeur du nom donné
 *}
-function TSepiEnumType.GetValues(const Name : string) : integer;
+function TSepiEnumType.GetValues(const Name: string): Integer;
 begin
   Result := GetEnumValue(TypeInfo, Name);
 end;
@@ -883,7 +886,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiEnumType.Save(Stream : TStream);
+procedure TSepiEnumType.Save(Stream: TStream);
 begin
   inherited;
   Stream.WriteBuffer(TypeDataLength, 4);
@@ -895,8 +898,9 @@ end;
   [@inheritedDoc]
 *}
 procedure TSepiEnumType.ExtractTypeData;
-var Current : PShortString;
-    I : integer;
+var
+  Current: PShortString;
+  I: Integer;
 begin
   inherited;
 
@@ -923,7 +927,7 @@ end;
 {*
   [@inheritDoc]
 *}
-function TSepiEnumType.CompatibleWith(AType : TSepiType) : boolean;
+function TSepiEnumType.CompatibleWith(AType: TSepiType): Boolean;
 begin
   Result := (AType is TSepiEnumType) and
     (BaseType = TSepiEnumType(AType).BaseType);
@@ -936,8 +940,8 @@ end;
 {*
   Recense un type ensemble natif
 *}
-constructor TSepiSetType.RegisterTypeInfo(AOwner : TSepiMeta;
-  ATypeInfo : PTypeInfo);
+constructor TSepiSetType.RegisterTypeInfo(AOwner: TSepiMeta;
+  ATypeInfo: PTypeInfo);
 begin
   with GetTypeData(ATypeInfo)^ do
     if CompType^.Name[1] = '.' then
@@ -953,7 +957,7 @@ end;
 {*
   Charge un type ensemble depuis un flux
 *}
-constructor TSepiSetType.Load(AOwner : TSepiMeta; Stream : TStream);
+constructor TSepiSetType.Load(AOwner: TSepiMeta; Stream: TStream);
 begin
   inherited;
 
@@ -972,8 +976,8 @@ end;
   @param AName       Nom du type
   @param ACompType   Type des éléments de l'ensemble
 *}
-constructor TSepiSetType.Create(AOwner : TSepiMeta; const AName : string;
-  ACompType : TSepiOrdType);
+constructor TSepiSetType.Create(AOwner: TSepiMeta; const AName: string;
+  ACompType: TSepiOrdType);
 begin
   inherited Create(AOwner, AName, tkSet);
 
@@ -982,9 +986,9 @@ begin
   AllocateTypeInfo(SetTypeDataLength);
 
   case CompType.MaxValue - CompType.MinValue + 1 of
-    1..8   : TypeData.OrdType := otUByte;
-    9..16  : TypeData.OrdType := otUWord;
-    17..32 : TypeData.OrdType := otULong;
+    1..8: TypeData.OrdType := otUByte;
+    9..16: TypeData.OrdType := otUWord;
+    17..32: TypeData.OrdType := otULong;
     else TypeData.OrdType := otUnknown;
   end;
 
@@ -999,8 +1003,8 @@ end;
   @param AName       Nom du type
   @param ACompType   RTTI du type des éléments de l'ensemble
 *}
-constructor TSepiSetType.Create(AOwner : TSepiMeta; const AName : string;
-  ACompType : PTypeInfo);
+constructor TSepiSetType.Create(AOwner: TSepiMeta; const AName: string;
+  ACompType: PTypeInfo);
 begin
   Create(AOwner, AName,
     AOwner.Root.FindType(ACompType) as TSepiOrdType);
@@ -1018,7 +1022,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiSetType.Save(Stream : TStream);
+procedure TSepiSetType.Save(Stream: TStream);
 begin
   inherited;
   Stream.WriteBuffer(TypeData^, SetTypeDataLength);
@@ -1041,7 +1045,7 @@ end;
 {*
   [@inheritDoc]
 *}
-function TSepiSetType.GetAlignment : integer;
+function TSepiSetType.GetAlignment: Integer;
 begin
   if Size <= 4 then
     Result := Size
@@ -1052,7 +1056,7 @@ end;
 {*
   [@inheritDoc]
 *}
-function TSepiSetType.CompatibleWith(AType : TSepiType) : boolean;
+function TSepiSetType.CompatibleWith(AType: TSepiType): Boolean;
 begin
   Result := (AType.Kind = tkSet) and
     FCompType.CompatibleWith(TSepiSetType(AType).FCompType);
@@ -1065,7 +1069,7 @@ end;
 {*
   Charge un type pointeur depuis un flux
 *}
-constructor TSepiPointerType.Load(AOwner : TSepiMeta; Stream : TStream);
+constructor TSepiPointerType.Load(AOwner: TSepiMeta; Stream: TStream);
 begin
   inherited;
 
@@ -1079,8 +1083,8 @@ end;
   @param AName      Nom du type
   @param APointTo   Type vers lequel pointe le pointeur
 *}
-constructor TSepiPointerType.Create(AOwner : TSepiMeta; const AName : string;
-  APointTo : TSepiType; AIsNative : boolean = False);
+constructor TSepiPointerType.Create(AOwner: TSepiMeta; const AName: string;
+  APointTo: TSepiType; AIsNative: Boolean = False);
 begin
   inherited Create(AOwner, AName, tkUnknown);
 
@@ -1097,9 +1101,10 @@ end;
   @param AName      Nom du type
   @param APointTo   RTTI tu type vers lequel pointe le pointeur
 *}
-constructor TSepiPointerType.Create(AOwner : TSepiMeta; const AName : string;
-  APointTo : PTypeInfo; AIsNative : boolean = False);
-var APointToType : TSepiType;
+constructor TSepiPointerType.Create(AOwner: TSepiMeta; const AName: string;
+  APointTo: PTypeInfo; AIsNative: Boolean = False);
+var
+  APointToType: TSepiType;
 begin
   if FForwardInfo = nil then
     APointToType := AOwner.Root.GetType(APointTo)
@@ -1125,9 +1130,10 @@ end;
   @param AName      Nom du type
   @param APointTo   Nom tu type vers lequel pointe le pointeur
 *}
-constructor TSepiPointerType.Create(AOwner : TSepiMeta;
-  const AName, APointTo : string; AIsNative : boolean = False);
-var APointToType : TSepiType;
+constructor TSepiPointerType.Create(AOwner: TSepiMeta;
+  const AName, APointTo: string; AIsNative: Boolean = False);
+var
+  APointToType: TSepiType;
 begin
   if FForwardInfo = nil then
     APointToType := AOwner.Root.GetType(APointTo)
@@ -1177,7 +1183,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiPointerType.Save(Stream : TStream);
+procedure TSepiPointerType.Save(Stream: TStream);
 begin
   inherited;
   OwningUnit.WriteRef(Stream, FPointTo);
@@ -1187,7 +1193,7 @@ end;
   Crée une nouvelle instance de TSepiPointerType
   @return Instance créée
 *}
-class function TSepiPointerType.NewInstance : TObject;
+class function TSepiPointerType.NewInstance: TObject;
 begin
   Result := inherited NewInstance;
   TSepiPointerType(Result).FSize := 4;
@@ -1198,6 +1204,6 @@ initialization
   SepiRegisterMetaClasses([
     TSepiIntegerType, TSepiCharType, TSepiInt64Type, TSepiFloatType,
     TSepiBooleanType, TSepiEnumType, TSepiSetType, TSepiPointerType
-  ]);
+    ]);
 end.
 

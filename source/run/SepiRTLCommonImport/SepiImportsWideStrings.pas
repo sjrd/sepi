@@ -38,21 +38,21 @@ type
     procedure SetValueFromIndex(Index: Integer; const Value: WideString);
     procedure Error_0(const Msg: WideString; Data: Integer);
     procedure Error_1(Msg: PResStringRec; Data: Integer);
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTWideStringList = class(TWideStringList)
   private
     procedure SetSorted(Value: Boolean);
     procedure SetCaseSensitive(const Value: Boolean);
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
 {----------------------------}
 { IWideStringsAdapter import }
 {----------------------------}
 
-function SepiImportIWideStringsAdapter(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIWideStringsAdapter(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IWideStringsAdapter));
@@ -102,7 +102,8 @@ begin
   DelimitedText := Value;
 end;
 
-procedure TSepiImportsTWideStrings.SetStringsAdapter(const Value: IWideStringsAdapter);
+procedure TSepiImportsTWideStrings.SetStringsAdapter(
+  const Value: IWideStringsAdapter);
 begin
   StringsAdapter := Value;
 end;
@@ -147,22 +148,26 @@ begin
   Result := NameValueSeparator;
 end;
 
-procedure TSepiImportsTWideStrings.SetNameValueSeparator(const Value: WideChar);
+procedure TSepiImportsTWideStrings.SetNameValueSeparator(
+  const Value: WideChar);
 begin
   NameValueSeparator := Value;
 end;
 
-function TSepiImportsTWideStrings.GetValueFromIndex(Index: Integer): WideString;
+function TSepiImportsTWideStrings.GetValueFromIndex(Index: Integer):
+WideString;
 begin
   Result := ValueFromIndex[Index];
 end;
 
-procedure TSepiImportsTWideStrings.SetValueFromIndex(Index: Integer; const Value: WideString);
+procedure TSepiImportsTWideStrings.SetValueFromIndex(Index: Integer;
+  const Value: WideString);
 begin
   ValueFromIndex[Index] := Value;
 end;
 
-procedure TSepiImportsTWideStrings.Error_0(const Msg: WideString; Data: Integer);
+procedure TSepiImportsTWideStrings.Error_0(const Msg: WideString;
+  Data: Integer);
 begin
   Error(Msg, Data);
 end;
@@ -173,7 +178,7 @@ begin
 end;
 
 class function TSepiImportsTWideStrings.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass(Owner.FindMeta('TWideStrings'));
   Result.RegisterTypeInfo(
@@ -223,9 +228,11 @@ begin
       'function: WideChar');
     AddMethod('SetQuoteChar', @TSepiImportsTWideStrings.SetQuoteChar,
       'procedure(const Value: WideChar)');
-    AddMethod('GetNameValueSeparator', @TSepiImportsTWideStrings.GetNameValueSeparator,
+    AddMethod('GetNameValueSeparator',
+      @TSepiImportsTWideStrings.GetNameValueSeparator,
       'function: WideChar');
-    AddMethod('SetNameValueSeparator', @TSepiImportsTWideStrings.SetNameValueSeparator,
+    AddMethod('SetNameValueSeparator',
+      @TSepiImportsTWideStrings.SetNameValueSeparator,
       'procedure(const Value: WideChar)');
     AddMethod('GetValueFromIndex', @TSepiImportsTWideStrings.GetValueFromIndex,
       'function(Index: Integer): WideString');
@@ -397,7 +404,7 @@ end;
 { TWideStringItem import }
 {------------------------}
 
-function SepiImportTWideStringItem(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWideStringItem(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWideStringItem', False, True,
     TypeInfo(TWideStringItem));
@@ -426,7 +433,7 @@ begin
 end;
 
 class function TSepiImportsTWideStringList.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass(Owner.FindMeta('TWideStringList'));
   Result.RegisterTypeInfo(
@@ -453,7 +460,8 @@ begin
       'procedure(L, R: Integer; SCompare: TWideStringListSortCompare)');
     AddMethod('SetSorted', @TSepiImportsTWideStringList.SetSorted,
       'procedure(Value: Boolean)');
-    AddMethod('SetCaseSensitive', @TSepiImportsTWideStringList.SetCaseSensitive,
+    AddMethod('SetCaseSensitive',
+      @TSepiImportsTWideStringList.SetCaseSensitive,
       'procedure(const Value: Boolean)');
 
     CurrentVisibility := mvProtected;
@@ -553,7 +561,7 @@ end;
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiRoot) : TSepiUnit;
+function ImportUnit(Root: TSepiRoot): TSepiUnit;
 begin
   Result := TSepiUnit.Create(Root, 'WideStrings',
     ['Classes']);
@@ -563,11 +571,14 @@ begin
   SepiImportIWideStringsAdapter(Result);
   TSepiImportsTWideStrings.SepiImport(Result);
   TSepiClass.ForwardDecl(Result, TypeInfo(TWideStringList));
-  TSepiPointerType.Create(Result, 'PWideStringItem', TypeInfo(TWideStringItem), True);
+  TSepiPointerType.Create(Result, 'PWideStringItem',
+    TypeInfo(TWideStringItem), True);
   SepiImportTWideStringItem(Result);
-  TSepiPointerType.Create(Result, 'PWideStringItemList', TypeInfo(TWideStringItemList), True);
+  TSepiPointerType.Create(Result, 'PWideStringItemList',
+    TypeInfo(TWideStringItemList), True);
   TSepiArrayType.Create(Result, 'TWideStringItemList',
-    [0, MaxListSize], TypeInfo(TWideStringItem), True, TypeInfo(TWideStringItemList));
+    [0, MaxListSize], TypeInfo(TWideStringItem), True,
+    TypeInfo(TWideStringItemList));
   TSepiMethodRefType.Create(Result, 'TWideStringListSortCompare',
     'function(List: TWideStringList; Index1, Index2: Integer): Integer');
   TSepiImportsTWideStringList.SepiImport(Result);

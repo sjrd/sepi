@@ -18,37 +18,41 @@ implementation
 type
   TSepiImportsTSynchroObject = class(TSynchroObject)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTHandleObject = class(THandleObject)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTEvent = class(TEvent)
   private
-    constructor Create_0(EventAttributes: PSecurityAttributes; ManualReset, InitialState : Boolean ; const Name: string ; UseCOMWait: Boolean = False );
+    constructor Create_0(EventAttributes: PSecurityAttributes;
+      ManualReset, InitialState: Boolean; const Name: string;
+      UseCOMWait: Boolean = False);
     constructor Create_1(UseCOMWait: Boolean = False);
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTSimpleEvent = class(TSimpleEvent)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTMutex = class(TMutex)
   private
     constructor Create_0(UseCOMWait: Boolean = False);
-    constructor Create_1(MutexAttributes: PSecurityAttributes; InitialOwner: Boolean; const Name: string; UseCOMWait: Boolean = False);
-    constructor Create_2(DesiredAccess: LongWord; InheritHandle: Boolean; const Name: string; UseCOMWait: Boolean = False);
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    constructor Create_1(MutexAttributes: PSecurityAttributes;
+      InitialOwner: Boolean; const Name: string; UseCOMWait: Boolean = False);
+    constructor Create_2(DesiredAccess: LongWord; InheritHandle: Boolean;
+      const Name: string; UseCOMWait: Boolean = False);
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTCriticalSection = class(TCriticalSection)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
 {-----------------------}
@@ -56,7 +60,7 @@ type
 {-----------------------}
 
 class function TSepiImportsTSynchroObject.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TSynchroObject));
@@ -81,7 +85,7 @@ end;
 {----------------------}
 
 class function TSepiImportsTHandleObject.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(THandleObject));
@@ -121,7 +125,9 @@ end;
 { TEvent import }
 {---------------}
 
-constructor TSepiImportsTEvent.Create_0(EventAttributes: PSecurityAttributes; ManualReset, InitialState : Boolean ; const Name: string ; UseCOMWait: Boolean = False );
+constructor TSepiImportsTEvent.Create_0(EventAttributes: PSecurityAttributes;
+  ManualReset, InitialState: Boolean; const Name: string;
+  UseCOMWait: Boolean = False);
 begin
   Create(EventAttributes, ManualReset, InitialState, Name, UseCOMWait);
 end;
@@ -132,7 +138,7 @@ begin
 end;
 
 class function TSepiImportsTEvent.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TEvent));
@@ -159,7 +165,7 @@ end;
 {---------------------}
 
 class function TSepiImportsTSimpleEvent.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TSimpleEvent));
@@ -180,18 +186,20 @@ begin
   Create(UseCOMWait);
 end;
 
-constructor TSepiImportsTMutex.Create_1(MutexAttributes: PSecurityAttributes; InitialOwner: Boolean; const Name: string; UseCOMWait: Boolean = False);
+constructor TSepiImportsTMutex.Create_1(MutexAttributes: PSecurityAttributes;
+  InitialOwner: Boolean; const Name: string; UseCOMWait: Boolean = False);
 begin
   Create(MutexAttributes, InitialOwner, Name, UseCOMWait);
 end;
 
-constructor TSepiImportsTMutex.Create_2(DesiredAccess: LongWord; InheritHandle: Boolean; const Name: string; UseCOMWait: Boolean = False);
+constructor TSepiImportsTMutex.Create_2(DesiredAccess: LongWord;
+  InheritHandle: Boolean; const Name: string; UseCOMWait: Boolean = False);
 begin
   Create(DesiredAccess, InheritHandle, Name, UseCOMWait);
 end;
 
 class function TSepiImportsTMutex.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TMutex));
@@ -222,7 +230,7 @@ end;
 {-------------------------}
 
 class function TSepiImportsTCriticalSection.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TCriticalSection));
@@ -261,7 +269,7 @@ end;
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiRoot) : TSepiUnit;
+function ImportUnit(Root: TSepiRoot): TSepiUnit;
 begin
   Result := TSepiUnit.Create(Root, 'SyncObjs',
     ['Windows', 'Messages', 'SysUtils', 'Classes']);

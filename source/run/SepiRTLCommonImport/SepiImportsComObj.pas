@@ -18,68 +18,68 @@ implementation
 type
   TSepiImportsTComServerObject = class(TComServerObject)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTComClassManager = class(TComClassManager)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTComObject = class(TComObject)
   private
     function GetController: IUnknown;
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTComObjectFactory = class(TComObjectFactory)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTTypedComObject = class(TTypedComObject)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTTypedComObjectFactory = class(TTypedComObjectFactory)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTAutoObject = class(TAutoObject)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTAutoObjectFactory = class(TAutoObjectFactory)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTAutoIntfObject = class(TAutoIntfObject)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsEOleError = class(EOleError)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsEOleSysError = class(EOleSysError)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsEOleException = class(EOleException)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsEOleRegistrationError = class(EOleRegistrationError)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
 {-------------------------}
@@ -87,7 +87,7 @@ type
 {-------------------------}
 
 class function TSepiImportsTComServerObject.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TComServerObject));
@@ -148,7 +148,7 @@ end;
 {-------------------------}
 
 class function TSepiImportsTComClassManager.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TComClassManager));
@@ -174,9 +174,11 @@ begin
       mlkOverride);
     AddMethod('ForEachFactory', @TSepiImportsTComClassManager.ForEachFactory,
       'procedure(ComServer: TComServerObject; FactoryProc: TFactoryProc )');
-    AddMethod('GetFactoryFromClass', @TSepiImportsTComClassManager.GetFactoryFromClass,
+    AddMethod('GetFactoryFromClass',
+      @TSepiImportsTComClassManager.GetFactoryFromClass,
       'function(ComClass: TClass): TComObjectFactory');
-    AddMethod('GetFactoryFromClassID', @TSepiImportsTComClassManager.GetFactoryFromClassID,
+    AddMethod('GetFactoryFromClassID',
+      @TSepiImportsTComClassManager.GetFactoryFromClassID,
       'function(const ClassID: TGUID): TComObjectFactory');
 
     Complete;
@@ -187,7 +189,7 @@ end;
 { IServerExceptionHandler import }
 {--------------------------------}
 
-function SepiImportIServerExceptionHandler(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIServerExceptionHandler(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IServerExceptionHandler));
@@ -211,7 +213,7 @@ begin
 end;
 
 class function TSepiImportsTComObject.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TComObject));
@@ -227,7 +229,8 @@ begin
     AddField('FFactory', System.TypeInfo(TComObjectFactory));
     AddField('FNonCountedObject', System.TypeInfo(Boolean));
     AddField('FRefCount', System.TypeInfo(Integer));
-    AddField('FServerExceptionHandler', System.TypeInfo(IServerExceptionHandler));
+    AddField('FServerExceptionHandler',
+      System.TypeInfo(IServerExceptionHandler));
 
     AddMethod('GetController', @TSepiImportsTComObject.GetController,
       'function: IUnknown');
@@ -244,7 +247,8 @@ begin
     AddMethod('_Release', @TSepiImportsTComObject._Release,
       'function: Integer',
       ccStdCall);
-    AddMethod('InterfaceSupportsErrorInfo', @TSepiImportsTComObject.InterfaceSupportsErrorInfo,
+    AddMethod('InterfaceSupportsErrorInfo',
+      @TSepiImportsTComObject.InterfaceSupportsErrorInfo,
       'function(const iid: TIID): HResult',
       ccStdCall);
 
@@ -293,7 +297,7 @@ end;
 {--------------------------}
 
 class function TSepiImportsTComObjectFactory.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass(Owner.FindMeta('TComObjectFactory'));
   Result.RegisterTypeInfo(
@@ -326,13 +330,16 @@ begin
     AddMethod('GetProgID', @TSepiImportsTComObjectFactory.GetProgID,
       'function: string',
       mlkVirtual);
-    AddMethod('GetLicenseString', @TSepiImportsTComObjectFactory.GetLicenseString,
+    AddMethod('GetLicenseString',
+      @TSepiImportsTComObjectFactory.GetLicenseString,
       'function: WideString',
       mlkVirtual);
-    AddMethod('HasMachineLicense', @TSepiImportsTComObjectFactory.HasMachineLicense,
+    AddMethod('HasMachineLicense',
+      @TSepiImportsTComObjectFactory.HasMachineLicense,
       'function: Boolean',
       mlkVirtual);
-    AddMethod('ValidateUserLicense', @TSepiImportsTComObjectFactory.ValidateUserLicense,
+    AddMethod('ValidateUserLicense',
+      @TSepiImportsTComObjectFactory.ValidateUserLicense,
       'function(const LicStr: WideString): Boolean',
       mlkVirtual);
     AddMethod('QueryInterface', @TSepiImportsTComObjectFactory.QueryInterface,
@@ -356,7 +363,8 @@ begin
     AddMethod('RequestLicKey', @TSepiImportsTComObjectFactory.RequestLicKey,
       'function(dwResrved: Longint; out bstrKey: WideString): HResult',
       ccStdCall);
-    AddMethod('CreateInstanceLic', @TSepiImportsTComObjectFactory.CreateInstanceLic,
+    AddMethod('CreateInstanceLic',
+      @TSepiImportsTComObjectFactory.CreateInstanceLic,
       'function(const unkOuter: IUnknown; const unkReserved: IUnknown; const iid: TIID ; const bstrKey: WideString ; out vObject ) : HResult',
       ccStdCall);
 
@@ -367,10 +375,12 @@ begin
     AddMethod('Destroy', @TSepiImportsTComObjectFactory.Destroy,
       'destructor',
       mlkOverride);
-    AddMethod('CreateComObject', @TSepiImportsTComObjectFactory.CreateComObject,
+    AddMethod('CreateComObject',
+      @TSepiImportsTComObjectFactory.CreateComObject,
       'function(const Controller: IUnknown): TComObject',
       mlkVirtual);
-    AddMethod('RegisterClassObject', @TSepiImportsTComObjectFactory.RegisterClassObject,
+    AddMethod('RegisterClassObject',
+      @TSepiImportsTComObjectFactory.RegisterClassObject,
       'procedure');
     AddMethod('UpdateRegistry', @TSepiImportsTComObjectFactory.UpdateRegistry,
       'procedure(Register: Boolean)',
@@ -410,7 +420,7 @@ end;
 {------------------------}
 
 class function TSepiImportsTTypedComObject.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TTypedComObject));
@@ -434,7 +444,7 @@ end;
 {-------------------------------}
 
 class function TSepiImportsTTypedComObjectFactory.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TTypedComObjectFactory));
@@ -449,9 +459,11 @@ begin
 
     AddMethod('Create', @TSepiImportsTTypedComObjectFactory.Create,
       'constructor(ComServer: TComServerObject; TypedComClass: TTypedComClass ; const ClassID: TGUID ; Instancing: TClassInstancing ; ThreadingModel: TThreadingModel = tmSingle )');
-    AddMethod('GetInterfaceTypeInfo', @TSepiImportsTTypedComObjectFactory.GetInterfaceTypeInfo,
+    AddMethod('GetInterfaceTypeInfo',
+      @TSepiImportsTTypedComObjectFactory.GetInterfaceTypeInfo,
       'function(TypeFlags: Integer): ITypeInfo');
-    AddMethod('UpdateRegistry', @TSepiImportsTTypedComObjectFactory.UpdateRegistry,
+    AddMethod('UpdateRegistry',
+      @TSepiImportsTTypedComObjectFactory.UpdateRegistry,
       'procedure(Register: Boolean)',
       mlkOverride);
 
@@ -467,7 +479,7 @@ end;
 {--------------------}
 
 class function TSepiImportsTAutoObject.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TAutoObject));
@@ -521,7 +533,7 @@ end;
 {---------------------------}
 
 class function TSepiImportsTAutoObjectFactory.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass(Owner.FindMeta('TAutoObjectFactory'));
   Result.RegisterTypeInfo(
@@ -562,7 +574,7 @@ end;
 {------------------------}
 
 class function TSepiImportsTAutoIntfObject.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TAutoIntfObject));
@@ -586,13 +598,15 @@ begin
     AddMethod('GetTypeInfo', @TSepiImportsTAutoIntfObject.GetTypeInfo,
       'function(Index, LocaleID: Integer; out TypeInfo): HResult',
       ccStdCall);
-    AddMethod('GetTypeInfoCount', @TSepiImportsTAutoIntfObject.GetTypeInfoCount,
+    AddMethod('GetTypeInfoCount',
+      @TSepiImportsTAutoIntfObject.GetTypeInfoCount,
       'function(out Count: Integer): HResult',
       ccStdCall);
     AddMethod('Invoke', @TSepiImportsTAutoIntfObject.Invoke,
       'function(DispID: Integer; const IID: TGUID; LocaleID: Integer; Flags: Word ; var Params ; VarResult, ExcepInfo, ArgErr: Pointer ) : HResult',
       ccStdCall);
-    AddMethod('InterfaceSupportsErrorInfo', @TSepiImportsTAutoIntfObject.InterfaceSupportsErrorInfo,
+    AddMethod('InterfaceSupportsErrorInfo',
+      @TSepiImportsTAutoIntfObject.InterfaceSupportsErrorInfo,
       'function(const iid: TIID): HResult',
       ccStdCall);
 
@@ -600,7 +614,8 @@ begin
 
     AddMethod('Create', @TSepiImportsTAutoIntfObject.Create,
       'constructor(const TypeLib: ITypeLib; const DispIntf: TGUID)');
-    AddMethod('SafeCallException', @TSepiImportsTAutoIntfObject.SafeCallException,
+    AddMethod('SafeCallException',
+      @TSepiImportsTAutoIntfObject.SafeCallException,
       'function(ExceptObject: TObject; ExceptAddr: Pointer ) : HResult',
       mlkOverride);
 
@@ -620,7 +635,7 @@ end;
 {------------------}
 
 class function TSepiImportsEOleError.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EOleError));
@@ -637,7 +652,7 @@ end;
 {---------------------}
 
 class function TSepiImportsEOleSysError.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EOleSysError));
@@ -665,7 +680,7 @@ end;
 {----------------------}
 
 class function TSepiImportsEOleException.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EOleException));
@@ -696,7 +711,7 @@ end;
 {------------------------------}
 
 class function TSepiImportsEOleRegistrationError.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EOleRegistrationError));
@@ -722,17 +737,19 @@ begin
   Result := GetDispatchPropValue(Disp, Name);
 end;
 
-procedure SetDispatchPropValue_0(Disp: IDispatch; DispID: Integer; const Value: OleVariant );
+procedure SetDispatchPropValue_0(Disp: IDispatch; DispID: Integer;
+  const Value: OleVariant);
 begin
   SetDispatchPropValue(Disp, DispID, Value);
 end;
 
-procedure SetDispatchPropValue_1(Disp: IDispatch; Name: WideString; const Value: OleVariant );
+procedure SetDispatchPropValue_1(Disp: IDispatch; Name: WideString;
+  const Value: OleVariant);
 begin
   SetDispatchPropValue(Disp, Name, Value);
 end;
 
-function ImportUnit(Root : TSepiRoot) : TSepiUnit;
+function ImportUnit(Root: TSepiRoot): TSepiUnit;
 begin
   Result := TSepiUnit.Create(Root, 'ComObj',
     ['Variants', 'Windows', 'ActiveXTypes', 'SysUtils']);
@@ -749,7 +766,8 @@ begin
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(TThreadingModel));
   TSepiImportsTComObjectFactory.SepiImport(Result);
   TSepiImportsTTypedComObject.SepiImport(Result);
-  TSepiMetaClass.Create(Result, 'TTypedComClass', TypeInfo(TTypedComObject), True);
+  TSepiMetaClass.Create(Result, 'TTypedComClass',
+    TypeInfo(TTypedComObject), True);
   TSepiImportsTTypedComObjectFactory.SepiImport(Result);
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(TConnectEvent));
   TSepiClass.ForwardDecl(Result, TypeInfo(TAutoObjectFactory));
@@ -767,7 +785,8 @@ begin
     'procedure(const Dispatch: IDispatch; CallDesc: PCallDesc; DispIDs: PDispIDList ; Params: Pointer ; Result: PVariant )');
   TSepiMethod.Create(Result, 'DispatchInvokeError', @DispatchInvokeError,
     'procedure(Status: Integer; const ExcepInfo: TExcepInfo)');
-  TSepiMethod.Create(Result, 'HandleSafeCallException', @HandleSafeCallException,
+  TSepiMethod.Create(Result, 'HandleSafeCallException',
+    @HandleSafeCallException,
     'function(ExceptObject: TObject; ExceptAddr: Pointer ; const ErrorIID: TGUID ; const ProgID, HelpFileName : WideString ) : HResult');
   TSepiMethod.Create(Result, 'CreateComObject', @CreateComObject,
     'function(const ClassID: TGUID): IUnknown');
@@ -808,21 +827,26 @@ begin
   TSepiMethod.Create(Result, 'InterfaceDisconnect', @InterfaceDisconnect,
     'procedure(const Source: IUnknown; const IID: TIID; var Connection: Longint )');
   TSepiOverloadedMethod.Create(Result, 'GetDispatchPropValue');
-  TSepiMethod.Create(Result, 'OL$GetDispatchPropValue$0', @GetDispatchPropValue_0,
+  TSepiMethod.Create(Result, 'OL$GetDispatchPropValue$0',
+    @GetDispatchPropValue_0,
     'function(Disp: IDispatch; DispID: Integer): OleVariant');
-  TSepiMethod.Create(Result, 'OL$GetDispatchPropValue$1', @GetDispatchPropValue_1,
+  TSepiMethod.Create(Result, 'OL$GetDispatchPropValue$1',
+    @GetDispatchPropValue_1,
     'function(Disp: IDispatch; Name: WideString): OleVariant');
   TSepiOverloadedMethod.Create(Result, 'SetDispatchPropValue');
-  TSepiMethod.Create(Result, 'OL$SetDispatchPropValue$0', @SetDispatchPropValue_0,
+  TSepiMethod.Create(Result, 'OL$SetDispatchPropValue$0',
+    @SetDispatchPropValue_0,
     'procedure(Disp: IDispatch; DispID: Integer; const Value: OleVariant )');
-  TSepiMethod.Create(Result, 'OL$SetDispatchPropValue$1', @SetDispatchPropValue_1,
+  TSepiMethod.Create(Result, 'OL$SetDispatchPropValue$1',
+    @SetDispatchPropValue_1,
     'procedure(Disp: IDispatch; Name: WideString; const Value: OleVariant )');
 
   // Types
   TSepiMethodRefType.Create(Result, 'TCoCreateInstanceExProc',
     'function(const clsid: TCLSID; unkOuter: IUnknown ; dwClsCtx: Longint ; ServerInfo: PCoServerInfo ; dwCount: Longint ; rgmqResults: PMultiQIArray ) : HResult', False, ccStdCall);
   TSepiMethodRefType.Create(Result, 'TCoInitializeExProc',
-    'function(pvReserved: Pointer; coInit: Longint ) : HResult', False, ccStdCall);
+    'function(pvReserved: Pointer; coInit: Longint ) : HResult',
+    False, ccStdCall);
   TSepiMethodRefType.Create(Result, 'TCoAddRefServerProcessProc',
     'function:Longint', False, ccStdCall);
   TSepiMethodRefType.Create(Result, 'TCoReleaseServerProcessProc',
@@ -848,7 +872,7 @@ begin
 
   // Global variables
   TSepiVariable.Create(Result, 'CoInitFlags',
-     CoInitFlags, TypeInfo(Integer));
+    CoInitFlags, TypeInfo(Integer));
 
   // Routines
   TSepiMethod.Create(Result, 'ComClassManager', @ComClassManager,

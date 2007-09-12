@@ -25,13 +25,13 @@ type
     procedure FormKeyPress(Sender: TObject; var Key: Char);
   private
     { Composants non disponibles dans Turbo Explorer }
-    EditValue : TSpinEdit; /// Éditeur pour la valeur sélectionnée
+    EditValue: TSpinEdit; /// Éditeur pour la valeur sélectionnée
 
     { Déclarations privées }
   public
     { Déclarations publiques }
-    class function QueryNumber(const Title, Prompt : string;
-      Default, Min, Max : integer) : integer;
+    class function QueryNumber(const Title, Prompt: string;
+      Default, Min, Max: Integer): Integer;
   end;
 
 implementation
@@ -47,32 +47,32 @@ implementation
   @param Max       Valeur maximale que peut choisir l'utilisateur
   @return La valeur qu'a choisie l'utilisateur
 *}
-class function TSdNumberForm.QueryNumber(const Title, Prompt : string;
-  Default, Min, Max : integer) : integer;
+class function TSdNumberForm.QueryNumber(const Title, Prompt: string;
+  Default, Min, Max: Integer): Integer;
 begin
   with Create(Application) do
-  try
-    Default := MinMax(Default, Min, Max);
+    try
+      Default := MinMax(Default, Min, Max);
 
-    Caption := Title;
-    LabelPrompt.Caption := Prompt;
+      Caption := Title;
+      LabelPrompt.Caption := Prompt;
 
-    EditValue.Value := Default;
-    EditValue.MinValue := Min;
-    EditValue.MaxValue := Max;
+      EditValue.Value := Default;
+      EditValue.MinValue := Min;
+      EditValue.MaxValue := Max;
 
-    EditValue.Enabled := Min <> Max;
-    if EditValue.Enabled then
-      ActiveControl := EditValue
-    else
-      ActiveControl := ButtonOK;
+      EditValue.Enabled := Min <> Max;
+      if EditValue.Enabled then
+        ActiveControl := EditValue
+      else
+        ActiveControl := ButtonOK;
 
-    ShowModal;
+      ShowModal;
 
-    Result := EditValue.Value;
-  finally
-    Release;
-  end;
+      Result := EditValue.Value;
+    finally
+      Release;
+    end;
 end;
 
 {*
@@ -105,7 +105,7 @@ end;
 procedure TSdNumberForm.FormKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
-  if Key = VK_RETURN then ModalResult := mrOK;
+  if Key = VK_RETURN then ModalResult := mrOk;
 end;
 
 {*

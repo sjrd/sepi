@@ -19,7 +19,7 @@ implementation
 { TCharFormatA import }
 {---------------------}
 
-function SepiImportTCharFormatA(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTCharFormatA(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TCharFormatA', False, True);
 
@@ -43,7 +43,7 @@ end;
 { TCharFormatW import }
 {---------------------}
 
-function SepiImportTCharFormatW(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTCharFormatW(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TCharFormatW', False, True);
 
@@ -67,14 +67,14 @@ end;
 { _charrange import }
 {-------------------}
 
-function SepiImport_charrange(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_charrange(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_charrange', False, True);
 
   with Result do
   begin
     AddField('cpMin', System.TypeInfo(Longint));
-    AddField('cpMax', System.TypeInfo(LongInt));
+    AddField('cpMax', System.TypeInfo(Longint));
 
     Complete;
   end;
@@ -84,7 +84,7 @@ end;
 { TEXTRANGEA import }
 {-------------------}
 
-function SepiImportTEXTRANGEA(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTEXTRANGEA(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TEXTRANGEA', False, True);
 
@@ -101,7 +101,7 @@ end;
 { TEXTRANGEW import }
 {-------------------}
 
-function SepiImportTEXTRANGEW(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTEXTRANGEW(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TEXTRANGEW', False, True);
 
@@ -118,7 +118,7 @@ end;
 { _editstream import }
 {--------------------}
 
-function SepiImport_editstream(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_editstream(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_editstream', False, True);
 
@@ -136,7 +136,7 @@ end;
 { FINDTEXTA import }
 {------------------}
 
-function SepiImportFINDTEXTA(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportFINDTEXTA(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'FINDTEXTA', False, True);
 
@@ -153,7 +153,7 @@ end;
 { FINDTEXTW import }
 {------------------}
 
-function SepiImportFINDTEXTW(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportFINDTEXTW(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'FINDTEXTW', False, True);
 
@@ -170,7 +170,7 @@ end;
 { FINDTEXTEXA import }
 {--------------------}
 
-function SepiImportFINDTEXTEXA(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportFINDTEXTEXA(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'FINDTEXTEXA', False, True);
 
@@ -188,7 +188,7 @@ end;
 { FINDTEXTEXW import }
 {--------------------}
 
-function SepiImportFINDTEXTEXW(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportFINDTEXTEXW(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'FINDTEXTEXW', False, True);
 
@@ -206,7 +206,7 @@ end;
 { _formatrange import }
 {---------------------}
 
-function SepiImport_formatrange(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_formatrange(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_formatrange', False, True);
 
@@ -226,7 +226,7 @@ end;
 { _paraformat import }
 {--------------------}
 
-function SepiImport_paraformat(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_paraformat(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_paraformat', False, True);
 
@@ -251,7 +251,7 @@ end;
 { CHARFORMAT2A import }
 {---------------------}
 
-function SepiImportCHARFORMAT2A(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportCHARFORMAT2A(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'CHARFORMAT2A', False, True);
 
@@ -286,7 +286,7 @@ end;
 { CHARFORMAT2W import }
 {---------------------}
 
-function SepiImportCHARFORMAT2W(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportCHARFORMAT2W(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'CHARFORMAT2W', False, True);
 
@@ -321,7 +321,7 @@ end;
 { PARAFORMAT2 import }
 {--------------------}
 
-function SepiImportPARAFORMAT2(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportPARAFORMAT2(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'PARAFORMAT2', False, True);
 
@@ -360,7 +360,7 @@ end;
 { _msgfilter import }
 {-------------------}
 
-function SepiImport_msgfilter(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_msgfilter(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_msgfilter', False, True);
 
@@ -379,7 +379,7 @@ end;
 { TReqSize import }
 {-----------------}
 
-function SepiImportTReqSize(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTReqSize(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TReqSize', False, True);
 
@@ -396,7 +396,7 @@ end;
 { _selchange import }
 {-------------------}
 
-function SepiImport_selchange(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_selchange(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_selchange', False, True);
 
@@ -414,7 +414,7 @@ end;
 { TEndDropFiles import }
 {----------------------}
 
-function SepiImportTEndDropFiles(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTEndDropFiles(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TEndDropFiles', False, True);
 
@@ -433,7 +433,7 @@ end;
 { _enprotected import }
 {---------------------}
 
-function SepiImport_enprotected(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_enprotected(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_enprotected', False, True);
 
@@ -453,7 +453,7 @@ end;
 { _ensaveclipboard import }
 {-------------------------}
 
-function SepiImport_ensaveclipboard(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_ensaveclipboard(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_ensaveclipboard', False, True);
 
@@ -471,7 +471,7 @@ end;
 { ENOLEOPFAILED import }
 {----------------------}
 
-function SepiImportENOLEOPFAILED(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportENOLEOPFAILED(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'ENOLEOPFAILED', True, True);
 
@@ -490,7 +490,7 @@ end;
 { OBJECTPOSITIONS import }
 {------------------------}
 
-function SepiImportOBJECTPOSITIONS(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportOBJECTPOSITIONS(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'OBJECTPOSITIONS', True, True);
 
@@ -508,7 +508,7 @@ end;
 { ENLINK import }
 {---------------}
 
-function SepiImportENLINK(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportENLINK(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'ENLINK', False, True);
 
@@ -528,7 +528,7 @@ end;
 { _encorrecttext import }
 {-----------------------}
 
-function SepiImport_encorrecttext(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_encorrecttext(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_encorrecttext', False, True);
 
@@ -546,7 +546,7 @@ end;
 { _punctuation import }
 {---------------------}
 
-function SepiImport_punctuation(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_punctuation(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_punctuation', False, True);
 
@@ -563,7 +563,7 @@ end;
 { _compcolor import }
 {-------------------}
 
-function SepiImport_compcolor(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_compcolor(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_compcolor', False, True);
 
@@ -581,7 +581,7 @@ end;
 { _repastespecial import }
 {------------------------}
 
-function SepiImport_repastespecial(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_repastespecial(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_repastespecial', False, True);
 
@@ -598,7 +598,7 @@ end;
 { GETTEXTEX import }
 {------------------}
 
-function SepiImportGETTEXTEX(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportGETTEXTEX(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'GETTEXTEX', False, True);
 
@@ -618,7 +618,7 @@ end;
 { GETTEXTLENGTHEX import }
 {------------------------}
 
-function SepiImportGETTEXTLENGTHEX(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportGETTEXTLENGTHEX(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'GETTEXTLENGTHEX', False, True);
 
@@ -635,7 +635,7 @@ end;
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiRoot) : TSepiUnit;
+function ImportUnit(Root: TSepiRoot): TSepiUnit;
 begin
   Result := TSepiUnit.Create(Root, 'RichEdit',
     ['Messages', 'Windows']);
@@ -716,7 +716,8 @@ begin
   TSepiConstant.Create(Result, 'IMF_AUTOKEYBOARD', IMF_AUTOKEYBOARD);
   TSepiConstant.Create(Result, 'IMF_AUTOFONT', IMF_AUTOFONT);
   TSepiConstant.Create(Result, 'IMF_IMECANCELCOMPLETE', IMF_IMECANCELCOMPLETE);
-  TSepiConstant.Create(Result, 'IMF_IMEALWAYSSENDNOTIFY', IMF_IMEALWAYSSENDNOTIFY);
+  TSepiConstant.Create(Result, 'IMF_IMEALWAYSSENDNOTIFY',
+    IMF_IMEALWAYSSENDNOTIFY);
   TSepiConstant.Create(Result, 'ICM_NOTOPEN', ICM_NOTOPEN);
   TSepiConstant.Create(Result, 'ICM_LEVEL3', ICM_LEVEL3);
   TSepiConstant.Create(Result, 'ICM_LEVEL2', ICM_LEVEL2);
@@ -854,7 +855,8 @@ begin
 
   // Types
   TSepiMethodRefType.Create(Result, 'TEditStreamCallBack',
-    'function(dwCookie: Longint; pbBuff: PByte; cb: Longint ; var pcb: Longint ) : Longint', False, ccStdCall);
+    'function(dwCookie: Longint; pbBuff: PByte; cb: Longint ; var pcb: Longint ) : Longint',
+    False, ccStdCall);
   SepiImport_editstream(Result);
   TSepiTypeAlias.Create(Result, 'TEditStream', '_editstream');
   TSepiTypeAlias.Create(Result, 'EDITSTREAM', '_editstream');
@@ -1035,7 +1037,8 @@ begin
   SepiImport_enprotected(Result);
   TSepiTypeAlias.Create(Result, 'TENProtected', '_enprotected');
   TSepiTypeAlias.Create(Result, 'ENPROTECTED', '_enprotected');
-  TSepiPointerType.Create(Result, 'PENSaveClipboard', 'TENSaveClipboard', True);
+  TSepiPointerType.Create(Result, 'PENSaveClipboard',
+    'TENSaveClipboard', True);
   SepiImport_ensaveclipboard(Result);
   TSepiTypeAlias.Create(Result, 'TENSaveClipboard', '_ensaveclipboard');
   TSepiTypeAlias.Create(Result, 'ENSAVECLIPBOARD', '_ensaveclipboard');

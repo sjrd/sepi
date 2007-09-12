@@ -19,7 +19,7 @@ implementation
 { _SHITEMID import }
 {------------------}
 
-function SepiImport_SHITEMID(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_SHITEMID(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_SHITEMID', False, True);
 
@@ -36,7 +36,7 @@ end;
 { _ITEMIDLIST import }
 {--------------------}
 
-function SepiImport_ITEMIDLIST(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_ITEMIDLIST(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_ITEMIDLIST', False, True);
 
@@ -52,7 +52,7 @@ end;
 { _CMINVOKECOMMANDINFO import }
 {-----------------------------}
 
-function SepiImport_CMINVOKECOMMANDINFO(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_CMINVOKECOMMANDINFO(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_CMINVOKECOMMANDINFO', False, True);
 
@@ -76,9 +76,10 @@ end;
 { _CMInvokeCommandInfoEx import }
 {-------------------------------}
 
-function SepiImport_CMInvokeCommandInfoEx(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_CMInvokeCommandInfoEx(Owner: TSepiUnit): TSepiRecordType;
 begin
-  Result := TSepiRecordType.Create(Owner, '_CMInvokeCommandInfoEx', False, True);
+  Result := TSepiRecordType.Create(Owner, '_CMInvokeCommandInfoEx',
+    False, True);
 
   with Result do
   begin
@@ -106,7 +107,7 @@ end;
 { IContextMenu import }
 {---------------------}
 
-function SepiImportIContextMenu(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIContextMenu(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IContextMenu));
@@ -114,11 +115,13 @@ begin
   with Result do
   begin
     AddMethod('QueryContextMenu',
-      'function(Menu: HMENU; indexMenu, idCmdFirst, idCmdLast, uFlags: UINT ) : HResult', ccStdCall);
+      'function(Menu: HMENU; indexMenu, idCmdFirst, idCmdLast, uFlags: UINT ) : HResult',
+      ccStdCall);
     AddMethod('InvokeCommand',
       'function(var lpici: TCMInvokeCommandInfo): HResult', ccStdCall);
     AddMethod('GetCommandString',
-      'function(idCmd, uType: UINT; pwReserved: PUINT; pszName: LPSTR ; cchMax: UINT ) : HResult', ccStdCall);
+      'function(idCmd, uType: UINT; pwReserved: PUINT; pszName: LPSTR ; cchMax: UINT ) : HResult',
+      ccStdCall);
 
     Complete;
   end;
@@ -128,7 +131,7 @@ end;
 { IContextMenu2 import }
 {----------------------}
 
-function SepiImportIContextMenu2(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIContextMenu2(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IContextMenu2));
@@ -146,7 +149,7 @@ end;
 { IContextMenu3 import }
 {----------------------}
 
-function SepiImportIContextMenu3(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIContextMenu3(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IContextMenu3));
@@ -154,7 +157,8 @@ begin
   with Result do
   begin
     AddMethod('HandleMenuMsg2',
-      'function(uMsg: UINT; wParam, lParam: Integer; var lpResult: Integer ) : HResult', ccStdCall);
+      'function(uMsg: UINT; wParam, lParam: Integer; var lpResult: Integer ) : HResult',
+      ccStdCall);
 
     Complete;
   end;
@@ -164,7 +168,7 @@ end;
 { IShellExtInit import }
 {----------------------}
 
-function SepiImportIShellExtInit(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIShellExtInit(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IShellExtInit));
@@ -172,7 +176,8 @@ begin
   with Result do
   begin
     AddMethod('Initialize',
-      'function(pidlFolder: PItemIDList; lpdobj: IDataObject; hKeyProgID: HKEY ) : HResult', ccStdCall);
+      'function(pidlFolder: PItemIDList; lpdobj: IDataObject; hKeyProgID: HKEY ) : HResult',
+      ccStdCall);
 
     Complete;
   end;
@@ -182,7 +187,7 @@ end;
 { IShellPropSheetExt import }
 {---------------------------}
 
-function SepiImportIShellPropSheetExt(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIShellPropSheetExt(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IShellPropSheetExt));
@@ -190,9 +195,11 @@ begin
   with Result do
   begin
     AddMethod('AddPages',
-      'function(lpfnAddPage: TFNAddPropSheetPage; lParam: LPARAM): HResult', ccStdCall);
+      'function(lpfnAddPage: TFNAddPropSheetPage; lParam: LPARAM): HResult',
+      ccStdCall);
     AddMethod('ReplacePage',
-      'function(uPageID: UINT; lpfnReplaceWith: TFNAddPropSheetPage; lParam: LPARAM ) : HResult', ccStdCall);
+      'function(uPageID: UINT; lpfnReplaceWith: TFNAddPropSheetPage; lParam: LPARAM ) : HResult',
+      ccStdCall);
 
     Complete;
   end;
@@ -202,7 +209,7 @@ end;
 { IPersistFolder import }
 {-----------------------}
 
-function SepiImportIPersistFolder(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIPersistFolder(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IPersistFolder));
@@ -220,7 +227,7 @@ end;
 { IPersistFolder2 import }
 {------------------------}
 
-function SepiImportIPersistFolder2(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIPersistFolder2(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IPersistFolder2));
@@ -238,7 +245,7 @@ end;
 { IExtractIconA import }
 {----------------------}
 
-function SepiImportIExtractIconA(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIExtractIconA(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IExtractIconA));
@@ -246,9 +253,11 @@ begin
   with Result do
   begin
     AddMethod('GetIconLocation',
-      'function(uFlags: UINT; szIconFile: PAnsiChar; cchMax: UINT; out piIndex: Integer ; out pwFlags: UINT ) : HResult', ccStdCall);
+      'function(uFlags: UINT; szIconFile: PAnsiChar; cchMax: UINT; out piIndex: Integer ; out pwFlags: UINT ) : HResult',
+      ccStdCall);
     AddMethod('Extract',
-      'function(pszFile: PAnsiChar; nIconIndex: UINT; out phiconLarge, phiconSmall: HICON ; nIconSize: UINT ) : HResult', ccStdCall);
+      'function(pszFile: PAnsiChar; nIconIndex: UINT; out phiconLarge, phiconSmall: HICON ; nIconSize: UINT ) : HResult',
+      ccStdCall);
 
     Complete;
   end;
@@ -258,7 +267,7 @@ end;
 { IExtractIconW import }
 {----------------------}
 
-function SepiImportIExtractIconW(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIExtractIconW(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IExtractIconW));
@@ -266,9 +275,11 @@ begin
   with Result do
   begin
     AddMethod('GetIconLocation',
-      'function(uFlags: UINT; szIconFile: PWideChar; cchMax: UINT; out piIndex: Integer ; out pwFlags: UINT ) : HResult', ccStdCall);
+      'function(uFlags: UINT; szIconFile: PWideChar; cchMax: UINT; out piIndex: Integer ; out pwFlags: UINT ) : HResult',
+      ccStdCall);
     AddMethod('Extract',
-      'function(pszFile: PWideChar; nIconIndex: UINT; out phiconLarge, phiconSmall: HICON ; nIconSize: UINT ) : HResult', ccStdCall);
+      'function(pszFile: PWideChar; nIconIndex: UINT; out phiconLarge, phiconSmall: HICON ; nIconSize: UINT ) : HResult',
+      ccStdCall);
 
     Complete;
   end;
@@ -278,7 +289,7 @@ end;
 { IShellIcon import }
 {-------------------}
 
-function SepiImportIShellIcon(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIShellIcon(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IShellIcon));
@@ -286,7 +297,8 @@ begin
   with Result do
   begin
     AddMethod('GetIconOf',
-      'function(pidl: PItemIDList; flags: UINT; out IconIndex: Integer ) : HResult', ccStdCall);
+      'function(pidl: PItemIDList; flags: UINT; out IconIndex: Integer ) : HResult',
+      ccStdCall);
 
     Complete;
   end;
@@ -296,7 +308,7 @@ end;
 { IShellIconOverlayIdentifier import }
 {------------------------------------}
 
-function SepiImportIShellIconOverlayIdentifier(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIShellIconOverlayIdentifier(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IShellIconOverlayIdentifier));
@@ -306,7 +318,8 @@ begin
     AddMethod('IsMemberOf',
       'function(pwszPath: PWideChar; dwAttrib: DWORD): HResult', ccStdCall);
     AddMethod('GetOverlayInfo',
-      'function(pwszIconFile: PWideChar; cchMax: Integer; var pIndex: Integer ; var pdwFlags: DWORD ) : HResult', ccStdCall);
+      'function(pwszIconFile: PWideChar; cchMax: Integer; var pIndex: Integer ; var pdwFlags: DWORD ) : HResult',
+      ccStdCall);
     AddMethod('GetPriority',
       'function(out pIPriority: Integer): HResult', ccStdCall);
 
@@ -318,7 +331,7 @@ end;
 { IShellIconOverlay import }
 {--------------------------}
 
-function SepiImportIShellIconOverlay(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIShellIconOverlay(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IShellIconOverlay));
@@ -328,7 +341,8 @@ begin
     AddMethod('GetOverlayIndex',
       'function(pidl: PItemIDList; out pIndex: Integer): HResult', ccStdCall);
     AddMethod('GetOverlayIconIndex',
-      'function(pidl: PItemIDList; out pIconIndex: Integer): HResult', ccStdCall);
+      'function(pidl: PItemIDList; out pIconIndex: Integer): HResult',
+      ccStdCall);
 
     Complete;
   end;
@@ -338,7 +352,7 @@ end;
 { IShellLinkA import }
 {--------------------}
 
-function SepiImportIShellLinkA(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIShellLinkA(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IShellLinkA));
@@ -346,7 +360,8 @@ begin
   with Result do
   begin
     AddMethod('GetPath',
-      'function(pszFile: PAnsiChar; cchMaxPath: Integer; var pfd: TWin32FindData ; fFlags: DWORD ) : HResult', ccStdCall);
+      'function(pszFile: PAnsiChar; cchMaxPath: Integer; var pfd: TWin32FindData ; fFlags: DWORD ) : HResult',
+      ccStdCall);
     AddMethod('GetIDList',
       'function(var ppidl: PItemIDList): HResult', ccStdCall);
     AddMethod('SetIDList',
@@ -372,11 +387,13 @@ begin
     AddMethod('SetShowCmd',
       'function(iShowCmd: Integer): HResult', ccStdCall);
     AddMethod('GetIconLocation',
-      'function(pszIconPath: PAnsiChar; cchIconPath: Integer; out piIcon: Integer ) : HResult', ccStdCall);
+      'function(pszIconPath: PAnsiChar; cchIconPath: Integer; out piIcon: Integer ) : HResult',
+      ccStdCall);
     AddMethod('SetIconLocation',
       'function(pszIconPath: PAnsiChar; iIcon: Integer): HResult', ccStdCall);
     AddMethod('SetRelativePath',
-      'function(pszPathRel: PAnsiChar; dwReserved: DWORD): HResult', ccStdCall);
+      'function(pszPathRel: PAnsiChar; dwReserved: DWORD): HResult',
+      ccStdCall);
     AddMethod('Resolve',
       'function(Wnd: HWND; fFlags: DWORD): HResult', ccStdCall);
     AddMethod('SetPath',
@@ -390,7 +407,7 @@ end;
 { IShellLinkW import }
 {--------------------}
 
-function SepiImportIShellLinkW(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIShellLinkW(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IShellLinkW));
@@ -398,7 +415,8 @@ begin
   with Result do
   begin
     AddMethod('GetPath',
-      'function(pszFile: PWideChar; cchMaxPath: Integer; var pfd: TWin32FindData ; fFlags: DWORD ) : HResult', ccStdCall);
+      'function(pszFile: PWideChar; cchMaxPath: Integer; var pfd: TWin32FindData ; fFlags: DWORD ) : HResult',
+      ccStdCall);
     AddMethod('GetIDList',
       'function(var ppidl: PItemIDList): HResult', ccStdCall);
     AddMethod('SetIDList',
@@ -424,11 +442,13 @@ begin
     AddMethod('SetShowCmd',
       'function(iShowCmd: Integer): HResult', ccStdCall);
     AddMethod('GetIconLocation',
-      'function(pszIconPath: PWideChar; cchIconPath: Integer; out piIcon: Integer ) : HResult', ccStdCall);
+      'function(pszIconPath: PWideChar; cchIconPath: Integer; out piIcon: Integer ) : HResult',
+      ccStdCall);
     AddMethod('SetIconLocation',
       'function(pszIconPath: PWideChar; iIcon: Integer): HResult', ccStdCall);
     AddMethod('SetRelativePath',
-      'function(pszPathRel: PWideChar; dwReserved: DWORD): HResult', ccStdCall);
+      'function(pszPathRel: PWideChar; dwReserved: DWORD): HResult',
+      ccStdCall);
     AddMethod('Resolve',
       'function(Wnd: HWND; fFlags: DWORD): HResult', ccStdCall);
     AddMethod('SetPath',
@@ -442,7 +462,7 @@ end;
 { IShellExecuteHookA import }
 {---------------------------}
 
-function SepiImportIShellExecuteHookA(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIShellExecuteHookA(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IShellExecuteHookA));
@@ -460,7 +480,7 @@ end;
 { IShellExecuteHookW import }
 {---------------------------}
 
-function SepiImportIShellExecuteHookW(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIShellExecuteHookW(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IShellExecuteHookW));
@@ -478,7 +498,7 @@ end;
 { IURLSearchHook import }
 {-----------------------}
 
-function SepiImportIURLSearchHook(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIURLSearchHook(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IURLSearchHook));
@@ -486,7 +506,8 @@ begin
   with Result do
   begin
     AddMethod('Translate',
-      'function(lpwszSearchURL: PWideChar; cchBufferSize: DWORD): HResult', ccStdCall);
+      'function(lpwszSearchURL: PWideChar; cchBufferSize: DWORD): HResult',
+      ccStdCall);
 
     Complete;
   end;
@@ -496,7 +517,7 @@ end;
 { INewShortcutHookA import }
 {--------------------------}
 
-function SepiImportINewShortcutHookA(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportINewShortcutHookA(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(INewShortcutHookA));
@@ -506,15 +527,18 @@ begin
     AddMethod('SetReferent',
       'function(pcszReferent: PAnsiChar; Wnd: HWND): HResult', ccStdCall);
     AddMethod('GetReferent',
-      'function(pcszReferent: PAnsiChar; cchReferent: Integer): HResult', ccStdCall);
+      'function(pcszReferent: PAnsiChar; cchReferent: Integer): HResult',
+      ccStdCall);
     AddMethod('SetFolder',
       'function(pcszFolder: PAnsiChar; Wnd: HWND): HResult', ccStdCall);
     AddMethod('GetFolder',
-      'function(pcszFolder: PAnsiChar; cchFolder: Integer): HResult', ccStdCall);
+      'function(pcszFolder: PAnsiChar; cchFolder: Integer): HResult',
+      ccStdCall);
     AddMethod('GetName',
       'function(pcszName: PAnsiChar; cchName: Integer): HResult', ccStdCall);
     AddMethod('GetExtension',
-      'function(pcszExtension: PAnsiChar; cchExtension: Integer): HResult', ccStdCall);
+      'function(pcszExtension: PAnsiChar; cchExtension: Integer): HResult',
+      ccStdCall);
 
     Complete;
   end;
@@ -524,7 +548,7 @@ end;
 { INewShortcutHookW import }
 {--------------------------}
 
-function SepiImportINewShortcutHookW(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportINewShortcutHookW(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(INewShortcutHookW));
@@ -534,15 +558,18 @@ begin
     AddMethod('SetReferent',
       'function(pcszReferent: PWideChar; Wnd: HWND): HResult', ccStdCall);
     AddMethod('GetReferent',
-      'function(pcszReferent: PWideChar; cchReferent: Integer): HResult', ccStdCall);
+      'function(pcszReferent: PWideChar; cchReferent: Integer): HResult',
+      ccStdCall);
     AddMethod('SetFolder',
       'function(pcszFolder: PWideChar; Wnd: HWND): HResult', ccStdCall);
     AddMethod('GetFolder',
-      'function(pcszFolder: PWideChar; cchFolder: Integer): HResult', ccStdCall);
+      'function(pcszFolder: PWideChar; cchFolder: Integer): HResult',
+      ccStdCall);
     AddMethod('GetName',
       'function(pcszName: PWideChar; cchName: Integer): HResult', ccStdCall);
     AddMethod('GetExtension',
-      'function(pcszExtension: PWideChar; cchExtension: Integer): HResult', ccStdCall);
+      'function(pcszExtension: PWideChar; cchExtension: Integer): HResult',
+      ccStdCall);
 
     Complete;
   end;
@@ -552,7 +579,7 @@ end;
 { ICopyHookA import }
 {-------------------}
 
-function SepiImportICopyHookA(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportICopyHookA(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(ICopyHookA));
@@ -570,7 +597,7 @@ end;
 { ICopyHookW import }
 {-------------------}
 
-function SepiImportICopyHookW(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportICopyHookW(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(ICopyHookW));
@@ -588,7 +615,7 @@ end;
 { IFileViewerSite import }
 {------------------------}
 
-function SepiImportIFileViewerSite(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIFileViewerSite(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IFileViewerSite));
@@ -608,7 +635,7 @@ end;
 { FVSHOWINFO import }
 {-------------------}
 
-function SepiImportFVSHOWINFO(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportFVSHOWINFO(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'FVSHOWINFO', True, True,
     TypeInfo(FVSHOWINFO));
@@ -620,7 +647,7 @@ begin
     AddField('iShow', System.TypeInfo(Integer));
     AddField('dwFlags', System.TypeInfo(DWORD));
     AddField('rect', 'TRECT');
-    AddField('punkRel', System.TypeInfo(IUNKNOWN));
+    AddField('punkRel', System.TypeInfo(IUnknown));
     AddField('strNewFile', '$2');
 
     Complete;
@@ -631,7 +658,7 @@ end;
 { IFileViewerA import }
 {---------------------}
 
-function SepiImportIFileViewerA(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIFileViewerA(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IFileViewerA));
@@ -653,7 +680,7 @@ end;
 { IFileViewerW import }
 {---------------------}
 
-function SepiImportIFileViewerW(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIFileViewerW(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IFileViewerW));
@@ -675,7 +702,7 @@ end;
 { FOLDERSETTINGS import }
 {-----------------------}
 
-function SepiImportFOLDERSETTINGS(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportFOLDERSETTINGS(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'FOLDERSETTINGS', True, True);
 
@@ -692,7 +719,7 @@ end;
 { IShellBrowser import }
 {----------------------}
 
-function SepiImportIShellBrowser(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIShellBrowser(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IShellBrowser));
@@ -700,9 +727,11 @@ begin
   with Result do
   begin
     AddMethod('InsertMenusSB',
-      'function(hMenuShared: HMENU; out MenuWidths: TOleMenuGroupWidths ) : HResult', ccStdCall);
+      'function(hMenuShared: HMENU; out MenuWidths: TOleMenuGroupWidths ) : HResult',
+      ccStdCall);
     AddMethod('SetMenuSB',
-      'function(hMenuShared: HMENU; hOleMenuReserved: HOLEMENU ; hwndActiveObject: HWND ) : HResult', ccStdCall);
+      'function(hMenuShared: HMENU; hOleMenuReserved: HOLEMENU ; hwndActiveObject: HWND ) : HResult',
+      ccStdCall);
     AddMethod('RemoveMenusSB',
       'function(hMenuShared: HMENU): HResult', ccStdCall);
     AddMethod('SetStatusTextSB',
@@ -718,13 +747,15 @@ begin
     AddMethod('GetControlWindow',
       'function(ID: UINT; out Wnd: HWND): HResult', ccStdCall);
     AddMethod('SendControlMsg',
-      'function(ID, Msg: UINT; wParm: WPARAM; lParm: LPARAM; var Rslt: LResult ) : HResult', ccStdCall);
+      'function(ID, Msg: UINT; wParm: WPARAM; lParm: LPARAM; var Rslt: LResult ) : HResult',
+      ccStdCall);
     AddMethod('QueryActiveShellView',
       'function(var ShellView: IShellView): HResult', ccStdCall);
     AddMethod('OnViewWindowActive',
       'function(var ShellView: IShellView): HResult', ccStdCall);
     AddMethod('SetToolbarItems',
-      'function(TBButton: PTBButton; nButtons, uFlags: UINT ) : HResult', ccStdCall);
+      'function(TBButton: PTBButton; nButtons, uFlags: UINT ) : HResult',
+      ccStdCall);
 
     Complete;
   end;
@@ -734,7 +765,7 @@ end;
 { ICommDlgBrowser import }
 {------------------------}
 
-function SepiImportICommDlgBrowser(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportICommDlgBrowser(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(ICommDlgBrowser));
@@ -746,7 +777,8 @@ begin
     AddMethod('OnStateChange',
       'function(const ppshv: IShellView; Change: ULONG): HResult', ccStdCall);
     AddMethod('IncludeObject',
-      'function(const ppshv: IShellView; pidl: PItemIDList): HResult', ccStdCall);
+      'function(const ppshv: IShellView; pidl: PItemIDList): HResult',
+      ccStdCall);
 
     Complete;
   end;
@@ -756,7 +788,7 @@ end;
 { IShellView import }
 {-------------------}
 
-function SepiImportIShellView(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIShellView(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface(Owner.FindMeta('IShellView'));
   Result.RegisterTypeInfo(
@@ -779,13 +811,15 @@ begin
     AddMethod('GetCurrentInfo',
       'function(out FolderSettings: TFolderSettings): HResult', ccStdCall);
     AddMethod('AddPropertySheetPages',
-      'function(Reseved: DWORD; lpfnAddPage: TFNAddPropSheetPage ; lParam: LPARAM ) : HResult', ccStdCall);
+      'function(Reseved: DWORD; lpfnAddPage: TFNAddPropSheetPage ; lParam: LPARAM ) : HResult',
+      ccStdCall);
     AddMethod('SaveViewState',
       'function: HResult', ccStdCall);
     AddMethod('SelectItem',
       'function(pidl: PItemIDList; flags: UINT): HResult', ccStdCall);
     AddMethod('GetItemObject',
-      'function(Item: UINT; const iid: TIID; var IPtr: Pointer): HResult', ccStdCall);
+      'function(Item: UINT; const iid: TIID; var IPtr: Pointer): HResult',
+      ccStdCall);
 
     Complete;
   end;
@@ -795,7 +829,7 @@ end;
 { _SV2CVW2_PARAMS import }
 {------------------------}
 
-function SepiImport_SV2CVW2_PARAMS(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_SV2CVW2_PARAMS(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_SV2CVW2_PARAMS', False, True,
     TypeInfo(_SV2CVW2_PARAMS));
@@ -818,7 +852,7 @@ end;
 { IShellView2 import }
 {--------------------}
 
-function SepiImportIShellView2(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIShellView2(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IShellView2));
@@ -832,7 +866,8 @@ begin
     AddMethod('HandleRename',
       'function(pidlNew: PItemIDList): HResult', ccStdCall);
     AddMethod('SelectAndPositionItem',
-      'function(pidlItem: PItemIDList; uFlags: UINT; var Point: TPoint ) : HResult', ccStdCall);
+      'function(pidlItem: PItemIDList; uFlags: UINT; var Point: TPoint ) : HResult',
+      ccStdCall);
 
     Complete;
   end;
@@ -842,7 +877,7 @@ end;
 { _STRRET import }
 {----------------}
 
-function SepiImport_STRRET(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_STRRET(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_STRRET', False, True);
 
@@ -862,7 +897,7 @@ end;
 { _SHELLDETAILS import }
 {----------------------}
 
-function SepiImport_SHELLDETAILS(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_SHELLDETAILS(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_SHELLDETAILS', False, True);
 
@@ -880,7 +915,7 @@ end;
 { IShellDetails import }
 {----------------------}
 
-function SepiImportIShellDetails(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIShellDetails(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IShellDetails));
@@ -888,7 +923,8 @@ begin
   with Result do
   begin
     AddMethod('GetDetailsOf',
-      'function(pidl: PItemIDList; iColumn: UINT; var pDetails: TShellDetails ) : HResult', ccStdCall);
+      'function(pidl: PItemIDList; iColumn: UINT; var pDetails: TShellDetails ) : HResult',
+      ccStdCall);
     AddMethod('ColumnClick',
       'function(iColumn: UINT): HResult', ccStdCall);
 
@@ -900,7 +936,7 @@ end;
 { _browseinfoA import }
 {---------------------}
 
-function SepiImport_browseinfoA(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_browseinfoA(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_browseinfoA', False, True);
 
@@ -923,7 +959,7 @@ end;
 { _browseinfoW import }
 {---------------------}
 
-function SepiImport_browseinfoW(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_browseinfoW(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_browseinfoW', False, True);
 
@@ -946,7 +982,7 @@ end;
 { IEnumIDList import }
 {--------------------}
 
-function SepiImportIEnumIDList(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIEnumIDList(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IEnumIDList));
@@ -954,7 +990,8 @@ begin
   with Result do
   begin
     AddMethod('Next',
-      'function(celt: ULONG; out rgelt: PItemIDList; var pceltFetched: ULONG ) : HResult', ccStdCall);
+      'function(celt: ULONG; out rgelt: PItemIDList; var pceltFetched: ULONG ) : HResult',
+      ccStdCall);
     AddMethod('Skip',
       'function(celt: ULONG): HResult', ccStdCall);
     AddMethod('Reset',
@@ -970,7 +1007,7 @@ end;
 { IShellFolder import }
 {---------------------}
 
-function SepiImportIShellFolder(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIShellFolder(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IShellFolder));
@@ -980,23 +1017,31 @@ begin
     AddMethod('ParseDisplayName',
       'function(hwndOwner: HWND; pbcReserved: Pointer ; lpszDisplayName: POLESTR ; out pchEaten: ULONG ; out ppidl: PItemIDList ; var dwAttributes: ULONG ) : HResult', ccStdCall);
     AddMethod('EnumObjects',
-      'function(hwndOwner: HWND; grfFlags: DWORD; out EnumIDList: IEnumIDList ) : HResult', ccStdCall);
+      'function(hwndOwner: HWND; grfFlags: DWORD; out EnumIDList: IEnumIDList ) : HResult',
+      ccStdCall);
     AddMethod('BindToObject',
-      'function(pidl: PItemIDList; pbcReserved: Pointer; const riid: TIID ; out ppvOut ) : HResult', ccStdCall);
+      'function(pidl: PItemIDList; pbcReserved: Pointer; const riid: TIID ; out ppvOut ) : HResult',
+      ccStdCall);
     AddMethod('BindToStorage',
-      'function(pidl: PItemIDList; pbcReserved: Pointer; const riid: TIID ; out ppvObj ) : HResult', ccStdCall);
+      'function(pidl: PItemIDList; pbcReserved: Pointer; const riid: TIID ; out ppvObj ) : HResult',
+      ccStdCall);
     AddMethod('CompareIDs',
-      'function(lParam: LPARAM; pidl1, pidl2: PItemIDList ) : HResult', ccStdCall);
+      'function(lParam: LPARAM; pidl1, pidl2: PItemIDList ) : HResult',
+      ccStdCall);
     AddMethod('CreateViewObject',
-      'function(hwndOwner: HWND; const riid: TIID; out ppvOut ) : HResult', ccStdCall);
+      'function(hwndOwner: HWND; const riid: TIID; out ppvOut ) : HResult',
+      ccStdCall);
     AddMethod('GetAttributesOf',
-      'function(cidl: UINT; var apidl: PItemIDList; var rgfInOut: UINT ) : HResult', ccStdCall);
+      'function(cidl: UINT; var apidl: PItemIDList; var rgfInOut: UINT ) : HResult',
+      ccStdCall);
     AddMethod('GetUIObjectOf',
       'function(hwndOwner: HWND; cidl: UINT; var apidl: PItemIDList; const riid: TIID ; prgfInOut: Pointer ; out ppvOut ) : HResult', ccStdCall);
     AddMethod('GetDisplayNameOf',
-      'function(pidl: PItemIDList; uFlags: DWORD; var lpName: TStrRet ) : HResult', ccStdCall);
+      'function(pidl: PItemIDList; uFlags: DWORD; var lpName: TStrRet ) : HResult',
+      ccStdCall);
     AddMethod('SetNameOf',
-      'function(hwndOwner: HWND; pidl: PItemIDList; lpszName: POLEStr; uFlags: DWORD ; var ppidlOut: PItemIDList ) : HResult', ccStdCall);
+      'function(hwndOwner: HWND; pidl: PItemIDList; lpszName: POLEStr; uFlags: DWORD ; var ppidlOut: PItemIDList ) : HResult',
+      ccStdCall);
 
     Complete;
   end;
@@ -1006,7 +1051,7 @@ end;
 { tagExtraSearch import }
 {-----------------------}
 
-function SepiImporttagExtraSearch(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImporttagExtraSearch(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'tagExtraSearch', False, True);
 
@@ -1029,7 +1074,7 @@ end;
 { IEnumExtraSearch import }
 {-------------------------}
 
-function SepiImportIEnumExtraSearch(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIEnumExtraSearch(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IEnumExtraSearch));
@@ -1037,7 +1082,8 @@ begin
   with Result do
   begin
     AddMethod('Next',
-      'function(celt: ULONG; out rgelt: PExtraSearch; out pceltFetched: ULONG ) : HResult', ccStdCall);
+      'function(celt: ULONG; out rgelt: PExtraSearch; out pceltFetched: ULONG ) : HResult',
+      ccStdCall);
     AddMethod('Skip',
       'function(celt: ULONG): HResult', ccStdCall);
     AddMethod('Reset',
@@ -1053,7 +1099,7 @@ end;
 { SHCOLUMNID import }
 {-------------------}
 
-function SepiImportSHCOLUMNID(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportSHCOLUMNID(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'SHCOLUMNID', False, True);
 
@@ -1070,7 +1116,7 @@ end;
 { IShellFolder2 import }
 {----------------------}
 
-function SepiImportIShellFolder2(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIShellFolder2(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IShellFolder2));
@@ -1082,15 +1128,19 @@ begin
     AddMethod('EnumSearches',
       'function(out ppEnum: IEnumExtraSearch): HResult', ccStdCall);
     AddMethod('GetDefaultColumn',
-      'function(dwRes: DWORD; var pSort: ULONG; var pDisplay: ULONG ) : HResult', ccStdCall);
+      'function(dwRes: DWORD; var pSort: ULONG; var pDisplay: ULONG ) : HResult',
+      ccStdCall);
     AddMethod('GetDefaultColumnState',
       'function(iColumn: UINT; var pcsFlags: DWORD): HResult', ccStdCall);
     AddMethod('GetDetailsEx',
-      'function(pidl: PItemIDList; const pscid: SHCOLUMNID; pv: POleVariant ) : HResult', ccStdCall);
+      'function(pidl: PItemIDList; const pscid: SHCOLUMNID; pv: POleVariant ) : HResult',
+      ccStdCall);
     AddMethod('GetDetailsOf',
-      'function(pidl: PItemIDList; iColumn: UINT; var psd: TShellDetails ) : HResult', ccStdCall);
+      'function(pidl: PItemIDList; iColumn: UINT; var psd: TShellDetails ) : HResult',
+      ccStdCall);
     AddMethod('MapNameToSCID',
-      'function(pwszName: LPCWSTR; var pscid: TShColumnID): HResult', ccStdCall);
+      'function(pwszName: LPCWSTR; var pscid: TShColumnID): HResult',
+      ccStdCall);
 
     Complete;
   end;
@@ -1100,7 +1150,7 @@ end;
 { IInputObjectSite import }
 {-------------------------}
 
-function SepiImportIInputObjectSite(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIInputObjectSite(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IInputObjectSite));
@@ -1118,7 +1168,7 @@ end;
 { IInputObject import }
 {---------------------}
 
-function SepiImportIInputObject(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIInputObject(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IInputObject));
@@ -1140,7 +1190,7 @@ end;
 { IDockingWindowSite import }
 {---------------------------}
 
-function SepiImportIDockingWindowSite(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIDockingWindowSite(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IDockingWindowSite));
@@ -1150,9 +1200,11 @@ begin
     AddMethod('GetBorderDW',
       'function(punkObj: IUnknown; var prcBorder: TRect): HResult', ccStdCall);
     AddMethod('RequestBorderSpaceDW',
-      'function(punkObj: IUnknown; var pbw: TBorderWidths): HResult', ccStdCall);
+      'function(punkObj: IUnknown; var pbw: TBorderWidths): HResult',
+      ccStdCall);
     AddMethod('SetBorderSpaceDW',
-      'function(punkObj: IUnknown; var pbw: TBorderWidths): HResult', ccStdCall);
+      'function(punkObj: IUnknown; var pbw: TBorderWidths): HResult',
+      ccStdCall);
 
     Complete;
   end;
@@ -1162,7 +1214,7 @@ end;
 { IDockingWindowFrame import }
 {----------------------------}
 
-function SepiImportIDockingWindowFrame(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIDockingWindowFrame(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IDockingWindowFrame));
@@ -1170,11 +1222,13 @@ begin
   with Result do
   begin
     AddMethod('AddToolbar',
-      'function(punkSrc: IUnknown; pwszItem: PWideChar; dwAddFlags: DWORD ) : HResult', ccStdCall);
+      'function(punkSrc: IUnknown; pwszItem: PWideChar; dwAddFlags: DWORD ) : HResult',
+      ccStdCall);
     AddMethod('RemoveToolbar',
       'function(punkSrc: IUnknown; dwRemoveFlags: DWORD): HResult', ccStdCall);
     AddMethod('FindToolbar',
-      'function(pwszItem: PWideChar; const riid: TIID; var ppvObj: Pointer ) : HResult', ccStdCall);
+      'function(pwszItem: PWideChar; const riid: TIID; var ppvObj: Pointer ) : HResult',
+      ccStdCall);
 
     Complete;
   end;
@@ -1184,7 +1238,7 @@ end;
 { IDockingWindow import }
 {-----------------------}
 
-function SepiImportIDockingWindow(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIDockingWindow(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IDockingWindow));
@@ -1196,7 +1250,8 @@ begin
     AddMethod('CloseDW',
       'function(dwReserved: DWORD): HResult', ccStdCall);
     AddMethod('ResizeBorderDW',
-      'function(var prcBorder: TRect; punkToolbarSite: IUnknown; fReserved: BOOL ) : HResult', ccStdCall);
+      'function(var prcBorder: TRect; punkToolbarSite: IUnknown; fReserved: BOOL ) : HResult',
+      ccStdCall);
 
     Complete;
   end;
@@ -1206,7 +1261,7 @@ end;
 { DESKBANDINFO import }
 {---------------------}
 
-function SepiImportDESKBANDINFO(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportDESKBANDINFO(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'DESKBANDINFO', True, True);
 
@@ -1229,7 +1284,7 @@ end;
 { IDeskBand import }
 {------------------}
 
-function SepiImportIDeskBand(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIDeskBand(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IDeskBand));
@@ -1237,7 +1292,8 @@ begin
   with Result do
   begin
     AddMethod('GetBandInfo',
-      'function(dwBandID, dwViewMode: DWORD; var pdbi: TDeskBandInfo): HResult', ccStdCall);
+      'function(dwBandID, dwViewMode: DWORD; var pdbi: TDeskBandInfo): HResult',
+      ccStdCall);
 
     Complete;
   end;
@@ -1247,7 +1303,7 @@ end;
 { _tagWALLPAPEROPT import }
 {-------------------------}
 
-function SepiImport_tagWALLPAPEROPT(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_tagWALLPAPEROPT(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_tagWALLPAPEROPT', True, True);
 
@@ -1264,7 +1320,7 @@ end;
 { _tagCOMPONENTSOPT import }
 {--------------------------}
 
-function SepiImport_tagCOMPONENTSOPT(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_tagCOMPONENTSOPT(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_tagCOMPONENTSOPT', True, True);
 
@@ -1282,7 +1338,7 @@ end;
 { _tagCOMPPOS import }
 {--------------------}
 
-function SepiImport_tagCOMPPOS(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_tagCOMPPOS(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_tagCOMPPOS', True, True);
 
@@ -1308,7 +1364,7 @@ end;
 { _tagCOMPONENT import }
 {----------------------}
 
-function SepiImport_tagCOMPONENT(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_tagCOMPONENT(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_tagCOMPONENT', True, True);
 
@@ -1333,7 +1389,7 @@ end;
 { IActiveDesktop import }
 {-----------------------}
 
-function SepiImportIActiveDesktop(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIActiveDesktop(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IActiveDesktop));
@@ -1343,41 +1399,59 @@ begin
     AddMethod('ApplyChanges',
       'function(dwFlags: DWORD): HResult', ccStdCall);
     AddMethod('GetWallpaper',
-      'function(pwszWallpaper: PWideChar; cchWallpaper: UINT; dwReserved: DWORD ) : HResult', ccStdCall);
+      'function(pwszWallpaper: PWideChar; cchWallpaper: UINT; dwReserved: DWORD ) : HResult',
+      ccStdCall);
     AddMethod('SetWallpaper',
-      'function(pwszWallpaper: PWideChar; dwReserved: DWORD): HResult', ccStdCall);
+      'function(pwszWallpaper: PWideChar; dwReserved: DWORD): HResult',
+      ccStdCall);
     AddMethod('GetWallpaperOptions',
-      'function(var pwpo: TWallPaperOpt; dwReserved: DWORD): HResult', ccStdCall);
+      'function(var pwpo: TWallPaperOpt; dwReserved: DWORD): HResult',
+      ccStdCall);
     AddMethod('SetWallpaperOptions',
-      'function(var pwpo: TWallPaperOpt; dwReserved: DWORD): HResult', ccStdCall);
+      'function(var pwpo: TWallPaperOpt; dwReserved: DWORD): HResult',
+      ccStdCall);
     AddMethod('GetPattern',
-      'function(pwszPattern: PWideChar; cchPattern: UINT; dwReserved: DWORD ) : HResult', ccStdCall);
+      'function(pwszPattern: PWideChar; cchPattern: UINT; dwReserved: DWORD ) : HResult',
+      ccStdCall);
     AddMethod('SetPattern',
-      'function(pwszPattern: PWideChar; dwReserved: DWORD): HResult', ccStdCall);
+      'function(pwszPattern: PWideChar; dwReserved: DWORD): HResult',
+      ccStdCall);
     AddMethod('GetDesktopItemOptions',
-      'function(var pco: TComponentsOpt; dwReserved: DWORD): HResult', ccStdCall);
+      'function(var pco: TComponentsOpt; dwReserved: DWORD): HResult',
+      ccStdCall);
     AddMethod('SetDesktopItemOptions',
-      'function(var pco: TComponentsOpt; dwReserved: DWORD): HResult', ccStdCall);
+      'function(var pco: TComponentsOpt; dwReserved: DWORD): HResult',
+      ccStdCall);
     AddMethod('AddDesktopItem',
-      'function(var pcomp: TShComponent; dwReserved: DWORD): HResult', ccStdCall);
+      'function(var pcomp: TShComponent; dwReserved: DWORD): HResult',
+      ccStdCall);
     AddMethod('AddDesktopItemWithUI',
-      'function(hwnd: HWND; var pcomp: TShComponent; dwReserved: DWORD ) : HResult', ccStdCall);
+      'function(hwnd: HWND; var pcomp: TShComponent; dwReserved: DWORD ) : HResult',
+      ccStdCall);
     AddMethod('ModifyDesktopItem',
-      'function(var pcomp: TShComponent; dwReserved: DWORD): HResult', ccStdCall);
+      'function(var pcomp: TShComponent; dwReserved: DWORD): HResult',
+      ccStdCall);
     AddMethod('RemoveDesktopItem',
-      'function(var pcomp: TShComponent; dwReserved: DWORD): HResult', ccStdCall);
+      'function(var pcomp: TShComponent; dwReserved: DWORD): HResult',
+      ccStdCall);
     AddMethod('GetDesktopItemCount',
-      'function(var lpiCount: Integer; dwReserved: DWORD): HResult', ccStdCall);
+      'function(var lpiCount: Integer; dwReserved: DWORD): HResult',
+      ccStdCall);
     AddMethod('GetDesktopItem',
-      'function(nComponent: Integer; var pcomp: TShComponent; dwReserved: DWORD ) : HResult', ccStdCall);
+      'function(nComponent: Integer; var pcomp: TShComponent; dwReserved: DWORD ) : HResult',
+      ccStdCall);
     AddMethod('GetDesktopItemByID',
-      'function(dwID: DWORD; var pcomp: TShComponent; dwReserved: DWORD ) : HResult', ccStdCall);
+      'function(dwID: DWORD; var pcomp: TShComponent; dwReserved: DWORD ) : HResult',
+      ccStdCall);
     AddMethod('GenerateDesktopItemHtml',
-      'function(pwszFileName: PWideChar; var pcomp: TShComponent ; dwReserved: DWORD ) : HResult', ccStdCall);
+      'function(pwszFileName: PWideChar; var pcomp: TShComponent ; dwReserved: DWORD ) : HResult',
+      ccStdCall);
     AddMethod('AddUrl',
-      'function(hwnd: HWND; pszSource: PWideChar; var pcomp: TShComponent; dwFlags: DWORD ) : HResult', ccStdCall);
+      'function(hwnd: HWND; pszSource: PWideChar; var pcomp: TShComponent; dwFlags: DWORD ) : HResult',
+      ccStdCall);
     AddMethod('GetDesktopItemBySource',
-      'function(pwszSource: PWideChar; var pcomp: TShComponent; dwReserved: DWORD ) : HResult', ccStdCall);
+      'function(pwszSource: PWideChar; var pcomp: TShComponent; dwReserved: DWORD ) : HResult',
+      ccStdCall);
 
     Complete;
   end;
@@ -1387,7 +1461,7 @@ end;
 { _NRESARRAY import }
 {-------------------}
 
-function SepiImport_NRESARRAY(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_NRESARRAY(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_NRESARRAY', False, True);
 
@@ -1404,7 +1478,7 @@ end;
 { _IDA import }
 {-------------}
 
-function SepiImport_IDA(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_IDA(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_IDA', False, True);
 
@@ -1421,7 +1495,7 @@ end;
 { _FILEDESCRIPTORA import }
 {-------------------------}
 
-function SepiImport_FILEDESCRIPTORA(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_FILEDESCRIPTORA(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_FILEDESCRIPTORA', False, True);
 
@@ -1447,7 +1521,7 @@ end;
 { _FILEDESCRIPTORW import }
 {-------------------------}
 
-function SepiImport_FILEDESCRIPTORW(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_FILEDESCRIPTORW(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_FILEDESCRIPTORW', False, True);
 
@@ -1473,9 +1547,10 @@ end;
 { _FILEGROUPDESCRIPTORA import }
 {------------------------------}
 
-function SepiImport_FILEGROUPDESCRIPTORA(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_FILEGROUPDESCRIPTORA(Owner: TSepiUnit): TSepiRecordType;
 begin
-  Result := TSepiRecordType.Create(Owner, '_FILEGROUPDESCRIPTORA', False, True);
+  Result := TSepiRecordType.Create(Owner, '_FILEGROUPDESCRIPTORA',
+    False, True);
 
   with Result do
   begin
@@ -1490,9 +1565,10 @@ end;
 { _FILEGROUPDESCRIPTORW import }
 {------------------------------}
 
-function SepiImport_FILEGROUPDESCRIPTORW(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_FILEGROUPDESCRIPTORW(Owner: TSepiUnit): TSepiRecordType;
 begin
-  Result := TSepiRecordType.Create(Owner, '_FILEGROUPDESCRIPTORW', False, True);
+  Result := TSepiRecordType.Create(Owner, '_FILEGROUPDESCRIPTORW',
+    False, True);
 
   with Result do
   begin
@@ -1507,7 +1583,7 @@ end;
 { _DROPFILES import }
 {-------------------}
 
-function SepiImport_DROPFILES(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_DROPFILES(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_DROPFILES', False, True);
 
@@ -1526,7 +1602,7 @@ end;
 { IShellChangeNotify import }
 {---------------------------}
 
-function SepiImportIShellChangeNotify(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIShellChangeNotify(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IShellChangeNotify));
@@ -1534,7 +1610,8 @@ begin
   with Result do
   begin
     AddMethod('OnChange',
-      'function(lEvent: Longint; var pidl1, pidl2: TItemIDList): HResult', ccStdCall);
+      'function(lEvent: Longint; var pidl1, pidl2: TItemIDList): HResult',
+      ccStdCall);
 
     Complete;
   end;
@@ -1544,7 +1621,7 @@ end;
 { IQueryInfo import }
 {-------------------}
 
-function SepiImportIQueryInfo(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIQueryInfo(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IQueryInfo));
@@ -1564,7 +1641,7 @@ end;
 { SHDRAGIMAGE import }
 {--------------------}
 
-function SepiImportSHDRAGIMAGE(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportSHDRAGIMAGE(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'SHDRAGIMAGE', False, True);
 
@@ -1583,7 +1660,7 @@ end;
 { IDropTargetHelper import }
 {--------------------------}
 
-function SepiImportIDropTargetHelper(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIDropTargetHelper(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IDropTargetHelper));
@@ -1591,13 +1668,15 @@ begin
   with Result do
   begin
     AddMethod('DragEnter',
-      'function(hwndTarget: HWND; const pDataObject: IDataObject; var ppt: TPoint ; dwEffect: DWORD ) : HRESULT', ccStdCall);
+      'function(hwndTarget: HWND; const pDataObject: IDataObject; var ppt: TPoint ; dwEffect: DWORD ) : HRESULT',
+      ccStdCall);
     AddMethod('DragLeave',
       'function: HResult', ccStdCall);
     AddMethod('DragOver',
       'function(var ppt: TPoint; dwEffect: DWORD): HRESULT', ccStdCall);
     AddMethod('Drop',
-      'function(const pDataObject: IDataObject; var ppt: TPoint; dwEffect: DWORD ) : HRESULT', ccStdCall);
+      'function(const pDataObject: IDataObject; var ppt: TPoint; dwEffect: DWORD ) : HRESULT',
+      ccStdCall);
     AddMethod('Show',
       'function(fShow: BOOL): HRESULT', ccStdCall);
 
@@ -1609,7 +1688,7 @@ end;
 { IDragSourceHelper import }
 {--------------------------}
 
-function SepiImportIDragSourceHelper(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIDragSourceHelper(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IDragSourceHelper));
@@ -1617,9 +1696,11 @@ begin
   with Result do
   begin
     AddMethod('InitializeFromBitmap',
-      'function(pshdi: LPSHDRAGIMAGE; const pDataObject: IDataObject ) : HRESULT', ccStdCall);
+      'function(pshdi: LPSHDRAGIMAGE; const pDataObject: IDataObject ) : HRESULT',
+      ccStdCall);
     AddMethod('InitializeFromWindow',
-      'function(hwnd: HWND; var ppt: TPoint; const pDataObject: IDataObject ) : HRESULT', ccStdCall);
+      'function(hwnd: HWND; var ppt: TPoint; const pDataObject: IDataObject ) : HRESULT',
+      ccStdCall);
 
     Complete;
   end;
@@ -1629,7 +1710,7 @@ end;
 { _SHDESCRIPTIONID import }
 {-------------------------}
 
-function SepiImport_SHDESCRIPTIONID(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_SHDESCRIPTIONID(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_SHDESCRIPTIONID', False, True);
 
@@ -1646,7 +1727,7 @@ end;
 { SHELLFLAGSTATE import }
 {-----------------------}
 
-function SepiImportSHELLFLAGSTATE(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportSHELLFLAGSTATE(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'SHELLFLAGSTATE', True, True);
 
@@ -1662,7 +1743,7 @@ end;
 { IAutoComplete import }
 {----------------------}
 
-function SepiImportIAutoComplete(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIAutoComplete(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IAutoComplete));
@@ -1670,7 +1751,8 @@ begin
   with Result do
   begin
     AddMethod('Init',
-      'function(hwndEdit: HWND; punkACL: IUnknown; pwszRegKeyPath: LPCWSTR ; pwszQuickComplete: LPCWSTR ) : HRESULT', ccStdCall);
+      'function(hwndEdit: HWND; punkACL: IUnknown; pwszRegKeyPath: LPCWSTR ; pwszQuickComplete: LPCWSTR ) : HRESULT',
+      ccStdCall);
     AddMethod('Enable',
       'function(fEnable: BOOL): HRESULT', ccStdCall);
 
@@ -1682,7 +1764,7 @@ end;
 { IAutoComplete2 import }
 {-----------------------}
 
-function SepiImportIAutoComplete2(Owner : TSepiUnit) : TSepiInterface;
+function SepiImportIAutoComplete2(Owner: TSepiUnit): TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IAutoComplete2));
@@ -1702,11 +1784,11 @@ end;
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiRoot) : TSepiUnit;
+function ImportUnit(Root: TSepiRoot): TSepiUnit;
 begin
   Result := TSepiUnit.Create(Root, 'ShlObjTypes',
     ['Windows', 'ActiveXTypes', 'CommCtrlTypes', 'ShellAPITypes', {'RegStr',}
-     'Messages'{,'WinInet', 'UrlMon'}]);
+    'Messages'{,'WinInet', 'UrlMon'}]);
 
   // Types
   TSepiPointerType.Create(Result, 'PSHItemID', 'TSHItemID', True);
@@ -1721,14 +1803,19 @@ begin
   TSepiTypeAlias.Create(Result, 'ITEMIDLIST', '_ITEMIDLIST');
 
   // Types
-  TSepiPointerType.Create(Result, 'PCMInvokeCommandInfo', 'TCMInvokeCommandInfo', True);
+  TSepiPointerType.Create(Result, 'PCMInvokeCommandInfo',
+    'TCMInvokeCommandInfo', True);
   SepiImport_CMINVOKECOMMANDINFO(Result);
-  TSepiTypeAlias.Create(Result, 'TCMInvokeCommandInfo', '_CMINVOKECOMMANDINFO');
+  TSepiTypeAlias.Create(Result, 'TCMInvokeCommandInfo',
+    '_CMINVOKECOMMANDINFO');
   TSepiTypeAlias.Create(Result, 'CMINVOKECOMMANDINFO', '_CMINVOKECOMMANDINFO');
-  TSepiPointerType.Create(Result, 'PCMInvokeCommandInfoEx', 'TCMInvokeCommandInfoEx', True);
+  TSepiPointerType.Create(Result, 'PCMInvokeCommandInfoEx',
+    'TCMInvokeCommandInfoEx', True);
   SepiImport_CMInvokeCommandInfoEx(Result);
-  TSepiTypeAlias.Create(Result, 'TCMInvokeCommandInfoEx', '_CMINVOKECOMMANDINFOEX');
-  TSepiTypeAlias.Create(Result, 'CMINVOKECOMMANDINFOEX', '_CMINVOKECOMMANDINFOEX');
+  TSepiTypeAlias.Create(Result, 'TCMInvokeCommandInfoEx',
+    '_CMINVOKECOMMANDINFOEX');
+  TSepiTypeAlias.Create(Result, 'CMINVOKECOMMANDINFOEX',
+    '_CMINVOKECOMMANDINFOEX');
   SepiImportIContextMenu(Result);
   SepiImportIContextMenu2(Result);
   SepiImportIContextMenu3(Result);
@@ -1757,11 +1844,13 @@ begin
   TSepiTypeAlias.Create(Result, 'IShellLink', TypeInfo(IShellLinkA));
   SepiImportIShellExecuteHookA(Result);
   SepiImportIShellExecuteHookW(Result);
-  TSepiTypeAlias.Create(Result, 'IShellExecuteHook', TypeInfo(IShellExecuteHookA));
+  TSepiTypeAlias.Create(Result, 'IShellExecuteHook',
+    TypeInfo(IShellExecuteHookA));
   SepiImportIURLSearchHook(Result);
   SepiImportINewShortcutHookA(Result);
   SepiImportINewShortcutHookW(Result);
-  TSepiTypeAlias.Create(Result, 'INewShortcutHook', TypeInfo(INewShortcutHookA));
+  TSepiTypeAlias.Create(Result, 'INewShortcutHook',
+    TypeInfo(INewShortcutHookA));
 
   // Types
   SepiImportICopyHookA(Result);
@@ -1806,7 +1895,8 @@ begin
   TSepiTypeAlias.Create(Result, 'SHELLVIEWID', 'TGUID');
   TSepiTypeAlias.Create(Result, 'TShellViewID', 'SHELLVIEWID');
   TSepiPointerType.Create(Result, 'PShellViewID', 'TShellViewID', True);
-  TSepiPointerType.Create(Result, 'PSV2CreateParams', TypeInfo(TSV2CreateParams), True);
+  TSepiPointerType.Create(Result, 'PSV2CreateParams',
+    TypeInfo(TSV2CreateParams), True);
   SepiImport_SV2CVW2_PARAMS(Result);
   TSepiTypeAlias.Create(Result, 'TSV2CreateParams', '_SV2CVW2_PARAMS');
   TSepiTypeAlias.Create(Result, 'SV2CVW2_PARAMS', '_SV2CVW2_PARAMS');
@@ -1827,9 +1917,11 @@ begin
 
   // Types
   TSepiMethodRefType.Create(Result, 'BFFCALLBACK',
-    'function(Wnd: HWND; uMsg: UINT; lParam, lpData: LPARAM): Integer', False, ccStdCall);
+    'function(Wnd: HWND; uMsg: UINT; lParam, lpData: LPARAM): Integer',
+    False, ccStdCall);
   TSepiMethodRefType.Create(Result, 'TFNBFFCallBack',
-    'function(Wnd: HWND; uMsg: UINT; lParam, lpData: LPARAM): Integer', False, ccStdCall);
+    'function(Wnd: HWND; uMsg: UINT; lParam, lpData: LPARAM): Integer',
+    False, ccStdCall);
   TSepiPointerType.Create(Result, 'PBrowseInfoA', 'TBrowseInfoA', True);
   TSepiPointerType.Create(Result, 'PBrowseInfoW', 'TBrowseInfoW', True);
   TSepiTypeAlias.Create(Result, 'PBrowseInfo', 'PBrowseInfoA');
@@ -1927,8 +2019,10 @@ begin
   TSepiTypeAlias.Create(Result, 'CIDA', '_IDA');
 
   // Types
-  TSepiPointerType.Create(Result, 'PFileDescriptorA', 'TFileDescriptorA', True);
-  TSepiPointerType.Create(Result, 'PFileDescriptorW', 'TFileDescriptorW', True);
+  TSepiPointerType.Create(Result, 'PFileDescriptorA',
+    'TFileDescriptorA', True);
+  TSepiPointerType.Create(Result, 'PFileDescriptorW',
+    'TFileDescriptorW', True);
   TSepiTypeAlias.Create(Result, 'PFileDescriptor', 'PFileDescriptorA');
   TSepiArrayType.Create(Result, '$14',
     [0, MAX_PATH-1], TypeInfo(AnsiChar), True);
@@ -1943,21 +2037,30 @@ begin
   TSepiTypeAlias.Create(Result, 'FILEDESCRIPTORA', '_FILEDESCRIPTORA');
   TSepiTypeAlias.Create(Result, 'FILEDESCRIPTORW', '_FILEDESCRIPTORW');
   TSepiTypeAlias.Create(Result, 'FILEDESCRIPTOR', 'FILEDESCRIPTORA');
-  TSepiPointerType.Create(Result, 'PFileGroupDescriptorA', 'TFileGroupDescriptorA', True);
-  TSepiPointerType.Create(Result, 'PFileGroupDescriptorW', 'TFileGroupDescriptorW', True);
-  TSepiTypeAlias.Create(Result, 'PFileGroupDescriptor', 'PFileGroupDescriptorA');
+  TSepiPointerType.Create(Result, 'PFileGroupDescriptorA',
+    'TFileGroupDescriptorA', True);
+  TSepiPointerType.Create(Result, 'PFileGroupDescriptorW',
+    'TFileGroupDescriptorW', True);
+  TSepiTypeAlias.Create(Result, 'PFileGroupDescriptor',
+    'PFileGroupDescriptorA');
   TSepiArrayType.Create(Result, '$16',
     [0, 0], 'TFileDescriptorA', True);
   SepiImport_FILEGROUPDESCRIPTORA(Result);
   TSepiArrayType.Create(Result, '$17',
     [0, 0], 'TFileDescriptorW', True);
   SepiImport_FILEGROUPDESCRIPTORW(Result);
-  TSepiTypeAlias.Create(Result, '_FILEGROUPDESCRIPTOR', '_FILEGROUPDESCRIPTORA');
-  TSepiTypeAlias.Create(Result, 'TFileGroupDescriptorA', '_FILEGROUPDESCRIPTORA');
-  TSepiTypeAlias.Create(Result, 'TFileGroupDescriptorW', '_FILEGROUPDESCRIPTORW');
-  TSepiTypeAlias.Create(Result, 'TFileGroupDescriptor', 'TFileGroupDescriptorA');
-  TSepiTypeAlias.Create(Result, 'FILEGROUPDESCRIPTORA', '_FILEGROUPDESCRIPTORA');
-  TSepiTypeAlias.Create(Result, 'FILEGROUPDESCRIPTORW', '_FILEGROUPDESCRIPTORW');
+  TSepiTypeAlias.Create(Result, '_FILEGROUPDESCRIPTOR',
+    '_FILEGROUPDESCRIPTORA');
+  TSepiTypeAlias.Create(Result, 'TFileGroupDescriptorA',
+    '_FILEGROUPDESCRIPTORA');
+  TSepiTypeAlias.Create(Result, 'TFileGroupDescriptorW',
+    '_FILEGROUPDESCRIPTORW');
+  TSepiTypeAlias.Create(Result, 'TFileGroupDescriptor',
+    'TFileGroupDescriptorA');
+  TSepiTypeAlias.Create(Result, 'FILEGROUPDESCRIPTORA',
+    '_FILEGROUPDESCRIPTORA');
+  TSepiTypeAlias.Create(Result, 'FILEGROUPDESCRIPTORW',
+    '_FILEGROUPDESCRIPTORW');
   TSepiTypeAlias.Create(Result, 'FILEGROUPDESCRIPTOR', 'FILEGROUPDESCRIPTORA');
   TSepiPointerType.Create(Result, 'PDropFiles', 'TDropFiles', True);
   SepiImport_DROPFILES(Result);
@@ -1979,7 +2082,8 @@ begin
   SepiImportIDragSourceHelper(Result);
 
   // Types
-  TSepiPointerType.Create(Result, 'PSHDescriptionID', 'TSHDescriptionID', True);
+  TSepiPointerType.Create(Result, 'PSHDescriptionID',
+    'TSHDescriptionID', True);
   SepiImport_SHDESCRIPTIONID(Result);
   TSepiTypeAlias.Create(Result, 'TSHDescriptionID', '_SHDESCRIPTIONID');
   TSepiTypeAlias.Create(Result, 'SHDESCRIPTIONID', '_SHDESCRIPTIONID');

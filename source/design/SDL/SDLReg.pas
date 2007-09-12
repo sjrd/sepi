@@ -20,10 +20,10 @@ implementation
 procedure Register;
 begin
   RegisterComponents('SDL',
-  [
-  // SdDialogs
+    [
+    // SdDialogs
     TSdPasswordDialog, TSdAboutDialog, TSdNumberDialog
-  ]);
+    ]);
 end;
 
 end.

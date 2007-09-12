@@ -19,7 +19,7 @@ implementation
 { TMessage import }
 {-----------------}
 
-function SepiImportTMessage(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTMessage(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TMessage', True, True);
 
@@ -44,7 +44,7 @@ end;
 { TWMNoParams import }
 {--------------------}
 
-function SepiImportTWMNoParams(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMNoParams(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMNoParams', True, True);
 
@@ -62,7 +62,7 @@ end;
 { TWMKey import }
 {---------------}
 
-function SepiImportTWMKey(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMKey(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMKey', True, True);
 
@@ -82,7 +82,7 @@ end;
 { TWMMouse import }
 {-----------------}
 
-function SepiImportTWMMouse(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMMouse(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMMouse', True, True);
 
@@ -103,15 +103,15 @@ end;
 { TWMMouseWheel import }
 {----------------------}
 
-function SepiImportTWMMouseWheel(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMMouseWheel(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMMouseWheel', True, True);
 
   with Result do
   begin
     AddField('Msg', System.TypeInfo(Cardinal));
-    AddField('Keys', System.TypeInfo(SmallInt));
-    AddField('WheelDelta', System.TypeInfo(SmallInt));
+    AddField('Keys', System.TypeInfo(Smallint));
+    AddField('WheelDelta', System.TypeInfo(Smallint));
     AddFieldAfter('XPos', System.TypeInfo(Smallint), 'WheelDelta');
     AddFieldAfter('YPos', System.TypeInfo(Smallint), 'XPos');
     AddFieldAfter('Pos', 'TSmallPoint', 'WheelDelta');
@@ -125,7 +125,7 @@ end;
 { TMSHMouseWheel import }
 {-----------------------}
 
-function SepiImportTMSHMouseWheel(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTMSHMouseWheel(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TMSHMouseWheel', True, True);
 
@@ -146,7 +146,7 @@ end;
 { TWMWindowPosMsg import }
 {------------------------}
 
-function SepiImportTWMWindowPosMsg(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMWindowPosMsg(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMWindowPosMsg', True, True);
 
@@ -165,7 +165,7 @@ end;
 { TWMScroll import }
 {------------------}
 
-function SepiImportTWMScroll(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMScroll(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMScroll', True, True);
 
@@ -185,7 +185,7 @@ end;
 { TWMActivate import }
 {--------------------}
 
-function SepiImportTWMActivate(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMActivate(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMActivate', True, True);
 
@@ -205,7 +205,7 @@ end;
 { TWMActivateApp import }
 {-----------------------}
 
-function SepiImportTWMActivateApp(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMActivateApp(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMActivateApp', True, True);
 
@@ -224,7 +224,7 @@ end;
 { TWMAskCBFormatName import }
 {---------------------------}
 
-function SepiImportTWMAskCBFormatName(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMAskCBFormatName(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMAskCBFormatName', True, True);
 
@@ -244,7 +244,7 @@ end;
 { TWMChangeCBChain import }
 {-------------------------}
 
-function SepiImportTWMChangeCBChain(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMChangeCBChain(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMChangeCBChain', True, True);
 
@@ -263,7 +263,7 @@ end;
 { TWMCharToItem import }
 {----------------------}
 
-function SepiImportTWMCharToItem(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMCharToItem(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMCharToItem', True, True);
 
@@ -283,9 +283,10 @@ end;
 { TWMChooseFont_GetLogFont import }
 {---------------------------------}
 
-function SepiImportTWMChooseFont_GetLogFont(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMChooseFont_GetLogFont(Owner: TSepiUnit): TSepiRecordType;
 begin
-  Result := TSepiRecordType.Create(Owner, 'TWMChooseFont_GetLogFont', True, True);
+  Result := TSepiRecordType.Create(Owner, 'TWMChooseFont_GetLogFont',
+    True, True);
 
   with Result do
   begin
@@ -302,7 +303,7 @@ end;
 { TWMCommand import }
 {-------------------}
 
-function SepiImportTWMCommand(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMCommand(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMCommand', True, True);
 
@@ -322,7 +323,7 @@ end;
 { TWMCompacting import }
 {----------------------}
 
-function SepiImportTWMCompacting(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMCompacting(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMCompacting', True, True);
 
@@ -341,7 +342,7 @@ end;
 { TWMCompareItem import }
 {-----------------------}
 
-function SepiImportTWMCompareItem(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMCompareItem(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMCompareItem', True, True);
 
@@ -360,7 +361,7 @@ end;
 { TWMCopyData import }
 {--------------------}
 
-function SepiImportTWMCopyData(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMCopyData(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMCopyData', True, True);
 
@@ -379,7 +380,7 @@ end;
 { TWMCreate import }
 {------------------}
 
-function SepiImportTWMCreate(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMCreate(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMCreate', True, True);
 
@@ -398,7 +399,7 @@ end;
 { TWMCtlColor import }
 {--------------------}
 
-function SepiImportTWMCtlColor(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMCtlColor(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMCtlColor', True, True);
 
@@ -417,7 +418,7 @@ end;
 { TWMDDE_Ack import }
 {-------------------}
 
-function SepiImportTWMDDE_Ack(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMDDE_Ack(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMDDE_Ack', True, True);
 
@@ -438,7 +439,7 @@ end;
 { TWMDDE_Advise import }
 {----------------------}
 
-function SepiImportTWMDDE_Advise(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMDDE_Advise(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMDDE_Advise', True, True);
 
@@ -457,7 +458,7 @@ end;
 { TWMDDE_Data import }
 {--------------------}
 
-function SepiImportTWMDDE_Data(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMDDE_Data(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMDDE_Data', True, True);
 
@@ -476,7 +477,7 @@ end;
 { TWMDDE_Execute import }
 {-----------------------}
 
-function SepiImportTWMDDE_Execute(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMDDE_Execute(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMDDE_Execute', True, True);
 
@@ -495,7 +496,7 @@ end;
 { TWMDDE_Initiate import }
 {------------------------}
 
-function SepiImportTWMDDE_Initiate(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMDDE_Initiate(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMDDE_Initiate', True, True);
 
@@ -515,7 +516,7 @@ end;
 { TWMDDE_Poke import }
 {--------------------}
 
-function SepiImportTWMDDE_Poke(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMDDE_Poke(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMDDE_Poke', True, True);
 
@@ -534,7 +535,7 @@ end;
 { TWMDDE_Request import }
 {-----------------------}
 
-function SepiImportTWMDDE_Request(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMDDE_Request(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMDDE_Request', True, True);
 
@@ -554,7 +555,7 @@ end;
 { TWMDDE_Terminate import }
 {-------------------------}
 
-function SepiImportTWMDDE_Terminate(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMDDE_Terminate(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMDDE_Terminate', True, True);
 
@@ -573,7 +574,7 @@ end;
 { TWMDDE_Unadvise import }
 {------------------------}
 
-function SepiImportTWMDDE_Unadvise(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMDDE_Unadvise(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMDDE_Unadvise', True, True);
 
@@ -593,7 +594,7 @@ end;
 { TWMDeleteItem import }
 {----------------------}
 
-function SepiImportTWMDeleteItem(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMDeleteItem(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMDeleteItem', True, True);
 
@@ -612,7 +613,7 @@ end;
 { TWMDevModeChange import }
 {-------------------------}
 
-function SepiImportTWMDevModeChange(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMDevModeChange(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMDevModeChange', True, True);
 
@@ -631,7 +632,7 @@ end;
 { TWMDrawItem import }
 {--------------------}
 
-function SepiImportTWMDrawItem(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMDrawItem(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMDrawItem', True, True);
 
@@ -650,7 +651,7 @@ end;
 { TWMDropFiles import }
 {---------------------}
 
-function SepiImportTWMDropFiles(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMDropFiles(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMDropFiles', True, True);
 
@@ -669,7 +670,7 @@ end;
 { TWMEnable import }
 {------------------}
 
-function SepiImportTWMEnable(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMEnable(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMEnable', True, True);
 
@@ -688,7 +689,7 @@ end;
 { TWMEndSession import }
 {----------------------}
 
-function SepiImportTWMEndSession(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMEndSession(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMEndSession', True, True);
 
@@ -707,7 +708,7 @@ end;
 { TWMEnterIdle import }
 {---------------------}
 
-function SepiImportTWMEnterIdle(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMEnterIdle(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMEnterIdle', True, True);
 
@@ -726,7 +727,7 @@ end;
 { TWMEnterMenuLoop import }
 {-------------------------}
 
-function SepiImportTWMEnterMenuLoop(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMEnterMenuLoop(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMEnterMenuLoop', True, True);
 
@@ -745,7 +746,7 @@ end;
 { TWMEraseBkgnd import }
 {----------------------}
 
-function SepiImportTWMEraseBkgnd(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMEraseBkgnd(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMEraseBkgnd', True, True);
 
@@ -764,7 +765,7 @@ end;
 { TWMGetIcon import }
 {-------------------}
 
-function SepiImportTWMGetIcon(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMGetIcon(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMGetIcon', True, True);
 
@@ -783,7 +784,7 @@ end;
 { TWMGetMinMaxInfo import }
 {-------------------------}
 
-function SepiImportTWMGetMinMaxInfo(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMGetMinMaxInfo(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMGetMinMaxInfo', True, True);
 
@@ -802,7 +803,7 @@ end;
 { TWMGetText import }
 {-------------------}
 
-function SepiImportTWMGetText(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMGetText(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMGetText', True, True);
 
@@ -821,7 +822,7 @@ end;
 { TWMHotKey import }
 {------------------}
 
-function SepiImportTWMHotKey(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMHotKey(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMHotKey', True, True);
 
@@ -840,7 +841,7 @@ end;
 { TWMHScrollClipboard import }
 {----------------------------}
 
-function SepiImportTWMHScrollClipboard(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMHScrollClipboard(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMHScrollClipboard', True, True);
 
@@ -860,7 +861,7 @@ end;
 { TWMInitDialog import }
 {----------------------}
 
-function SepiImportTWMInitDialog(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMInitDialog(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMInitDialog', True, True);
 
@@ -879,7 +880,7 @@ end;
 { TWMInitMenu import }
 {--------------------}
 
-function SepiImportTWMInitMenu(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMInitMenu(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMInitMenu', True, True);
 
@@ -898,7 +899,7 @@ end;
 { TWMInitMenuPopup import }
 {-------------------------}
 
-function SepiImportTWMInitMenuPopup(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMInitMenuPopup(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMInitMenuPopup', True, True);
 
@@ -918,7 +919,7 @@ end;
 { TWMKillFocus import }
 {---------------------}
 
-function SepiImportTWMKillFocus(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMKillFocus(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMKillFocus', True, True);
 
@@ -937,7 +938,7 @@ end;
 { TWMMDIActivate import }
 {-----------------------}
 
-function SepiImportTWMMDIActivate(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMMDIActivate(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMMDIActivate', True, True);
 
@@ -957,7 +958,7 @@ end;
 { TWMMDICascade import }
 {----------------------}
 
-function SepiImportTWMMDICascade(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMMDICascade(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMMDICascade', True, True);
 
@@ -976,7 +977,7 @@ end;
 { TWMMDICreate import }
 {---------------------}
 
-function SepiImportTWMMDICreate(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMMDICreate(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMMDICreate', True, True);
 
@@ -995,7 +996,7 @@ end;
 { TWMMDIDestroy import }
 {----------------------}
 
-function SepiImportTWMMDIDestroy(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMMDIDestroy(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMMDIDestroy', True, True);
 
@@ -1014,7 +1015,7 @@ end;
 { TWMMDIMaximize import }
 {-----------------------}
 
-function SepiImportTWMMDIMaximize(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMMDIMaximize(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMMDIMaximize', True, True);
 
@@ -1033,7 +1034,7 @@ end;
 { TWMMDINext import }
 {-------------------}
 
-function SepiImportTWMMDINext(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMMDINext(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMMDINext', True, True);
 
@@ -1052,7 +1053,7 @@ end;
 { TWMMDIRestore import }
 {----------------------}
 
-function SepiImportTWMMDIRestore(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMMDIRestore(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMMDIRestore', True, True);
 
@@ -1071,7 +1072,7 @@ end;
 { TWMMDISetMenu import }
 {----------------------}
 
-function SepiImportTWMMDISetMenu(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMMDISetMenu(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMMDISetMenu', True, True);
 
@@ -1090,7 +1091,7 @@ end;
 { TWMMDITile import }
 {-------------------}
 
-function SepiImportTWMMDITile(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMMDITile(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMMDITile', True, True);
 
@@ -1109,7 +1110,7 @@ end;
 { TWMMeasureItem import }
 {-----------------------}
 
-function SepiImportTWMMeasureItem(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMMeasureItem(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMMeasureItem', True, True);
 
@@ -1128,7 +1129,7 @@ end;
 { TWMMenuChar import }
 {--------------------}
 
-function SepiImportTWMMenuChar(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMMenuChar(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMMenuChar', True, True);
 
@@ -1149,7 +1150,7 @@ end;
 { TWMMenuSelect import }
 {----------------------}
 
-function SepiImportTWMMenuSelect(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMMenuSelect(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMMenuSelect', True, True);
 
@@ -1169,7 +1170,7 @@ end;
 { TWMMouseActivate import }
 {-------------------------}
 
-function SepiImportTWMMouseActivate(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMMouseActivate(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMMouseActivate', True, True);
 
@@ -1189,7 +1190,7 @@ end;
 { TWMMove import }
 {----------------}
 
-function SepiImportTWMMove(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMMove(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMMove', True, True);
 
@@ -1210,7 +1211,7 @@ end;
 { TWMMoving import }
 {------------------}
 
-function SepiImportTWMMoving(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMMoving(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMMoving', True, True);
 
@@ -1228,7 +1229,7 @@ end;
 { TWMNCActivate import }
 {----------------------}
 
-function SepiImportTWMNCActivate(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMNCActivate(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMNCActivate', True, True);
 
@@ -1247,7 +1248,7 @@ end;
 { TWMNCCalcSize import }
 {----------------------}
 
-function SepiImportTWMNCCalcSize(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMNCCalcSize(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMNCCalcSize', True, True);
 
@@ -1266,7 +1267,7 @@ end;
 { TWMNCCreate import }
 {--------------------}
 
-function SepiImportTWMNCCreate(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMNCCreate(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMNCCreate', True, True);
 
@@ -1285,7 +1286,7 @@ end;
 { TWMNCHitTest import }
 {---------------------}
 
-function SepiImportTWMNCHitTest(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMNCHitTest(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMNCHitTest', True, True);
 
@@ -1306,7 +1307,7 @@ end;
 { TWMNCHitMessage import }
 {------------------------}
 
-function SepiImportTWMNCHitMessage(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMNCHitMessage(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMNCHitMessage', True, True);
 
@@ -1326,7 +1327,7 @@ end;
 { TWMNCPaint import }
 {-------------------}
 
-function SepiImportTWMNCPaint(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMNCPaint(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMNCPaint', True, True);
 
@@ -1345,7 +1346,7 @@ end;
 { TWMNextDlgCtl import }
 {----------------------}
 
-function SepiImportTWMNextDlgCtl(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMNextDlgCtl(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMNextDlgCtl', True, True);
 
@@ -1365,7 +1366,7 @@ end;
 { TWMNotify import }
 {------------------}
 
-function SepiImportTWMNotify(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMNotify(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMNotify', True, True);
 
@@ -1384,7 +1385,7 @@ end;
 { TWMNotifyFormat import }
 {------------------------}
 
-function SepiImportTWMNotifyFormat(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMNotifyFormat(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMNotifyFormat', True, True);
 
@@ -1403,7 +1404,7 @@ end;
 { TWMPaint import }
 {-----------------}
 
-function SepiImportTWMPaint(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMPaint(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMPaint', True, True);
 
@@ -1422,7 +1423,7 @@ end;
 { TWMPaintClipboard import }
 {--------------------------}
 
-function SepiImportTWMPaintClipboard(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMPaintClipboard(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMPaintClipboard', True, True);
 
@@ -1441,7 +1442,7 @@ end;
 { TWMPaletteChanged import }
 {--------------------------}
 
-function SepiImportTWMPaletteChanged(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMPaletteChanged(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMPaletteChanged', True, True);
 
@@ -1460,7 +1461,7 @@ end;
 { TWMPaletteIsChanging import }
 {-----------------------------}
 
-function SepiImportTWMPaletteIsChanging(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMPaletteIsChanging(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMPaletteIsChanging', True, True);
 
@@ -1479,7 +1480,7 @@ end;
 { TWMParentNotify import }
 {------------------------}
 
-function SepiImportTWMParentNotify(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMParentNotify(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMParentNotify', True, True);
 
@@ -1503,7 +1504,7 @@ end;
 { TWMPower import }
 {-----------------}
 
-function SepiImportTWMPower(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMPower(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMPower', True, True);
 
@@ -1522,7 +1523,7 @@ end;
 { TWMQueryEndSession import }
 {---------------------------}
 
-function SepiImportTWMQueryEndSession(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMQueryEndSession(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMQueryEndSession', True, True);
 
@@ -1541,7 +1542,7 @@ end;
 { TWMQuit import }
 {----------------}
 
-function SepiImportTWMQuit(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMQuit(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMQuit', True, True);
 
@@ -1560,7 +1561,7 @@ end;
 { TWMRenderFormat import }
 {------------------------}
 
-function SepiImportTWMRenderFormat(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMRenderFormat(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMRenderFormat', True, True);
 
@@ -1579,7 +1580,7 @@ end;
 { TWMSetCursor import }
 {---------------------}
 
-function SepiImportTWMSetCursor(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMSetCursor(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMSetCursor', True, True);
 
@@ -1599,7 +1600,7 @@ end;
 { TWMSetFocus import }
 {--------------------}
 
-function SepiImportTWMSetFocus(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMSetFocus(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMSetFocus', True, True);
 
@@ -1618,7 +1619,7 @@ end;
 { TWMSetFont import }
 {-------------------}
 
-function SepiImportTWMSetFont(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMSetFont(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMSetFont', True, True);
 
@@ -1638,7 +1639,7 @@ end;
 { TWMSetHotKey import }
 {---------------------}
 
-function SepiImportTWMSetHotKey(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMSetHotKey(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMSetHotKey', True, True);
 
@@ -1657,7 +1658,7 @@ end;
 { TWMSetIcon import }
 {-------------------}
 
-function SepiImportTWMSetIcon(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMSetIcon(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMSetIcon', True, True);
 
@@ -1676,7 +1677,7 @@ end;
 { TWMSetRedraw import }
 {---------------------}
 
-function SepiImportTWMSetRedraw(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMSetRedraw(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMSetRedraw', True, True);
 
@@ -1695,7 +1696,7 @@ end;
 { TWMSetText import }
 {-------------------}
 
-function SepiImportTWMSetText(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMSetText(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMSetText', True, True);
 
@@ -1714,7 +1715,7 @@ end;
 { TWMShowWindow import }
 {----------------------}
 
-function SepiImportTWMShowWindow(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMShowWindow(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMShowWindow', True, True);
 
@@ -1733,7 +1734,7 @@ end;
 { TWMSize import }
 {----------------}
 
-function SepiImportTWMSize(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMSize(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMSize', True, True);
 
@@ -1753,7 +1754,7 @@ end;
 { TWMSizeClipboard import }
 {-------------------------}
 
-function SepiImportTWMSizeClipboard(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMSizeClipboard(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMSizeClipboard', True, True);
 
@@ -1772,7 +1773,7 @@ end;
 { TWMSpoolerStatus import }
 {-------------------------}
 
-function SepiImportTWMSpoolerStatus(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMSpoolerStatus(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMSpoolerStatus', True, True);
 
@@ -1792,7 +1793,7 @@ end;
 { TWMStyleChange import }
 {-----------------------}
 
-function SepiImportTWMStyleChange(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMStyleChange(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMStyleChange', True, True);
 
@@ -1811,7 +1812,7 @@ end;
 { TWMSysCommand import }
 {----------------------}
 
-function SepiImportTWMSysCommand(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMSysCommand(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMSysCommand', True, True);
 
@@ -1832,7 +1833,7 @@ end;
 { TWMSysDeadChar import }
 {-----------------------}
 
-function SepiImportTWMSysDeadChar(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMSysDeadChar(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMSysDeadChar', True, True);
 
@@ -1852,7 +1853,7 @@ end;
 { TWMSystemError import }
 {-----------------------}
 
-function SepiImportTWMSystemError(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMSystemError(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMSystemError', True, True);
 
@@ -1871,7 +1872,7 @@ end;
 { TWMTimer import }
 {-----------------}
 
-function SepiImportTWMTimer(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMTimer(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMTimer', True, True);
 
@@ -1890,7 +1891,7 @@ end;
 { TWMUIState import }
 {-------------------}
 
-function SepiImportTWMUIState(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMUIState(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMUIState', True, True);
 
@@ -1909,7 +1910,7 @@ end;
 { TWMVScrollClipboard import }
 {----------------------------}
 
-function SepiImportTWMVScrollClipboard(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMVScrollClipboard(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMVScrollClipboard', True, True);
 
@@ -1929,7 +1930,7 @@ end;
 { TWMWinIniChange import }
 {------------------------}
 
-function SepiImportTWMWinIniChange(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMWinIniChange(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMWinIniChange', True, True);
 
@@ -1948,7 +1949,7 @@ end;
 { TWMSettingChange import }
 {-------------------------}
 
-function SepiImportTWMSettingChange(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMSettingChange(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMSettingChange', True, True);
 
@@ -1967,7 +1968,7 @@ end;
 { TWMHelp import }
 {----------------}
 
-function SepiImportTWMHelp(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMHelp(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMHelp', True, True);
 
@@ -1986,7 +1987,7 @@ end;
 { TWMDisplayChange import }
 {-------------------------}
 
-function SepiImportTWMDisplayChange(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMDisplayChange(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMDisplayChange', True, True);
 
@@ -2006,7 +2007,7 @@ end;
 { TWMContextMenu import }
 {-----------------------}
 
-function SepiImportTWMContextMenu(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMContextMenu(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMContextMenu', True, True);
 
@@ -2027,7 +2028,7 @@ end;
 { TWMPrint import }
 {-----------------}
 
-function SepiImportTWMPrint(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTWMPrint(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TWMPrint', True, True);
 
@@ -2046,7 +2047,7 @@ end;
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiRoot) : TSepiUnit;
+function ImportUnit(Root: TSepiRoot): TSepiUnit;
 begin
   Result := TSepiUnit.Create(Root, 'Messages',
     ['Windows']);
@@ -2112,7 +2113,8 @@ begin
   TSepiConstant.Create(Result, 'WM_COPYDATA', WM_COPYDATA);
   TSepiConstant.Create(Result, 'WM_CANCELJOURNAL', WM_CANCELJOURNAL);
   TSepiConstant.Create(Result, 'WM_NOTIFY', WM_NOTIFY);
-  TSepiConstant.Create(Result, 'WM_INPUTLANGCHANGEREQUEST', WM_INPUTLANGCHANGEREQUEST);
+  TSepiConstant.Create(Result, 'WM_INPUTLANGCHANGEREQUEST',
+    WM_INPUTLANGCHANGEREQUEST);
   TSepiConstant.Create(Result, 'WM_INPUTLANGCHANGE', WM_INPUTLANGCHANGE);
   TSepiConstant.Create(Result, 'WM_TCARD', WM_TCARD);
   TSepiConstant.Create(Result, 'WM_HELP', WM_HELP);
@@ -2204,14 +2206,16 @@ begin
   TSepiConstant.Create(Result, 'WM_MOVING', WM_MOVING);
   TSepiConstant.Create(Result, 'WM_POWERBROADCAST', WM_POWERBROADCAST);
   TSepiConstant.Create(Result, 'WM_DEVICECHANGE', WM_DEVICECHANGE);
-  TSepiConstant.Create(Result, 'WM_IME_STARTCOMPOSITION', WM_IME_STARTCOMPOSITION);
+  TSepiConstant.Create(Result, 'WM_IME_STARTCOMPOSITION',
+    WM_IME_STARTCOMPOSITION);
   TSepiConstant.Create(Result, 'WM_IME_ENDCOMPOSITION', WM_IME_ENDCOMPOSITION);
   TSepiConstant.Create(Result, 'WM_IME_COMPOSITION', WM_IME_COMPOSITION);
   TSepiConstant.Create(Result, 'WM_IME_KEYLAST', WM_IME_KEYLAST);
   TSepiConstant.Create(Result, 'WM_IME_SETCONTEXT', WM_IME_SETCONTEXT);
   TSepiConstant.Create(Result, 'WM_IME_NOTIFY', WM_IME_NOTIFY);
   TSepiConstant.Create(Result, 'WM_IME_CONTROL', WM_IME_CONTROL);
-  TSepiConstant.Create(Result, 'WM_IME_COMPOSITIONFULL', WM_IME_COMPOSITIONFULL);
+  TSepiConstant.Create(Result, 'WM_IME_COMPOSITIONFULL',
+    WM_IME_COMPOSITIONFULL);
   TSepiConstant.Create(Result, 'WM_IME_SELECT', WM_IME_SELECT);
   TSepiConstant.Create(Result, 'WM_IME_CHAR', WM_IME_CHAR);
   TSepiConstant.Create(Result, 'WM_IME_REQUEST', WM_IME_REQUEST);
@@ -2333,8 +2337,10 @@ begin
   TSepiConstant.Create(Result, 'LB_GETSELCOUNT', LB_GETSELCOUNT);
   TSepiConstant.Create(Result, 'LB_GETSELITEMS', LB_GETSELITEMS);
   TSepiConstant.Create(Result, 'LB_SETTABSTOPS', LB_SETTABSTOPS);
-  TSepiConstant.Create(Result, 'LB_GETHORIZONTALEXTENT', LB_GETHORIZONTALEXTENT);
-  TSepiConstant.Create(Result, 'LB_SETHORIZONTALEXTENT', LB_SETHORIZONTALEXTENT);
+  TSepiConstant.Create(Result, 'LB_GETHORIZONTALEXTENT',
+    LB_GETHORIZONTALEXTENT);
+  TSepiConstant.Create(Result, 'LB_SETHORIZONTALEXTENT',
+    LB_SETHORIZONTALEXTENT);
   TSepiConstant.Create(Result, 'LB_SETCOLUMNWIDTH', LB_SETCOLUMNWIDTH);
   TSepiConstant.Create(Result, 'LB_ADDFILE', LB_ADDFILE);
   TSepiConstant.Create(Result, 'LB_SETTOPINDEX', LB_SETTOPINDEX);
@@ -2386,7 +2392,8 @@ begin
   TSepiConstant.Create(Result, 'CB_SHOWDROPDOWN', CB_SHOWDROPDOWN);
   TSepiConstant.Create(Result, 'CB_GETITEMDATA', CB_GETITEMDATA);
   TSepiConstant.Create(Result, 'CB_SETITEMDATA', CB_SETITEMDATA);
-  TSepiConstant.Create(Result, 'CB_GETDROPPEDCONTROLRECT', CB_GETDROPPEDCONTROLRECT);
+  TSepiConstant.Create(Result, 'CB_GETDROPPEDCONTROLRECT',
+    CB_GETDROPPEDCONTROLRECT);
   TSepiConstant.Create(Result, 'CB_SETITEMHEIGHT', CB_SETITEMHEIGHT);
   TSepiConstant.Create(Result, 'CB_GETITEMHEIGHT', CB_GETITEMHEIGHT);
   TSepiConstant.Create(Result, 'CB_SETEXTENDEDUI', CB_SETEXTENDEDUI);
@@ -2397,8 +2404,10 @@ begin
   TSepiConstant.Create(Result, 'CB_GETLOCALE', CB_GETLOCALE);
   TSepiConstant.Create(Result, 'CB_GETTOPINDEX', CB_GETTOPINDEX);
   TSepiConstant.Create(Result, 'CB_SETTOPINDEX', CB_SETTOPINDEX);
-  TSepiConstant.Create(Result, 'CB_GETHORIZONTALEXTENT', CB_GETHORIZONTALEXTENT);
-  TSepiConstant.Create(Result, 'CB_SETHORIZONTALEXTENT', CB_SETHORIZONTALEXTENT);
+  TSepiConstant.Create(Result, 'CB_GETHORIZONTALEXTENT',
+    CB_GETHORIZONTALEXTENT);
+  TSepiConstant.Create(Result, 'CB_SETHORIZONTALEXTENT',
+    CB_SETHORIZONTALEXTENT);
   TSepiConstant.Create(Result, 'CB_GETDROPPEDWIDTH', CB_GETDROPPEDWIDTH);
   TSepiConstant.Create(Result, 'CB_SETDROPPEDWIDTH', CB_SETDROPPEDWIDTH);
   TSepiConstant.Create(Result, 'CB_INITSTORAGE', CB_INITSTORAGE);
@@ -2441,7 +2450,8 @@ begin
   TSepiConstant.Create(Result, 'EM_SETTABSTOPS', EM_SETTABSTOPS);
   TSepiConstant.Create(Result, 'EM_SETPASSWORDCHAR', EM_SETPASSWORDCHAR);
   TSepiConstant.Create(Result, 'EM_EMPTYUNDOBUFFER', EM_EMPTYUNDOBUFFER);
-  TSepiConstant.Create(Result, 'EM_GETFIRSTVISIBLELINE', EM_GETFIRSTVISIBLELINE);
+  TSepiConstant.Create(Result, 'EM_GETFIRSTVISIBLELINE',
+    EM_GETFIRSTVISIBLELINE);
   TSepiConstant.Create(Result, 'EM_SETREADONLY', EM_SETREADONLY);
   TSepiConstant.Create(Result, 'EM_SETWORDBREAKPROC', EM_SETWORDBREAKPROC);
   TSepiConstant.Create(Result, 'EM_GETWORDBREAKPROC', EM_GETWORDBREAKPROC);

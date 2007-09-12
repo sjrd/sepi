@@ -17,19 +17,19 @@ type
     Représente un hash MD5
   *}
   TMD5Digest = record
-    case integer of
-      0 : (A, B, C, D : LongInt);
-      1 : (V : array [0..15] of Byte);
+    case Integer of
+      0: (A, B, C, D: Longint);
+      1: (V: array [0..15] of Byte);
   end;
 
-function MD5String(const S : string) : TMD5Digest;
-function MD5File(const FileName : TFileName) : TMD5Digest;
-function MD5Stream(const Stream : TStream) : TMD5Digest;
-function MD5Buffer(const Buffer; Size : Integer) : TMD5Digest;
+function MD5String(const S: string): TMD5Digest;
+function MD5File(const FileName: TFileName): TMD5Digest;
+function MD5Stream(const Stream: TStream): TMD5Digest;
+function MD5Buffer(const Buffer; Size: Integer): TMD5Digest;
 
-function MD5DigestToStr(const Digest : TMD5Digest) : string;
-function StrToMD5Digest(Str : string) : TMD5Digest;
-function MD5DigestCompare(const Digest1, Digest2 : TMD5Digest) : boolean;
+function MD5DigestToStr(const Digest: TMD5Digest): string;
+function StrToMD5Digest(Str: string): TMD5Digest;
+function MD5DigestCompare(const Digest1, Digest2: TMD5Digest): Boolean;
 
 implementation
 
@@ -76,9 +76,9 @@ type
 
   PMD5Context = ^TMD5Context;
   TMD5Context = record
-    State : TArray4UINT4;
-    Count : TArray2UINT4;
-    Buffer : TArray64Byte;
+    State: TArray4UINT4;
+    Count: TArray2UINT4;
+    Buffer: TArray64Byte;
   end;
 
 const
@@ -100,67 +100,68 @@ const
   S44 = 21;
 
 var
-  Padding : TArray64Byte =
-  ($80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+  Padding: TArray64Byte =
+    ($80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
 
-function _F(X, Y, Z : UINT4) : UINT4;
+function _F(X, Y, Z: UINT4): UINT4;
 begin
   Result := (((X) and (Y)) or ((not X) and (Z)));
 end;
 
-function _G(X, Y, Z : UINT4) : UINT4;
+function _G(X, Y, Z: UINT4): UINT4;
 begin
   Result := (((X) and (Z)) or ((Y) and (not Z)));
 end;
 
-function _H(X, Y, Z : UINT4) : UINT4;
+function _H(X, Y, Z: UINT4): UINT4;
 begin
   Result := ((X) xor (Y) xor (Z));
 end;
 
-function _I(X, Y, Z : UINT4) : UINT4;
+function _I(X, Y, Z: UINT4): UINT4;
 begin
   Result := ((Y) xor ((X) or (not Z)));
 end;
 
-function ROTATE_LEFT(X, N : UINT4) : UINT4;
+function ROTATE_LEFT(X, N: UINT4): UINT4;
 begin
   Result := (((X) shl (N)) or ((X) shr (32-(N))));
 end;
 
-procedure FF(var A : UINT4; B, C, D, X, S, AC : UINT4);
+procedure FF(var A: UINT4; B, C, D, X, S, AC: UINT4);
 begin
   A := A + _F(B, C, D) + X + AC;
-  A := ROTATE_LEFT (A, S);
+  A := ROTATE_LEFT(A, S);
   A := A + B;
 end;
 
-procedure GG(var A : UINT4; B, C, D, X, S, AC : UINT4);
+procedure GG(var A: UINT4; B, C, D, X, S, AC: UINT4);
 begin
   A := A + _G(B, C, D) + X + AC;
   A := ROTATE_LEFT(A, S);
   A := A + B;
 end;
 
-procedure HH(var A : UINT4; B, C, D, X, S, AC : UINT4);
+procedure HH(var A: UINT4; B, C, D, X, S, AC: UINT4);
 begin
   A := A + _H(B, C, D) + X + AC;
   A := ROTATE_LEFT(A, S);
   A := A + B;
 end;
 
-procedure II(var A : UINT4; B, C, D, X, S, AC : UINT4);
+procedure II(var A: UINT4; B, C, D, X, S, AC: UINT4);
 begin
   A := A + _I(B, C, D) + X + AC;
   A := ROTATE_LEFT(A, S);
   A := A + B;
 end;
 
-procedure MD5Encode(Output : PByteArray; Input : PUINT4Array; Len : LongWord);
-var I, J : LongWord;
+procedure MD5Encode(Output: PByteArray; Input: PUINT4Array; Len: LongWord);
+var
+  I, J: LongWord;
 begin
   J := 0;
   I := 0;
@@ -170,38 +171,40 @@ begin
     Output[J+1] := Byte((Input[I] shr 8) and $FF);
     Output[J+2] := Byte((Input[I] shr 16) and $FF);
     Output[J+3] := Byte((Input[I] shr 24) and $FF);
-    inc(J, 4);
-    inc(I);
+    Inc(J, 4);
+    Inc(I);
   end;
 end;
 
-procedure MD5Decode(Output : PUINT4Array; Input : PByteArray; Len : LongWord);
-var I, J : LongWord;
+procedure MD5Decode(Output: PUINT4Array; Input: PByteArray; Len: LongWord);
+var
+  I, J: LongWord;
 begin
   J := 0;
   I := 0;
   while J < Len do
   begin
     Output[I] := UINT4(Input[J]) or (UINT4(Input[J+1]) shl 8) or
-     (UINT4(Input[J+2]) shl 16) or (UINT4(Input[J+3]) shl 24);
-    inc(J, 4);
-    inc(I);
+      (UINT4(Input[J+2]) shl 16) or (UINT4(Input[J+3]) shl 24);
+    Inc(J, 4);
+    Inc(I);
   end;
 end;
 
-procedure MD5_memcpy(Output : PByteArray; Input : PByteArray; Len : LongWord);
+procedure MD5_memcpy(Output: PByteArray; Input: PByteArray; Len: LongWord);
 begin
   Move(Input^, Output^, Len);
 end;
 
-procedure MD5_memset(Output : PByteArray; Value : Integer; Len : LongWord);
+procedure MD5_memset(Output: PByteArray; Value: Integer; Len: LongWord);
 begin
   FillChar(Output^, Len, Byte(Value));
 end;
 
-procedure MD5Transform(State : PArray4UINT4; Buffer : PArray64Byte);
-var A, B, C, D : UINT4;
-    X : array[0..15] of UINT4;
+procedure MD5Transform(State: PArray4UINT4; Buffer: PArray64Byte);
+var
+  A, B, C, D: UINT4;
+  X: array[0..15] of UINT4;
 begin
   A := State[0];
   B := State[1];
@@ -209,16 +212,16 @@ begin
   D := State[3];
   MD5Decode(PUINT4Array(@X), PByteArray(Buffer), 64);
 
-  FF(A, B, C, D, X[ 0], S11, $D76AA478);
-  FF(D, A, B, C, X[ 1], S12, $E8C7B756);
-  FF(C, D, A, B, X[ 2], S13, $242070DB);
-  FF(B, C, D, A, X[ 3], S14, $C1BDCEEE);
-  FF(A, B, C, D, X[ 4], S11, $F57C0FAF);
-  FF(D, A, B, C, X[ 5], S12, $4787C62A);
-  FF(C, D, A, B, X[ 6], S13, $A8304613);
-  FF(B, C, D, A, X[ 7], S14, $FD469501);
-  FF(A, B, C, D, X[ 8], S11, $698098D8);
-  FF(D, A, B, C, X[ 9], S12, $8B44F7AF);
+  FF(A, B, C, D, X[0], S11, $D76AA478);
+  FF(D, A, B, C, X[1], S12, $E8C7B756);
+  FF(C, D, A, B, X[2], S13, $242070DB);
+  FF(B, C, D, A, X[3], S14, $C1BDCEEE);
+  FF(A, B, C, D, X[4], S11, $F57C0FAF);
+  FF(D, A, B, C, X[5], S12, $4787C62A);
+  FF(C, D, A, B, X[6], S13, $A8304613);
+  FF(B, C, D, A, X[7], S14, $FD469501);
+  FF(A, B, C, D, X[8], S11, $698098D8);
+  FF(D, A, B, C, X[9], S12, $8B44F7AF);
   FF(C, D, A, B, X[10], S13, $FFFF5BB1);
   FF(B, C, D, A, X[11], S14, $895CD7BE);
   FF(A, B, C, D, X[12], S11, $6B901122);
@@ -226,68 +229,68 @@ begin
   FF(C, D, A, B, X[14], S13, $A679438E);
   FF(B, C, D, A, X[15], S14, $49B40821);
 
-  GG(A, B, C, D, X[ 1], S21, $F61E2562);
-  GG(D, A, B, C, X[ 6], S22, $C040B340);
+  GG(A, B, C, D, X[1], S21, $F61E2562);
+  GG(D, A, B, C, X[6], S22, $C040B340);
   GG(C, D, A, B, X[11], S23, $265E5A51);
-  GG(B, C, D, A, X[ 0], S24, $E9B6C7AA);
-  GG(A, B, C, D, X[ 5], S21, $D62F105D);
+  GG(B, C, D, A, X[0], S24, $E9B6C7AA);
+  GG(A, B, C, D, X[5], S21, $D62F105D);
   GG(D, A, B, C, X[10], S22, $02441453);
   GG(C, D, A, B, X[15], S23, $D8A1E681);
-  GG(B, C, D, A, X[ 4], S24, $E7D3FBC8);
-  GG(A, B, C, D, X[ 9], S21, $21E1CDE6);
+  GG(B, C, D, A, X[4], S24, $E7D3FBC8);
+  GG(A, B, C, D, X[9], S21, $21E1CDE6);
   GG(D, A, B, C, X[14], S22, $C33707D6);
-  GG(C, D, A, B, X[ 3], S23, $F4D50D87);
+  GG(C, D, A, B, X[3], S23, $F4D50D87);
 
-  GG(B, C, D, A, X[ 8], S24, $455A14ED);
+  GG(B, C, D, A, X[8], S24, $455A14ED);
   GG(A, B, C, D, X[13], S21, $A9E3E905);
-  GG(D, A, B, C, X[ 2], S22, $FCEFA3F8);
-  GG(C, D, A, B, X[ 7], S23, $676F02D9);
+  GG(D, A, B, C, X[2], S22, $FCEFA3F8);
+  GG(C, D, A, B, X[7], S23, $676F02D9);
   GG(B, C, D, A, X[12], S24, $8D2A4C8A);
 
-  HH(A, B, C, D, X[ 5], S31, $FFFA3942);
-  HH(D, A, B, C, X[ 8], S32, $8771F681);
+  HH(A, B, C, D, X[5], S31, $FFFA3942);
+  HH(D, A, B, C, X[8], S32, $8771F681);
   HH(C, D, A, B, X[11], S33, $6D9D6122);
   HH(B, C, D, A, X[14], S34, $FDE5380C);
-  HH(A, B, C, D, X[ 1], S31, $A4BEEA44);
-  HH(D, A, B, C, X[ 4], S32, $4BDECFA9);
-  HH(C, D, A, B, X[ 7], S33, $F6BB4B60);
+  HH(A, B, C, D, X[1], S31, $A4BEEA44);
+  HH(D, A, B, C, X[4], S32, $4BDECFA9);
+  HH(C, D, A, B, X[7], S33, $F6BB4B60);
   HH(B, C, D, A, X[10], S34, $BEBFBC70);
   HH(A, B, C, D, X[13], S31, $289B7EC6);
-  HH(D, A, B, C, X[ 0], S32, $EAA127FA);
-  HH(C, D, A, B, X[ 3], S33, $D4EF3085);
-  HH(B, C, D, A, X[ 6], S34, $04881D05);
-  HH(A, B, C, D, X[ 9], S31, $D9D4D039);
+  HH(D, A, B, C, X[0], S32, $EAA127FA);
+  HH(C, D, A, B, X[3], S33, $D4EF3085);
+  HH(B, C, D, A, X[6], S34, $04881D05);
+  HH(A, B, C, D, X[9], S31, $D9D4D039);
   HH(D, A, B, C, X[12], S32, $E6DB99E5);
   HH(C, D, A, B, X[15], S33, $1FA27CF8);
-  HH(B, C, D, A, X[ 2], S34, $C4AC5665);
+  HH(B, C, D, A, X[2], S34, $C4AC5665);
 
-  II(A, B, C, D, X[ 0], S41, $F4292244);
-  II(D, A, B, C, X[ 7], S42, $432AFF97);
+  II(A, B, C, D, X[0], S41, $F4292244);
+  II(D, A, B, C, X[7], S42, $432AFF97);
   II(C, D, A, B, X[14], S43, $AB9423A7);
-  II(B, C, D, A, X[ 5], S44, $FC93A039);
+  II(B, C, D, A, X[5], S44, $FC93A039);
   II(A, B, C, D, X[12], S41, $655B59C3);
-  II(D, A, B, C, X[ 3], S42, $8F0CCC92);
+  II(D, A, B, C, X[3], S42, $8F0CCC92);
   II(C, D, A, B, X[10], S43, $FFEFF47D);
-  II(B, C, D, A, X[ 1], S44, $85845DD1);
-  II(A, B, C, D, X[ 8], S41, $6FA87E4F);
+  II(B, C, D, A, X[1], S44, $85845DD1);
+  II(A, B, C, D, X[8], S41, $6FA87E4F);
   II(D, A, B, C, X[15], S42, $FE2CE6E0);
-  II(C, D, A, B, X[ 6], S43, $A3014314);
+  II(C, D, A, B, X[6], S43, $A3014314);
   II(B, C, D, A, X[13], S44, $4E0811A1);
-  II(A, B, C, D, X[ 4], S41, $F7537E82);
+  II(A, B, C, D, X[4], S41, $F7537E82);
   II(D, A, B, C, X[11], S42, $BD3AF235);
-  II(C, D, A, B, X[ 2], S43, $2AD7D2BB);
-  II(B, C, D, A, X[ 9], S44, $EB86D391);
+  II(C, D, A, B, X[2], S43, $2AD7D2BB);
+  II(B, C, D, A, X[9], S44, $EB86D391);
 
-  inc(State[0], A);
-  inc(State[1], B);
-  inc(State[2], C);
-  inc(State[3], D);
+  Inc(State[0], A);
+  Inc(State[1], B);
+  Inc(State[2], C);
+  Inc(State[3], D);
 
   MD5_memset(PByteArray(@X), 0, sizeof(X));
 end;
 
 
-procedure MD5Init(var Context : TMD5Context);
+procedure MD5Init(var Context: TMD5Context);
 begin
   FillChar(Context, sizeof(Context), 0);
   Context.State[0] := $67452301;
@@ -296,13 +299,15 @@ begin
   Context.State[3] := $10325476;
 end;
 
-procedure MD5Update(var Context : TMD5Context; Input : PByteArray; InputLen : LongWord);
-var I, Index, PartLen : LongWord;
+procedure MD5Update(var Context: TMD5Context; Input: PByteArray;
+  InputLen: LongWord);
+var
+  I, Index, PartLen: LongWord;
 begin
   Index := LongWord((Context.Count[0] shr 3) and $3F);
-  inc(Context.count[0], UINT4(InputLen) shl 3);
-  if Context.count[0] < UINT4(InputLen) shl 3 then inc(Context.count[1]);
-  inc(Context.count[1], UINT4(InputLen) shr 29);
+  Inc(Context.Count[0], UINT4(InputLen) shl 3);
+  if Context.Count[0] < UINT4(InputLen) shl 3 then Inc(Context.Count[1]);
+  Inc(Context.Count[1], UINT4(InputLen) shr 29);
   PartLen := 64 - Index;
   if InputLen >= PartLen then
   begin
@@ -312,16 +317,18 @@ begin
     while I + 63 < InputLen do
     begin
       MD5Transform(@Context.State, PArray64Byte(@Input[I]));
-      inc(I, 64);
+      Inc(I, 64);
     end;
     Index := 0;
   end else I := 0;
-  MD5_memcpy(PByteArray(@Context.buffer[Index]), PByteArray(@Input[I]), InputLen - I);
+  MD5_memcpy(PByteArray(@Context.buffer[Index]), PByteArray(@Input[I]),
+    InputLen - I);
 end;
 
-procedure MD5Final(var Digest : TMD5Digest; var Context : TMD5Context);
-var Bits : array [0..7] of Byte;
-    Index, PadLen : LongWord;
+procedure MD5Final(var Digest: TMD5Digest; var Context: TMD5Context);
+var
+  Bits: array [0..7] of Byte;
+  Index, PadLen: LongWord;
 begin
   MD5Encode(PByteArray(@Bits), PUINT4Array(@Context.Count), 8);
   Index := LongWord((Context.Count[0] shr 3) and $3F);
@@ -337,8 +344,9 @@ end;
   @param Digest   Hash MD5 à convertir
   @return Représentation sous forme de chaîne du hash Digest
 *}
-function MD5DigestToStr(const Digest : TMD5Digest) : string;
-var I : integer;
+function MD5DigestToStr(const Digest: TMD5Digest): string;
+var
+  I: Integer;
 begin
   Result := '';
   for I := 0 to 15 do Result := Result + IntToHex(Digest.V[I], 2);
@@ -349,8 +357,9 @@ end;
   @param Str   Chaîne de caractères à convertir
   @return Hash MD5 représenté par la chaîne Str
 *}
-function StrToMD5Digest(Str : string) : TMD5Digest;
-var I : integer;
+function StrToMD5Digest(Str: string): TMD5Digest;
+var
+  I: Integer;
 begin
   for I := 0 to 15 do Result.V[I] := StrToInt('$'+Str[I*2+1]+Str[I*2+2]);
 end;
@@ -360,7 +369,7 @@ end;
   @param S   Chaîne de caractères
   @return Hash MD5 de la chaîne S
 *}
-function MD5String(const S : string) : TMD5Digest;
+function MD5String(const S: string): TMD5Digest;
 begin
   Result := MD5Buffer(PChar(S)^, Length(S));
 end;
@@ -370,8 +379,9 @@ end;
   @param FileName   Nom du fichier
   @return Hash MD5 du fichier FileName
 *}
-function MD5File(const FileName : TFileName) : TMD5Digest;
-var F : TFileStream;
+function MD5File(const FileName: TFileName): TMD5Digest;
+var
+  F: TFileStream;
 begin
   F := TFileStream.Create(FileName, fmOpenRead);
   try
@@ -386,13 +396,14 @@ end;
   @param Stream   Flux
   @return Hash MD5 du flux Stream
 *}
-function MD5Stream(const Stream : TStream) : TMD5Digest;
-var Context : TMD5Context;
-    Buffer : array[0..4095] of Byte;
-    Size : integer;
-    ReadBytes : integer;
-    TotalBytes : integer;
-    SavePos : integer;
+function MD5Stream(const Stream: TStream): TMD5Digest;
+var
+  Context: TMD5Context;
+  Buffer: array[0..4095] of Byte;
+  Size: Integer;
+  ReadBytes: Integer;
+  TotalBytes: Integer;
+  SavePos: Integer;
 begin
   MD5Init(Context);
   Size := Stream.Size;
@@ -402,7 +413,7 @@ begin
     Stream.Seek(0, soFromBeginning);
     repeat
       ReadBytes := Stream.Read(Buffer, sizeof(Buffer));
-      inc(TotalBytes, ReadBytes);
+      Inc(TotalBytes, ReadBytes);
       MD5Update(Context, @Buffer, ReadBytes);
     until (ReadBytes = 0) or (TotalBytes = Size);
   finally
@@ -417,8 +428,9 @@ end;
   @param Size     Taille du buffer
   @return Hash MD5 du buffer
 *}
-function MD5Buffer(const Buffer; Size : integer) : TMD5Digest;
-var Context : TMD5Context;
+function MD5Buffer(const Buffer; Size: Integer): TMD5Digest;
+var
+  Context: TMD5Context;
 begin
   MD5Init(Context);
   MD5Update(Context, PByteArray(@Buffer), Size);
@@ -431,7 +443,7 @@ end;
   @param Digest2   Second hash MD5
   @return True si les deux hashes sont identiques, False sinon
 *}
-function MD5DigestCompare(const Digest1, Digest2 : TMD5Digest) : boolean;
+function MD5DigestCompare(const Digest1, Digest2: TMD5Digest): Boolean;
 begin
   Result := False;
   if Digest1.A <> Digest2.A then Exit;

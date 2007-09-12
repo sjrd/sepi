@@ -21,18 +21,18 @@ type
   *}
   TScLogFile = class
   private
-    FFile : TFileStream; /// Flux interne du fichier LOG
+    FFile: TFileStream; /// Flux interne du fichier LOG
   public
-    constructor Create(const FileName : string; Append : boolean = False);
+    constructor Create(const FileName: string; Append: Boolean = False);
     destructor Destroy; override;
 
-    procedure AddLine(const Line : string);
+    procedure AddLine(const Line: string);
 
-    procedure Add(const Time, Title, Description : string); overload;
-    procedure Add(Time : TDateTime; const Title : string;
-      const Description : string = ''); overload;
-    procedure Add(const Title : string;
-      const Description : string = ''); overload;
+    procedure Add(const Time, Title, Description: string); overload;
+    procedure Add(Time: TDateTime; const Title: string;
+      const Description: string = ''); overload;
+    procedure Add(const Title: string;
+      const Description: string = ''); overload;
   end;
 
 implementation
@@ -45,8 +45,8 @@ uses
   @param FileName   Nom du fichier LOG
   @param Append     Si False, le fichier est d'abord vidé
 *}
-constructor TScLogFile.Create(const FileName : string;
-  Append : boolean = False);
+constructor TScLogFile.Create(const FileName: string;
+  Append: Boolean = False);
 begin
   inherited Create;
   if Append then
@@ -68,9 +68,9 @@ end;
   Ajoute une ligne au fichier LOG
   @param Line   Ligne à ajouter
 *}
-procedure TScLogFile.AddLine(const Line : string);
+procedure TScLogFile.AddLine(const Line: string);
 const
-  CRLF : array[0..1] of Char = (#13, #10);
+  CRLF: array[0..1] of Char = (#13, #10);
 begin
   FFile.Seek(0, soFromEnd);
   FFile.WriteBuffer(Pointer(Line)^, Length(Line));
@@ -83,8 +83,9 @@ end;
   @param Title         Titre de l'entrée de LOG
   @param Description   Description de l'entrée LOG
 *}
-procedure TScLogFile.Add(const Time, Title, Description : string);
-var Line : string;
+procedure TScLogFile.Add(const Time, Title, Description: string);
+var
+  Line: string;
 begin
   Line := '['+Time+'] '+Title;
   if Description <> '' then
@@ -98,8 +99,8 @@ end;
   @param Title         Titre de l'entrée LOG
   @param Description   Description de l'entrée LOG
 *}
-procedure TScLogFile.Add(Time : TDateTime; const Title : string;
-  const Description : string = '');
+procedure TScLogFile.Add(Time: TDateTime; const Title: string;
+  const Description: string = '');
 begin
   Add(DateTimeToStr(Time), Title, Description);
 end;
@@ -110,8 +111,8 @@ end;
   @param Title         Titre de l'entrée LOG
   @param Description   Description de l'entrée LOG
 *}
-procedure TScLogFile.Add(const Title : string;
-  const Description : string = '');
+procedure TScLogFile.Add(const Title: string;
+  const Description: string = '');
 begin
   Add(Now, Title, Description);
 end;

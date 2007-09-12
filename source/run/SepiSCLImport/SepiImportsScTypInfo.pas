@@ -19,14 +19,14 @@ implementation
 { TRecordField import }
 {---------------------}
 
-function SepiImportTRecordField(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTRecordField(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TRecordField', True, True);
 
   with Result do
   begin
     AddField('TypeInfo', 'PPTypeInfo');
-    AddField('Offset', System.TypeInfo(integer));
+    AddField('Offset', System.TypeInfo(Integer));
 
     Complete;
   end;
@@ -36,14 +36,14 @@ end;
 { TRecordTypeData import }
 {------------------------}
 
-function SepiImportTRecordTypeData(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTRecordTypeData(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TRecordTypeData', True, True);
 
   with Result do
   begin
-    AddField('Size', System.TypeInfo(integer));
-    AddField('FieldCount', System.TypeInfo(integer));
+    AddField('Size', System.TypeInfo(Integer));
+    AddField('FieldCount', System.TypeInfo(Integer));
     AddField('Fields', '$1');
 
     Complete;
@@ -54,14 +54,14 @@ end;
 { TArrayTypeData import }
 {-----------------------}
 
-function SepiImportTArrayTypeData(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImportTArrayTypeData(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, 'TArrayTypeData', True, True);
 
   with Result do
   begin
-    AddField('Size', System.TypeInfo(integer));
-    AddField('Count', System.TypeInfo(integer));
+    AddField('Size', System.TypeInfo(Integer));
+    AddField('Count', System.TypeInfo(Integer));
     AddField('ElType', 'PPTypeInfo');
 
     Complete;
@@ -72,17 +72,18 @@ end;
 { Unit import }
 {-------------}
 
-procedure CopyData_0(const Source; var Dest; Size : integer; TypeInfo : PTypeInfo );
+procedure CopyData_0(const Source; var Dest; Size: Integer;
+  TypeInfo: PTypeInfo);
 begin
   CopyData(Source, Dest, Size, TypeInfo);
 end;
 
-procedure CopyData_1(const Source; var Dest; TypeInfo : PTypeInfo);
+procedure CopyData_1(const Source; var Dest; TypeInfo: PTypeInfo);
 begin
   CopyData(Source, Dest, TypeInfo);
 end;
 
-function ImportUnit(Root : TSepiRoot) : TSepiUnit;
+function ImportUnit(Root: TSepiRoot): TSepiUnit;
 begin
   Result := TSepiUnit.Create(Root, 'ScTypInfo',
     ['TypInfo']);

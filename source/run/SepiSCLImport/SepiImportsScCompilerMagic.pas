@@ -19,7 +19,7 @@ implementation
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiRoot) : TSepiUnit;
+function ImportUnit(Root: TSepiRoot): TSepiUnit;
 begin
   Result := TSepiUnit.Create(Root, 'ScCompilerMagic',
     ['TypInfo']);
@@ -39,7 +39,8 @@ begin
     'procedure(Source : Pointer; TypeInfo : Pointer; var Dest : Pointer )');
   TSepiMethod.Create(Result, 'DynArrayCopyRange', @DynArrayCopyRange,
     'procedure(Source : Pointer; TypeInfo : Pointer; Index, Count : integer ; var Dest : Pointer )');
-  TSepiMethod.Create(Result, 'CompilerMagicRoutineAddress', @CompilerMagicRoutineAddress,
+  TSepiMethod.Create(Result, 'CompilerMagicRoutineAddress',
+    @CompilerMagicRoutineAddress,
     'function( CompilerMagicRoutineAlias : Pointer ) : Pointer');
 
   Result.Complete;

@@ -19,17 +19,17 @@ implementation
 { Unit import }
 {-------------}
 
-function HasUTF8BOM_0(S : TStream) : boolean;
+function HasUTF8BOM_0(S: TStream): Boolean;
 begin
   Result := HasUTF8BOM(S);
 end;
 
-function HasUTF8BOM_1(S : AnsiString) : boolean;
+function HasUTF8BOM_1(S: AnsiString): Boolean;
 begin
   Result := HasUTF8BOM(S);
 end;
 
-function ImportUnit(Root : TSepiRoot) : TSepiUnit;
+function ImportUnit(Root: TSepiRoot): TSepiUnit;
 begin
   Result := TSepiUnit.Create(Root, 'WideStrUtils',
     ['Windows', 'SysUtils', 'Classes']);
@@ -79,7 +79,8 @@ begin
     'function(S : TStream) : boolean');
   TSepiMethod.Create(Result, 'OL$HasUTF8BOM$1', @HasUTF8BOM_1,
     'function(S : AnsiString) : boolean');
-  TSepiMethod.Create(Result, 'ConvertStreamFromAnsiToUTF8', @ConvertStreamFromAnsiToUTF8,
+  TSepiMethod.Create(Result, 'ConvertStreamFromAnsiToUTF8',
+    @ConvertStreamFromAnsiToUTF8,
     'procedure(Src, Dst : TStream; cp : integer = CP_ACP)');
   TSepiMethod.Create(Result, 'WideQuotedStr', @WideQuotedStr,
     'function(const S: WideString; Quote: WideChar): WideString');
@@ -109,7 +110,7 @@ begin
   TSepiArrayType.Create(Result, '$1',
     [1, 3], TypeInfo(char), True);
   TSepiVariable.Create(Result, 'sUTF8BOMString',
-     sUTF8BOMString, '$1', True);
+    sUTF8BOMString, '$1', True);
 
   // Routines
   TSepiMethod.Create(Result, 'IsUTF8LeadByte', @IsUTF8LeadByte,

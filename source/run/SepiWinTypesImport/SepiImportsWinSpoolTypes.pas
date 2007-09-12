@@ -19,7 +19,7 @@ implementation
 { _PRINTER_INFO_1A import }
 {-------------------------}
 
-function SepiImport_PRINTER_INFO_1A(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_PRINTER_INFO_1A(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_PRINTER_INFO_1A', False, True);
 
@@ -38,7 +38,7 @@ end;
 { _PRINTER_INFO_1W import }
 {-------------------------}
 
-function SepiImport_PRINTER_INFO_1W(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_PRINTER_INFO_1W(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_PRINTER_INFO_1W', False, True);
 
@@ -57,7 +57,7 @@ end;
 { _PRINTER_INFO_2A import }
 {-------------------------}
 
-function SepiImport_PRINTER_INFO_2A(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_PRINTER_INFO_2A(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_PRINTER_INFO_2A', False, True);
 
@@ -93,7 +93,7 @@ end;
 { _PRINTER_INFO_2W import }
 {-------------------------}
 
-function SepiImport_PRINTER_INFO_2W(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_PRINTER_INFO_2W(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_PRINTER_INFO_2W', False, True);
 
@@ -129,7 +129,7 @@ end;
 { _PRINTER_INFO_3 import }
 {------------------------}
 
-function SepiImport_PRINTER_INFO_3(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_PRINTER_INFO_3(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_PRINTER_INFO_3', False, True);
 
@@ -145,7 +145,7 @@ end;
 { _PRINTER_INFO_4A import }
 {-------------------------}
 
-function SepiImport_PRINTER_INFO_4A(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_PRINTER_INFO_4A(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_PRINTER_INFO_4A', False, True);
 
@@ -163,7 +163,7 @@ end;
 { _PRINTER_INFO_4W import }
 {-------------------------}
 
-function SepiImport_PRINTER_INFO_4W(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_PRINTER_INFO_4W(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_PRINTER_INFO_4W', False, True);
 
@@ -181,7 +181,7 @@ end;
 { _PRINTER_INFO_5A import }
 {-------------------------}
 
-function SepiImport_PRINTER_INFO_5A(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_PRINTER_INFO_5A(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_PRINTER_INFO_5A', False, True);
 
@@ -201,7 +201,7 @@ end;
 { _PRINTER_INFO_5W import }
 {-------------------------}
 
-function SepiImport_PRINTER_INFO_5W(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_PRINTER_INFO_5W(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_PRINTER_INFO_5W', False, True);
 
@@ -221,7 +221,7 @@ end;
 { _PRINTER_INFO_6 import }
 {------------------------}
 
-function SepiImport_PRINTER_INFO_6(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_PRINTER_INFO_6(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_PRINTER_INFO_6', False, True);
 
@@ -237,7 +237,7 @@ end;
 { _JOB_INFO_1A import }
 {---------------------}
 
-function SepiImport_JOB_INFO_1A(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_JOB_INFO_1A(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_JOB_INFO_1A', False, True);
 
@@ -265,7 +265,7 @@ end;
 { _JOB_INFO_1W import }
 {---------------------}
 
-function SepiImport_JOB_INFO_1W(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_JOB_INFO_1W(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_JOB_INFO_1W', False, True);
 
@@ -293,7 +293,7 @@ end;
 { _JOB_INFO_2A import }
 {---------------------}
 
-function SepiImport_JOB_INFO_2A(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_JOB_INFO_2A(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_JOB_INFO_2A', False, True);
 
@@ -331,7 +331,7 @@ end;
 { _JOB_INFO_2W import }
 {---------------------}
 
-function SepiImport_JOB_INFO_2W(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_JOB_INFO_2W(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_JOB_INFO_2W', False, True);
 
@@ -369,7 +369,7 @@ end;
 { _JOB_INFO_3 import }
 {--------------------}
 
-function SepiImport_JOB_INFO_3(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_JOB_INFO_3(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_JOB_INFO_3', False, True);
 
@@ -387,7 +387,7 @@ end;
 { _ADDJOB_INFO_1A import }
 {------------------------}
 
-function SepiImport_ADDJOB_INFO_1A(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_ADDJOB_INFO_1A(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_ADDJOB_INFO_1A', False, True);
 
@@ -404,7 +404,7 @@ end;
 { _ADDJOB_INFO_1W import }
 {------------------------}
 
-function SepiImport_ADDJOB_INFO_1W(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_ADDJOB_INFO_1W(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_ADDJOB_INFO_1W', False, True);
 
@@ -421,7 +421,7 @@ end;
 { _DRIVER_INFO_1A import }
 {------------------------}
 
-function SepiImport_DRIVER_INFO_1A(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_DRIVER_INFO_1A(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_DRIVER_INFO_1A', False, True);
 
@@ -437,7 +437,7 @@ end;
 { _DRIVER_INFO_1W import }
 {------------------------}
 
-function SepiImport_DRIVER_INFO_1W(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_DRIVER_INFO_1W(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_DRIVER_INFO_1W', False, True);
 
@@ -453,7 +453,7 @@ end;
 { _DRIVER_INFO_2A import }
 {------------------------}
 
-function SepiImport_DRIVER_INFO_2A(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_DRIVER_INFO_2A(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_DRIVER_INFO_2A', False, True);
 
@@ -474,7 +474,7 @@ end;
 { _DRIVER_INFO_2W import }
 {------------------------}
 
-function SepiImport_DRIVER_INFO_2W(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_DRIVER_INFO_2W(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_DRIVER_INFO_2W', False, True);
 
@@ -495,7 +495,7 @@ end;
 { _DRIVER_INFO_3A import }
 {------------------------}
 
-function SepiImport_DRIVER_INFO_3A(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_DRIVER_INFO_3A(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_DRIVER_INFO_3A', False, True);
 
@@ -520,7 +520,7 @@ end;
 { _DRIVER_INFO_3W import }
 {------------------------}
 
-function SepiImport_DRIVER_INFO_3W(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_DRIVER_INFO_3W(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_DRIVER_INFO_3W', False, True);
 
@@ -545,7 +545,7 @@ end;
 { _DOC_INFO_1A import }
 {---------------------}
 
-function SepiImport_DOC_INFO_1A(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_DOC_INFO_1A(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_DOC_INFO_1A', False, True);
 
@@ -563,7 +563,7 @@ end;
 { _DOC_INFO_1W import }
 {---------------------}
 
-function SepiImport_DOC_INFO_1W(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_DOC_INFO_1W(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_DOC_INFO_1W', False, True);
 
@@ -581,7 +581,7 @@ end;
 { _FORM_INFO_1A import }
 {----------------------}
 
-function SepiImport_FORM_INFO_1A(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_FORM_INFO_1A(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_FORM_INFO_1A', False, True);
 
@@ -600,7 +600,7 @@ end;
 { _FORM_INFO_1W import }
 {----------------------}
 
-function SepiImport_FORM_INFO_1W(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_FORM_INFO_1W(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_FORM_INFO_1W', False, True);
 
@@ -619,7 +619,7 @@ end;
 { _DOC_INFO_2A import }
 {---------------------}
 
-function SepiImport_DOC_INFO_2A(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_DOC_INFO_2A(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_DOC_INFO_2A', False, True);
 
@@ -639,7 +639,7 @@ end;
 { _DOC_INFO_2W import }
 {---------------------}
 
-function SepiImport_DOC_INFO_2W(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_DOC_INFO_2W(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_DOC_INFO_2W', False, True);
 
@@ -659,9 +659,10 @@ end;
 { _PRINTPROCESSOR_INFO_1A import }
 {--------------------------------}
 
-function SepiImport_PRINTPROCESSOR_INFO_1A(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_PRINTPROCESSOR_INFO_1A(Owner: TSepiUnit): TSepiRecordType;
 begin
-  Result := TSepiRecordType.Create(Owner, '_PRINTPROCESSOR_INFO_1A', False, True);
+  Result := TSepiRecordType.Create(Owner, '_PRINTPROCESSOR_INFO_1A',
+    False, True);
 
   with Result do
   begin
@@ -675,9 +676,10 @@ end;
 { _PRINTPROCESSOR_INFO_1W import }
 {--------------------------------}
 
-function SepiImport_PRINTPROCESSOR_INFO_1W(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_PRINTPROCESSOR_INFO_1W(Owner: TSepiUnit): TSepiRecordType;
 begin
-  Result := TSepiRecordType.Create(Owner, '_PRINTPROCESSOR_INFO_1W', False, True);
+  Result := TSepiRecordType.Create(Owner, '_PRINTPROCESSOR_INFO_1W',
+    False, True);
 
   with Result do
   begin
@@ -691,7 +693,7 @@ end;
 { _PORT_INFO_1A import }
 {----------------------}
 
-function SepiImport_PORT_INFO_1A(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_PORT_INFO_1A(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_PORT_INFO_1A', False, True);
 
@@ -707,7 +709,7 @@ end;
 { _PORT_INFO_1W import }
 {----------------------}
 
-function SepiImport_PORT_INFO_1W(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_PORT_INFO_1W(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_PORT_INFO_1W', False, True);
 
@@ -723,7 +725,7 @@ end;
 { _PORT_INFO_2A import }
 {----------------------}
 
-function SepiImport_PORT_INFO_2A(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_PORT_INFO_2A(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_PORT_INFO_2A', False, True);
 
@@ -743,7 +745,7 @@ end;
 { _PORT_INFO_2W import }
 {----------------------}
 
-function SepiImport_PORT_INFO_2W(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_PORT_INFO_2W(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_PORT_INFO_2W', False, True);
 
@@ -763,7 +765,7 @@ end;
 { _PORT_INFO_3A import }
 {----------------------}
 
-function SepiImport_PORT_INFO_3A(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_PORT_INFO_3A(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_PORT_INFO_3A', False, True);
 
@@ -781,7 +783,7 @@ end;
 { _PORT_INFO_3W import }
 {----------------------}
 
-function SepiImport_PORT_INFO_3W(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_PORT_INFO_3W(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_PORT_INFO_3W', False, True);
 
@@ -799,7 +801,7 @@ end;
 { _MONITOR_INFO_1A import }
 {-------------------------}
 
-function SepiImport_MONITOR_INFO_1A(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_MONITOR_INFO_1A(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_MONITOR_INFO_1A', False, True);
 
@@ -815,7 +817,7 @@ end;
 { _MONITOR_INFO_1W import }
 {-------------------------}
 
-function SepiImport_MONITOR_INFO_1W(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_MONITOR_INFO_1W(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_MONITOR_INFO_1W', False, True);
 
@@ -831,7 +833,7 @@ end;
 { _MONITOR_INFO_2A import }
 {-------------------------}
 
-function SepiImport_MONITOR_INFO_2A(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_MONITOR_INFO_2A(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_MONITOR_INFO_2A', False, True);
 
@@ -849,7 +851,7 @@ end;
 { _MONITOR_INFO_2W import }
 {-------------------------}
 
-function SepiImport_MONITOR_INFO_2W(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_MONITOR_INFO_2W(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_MONITOR_INFO_2W', False, True);
 
@@ -867,7 +869,7 @@ end;
 { _DATATYPES_INFO_1A import }
 {---------------------------}
 
-function SepiImport_DATATYPES_INFO_1A(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_DATATYPES_INFO_1A(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_DATATYPES_INFO_1A', False, True);
 
@@ -883,7 +885,7 @@ end;
 { _DATATYPES_INFO_1W import }
 {---------------------------}
 
-function SepiImport_DATATYPES_INFO_1W(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_DATATYPES_INFO_1W(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_DATATYPES_INFO_1W', False, True);
 
@@ -899,7 +901,7 @@ end;
 { _PRINTER_DEFAULTSA import }
 {---------------------------}
 
-function SepiImport_PRINTER_DEFAULTSA(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_PRINTER_DEFAULTSA(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_PRINTER_DEFAULTSA', False, True);
 
@@ -917,7 +919,7 @@ end;
 { _PRINTER_DEFAULTSW import }
 {---------------------------}
 
-function SepiImport_PRINTER_DEFAULTSW(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_PRINTER_DEFAULTSW(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_PRINTER_DEFAULTSW', False, True);
 
@@ -935,9 +937,10 @@ end;
 { _PRINTER_NOTIFY_OPTIONS_TYPE import }
 {-------------------------------------}
 
-function SepiImport_PRINTER_NOTIFY_OPTIONS_TYPE(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_PRINTER_NOTIFY_OPTIONS_TYPE(Owner: TSepiUnit): TSepiRecordType;
 begin
-  Result := TSepiRecordType.Create(Owner, '_PRINTER_NOTIFY_OPTIONS_TYPE', False, True);
+  Result := TSepiRecordType.Create(Owner, '_PRINTER_NOTIFY_OPTIONS_TYPE',
+    False, True);
 
   with Result do
   begin
@@ -956,9 +959,10 @@ end;
 { _PRINTER_NOTIFY_OPTIONS import }
 {--------------------------------}
 
-function SepiImport_PRINTER_NOTIFY_OPTIONS(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_PRINTER_NOTIFY_OPTIONS(Owner: TSepiUnit): TSepiRecordType;
 begin
-  Result := TSepiRecordType.Create(Owner, '_PRINTER_NOTIFY_OPTIONS', False, True);
+  Result := TSepiRecordType.Create(Owner, '_PRINTER_NOTIFY_OPTIONS',
+    False, True);
 
   with Result do
   begin
@@ -975,7 +979,7 @@ end;
 { $3 import }
 {-----------}
 
-function SepiImport_3(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_3(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '$3', False, True);
 
@@ -992,7 +996,7 @@ end;
 { $1 import }
 {-----------}
 
-function SepiImport_1(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_1(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '$1', False, True);
 
@@ -1009,9 +1013,10 @@ end;
 { _PRINTER_NOTIFY_INFO_DATA import }
 {----------------------------------}
 
-function SepiImport_PRINTER_NOTIFY_INFO_DATA(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_PRINTER_NOTIFY_INFO_DATA(Owner: TSepiUnit): TSepiRecordType;
 begin
-  Result := TSepiRecordType.Create(Owner, '_PRINTER_NOTIFY_INFO_DATA', False, True);
+  Result := TSepiRecordType.Create(Owner, '_PRINTER_NOTIFY_INFO_DATA',
+    False, True);
 
   with Result do
   begin
@@ -1029,7 +1034,7 @@ end;
 { _PRINTER_NOTIFY_INFO import }
 {-----------------------------}
 
-function SepiImport_PRINTER_NOTIFY_INFO(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_PRINTER_NOTIFY_INFO(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_PRINTER_NOTIFY_INFO', False, True);
 
@@ -1048,7 +1053,7 @@ end;
 { _PROVIDOR_INFO_1A import }
 {--------------------------}
 
-function SepiImport_PROVIDOR_INFO_1A(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_PROVIDOR_INFO_1A(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_PROVIDOR_INFO_1A', False, True);
 
@@ -1066,7 +1071,7 @@ end;
 { _PROVIDOR_INFO_1W import }
 {--------------------------}
 
-function SepiImport_PROVIDOR_INFO_1W(Owner : TSepiUnit) : TSepiRecordType;
+function SepiImport_PROVIDOR_INFO_1W(Owner: TSepiUnit): TSepiRecordType;
 begin
   Result := TSepiRecordType.Create(Owner, '_PROVIDOR_INFO_1W', False, True);
 
@@ -1084,7 +1089,7 @@ end;
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiRoot) : TSepiUnit;
+function ImportUnit(Root: TSepiRoot): TSepiUnit;
 begin
   Result := TSepiUnit.Create(Root, 'WinSpoolTypes',
     ['Windows']);
@@ -1264,18 +1269,28 @@ begin
   TSepiTypeAlias.Create(Result, 'DOC_INFO_2', 'DOC_INFO_2A');
 
   // Types
-  TSepiPointerType.Create(Result, 'PPrintProcessorInfo1A', 'TPrintProcessorInfo1A', True);
-  TSepiPointerType.Create(Result, 'PPrintProcessorInfo1W', 'TPrintProcessorInfo1W', True);
-  TSepiTypeAlias.Create(Result, 'PPrintProcessorInfo1', 'PPrintProcessorInfo1A');
+  TSepiPointerType.Create(Result, 'PPrintProcessorInfo1A',
+    'TPrintProcessorInfo1A', True);
+  TSepiPointerType.Create(Result, 'PPrintProcessorInfo1W',
+    'TPrintProcessorInfo1W', True);
+  TSepiTypeAlias.Create(Result, 'PPrintProcessorInfo1',
+    'PPrintProcessorInfo1A');
   SepiImport_PRINTPROCESSOR_INFO_1A(Result);
   SepiImport_PRINTPROCESSOR_INFO_1W(Result);
-  TSepiTypeAlias.Create(Result, '_PRINTPROCESSOR_INFO_1', '_PRINTPROCESSOR_INFO_1A');
-  TSepiTypeAlias.Create(Result, 'TPrintProcessorInfo1A', '_PRINTPROCESSOR_INFO_1A');
-  TSepiTypeAlias.Create(Result, 'TPrintProcessorInfo1W', '_PRINTPROCESSOR_INFO_1W');
-  TSepiTypeAlias.Create(Result, 'TPrintProcessorInfo1', 'TPrintProcessorInfo1A');
-  TSepiTypeAlias.Create(Result, 'PRINTPROCESSOR_INFO_1A', '_PRINTPROCESSOR_INFO_1A');
-  TSepiTypeAlias.Create(Result, 'PRINTPROCESSOR_INFO_1W', '_PRINTPROCESSOR_INFO_1W');
-  TSepiTypeAlias.Create(Result, 'PRINTPROCESSOR_INFO_1', 'PRINTPROCESSOR_INFO_1A');
+  TSepiTypeAlias.Create(Result, '_PRINTPROCESSOR_INFO_1',
+    '_PRINTPROCESSOR_INFO_1A');
+  TSepiTypeAlias.Create(Result, 'TPrintProcessorInfo1A',
+    '_PRINTPROCESSOR_INFO_1A');
+  TSepiTypeAlias.Create(Result, 'TPrintProcessorInfo1W',
+    '_PRINTPROCESSOR_INFO_1W');
+  TSepiTypeAlias.Create(Result, 'TPrintProcessorInfo1',
+    'TPrintProcessorInfo1A');
+  TSepiTypeAlias.Create(Result, 'PRINTPROCESSOR_INFO_1A',
+    '_PRINTPROCESSOR_INFO_1A');
+  TSepiTypeAlias.Create(Result, 'PRINTPROCESSOR_INFO_1W',
+    '_PRINTPROCESSOR_INFO_1W');
+  TSepiTypeAlias.Create(Result, 'PRINTPROCESSOR_INFO_1',
+    'PRINTPROCESSOR_INFO_1A');
   TSepiPointerType.Create(Result, 'PPortInfo1A', 'TPortInfo1A', True);
   TSepiPointerType.Create(Result, 'PPortInfo1W', 'TPortInfo1W', True);
   TSepiTypeAlias.Create(Result, 'PPortInfo1', 'PPortInfo1A');
@@ -1340,8 +1355,10 @@ begin
   TSepiTypeAlias.Create(Result, 'MONITOR_INFO_2A', '_MONITOR_INFO_2A');
   TSepiTypeAlias.Create(Result, 'MONITOR_INFO_2W', '_MONITOR_INFO_2W');
   TSepiTypeAlias.Create(Result, 'MONITOR_INFO_2', 'MONITOR_INFO_2A');
-  TSepiPointerType.Create(Result, 'PDatatypesInfo1A', 'TDatatypesInfo1A', True);
-  TSepiPointerType.Create(Result, 'PDatatypesInfo1W', 'TDatatypesInfo1W', True);
+  TSepiPointerType.Create(Result, 'PDatatypesInfo1A',
+    'TDatatypesInfo1A', True);
+  TSepiPointerType.Create(Result, 'PDatatypesInfo1W',
+    'TDatatypesInfo1W', True);
   TSepiTypeAlias.Create(Result, 'PDatatypesInfo1', 'PDatatypesInfo1A');
   SepiImport_DATATYPES_INFO_1A(Result);
   SepiImport_DATATYPES_INFO_1W(Result);
@@ -1352,8 +1369,10 @@ begin
   TSepiTypeAlias.Create(Result, 'DATATYPES_INFO_1A', '_DATATYPES_INFO_1A');
   TSepiTypeAlias.Create(Result, 'DATATYPES_INFO_1W', '_DATATYPES_INFO_1W');
   TSepiTypeAlias.Create(Result, 'DATATYPES_INFO_1', 'DATATYPES_INFO_1A');
-  TSepiPointerType.Create(Result, 'PPrinterDefaultsA', 'TPrinterDefaultsA', True);
-  TSepiPointerType.Create(Result, 'PPrinterDefaultsW', 'TPrinterDefaultsW', True);
+  TSepiPointerType.Create(Result, 'PPrinterDefaultsA',
+    'TPrinterDefaultsA', True);
+  TSepiPointerType.Create(Result, 'PPrinterDefaultsW',
+    'TPrinterDefaultsW', True);
   TSepiTypeAlias.Create(Result, 'PPrinterDefaults', 'PPrinterDefaultsA');
   SepiImport_PRINTER_DEFAULTSA(Result);
   SepiImport_PRINTER_DEFAULTSW(Result);
@@ -1366,27 +1385,37 @@ begin
   TSepiTypeAlias.Create(Result, 'PRINTER_DEFAULTS', 'PRINTER_DEFAULTSA');
 
   // Types
-  TSepiPointerType.Create(Result, 'PPrinterNotifyOptionsType', 'TPrinterNotifyOptionsType', True);
+  TSepiPointerType.Create(Result, 'PPrinterNotifyOptionsType',
+    'TPrinterNotifyOptionsType', True);
   SepiImport_PRINTER_NOTIFY_OPTIONS_TYPE(Result);
-  TSepiTypeAlias.Create(Result, 'TPrinterNotifyOptionsType', '_PRINTER_NOTIFY_OPTIONS_TYPE');
-  TSepiTypeAlias.Create(Result, 'PRINTER_NOTIFY_OPTIONS_TYPE', '_PRINTER_NOTIFY_OPTIONS_TYPE');
+  TSepiTypeAlias.Create(Result, 'TPrinterNotifyOptionsType',
+    '_PRINTER_NOTIFY_OPTIONS_TYPE');
+  TSepiTypeAlias.Create(Result, 'PRINTER_NOTIFY_OPTIONS_TYPE',
+    '_PRINTER_NOTIFY_OPTIONS_TYPE');
 
   // Types
-  TSepiPointerType.Create(Result, 'PPrinterNotifyOptions', 'TPrinterNotifyOptions', True);
+  TSepiPointerType.Create(Result, 'PPrinterNotifyOptions',
+    'TPrinterNotifyOptions', True);
   SepiImport_PRINTER_NOTIFY_OPTIONS(Result);
-  TSepiTypeAlias.Create(Result, 'TPrinterNotifyOptions', '_PRINTER_NOTIFY_OPTIONS');
-  TSepiTypeAlias.Create(Result, 'PRINTER_NOTIFY_OPTIONS', '_PRINTER_NOTIFY_OPTIONS');
+  TSepiTypeAlias.Create(Result, 'TPrinterNotifyOptions',
+    '_PRINTER_NOTIFY_OPTIONS');
+  TSepiTypeAlias.Create(Result, 'PRINTER_NOTIFY_OPTIONS',
+    '_PRINTER_NOTIFY_OPTIONS');
 
   // Types
-  TSepiPointerType.Create(Result, 'PPrinterNotifyInfoData', 'TPrinterNotifyInfoData', True);
+  TSepiPointerType.Create(Result, 'PPrinterNotifyInfoData',
+    'TPrinterNotifyInfoData', True);
   TSepiArrayType.Create(Result, '$2',
     [0, 1], TypeInfo(DWORD), True);
   SepiImport_3(Result);
   SepiImport_1(Result);
   SepiImport_PRINTER_NOTIFY_INFO_DATA(Result);
-  TSepiTypeAlias.Create(Result, 'TPrinterNotifyInfoData', '_PRINTER_NOTIFY_INFO_DATA');
-  TSepiTypeAlias.Create(Result, 'PRINTER_NOTIFY_INFO_DATA', '_PRINTER_NOTIFY_INFO_DATA');
-  TSepiPointerType.Create(Result, 'PPrinterNotifyInfo', 'TPrinterNotifyInfo', True);
+  TSepiTypeAlias.Create(Result, 'TPrinterNotifyInfoData',
+    '_PRINTER_NOTIFY_INFO_DATA');
+  TSepiTypeAlias.Create(Result, 'PRINTER_NOTIFY_INFO_DATA',
+    '_PRINTER_NOTIFY_INFO_DATA');
+  TSepiPointerType.Create(Result, 'PPrinterNotifyInfo',
+    'TPrinterNotifyInfo', True);
   TSepiArrayType.Create(Result, '$4',
     [0, 0], 'TPrinterNotifyInfoData', True);
   SepiImport_PRINTER_NOTIFY_INFO(Result);

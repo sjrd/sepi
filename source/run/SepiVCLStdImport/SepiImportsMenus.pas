@@ -18,17 +18,17 @@ implementation
 type
   TSepiImportsEMenuError = class(EMenuError)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTMenuActionLink = class(TMenuActionLink)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTMenuItemEnumerator = class(TMenuItemEnumerator)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTMenuItem = class(TMenuItem)
@@ -42,7 +42,7 @@ type
     procedure SetAutoLineReduction(const Value: TMenuItemAutoFlag);
     procedure Add_0(Item: TMenuItem);
     procedure Add_1(const AItems: array of TMenuItem);
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTMenu = class(TMenu)
@@ -58,30 +58,30 @@ type
     procedure SetAutoLineReduction(const Value: TMenuAutoFlag);
     procedure ParentBiDiModeChanged_0;
     procedure ParentBiDiModeChanged_1(AControl: TObject);
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTMainMenu = class(TMainMenu)
   private
     procedure SetAutoMerge(Value: Boolean);
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTPopupMenu = class(TPopupMenu)
   private
     function GetHelpContext: THelpContext;
     procedure SetHelpContext(Value: THelpContext);
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTPopupList = class(TPopupList)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
   TSepiImportsTMenuItemStack = class(TMenuItemStack)
   private
-    class function SepiImport(Owner : TSepiUnit) : TSepiClass;
+    class function SepiImport(Owner: TSepiUnit): TSepiClass;
   end;
 
 {-------------------}
@@ -89,7 +89,7 @@ type
 {-------------------}
 
 class function TSepiImportsEMenuError.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(EMenuError));
@@ -106,7 +106,7 @@ end;
 {------------------------}
 
 class function TSepiImportsTMenuActionLink.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TMenuActionLink));
@@ -120,7 +120,8 @@ begin
     AddMethod('AssignClient', @TSepiImportsTMenuActionLink.AssignClient,
       'procedure(AClient: TObject)',
       mlkOverride);
-    AddMethod('IsAutoCheckLinked', @TSepiImportsTMenuActionLink.IsAutoCheckLinked,
+    AddMethod('IsAutoCheckLinked',
+      @TSepiImportsTMenuActionLink.IsAutoCheckLinked,
       'function: Boolean',
       mlkVirtual);
     AddMethod('IsCaptionLinked', @TSepiImportsTMenuActionLink.IsCaptionLinked,
@@ -132,25 +133,30 @@ begin
     AddMethod('IsEnabledLinked', @TSepiImportsTMenuActionLink.IsEnabledLinked,
       'function: Boolean',
       mlkOverride);
-    AddMethod('IsHelpContextLinked', @TSepiImportsTMenuActionLink.IsHelpContextLinked,
+    AddMethod('IsHelpContextLinked',
+      @TSepiImportsTMenuActionLink.IsHelpContextLinked,
       'function: Boolean',
       mlkOverride);
     AddMethod('IsHintLinked', @TSepiImportsTMenuActionLink.IsHintLinked,
       'function: Boolean',
       mlkOverride);
-    AddMethod('IsGroupIndexLinked', @TSepiImportsTMenuActionLink.IsGroupIndexLinked,
+    AddMethod('IsGroupIndexLinked',
+      @TSepiImportsTMenuActionLink.IsGroupIndexLinked,
       'function: Boolean',
       mlkOverride);
-    AddMethod('IsImageIndexLinked', @TSepiImportsTMenuActionLink.IsImageIndexLinked,
+    AddMethod('IsImageIndexLinked',
+      @TSepiImportsTMenuActionLink.IsImageIndexLinked,
       'function: Boolean',
       mlkOverride);
-    AddMethod('IsShortCutLinked', @TSepiImportsTMenuActionLink.IsShortCutLinked,
+    AddMethod('IsShortCutLinked',
+      @TSepiImportsTMenuActionLink.IsShortCutLinked,
       'function: Boolean',
       mlkOverride);
     AddMethod('IsVisibleLinked', @TSepiImportsTMenuActionLink.IsVisibleLinked,
       'function: Boolean',
       mlkOverride);
-    AddMethod('IsOnExecuteLinked', @TSepiImportsTMenuActionLink.IsOnExecuteLinked,
+    AddMethod('IsOnExecuteLinked',
+      @TSepiImportsTMenuActionLink.IsOnExecuteLinked,
       'function: Boolean',
       mlkOverride);
     AddMethod('SetAutoCheck', @TSepiImportsTMenuActionLink.SetAutoCheck,
@@ -193,7 +199,7 @@ end;
 {----------------------------}
 
 class function TSepiImportsTMenuItemEnumerator.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TMenuItemEnumerator));
@@ -255,7 +261,8 @@ begin
   AutoHotkeys := Value;
 end;
 
-procedure TSepiImportsTMenuItem.SetAutoLineReduction(const Value: TMenuItemAutoFlag);
+procedure TSepiImportsTMenuItem.SetAutoLineReduction(
+  const Value: TMenuItemAutoFlag);
 begin
   AutoLineReduction := Value;
 end;
@@ -271,7 +278,7 @@ begin
 end;
 
 class function TSepiImportsTMenuItem.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass(Owner.FindMeta('TMenuItem'));
   Result.RegisterTypeInfo(
@@ -310,7 +317,8 @@ begin
     AddField('FOnChange', System.TypeInfo(TMenuChangeEvent));
     AddField('FOnClick', System.TypeInfo(TNotifyEvent));
     AddField('FOnDrawItem', System.TypeInfo(TMenuDrawItemEvent));
-    AddField('FOnAdvancedDrawItem', System.TypeInfo(TAdvancedMenuDrawItemEvent));
+    AddField('FOnAdvancedDrawItem',
+      System.TypeInfo(TAdvancedMenuDrawItemEvent));
     AddField('FOnMeasureItem', System.TypeInfo(TMenuMeasureItemEvent));
     AddField('FAutoCheck', System.TypeInfo(Boolean));
 
@@ -370,7 +378,8 @@ begin
       'procedure(const Value: TMenuItemAutoFlag)');
     AddMethod('InternalRethinkLines', nil,
       'function(ForceRethink: Boolean): Boolean');
-    AddMethod('SetAutoLineReduction', @TSepiImportsTMenuItem.SetAutoLineReduction,
+    AddMethod('SetAutoLineReduction',
+      @TSepiImportsTMenuItem.SetAutoLineReduction,
       'procedure(const Value: TMenuItemAutoFlag)');
 
     CurrentVisibility := mvProtected;
@@ -408,7 +417,8 @@ begin
       'function: Integer');
     AddMethod('GetAutoHotkeys', @TSepiImportsTMenuItem.GetAutoHotkeys,
       'function: Boolean');
-    AddMethod('GetAutoLineReduction', @TSepiImportsTMenuItem.GetAutoLineReduction,
+    AddMethod('GetAutoLineReduction',
+      @TSepiImportsTMenuItem.GetAutoLineReduction,
       'function: Boolean');
     AddMethod('InsertNewLine', @TSepiImportsTMenuItem.InsertNewLine,
       'function(ABefore: Boolean; AItem: TMenuItem): Integer');
@@ -500,7 +510,8 @@ begin
       'function: Integer');
     AddMethod('NewBottomLine', @TSepiImportsTMenuItem.NewBottomLine,
       'function: Integer');
-    AddMethod('InsertNewLineBefore', @TSepiImportsTMenuItem.InsertNewLineBefore,
+    AddMethod('InsertNewLineBefore',
+      @TSepiImportsTMenuItem.InsertNewLineBefore,
       'function(AItem: TMenuItem): Integer');
     AddMethod('InsertNewLineAfter', @TSepiImportsTMenuItem.InsertNewLineAfter,
       'function(AItem: TMenuItem): Integer');
@@ -655,7 +666,7 @@ begin
 end;
 
 class function TSepiImportsTMenu.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass(Owner.FindMeta('TMenu'));
   Result.RegisterTypeInfo(
@@ -765,9 +776,11 @@ begin
     AddMethod('IsShortCut', @TSepiImportsTMenu.IsShortCut,
       'function(var Message: TWMKey): Boolean',
       mlkDynamic);
-    AddOverloadedMethod('ParentBiDiModeChanged', @TSepiImportsTMenu.ParentBiDiModeChanged_0,
+    AddOverloadedMethod('ParentBiDiModeChanged',
+      @TSepiImportsTMenu.ParentBiDiModeChanged_0,
       'procedure');
-    AddOverloadedMethod('ParentBiDiModeChanged', @TSepiImportsTMenu.ParentBiDiModeChanged_1,
+    AddOverloadedMethod('ParentBiDiModeChanged',
+      @TSepiImportsTMenu.ParentBiDiModeChanged_1,
       'procedure(AControl: TObject)');
     AddMethod('ProcessMenuChar', @TSepiImportsTMenu.ProcessMenuChar,
       'procedure(var Message: TWMMenuChar)');
@@ -811,7 +824,7 @@ begin
 end;
 
 class function TSepiImportsTMainMenu.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TMainMenu));
@@ -845,7 +858,8 @@ begin
       'procedure(Menu: TMainMenu)');
     AddMethod('PopulateOle2Menu', @TSepiImportsTMainMenu.PopulateOle2Menu,
       'procedure(SharedMenu: HMenu; const Groups: array of Integer; var Widths: array of Longint )');
-    AddMethod('GetOle2AcceleratorTable', @TSepiImportsTMainMenu.GetOle2AcceleratorTable,
+    AddMethod('GetOle2AcceleratorTable',
+      @TSepiImportsTMainMenu.GetOle2AcceleratorTable,
       'procedure(var AccelTable: HAccel; var AccelCount: Integer ; const Groups: array of Integer )');
     AddMethod('SetOle2MenuHandle', @TSepiImportsTMainMenu.SetOle2MenuHandle,
       'procedure(Handle: HMENU)');
@@ -882,7 +896,7 @@ begin
 end;
 
 class function TSepiImportsTPopupMenu.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TPopupMenu));
@@ -908,7 +922,8 @@ begin
 
     CurrentVisibility := mvProtected;
 
-    AddMethod('UseRightToLeftAlignment', @TSepiImportsTPopupMenu.UseRightToLeftAlignment,
+    AddMethod('UseRightToLeftAlignment',
+      @TSepiImportsTPopupMenu.UseRightToLeftAlignment,
       'function: Boolean');
     AddMethod('DoPopup', @TSepiImportsTPopupMenu.DoPopup,
       'procedure(Sender: TObject)',
@@ -969,7 +984,7 @@ end;
 {-------------------}
 
 class function TSepiImportsTPopupList.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TPopupList));
@@ -1005,7 +1020,7 @@ end;
 {-----------------------}
 
 class function TSepiImportsTMenuItemStack.SepiImport(
-  Owner : TSepiUnit) : TSepiClass;
+  Owner: TSepiUnit): TSepiClass;
 begin
   Result := TSepiClass.RegisterTypeInfo(
     Owner, TypeInfo(TMenuItemStack));
@@ -1025,10 +1040,11 @@ end;
 { Unit import }
 {-------------}
 
-function ImportUnit(Root : TSepiRoot) : TSepiUnit;
+function ImportUnit(Root: TSepiRoot): TSepiUnit;
 begin
   Result := TSepiUnit.Create(Root, 'Menus',
-    ['Windows', 'SysUtils', 'Classes', 'Contnrs', 'Messages', 'Graphics', 'ImgList', 'ActnList']);
+    ['Windows', 'SysUtils', 'Classes', 'Contnrs', 'Messages',
+    'Graphics', 'ImgList', 'ActnList']);
 
   // Types
   TSepiClass.ForwardDecl(Result, TypeInfo(TMenuItem));
@@ -1042,7 +1058,8 @@ begin
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(TMenuItemAutoFlag));
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(TMenuAutoFlag));
   TSepiImportsTMenuActionLink.SepiImport(Result);
-  TSepiMetaClass.Create(Result, 'TMenuActionLinkClass', TypeInfo(TMenuActionLink), True);
+  TSepiMetaClass.Create(Result, 'TMenuActionLinkClass',
+    TypeInfo(TMenuActionLink), True);
   TSepiImportsTMenuItemEnumerator.SepiImport(Result);
   TSepiImportsTMenuItem.SepiImport(Result);
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(TFindItemKind));
