@@ -115,18 +115,17 @@ end;
 *}
 function LoadSepiPSUnitFromStream(Root : TSepiRoot;
   Stream : TStream) : TSepiUnit;
-var I, Count : integer;
+var I : integer;
     UsesList : array of TSepiUnit;
     PSExecuter : TPSExec;
 begin
   // Load the Sepi unit
   Result := TSepiUnit.LoadFromStream(Root, Stream);
   try
-    // Load the uses list
-    Stream.ReadBuffer(Count, 4);
-    SetLength(UsesList, Count);
-    for I := 0 to Count-1 do
-      UsesList[I] := Root.FindMeta(ReadStrFromStream(Stream)) as TSepiUnit;
+    // Set up the uses list
+    SetLength(UsesList, Result.UsedUnitCount);
+    for I := 0 to Result.UsedUnitCount-1 do
+      UsesList[I] := Result.UsedUnits[I];
 
     // Create the PS executer
     PSExecuter := TPSExec.Create;

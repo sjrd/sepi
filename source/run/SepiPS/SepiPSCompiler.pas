@@ -37,9 +37,8 @@ type
     @version 1.0
   *}
   TCompilingContext = record
-    Root : TSepiRoot;            /// Racine Sepi
-    SepiUnit : TSepiUnit;        /// Unité Sepi à compiler
-    UsesList : array of string;      /// Liste des uses explicites
+    Root : TSepiRoot;                /// Racine Sepi
+    SepiUnit : TSepiUnit;            /// Unité Sepi à compiler
     ExportUnexistingProcs : boolean; /// True exporte de PS vers Sepi
   end;
 
@@ -59,7 +58,11 @@ function ScriptOnUses(Context : PCompilingContext; Sender : TPSPascalCompiler;
 var I : integer;
     SepiUnit : TSepiUnit;
 begin
+  Result := True;
+
   try
+    if AnsiSameText(UnitName, Context.SepiUnit.Name) then
+      Result := False else
     if AnsiSameText(UnitName, SystemUnitName) then
     begin
       SepiUnit := Context.SepiUnit;
@@ -68,14 +71,10 @@ begin
       SepiImportUnitInPSCompiler(SepiUnit, Sender);
     end else
     begin
-      SepiUnit := Context.Root.LoadUnit(UnitName);
+      Context.SepiUnit.MoreUses([UnitName]);
+      SepiUnit := Context.Root.FindMeta(UnitName) as TSepiUnit;
       SepiImportUnitInPSCompiler(SepiUnit, Sender);
-
-      SetLength(Context.UsesList, Length(Context.UsesList)+1);
-      Context.UsesList[Length(Context.UsesList)-1] := UnitName;
     end;
-
-    Result := True;
   except
     on Error : ESepiUnitNotFoundError do
       Result := False;
@@ -105,9 +104,12 @@ begin
       exit;
 
     // Check parameter count
+    // We must exclude the potential Result special parameter, because PS
+    // doesn't treat it as Sepi does.
     //   (in register calling conv, Result will always be last)
     ParameterCount := ActualParamCount;
-    if ReturnType <> nil then
+    if (ParameterCount > 0) and
+       (ActualParams[ParameterCount-1].HiddenKind = hpResult) then
       dec(ParameterCount);
     if ParameterCount <> ParamCount then
       exit;
@@ -292,8 +294,6 @@ begin
   // Make compiling context
   Context.Root := Root;
   Context.SepiUnit := SepiUnit;
-  SetLength(Context.UsesList, 1);
-  Context.UsesList[0] := SystemUnitName;
   Context.ExportUnexistingProcs := ExportUnexistingProcs;
 
   // Make procs for call-backs
@@ -339,14 +339,7 @@ begin
   // Write the output
   if Result then
   begin
-    SepiUnit.MoreUses(Context.UsesList);
     SepiUnit.SaveToStream(Output);
-
-    I := Length(Context.UsesList);
-    Output.WriteBuffer(I, 4);
-    for I := 0 to Length(Context.UsesList)-1 do
-      WriteStrToStream(Output, Context.UsesList[I]);
-
     WriteStrToStream(Output, Compiled);
   end;
 end;

@@ -50,8 +50,8 @@ resourcestring
 
 {*
   Appelle une routine/méthode native dans un contexte Pascal Script
-  @param _Self   Instance d'objet (nil pour une routine)
-  @param Address   Pointeur sur le code de la routine/méthode à appeler
+  @param _Self         Instance d'objet (nil pour une routine)
+  @param Address       Pointeur sur le code de la routine/méthode à appeler
   @param CallingConv   Convention d'appel de la routine/méthode
   @param Params        Paramètres de l'appel
   @param ReturnValue   Emplacement où enregistrer la valeur de retour
@@ -176,9 +176,7 @@ begin
     for I := Signature.ParamCount downto 1 do
     begin
       Param := Stack[CurrStack];
-      ParamList[I-J] := NewPPSVariantIFC(Param,
-        (pfVar in Signature.Params[I-1].Flags) or
-        (pfOut in Signature.Params[I-1].Flags));
+      ParamList[I-J] := NewPPSVariantIFC(Param, Signature.Params[I-1].ByRef);
       inc(CurrStack);
     end;
 
@@ -346,7 +344,7 @@ begin
   // Replace an overloaded method by its first real method
   if Meta is TSepiOverloadedMethod then
   begin
-    Meta := MetaClass.GetMeta('OL$'+MethodName+'$0');
+    Meta := TSepiOverloadedMethod(Meta).Methods[0];
     if Meta = nil then exit;
   end;
 
