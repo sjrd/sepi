@@ -19,8 +19,7 @@ procedure Finalize(var Value; TypeInfo: PTypeInfo; Count: Cardinal = 1);
 procedure CopyArray(Dest, Source, TypeInfo: Pointer; Count: Integer);
 procedure CopyRecord(Dest, Source, TypeInfo: Pointer);
 procedure DynArrayCopy(Source: Pointer; TypeInfo: Pointer;
-  var
-    Dest: Pointer);
+  var Dest: Pointer);
 procedure DynArrayCopyRange(Source: Pointer; TypeInfo: Pointer;
   Index, Count: Integer; var Dest: Pointer);
 
@@ -89,8 +88,7 @@ end;
   @param Dest       Tableau destination sous forme de pointeur
 *}
 procedure DynArrayCopy(Source: Pointer; TypeInfo: Pointer;
-  var
-    Dest: Pointer);
+  var Dest: Pointer);
 asm
         JMP     System.@DynArrayCopy
 end;

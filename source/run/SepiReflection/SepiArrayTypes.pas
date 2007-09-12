@@ -222,7 +222,7 @@ end;
 *}
 procedure TSepiArrayType.MakeTypeInfo;
 begin
-  if not NeedInit then exit;
+  if not NeedInit then Exit;
 
   AllocateTypeInfo(ArrayTypeDataLength);
   with PArrayTypeData(TypeData)^ do

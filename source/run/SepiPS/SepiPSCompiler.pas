@@ -103,7 +103,7 @@ begin
   begin
     // Check calling convention
     if CallingConvention <> ccRegister then
-      exit;
+      Exit;
 
     // Check parameter count
     // We must exclude the potential Result special parameter, because PS
@@ -114,7 +114,7 @@ begin
       (ActualParams[ParameterCount-1].HiddenKind = hpResult) then
       Dec(ParameterCount);
     if ParameterCount <> ParamCount then
-      exit;
+      Exit;
 
     // Check parameters
     for I := 0 to ParameterCount-1 do
@@ -125,24 +125,24 @@ begin
       case PSParam.Mode of
         pmIn:
           if (pfVar in SepiParam.Flags) or
-            (pfOut in SepiParam.Flags) then exit;
-        pmOut: if not (pfOut in SepiParam.Flags) then exit;
-        pmInOut: if not (pfVar in SepiParam.Flags) then exit;
+            (pfOut in SepiParam.Flags) then Exit;
+        pmOut: if not (pfOut in SepiParam.Flags) then Exit;
+        pmInOut: if not (pfVar in SepiParam.Flags) then Exit;
       end;
 
       if SepiParam.ParamType <> Root.GetType(PSParam.aType.Name) then
-        exit;
+        Exit;
     end;
 
     // Check result type
     if ReturnType = nil then
     begin
       if Result <> nil then
-        exit;
+        Exit;
     end else
     begin
       if ReturnType <> Root.GetType(Result.Name) then
-        exit;
+        Exit;
     end;
   end;
 
@@ -174,7 +174,7 @@ begin
       PSParam := Params[I];
 
       SepiType := SepiUnit.Root.GetType(PSParam.aType.Name);
-      if SepiType = nil then exit;
+      if SepiType = nil then Exit;
 
       if PSParam.Mode = pmOut then
         Signature := Signature + 'out '
@@ -196,7 +196,7 @@ begin
       Signature := 'procedure' + Signature else
     begin
       SepiType := SepiUnit.Root.GetType(Result.Name);
-      if SepiType = nil then exit;
+      if SepiType = nil then Exit;
 
       Signature := 'function' + Signature + ': ' + SepiType.Name;
     end;
@@ -248,7 +248,7 @@ begin
     begin
       Sender.MakeError(SepiUnit.Name, ecDuplicateIdentifier,
         Proc.OriginalName);
-      exit;
+      Exit;
     end;
 
     // Check the export or export an unexisting

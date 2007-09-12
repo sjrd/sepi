@@ -151,7 +151,7 @@ begin
     if PSepiPackage(FPackages[I]).FileName = FileName then
     begin
       Result := FPackages[I];
-      exit;
+      Exit;
     end;
   end;
   Result := nil;

@@ -460,7 +460,7 @@ var
 begin
   BadChars := ['\', '/', ':', '*', '?', '"', '<', '>', '|'];
   Result := False;
-  if FileName = '' then exit;
+  if FileName = '' then Exit;
 
   // Si le délimiteur de chemin est accepté, on l'exclut de BadChars
   if AcceptPathDelim then
@@ -471,7 +471,7 @@ begin
     Exclude(BadChars, DriveDelim);
 
   // On teste tous les caractères de FileName
-  for I := 1 to Length(FileName) do if FileName[I] in BadChars then exit;
+  for I := 1 to Length(FileName) do if FileName[I] in BadChars then Exit;
   Result := True;
 end;
 

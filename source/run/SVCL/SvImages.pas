@@ -110,8 +110,8 @@ procedure TSvDropImage.MouseDown(Button: TMouseButton; Shift: TShiftState;
   X, Y: Integer);
 begin
   inherited;
-  if not Enabled then exit;
-  if (Button <> mbLeft) or Assigned(ImageBis) then exit;
+  if not Enabled then Exit;
+  if (Button <> mbLeft) or Assigned(ImageBis) then Exit;
 
   ImageBis := TImage.Create(Self);
   ImageBis.Parent := Parent;
@@ -147,12 +147,12 @@ var
   PutPoint: TPoint;
 begin
   inherited;
-  if (Button <> mbLeft) or (not Assigned(ImageBis)) then exit;
+  if (Button <> mbLeft) or (not Assigned(ImageBis)) then Exit;
 
   ImageBis.Free;
   ImageBis := nil;
 
-  if not Assigned(FOnDrop) then exit;
+  if not Assigned(FOnDrop) then Exit;
   if Assigned(FDropControl) then
     PutPoint := FDropControl.ScreenToClient(ClientToScreen(Point(X, Y)))
   else

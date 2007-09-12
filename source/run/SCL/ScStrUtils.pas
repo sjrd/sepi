@@ -67,7 +67,7 @@ function RightPos(C: Char; const Str: string): Integer;
 begin
   Result := Length(Str);
   while Result > 0 do
-    if Str[Result] = C then exit else Dec(Result);
+    if Str[Result] = C then Exit else Dec(Result);
 end;
 
 {*

@@ -111,15 +111,13 @@ type
 {---------------------------}
 
 procedure TSepiImportsTCustomVariantType.VarDataCastTo_0(
-  var
-    Dest: TVarData; const Source: TVarData; const AVarType: TVarType);
+  var Dest: TVarData; const Source: TVarData; const AVarType: TVarType);
 begin
   VarDataCastTo(Dest, Source, AVarType);
 end;
 
 procedure TSepiImportsTCustomVariantType.VarDataCastTo_1(
-  var
-    Dest: TVarData; const AVarType: TVarType);
+  var Dest: TVarData; const AVarType: TVarType);
 begin
   VarDataCastTo(Dest, AVarType);
 end;

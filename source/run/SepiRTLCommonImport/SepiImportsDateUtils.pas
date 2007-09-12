@@ -55,8 +55,7 @@ begin
 end;
 
 function WeekOfTheMonth_1(const AValue: TDateTime;
-  var
-    AYear, AMonth: Word): Word;
+  var AYear, AMonth: Word): Word;
 begin
   Result := WeekOfTheMonth(AValue, AYear, AMonth);
 end;

@@ -2463,7 +2463,8 @@ end;
 { IInterfaceComponentReference import }
 {-------------------------------------}
 
-function SepiImportIInterfaceComponentReference(Owner: TSepiUnit): TSepiInterface;
+function SepiImportIInterfaceComponentReference(Owner: TSepiUnit):
+TSepiInterface;
 begin
   Result := TSepiInterface.RegisterTypeInfo(
     Owner, TypeInfo(IInterfaceComponentReference));
@@ -3889,8 +3890,7 @@ begin
 end;
 
 procedure ObjectBinaryToText_1(Input, Output: TStream;
-  var
-    OriginalFormat: TStreamOriginalFormat);
+  var OriginalFormat: TStreamOriginalFormat);
 begin
   ObjectBinaryToText(Input, Output, OriginalFormat);
 end;
@@ -3901,8 +3901,7 @@ begin
 end;
 
 procedure ObjectTextToBinary_1(Input, Output: TStream;
-  var
-    OriginalFormat: TStreamOriginalFormat);
+  var OriginalFormat: TStreamOriginalFormat);
 begin
   ObjectTextToBinary(Input, Output, OriginalFormat);
 end;
@@ -3913,8 +3912,7 @@ begin
 end;
 
 procedure ObjectResourceToText_1(Input, Output: TStream;
-  var
-    OriginalFormat: TStreamOriginalFormat);
+  var OriginalFormat: TStreamOriginalFormat);
 begin
   ObjectResourceToText(Input, Output, OriginalFormat);
 end;
@@ -3925,8 +3923,7 @@ begin
 end;
 
 procedure ObjectTextToResource_1(Input, Output: TStream;
-  var
-    OriginalFormat: TStreamOriginalFormat);
+  var OriginalFormat: TStreamOriginalFormat);
 begin
   ObjectTextToResource(Input, Output, OriginalFormat);
 end;

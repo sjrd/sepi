@@ -934,7 +934,7 @@ begin
   if (New < MinValueEver) and (New > -MinValueEver) then New := 0.0;
 
   // Si New a déjà la valeur de cet exposant, on termine
-  if New = Coefficients[Exponent] then exit;
+  if New = Coefficients[Exponent] then Exit;
   if New = 0 then
   begin
     // Si New = 0 et que New <> Coefficients[Exponent], c'est que
@@ -1097,7 +1097,7 @@ begin
   if Source.IsZero then
     raise EDivisionError.CreateDivision(Self, Source);
   // Si dividende = 0 -> on termine tout de suite
-  if IsZero then exit;
+  if IsZero then Exit;
 
   // On récupère le temps actuel
   BeginTime := Now;
@@ -1290,7 +1290,7 @@ class function TPolynom.Addition(Val1, Val2: TPolynom;
 begin
   Result := CreateAssign(Val1);
   Result.Add(Val2);
-  if not ReleaseVals then exit;
+  if not ReleaseVals then Exit;
   Val1.Free;
   Val2.Free;
 end;
@@ -1300,7 +1300,7 @@ class function TPolynom.Substraction(Val1, Val2: TPolynom;
 begin
   Result := CreateAssign(Val1);
   Result.Sub(Val2);
-  if not ReleaseVals then exit;
+  if not ReleaseVals then Exit;
   Val1.Free;
   Val2.Free;
 end;
@@ -1310,7 +1310,7 @@ class function TPolynom.Multiplication(Val1, Val2: TPolynom;
 begin
   Result := CreateAssign(Val1);
   Result.Multiply(Val2);
-  if not ReleaseVals then exit;
+  if not ReleaseVals then Exit;
   Val1.Free;
   Val2.Free;
 end;
@@ -1320,7 +1320,7 @@ class function TPolynom.Division(Val1, Val2: TPolynom;
 begin
   Result := CreateAssign(Val1);
   Result.Divide(Val2);
-  if not ReleaseVals then exit;
+  if not ReleaseVals then Exit;
   Val1.Free;
   Val2.Free;
 end;
@@ -1330,7 +1330,7 @@ class function TPolynom.ModuloOf(Val1, Val2: TPolynom;
 begin
   Result := CreateAssign(Val1);
   Result.Modulo(Val2);
-  if not ReleaseVals then exit;
+  if not ReleaseVals then Exit;
   Val1.Free;
   Val2.Free;
 end;
@@ -1340,7 +1340,7 @@ class function TPolynom.PowerOf(Val1, Val2: TPolynom;
 begin
   Result := CreateAssign(Val1);
   Result.Power(Val2);
-  if not ReleaseVals then exit;
+  if not ReleaseVals then Exit;
   Val1.Free;
   Val2.Free;
 end;
@@ -1350,7 +1350,7 @@ class function TPolynom.RootOf(Val1, Val2: TPolynom;
 begin
   Result := CreateAssign(Val1);
   Result.Root(Val2);
-  if not ReleaseVals then exit;
+  if not ReleaseVals then Exit;
   Val1.Free;
   Val2.Free;
 end;
@@ -1360,7 +1360,7 @@ class function TPolynom.InsertOf(Val1, Val2: TPolynom;
 begin
   Result := CreateAssign(Val1);
   Result.Insert(Val2);
-  if not ReleaseVals then exit;
+  if not ReleaseVals then Exit;
   Val1.Free;
   Val2.Free;
 end;
@@ -1370,7 +1370,7 @@ class function TPolynom.ScalarProdOf(Val1, Val2: TPolynom;
 begin
   Result := CreateAssign(Val1);
   Result.ScalarProd(Val2);
-  if not ReleaseVals then exit;
+  if not ReleaseVals then Exit;
   Val1.Free;
   Val2.Free;
 end;
@@ -1710,7 +1710,7 @@ begin
   begin
     if Str[I] = '(' then Inc(NiveauParentheses) else
     if Str[I] = ')' then Dec(NiveauParentheses);
-    if (I < Length(Str)) and (NiveauParentheses = 0) then exit;
+    if (I < Length(Str)) and (NiveauParentheses = 0) then Exit;
   end;
   Result := True;
 end;
@@ -1722,10 +1722,10 @@ var
 begin
   try
     Result := False;
-    if Pos(' ', Str) > 0 then exit;
-    if Pos('-', Str) > 0 then exit;
-    if Pos('+', Str) > 0 then exit;
-    if NberSubStr('x', Str) > 1 then exit;
+    if Pos(' ', Str) > 0 then Exit;
+    if Pos('-', Str) > 0 then Exit;
+    if Pos('+', Str) > 0 then Exit;
+    if NberSubStr('x', Str) > 1 then Exit;
     for I := 1 to Length(Str) do if Str[I] = '­' then Str[I] := '-';
     if Pos('x', Str) = 1 then Coefficient := 1 else
       Coefficient := StrToFloat(GetFirstToken(Str, 'x'));

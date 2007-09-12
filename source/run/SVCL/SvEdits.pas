@@ -187,7 +187,7 @@ begin
   if csReading in ComponentState then
   begin
     Result := FReadingValue;
-    exit;
+    Exit;
   end;
 
   Str := Text; // To save a bit of time
@@ -225,7 +225,7 @@ begin
   if csReading in ComponentState then
   begin
     FReadingValue := New;
-    exit;
+    Exit;
   end;
 
   if not AllowNegative then New := Abs(New);
@@ -330,7 +330,7 @@ end;
 *}
 procedure TSvCustomNumberEdit.SetHasMinValue(New: Boolean);
 begin
-  if New = FHasMinValue then exit;
+  if New = FHasMinValue then Exit;
   FHasMinValue := New;
   MaxValue := MaxValue;
   Value := Value;
@@ -342,7 +342,7 @@ end;
 *}
 procedure TSvCustomNumberEdit.SetHasMaxValue(New: Boolean);
 begin
-  if New = FHasMaxValue then exit;
+  if New = FHasMaxValue then Exit;
   FHasMaxValue := New;
   MinValue := MinValue;
   Value := Value;
@@ -392,8 +392,8 @@ const IgnoredKeys =
 var
   Debut, Fin: Integer;
 begin
-  if ReadOnly then exit;
-  if Key in IgnoredKeys then exit;
+  if ReadOnly then Exit;
+  if Key in IgnoredKeys then Exit;
 
   Debut := Length(FPrefix);
   Fin := Length(Text)-Length(FSuffix);
@@ -413,7 +413,7 @@ var
   Debut, Fin: Integer;
   CurText: string;
 begin
-  if ReadOnly then exit;
+  if ReadOnly then Exit;
 
   Debut := Length(FPrefix);
   Fin := Length(Text)-Length(FSuffix);

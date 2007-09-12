@@ -125,11 +125,11 @@ begin
   begin
     // The Self parameter contains a reference to a Pascal Script class type
     if (SelfParam = nil) or (SelfParam.FType.BaseType <> btU32) then
-      exit;
+      Exit;
 
     PSClassType := Caller.GetTypeNo(PPSVariantU32(SelfParam).Data);
     if PSClassType = nil then
-      exit;
+      Exit;
 
     ClassType := (SepiMethod.Root.FindType(
       PSClassType.ExportName) as TSepiClass).DelphiClass;
@@ -138,7 +138,7 @@ begin
   begin
     // The Self parameter contains the object reference
     if (SelfParam = nil) or (SelfParam.FType.BaseType <> btClass) then
-      exit;
+      Exit;
     Self := PPSVariantClass(SelfParam).Data;
     ClassType := TObject(Self).ClassType;
   end;
@@ -195,7 +195,7 @@ begin
           ProcPtr := GetClassVirtualCode(ClassType, SepiMethod.VMTOffset);
         mlkDynamic, mlkMessage:
           ProcPtr := GetClassDynamicCode(ClassType, SepiMethod.DMTIndex);
-        else exit;
+        else Exit;
       end;
 
       try
@@ -256,7 +256,7 @@ begin
 
       SelfParam := Stack[Stack.Count-1];
       if (SelfParam = nil) or (SelfParam.FType.BaseType <> btClass) then
-        exit;
+        Exit;
       DestData := PPSVariantClass(SelfParam).Data;
       Inc(Integer(DestData), SepiField.Offset);
     end else
@@ -265,7 +265,7 @@ begin
     begin
       SelfParam := Stack[Stack.Count-2];
       if (SelfParam = nil) or (SelfParam.FType.BaseType <> btClass) then
-        exit;
+        Exit;
       SourceData := PPSVariantClass(SelfParam).Data;
       Inc(Integer(SourceData), SepiField.Offset);
 
@@ -317,7 +317,7 @@ begin
 
   // Find the class item
   MetaClass := Root.GetType(ClassName);
-  if MetaClass = nil then exit;
+  if MetaClass = nil then Exit;
   Meta := MetaClass.GetMeta(MethodName);
 
   // Handle overloaded method
@@ -330,7 +330,7 @@ begin
       Meta := MetaClass.GetMeta(MethodName);
     end;
 
-    if Meta = nil then exit;
+    if Meta = nil then Exit;
   end;
 
   // Map properties to their accessor
@@ -341,14 +341,14 @@ begin
     else
       Meta := TSepiProperty(Meta).ReadAccess.Meta;
 
-    if Meta = nil then exit;
+    if Meta = nil then Exit;
   end;
 
   // Replace an overloaded method by its first real method
   if Meta is TSepiOverloadedMethod then
   begin
     Meta := TSepiOverloadedMethod(Meta).Methods[0];
-    if Meta = nil then exit;
+    if Meta = nil then Exit;
   end;
 
   // Set the proper calling handler
@@ -400,7 +400,7 @@ var
   VariantVar: TPSVariantIFC;
 begin
   PSVar := PSExecuter.GetVar2(Variable.Name);
-  if PSVar = nil then exit; // its type couldn't be imported
+  if PSVar = nil then Exit; // its type couldn't be imported
 
   VariantVar.Dta := @PPSVariantData(PSVar).Data;
   VariantVar.aType := PSVar.FType;
@@ -506,7 +506,7 @@ begin
     SepiRegisterProcsInPSExecuter(SepiUnits[I], PSExecuter);
 
   Result := PSExecuter.LoadData(Compiled);
-  if not Result then exit;
+  if not Result then Exit;
 
   for I := Low(SepiUnits) to High(SepiUnits) do
     SepiRegisterVarsInPSExecuter(SepiUnits[I], PSExecuter);

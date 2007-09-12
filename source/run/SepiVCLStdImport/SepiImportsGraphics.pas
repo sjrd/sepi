@@ -798,8 +798,7 @@ begin
 end;
 
 procedure TSepiImportsTCanvas.TextRect_1(var Rect: TRect;
-  var
-    Text: string; TextFormat: TTextFormat = []);
+  var Text: string; TextFormat: TTextFormat = []);
 begin
   TextRect(Rect, Text, TextFormat);
 end;

@@ -955,8 +955,7 @@ end;
   @param ParamData   Pointeur vers les données du paramètre
 *}
 constructor TSepiParam.RegisterParamData(AOwner: TSepiMeta;
-  var
-    ParamData: Pointer);
+  var ParamData: Pointer);
 var
   AFlags: TParamFlags;
   AName, ATypeStr: string;
@@ -1246,7 +1245,7 @@ constructor TSepiMethodSignature.Create(AOwner: TSepiMeta;
     for I := Low(Chars) to High(Chars) do
     begin
       Result := PosEx(Chars[I], Str, Offset);
-      if Result > 0 then exit;
+      if Result > 0 then Exit;
     end;
     Result := Length(Str)+1;
   end;
@@ -1427,7 +1426,7 @@ begin
       if Index > 0 then Dec(Index) else
       begin
         Result := TSepiParam(Child);
-        exit;
+        Exit;
       end;
     end;
   end;
@@ -1471,7 +1470,7 @@ begin
       if Index > 0 then Dec(Index) else
       begin
         Result := TSepiParam(Child);
-        exit;
+        Exit;
       end;
     end;
   end;
@@ -1499,7 +1498,7 @@ begin
       (TSepiParam(Child).HiddenKind = Kind) then
     begin
       Result := TSepiParam(Child);
-      exit;
+      Exit;
     end;
   end;
 
@@ -1540,13 +1539,13 @@ var
 begin
   Result := False;
 
-  if Kind <> ASignature.Kind then exit;
-  if CallingConvention <> ASignature.CallingConvention then exit;
+  if Kind <> ASignature.Kind then Exit;
+  if CallingConvention <> ASignature.CallingConvention then Exit;
 
-  if ParamCount <> ASignature.ParamCount then exit;
+  if ParamCount <> ASignature.ParamCount then Exit;
   for I := 0 to ParamCount-1 do
-    if not Params[I].Equals(ASignature.Params[I]) then exit;
-  if ReturnType <> ASignature.ReturnType then exit;
+    if not Params[I].Equals(ASignature.Params[I]) then Exit;
+  if ReturnType <> ASignature.ReturnType then Exit;
 
   Result := True;
 end;
@@ -1563,9 +1562,9 @@ var
 begin
   Result := False;
 
-  if ParamCount <> Length(ATypes) then exit;
+  if ParamCount <> Length(ATypes) then Exit;
   for I := 0 to ParamCount-1 do
-    if not Params[I].CompatibleWith(ATypes[Low(ATypes)+I]) then exit;
+    if not Params[I].CompatibleWith(ATypes[Low(ATypes)+I]) then Exit;
 
   Result := True;
 end;
@@ -1711,7 +1710,7 @@ begin
     FLinkKind := mlkInterface;
     FLinkIndex := TSepiInterface(Owner).FIMTSize;
     Inc(TSepiInterface(Owner).FIMTSize, 4);
-    exit;
+    Exit;
   end;
 
   // If not a method, then nothing to do, but be sure link kind is static
@@ -1719,7 +1718,7 @@ begin
   begin
     FLinkKind := mlkStatic;
     FLinkIndex := 0;
-    exit;
+    Exit;
   end;
 
   OwningClass := TSepiClass(Owner);
@@ -1963,7 +1962,7 @@ begin
   for I := 0 to MethodCount-1 do
   begin
     Result := Methods[I];
-    if ASignature.CheckInherited(Result.Signature) then exit;
+    if ASignature.CheckInherited(Result.Signature) then Exit;
   end;
   Result := nil;
 end;
@@ -2001,7 +2000,7 @@ begin
   for I := 0 to MethodCount-1 do
   begin
     Result := Methods[I];
-    if Result.Signature.Equals(ASignature) then exit;
+    if Result.Signature.Equals(ASignature) then Exit;
   end;
   Result := nil;
 end;
@@ -2019,7 +2018,7 @@ begin
   for I := 0 to MethodCount-1 do
   begin
     Result := Methods[I];
-    if Result.Signature.CompatibleWith(ATypes) then exit;
+    if Result.Signature.CompatibleWith(ATypes) then Exit;
   end;
   Result := nil;
 end;
@@ -2370,7 +2369,7 @@ var
   I: Integer;
   FieldTable: PInitTable;
 begin
-  if not NeedInit then exit;
+  if not NeedInit then Exit;
 
   Fields := TObjectList.Create(False);
   try
@@ -2536,7 +2535,7 @@ end;
 *}
 procedure TSepiRecordType.Complete;
 begin
-  if FCompleted then exit;
+  if FCompleted then Exit;
 
   FCompleted := True;
   if not IsPacked then
@@ -2793,7 +2792,7 @@ end;
 *}
 procedure TSepiInterface.Complete;
 begin
-  if FCompleted then exit;
+  if FCompleted then Exit;
 
   FCompleted := True;
   if not Native then
@@ -2821,7 +2820,7 @@ begin
   if MemberName = '' then
   begin
     Result := nil;
-    exit;
+    Exit;
   end;
 
   Result := GetMeta(MemberName);
@@ -3078,7 +3077,7 @@ var
 begin
   // If no interface supported, then exit
   IntfCount := InterfaceCount;
-  if IntfCount = 0 then exit;
+  if IntfCount = 0 then Exit;
 
   // Fetch native interface table
   if Native then
@@ -3167,7 +3166,7 @@ var
 begin
   // If no interface supported, then exit
   IntfCount := InterfaceCount;
-  if IntfCount = 0 then exit;
+  if IntfCount = 0 then Exit;
 
   // Creating the interface table
   GetMem(IntfTable, sizeof(Integer) + IntfCount*sizeof(TInterfaceEntry));
@@ -3209,7 +3208,7 @@ begin
     end;
 
     // If no field to be finalized, then exit
-    if Fields.Count = 0 then exit;
+    if Fields.Count = 0 then Exit;
 
     // Creating the init table
     GetMem(InitTable, InitTableLengthBase + Fields.Count*sizeof(TInitInfo));
@@ -3260,7 +3259,7 @@ begin
     end;
 
     // If no published field, then exit
-    if Fields.Count = 0 then exit;
+    if Fields.Count = 0 then Exit;
 
     // Creating the field table
     GetMem(FieldTable, FieldTableLengthBase + Fields.Count*sizeof(TFieldInfo));
@@ -3313,7 +3312,7 @@ begin
     end;
 
     // If no published method, then exit
-    if Methods.Count = 0 then exit;
+    if Methods.Count = 0 then Exit;
 
     // Creating the method table
     GetMem(MethodTable, MethodTableLengthBase +
@@ -3789,7 +3788,7 @@ end;
 *}
 procedure TSepiClass.Complete;
 begin
-  if FCompleted then exit;
+  if FCompleted then Exit;
 
   FCompleted := True;
   AlignOffset(FInstSize);
@@ -3831,7 +3830,7 @@ begin
   if MemberName = '' then
   begin
     Result := nil;
-    exit;
+    Exit;
   end;
 
   Result := GetMeta(MemberName);

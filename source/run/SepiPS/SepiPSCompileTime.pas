@@ -45,14 +45,14 @@ var
   BaseType: TPSBaseType;
 begin
   if PSCompiler.FindType(ForwardType.Name) <> nil then
-    exit;
+    Exit;
 
   // Pascal Script doesn't support pointers: we use integers instead
   if ForwardType is TSepiPointerType then BaseType := btU32 else
   if ForwardType is TSepiClass then BaseType := btClass else
   begin
     Assert(False);
-    exit;
+    Exit;
   end;
 
   with ForwardType do
@@ -123,7 +123,7 @@ begin
         if StrParam = '' then
         begin
           Result := '';
-          exit;
+          Exit;
         end;
 
         Result := Result + StrParam;
@@ -217,7 +217,7 @@ begin
       ftDouble: PSType := PSCompiler.AddType(Name, btDouble);
       ftExtended: PSType := PSCompiler.AddType(Name, btExtended);
       ftCurr: PSType := PSCompiler.AddType(Name, btCurrency);
-      else exit;
+      else Exit;
     end;
 
     PSType.DeclareUnit := OwningUnit.Name;
@@ -239,7 +239,7 @@ begin
     case BooleanKind of
       bkBoolean: PSType := PSCompiler.AddTypeCopyN(Name, 'Boolean');
       bkLongBool: PSType := PSCompiler.AddTypeCopyN(Name, 'LongBool');
-      else exit; // Pascal Script doesn't support other boolean types
+      else Exit; // Pascal Script doesn't support other boolean types
     end;
     PSType.DeclareUnit := OwningUnit.Name;
   end;
@@ -454,7 +454,7 @@ end;
 procedure ImportType(PSCompiler: TPSPascalCompiler; SepiType: TSepiType);
 begin
   if PSCompiler.FindType(SepiType.Name) <> nil then
-    exit;
+    Exit;
 
   if SepiType is TSepiIntegerType then
     ImportIntegerType(PSCompiler, TSepiIntegerType(SepiType))
@@ -507,7 +507,7 @@ procedure ImportTypeAlias(PSCompiler: TPSPascalCompiler;
   TypeAlias: TSepiTypeAlias);
 begin
   if PSCompiler.FindType(TypeAlias.Name) <> nil then
-    exit;
+    Exit;
 
   with TypeAlias, PSCompiler.AddTypeCopyN(Name, Dest.Name) do
     DeclareUnit := OwningUnit.Name;
@@ -522,7 +522,7 @@ procedure ImportConst(PSCompiler: TPSPascalCompiler;
   Constant: TSepiConstant);
 begin
   if PSCompiler.GetConstant(Constant.Name) <> nil then
-    exit;
+    Exit;
 
   with Constant do
   begin
@@ -571,7 +571,7 @@ var
   Hash, I: Integer;
 begin
   if Variable.VarType is TSepiMethodRefType then
-    exit;
+    Exit;
 
   // A pity TPSPascalCompiler doesn't provide a FindVar method :-(
   UpperName := FastUppercase(Variable.Name);
@@ -580,7 +580,7 @@ begin
   begin
     with PSCompiler.GetVar(I) do
       if (NameHash = Hash) and (Name = UpperName) then
-        exit;
+        Exit;
   end;
 
   with Variable do
@@ -604,7 +604,7 @@ begin
   with Routine do
   begin
     if PSCompiler.FindProc(Name) <> InvalidVal then
-      exit;
+      Exit;
 
     StrSignature := SignatureToString(PSCompiler, Signature, '%s');
     if StrSignature <> '' then
@@ -633,7 +633,7 @@ var
 begin
   Result := PSCompiler.FindInterface(SepiIntf.Name);
   if Result <> nil then
-    exit;
+    Exit;
 
   ImportType(PSCompiler, SepiIntf);
 
@@ -681,7 +681,7 @@ var
 begin
   Result := PSCompiler.FindClass(SepiClass.Name);
   if Result <> nil then
-    exit;
+    Exit;
   ImportType(PSCompiler, SepiClass);
 
   if SepiClass.Parent = nil then

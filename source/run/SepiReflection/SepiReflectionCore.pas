@@ -574,7 +574,7 @@ procedure SepiUnregisterImportedUnit(const UnitName: string);
 var
   Index: Integer;
 begin
-  if not Assigned(SepiImportedUnits) then exit;
+  if not Assigned(SepiImportedUnits) then Exit;
   Index := SepiImportedUnits.IndexOf(UnitName);
   if Index >= 0 then
     SepiImportedUnits.Delete(Index);
@@ -1057,7 +1057,7 @@ begin
       Result := TSepiMeta(FForwards.Objects[I]);
   end;
 
-  if not Assigned(Result) then exit;
+  if not Assigned(Result) then Exit;
   while Result is TSepiTypeAlias do
     Result := TSepiTypeAlias(Result).Dest;
   if Field <> '' then
@@ -1429,7 +1429,7 @@ procedure TSepiRoot.UnloadUnit(const UnitName: string);
 var
   MetaUnit: TSepiUnit;
 begin
-  if State = msDestroying then exit;
+  if State = msDestroying then Exit;
 
   MetaUnit := TSepiUnit(GetMeta(UnitName));
   if MetaUnit = nil then
@@ -1458,7 +1458,7 @@ begin
   if TypeInfo = nil then
   begin
     Result := nil;
-    exit;
+    Exit;
   end;
 
   First := nil;
@@ -1473,7 +1473,7 @@ begin
       if TSepiType(Meta).TypeInfo = TypeInfo then
       begin
         Result := TSepiType(Meta);
-        exit;
+        Exit;
       end else
       begin
         if First = nil then
@@ -1498,7 +1498,7 @@ begin
   if TypeName = '' then
   begin
     Result := nil;
-    exit;
+    Exit;
   end;
 
   for I := 0 to FSearchOrder.Count-1 do
@@ -1507,7 +1507,7 @@ begin
     if Meta is TSepiType then
     begin
       Result := TSepiType(Meta);
-      exit;
+      Exit;
     end;
   end;
 
@@ -1805,7 +1805,7 @@ begin
   if UnitIndex = $FFFF then
   begin
     TObject(Ref) := nil;
-    exit;
+    Exit;
   end;
 
   // Reading reference index
@@ -1837,7 +1837,7 @@ var
   UnitIndex: Integer;
   RefList: TStrings;
 begin
-  if Ref = nil then exit;
+  if Ref = nil then Exit;
 
   UnitIndex := AddUses(Ref.OwningUnit)+1;
   RefList := FReferences[UnitIndex];

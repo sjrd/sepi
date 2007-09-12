@@ -460,7 +460,7 @@ begin
     Result := BeginSearchAt;
     while Result <= EndSearchAt do
     begin
-      if CompareStrings(Str, Strings[BeginSearchAt]) = 0 then exit else
+      if CompareStrings(Str, Strings[BeginSearchAt]) = 0 then Exit else
         Inc(BeginSearchAt);
     end;
     Result := -1;
@@ -493,7 +493,7 @@ begin
     while Result <= EndSearchAt do
     begin
       for I := Length(Strings[Result])-Len+1 downto 1 do
-        if CompareStrings(Str, Copy(Strings[Result], I, Len)) = 0 then exit;
+        if CompareStrings(Str, Copy(Strings[Result], I, Len)) = 0 then Exit;
       Inc(Result);
     end;
     Result := -1;
@@ -525,7 +525,7 @@ begin
     while Result <= EndSearchAt do
     begin
       if CompareStrings(Word, GetXWord(Trim(Strings[Result]), 1)) = 0 then
-        exit
+        Exit
       else
         Inc(Result);
     end;
@@ -561,7 +561,7 @@ begin
     while Result <= EndSearchAt do
     begin
       if CompareStrings(SubStr, Copy(Strings[Result], Position, Len)) = 0 then
-        exit
+        Exit
       else
         Inc(Result);
     end;
@@ -600,7 +600,7 @@ var
   I, EndAt: Integer;
 begin
   // On s'assure que Index et Count sont des entrées correctes
-  if Index < 0 then exit;
+  if Index < 0 then Exit;
   if (Count < 0) or (Index+Count > Source.Count) then
     EndAt := Source.Count-1
   else
@@ -1344,7 +1344,7 @@ var
   FillWith: Shortint;
 begin
   // On s'évite un travail inutile si Value est déjà stocké sur 8 octets
-  if ItemSize = 8 then exit;
+  if ItemSize = 8 then Exit;
 
   // On initialise RecVal.Int (et donc aussi RecVal.Ints)
   RecVal.Int := Value;
@@ -1545,7 +1545,7 @@ var
   I: Integer;
 begin
   // On s'évite un travail inutile si Value est déjà stocké sur 4 octets
-  if ItemSize = 4 then exit;
+  if ItemSize = 4 then Exit;
 
   // On initialise RecVal.Int (et donc aussi RecVal.Ints)
   RecVal.Int := Value;
@@ -1962,8 +1962,7 @@ end;
   @param Continue   Positionner à False pour interrompre l'énumération
 *}
 procedure TCustomValueBucketList.AssignCallBack(const Key, Data;
-  var
-    Continue: Boolean);
+  var Continue: Boolean);
 begin
   AddData(Key, Data);
 end;
@@ -1978,7 +1977,7 @@ var
 begin
   Result := False;
   for I := 0 to BucketCount-1 do
-    if Buckets[I].Count > 0 then exit;
+    if Buckets[I].Count > 0 then Exit;
   Result := True;
 end;
 
@@ -2042,7 +2041,7 @@ begin
   for I := 0 to KeySize-1 do
   begin
     if PByte(Integer(@Key1) + I)^ <> PByte(Integer(@Key2) + I)^ then
-      exit;
+      Exit;
   end;
 
   Result := True;
@@ -2065,7 +2064,7 @@ begin
   with Buckets[Bucket] do while Index < Count do
     begin
       if KeyEquals(Items[Index].Item^, Key) then
-        exit;
+        Exit;
       Inc(Index);
     end;
 

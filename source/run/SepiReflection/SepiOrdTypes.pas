@@ -849,7 +849,7 @@ procedure TSepiEnumType.CreateConstants;
 var
   Value: Integer;
 begin
-  if BaseType <> Self then exit;
+  if BaseType <> Self then Exit;
   for Value := MinValue to MaxValue do
     TSepiConstant.Create(Owner, Self.Names[Value], Value, Self);
 end;

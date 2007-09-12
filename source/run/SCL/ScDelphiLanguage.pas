@@ -190,16 +190,16 @@ begin
   Result := False;
 
   // Si Ident est vide, ce n'est un indentificateur correct
-  if Ident = '' then exit;
+  if Ident = '' then Exit;
 
   { Si le premier caractère n'est pas alphabétique,
     ce n'est pas un identificateur correct }
-  if not (Ident[1] in ['A'..'Z', '_', 'a'..'z']) then exit;
+  if not (Ident[1] in ['A'..'Z', '_', 'a'..'z']) then Exit;
 
   { Si l'un des caractères suivants n'est pas alphanumérique,
     ce n'est pas un identificateur correct }
   for I := 2 to Length(Ident) do
-    if not (Ident[I] in ['0'..'9', 'A'..'Z', '_', 'a'..'z']) then exit;
+    if not (Ident[I] in ['0'..'9', 'A'..'Z', '_', 'a'..'z']) then Exit;
 
   // Dans les autres cas, ça l'est
   Result := True;
@@ -655,7 +655,7 @@ begin
     Result := [];
     Str := Trim(Str);
     // Si Str est vide, il n'y a aucun caractère dans l'ensemble
-    if Str = '' then exit;
+    if Str = '' then Exit;
     // Si il y des [] aux extrémités, on les supprime
     if (Str[1] = '[') and (Str[Length(Str)] = ']') then
       Str := Trim(Copy(Str, 2, Length(Str)-2));
