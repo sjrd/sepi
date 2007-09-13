@@ -175,7 +175,10 @@ constructor TSepiStringType.Create(AOwner: TSepiMeta; const AName: string;
 var
   AKind: TTypeKind;
 begin
-  if AIsUnicode then AKind := tkWString else AKind := tkLString;
+  if AIsUnicode then
+    AKind := tkWString
+  else
+    AKind := tkLString;
   inherited Create(AOwner, AName, AKind);
 
   AllocateTypeInfo(StringTypeDataLength);

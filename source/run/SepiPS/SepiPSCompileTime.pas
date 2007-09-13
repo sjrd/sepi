@@ -48,8 +48,11 @@ begin
     Exit;
 
   // Pascal Script doesn't support pointers: we use integers instead
-  if ForwardType is TSepiPointerType then BaseType := btU32 else
-  if ForwardType is TSepiClass then BaseType := btClass else
+  if ForwardType is TSepiPointerType then
+    BaseType := btU32
+  else if ForwardType is TSepiClass then
+    BaseType := btClass
+  else
   begin
     Assert(False);
     Exit;
@@ -70,21 +73,25 @@ function ParamToString(PSCompiler: TPSPascalCompiler;
 begin
   with Param do
   begin
-    if pfVar   in Flags then Result := 'var ' else
-    if pfConst in Flags then Result := 'const ' else
-    if pfOut   in Flags then Result := 'out ' else
+    case Kind of
+      pkVar: Result := 'var ';
+      pkConst: Result := 'const ';
+      pkOut: Result := 'out ';
+    else
       Result := '';
+    end;
 
     Result := Result + Name;
     if AnsiIndexText(Name, InvalidIdentifiers) >= 0 then
       Result := Result + '_';
     Result := Result + ': ';
 
-    if pfArray in Flags then
+    if OpenArray then
       Result := Result + 'array of ';
 
     if ParamType = nil then
-      Result := Result + 'const' else
+      Result := Result + 'const'
+    else
     begin
       ImportType(PSCompiler, ParamType);
       Result := Result + ParamType.Name;
@@ -117,7 +124,8 @@ begin
       Result := Result + '(';
       for I := 0 to ParamCount-1 do
       begin
-        if I <> 0 then Result := Result + '; ';
+        if I <> 0 then
+          Result := Result + '; ';
         StrParam := ParamToString(PSCompiler, Params[I]);
 
         if StrParam = '' then
@@ -217,7 +225,8 @@ begin
       ftDouble: PSType := PSCompiler.AddType(Name, btDouble);
       ftExtended: PSType := PSCompiler.AddType(Name, btExtended);
       ftCurr: PSType := PSCompiler.AddType(Name, btCurrency);
-      else Exit;
+    else
+      Exit;
     end;
 
     PSType.DeclareUnit := OwningUnit.Name;
@@ -239,7 +248,8 @@ begin
     case BooleanKind of
       bkBoolean: PSType := PSCompiler.AddTypeCopyN(Name, 'Boolean');
       bkLongBool: PSType := PSCompiler.AddTypeCopyN(Name, 'LongBool');
-      else Exit; // Pascal Script doesn't support other boolean types
+    else
+      Exit; // Pascal Script doesn't support other boolean types
     end;
     PSType.DeclareUnit := OwningUnit.Name;
   end;
@@ -348,7 +358,10 @@ begin
     Str := 'array';
     for I := 0 to DimCount-1 do
     begin
-      if I = 0 then Str := Str + '[' else Str := Str + ', ';
+      if I = 0 then
+        Str := Str + '['
+      else
+        Str := Str + ', ';
       Str := Str + IntToStr(MinValues[I]);
       Str := Str + '..' + IntToStr(MaxValues[I]);
     end;
@@ -553,7 +566,8 @@ begin
           end;
         tkLString: Value.tstring := ValuePtr;
         tkWString: Value.twidestring := ValuePtr;
-        else Free;
+      else
+        Free;
       end;
     end;
   end;
@@ -652,12 +666,15 @@ begin
     begin
       Child := Children[I];
 
-      if Child is TSepiMethod then with TSepiMethod(Child) do
+      if Child is TSepiMethod then
       begin
-        StrSignature := SignatureToString(PSCompiler, Signature, Name);
-        if StrSignature <> '' then
-          RegisterMethod(StrSignature,
-            CallingConvSepiToPS[Signature.CallingConvention]);
+        with TSepiMethod(Child) do
+        begin
+          StrSignature := SignatureToString(PSCompiler, Signature, Name);
+          if StrSignature <> '' then
+            RegisterMethod(StrSignature,
+              CallingConvSepiToPS[Signature.CallingConvention]);
+        end;
       end;
     end;
   end;
@@ -701,48 +718,60 @@ begin
         Continue;
 
       // FIELD
-      if Child is TSepiField then with TSepiField(Child) do
+      if Child is TSepiField then
       begin
-        if not (FieldType.Kind in [tkArray, tkDynArray]) then
+        with TSepiField(Child) do
         begin
-          ImportType(PSCompiler, FieldType);
-          RegisterProperty(Name, FieldType.Name, iptRW);
+          if not (FieldType.Kind in [tkArray, tkDynArray]) then
+          begin
+            ImportType(PSCompiler, FieldType);
+            RegisterProperty(Name, FieldType.Name, iptRW);
+          end;
         end;
       end else
 
       // METHOD
-      if Child is TSepiMethod then with TSepiMethod(Child) do
+      if Child is TSepiMethod then
       begin
-        if (FirstDeclaration or
-          (not (InheritedMethod.Visibility in [mvPublic, mvPublished]))) then
+        with TSepiMethod(Child) do
         begin
-          StrSignature := SignatureToString(PSCompiler, Signature, '%s');
-          if StrSignature <> '' then
+          if (FirstDeclaration or
+            (not (InheritedMethod.Visibility in [mvPublic, mvPublished]))) then
           begin
-            if HandleOverloaded(Name, PSName, SecondName) then
-              RegisterMethod(Format(StrSignature, [SecondName]));
-            RegisterMethod(Format(StrSignature, [PSName]));
+            StrSignature := SignatureToString(PSCompiler, Signature, '%s');
+            if StrSignature <> '' then
+            begin
+              if HandleOverloaded(Name, PSName, SecondName) then
+                RegisterMethod(Format(StrSignature, [SecondName]));
+              RegisterMethod(Format(StrSignature, [PSName]));
+            end;
           end;
         end;
       end else
 
       // PROPERTY
-      if Child is TSepiProperty then with TSepiProperty(Child) do
+      if Child is TSepiProperty then
       begin
-        if ReadAccess.Kind = pakNone then Access := iptW else
-        if WriteAccess.Kind = pakNone then Access := iptR else
-          Access := iptRW;
+        with TSepiProperty(Child) do
+        begin
+          if ReadAccess.Kind = pakNone then
+            Access := iptW
+          else if WriteAccess.Kind = pakNone then
+            Access := iptR
+          else
+            Access := iptRW;
 
-        if SignatureToString(PSCompiler, Signature) = '' then
-          Continue;
-        StrPropType := PropType.Name;
-        for J := 0 to Signature.ParamCount-1 do
-          StrPropType := StrPropType + ' ' +
-            Signature.Params[J].ParamType.Name;
+          if SignatureToString(PSCompiler, Signature) = '' then
+            Continue;
+          StrPropType := PropType.Name;
+          for J := 0 to Signature.ParamCount-1 do
+            StrPropType := StrPropType + ' ' +
+              Signature.Params[J].ParamType.Name;
 
-        RegisterProperty(Name, StrPropType, Access);
-        if IsDefault then
-          SetDefaultPropery(Name);
+          RegisterProperty(Name, StrPropType, Access);
+          if IsDefault then
+            SetDefaultPropery(Name);
+        end;
       end;
     end;
   end;
@@ -768,8 +797,8 @@ begin
       Child := SepiUnit.Children[I];
 
       if Child is TSepiInterface then
-        ImportInterfaceType(PSCompiler, TSepiInterface(Child)) else
-      if (Child is TSepiPointerType) or (Child is TSepiClass) then
+        ImportInterfaceType(PSCompiler, TSepiInterface(Child))
+      else if (Child is TSepiPointerType) or (Child is TSepiClass) then
         ImportForwardType(PSCompiler, TSepiType(Child));
     except
       on Error: Exception do
@@ -811,8 +840,7 @@ begin
         if TPSClassType(PSType).Cl = nil then
           ImportClass(PSCompiler, SepiUnit.Root.FindType(
             PSType.DeclareUnit+'.'+PSType.Name) as TSepiClass);
-      end else
-      if PSType is TPSInterfaceType then
+      end else if PSType is TPSInterfaceType then
         ImportInterface(PSCompiler, SepiUnit.Root.FindType(
           PSType.DeclareUnit+'.'+PSType.Name) as TSepiInterface);
     except

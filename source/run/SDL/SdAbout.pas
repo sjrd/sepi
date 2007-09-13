@@ -98,13 +98,17 @@ begin
       LabelProgramName.Caption := ProgramName;
       LabelProgramVersion.Caption := ProgramVersion;
       LabelAuthor.Caption := Author;
-      if AuthorEMail = '' then URLLabelEMail.Visible := False else
+      if AuthorEMail = '' then
+        URLLabelEMail.Visible := False
+      else
       begin
         URLLabelEMail.Caption := GetFirstToken(AuthorEMail, '?');
         {don't localize}
         URLLabelEMail.URL := 'mailto:'+AuthorEMail; {don't localize}
       end;
-      if WebSite = '' then URLLabelWebSite.Visible := False else
+      if WebSite = '' then
+        URLLabelWebSite.Visible := False
+      else
         URLLabelWebSite.Caption := WebSite;
       ShowModal;
     finally

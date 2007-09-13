@@ -36,7 +36,8 @@ begin
     SepiMainProc := SepiUnit.GetMeta('$MAIN') as TSepiMethod;
 
     if SepiMainProc = nil then
-      WriteLn('There is no main proc in this unit') else
+      WriteLn('There is no main proc in this unit')
+    else
     begin
       @MainProc := SepiMainProc.Code;
       MainProc;

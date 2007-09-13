@@ -834,8 +834,7 @@ begin
     Storage.Kind := pskConstant;
     Storage.Stored := True;
     Storage.Meta := nil;
-  end else
-  if AnsiSameText(AStorage, BooleanIdents[False]) then
+  end else if AnsiSameText(AStorage, BooleanIdents[False]) then
   begin
     Storage.Kind := pskConstant;
     Storage.Stored := False;
@@ -942,7 +941,8 @@ begin
       FType := AType;
     end;
     hpOpenArrayHighValue: FType := Root.FindType(TypeInfo(Smallint));
-    else FType := Root.FindType(TypeInfo(Boolean));
+  else
+    FType := Root.FindType(TypeInfo(Boolean));
   end;
 
   MakeFlags;
@@ -970,9 +970,13 @@ begin
   ATypeStr := PShortString(ParamData)^;
   Inc(Longint(ParamData), PByte(ParamData)^ + 1);
 
-  if pfVar   in AFlags then AKind := pkVar   else
-  if pfConst in AFlags then AKind := pkConst else
-  if pfOut   in AFlags then AKind := pkOut   else
+  if pfVar in AFlags then
+    AKind := pkVar
+  else if pfConst in AFlags then
+    AKind := pkConst
+  else if pfOut in AFlags then
+    AKind := pkOut
+  else
     AKind := pkValue;
 
   AOpenArray := pfArray in AFlags;
@@ -1022,7 +1026,8 @@ begin
       AKind := pkValue;
       NamePart2 := KindStr + ' ' + NamePart2;
     end;
-  end else AKind := pkValue;
+  end else
+    AKind := pkValue;
   NamePart := NamePart2;
 
   // Partie du type - à droite du :
@@ -1245,7 +1250,8 @@ constructor TSepiMethodSignature.Create(AOwner: TSepiMeta;
     for I := Low(Chars) to High(Chars) do
     begin
       Result := PosEx(Chars[I], Str, Offset);
-      if Result > 0 then Exit;
+      if Result > 0 then
+        Exit;
     end;
     Result := Length(Str)+1;
   end;
@@ -1272,7 +1278,8 @@ begin
     ReturnTypePos := RightPos(':', ASignature);
     FReturnType := FOwner.Root.FindType(
       Trim(Copy(ASignature, ReturnTypePos+1, MaxInt)));
-  end else ReturnTypePos := Length(ASignature);
+  end else
+    ReturnTypePos := Length(ASignature);
 
   // Paramètres
   if (Kind in mkOfObject) and (CallingConvention <> ccPascal) then
@@ -1330,7 +1337,8 @@ begin
       begin
         Byte(Place) := FRegUsage;
         Inc(FRegUsage);
-      end else Place := ppStack;
+      end else
+        Place := ppStack;
     end;
   end;
 
@@ -1351,7 +1359,8 @@ begin
       begin
         StackOffset := FStackUsage;
         if ByAddress then
-          Inc(FStackUsage, 4) else
+          Inc(FStackUsage, 4)
+        else
         begin
           Inc(FStackUsage, Size);
           if FStackUsage mod 4 <> 0 then
@@ -1423,7 +1432,9 @@ begin
     if (Child is TSepiParam) and
       (TSepiParam(Child).HiddenKind = hpNormal) then
     begin
-      if Index > 0 then Dec(Index) else
+      if Index > 0 then
+        Dec(Index)
+      else
       begin
         Result := TSepiParam(Child);
         Exit;
@@ -1467,7 +1478,9 @@ begin
     Child := Owner.Children[I];
     if Child is TSepiParam then
     begin
-      if Index > 0 then Dec(Index) else
+      if Index > 0 then
+        Dec(Index)
+      else
       begin
         Result := TSepiParam(Child);
         Exit;
@@ -1539,13 +1552,18 @@ var
 begin
   Result := False;
 
-  if Kind <> ASignature.Kind then Exit;
-  if CallingConvention <> ASignature.CallingConvention then Exit;
+  if Kind <> ASignature.Kind then
+    Exit;
+  if CallingConvention <> ASignature.CallingConvention then
+    Exit;
 
-  if ParamCount <> ASignature.ParamCount then Exit;
+  if ParamCount <> ASignature.ParamCount then
+    Exit;
   for I := 0 to ParamCount-1 do
-    if not Params[I].Equals(ASignature.Params[I]) then Exit;
-  if ReturnType <> ASignature.ReturnType then Exit;
+    if not Params[I].Equals(ASignature.Params[I]) then
+      Exit;
+  if ReturnType <> ASignature.ReturnType then
+    Exit;
 
   Result := True;
 end;
@@ -1562,9 +1580,11 @@ var
 begin
   Result := False;
 
-  if ParamCount <> Length(ATypes) then Exit;
+  if ParamCount <> Length(ATypes) then
+    Exit;
   for I := 0 to ParamCount-1 do
-    if not Params[I].CompatibleWith(ATypes[Low(ATypes)+I]) then Exit;
+    if not Params[I].CompatibleWith(ATypes[Low(ATypes)+I]) then
+      Exit;
 
   Result := True;
 end;
@@ -1734,8 +1754,7 @@ begin
       begin
         if Signature.CheckInherited(TSepiMethod(Meta).Signature) then
           FInherited := TSepiMethod(Meta);
-      end else
-      if Meta is TSepiOverloadedMethod then
+      end else if Meta is TSepiOverloadedMethod then
         FInherited := TSepiOverloadedMethod(Meta).FindInherited(Signature);
     end else
     begin
@@ -1790,11 +1809,11 @@ begin
   case LinkKind of
     mlkVirtual: FCode := TSepiClass(Owner).VMTEntries[VMTOffset];
     mlkDynamic, mlkMessage:
-    try
-      FCode := GetClassDynamicCode(TSepiClass(Owner).DelphiClass, DMTIndex);
-    except
-      on Error : EAbstractError do;
-    end;
+      try
+        FCode := GetClassDynamicCode(TSepiClass(Owner).DelphiClass, DMTIndex);
+      except
+        on Error: EAbstractError do;
+      end;
   end;
 end;
 
@@ -1888,15 +1907,20 @@ begin
     case CallingConvention of
       ccRegister:
       begin
-        if RegUsage < 3 then MoveStackCount := 0 else
+        if RegUsage < 3 then
+          MoveStackCount := 0
+        else
         begin
           // MoveStackCount = (last param before ECX).StackOffset div 4
           MoveStackCount := StackUsage div 4;
-          for I := 0 to ActualParamCount-1 do with ActualParams[I] do
+          for I := 0 to ActualParamCount-1 do
           begin
-            case CallInfo.Place of
-              ppECX: Break;
-              ppStack: MoveStackCount := CallInfo.StackOffset div 4;
+            with ActualParams[I] do
+            begin
+              case CallInfo.Place of
+                ppECX: Break;
+                ppStack: MoveStackCount := CallInfo.StackOffset div 4;
+              end;
             end;
           end;
         end;
@@ -1906,7 +1930,8 @@ begin
 
       ccCDecl: ACode := MakeProcOfCDeclMethod(AMethod);
       ccPascal: ACode := MakeProcOfPascalMethod(AMethod);
-      else ACode := MakeProcOfStdCallMethod(AMethod);
+    else
+      ACode := MakeProcOfStdCallMethod(AMethod);
     end;
   end;
 
@@ -1962,7 +1987,8 @@ begin
   for I := 0 to MethodCount-1 do
   begin
     Result := Methods[I];
-    if ASignature.CheckInherited(Result.Signature) then Exit;
+    if ASignature.CheckInherited(Result.Signature) then
+      Exit;
   end;
   Result := nil;
 end;
@@ -2000,7 +2026,8 @@ begin
   for I := 0 to MethodCount-1 do
   begin
     Result := Methods[I];
-    if Result.Signature.Equals(ASignature) then Exit;
+    if Result.Signature.Equals(ASignature) then
+      Exit;
   end;
   Result := nil;
 end;
@@ -2018,7 +2045,8 @@ begin
   for I := 0 to MethodCount-1 do
   begin
     Result := Methods[I];
-    if Result.Signature.CompatibleWith(ATypes) then Exit;
+    if Result.Signature.CompatibleWith(ATypes) then
+      Exit;
   end;
   Result := nil;
 end;
@@ -2134,21 +2162,27 @@ begin
   FDefaultValue := Previous.FDefaultValue;
   FIsDefault := Previous.IsDefault;
 
-  if AReadAccess = '' then FReadAccess := Previous.ReadAccess else
+  if AReadAccess = '' then
+    FReadAccess := Previous.ReadAccess
+  else
   begin
     FReadAccess.Meta := TSepiClass(Owner).LookForMember(
       AReadAccess, OwningUnit, TSepiClass(Owner));
     MakePropertyAccessKind(FReadAccess);
   end;
 
-  if AWriteAccess = '' then FWriteAccess := Previous.WriteAccess else
+  if AWriteAccess = '' then
+    FWriteAccess := Previous.WriteAccess
+  else
   begin
     FWriteAccess.Meta := TSepiClass(Owner).LookForMember(
       AWriteAccess, OwningUnit, TSepiClass(Owner));
     MakePropertyAccessKind(FWriteAccess);
   end;
 
-  if AStorage = '' then FStorage := Previous.Storage else
+  if AStorage = '' then
+    FStorage := Previous.Storage
+  else
     MakePropertyStorage(FStorage, AStorage, TSepiClass(Owner));
 end;
 
@@ -2352,7 +2386,9 @@ function TSepiRecordType.PrivAddField(const FieldName: string;
 var
   Offset: Integer;
 begin
-  if After = nil then Offset := 0 else
+  if After = nil then
+    Offset := 0
+  else
     Offset := After.Offset + After.FieldType.Size;
   if (not IsPacked) and (not ForcePack) then
     FieldType.AlignOffset(Offset);
@@ -2369,7 +2405,8 @@ var
   I: Integer;
   FieldTable: PInitTable;
 begin
-  if not NeedInit then Exit;
+  if not NeedInit then
+    Exit;
 
   Fields := TObjectList.Create(False);
   try
@@ -2409,14 +2446,17 @@ procedure TSepiRecordType.ChildAdded(Child: TSepiMeta);
 begin
   inherited;
 
-  if Child is TSepiField then with TSepiField(Child) do
+  if Child is TSepiField then
   begin
-    if FieldType.NeedInit then
-      FNeedInit := True;
-    if Offset + FieldType.Size > FSize then
-      FSize := Offset + FieldType.Size;
-    if FieldType.Alignment > FAlignment then
-      FAlignment := FieldType.Alignment;
+    with TSepiField(Child) do
+    begin
+      if FieldType.NeedInit then
+        FNeedInit := True;
+      if Offset + FieldType.Size > FSize then
+        FSize := Offset + FieldType.Size;
+      if FieldType.Alignment > FAlignment then
+        FAlignment := FieldType.Alignment;
+    end;
   end;
 end;
 
@@ -2450,7 +2490,9 @@ function TSepiRecordType.AddField(const FieldName: string;
 var
   LastField: TSepiField;
 begin
-  if ChildCount = 0 then LastField := nil else
+  if ChildCount = 0 then
+    LastField := nil
+  else
     LastField := TSepiField(Children[ChildCount-1]);
 
   Result := PrivAddField(FieldName, FieldType, LastField, ForcePack);
@@ -2535,7 +2577,8 @@ end;
 *}
 procedure TSepiRecordType.Complete;
 begin
-  if FCompleted then Exit;
+  if FCompleted then
+    Exit;
 
   FCompleted := True;
   if not IsPacked then
@@ -2588,7 +2631,9 @@ begin
   FIsDispInterface := ifDispInterface in Flags;
   FIsDispatch := ifDispatch in Flags;
 
-  if not FHasGUID then FGUID := NoGUID else
+  if not FHasGUID then
+    FGUID := NoGUID
+  else
     FGUID := TypeData.Guid;
 end;
 
@@ -2632,7 +2677,9 @@ begin
   FSize := 4;
   FNeedInit := True;
 
-  if Assigned(AParent) then FParent := AParent else
+  if Assigned(AParent) then
+    FParent := AParent
+  else
     FParent := TSepiInterface(Root.FindType(System.TypeInfo(IInterface)));
   FCompleted := False;
 
@@ -2660,9 +2707,12 @@ begin
 
   // Interface flags
   Flags := [];
-  if FHasGUID then Include(Flags, ifHasGuid);
-  if FIsDispInterface then Include(Flags, ifDispInterface);
-  if FIsDispatch then Include(Flags, ifDispatch);
+  if FHasGUID then
+    Include(Flags, ifHasGuid);
+  if FIsDispInterface then
+    Include(Flags, ifDispInterface);
+  if FIsDispatch then
+    Include(Flags, ifDispatch);
   TypeData.IntfFlags := Flags;
 
   // GUID
@@ -2792,7 +2842,8 @@ end;
 *}
 procedure TSepiInterface.Complete;
 begin
-  if FCompleted then Exit;
+  if FCompleted then
+    Exit;
 
   FCompleted := True;
   if not Native then
@@ -2905,7 +2956,9 @@ begin
 
   FSize := 4;
   FDelphiClass := nil;
-  if Assigned(AParent) then FParent := AParent else
+  if Assigned(AParent) then
+    FParent := AParent
+  else
     FParent := TSepiClass(Root.FindType(System.TypeInfo(TObject)));
   FCompleted := False;
 
@@ -2931,12 +2984,15 @@ begin
   if (not Native) and (FDelphiClass <> nil) then
   begin
     // Destroying the IMTs
-    for I := 0 to High(FInterfaces) do with FInterfaces[I] do
+    for I := 0 to High(FInterfaces) do
     begin
-      if Assigned(Relocates) then
-        FreeMem(Relocates);
-      if Assigned(IMT) then
-        FreeMem(IMT);
+      with FInterfaces[I] do
+      begin
+        if Assigned(Relocates) then
+          FreeMem(Relocates);
+        if Assigned(IMT) then
+          FreeMem(IMT);
+      end;
     end;
 
     // Destroying the tables
@@ -2988,7 +3044,8 @@ begin
     begin
       for I := Intf.ChildCount-1 downto 0 do
       begin
-        if not (Intf.Children[I] is TSepiMethod) then Continue;
+        if not (Intf.Children[I] is TSepiMethod) then
+          Continue;
         Method := TSepiMethod(Intf.Children[I]);
 
         AdjustInstrSize := AdjustInstrSizes[
@@ -3077,7 +3134,8 @@ var
 begin
   // If no interface supported, then exit
   IntfCount := InterfaceCount;
-  if IntfCount = 0 then Exit;
+  if IntfCount = 0 then
+    Exit;
 
   // Fetch native interface table
   if Native then
@@ -3095,7 +3153,8 @@ begin
     begin
       FInterfaces[I].IMT := IntfTable.Entries[I].VTable;
       FInterfaces[I].Offset := IntfTable.Entries[I].IOffset;
-    end else MakeIMT(@FInterfaces[I]);
+    end else
+      MakeIMT(@FInterfaces[I]);
   end;
 end;
 
@@ -3119,16 +3178,20 @@ begin
     Inc(TypeDataLength);
 
     // Listing the published properties, and computing the type data length
-    for I := 0 to ChildCount-1 do if Children[I] is TSepiProperty then
+    for I := 0 to ChildCount-1 do
+    begin
+      if Children[I] is TSepiProperty then
       begin
         Prop := TSepiProperty(Children[I]);
-        if Prop.Visibility <> mvPublished then Continue;
+        if Prop.Visibility <> mvPublished then
+          Continue;
 
         Props.Add(Prop);
         Inc(TypeDataLength, PropInfoLengthBase);
         Inc(TypeDataLength, Length(Prop.Name));
         Inc(TypeDataLength);
       end;
+    end;
 
     // Creating the RTTI
     AllocateTypeInfo(TypeDataLength);
@@ -3166,7 +3229,8 @@ var
 begin
   // If no interface supported, then exit
   IntfCount := InterfaceCount;
-  if IntfCount = 0 then Exit;
+  if IntfCount = 0 then
+    Exit;
 
   // Creating the interface table
   GetMem(IntfTable, sizeof(Integer) + IntfCount*sizeof(TInterfaceEntry));
@@ -3176,12 +3240,15 @@ begin
   IntfTable.EntryCount := IntfCount;
 
   // Interface information
-  for I := 0 to IntfCount-1 do with IntfTable.Entries[I], FInterfaces[I] do
+  for I := 0 to IntfCount-1 do
   begin
-    IID := IntfRef.GUID;
-    VTable := IMT;
-    IOffset := Offset;
-    ImplGetter := 0;
+    with IntfTable.Entries[I], FInterfaces[I] do
+    begin
+      IID := IntfRef.GUID;
+      VTable := IMT;
+      IOffset := Offset;
+      ImplGetter := 0;
+    end;
   end;
 end;
 
@@ -3208,7 +3275,8 @@ begin
     end;
 
     // If no field to be finalized, then exit
-    if Fields.Count = 0 then Exit;
+    if Fields.Count = 0 then
+      Exit;
 
     // Creating the init table
     GetMem(InitTable, InitTableLengthBase + Fields.Count*sizeof(TInitInfo));
@@ -3259,7 +3327,8 @@ begin
     end;
 
     // If no published field, then exit
-    if Fields.Count = 0 then Exit;
+    if Fields.Count = 0 then
+      Exit;
 
     // Creating the field table
     GetMem(FieldTable, FieldTableLengthBase + Fields.Count*sizeof(TFieldInfo));
@@ -3312,7 +3381,8 @@ begin
     end;
 
     // If no published method, then exit
-    if Methods.Count = 0 then Exit;
+    if Methods.Count = 0 then
+      Exit;
 
     // Creating the method table
     GetMem(MethodTable, MethodTableLengthBase +
@@ -3374,10 +3444,13 @@ begin
     CodeList := IndexList + 2*Count;
 
     // Filling the DMT
-    for I := 0 to Count-1 do with TSepiMethod(Methods[I]) do
+    for I := 0 to Count-1 do
     begin
-      PSmallInt(IndexList + 2*I)^ := DMTIndex; // alias MsgID
-      PPointer(CodeList + 4*I)^ := Code;
+      with TSepiMethod(Methods[I]) do
+      begin
+        PSmallInt(IndexList + 2*I)^ := DMTIndex; // alias MsgID
+        PPointer(CodeList + 4*I)^ := Code;
+      end;
     end;
   finally
     Methods.Free;
@@ -3421,7 +3494,9 @@ begin
 
   // Setting the new method addresses
   AbstractErrorProcAddress := CompilerMagicRoutineAddress(@AbstractError);
-  for I := 0 to ChildCount-1 do if Children[I] is TSepiMethod then
+  for I := 0 to ChildCount-1 do
+  begin
+    if Children[I] is TSepiMethod then
     begin
       Method := TSepiMethod(Children[I]);
       if Method.LinkKind = mlkVirtual then
@@ -3432,6 +3507,7 @@ begin
           VMTEntries[Method.VMTOffset] := Method.Code;
       end;
     end;
+  end;
 
   // Making the other tables
   MakeIntfTable;
@@ -3493,8 +3569,9 @@ begin
   if State = msConstructing then
     TSepiClass(Child).FVisibility := FCurrentVisibility;
 
-  if Child is TSepiField then with TSepiField(Child) do
-    FInstSize := Offset + FieldType.Size;
+  if Child is TSepiField then
+    with TSepiField(Child) do
+      FInstSize := Offset + FieldType.Size;
 end;
 
 {*
@@ -3788,7 +3865,8 @@ end;
 *}
 procedure TSepiClass.Complete;
 begin
-  if FCompleted then Exit;
+  if FCompleted then
+    Exit;
 
   FCompleted := True;
   AlignOffset(FInstSize);
@@ -3838,8 +3916,12 @@ begin
   if Result <> nil then
   begin
     case Result.Visibility of
-      mvStrictPrivate: if FromClass <> Self then Result := nil;
-      mvPrivate: if FromUnit <> OwningUnit then Result := nil;
+      mvStrictPrivate:
+        if FromClass <> Self then
+          Result := nil;
+      mvPrivate:
+        if FromUnit <> OwningUnit then
+          Result := nil;
       mvStrictProtected:
         if (FromClass = nil) or (not FromClass.ClassInheritsFrom(Self)) then
           Result := nil;
@@ -3992,7 +4074,10 @@ var
 begin
   inherited Create(AOwner, AName, tkMethod);
 
-  if AOfObject then Prefix := '' else Prefix := 'unit ';
+  if AOfObject then
+    Prefix := ''
+  else
+    Prefix := 'unit ';
   FSignature := TSepiMethodSignature.Create(Self,
     Prefix + ASignature, ACallingConvention);
 

@@ -354,17 +354,19 @@ begin
   begin
     // Signed
     if (AMinValue < -32768) or (AMaxValue >= 32768) then
-      TypeData.OrdType := otSLong else
-    if (AMinValue < -128) or (AMaxValue >= 128) then
-      TypeData.OrdType := otSWord else
+      TypeData.OrdType := otSLong
+    else if (AMinValue < -128) or (AMaxValue >= 128) then
+      TypeData.OrdType := otSWord
+    else
       TypeData.OrdType := otSByte;
   end else
   begin
     // Unsigned
     if AMaxValue >= 65536 then
-      TypeData.OrdType := otULong else
-    if AMaxValue >= 256 then
-      TypeData.OrdType := otUWord else
+      TypeData.OrdType := otULong
+    else if AMaxValue >= 256 then
+      TypeData.OrdType := otUWord
+    else
       TypeData.OrdType := otUByte;
   end;
 
@@ -743,7 +745,8 @@ begin
     otSByte: FBooleanKind := bkByteBool;
     otSWord: FBooleanKind := bkWordBool;
     otSLong: FBooleanKind := bkLongBool;
-    else FBooleanKind := bkBoolean;
+  else
+    FBooleanKind := bkBoolean;
   end;
 end;
 
@@ -849,7 +852,8 @@ procedure TSepiEnumType.CreateConstants;
 var
   Value: Integer;
 begin
-  if BaseType <> Self then Exit;
+  if BaseType <> Self then
+    Exit;
   for Value := MinValue to MaxValue do
     TSepiConstant.Create(Owner, Self.Names[Value], Value, Self);
 end;
@@ -989,7 +993,8 @@ begin
     1..8: TypeData.OrdType := otUByte;
     9..16: TypeData.OrdType := otUWord;
     17..32: TypeData.OrdType := otULong;
-    else TypeData.OrdType := otUnknown;
+  else
+    TypeData.OrdType := otUnknown;
   end;
 
   TypeData.CompType := FCompType.TypeInfoRef;
@@ -1037,7 +1042,8 @@ begin
   inherited;
 
   FSize := (FCompType.MaxValue - FCompType.MinValue) div 8 + 1;
-  if FSize = 3 then FSize := 4;
+  if FSize = 3 then
+    FSize := 4;
 
   FParamBehavior.AlwaysByAddress := Size > 4;
 end;
@@ -1112,7 +1118,8 @@ begin
     APointToType := AOwner.Root.FindType(APointTo);
 
   if (APointTo = nil) or (APointToType <> nil) then
-    Create(AOwner, AName, APointToType, AIsNative) else
+    Create(AOwner, AName, APointToType, AIsNative)
+  else
   begin
     New(FForwardInfo);
     FForwardInfo.Owner := AOwner;
@@ -1141,7 +1148,8 @@ begin
     APointToType := AOwner.Root.FindType(APointTo);
 
   if (APointTo = '') or (APointToType <> nil) then
-    Create(AOwner, AName, APointToType, AIsNative) else
+    Create(AOwner, AName, APointToType, AIsNative)
+  else
   begin
     New(FForwardInfo);
     FForwardInfo.Owner := AOwner;
@@ -1159,13 +1167,16 @@ end;
 *}
 procedure TSepiPointerType.Loaded;
 begin
-  if IsForward and (FForwardInfo <> nil) then with FForwardInfo^ do
+  if IsForward and (FForwardInfo <> nil) then
   begin
-    if PointToTypeInfo <> nil then
-      Create(Owner, Name, PointToTypeInfo, IsNative)
-    else
-      Create(Owner, Name, PointToName, IsNative);
-    Dispose(FForwardInfo);
+    with FForwardInfo^ do
+    begin
+      if PointToTypeInfo <> nil then
+        Create(Owner, Name, PointToTypeInfo, IsNative)
+      else
+        Create(Owner, Name, PointToName, IsNative);
+      Dispose(FForwardInfo);
+    end;
   end;
 
   inherited;

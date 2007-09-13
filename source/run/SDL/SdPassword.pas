@@ -52,7 +52,9 @@ begin
   with Create(Application) do
     try
       ActiveControl := EditPassWord;
-      if ShowModal <> mrOk then Result := '' else
+      if ShowModal <> mrOk then
+        Result := ''
+      else
         Result := EditPassWord.Text;
     finally
       Release;
@@ -70,7 +72,9 @@ class function TSdPasswordForm.QueryPassword(Password: string;
 var
   Passwd: string;
 begin
-  if Password = '' then Passwd := '' else
+  if Password = '' then
+    Passwd := ''
+  else
     Passwd := QueryPassword;
   Result := Passwd = Password;
   if (not Result) and ShowErrorMes and (Passwd <> '') then

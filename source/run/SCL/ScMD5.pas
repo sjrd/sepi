@@ -306,7 +306,8 @@ var
 begin
   Index := LongWord((Context.Count[0] shr 3) and $3F);
   Inc(Context.Count[0], UINT4(InputLen) shl 3);
-  if Context.Count[0] < UINT4(InputLen) shl 3 then Inc(Context.Count[1]);
+  if Context.Count[0] < UINT4(InputLen) shl 3 then
+    Inc(Context.Count[1]);
   Inc(Context.Count[1], UINT4(InputLen) shr 29);
   PartLen := 64 - Index;
   if InputLen >= PartLen then
@@ -320,7 +321,8 @@ begin
       Inc(I, 64);
     end;
     Index := 0;
-  end else I := 0;
+  end else
+    I := 0;
   MD5_memcpy(PByteArray(@Context.buffer[Index]), PByteArray(@Input[I]),
     InputLen - I);
 end;
@@ -332,7 +334,10 @@ var
 begin
   MD5Encode(PByteArray(@Bits), PUINT4Array(@Context.Count), 8);
   Index := LongWord((Context.Count[0] shr 3) and $3F);
-  if Index < 56 then PadLen := 56 - Index else PadLen := 120 - Index;
+  if Index < 56 then
+    PadLen := 56 - Index
+  else
+    PadLen := 120 - Index;
   MD5Update(Context, PByteArray(@Padding), PadLen);
   MD5Update(Context, PByteArray(@Bits), 8);
   MD5Encode(PByteArray(@Digest), PUINT4Array(@Context.State), 16);
@@ -349,7 +354,8 @@ var
   I: Integer;
 begin
   Result := '';
-  for I := 0 to 15 do Result := Result + IntToHex(Digest.V[I], 2);
+  for I := 0 to 15 do
+    Result := Result + IntToHex(Digest.V[I], 2);
 end;
 
 {*
@@ -361,7 +367,8 @@ function StrToMD5Digest(Str: string): TMD5Digest;
 var
   I: Integer;
 begin
-  for I := 0 to 15 do Result.V[I] := StrToInt('$'+Str[I*2+1]+Str[I*2+2]);
+  for I := 0 to 15 do
+    Result.V[I] := StrToInt('$'+Str[I*2+1]+Str[I*2+2]);
 end;
 
 {*
@@ -446,10 +453,14 @@ end;
 function MD5DigestCompare(const Digest1, Digest2: TMD5Digest): Boolean;
 begin
   Result := False;
-  if Digest1.A <> Digest2.A then Exit;
-  if Digest1.B <> Digest2.B then Exit;
-  if Digest1.C <> Digest2.C then Exit;
-  if Digest1.D <> Digest2.D then Exit;
+  if Digest1.A <> Digest2.A then
+    Exit;
+  if Digest1.B <> Digest2.B then
+    Exit;
+  if Digest1.C <> Digest2.C then
+    Exit;
+  if Digest1.D <> Digest2.D then
+    Exit;
   Result := True;
 end;
 

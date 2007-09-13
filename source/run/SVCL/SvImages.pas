@@ -90,10 +90,14 @@ begin
   L := Left + X - Width  div 2;
   T := Top  + Y - Height div 2;
 
-  if L > (ParentWidth -Width) then L := ParentWidth -Width;
-  if L < 0 then L := 0;
-  if T > (ParentHeight-Height) then T := ParentHeight-Height;
-  if T < 0 then T := 0;
+  if L > (ParentWidth -Width) then
+    L := ParentWidth -Width;
+  if L < 0 then
+    L := 0;
+  if T > (ParentHeight-Height) then
+    T := ParentHeight-Height;
+  if T < 0 then
+    T := 0;
 
   ImageBis.Left := L;
   ImageBis.Top := T;
@@ -110,8 +114,10 @@ procedure TSvDropImage.MouseDown(Button: TMouseButton; Shift: TShiftState;
   X, Y: Integer);
 begin
   inherited;
-  if not Enabled then Exit;
-  if (Button <> mbLeft) or Assigned(ImageBis) then Exit;
+  if not Enabled then
+    Exit;
+  if (Button <> mbLeft) or Assigned(ImageBis) then
+    Exit;
 
   ImageBis := TImage.Create(Self);
   ImageBis.Parent := Parent;
@@ -131,7 +137,8 @@ end;
 procedure TSvDropImage.MouseMove(Shift: TShiftState; X, Y: Integer);
 begin
   inherited;
-  if Assigned(ImageBis) then MoveBisAt(X, Y);
+  if Assigned(ImageBis) then
+    MoveBisAt(X, Y);
 end;
 
 {*
@@ -147,12 +154,14 @@ var
   PutPoint: TPoint;
 begin
   inherited;
-  if (Button <> mbLeft) or (not Assigned(ImageBis)) then Exit;
+  if (Button <> mbLeft) or (not Assigned(ImageBis)) then
+    Exit;
 
   ImageBis.Free;
   ImageBis := nil;
 
-  if not Assigned(FOnDrop) then Exit;
+  if not Assigned(FOnDrop) then
+    Exit;
   if Assigned(FDropControl) then
     PutPoint := FDropControl.ScreenToClient(ClientToScreen(Point(X, Y)))
   else

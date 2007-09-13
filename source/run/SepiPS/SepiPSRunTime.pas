@@ -195,7 +195,8 @@ begin
           ProcPtr := GetClassVirtualCode(ClassType, SepiMethod.VMTOffset);
         mlkDynamic, mlkMessage:
           ProcPtr := GetClassDynamicCode(ClassType, SepiMethod.DMTIndex);
-        else Exit;
+      else
+        Exit;
       end;
 
       try
@@ -317,7 +318,8 @@ begin
 
   // Find the class item
   MetaClass := Root.GetType(ClassName);
-  if MetaClass = nil then Exit;
+  if MetaClass = nil then
+    Exit;
   Meta := MetaClass.GetMeta(MethodName);
 
   // Handle overloaded method
@@ -330,7 +332,8 @@ begin
       Meta := MetaClass.GetMeta(MethodName);
     end;
 
-    if Meta = nil then Exit;
+    if Meta = nil then
+      Exit;
   end;
 
   // Map properties to their accessor
@@ -341,14 +344,16 @@ begin
     else
       Meta := TSepiProperty(Meta).ReadAccess.Meta;
 
-    if Meta = nil then Exit;
+    if Meta = nil then
+      Exit;
   end;
 
   // Replace an overloaded method by its first real method
   if Meta is TSepiOverloadedMethod then
   begin
     Meta := TSepiOverloadedMethod(Meta).Methods[0];
-    if Meta = nil then Exit;
+    if Meta = nil then
+      Exit;
   end;
 
   // Set the proper calling handler
@@ -400,7 +405,8 @@ var
   VariantVar: TPSVariantIFC;
 begin
   PSVar := PSExecuter.GetVar2(Variable.Name);
-  if PSVar = nil then Exit; // its type couldn't be imported
+  if PSVar = nil then // its type couldn't be imported
+    Exit;
 
   VariantVar.Dta := @PPSVariantData(PSVar).Data;
   VariantVar.aType := PSVar.FType;
@@ -506,7 +512,8 @@ begin
     SepiRegisterProcsInPSExecuter(SepiUnits[I], PSExecuter);
 
   Result := PSExecuter.LoadData(Compiled);
-  if not Result then Exit;
+  if not Result then
+    Exit;
 
   for I := Low(SepiUnits) to High(SepiUnits) do
     SepiRegisterVarsInPSExecuter(SepiUnits[I], PSExecuter);

@@ -135,7 +135,10 @@ end;
 *}
 function IIF(Cond: Boolean; Int1, Int2: Integer): Integer;
 begin
-  if Cond then Result := Int1 else Result := Int2;
+  if Cond then
+    Result := Int1
+  else
+    Result := Int2;
 end;
 
 {*
@@ -147,7 +150,10 @@ end;
 *}
 function IIF(Cond: Boolean; Flo1, Flo2: Double): Double;
 begin
-  if Cond then Result := Flo1 else Result := Flo2;
+  if Cond then
+    Result := Flo1
+  else
+    Result := Flo2;
 end;
 
 {*
@@ -159,7 +165,10 @@ end;
 *}
 function IIF(Cond: Boolean; Chr1, Chr2: Char): Char;
 begin
-  if Cond then Result := Chr1 else Result := Chr2;
+  if Cond then
+    Result := Chr1
+  else
+    Result := Chr2;
 end;
 
 {*
@@ -171,7 +180,10 @@ end;
 *}
 function IIF(Cond: Boolean; const Str1, Str2: string): string;
 begin
-  if Cond then Result := Str1 else Result := Str2;
+  if Cond then
+    Result := Str1
+  else
+    Result := Str2;
 end;
 
 {*
@@ -183,7 +195,10 @@ end;
 *}
 function IIF(Cond: Boolean; Obj1, Obj2: TObject): TObject;
 begin
-  if Cond then Result := Obj1 else Result := Obj2;
+  if Cond then
+    Result := Obj1
+  else
+    Result := Obj2;
 end;
 
 {*
@@ -195,7 +210,10 @@ end;
 *}
 function IIF(Cond: Boolean; Ptr1, Ptr2: Pointer): Pointer;
 begin
-  if Cond then Result := Ptr1 else Result := Ptr2;
+  if Cond then
+    Result := Ptr1
+  else
+    Result := Ptr2;
 end;
 
 {*
@@ -207,7 +225,10 @@ end;
 *}
 function IIF(Cond: Boolean; Var1, Var2: Variant): Variant;
 begin
-  if Cond then Result := Var1 else Result := Var2;
+  if Cond then
+    Result := Var1
+  else
+    Result := Var2;
 end;
 
 {$ENDREGION}
@@ -221,8 +242,11 @@ end;
 *}
 function MinMax(Value, Min, Max: Integer): Integer;
 begin
-  if Value > Max then Result := Max else
-  if Value < Min then Result := Min else
+  if Value > Max then
+    Result := Max
+  else if Value < Min then
+    Result := Min
+  else
     Result := Value;
 end;
 
@@ -274,17 +298,21 @@ var
 begin
   VerifyBase(Base);
 
-  if Value = 0 then Result := NumbersStr[1] else
+  if Value = 0 then
+    Result := NumbersStr[1]
+  else
   begin
     Negative := Value < 0;
-    if Negative then Value := -Value;
+    if Negative then
+      Value := -Value;
     Result := '';
     while Value > 0 do
     begin
       Result := NumbersStr[Value mod Base + 1] + Result;
       Value := Value div Base;
     end;
-    if Negative then Result := '-'+Result;
+    if Negative then
+      Result := '-'+Result;
   end;
 end;
 
@@ -297,10 +325,12 @@ end;
   @throws EConvertError Entier incorrect
 *}
 function BaseToInt(const Value: string; Base: Byte = 10): Integer;
+
   procedure RaiseUncorrectInteger;
   begin
     raise EConvertError.CreateFmt(sScWrongInteger, [Value]);
   end;
+
 var
   Negative: Boolean;
   ResultCopy, Num: Integer;
@@ -311,7 +341,8 @@ begin
   if (Val = '') or (Val = '-') then
     RaiseUncorrectInteger;
   Negative := Val[1] = '-';
-  if Negative then Delete(Val, 1, 1);
+  if Negative then
+    Delete(Val, 1, 1);
   Result := 0;
   while Val <> '' do
   begin
@@ -325,7 +356,8 @@ begin
       RaiseUncorrectInteger;
     Delete(Val, 1, 1);
   end;
-  if Negative then Result := -Result;
+  if Negative then
+    Result := -Result;
 end;
 
 {*
@@ -343,7 +375,8 @@ begin
   try
     Result := BaseToInt(Value, Base);
   except
-    on Error: EConvertError do Result := Default;
+    on Error: EConvertError do
+      Result := Default;
   end;
 end;
 
@@ -460,7 +493,8 @@ var
 begin
   BadChars := ['\', '/', ':', '*', '?', '"', '<', '>', '|'];
   Result := False;
-  if FileName = '' then Exit;
+  if FileName = '' then
+    Exit;
 
   // Si le délimiteur de chemin est accepté, on l'exclut de BadChars
   if AcceptPathDelim then
@@ -471,7 +505,9 @@ begin
     Exclude(BadChars, DriveDelim);
 
   // On teste tous les caractères de FileName
-  for I := 1 to Length(FileName) do if FileName[I] in BadChars then Exit;
+  for I := 1 to Length(FileName) do
+    if FileName[I] in BadChars then
+      Exit;
   Result := True;
 end;
 

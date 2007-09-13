@@ -167,7 +167,10 @@ var
   Package: PSepiPackage;
 begin
   Package := PSepiPackage(FindPackage(FileName));
-  if Assigned(Package) then Result := Package.Handle else Result := 0;
+  if Assigned(Package) then
+    Result := Package.Handle
+  else
+    Result := 0;
 end;
 
 {*

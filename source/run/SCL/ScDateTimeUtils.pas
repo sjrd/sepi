@@ -35,7 +35,8 @@ begin
     10: Result := sOctober;
     11: Result := sNovember;
     12: Result := sDecember;
-    else Result := '';
+  else
+    Result := '';
   end;
   if Maj and (Result <> '') then
     Dec(Result[1], 32);

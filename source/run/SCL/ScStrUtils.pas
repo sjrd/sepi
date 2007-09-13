@@ -67,7 +67,10 @@ function RightPos(C: Char; const Str: string): Integer;
 begin
   Result := Length(Str);
   while Result > 0 do
-    if Str[Result] = C then Exit else Dec(Result);
+    if Str[Result] = C then
+      Exit
+    else
+      Dec(Result);
 end;
 
 {*
@@ -82,7 +85,8 @@ var
 begin
   Result := 0;
   for I := Length(Str)-Length(SubStr)+1 downto 1 do
-    if Copy(Str, I, Length(SubStr)) = SubStr then Inc(Result);
+    if Copy(Str, I, Length(SubStr)) = SubStr then
+      Inc(Result);
 end;
 
 {*
@@ -97,7 +101,8 @@ var
 begin
   Result := 0;
   for I := Length(Str) downto 1 do
-    if Str[I] = C then Inc(Result);
+    if Str[I] = C then
+      Inc(Result);
 end;
 
 {$IFDEF MSWINDOWS}
@@ -117,10 +122,12 @@ begin
   Flags := 0;
 
   // On ajoute les flags de comparaison
-  if coIgnoreCase     in CompareOptions then Flags := Flags+NORM_IGNORECASE;
+  if coIgnoreCase     in CompareOptions then
+    Flags := Flags+NORM_IGNORECASE;
   if coIgnoreNonSpace in CompareOptions then
     Flags := Flags+NORM_IGNORENONSPACE;
-  if coIgnoreSymbols  in CompareOptions then Flags := Flags+NORM_IGNORESYMBOLS;
+  if coIgnoreSymbols  in CompareOptions then
+    Flags := Flags+NORM_IGNORESYMBOLS;
 
   // Appel de Windows.CompareString
   Result := Windows.CompareString(LOCALE_USER_DEFAULT, Flags,
@@ -140,7 +147,8 @@ var
 begin
   I := 1;
   // On parcourt la chaîne jusqu'à trouver un caractère Token
-  while (I <= Length(S)) and (S[I] <> Token) do Inc(I);
+  while (I <= Length(S)) and (S[I] <> Token) do
+    Inc(I);
   // On copie la chaîne depuis le début jusqu'au caractère avant Token
   Result := Copy(S, 1, I-1);
 end;
@@ -169,7 +177,8 @@ var
 begin
   I := Length(S);
   // On parcourt la chaîne à l'envers jusqu'à trouver un caractère Token
-  while (I > 0) and (S[I] <> Token) do Dec(I);
+  while (I > 0) and (S[I] <> Token) do
+    Dec(I);
   // On copie la chaîne depuis le caractère après Token jusqu'à la fin
   Result := Copy(S, I+1, MaxInt);
 end;
@@ -205,14 +214,16 @@ begin
 
   // Recherche de la première occurence de Token
   I := 1;
-  while (I <= Len) and (S[I] <> Token) do Inc(I);
+  while (I <= Len) and (S[I] <> Token) do
+    Inc(I);
   Result := I <= Len;
 
   if Result then
   begin
     // Trouvé : séparer LeftStr et RightStr
     LeftStr := Copy(S, 1, I-1);
-    while (I <= Len) and (S[I] = Token) do Inc(I);
+    while (I <= Len) and (S[I] = Token) do
+      Inc(I);
     RightStr := Copy(S, I, MaxInt);
   end else
   begin
@@ -239,15 +250,19 @@ begin
   // On boucle jusqu'à trouver la bonne occurence de Token
   while (X > 0) and (I <= Length(S)) do
   begin
-    if S[I] = Token then Dec(X);
+    if S[I] = Token then
+      Dec(X);
     Inc(I);
   end;
 
   // Si X est encore plus grand que 0, c'est qu'il n'y a pas assez d'occurences
-  if X > 0 then Result := '' else
+  if X > 0 then
+    Result := ''
+  else
   begin
     J := I;
-    while (J <= Length(S)) and (S[J] <> Token) do Inc(J);
+    while (J <= Length(S)) and (S[J] <> Token) do
+      Inc(J);
     Result := Copy(S, I, J-I);
   end;
 end;

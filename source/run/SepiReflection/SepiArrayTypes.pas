@@ -222,7 +222,8 @@ end;
 *}
 procedure TSepiArrayType.MakeTypeInfo;
 begin
-  if not NeedInit then Exit;
+  if not NeedInit then
+    Exit;
 
   AllocateTypeInfo(ArrayTypeDataLength);
   with PArrayTypeData(TypeData)^ do
@@ -244,7 +245,8 @@ begin
     case Kind of
       1: Result := MinValue;
       2: Result := MaxValue;
-      else Result := MaxValue-MinValue+1;
+    else
+      Result := MaxValue-MinValue+1;
     end;
   end;
 end;

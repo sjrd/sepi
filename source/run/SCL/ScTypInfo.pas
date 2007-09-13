@@ -109,7 +109,8 @@ begin
       begin
         with GetTypeData(TypeData.CompType^)^ do
           Result := (MaxValue - MinValue) div 8 + 1;
-        if Result = 3 then Result := 4;
+        if Result = 3 then
+          Result := 4;
       end;
     end;
   end;
@@ -154,7 +155,8 @@ begin
     tkRecord: CopyRecord(@Dest, @Source, TypeInfo);
     tkInterface: IInterface(Dest) := IInterface(Source);
     tkDynArray: DynArrayCopy(Pointer(Source), TypeInfo, Pointer(Dest));
-    else Move(Source, Dest, TypeSize(TypeInfo));
+  else
+    Move(Source, Dest, TypeSize(TypeInfo));
   end;
 end;
 

@@ -190,16 +190,19 @@ begin
   Result := False;
 
   // Si Ident est vide, ce n'est un indentificateur correct
-  if Ident = '' then Exit;
+  if Ident = '' then
+    Exit;
 
   { Si le premier caractère n'est pas alphabétique,
     ce n'est pas un identificateur correct }
-  if not (Ident[1] in ['A'..'Z', '_', 'a'..'z']) then Exit;
+  if not (Ident[1] in ['A'..'Z', '_', 'a'..'z']) then
+    Exit;
 
   { Si l'un des caractères suivants n'est pas alphanumérique,
     ce n'est pas un identificateur correct }
   for I := 2 to Length(Ident) do
-    if not (Ident[I] in ['0'..'9', 'A'..'Z', '_', 'a'..'z']) then Exit;
+    if not (Ident[I] in ['0'..'9', 'A'..'Z', '_', 'a'..'z']) then
+      Exit;
 
   // Dans les autres cas, ça l'est
   Result := True;
@@ -405,7 +408,9 @@ function StrToStrRepres(const Str: string;
 var
   I: Integer;
 begin
-  if Str = '' then Result := '''''' else
+  if Str = '' then
+    Result := ''''''
+  else
   begin
     I := 1;
     Result := '';
@@ -427,7 +432,9 @@ begin
           if I mod 256 = 0 then
             Result := Result+'''+''';
 
-          if Str[I] = '''' then Result := Result + '''''' else
+          if Str[I] = '''' then
+            Result := Result + ''''''
+          else
             Result := Result + Str[I];
           Inc(I);
         end;
@@ -456,7 +463,8 @@ begin
   Str := Trim(Str);
   I := 1;
   repeat
-    if I > 1 then Inc(I);
+    if I > 1 then
+      Inc(I);
 
     while (I <= Length(Str)) and ((Str[I] = '''') or (Str[I] = '#')) do
     begin
@@ -474,7 +482,8 @@ begin
             begin
               Result := Result+'''';
               Inc(I);
-            end else Break;
+            end else
+              Break;
           end else
           begin
             Result := Result+Str[I];
@@ -514,8 +523,11 @@ function CharToCharRepres(Chr: Char;
   ExcludedChars: TSysCharSet = []): string;
 begin
   ExcludedChars := ExcludedChars + [#0..#31];
-  if Chr in ExcludedChars then Result := '#'+IntToStr(Byte(Chr)) else
-  if Chr = '''' then Result := '''''''''' else
+  if Chr in ExcludedChars then
+    Result := '#'+IntToStr(Byte(Chr))
+  else if Chr = '''' then
+    Result := ''''''''''
+  else
     Result := ''''+Chr+'''';
 end;
 
@@ -529,7 +541,8 @@ function CharRepresToChar(Str: string): Char;
 begin
   try
     Str := Trim(Str);
-    if Str = '' then raise EConvertError.Create('');
+    if Str = '' then
+      raise EConvertError.Create('');
     case Str[1] of
       '#':
       begin
@@ -543,17 +556,23 @@ begin
         case Length(Str) of
           // Si 3 caractères, le troisième doit être ' et le deuxième
           // est le caractère résultat
-          3: if Str[3] = '''' then Result := Str[2] else
-            raise EConvertError.Create('');
+          3: if Str[3] = '''' then
+              Result := Str[2]
+            else
+              raise EConvertError.Create('');
           // Si 4 caractères, ce doit être '''', auquel cas le caractère
           // retour est '
-          4: if Str = '''''''''' then Result := '''' else
-            raise EConvertError.Create('');
+          4: if Str = '''''''''' then
+              Result := ''''
+            else
+              raise EConvertError.Create('');
+        else
           // Sinon, ce n'est pas un caractère correct
-          else raise EConvertError.Create('');
+          raise EConvertError.Create('');
         end;
       end;
-      else raise EConvertError.Create('');
+    else
+      raise EConvertError.Create('');
     end;
   except
     on Error: EConvertError do
@@ -573,26 +592,31 @@ begin
   Result := '';
   I := 0;
   // On cherche d'abord le premier caractère inclus
-  while (I <= 255) and (not (Chr(I) in CharSet)) do Inc(I);
+  while (I <= 255) and (not (Chr(I) in CharSet)) do
+    Inc(I);
   while I <= 255 do
   begin
     // Chr(I) est inclus
     From := I;
     // On cherche le caractère suivant qui n'est pas inclus
-    while (I <= 255) and (Chr(I) in CharSet) do Inc(I);
+    while (I <= 255) and (Chr(I) in CharSet) do
+      Inc(I);
     // On teste I-From, soit le nombre de caractère consécutifs
     case I-From of
       // 1 : on ajoute simplement ce caractère
       1: Result := Result+', '+CharToCharRepres(Chr(From));
       // 2 : on ajoute ces deux caractères séparés par des virgules
       2: Result := Result+', '+CharToCharRepres(Chr(From))+
-        ', '+CharToCharRepres(Chr(I-1));
+          ', '+CharToCharRepres(Chr(I-1));
+    else
       // 3+ : on ajoute les deux extrèmes séparés par ..
-      else Result := Result+', '+CharToCharRepres(Chr(From))+
+      Result := Result+', '+CharToCharRepres(Chr(From))+
         '..'+CharToCharRepres(Chr(I-1));
     end;
     // on cherche le caractère suivant inclus
-    repeat Inc(I) until (I > 255) or (Chr(I) in CharSet);
+    repeat
+      Inc(I);
+    until (I > 255) or (Chr(I) in CharSet);
   end;
   // On supprime les deux premiers caractères, car ce sont ', '
   Delete(Result, 1, 2);
@@ -608,9 +632,9 @@ function StrToCharSet(Str: string): TSysCharSet;
 var
   I: Integer;
 
+  // Renvoie le caractère à la position courante et augmente I en conséquence
+  // Fonctionne sur le même principe que CharRepresToChar
   function GetCharAt: Char;
-    // Renvoie le caractère à la position courante et augmente I en conséquence
-    // Fonctionne sur le même principe que CharRepresToChar
   var
     From: Integer;
   begin
@@ -618,7 +642,9 @@ var
       '#':
       begin
         From := I+1;
-        repeat Inc(I) until (I > Length(Str)) or (not (Str[I] in ['0'..'9']));
+        repeat
+          Inc(I);
+        until (I > Length(Str)) or (not (Str[I] in ['0'..'9']));
         Result := Chr(StrToInt(Copy(Str, From, I-From)));
       end;
       '''':
@@ -644,7 +670,8 @@ var
           Inc(I, 2);
         end;
       end;
-      else raise EConvertError.Create('');
+    else
+      raise EConvertError.Create('');
     end;
   end;
 
@@ -655,7 +682,8 @@ begin
     Result := [];
     Str := Trim(Str);
     // Si Str est vide, il n'y a aucun caractère dans l'ensemble
-    if Str = '' then Exit;
+    if Str = '' then
+      Exit;
     // Si il y des [] aux extrémités, on les supprime
     if (Str[1] = '[') and (Str[Length(Str)] = ']') then
       Str := Trim(Copy(Str, 2, Length(Str)-2));
@@ -666,7 +694,8 @@ begin
       // On récupère le caractère à la position courante
       C1 := GetCharAt;
       // On passe tous les espaces
-      while (I <= Length(Str)) and (Str[I] = ' ') do Inc(I);
+      while (I <= Length(Str)) and (Str[I] = ' ') do
+        Inc(I);
 
       // Si I > Length(Str), on ajoute le caractère et on arrête
       if I > Length(Str) then
@@ -681,7 +710,9 @@ begin
         // On ajoute le caractère
         Include(Result, C1);
         // On passe la virgule et les espaces
-        repeat Inc(I) until (I > Length(Str)) or (Str[I] <> ' ');
+        repeat
+          Inc(I);
+        until (I > Length(Str)) or (Str[I] <> ' ');
         // Si on a atteint la fin de la chaîne, il y a une erreur
         // (on termine par une virgule)
         if I > Length(Str) then
@@ -697,11 +728,14 @@ begin
         if (I > Length(Str)) or (Str[I] <> '.') then
           raise EConvertError.Create('');
         // On passe ce point et les espaces
-        repeat Inc(I) until (I > Length(Str)) or (Str[I] <> ' ');
+        repeat
+          Inc(I);
+        until (I > Length(Str)) or (Str[I] <> ' ');
         // On récupère le deuxième caractère
         C2 := GetCharAt;
         // On passe les espaces
-        while (I <= Length(Str)) and (Str[I] = ' ') do Inc(I);
+        while (I <= Length(Str)) and (Str[I] = ' ') do
+          Inc(I);
 
         // Si I > Length(Str), on ajoute la plage de caractère et on termine
         if I > Length(Str) then
@@ -716,7 +750,9 @@ begin
           // On ajoute la plage de caractères
           Result := Result+[C1..C2];
           // On passe la virgule et les espaces
-          repeat Inc(I) until (I > Length(Str)) or (Str[I] <> ' ');
+          repeat
+            Inc(I);
+          until (I > Length(Str)) or (Str[I] <> ' ');
           // Si on a atteint la fin de la chaîne, il y a une erreur
           // (on termine par une virgule)
           if I > Length(Str) then
@@ -784,7 +820,8 @@ begin
   begin
     SetName := TypeInfo.Name;
     TypeInfo := GetTypeData(TypeInfo).CompType^;
-  end else SetName := Format(sScSetOf, [TypeInfo.Name]);
+  end else
+    SetName := Format(sScSetOf, [TypeInfo.Name]);
   TypeData := GetTypeData(TypeInfo);
 
   Len := TypeData.MaxValue div 8 + 1;

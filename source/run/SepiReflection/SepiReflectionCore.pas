@@ -537,7 +537,9 @@ function SepiFindMetaClass(const MetaClassName: string): TSepiMetaClass;
 var
   Index: Integer;
 begin
-  if not Assigned(SepiMetaClasses) then Index := -1 else
+  if not Assigned(SepiMetaClasses) then
+    Index := -1
+  else
     Index := SepiMetaClasses.IndexOf(MetaClassName);
   if Index < 0 then
     EClassNotFound.CreateFmt(SClassNotFound, [MetaClassName]);
@@ -574,7 +576,8 @@ procedure SepiUnregisterImportedUnit(const UnitName: string);
 var
   Index: Integer;
 begin
-  if not Assigned(SepiImportedUnits) then Exit;
+  if not Assigned(SepiImportedUnits) then
+    Exit;
   Index := SepiImportedUnits.IndexOf(UnitName);
   if Index >= 0 then
     SepiImportedUnits.Delete(Index);
@@ -591,10 +594,14 @@ function SepiImportedUnit(const UnitName: string): TSepiImportUnitFunc;
 var
   Index: Integer;
 begin
-  if not Assigned(SepiImportedUnits) then Result := nil else
+  if not Assigned(SepiImportedUnits) then
+    Result := nil
+  else
   begin
     Index := SepiImportedUnits.IndexOf(UnitName);
-    if Index < 0 then Result := nil else
+    if Index < 0 then
+      Result := nil
+    else
       Result := TSepiImportUnitFunc(SepiImportedUnits.Objects[Index]);
   end;
 end;
@@ -646,7 +653,9 @@ var
   Index: Integer;
 begin
   Index := IndexOf(Name);
-  if Index < 0 then Result := nil else
+  if Index < 0 then
+    Result := nil
+  else
     Result := TSepiMeta(Objects[Index]);
 end;
 
@@ -663,7 +672,9 @@ var
   Index: Integer;
 begin
   Index := IndexOf(Name);
-  if Index < 0 then AddObject(Name, Value) else
+  if Index < 0 then
+    AddObject(Name, Value)
+  else
     Metas[Index] := Value;
 end;
 
@@ -818,7 +829,8 @@ begin
     FChildren.Remove(Child);
 
     Index := FForwards.IndexOfObject(Child);
-    if Index >= 0 then FForwards.Delete(Index);
+    if Index >= 0 then
+      FForwards.Delete(Index);
   end;
 end;
 
@@ -949,7 +961,8 @@ begin
   // Forward declarations which have not been created yet
   for I := 0 to FForwards.Count-1 do
     with TSepiMeta(FForwards.Objects[I]) do
-      if IsForward then Loaded;
+      if IsForward then
+        Loaded;
 
   // Changing the state
   FState := msNormal;
@@ -1057,7 +1070,8 @@ begin
       Result := TSepiMeta(FForwards.Objects[I]);
   end;
 
-  if not Assigned(Result) then Exit;
+  if not Assigned(Result) then
+    Exit;
   while Result is TSepiTypeAlias do
     Result := TSepiTypeAlias(Result).Dest;
   if Field <> '' then
@@ -1298,7 +1312,8 @@ begin
     end;
 
     Result := TypeClass.RegisterTypeInfo(AOwner, ATypeInfo);
-  end else raise EAbstractError.Create(SSepiNoRegisterTypeInfo);
+  end else
+    raise EAbstractError.Create(SSepiNoRegisterTypeInfo);
 end;
 
 {*
@@ -1429,7 +1444,8 @@ procedure TSepiRoot.UnloadUnit(const UnitName: string);
 var
   MetaUnit: TSepiUnit;
 begin
-  if State = msDestroying then Exit;
+  if State = msDestroying then
+    Exit;
 
   MetaUnit := TSepiUnit(GetMeta(UnitName));
   if MetaUnit = nil then
@@ -1522,7 +1538,9 @@ end;
 *}
 function TSepiRoot.FindType(TypeInfo: PTypeInfo): TSepiType;
 begin
-  if TypeInfo = nil then Result := nil else
+  if TypeInfo = nil then
+    Result := nil
+  else
   begin
     Result := GetType(TypeInfo);
     if Result = nil then
@@ -1539,7 +1557,9 @@ end;
 *}
 function TSepiRoot.FindType(const TypeName: string): TSepiType;
 begin
-  if TypeName = '' then Result := nil else
+  if TypeName = '' then
+    Result := nil
+  else
   begin
     Result := GetType(TypeName);
     if Result = nil then
@@ -1645,7 +1665,9 @@ end;
 *}
 function TSepiUnit.AddUses(AUnit: TSepiUnit): Integer;
 begin
-  if AUnit = Self then Result := -1 else
+  if AUnit = Self then
+    Result := -1
+  else
   begin
     Result := FUsesList.IndexOfObject(AUnit);
     if Result < 0 then
@@ -1837,7 +1859,8 @@ var
   UnitIndex: Integer;
   RefList: TStrings;
 begin
-  if Ref = nil then Exit;
+  if Ref = nil then
+    Exit;
 
   UnitIndex := AddUses(Ref.OwningUnit)+1;
   RefList := FReferences[UnitIndex];
@@ -2018,9 +2041,9 @@ begin
 
       varOleStr, varStrArg, varString: ATypeInfo := System.TypeInfo(string);
 
-      else
-        raise ESepiBadConstTypeError.CreateFmt(
-          SSepiBadConstType, [VarType(AValue)]);
+    else
+      raise ESepiBadConstTypeError.CreateFmt(
+        SSepiBadConstType, [VarType(AValue)]);
     end;
   end;
 
@@ -2335,6 +2358,7 @@ initialization
   SepiRegisterMetaClasses([
     TSepiUnit, TSepiTypeAlias, TSepiConstant, TSepiVariable
     ]);
+
 finalization
   SepiMetaClasses.Free;
   SepiImportedUnits.Free;

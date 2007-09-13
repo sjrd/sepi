@@ -256,7 +256,8 @@ begin
     dtWarning: TypeFlags := MB_ICONEXCLAMATION;
     dtError: TypeFlags := MB_ICONERROR;
     dtConfirmation: TypeFlags := MB_ICONQUESTION;
-    else TypeFlags := 0;
+  else
+    TypeFlags := 0;
   end;
 
   // Transformation du paramètre DlgButtons en flag de boutons
@@ -267,7 +268,8 @@ begin
     dbYesNoCancel: BtnsFlags := MB_YESNOCANCEL;
     dbRetryCancel: BtnsFlags := MB_RETRYCANCEL;
     dbAbortRetryIgnore: BtnsFlags := MB_AbortRetryIgnore;
-    else BtnsFlags := MB_OK;
+  else
+    BtnsFlags := MB_OK;
   end;
 
   // Transformation du paramètre DefButton en flag de bouton par défaut
@@ -275,7 +277,8 @@ begin
     1: DefBtnFlags := MB_DEFBUTTON1;
     2: DefBtnFlags := MB_DEFBUTTON2;
     3: DefBtnFlags := MB_DEFBUTTON3;
-    else DefBtnFlags := 0;
+  else
+    DefBtnFlags := 0;
   end;
 
   // Appel de ShowMes et transformation du retour Word en TDialogResult
@@ -288,7 +291,8 @@ begin
     idAbort: Result := drAbort;
     idRetry: Result := drRetry;
     idIgnore: Result := drIgnore;
-    else Result := drCancel;
+  else
+    Result := drCancel;
   end;
 end;
 {$ENDIF}
@@ -309,39 +313,41 @@ begin
     dbYesNoCancel: NbBtns := 3;
     dbRetryCancel: NbBtns := 2;
     dbAbortRetryIgnore: NbBtns := 3;
-    else NbBtns := 1;
+  else
+    NbBtns := 1;
   end;
 
   MsgDefButton := mbNone;
-  if (DefButton < 1) or (DefButton > NbBtns) then DefButton := 1;
+  if (DefButton < 1) or (DefButton > NbBtns) then
+    DefButton := 1;
 
   // Détermination du bouton par défaut
   case DefButton of
     1:
     begin
       if DlgButtons = [dbOK, dbOKCancel] then
-        MsgDefButton := mbOK else
-      if DlgButtons = [dbYesNo, dbYesNoCancel] then
-        MsgDefButton := mbYes else
-      if DlgButtons = dbRetryCancel then
-        MsgDefButton := mbRetry else
-      if DlgButtons = dbAbortRetryIgnore then
+        MsgDefButton := mbOK
+      else if DlgButtons = [dbYesNo, dbYesNoCancel] then
+        MsgDefButton := mbYes
+      else if DlgButtons = dbRetryCancel then
+        MsgDefButton := mbRetry
+      else if DlgButtons = dbAbortRetryIgnore then
         MsgDefButton := mbAbort;
     end;
     2:
     begin
       if DlgButtons = [dbOKCancel, dbRetryCancel] then
-        MsgDefButton := mbCancel else
-      if DlgButtons = [dbYesNo, dbYesNoCancel]
-      then MsgDefButton := mbNo else
-      if DlgButtons = dbAbortRetryIgnore then
+        MsgDefButton := mbCancel
+      else if DlgButtons = [dbYesNo, dbYesNoCancel] then
+        MsgDefButton := mbNo
+      else if DlgButtons = dbAbortRetryIgnore then
         MsgDefButton := mbRetry;
     end;
     3:
     begin
       if DlgButtons = dbYesNoCancel then
-        MsgDefButton := mbCancel else
-      if DlgButtons = dbAbortRetryIgnore then
+        MsgDefButton := mbCancel
+      else if DlgButtons = dbAbortRetryIgnore then
         MsgDefButton := mbIgnore;
     end;
   end;
@@ -423,7 +429,8 @@ begin
 
           // On met le bon bouton par défaut et on le sélectionne
           Button.Default := Button.ModalResult = DefButton;
-          if Button.Default then ActiveControl := Button;
+          if Button.Default then
+            ActiveControl := Button;
 
           // S'il le faut, décaler tous les boutons vers le bas
           if OverButtons then

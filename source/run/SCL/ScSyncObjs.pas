@@ -423,7 +423,9 @@ function TScCustomTaskQueue.Pop: TScTask;
 begin
   CriticalSection.Acquire;
   try
-    if WaitingQueue.Count = 0 then Result := nil else
+    if WaitingQueue.Count = 0 then
+      Result := nil
+    else
     begin
       Result := WaitingQueue.Pop as TScTask;
       Result.FState := tsProcessing;

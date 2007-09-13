@@ -63,8 +63,8 @@ begin
 
   try
     if AnsiSameText(UnitName, Context.SepiUnit.Name) then
-      Result := False else
-    if AnsiSameText(UnitName, SystemUnitName) then
+      Result := False
+    else if AnsiSameText(UnitName, SystemUnitName) then
     begin
       SepiUnit := Context.SepiUnit;
       for I := 0 to SepiUnit.UsedUnitCount-1 do
@@ -124,10 +124,14 @@ begin
 
       case PSParam.Mode of
         pmIn:
-          if (pfVar in SepiParam.Flags) or
-            (pfOut in SepiParam.Flags) then Exit;
-        pmOut: if not (pfOut in SepiParam.Flags) then Exit;
-        pmInOut: if not (pfVar in SepiParam.Flags) then Exit;
+          if (SepiParam.Kind <> pkValue) and (SepiParam.Kind <> pkConst) then
+            Exit;
+        pmOut:
+          if SepiParam.Kind <> pkOut then
+            Exit;
+        pmInOut:
+          if SepiParam.Kind <> pkVar then
+            Exit;
       end;
 
       if SepiParam.ParamType <> Root.GetType(PSParam.aType.Name) then
@@ -174,7 +178,8 @@ begin
       PSParam := Params[I];
 
       SepiType := SepiUnit.Root.GetType(PSParam.aType.Name);
-      if SepiType = nil then Exit;
+      if SepiType = nil then
+        Exit;
 
       if PSParam.Mode = pmOut then
         Signature := Signature + 'out '
@@ -193,10 +198,12 @@ begin
 
     // Return type
     if Result = nil then
-      Signature := 'procedure' + Signature else
+      Signature := 'procedure' + Signature
+    else
     begin
       SepiType := SepiUnit.Root.GetType(Result.Name);
-      if SepiType = nil then Exit;
+      if SepiType = nil then
+        Exit;
 
       Signature := 'function' + Signature + ': ' + SepiType.Name;
     end;

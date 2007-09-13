@@ -110,8 +110,10 @@ begin
     stResource: Flags := Flags or SND_RESOURCE; // Ressource son
     stSysSound: Flags := Flags or SND_ALIAS;    // Alias son système
   end;
-  if not Synchronous then Flags := Flags or SND_ASYNC; // Asynchrône ?
-  if SoundType <> stResource then Module := 0;
+  if not Synchronous then // Asynchrône ?
+    Flags := Flags or SND_ASYNC;
+  if SoundType <> stResource then
+    Module := 0;
   // Appel de PlaySound et renvoi de la valeur renvoyée par celle-ci
   Result := PlaySound(PChar(Sound), Module, Flags);
 end;
@@ -152,7 +154,9 @@ var
 begin
   MustFreeRes := False;
   // On met dans MemRes un flux mémoire qui contient les données de la ressource
-  if Resource is TMemoryStream then MemRes := Resource as TMemoryStream else
+  if Resource is TMemoryStream then
+    MemRes := Resource as TMemoryStream
+  else
   begin
     MemRes := TMemoryStream.Create;
     MemRes.LoadFromStream(Resource);
@@ -162,9 +166,11 @@ begin
   OK := UpdateResource(ResHandle, PChar(ResType), PChar(ResName), 0,
     MemRes.Memory, MemRes.Size);
   // On supprime le flux mémoire si on l'a créé
-  if MustFreeRes then MemRes.Free;
+  if MustFreeRes then
+    MemRes.Free;
   // Si UpdateResource a renvoyé False, il y a eu une erreur
-  if not OK then RaiseLastOSError;
+  if not OK then
+    RaiseLastOSError;
 end;
 
 {*
@@ -210,7 +216,10 @@ begin
     AddResource(ResHandle, ResName, Resource, ResType);
     EndUpdateRes(ResHandle);
   except
-    try EndUpdateRes(ResHandle, True) except end;
+    try
+      EndUpdateRes(ResHandle, True)
+    except
+    end;
     raise;
   end;
 end;
@@ -229,7 +238,10 @@ begin
     DelResource(ResHandle, ResName);
     EndUpdateRes(ResHandle);
   except
-    try EndUpdateRes(ResHandle, True) except end;
+    try
+      EndUpdateRes(ResHandle, True)
+    except
+    end;
     raise;
   end;
 end;

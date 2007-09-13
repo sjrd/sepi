@@ -206,11 +206,14 @@ begin
         try
           Result := StrToFloat(Str);
         except
-          on E: EConvertError do Result := 0.0;
+          on E: EConvertError do
+            Result := 0.0;
         end;
 
-        if FHasMinValue and (Result < FMinValue) then Result := FMinValue;
-        if FHasMaxValue and (Result > FMaxValue) then Result := FMaxValue;
+        if FHasMinValue and (Result < FMinValue) then
+          Result := FMinValue;
+        if FHasMaxValue and (Result > FMaxValue) then
+          Result := FMaxValue;
       end;
 end;
 
@@ -228,10 +231,14 @@ begin
     Exit;
   end;
 
-  if not AllowNegative then New := Abs(New);
-  if not AllowFrac then New := Round(New);
-  if FHasMinValue and (New < FMinValue) then New := FMinValue;
-  if FHasMaxValue and (New > FMaxValue) then New := FMaxValue;
+  if not AllowNegative then
+    New := Abs(New);
+  if not AllowFrac then
+    New := Round(New);
+  if FHasMinValue and (New < FMinValue) then
+    New := FMinValue;
+  if FHasMaxValue and (New > FMaxValue) then
+    New := FMaxValue;
 
   Str := FloatToStr(New);
   if Pos(DecimalSeparator, Str) > 0 then
@@ -267,7 +274,8 @@ var
 begin
   Anc := Value;
   FPrefix := New;
-  if not (csReading in ComponentState) then Value := Anc;
+  if not (csReading in ComponentState) then
+    Value := Anc;
 end;
 
 {*
@@ -280,7 +288,8 @@ var
 begin
   Anc := Value;
   FSuffix := New;
-  if not (csReading in ComponentState) then Value := Anc;
+  if not (csReading in ComponentState) then
+    Value := Anc;
 end;
 
 {*
@@ -294,7 +303,10 @@ begin
   Anc := Value;
   FAllowNegative := New;
   if not (csReading in ComponentState) then
-    if New then Value := Anc else Value := Abs(Anc);
+    if New then
+      Value := Anc
+    else
+      Value := Abs(Anc);
 end;
 
 {*
@@ -308,7 +320,10 @@ begin
   Anc := Value;
   FAllowFrac := New;
   if not (csReading in ComponentState) then
-    if New then Value := Anc else Value := Round(Anc);
+    if New then
+      Value := Anc
+    else
+      Value := Round(Anc);
 end;
 
 {*
@@ -321,7 +336,8 @@ var
 begin
   Anc := Value;
   FSeparator := New;
-  if not (csReading in ComponentState) then Value := Anc;
+  if not (csReading in ComponentState) then
+    Value := Anc;
 end;
 
 {*
@@ -330,7 +346,8 @@ end;
 *}
 procedure TSvCustomNumberEdit.SetHasMinValue(New: Boolean);
 begin
-  if New = FHasMinValue then Exit;
+  if New = FHasMinValue then
+    Exit;
   FHasMinValue := New;
   MaxValue := MaxValue;
   Value := Value;
@@ -342,7 +359,8 @@ end;
 *}
 procedure TSvCustomNumberEdit.SetHasMaxValue(New: Boolean);
 begin
-  if New = FHasMaxValue then Exit;
+  if New = FHasMaxValue then
+    Exit;
   FHasMaxValue := New;
   MinValue := MinValue;
   Value := Value;
@@ -355,7 +373,9 @@ end;
 procedure TSvCustomNumberEdit.SetMinValue(New: Double);
 begin
   if FHasMaxValue and (New > FMaxValue) then
-    FMinValue := FMaxValue else FMinValue := New;
+    FMinValue := FMaxValue
+  else
+    FMinValue := New;
   Value := Value;
 end;
 
@@ -366,7 +386,9 @@ end;
 procedure TSvCustomNumberEdit.SetMaxValue(New: Double);
 begin
   if FHasMinValue and (New < FMinValue) then
-    FMaxValue := FMinValue else FMaxValue := New;
+    FMaxValue := FMinValue
+  else
+    FMaxValue := New;
   Value := Value;
 end;
 
@@ -385,23 +407,29 @@ end;
   @param Shift   État des touches système et des boutons de souris
 *}
 procedure TSvCustomNumberEdit.KeyDown(var Key: Word; Shift: TShiftState);
-const IgnoredKeys =
+const
+  IgnoredKeys =
     [VK_Tab, VK_Return, VK_Shift, VK_Control, VK_Menu, VK_Pause, VK_Capital,
     VK_Space, VK_Prior, VK_Next, VK_End, VK_Home, VK_Left, VK_Up, VK_Right,
     VK_Down];
 var
   Debut, Fin: Integer;
 begin
-  if ReadOnly then Exit;
-  if Key in IgnoredKeys then Exit;
+  if ReadOnly then
+    Exit;
+  if Key in IgnoredKeys then
+    Exit;
 
   Debut := Length(FPrefix);
   Fin := Length(Text)-Length(FSuffix);
 
-  if (SelStart < Debut) or (SelEnd > Fin) then Key := 0 else
-  if (SelStart = Fin) and (SelEnd = Fin) and (Key = VK_Delete) then Key := 0;
+  if (SelStart < Debut) or (SelEnd > Fin) then
+    Key := 0
+  else if (SelStart = Fin) and (SelEnd = Fin) and (Key = VK_Delete) then
+    Key := 0;
 
-  if Key = 0 then MessageBeep(0);
+  if Key = 0 then
+    MessageBeep(0);
 end;
 
 {*
@@ -413,32 +441,28 @@ var
   Debut, Fin: Integer;
   CurText: string;
 begin
-  if ReadOnly then Exit;
+  if ReadOnly then
+    Exit;
 
   Debut := Length(FPrefix);
   Fin := Length(Text)-Length(FSuffix);
   CurText := Copy(Text, Debut+1, Fin-Debut);
 
   if (SelStart < Debut) or (SelEnd > Fin) then
-    Key := #0 else
-
-  if (SelStart = Debut) and (SelEnd = Debut) and (Key = Char(VK_Back)) then
-    Key := #0 else
-
-  if (Key = '-') and ((not FAllowNegative) or (SelStart > Debut) or
+    Key := #0
+  else if (SelStart = Debut) and (SelEnd = Debut) and (Key = Char(VK_Back)) then
+    Key := #0
+  else if (Key = '-') and ((not FAllowNegative) or (SelStart > Debut) or
     ((CurText <> '') and (CurText[1] = '-'))) then
-    Key := #0 else
-
-  if ((Key = '.') or (Key = ',')) and ((not AllowFrac) or
+    Key := #0
+  else if ((Key = '.') or (Key = ',')) and ((not AllowFrac) or
     (Pos(FSeparator, CurText) > 0)) then
-    Key := #0 else
-
-  if ((Key < '0') or (Key > '9')) and
+    Key := #0
+  else if ((Key < '0') or (Key > '9')) and
     (Key <> '.') and (Key <> ',') and (Key <> '-') and
     (Key <> Char(VK_Back)) then
-    Key := #0 else
-
-  if (Key = '.') or (Key = ',') then
+    Key := #0
+  else if (Key = '.') or (Key = ',') then
     Key := FSeparator;
 end;
 

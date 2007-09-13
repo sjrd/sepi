@@ -172,7 +172,10 @@ end;
 *}
 function TSvCustomURLLabel.RealURL: string;
 begin
-  if URL = '' then Result := Caption else Result := URL;
+  if URL = '' then
+    Result := Caption
+  else
+    Result := URL;
 end;
 
 {*

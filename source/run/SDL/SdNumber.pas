@@ -105,7 +105,8 @@ end;
 procedure TSdNumberForm.FormKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
-  if Key = VK_RETURN then ModalResult := mrOk;
+  if Key = VK_RETURN then
+    ModalResult := mrOk;
 end;
 
 {*
@@ -115,7 +116,8 @@ end;
 *}
 procedure TSdNumberForm.FormKeyPress(Sender: TObject; var Key: Char);
 begin
-  if Key = #13 then Key := #0;
+  if Key = #13 then
+    Key := #0;
 end;
 
 end.

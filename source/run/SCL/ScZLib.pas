@@ -33,10 +33,13 @@ procedure CompressStream(Stream: TStream; Dest: TStream = nil;
 var
   Destination: TStream;
 begin
-  if Dest = Stream then Dest := nil;
+  if Dest = Stream then
+    Dest := nil;
 
   // Si Dest vaut nil, on crée un flux temporaire de destination
-  if Dest = nil then Destination := TMemoryStream.Create else
+  if Dest = nil then
+    Destination := TMemoryStream.Create
+  else
   begin
     Destination := Dest;
     Destination.Position := 0;
@@ -72,10 +75,13 @@ var
   Buffer: array [0..1023] of Byte;
   Copied: Integer;
 begin
-  if Dest = Stream then Dest := nil;
+  if Dest = Stream then
+    Dest := nil;
 
   // Si Dest vaut nil, on crée un flux temporaire de destination
-  if Dest = nil then Destination := TMemoryStream.Create else
+  if Dest = nil then
+    Destination := TMemoryStream.Create
+  else
   begin
     Destination := Dest;
     Destination.Position := 0;

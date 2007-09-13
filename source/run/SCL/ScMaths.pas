@@ -682,7 +682,10 @@ end;
 function Factorial(X: Int64): Int64;
 begin
   VerifyIsNatural(X);
-  if X <= 1 then Result := 1 else Result := X*Factorial(X-1);
+  if X <= 1 then
+    Result := 1
+  else
+    Result := X*Factorial(X-1);
 end;
 
 function IntPower(Base, Exponent: LongWord): LongWord;
@@ -759,7 +762,9 @@ end;
 
 function TComplexList.IsAssignClass(ScListClass: TScListClass): Boolean;
 begin
-  if ScListClass.InheritsFrom(TComplexList) then Result := True else
+  if ScListClass.InheritsFrom(TComplexList) then
+    Result := True
+  else
     Result := inherited IsAssignClass(ScListClass);
 end;
 
@@ -908,7 +913,8 @@ end;
 function TPolynom.GetCoefficients(Exponent: Integer): Extended;
 begin
   if IsZero or (Exponent > MaxDegree) or (Exponent < MinDegree) then
-    Result := 0 else
+    Result := 0
+  else
     Result := FCoefficients[Exponent-MinDegree];
 end;
 
@@ -916,7 +922,10 @@ function TPolynom.GetAsExtended: Extended;
 begin
   if not IsExtended then
     raise ENotDegreeZeroError.CreateNotDegreeZero(Self);
-  if IsZero then Result := 0 else Result := FCoefficients[0];
+  if IsZero then
+    Result := 0
+  else
+    Result := FCoefficients[0];
 end;
 
 function TPolynom.GetAsInteger: Int64;
@@ -931,10 +940,12 @@ end;
 
 procedure TPolynom.SetCoefficients(Exponent: Integer; New: Extended);
 begin
-  if (New < MinValueEver) and (New > -MinValueEver) then New := 0.0;
+  if (New < MinValueEver) and (New > -MinValueEver) then
+    New := 0.0;
 
   // Si New a déjà la valeur de cet exposant, on termine
-  if New = Coefficients[Exponent] then Exit;
+  if New = Coefficients[Exponent] then
+    Exit;
   if New = 0 then
   begin
     // Si New = 0 et que New <> Coefficients[Exponent], c'est que
@@ -952,7 +963,8 @@ begin
       (FCoefficients[FCoefficients.Count-1] = 0) do
       FCoefficients.Delete(FCoefficients.Count-1);
     // Si FCoefficients est vide, on remet FMinDegree à 0
-    if FCoefficients.Count = 0 then FMinDegree := 0;
+    if FCoefficients.Count = 0 then
+      FMinDegree := 0;
   end else
   begin
     if FCoefficients.Count = 0 then
@@ -1011,36 +1023,49 @@ function TPolynom.ToString: string;
 var
   I: Integer;
 begin
-  if IsZero then Result := '0' else
+  if IsZero then
+    Result := '0'
+  else
   begin
     Result := '';
-    for I := MaxDegree downto MinDegree do if Coefficients[I] <> 0 then
+    for I := MaxDegree downto MinDegree do
+    begin
+      if Coefficients[I] <> 0 then
       begin
         if (I = 0) or (Coefficients[I] <> 1) then
+        begin
           // Si le degré est 0 ou si le coefficient n'est pas 1,
           // il faut d'abord indiquer le coefficient
           if Coefficients[I] < 0 then
             Result := Result+FloatToStr(Coefficients[I])
           else
-            Result := Result + '+' + FloatToStr(Coefficients[I])
-        // Sinon il suffit d'ajouter un +
-        else if Coefficients[I] >= 0 then Result := Result + '+';
-        case I of
-          0: ;                      // Rien à ajouter (pas de x)
-          1: Result := Result+'x';  // Coefficient 1, donc x
-          2: Result := Result+'x²'; // Coefficient 2, donc x²
-          3: Result := Result+'x³'; // Coefficient 3, donc x³
-          // Dans les autres cas : (x^i)
-          else Result := Result+
-            IIF(Coefficients[I] = 1, '', '(')+
-            'x^'+IntToStr(I)+
-            IIF(Coefficients[I] = 1, '', ')');
+            Result := Result + '+' + FloatToStr(Coefficients[I]);
+        end else
+        begin
+          // Sinon il suffit d'ajouter un +
+          if Coefficients[I] >= 0 then
+            Result := Result + '+';
+          case I of
+            0: ;                      // Rien à ajouter (pas de x)
+            1: Result := Result+'x';  // Coefficient 1, donc x
+            2: Result := Result+'x²'; // Coefficient 2, donc x²
+            3: Result := Result+'x³'; // Coefficient 3, donc x³
+          else
+            // Dans les autres cas : (x^i)
+            Result := Result+
+              IIF(Coefficients[I] = 1, '', '(')+
+              'x^'+IntToStr(I)+
+              IIF(Coefficients[I] = 1, '', ')');
+          end;
         end;
       end;
+    end;
+
     // Si le premier caractère de la chaîne est un +, on le supprime, il ne
     // sert à rien. Remarquez que la chaîne a toujours au moins un caractère,
     // car le contenu de la boucle est toujours exécuté au moins une fois.
-    if Result[1] = '+' then Delete(Result, 1, 1);
+    if Result[1] = '+' then
+      Delete(Result, 1, 1);
   end;
 end;
 
@@ -1097,7 +1122,8 @@ begin
   if Source.IsZero then
     raise EDivisionError.CreateDivision(Self, Source);
   // Si dividende = 0 -> on termine tout de suite
-  if IsZero then Exit;
+  if IsZero then
+    Exit;
 
   // On récupère le temps actuel
   BeginTime := Now;
@@ -1144,8 +1170,9 @@ var
   NegExp: Boolean;
   Temp: TPolynom;
 begin
-  if IsExtended then AsExtended :=
-      Math.Power(AsExtended, Source.AsExtended) else
+  if IsExtended then
+    AsExtended := Math.Power(AsExtended, Source.AsExtended)
+  else
   begin
     // On récupère l'exposant
     Exposant := Source.AsInteger;
@@ -1153,7 +1180,8 @@ begin
     // On prend la val abs de l'exposant mais on conserve
     // un boolean indiquant si uk était négatif
     NegExp := Exposant < 0;
-    if NegExp then Exposant := -Exposant;
+    if NegExp then
+      Exposant := -Exposant;
 
     Temp := TPolynom.CreateAssign(Self);
     try
@@ -1164,7 +1192,8 @@ begin
         Multiply(Temp);
         Dec(Exposant);
       end;
-      if NegExp then Reverse;
+      if NegExp then
+        Reverse;
     finally
       Temp.Free;
     end;
@@ -1198,7 +1227,8 @@ begin
         for Deg := MinDegree to MaxDegree do
         begin
           Coeff := Coefficients[Deg];
-          if Coeff = 0 then Continue;
+          if Coeff = 0 then
+            Continue;
           Temp.Assign(Source);
           Scalar.AsInteger := Deg;
           Temp.Power(Scalar);
@@ -1290,7 +1320,8 @@ class function TPolynom.Addition(Val1, Val2: TPolynom;
 begin
   Result := CreateAssign(Val1);
   Result.Add(Val2);
-  if not ReleaseVals then Exit;
+  if not ReleaseVals then
+    Exit;
   Val1.Free;
   Val2.Free;
 end;
@@ -1300,7 +1331,8 @@ class function TPolynom.Substraction(Val1, Val2: TPolynom;
 begin
   Result := CreateAssign(Val1);
   Result.Sub(Val2);
-  if not ReleaseVals then Exit;
+  if not ReleaseVals then
+    Exit;
   Val1.Free;
   Val2.Free;
 end;
@@ -1310,7 +1342,8 @@ class function TPolynom.Multiplication(Val1, Val2: TPolynom;
 begin
   Result := CreateAssign(Val1);
   Result.Multiply(Val2);
-  if not ReleaseVals then Exit;
+  if not ReleaseVals then
+    Exit;
   Val1.Free;
   Val2.Free;
 end;
@@ -1320,7 +1353,8 @@ class function TPolynom.Division(Val1, Val2: TPolynom;
 begin
   Result := CreateAssign(Val1);
   Result.Divide(Val2);
-  if not ReleaseVals then Exit;
+  if not ReleaseVals then
+    Exit;
   Val1.Free;
   Val2.Free;
 end;
@@ -1330,7 +1364,8 @@ class function TPolynom.ModuloOf(Val1, Val2: TPolynom;
 begin
   Result := CreateAssign(Val1);
   Result.Modulo(Val2);
-  if not ReleaseVals then Exit;
+  if not ReleaseVals then
+    Exit;
   Val1.Free;
   Val2.Free;
 end;
@@ -1340,7 +1375,8 @@ class function TPolynom.PowerOf(Val1, Val2: TPolynom;
 begin
   Result := CreateAssign(Val1);
   Result.Power(Val2);
-  if not ReleaseVals then Exit;
+  if not ReleaseVals then
+    Exit;
   Val1.Free;
   Val2.Free;
 end;
@@ -1350,7 +1386,8 @@ class function TPolynom.RootOf(Val1, Val2: TPolynom;
 begin
   Result := CreateAssign(Val1);
   Result.Root(Val2);
-  if not ReleaseVals then Exit;
+  if not ReleaseVals then
+    Exit;
   Val1.Free;
   Val2.Free;
 end;
@@ -1360,7 +1397,8 @@ class function TPolynom.InsertOf(Val1, Val2: TPolynom;
 begin
   Result := CreateAssign(Val1);
   Result.Insert(Val2);
-  if not ReleaseVals then Exit;
+  if not ReleaseVals then
+    Exit;
   Val1.Free;
   Val2.Free;
 end;
@@ -1370,7 +1408,8 @@ class function TPolynom.ScalarProdOf(Val1, Val2: TPolynom;
 begin
   Result := CreateAssign(Val1);
   Result.ScalarProd(Val2);
-  if not ReleaseVals then Exit;
+  if not ReleaseVals then
+    Exit;
   Val1.Free;
   Val2.Free;
 end;
@@ -1378,70 +1417,100 @@ end;
 class function TPolynom.OpposedOf(Value: TPolynom;
   ReleaseValue: Boolean = False): TPolynom;
 begin
-  if ReleaseValue then Result := Value else Result := CreateAssign(Value);
+  if ReleaseValue then
+    Result := Value
+  else
+    Result := CreateAssign(Value);
   Result.Oppose;
 end;
 
 class function TPolynom.ReversedOf(Value: TPolynom;
   ReleaseValue: Boolean = False): TPolynom;
 begin
-  if ReleaseValue then Result := Value else Result := CreateAssign(Value);
+  if ReleaseValue then
+    Result := Value
+  else
+    Result := CreateAssign(Value);
   Result.Reverse;
 end;
 
 class function TPolynom.AbsOf(Value: TPolynom;
   ReleaseValue: Boolean = False): TPolynom;
 begin
-  if ReleaseValue then Result := Value else Result := CreateAssign(Value);
+  if ReleaseValue then
+    Result := Value
+  else
+    Result := CreateAssign(Value);
   Result.Abs;
 end;
 
 class function TPolynom.SinusOf(Value: TPolynom;
   ReleaseValue: Boolean = False): TPolynom;
 begin
-  if ReleaseValue then Result := Value else Result := CreateAssign(Value);
+  if ReleaseValue then
+    Result := Value
+  else
+    Result := CreateAssign(Value);
   Result.Sinus;
 end;
 
 class function TPolynom.CosinusOf(Value: TPolynom;
   ReleaseValue: Boolean = False): TPolynom;
 begin
-  if ReleaseValue then Result := Value else Result := CreateAssign(Value);
+  if ReleaseValue then
+    Result := Value
+  else
+    Result := CreateAssign(Value);
   Result.Cosinus;
 end;
 
 class function TPolynom.TangentOf(Value: TPolynom;
   ReleaseValue: Boolean = False): TPolynom;
 begin
-  if ReleaseValue then Result := Value else Result := CreateAssign(Value);
+  if ReleaseValue then
+    Result := Value
+  else
+    Result := CreateAssign(Value);
   Result.Tangent;
 end;
 
 class function TPolynom.ArcSinusOf(Value: TPolynom;
   ReleaseValue: Boolean = False): TPolynom;
 begin
-  if ReleaseValue then Result := Value else Result := CreateAssign(Value);
+  if ReleaseValue then
+    Result := Value
+  else
+    Result := CreateAssign(Value);
   Result.ArcSinus;
 end;
 
 class function TPolynom.ArcCosinusOf(Value: TPolynom;
   ReleaseValue: Boolean = False): TPolynom;
 begin
-  if ReleaseValue then Result := Value else Result := CreateAssign(Value);
+  if ReleaseValue then
+    Result := Value
+  else
+    Result := CreateAssign(Value);
   Result.ArcCosinus;
 end;
 
 class function TPolynom.ArcTangentOf(Value: TPolynom;
   ReleaseValue: Boolean = False): TPolynom;
 begin
-  if ReleaseValue then Result := Value else Result := CreateAssign(Value);
+  if ReleaseValue then
+    Result := Value
+  else
+    Result := CreateAssign(Value);
   Result.ArcTangent;
 end;
 
 class function TPolynom.FactorialOf(Value: TPolynom;
   ReleaseValue: Boolean = False): TPolynom;
 begin
-  if ReleaseValue then Result := Value else Result := CreateAssign(Value);
+  if ReleaseValue then
+    Result := Value
+  else
+    Result := CreateAssign(Value);
   Result.Factorial;
 end;
 
@@ -1532,7 +1601,8 @@ var
 begin
   I := Count;
   Stream.Write(I, sizeof(Integer));
-  for I := 0 to Count-1 do Polynoms[I].SaveToStream(Stream);
+  for I := 0 to Count-1 do
+    Polynoms[I].SaveToStream(Stream);
 end;
 
 procedure TPolynomList.SaveToFile(FileName: string);
@@ -1595,7 +1665,8 @@ begin
       'r': Result := TPolynom.RootOf(Operande1, Operande2, True);
       'o': Result := TPolynom.InsertOf(Operande1, Operande2, True);
       '|': Result := TPolynom.ScalarProdOf(Operande1, Operande2, True);
-      else raise EOpNotExistsError.CreateOpNotExists(Operation);
+    else
+      raise EOpNotExistsError.CreateOpNotExists(Operation);
     end;
   except
     on Error: ENotDegreeZeroError do
@@ -1624,13 +1695,14 @@ begin
       'C': Result := TPolynom.ArcCosinusOf(Operande, True);
       'T': Result := TPolynom.ArcTangentOf(Operande, True);
       '²': Result := TPolynom.PowerOf(Operande,
-        TPolynom.CreateFromExtended(0, 2), True);
+          TPolynom.CreateFromExtended(0, 2), True);
       '\': Result := TPolynom.RootOf(Operande,
-        TPolynom.CreateFromExtended(0, 2), True);
+          TPolynom.CreateFromExtended(0, 2), True);
       '!': Result := TPolynom.FactorialOf(Operande, True);
       'v': Result := TPolynom.CreateAssign(VarsLists[0][Operande.AsInteger]);
       'w': Result := TPolynom.CreateAssign(VarsLists[1][Operande.AsInteger]);
-      else raise EOpNotExistsError.CreateOpNotExists(Operation);
+    else
+      raise EOpNotExistsError.CreateOpNotExists(Operation);
     end;
   except
     on Error: ENotDegreeZeroError do
@@ -1664,7 +1736,8 @@ begin
     '^', 'r', 'o': Result := 2;
     '­', 'a', 's', 'c', 't', 'S', 'C', 'T', '²', '\', '!', 'v',
     'w': Result := 1;
-    else Result := 0;
+  else
+    Result := 0;
   end;
 end;
 
@@ -1683,9 +1756,10 @@ begin
     begin
       Result := I;
       MaxPriorite := Priorite(Str[I]);
-    end else
-    if Str[I] = '(' then Dec(NiveauParentheses) else
-    if Str[I] = ')' then Inc(NiveauParentheses);
+    end else if Str[I] = '(' then
+      Dec(NiveauParentheses)
+    else if Str[I] = ')' then
+      Inc(NiveauParentheses);
   end;
   if NiveauParentheses < 0 then
     raise ETooManyBracketsError.CreateTooManyBrackets(-NiveauParentheses, '(');
@@ -1708,9 +1782,12 @@ begin
   Result := False;
   for I := 1 to Length(Str) do
   begin
-    if Str[I] = '(' then Inc(NiveauParentheses) else
-    if Str[I] = ')' then Dec(NiveauParentheses);
-    if (I < Length(Str)) and (NiveauParentheses = 0) then Exit;
+    if Str[I] = '(' then
+      Inc(NiveauParentheses)
+    else if Str[I] = ')' then
+      Dec(NiveauParentheses);
+    if (I < Length(Str)) and (NiveauParentheses = 0) then
+      Exit;
   end;
   Result := True;
 end;
@@ -1722,20 +1799,32 @@ var
 begin
   try
     Result := False;
-    if Pos(' ', Str) > 0 then Exit;
-    if Pos('-', Str) > 0 then Exit;
-    if Pos('+', Str) > 0 then Exit;
-    if NberSubStr('x', Str) > 1 then Exit;
-    for I := 1 to Length(Str) do if Str[I] = '­' then Str[I] := '-';
-    if Pos('x', Str) = 1 then Coefficient := 1 else
+    if Pos(' ', Str) > 0 then
+      Exit;
+    if Pos('-', Str) > 0 then
+      Exit;
+    if Pos('+', Str) > 0 then
+      Exit;
+    if NberSubStr('x', Str) > 1 then
+      Exit;
+    for I := 1 to Length(Str) do
+      if Str[I] = '­' then
+        Str[I] := '-';
+    if Pos('x', Str) = 1 then
+      Coefficient := 1
+    else
       Coefficient := StrToFloat(GetFirstToken(Str, 'x'));
-    if NberSubStr('x', Str) = 0 then Degree := 0 else
-    if Pos('x', Str) = Length(Str) then Degree := 1 else
+    if NberSubStr('x', Str) = 0 then
+      Degree := 0
+    else if Pos('x', Str) = Length(Str) then
+      Degree := 1
+    else
       Degree := StrToInt(GetLastToken(Str, 'x'));
     Resultat := TPolynom.CreateFromExtended(Degree, Coefficient);
     Result := True;
   except
-    on Error: EConvertError do Result := False;
+    on Error: EConvertError do
+      Result := False;
   end;
 end;
 
@@ -1767,9 +1856,12 @@ begin
     if Expression = '' then
       raise EWrongExpressionError.CreateWrongExpression;
 
-    if Assigned(TestIsAborted) then TestIsAborted;
+    if Assigned(TestIsAborted) then
+      TestIsAborted;
 
-    if ConvertToMonom(Expression, Result) then I := 0 else
+    if ConvertToMonom(Expression, Result) then
+      I := 0
+    else
       I := IndexOperation(Expression);
   except
     on Error: EEvalError do

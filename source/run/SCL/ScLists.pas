@@ -454,13 +454,17 @@ begin
   with TCompareStrings(Strings) do
   begin
     // On s'assure que BeginSearchAt et EndSearchAt sont des entrées correctes
-    if BeginSearchAt < 0 then BeginSearchAt := 0;
-    if (EndSearchAt < 0) or (EndSearchAt >= Count) then EndSearchAt := Count-1;
+    if BeginSearchAt < 0 then
+      BeginSearchAt := 0;
+    if (EndSearchAt < 0) or (EndSearchAt >= Count) then
+      EndSearchAt := Count-1;
 
     Result := BeginSearchAt;
     while Result <= EndSearchAt do
     begin
-      if CompareStrings(Str, Strings[BeginSearchAt]) = 0 then Exit else
+      if CompareStrings(Str, Strings[BeginSearchAt]) = 0 then
+        Exit
+      else
         Inc(BeginSearchAt);
     end;
     Result := -1;
@@ -485,15 +489,18 @@ begin
   with TCompareStrings(Strings) do
   begin
     // On s'assure que BeginSearchAt et EndSearchAt sont des entrées correctes
-    if BeginSearchAt < 0 then BeginSearchAt := 0;
-    if (EndSearchAt < 0) or (EndSearchAt >= Count) then EndSearchAt := Count-1;
+    if BeginSearchAt < 0 then
+      BeginSearchAt := 0;
+    if (EndSearchAt < 0) or (EndSearchAt >= Count) then
+      EndSearchAt := Count-1;
 
     Len := Length(Str);
     Result := BeginSearchAt;
     while Result <= EndSearchAt do
     begin
       for I := Length(Strings[Result])-Len+1 downto 1 do
-        if CompareStrings(Str, Copy(Strings[Result], I, Len)) = 0 then Exit;
+        if CompareStrings(Str, Copy(Strings[Result], I, Len)) = 0 then
+          Exit;
       Inc(Result);
     end;
     Result := -1;
@@ -518,8 +525,10 @@ begin
   with TCompareStrings(Strings) do
   begin
     // On s'assure que BeginSearchAt et EndSearchAt sont des entrées correctes
-    if BeginSearchAt < 0 then BeginSearchAt := 0;
-    if (EndSearchAt < 0) or (EndSearchAt >= Count) then EndSearchAt := Count-1;
+    if BeginSearchAt < 0 then
+      BeginSearchAt := 0;
+    if (EndSearchAt < 0) or (EndSearchAt >= Count) then
+      EndSearchAt := Count-1;
 
     Result := BeginSearchAt;
     while Result <= EndSearchAt do
@@ -553,8 +562,10 @@ begin
   with TCompareStrings(Strings) do
   begin
     // On s'assure que BeginSearchAt et EndSearchAt sont des entrées correctes
-    if BeginSearchAt < 0 then BeginSearchAt := 0;
-    if (EndSearchAt < 0) or (EndSearchAt >= Count) then EndSearchAt := Count-1;
+    if BeginSearchAt < 0 then
+      BeginSearchAt := 0;
+    if (EndSearchAt < 0) or (EndSearchAt >= Count) then
+      EndSearchAt := Count-1;
 
     Len := Length(SubStr);
     Result := BeginSearchAt;
@@ -600,7 +611,8 @@ var
   I, EndAt: Integer;
 begin
   // On s'assure que Index et Count sont des entrées correctes
-  if Index < 0 then Exit;
+  if Index < 0 then
+    Exit;
   if (Count < 0) or (Index+Count > Source.Count) then
     EndAt := Source.Count-1
   else
@@ -654,14 +666,20 @@ begin
       raise EListError.Create(sScNotInMustPairsOfChars);
 
     // On vérifie qu'il n'y a pas d'interférence entre Delim et NotIn
-    for I := 1 to Length(NotIn) do if Pos(NotIn[I], Delim) > 0 then
+    for I := 1 to Length(NotIn) do
+      if Pos(NotIn[I], Delim) > 0 then
         raise EListError.Create(sScDelimMustDifferentThanNotIn);
 
     // Séparation de NotIn en NotIn1 et NotIn2
     NotIn1 := '';
     NotIn2 := '';
-    for I := 1 to Length(NotIn) do if (I mod 2) = 1 then
-        NotIn1 := NotIn1+NotIn[I] else NotIn2 := NotIn2+NotIn[I];
+    for I := 1 to Length(NotIn) do
+    begin
+      if (I mod 2) = 1 then
+        NotIn1 := NotIn1+NotIn[I]
+      else
+        NotIn2 := NotIn2+NotIn[I];
+    end;
 
     Len := Length(Str);
 
@@ -670,8 +688,10 @@ begin
     begin
       // On boucle jusqu'à trouver un caractère qui n'est pas dans Delim
       // On ignore de ce fait plusieurs caractères de Delim à la suite
-      while (I <= Len) and (Pos(Str[I], Delim) <> 0) do Inc(I);
-      if (I > Len) then Break;
+      while (I <= Len) and (Pos(Str[I], Delim) <> 0) do
+        Inc(I);
+      if (I > Len) then
+        Break;
 
       // On recherche le caractère de Delim suivant
       J := I;
@@ -683,7 +703,8 @@ begin
         begin
           C := NotIn2[Pos(Str[J], NotIn1)];
           Inc(J);
-          while (J <= Len) and (Str[J] <> C) do Inc(J);
+          while (J <= Len) and (Str[J] <> C) do
+            Inc(J);
         end;
         Inc(J);
       end;
@@ -762,7 +783,8 @@ end;
 *}
 procedure TScStrings.SetIndex(New: Integer);
 begin
-  if New >= 0 then FIndex := New;
+  if New >= 0 then
+    FIndex := New;
 end;
 
 {*
@@ -902,7 +924,10 @@ end;
 *}
 function TScStrings.NextString: string;
 begin
-  if HasMoreString then Result := Strings[Index] else Result := '';
+  if HasMoreString then
+    Result := Strings[Index]
+  else
+    Result := '';
   Inc(FIndex);
 end;
 
@@ -948,7 +973,9 @@ end;
 *}
 procedure TScList.SetCount(New: Integer);
 begin
-  if New <= 0 then FStream.SetSize(0) else
+  if New <= 0 then
+    FStream.SetSize(0)
+  else
     FStream.SetSize(New*FItemSize);
 end;
 
@@ -1107,7 +1134,9 @@ begin
     raise EListError.CreateFmt(sScIndexOutOfRange, [AIndex]);
 
   // Si AIndex vaut Count, on appelle _Add, sinon, on effectue le traitement
-  if AIndex = Count then Result := _Add(Buffer) else
+  if AIndex = Count then
+    Result := _Add(Buffer)
+  else
   begin
     Temp := TMemoryStream.Create;
     try
@@ -1344,7 +1373,8 @@ var
   FillWith: Shortint;
 begin
   // On s'évite un travail inutile si Value est déjà stocké sur 8 octets
-  if ItemSize = 8 then Exit;
+  if ItemSize = 8 then
+    Exit;
 
   // On initialise RecVal.Int (et donc aussi RecVal.Ints)
   RecVal.Int := Value;
@@ -1352,10 +1382,14 @@ begin
   { Si le Shortint à la position ItemSize (c-à-d l'octet de poids le plus
     fort stocké) est négatif (c-à-d si le nombre complet est négatif),
     on remplit les suivant avec -1 (11111111b) et sinon avec 0 (00000000b) }
-  if RecVal.Ints[ItemSize] < 0 then FillWith := -1 else FillWith := 0;
+  if RecVal.Ints[ItemSize] < 0 then
+    FillWith := -1
+  else
+    FillWith := 0;
 
   // On remplit les les octets non stockés avec la valeur de Remplis
-  for I := ItemSize+1 to 8 do RecVal.Ints[I] := FillWith;
+  for I := ItemSize+1 to 8 do
+    RecVal.Ints[I] := FillWith;
 
   // On réactualise Value
   Value := RecVal.Int;
@@ -1392,7 +1426,9 @@ end;
 *}
 function TIntegerList.IsAssignClass(ScListClass: TScListClass): Boolean;
 begin
-  if ScListClass.InheritsFrom(TIntegerList) then Result := True else
+  if ScListClass.InheritsFrom(TIntegerList) then
+    Result := True
+  else
     Result := inherited IsAssignClass(ScListClass);
 end;
 
@@ -1545,13 +1581,15 @@ var
   I: Integer;
 begin
   // On s'évite un travail inutile si Value est déjà stocké sur 4 octets
-  if ItemSize = 4 then Exit;
+  if ItemSize = 4 then
+    Exit;
 
   // On initialise RecVal.Int (et donc aussi RecVal.Ints)
   RecVal.Int := Value;
 
   // On remplit les octets non stockés avec des 0
-  for I := ItemSize+1 to 4 do RecVal.Ints[I] := 0;
+  for I := ItemSize+1 to 4 do
+    RecVal.Ints[I] := 0;
 
   // On réactualise Value
   Value := RecVal.Int;
@@ -1588,7 +1626,9 @@ end;
 *}
 function TUnsignedIntList.IsAssignClass(ScListClass: TScListClass): Boolean;
 begin
-  if ScListClass.InheritsFrom(TUnsignedIntList) then Result := True else
+  if ScListClass.InheritsFrom(TUnsignedIntList) then
+    Result := True
+  else
     Result := inherited IsAssignClass(ScListClass);
 end;
 
@@ -1751,7 +1791,9 @@ end;
 *}
 function TExtendedList.IsAssignClass(ScListClass: TScListClass): Boolean;
 begin
-  if ScListClass.InheritsFrom(TExtendedList) then Result := True else
+  if ScListClass.InheritsFrom(TExtendedList) then
+    Result := True
+  else
     Result := inherited IsAssignClass(ScListClass);
 end;
 
@@ -1977,7 +2019,8 @@ var
 begin
   Result := False;
   for I := 0 to BucketCount-1 do
-    if Buckets[I].Count > 0 then Exit;
+    if Buckets[I].Count > 0 then
+      Exit;
   Result := True;
 end;
 
@@ -2012,7 +2055,9 @@ end;
 *}
 function TCustomValueBucketList.BucketFor(const Key): Cardinal;
 begin
-  if KeySize >= 4 then Result := Cardinal(Key) else
+  if KeySize >= 4 then
+    Result := Cardinal(Key)
+  else
   begin
     Result := 0;
     Move(Key, Result, KeySize);
@@ -2061,12 +2106,15 @@ begin
   Bucket := BucketFor(Key);
   Index := 0;
 
-  with Buckets[Bucket] do while Index < Count do
+  with Buckets[Bucket] do
+  begin
+    while Index < Count do
     begin
       if KeyEquals(Items[Index].Item^, Key) then
         Exit;
       Inc(Index);
     end;
+  end;
 
   Result := False;
 end;
@@ -2292,14 +2340,17 @@ begin
   OldListLocked := FListLocked;
   FListLocked := True;
   try
-    for Bucket := 0 to BucketCount-1 do with Buckets[Bucket] do
+    for Bucket := 0 to BucketCount-1 do
     begin
-      for Index := Count-1 downto 0 do
+      with Buckets[Bucket] do
       begin
-        with Items[Index] do
-          Proc(Info, Item^, Data^, Result);
-        if not Result then
-          exit;
+        for Index := Count-1 downto 0 do
+        begin
+          with Items[Index] do
+            Proc(Info, Item^, Data^, Result);
+          if not Result then
+            Exit;
+        end;
       end;
     end;
   finally
@@ -2459,7 +2510,9 @@ var
 initialization
   AppParams := TScStrings.Create;
   // On remplit AppParams avec les paramètres envoyés à l'application
-  for I := 1 to ParamCount do AppParams.Append(ParamStr(I));
+  for I := 1 to ParamCount do
+    AppParams.Append(ParamStr(I));
+
 finalization
   AppParams.Free;
 end.
