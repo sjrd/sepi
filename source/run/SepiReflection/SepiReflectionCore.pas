@@ -1166,7 +1166,7 @@ constructor TSepiType.Load(AOwner: TSepiMeta; Stream: TStream);
 begin
   inherited;
 
-  Stream.ReadBuffer(FKind, sizeof(TTypeKind));
+  Stream.ReadBuffer(FKind, SizeOf(TTypeKind));
   FNative := False;
   FTypeInfoLength := 0;
   FTypeInfo := nil;
@@ -1246,7 +1246,7 @@ begin
   ShortName := Name;
   NameLength := Length(Name)+1; // 1 byte for string length
 
-  FTypeInfoLength := sizeof(TTypeKind) + NameLength + TypeDataLength;
+  FTypeInfoLength := SizeOf(TTypeKind) + NameLength + TypeDataLength;
   GetMem(FTypeInfo, FTypeInfoLength);
 
   FTypeInfo.Kind := FKind;

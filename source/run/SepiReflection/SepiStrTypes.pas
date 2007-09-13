@@ -61,7 +61,7 @@ implementation
 
 const
   // Tailles de structure TTypeData en fonction des types
-  ShortStringTypeDataLength = sizeof(Byte);
+  ShortStringTypeDataLength = SizeOf(Byte);
   StringTypeDataLength = 0;
 
 {-----------------------------}

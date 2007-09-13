@@ -800,15 +800,15 @@ type
 
 const
   // Tailles de structure TTypeData en fonction des types
-  RecordTypeDataLengthBase = 2*sizeof(Cardinal);
+  RecordTypeDataLengthBase = 2*SizeOf(Cardinal);
   IntfTypeDataLengthBase =
-    sizeof(Pointer) + sizeof(TIntfFlagsBase) + sizeof(TGUID) + 2*sizeof(Word);
+    SizeOf(Pointer) + SizeOf(TIntfFlagsBase) + SizeOf(TGUID) + 2*SizeOf(Word);
   ClassTypeDataLengthBase =
-    sizeof(TClass) + sizeof(Pointer) + sizeof(Smallint) + sizeof(Word);
-  PropInfoLengthBase = sizeof(TPropInfo) - sizeof(ShortString);
-  InitTableLengthBase = 2*sizeof(Byte) + 2*sizeof(Cardinal);
-  FieldTableLengthBase = sizeof(TFieldTable);
-  MethodTableLengthBase = sizeof(TMethodTable);
+    SizeOf(TClass) + SizeOf(Pointer) + SizeOf(Smallint) + SizeOf(Word);
+  PropInfoLengthBase = SizeOf(TPropInfo) - SizeOf(ShortString);
+  InitTableLengthBase = 2*SizeOf(Byte) + 2*SizeOf(Cardinal);
+  FieldTableLengthBase = SizeOf(TFieldTable);
+  MethodTableLengthBase = SizeOf(TMethodTable);
 
   vmtMinIndex = vmtSelfPtr;
   vmtMinMethodIndex = vmtParent + 4;
@@ -964,7 +964,7 @@ var
 begin
   FHiddenKind := hpNormal;
   AFlags := TParamFlags(ParamData^);
-  Inc(Longint(ParamData), sizeof(TParamFlags));
+  Inc(Longint(ParamData), SizeOf(TParamFlags));
   AName := PShortString(ParamData)^;
   Inc(Longint(ParamData), PByte(ParamData)^ + 1);
   ATypeStr := PShortString(ParamData)^;
@@ -1069,7 +1069,7 @@ begin
   OwningUnit.ReadRef(Stream, FType);
 
   MakeFlags;
-  Stream.ReadBuffer(FCallInfo, sizeof(TSepiParamCallInfo));
+  Stream.ReadBuffer(FCallInfo, SizeOf(TSepiParamCallInfo));
 end;
 
 {*
@@ -1146,7 +1146,7 @@ begin
   Stream.WriteBuffer(FOpenArray, 1);
   OwningUnit.WriteRef(Stream, FType);
 
-  Stream.WriteBuffer(FCallInfo, sizeof(TSepiParamCallInfo));
+  Stream.WriteBuffer(FCallInfo, SizeOf(TSepiParamCallInfo));
 end;
 
 {*
@@ -2417,7 +2417,7 @@ begin
 
     // Creating the RTTI
     AllocateTypeInfo(
-      RecordTypeDataLengthBase + Fields.Count*sizeof(TInitInfo));
+      RecordTypeDataLengthBase + Fields.Count*SizeOf(TInitInfo));
     FieldTable := PInitTable(TypeData);
 
     // Basic information
@@ -2653,7 +2653,7 @@ begin
   Stream.ReadBuffer(FHasGUID, 1);
   Stream.ReadBuffer(FIsDispInterface, 1);
   Stream.ReadBuffer(FIsDispatch, 1);
-  Stream.ReadBuffer(FGUID, sizeof(TGUID));
+  Stream.ReadBuffer(FGUID, SizeOf(TGUID));
 
   FIMTSize := Parent.IMTSize;
 
@@ -2750,7 +2750,7 @@ begin
   Stream.WriteBuffer(FHasGUID, 1);
   Stream.WriteBuffer(FIsDispInterface, 1);
   Stream.WriteBuffer(FIsDispatch, 1);
-  Stream.WriteBuffer(FGUID, sizeof(TGUID));
+  Stream.WriteBuffer(FGUID, SizeOf(TGUID));
 
   SaveChildren(Stream);
 end;
@@ -2928,7 +2928,7 @@ begin
 
   Stream.ReadBuffer(IntfCount, 4);
   SetLength(FInterfaces, IntfCount);
-  FillChar(FInterfaces[0], IntfCount*sizeof(TSepiInterfaceEntry), 0);
+  FillChar(FInterfaces[0], IntfCount*SizeOf(TSepiInterfaceEntry), 0);
   for I := 0 to IntfCount-1 do
     OwningUnit.ReadRef(Stream, FInterfaces[I].IntfRef);
 
@@ -3233,7 +3233,7 @@ begin
     Exit;
 
   // Creating the interface table
-  GetMem(IntfTable, sizeof(Integer) + IntfCount*sizeof(TInterfaceEntry));
+  GetMem(IntfTable, SizeOf(Integer) + IntfCount*SizeOf(TInterfaceEntry));
   VMTEntries[vmtIntfTable] := IntfTable;
 
   // Basic information
@@ -3279,7 +3279,7 @@ begin
       Exit;
 
     // Creating the init table
-    GetMem(InitTable, InitTableLengthBase + Fields.Count*sizeof(TInitInfo));
+    GetMem(InitTable, InitTableLengthBase + Fields.Count*SizeOf(TInitInfo));
     VMTEntries[vmtInitTable] := InitTable;
 
     // Basic information
@@ -3331,7 +3331,7 @@ begin
       Exit;
 
     // Creating the field table
-    GetMem(FieldTable, FieldTableLengthBase + Fields.Count*sizeof(TFieldInfo));
+    GetMem(FieldTable, FieldTableLengthBase + Fields.Count*SizeOf(TFieldInfo));
     VMTEntries[vmtFieldTable] := FieldTable;
 
     // Basic information
@@ -3339,7 +3339,7 @@ begin
     FieldTable.Unknown := nil;
 
     // Field information
-    FieldInfo := PFieldInfo(Integer(FieldTable) + sizeof(TFieldTable));
+    FieldInfo := PFieldInfo(Integer(FieldTable) + SizeOf(TFieldTable));
     for I := 0 to Fields.Count-1 do
     begin
       with TSepiField(Fields[I]) do
@@ -3386,14 +3386,14 @@ begin
 
     // Creating the method table
     GetMem(MethodTable, MethodTableLengthBase +
-      Methods.Count*sizeof(TMethodInfo));
+      Methods.Count*SizeOf(TMethodInfo));
     VMTEntries[vmtMethodTable] := MethodTable;
 
     // Basic information
     MethodTable.MethodCount := Methods.Count;
 
     // Field information
-    MethodInfo := PMethodInfo(Integer(MethodTable) + sizeof(TMethodTable));
+    MethodInfo := PMethodInfo(Integer(MethodTable) + SizeOf(TMethodTable));
     for I := 0 to Methods.Count-1 do
     begin
       with TSepiMethod(Methods[I]) do

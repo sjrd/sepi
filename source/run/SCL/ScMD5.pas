@@ -286,13 +286,13 @@ begin
   Inc(State[2], C);
   Inc(State[3], D);
 
-  MD5_memset(PByteArray(@X), 0, sizeof(X));
+  MD5_memset(PByteArray(@X), 0, SizeOf(X));
 end;
 
 
 procedure MD5Init(var Context: TMD5Context);
 begin
-  FillChar(Context, sizeof(Context), 0);
+  FillChar(Context, SizeOf(Context), 0);
   Context.State[0] := $67452301;
   Context.State[1] := $EFCDAB89;
   Context.State[2] := $98BADCFE;
@@ -341,7 +341,7 @@ begin
   MD5Update(Context, PByteArray(@Padding), PadLen);
   MD5Update(Context, PByteArray(@Bits), 8);
   MD5Encode(PByteArray(@Digest), PUINT4Array(@Context.State), 16);
-  MD5_memset(PByteArray(@Context), 0, sizeof(Context));
+  MD5_memset(PByteArray(@Context), 0, SizeOf(Context));
 end;
 
 {*
@@ -419,7 +419,7 @@ begin
   try
     Stream.Seek(0, soFromBeginning);
     repeat
-      ReadBytes := Stream.Read(Buffer, sizeof(Buffer));
+      ReadBytes := Stream.Read(Buffer, SizeOf(Buffer));
       Inc(TotalBytes, ReadBytes);
       MD5Update(Context, @Buffer, ReadBytes);
     until (ReadBytes = 0) or (TotalBytes = Size);

@@ -279,12 +279,12 @@ implementation
 
 const
   // Tailles de structure TTypeData en fonction des types
-  IntegerTypeDataLength = sizeof(TOrdType) + 2*sizeof(Longint);
+  IntegerTypeDataLength = SizeOf(TOrdType) + 2*SizeOf(Longint);
   CharTypeDataLength = IntegerTypeDataLength;
-  Int64TypeDataLength = 2*sizeof(Int64);
-  FloatTypeDataLength = sizeof(TFloatType);
-  EnumTypeDataLength = sizeof(TOrdType) + 2*sizeof(Longint) + sizeof(Pointer);
-  SetTypeDataLength = sizeof(TOrdType) + sizeof(Pointer);
+  Int64TypeDataLength = 2*SizeOf(Int64);
+  FloatTypeDataLength = SizeOf(TFloatType);
+  EnumTypeDataLength = SizeOf(TOrdType) + 2*SizeOf(Longint) + SizeOf(Pointer);
+  SetTypeDataLength = SizeOf(TOrdType) + SizeOf(Pointer);
 
 {---------------------}
 { Classe TSepiOrdType }

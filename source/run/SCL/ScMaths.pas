@@ -1072,13 +1072,13 @@ end;
 procedure TPolynom.LoadFromStream(Stream: TStream);
 begin
   SetToZero;
-  Stream.Read(FMinDegree, sizeof(Integer));
+  Stream.Read(FMinDegree, SizeOf(Integer));
   FCoefficients.LoadFromStream(Stream);
 end;
 
 procedure TPolynom.SaveToStream(Stream: TStream);
 begin
-  Stream.Write(FMinDegree, sizeof(Integer));
+  Stream.Write(FMinDegree, SizeOf(Integer));
   FCoefficients.SaveToStream(Stream);
 end;
 
@@ -1578,7 +1578,7 @@ var
   I: Integer;
 begin
   Clear;
-  Stream.Read(I, sizeof(Integer));
+  Stream.Read(I, SizeOf(Integer));
   while I > 0 do
   begin
     Add(TPolynom.CreateFromStream(Stream));
@@ -1600,7 +1600,7 @@ var
   I: Integer;
 begin
   I := Count;
-  Stream.Write(I, sizeof(Integer));
+  Stream.Write(I, SizeOf(Integer));
   for I := 0 to Count-1 do
     Polynoms[I].SaveToStream(Stream);
 end;

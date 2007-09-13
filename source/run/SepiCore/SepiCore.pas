@@ -193,7 +193,7 @@ begin
     Result := SysUtils.LoadPackage(Format(FormatPackageFileName, [FileName]));
     if Result <> 0 then
     begin
-      GetMem(Package, sizeof(TSepiPackage));
+      GetMem(Package, SizeOf(TSepiPackage));
       Package.FileName := FileName;
       Package.Handle := Result;
       Package.Counter := 1;
@@ -219,7 +219,7 @@ begin
     begin
       FPackages.Remove(Package);
       SysUtils.UnloadPackage(Package.Handle);
-      FreeMem(Package, sizeof(TSepiPackage));
+      FreeMem(Package, SizeOf(TSepiPackage));
     end;
   end;
 end;

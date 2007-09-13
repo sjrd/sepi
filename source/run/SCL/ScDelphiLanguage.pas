@@ -970,7 +970,7 @@ begin
   MoveRegSize := 2*UsedRegCount;
   MoveStackSize := 4*MoveStackCount;
 
-  GetMem(Result, MoveStackSize + MoveRegSize + sizeof(TRegisterRedirector));
+  GetMem(Result, MoveStackSize + MoveRegSize + SizeOf(TRegisterRedirector));
   InstrPtr := Result;
 
   for I := MoveStackCount downto 1 do
@@ -980,7 +980,7 @@ begin
     Inc(Integer(InstrPtr), 4);
   end;
 
-  Move(MoveRegisters[sizeof(MoveRegisters) - MoveRegSize],
+  Move(MoveRegisters[SizeOf(MoveRegisters) - MoveRegSize],
     InstrPtr^, MoveRegSize);
   Inc(Integer(InstrPtr), MoveRegSize);
 
@@ -1014,7 +1014,7 @@ type
   end;
 
 const
-  Code: array[0..sizeof(TRegisterRedirector)-1] of Byte = (
+  Code: array[0..SizeOf(TRegisterRedirector)-1] of Byte = (
     $56,                     // PUSH    ESI
     $57,                     // PUSH    EDI
     $51,                     // PUSH    ECX
@@ -1039,8 +1039,8 @@ const
   );
 
 begin
-  GetMem(Result, sizeof(Code));
-  Move(Code[0], Result^, sizeof(Code));
+  GetMem(Result, SizeOf(Code));
+  Move(Code[0], Result^, SizeOf(Code));
 
   with PRegisterRedirector(Result)^ do
   begin
@@ -1102,7 +1102,7 @@ type
     Jump: TJmpInstruction;
   end;
 begin
-  GetMem(Result, sizeof(TStdCallRedirector));
+  GetMem(Result, SizeOf(TStdCallRedirector));
   with PStdCallRedirector(Result)^ do
   begin
     PopEAX := $58;
@@ -1158,7 +1158,7 @@ type
   end;
 
 const
-  Code: array[0..sizeof(TCDeclRedirector)-1] of Byte = (
+  Code: array[0..SizeOf(TCDeclRedirector)-1] of Byte = (
     $54,                     // PUSH    ESP
     $E8, $FF, $FF, $FF, $FF, // CALL    StoreCDeclReturnAddress
     $68, $EE, $EE, $EE, $EE, // PUSH    ObjAddress
@@ -1173,8 +1173,8 @@ const
   );
 
 begin
-  GetMem(Result, sizeof(Code));
-  Move(Code[0], Result^, sizeof(Code));
+  GetMem(Result, SizeOf(Code));
+  Move(Code[0], Result^, SizeOf(Code));
 
   with PCDeclRedirector(Result)^ do
   begin

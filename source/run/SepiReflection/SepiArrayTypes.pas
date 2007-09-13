@@ -110,9 +110,9 @@ type
 
 const
   // Tailles de structure TTypeData en fonction des types
-  ArrayTypeDataLength = sizeof(TArrayTypeData);
+  ArrayTypeDataLength = SizeOf(TArrayTypeData);
   DynArrayTypeDataLengthBase =
-    sizeof(Longint) + 2*sizeof(Pointer) + sizeof(Integer);
+    SizeOf(Longint) + 2*SizeOf(Pointer) + SizeOf(Integer);
 
 {-----------------------}
 { Classe TSepiArrayType }
@@ -129,7 +129,7 @@ begin
   Stream.ReadBuffer(FDimCount, 1);
 
   SetLength(FDimensions, FDimCount);
-  Stream.ReadBuffer(FDimensions[0], FDimCount*sizeof(TDimInfo));
+  Stream.ReadBuffer(FDimensions[0], FDimCount*SizeOf(TDimInfo));
   OwningUnit.ReadRef(Stream, FElementType);
 
   MakeSize;
@@ -157,7 +157,7 @@ begin
   FDimCount := Length(ADimensions) div 2;
   SetLength(FDimensions, FDimCount);
   Move(ADimensions[Low(ADimensions)], FDimensions[0],
-    FDimCount*sizeof(TDimInfo));
+    FDimCount*SizeOf(TDimInfo));
 
   FElementType := AElementType;
 
@@ -267,7 +267,7 @@ procedure TSepiArrayType.Save(Stream: TStream);
 begin
   inherited;
   Stream.WriteBuffer(FDimCount, 1);
-  Stream.WriteBuffer(FDimensions[0], FDimCount*sizeof(TDimInfo));
+  Stream.WriteBuffer(FDimensions[0], FDimCount*SizeOf(TDimInfo));
   OwningUnit.WriteRef(Stream, FElementType);
 end;
 

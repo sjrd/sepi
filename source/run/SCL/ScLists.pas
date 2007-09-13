@@ -1725,7 +1725,7 @@ end;
 *}
 constructor TExtendedList.Create;
 begin
-  inherited Create(sizeof(Extended));
+  inherited Create(SizeOf(Extended));
 end;
 
 {*
@@ -2194,7 +2194,7 @@ begin
         SetLength(Items, 0)
       else
         Move(Items[Index+1], Items[Index],
-          (Count-Index) * sizeof(TBucketItem));
+          (Count-Index) * SizeOf(TBucketItem));
       Dec(Count);
     end;
   end;
