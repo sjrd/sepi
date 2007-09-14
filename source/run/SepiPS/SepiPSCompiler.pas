@@ -267,7 +267,7 @@ begin
         (not Sender.IsUnit)) then
       begin
         if not ExportUnexisting(SepiUnit, Proc) then
-          Sender.MakeWarning(''{Proc.DeclareUnit}, ewCustomWarning,
+          Sender.MakeWarning(SepiUnit.Name, ewCustomWarning,
             Format(sCantExportProc, [Proc.OriginalName]));
       end;
     end;

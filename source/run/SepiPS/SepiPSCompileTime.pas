@@ -58,8 +58,7 @@ begin
     Exit;
   end;
 
-  with ForwardType do
-    PSCompiler.AddType(Name, BaseType){.DeclareUnit := OwningUnit.Name};
+  PSCompiler.AddType(ForwardType.Name, BaseType);
 end;
 
 {*
@@ -160,24 +159,17 @@ end;
 *}
 procedure ImportIntegerType(PSCompiler: TPSPascalCompiler;
   IntType: TSepiIntegerType);
-var
-  PSType: TPSType;
 begin
-  PSType := nil;
   with IntType do
   begin
     case TypeData.OrdType of
-      otUByte: PSType := PSCompiler.AddType(Name, btU8);
-      otSByte: PSType := PSCompiler.AddType(Name, btS8);
-      otUWord: PSType := PSCompiler.AddType(Name, btU16);
-      otSWord: PSType := PSCompiler.AddType(Name, btS16);
-      otULong: PSType := PSCompiler.AddType(Name, btU32);
-      otSLong: PSType := PSCompiler.AddType(Name, btS32);
+      otUByte: PSCompiler.AddType(Name, btU8);
+      otSByte: PSCompiler.AddType(Name, btS8);
+      otUWord: PSCompiler.AddType(Name, btU16);
+      otSWord: PSCompiler.AddType(Name, btS16);
+      otULong: PSCompiler.AddType(Name, btU32);
+      otSLong: PSCompiler.AddType(Name, btS32);
     end;
-
-    //PSType.DeclareUnit := OwningUnit.Name;
-    if PSType = nil then
-      Exit;
   end;
 end;
 
@@ -192,9 +184,9 @@ begin
   with CharType do
   begin
     if IsUnicode then
-      PSCompiler.AddType(Name, btWideChar){.DeclareUnit := OwningUnit.Name}
+      PSCompiler.AddType(Name, btWideChar)
     else
-      PSCompiler.AddType(Name, btChar){.DeclareUnit := OwningUnit.Name};
+      PSCompiler.AddType(Name, btChar);
   end;
 end;
 
@@ -206,8 +198,7 @@ end;
 procedure ImportInt64Type(PSCompiler: TPSPascalCompiler;
   Int64Type: TSepiInt64Type);
 begin
-  with Int64Type do
-    PSCompiler.AddType(Name, btS64){.DeclareUnit := OwningUnit.Name};
+  PSCompiler.AddType(Int64Type.Name, btS64);
 end;
 
 {*
@@ -217,23 +208,15 @@ end;
 *}
 procedure ImportFloatType(PSCompiler: TPSPascalCompiler;
   FloatType: TSepiFloatType);
-var
-  PSType: TPSType;
 begin
   with FloatType do
   begin
     case FloatType of
-      ftSingle: PSType := PSCompiler.AddType(Name, btSingle);
-      ftDouble: PSType := PSCompiler.AddType(Name, btDouble);
-      ftExtended: PSType := PSCompiler.AddType(Name, btExtended);
-      ftCurr: PSType := PSCompiler.AddType(Name, btCurrency);
-    else
-      Exit;
+      ftSingle:   PSCompiler.AddType(Name, btSingle);
+      ftDouble:   PSCompiler.AddType(Name, btDouble);
+      ftExtended: PSCompiler.AddType(Name, btExtended);
+      ftCurr:     PSCompiler.AddType(Name, btCurrency);
     end;
-
-    //PSType.DeclareUnit := OwningUnit.Name;
-    if PSType = nil then
-      Exit;
   end;
 end;
 
@@ -244,20 +227,14 @@ end;
 *}
 procedure ImportBooleanType(PSCompiler: TPSPascalCompiler;
   BooleanType: TSepiBooleanType);
-var
-  PSType: TPSType;
 begin
   with BooleanType do
   begin
     case BooleanKind of
-      bkBoolean: PSType := PSCompiler.AddTypeCopyN(Name, 'Boolean');
-      bkLongBool: PSType := PSCompiler.AddTypeCopyN(Name, 'LongBool');
-    else
-      Exit; // Pascal Script doesn't support other boolean types
+      bkBoolean:  PSCompiler.AddTypeCopyN(Name, 'Boolean');
+      bkLongBool: PSCompiler.AddTypeCopyN(Name, 'LongBool');
+      // Pascal Script doesn't support other boolean types
     end;
-    //PSType.DeclareUnit := OwningUnit.Name;
-    if PSType = nil then
-      Exit;
   end;
 end;
 
@@ -282,13 +259,12 @@ begin
       Str := Str + Names[MaxValue];
       Str := Str + ')';
 
-      PSCompiler.AddTypeS(Name, Str){.DeclareUnit := OwningUnit.Name};
+      PSCompiler.AddTypeS(Name, Str);
     end else
     begin
       // Pascal Script doesn't support base-typed enumerated types
       ImportType(PSCompiler, BaseType);
-      PSCompiler.AddTypeCopyN(Name, BaseType.Name){.DeclareUnit :=
-        OwningUnit.Name};
+      PSCompiler.AddTypeCopyN(Name, BaseType.Name);
     end;
   end;
 end;
@@ -302,10 +278,7 @@ procedure ImportSetType(PSCompiler: TPSPascalCompiler;
   SetType: TSepiSetType);
 begin
   with SetType, TPSSetType(PSCompiler.AddTypeS(Name, 'set of Byte')) do
-  begin
-    //DeclareUnit := OwningUnit.Name;
     SetType := PSCompiler.FindType(CompType.Name);
-  end;
 end;
 
 {*
@@ -316,8 +289,7 @@ end;
 procedure ImportVariantType(PSCompiler: TPSPascalCompiler;
   VariantType: TSepiVariantType);
 begin
-  with VariantType do
-    PSCompiler.AddType(Name, btVariant){.DeclareUnit := OwningUnit.Name};
+  PSCompiler.AddType(VariantType.Name, btVariant);
 end;
 
 {*
@@ -342,9 +314,9 @@ begin
   with StringType do
   begin
     if IsUnicode then
-      PSCompiler.AddType(Name, btString){.DeclareUnit := OwningUnit.Name}
+      PSCompiler.AddType(Name, btString)
     else
-      PSCompiler.AddType(Name, btWideString){.DeclareUnit := OwningUnit.Name};
+      PSCompiler.AddType(Name, btWideString);
   end;
 end;
 
@@ -373,7 +345,7 @@ begin
     end;
     Str := Str + '] of ' + ElementType.Name;
 
-    PSCompiler.AddTypeS(Name, Str){.DeclareUnit := OwningUnit.Name};
+    PSCompiler.AddTypeS(Name, Str);
   end;
 end;
 
@@ -386,8 +358,7 @@ procedure ImportDynArrayType(PSCompiler: TPSPascalCompiler;
   DynArrayType: TSepiDynArrayType);
 begin
   with DynArrayType do
-    PSCompiler.AddTypeS(Name, 'array of ' + ElementType.Name){.DeclareUnit :=
-      OwningUnit.Name};
+    PSCompiler.AddTypeS(Name, 'array of ' + ElementType.Name);
 end;
 
 {*
@@ -403,7 +374,6 @@ var
 begin
   with RecordType, TPSRecordType(PSCompiler.AddType(Name, btRecord)) do
   begin
-    //DeclareUnit := OwningUnit.Name;
     for I := 0 to ChildCount-1 do
     begin
       Child := Children[I];
@@ -427,8 +397,7 @@ end;
 procedure ImportInterfaceType(PSCompiler: TPSPascalCompiler;
   IntfType: TSepiInterface);
 begin
-  with IntfType, PSCompiler.AddInterface(nil, NoGUID, IntfType.Name) do
-    {aType.DeclareUnit := OwningUnit.Name};
+  PSCompiler.AddInterface(nil, NoGUID, IntfType.Name);
 end;
 
 {*
@@ -440,8 +409,7 @@ procedure ImportMetaClass(PSCompiler: TPSPascalCompiler;
   MetaClass: TSepiMetaClass);
 begin
   // Pascal Script doesn't support meta-classes: we use integers instead
-  with MetaClass do
-    PSCompiler.AddType(Name, btU32){.DeclareUnit := OwningUnit.Name};
+  PSCompiler.AddType(MetaClass.Name, btU32);
 end;
 
 {*
@@ -460,8 +428,7 @@ begin
     begin
       StrSignature := SignatureToString(PSCompiler, Signature);
       if StrSignature <> '' then
-        PSCompiler.AddTypeS(Name, StrSignature){.DeclareUnit :=
-          OwningUnit.Name};
+        PSCompiler.AddTypeS(Name, StrSignature);
     end;
   end;
 end;
@@ -529,8 +496,8 @@ begin
   if PSCompiler.FindType(TypeAlias.Name) <> nil then
     Exit;
 
-  with TypeAlias, PSCompiler.AddTypeCopyN(Name, Dest.Name) do
-    {DeclareUnit := OwningUnit.Name};
+  with TypeAlias do
+    PSCompiler.AddTypeCopyN(Name, Dest.Name);
 end;
 
 {*
@@ -549,7 +516,6 @@ begin
     ImportType(PSCompiler, ConstType);
     with PSCompiler.AddConstantN(Name, ConstType.Name) do
     begin
-      //DeclareUnit := OwningUnit.Name;
       case ConstType.Kind of
         tkInteger, tkEnumeration:
           case ConstType.TypeData.OrdType of
@@ -607,8 +573,7 @@ begin
   with Variable do
   begin
     ImportType(PSCompiler, VarType);
-    with PSCompiler.AddUsedPTRVariableN(Name, VarType.Name) do
-      {DeclareUnit := OwningUnit.Name};
+    PSCompiler.AddUsedPTRVariableN(Name, VarType.Name);
   end;
 end;
 
@@ -845,11 +810,11 @@ begin
     if PSType is TPSClassType then
     begin
       if TPSClassType(PSType).Cl = nil then
-        ImportClass(PSCompiler, SepiUnit.Root.FindType(
-          {PSType.DeclareUnit+'.'+}PSType.Name) as TSepiClass);
+        ImportClass(PSCompiler,
+          SepiUnit.Root.FindType(PSType.Name) as TSepiClass);
     end else if PSType is TPSInterfaceType then
-      ImportInterface(PSCompiler, SepiUnit.Root.FindType(
-        {PSType.DeclareUnit+'.'+}PSType.Name) as TSepiInterface);
+      ImportInterface(PSCompiler,
+        SepiUnit.Root.FindType(PSType.Name) as TSepiInterface);
   except
     on Error: Exception do
       PSCompiler.MakeWarning(SepiUnit.Name, ewCustomWarning, Error.Message);
