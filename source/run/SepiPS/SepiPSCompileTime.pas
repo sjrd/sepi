@@ -59,7 +59,7 @@ begin
   end;
 
   with ForwardType do
-    PSCompiler.AddType(Name, BaseType).DeclareUnit := OwningUnit.Name;
+    PSCompiler.AddType(Name, BaseType){.DeclareUnit := OwningUnit.Name};
 end;
 
 {*
@@ -175,7 +175,9 @@ begin
       otSLong: PSType := PSCompiler.AddType(Name, btS32);
     end;
 
-    PSType.DeclareUnit := OwningUnit.Name;
+    //PSType.DeclareUnit := OwningUnit.Name;
+    if PSType = nil then
+      Exit;
   end;
 end;
 
@@ -190,9 +192,9 @@ begin
   with CharType do
   begin
     if IsUnicode then
-      PSCompiler.AddType(Name, btWideChar).DeclareUnit := OwningUnit.Name
+      PSCompiler.AddType(Name, btWideChar){.DeclareUnit := OwningUnit.Name}
     else
-      PSCompiler.AddType(Name, btChar).DeclareUnit := OwningUnit.Name;
+      PSCompiler.AddType(Name, btChar){.DeclareUnit := OwningUnit.Name};
   end;
 end;
 
@@ -205,7 +207,7 @@ procedure ImportInt64Type(PSCompiler: TPSPascalCompiler;
   Int64Type: TSepiInt64Type);
 begin
   with Int64Type do
-    PSCompiler.AddType(Name, btS64).DeclareUnit := OwningUnit.Name;
+    PSCompiler.AddType(Name, btS64){.DeclareUnit := OwningUnit.Name};
 end;
 
 {*
@@ -229,7 +231,9 @@ begin
       Exit;
     end;
 
-    PSType.DeclareUnit := OwningUnit.Name;
+    //PSType.DeclareUnit := OwningUnit.Name;
+    if PSType = nil then
+      Exit;
   end;
 end;
 
@@ -251,7 +255,9 @@ begin
     else
       Exit; // Pascal Script doesn't support other boolean types
     end;
-    PSType.DeclareUnit := OwningUnit.Name;
+    //PSType.DeclareUnit := OwningUnit.Name;
+    if PSType = nil then
+      Exit;
   end;
 end;
 
@@ -276,13 +282,13 @@ begin
       Str := Str + Names[MaxValue];
       Str := Str + ')';
 
-      PSCompiler.AddTypeS(Name, Str).DeclareUnit := OwningUnit.Name;
+      PSCompiler.AddTypeS(Name, Str){.DeclareUnit := OwningUnit.Name};
     end else
     begin
       // Pascal Script doesn't support base-typed enumerated types
       ImportType(PSCompiler, BaseType);
-      PSCompiler.AddTypeCopyN(Name, BaseType.Name).DeclareUnit :=
-        OwningUnit.Name;
+      PSCompiler.AddTypeCopyN(Name, BaseType.Name){.DeclareUnit :=
+        OwningUnit.Name};
     end;
   end;
 end;
@@ -297,7 +303,7 @@ procedure ImportSetType(PSCompiler: TPSPascalCompiler;
 begin
   with SetType, TPSSetType(PSCompiler.AddTypeS(Name, 'set of Byte')) do
   begin
-    DeclareUnit := OwningUnit.Name;
+    //DeclareUnit := OwningUnit.Name;
     SetType := PSCompiler.FindType(CompType.Name);
   end;
 end;
@@ -311,7 +317,7 @@ procedure ImportVariantType(PSCompiler: TPSPascalCompiler;
   VariantType: TSepiVariantType);
 begin
   with VariantType do
-    PSCompiler.AddType(Name, btVariant).DeclareUnit := OwningUnit.Name;
+    PSCompiler.AddType(Name, btVariant){.DeclareUnit := OwningUnit.Name};
 end;
 
 {*
@@ -336,9 +342,9 @@ begin
   with StringType do
   begin
     if IsUnicode then
-      PSCompiler.AddType(Name, btString).DeclareUnit := OwningUnit.Name
+      PSCompiler.AddType(Name, btString){.DeclareUnit := OwningUnit.Name}
     else
-      PSCompiler.AddType(Name, btWideString).DeclareUnit := OwningUnit.Name;
+      PSCompiler.AddType(Name, btWideString){.DeclareUnit := OwningUnit.Name};
   end;
 end;
 
@@ -367,7 +373,7 @@ begin
     end;
     Str := Str + '] of ' + ElementType.Name;
 
-    PSCompiler.AddTypeS(Name, Str).DeclareUnit := OwningUnit.Name;
+    PSCompiler.AddTypeS(Name, Str){.DeclareUnit := OwningUnit.Name};
   end;
 end;
 
@@ -380,8 +386,8 @@ procedure ImportDynArrayType(PSCompiler: TPSPascalCompiler;
   DynArrayType: TSepiDynArrayType);
 begin
   with DynArrayType do
-    PSCompiler.AddTypeS(Name, 'array of ' + ElementType.Name).DeclareUnit :=
-      OwningUnit.Name;
+    PSCompiler.AddTypeS(Name, 'array of ' + ElementType.Name){.DeclareUnit :=
+      OwningUnit.Name};
 end;
 
 {*
@@ -397,7 +403,7 @@ var
 begin
   with RecordType, TPSRecordType(PSCompiler.AddType(Name, btRecord)) do
   begin
-    DeclareUnit := OwningUnit.Name;
+    //DeclareUnit := OwningUnit.Name;
     for I := 0 to ChildCount-1 do
     begin
       Child := Children[I];
@@ -422,7 +428,7 @@ procedure ImportInterfaceType(PSCompiler: TPSPascalCompiler;
   IntfType: TSepiInterface);
 begin
   with IntfType, PSCompiler.AddInterface(nil, NoGUID, IntfType.Name) do
-    aType.DeclareUnit := OwningUnit.Name;
+    {aType.DeclareUnit := OwningUnit.Name};
 end;
 
 {*
@@ -435,7 +441,7 @@ procedure ImportMetaClass(PSCompiler: TPSPascalCompiler;
 begin
   // Pascal Script doesn't support meta-classes: we use integers instead
   with MetaClass do
-    PSCompiler.AddType(Name, btU32).DeclareUnit := OwningUnit.Name;
+    PSCompiler.AddType(Name, btU32){.DeclareUnit := OwningUnit.Name};
 end;
 
 {*
@@ -454,7 +460,8 @@ begin
     begin
       StrSignature := SignatureToString(PSCompiler, Signature);
       if StrSignature <> '' then
-        PSCompiler.AddTypeS(Name, StrSignature).DeclareUnit := OwningUnit.Name;
+        PSCompiler.AddTypeS(Name, StrSignature){.DeclareUnit :=
+          OwningUnit.Name};
     end;
   end;
 end;
@@ -523,7 +530,7 @@ begin
     Exit;
 
   with TypeAlias, PSCompiler.AddTypeCopyN(Name, Dest.Name) do
-    DeclareUnit := OwningUnit.Name;
+    {DeclareUnit := OwningUnit.Name};
 end;
 
 {*
@@ -542,7 +549,7 @@ begin
     ImportType(PSCompiler, ConstType);
     with PSCompiler.AddConstantN(Name, ConstType.Name) do
     begin
-      DeclareUnit := OwningUnit.Name;
+      //DeclareUnit := OwningUnit.Name;
       case ConstType.Kind of
         tkInteger, tkEnumeration:
           case ConstType.TypeData.OrdType of
@@ -601,7 +608,7 @@ begin
   begin
     ImportType(PSCompiler, VarType);
     with PSCompiler.AddUsedPTRVariableN(Name, VarType.Name) do
-      DeclareUnit := OwningUnit.Name;
+      {DeclareUnit := OwningUnit.Name};
   end;
 end;
 
@@ -793,60 +800,60 @@ begin
 
   // Forward pointers, classes and interfaces
   for I := 0 to SepiUnit.ChildCount-1 do
-    try
-      Child := SepiUnit.Children[I];
+  try
+    Child := SepiUnit.Children[I];
 
-      if Child is TSepiInterface then
-        ImportInterfaceType(PSCompiler, TSepiInterface(Child))
-      else if (Child is TSepiPointerType) or (Child is TSepiClass) then
-        ImportForwardType(PSCompiler, TSepiType(Child));
-    except
-      on Error: Exception do
-        PSCompiler.MakeWarning(SepiUnit.Name, ewCustomWarning,
-          Format('%s (in %s)', [Error.Message, Child.GetFullName]));
-    end;
+    if Child is TSepiInterface then
+      ImportInterfaceType(PSCompiler, TSepiInterface(Child))
+    else if (Child is TSepiPointerType) or (Child is TSepiClass) then
+      ImportForwardType(PSCompiler, TSepiType(Child));
+  except
+    on Error: Exception do
+      PSCompiler.MakeWarning(SepiUnit.Name, ewCustomWarning,
+        Format('%s (in %s)', [Error.Message, Child.GetFullName]));
+  end;
 
   // Children in this unit
   for I := 0 to SepiUnit.ChildCount-1 do
-    try
-      Child := SepiUnit.Children[I];
+  try
+    Child := SepiUnit.Children[I];
 
-      if Child is TSepiClass then
-        ImportClass(PSCompiler, TSepiClass(Child))
-      else if Child is TSepiInterface then
-        ImportInterface(PSCompiler, TSepiInterface(Child))
-      else if Child is TSepiType then
-        ImportType(PSCompiler, TSepiType(Child))
-      else if Child is TSepiTypeAlias then
-        ImportTypeAlias(PSCompiler, TSepiTypeAlias(Child))
-      else if Child is TSepiConstant then
-        ImportConst(PSCompiler, TSepiConstant(Child))
-      else if Child is TSepiVariable then
-        ImportVariable(PSCompiler, TSepiVariable(Child))
-      else if Child is TSepiMethod then
-        ImportRoutine(PSCompiler, TSepiMethod(Child));
-    except
-      on Error: Exception do
-        PSCompiler.MakeWarning(SepiUnit.Name, ewCustomWarning, Error.Message);
-    end;
+    if Child is TSepiClass then
+      ImportClass(PSCompiler, TSepiClass(Child))
+    else if Child is TSepiInterface then
+      ImportInterface(PSCompiler, TSepiInterface(Child))
+    else if Child is TSepiType then
+      ImportType(PSCompiler, TSepiType(Child))
+    else if Child is TSepiTypeAlias then
+      ImportTypeAlias(PSCompiler, TSepiTypeAlias(Child))
+    else if Child is TSepiConstant then
+      ImportConst(PSCompiler, TSepiConstant(Child))
+    else if Child is TSepiVariable then
+      ImportVariable(PSCompiler, TSepiVariable(Child))
+    else if Child is TSepiMethod then
+      ImportRoutine(PSCompiler, TSepiMethod(Child));
+  except
+    on Error: Exception do
+      PSCompiler.MakeWarning(SepiUnit.Name, ewCustomWarning, Error.Message);
+  end;
 
   // Classes and interfaces used from other units which were not imported
   for I := 0 to PSCompiler.GetTypeCount-1 do
-    try
-      PSType := PSCompiler.GetType(I);
+  try
+    PSType := PSCompiler.GetType(I);
 
-      if PSType is TPSClassType then
-      begin
-        if TPSClassType(PSType).Cl = nil then
-          ImportClass(PSCompiler, SepiUnit.Root.FindType(
-            PSType.DeclareUnit+'.'+PSType.Name) as TSepiClass);
-      end else if PSType is TPSInterfaceType then
-        ImportInterface(PSCompiler, SepiUnit.Root.FindType(
-          PSType.DeclareUnit+'.'+PSType.Name) as TSepiInterface);
-    except
-      on Error: Exception do
-        PSCompiler.MakeWarning(SepiUnit.Name, ewCustomWarning, Error.Message);
-    end;
+    if PSType is TPSClassType then
+    begin
+      if TPSClassType(PSType).Cl = nil then
+        ImportClass(PSCompiler, SepiUnit.Root.FindType(
+          {PSType.DeclareUnit+'.'+}PSType.Name) as TSepiClass);
+    end else if PSType is TPSInterfaceType then
+      ImportInterface(PSCompiler, SepiUnit.Root.FindType(
+        {PSType.DeclareUnit+'.'+}PSType.Name) as TSepiInterface);
+  except
+    on Error: Exception do
+      PSCompiler.MakeWarning(SepiUnit.Name, ewCustomWarning, Error.Message);
+  end;
 end;
 
 {*

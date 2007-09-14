@@ -21,7 +21,7 @@ function SepiPSLoadUnit(Self: TObject; Root: TSepiRoot;
   const UnitName: string): TSepiUnit;
 
 const {don't localize}
-      /// Extension des fichiers unité Sepi-PS
+  /// Extension des fichiers unité Sepi-PS
   sSepiPSExtension = '.sps';
 
 implementation

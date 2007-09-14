@@ -29,8 +29,8 @@ package SepiPS90;
 requires
   rtl,
   vcl,
-  PascalScript_Core_D9,
-  SepiReflection90;
+  SepiReflection90,
+  PascalScript_Core_D9;
 
 contains
   SepiPSCompiler in '..\..\source\run\SepiPS\SepiPSCompiler.pas',

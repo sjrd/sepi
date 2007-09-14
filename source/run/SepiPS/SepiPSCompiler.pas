@@ -91,6 +91,10 @@ end;
 *}
 function CheckExport(Root: TSepiRoot; PSProc: TPSInternalProcedure;
   SepiMethod: TSepiMethod): Boolean;
+const
+  SepiKindToPSMode: array[TSepiParamKind] of TPSParameterMode = (
+    pmIn, pmInOut, pmIn, pmOut
+  );
 var
   I: Integer;
   ParameterCount: Integer;
@@ -122,18 +126,8 @@ begin
       SepiParam := ActualParams[I];
       PSParam := Params[I];
 
-      case PSParam.Mode of
-        pmIn:
-          if (SepiParam.Kind <> pkValue) and (SepiParam.Kind <> pkConst) then
-            Exit;
-        pmOut:
-          if SepiParam.Kind <> pkOut then
-            Exit;
-        pmInOut:
-          if SepiParam.Kind <> pkVar then
-            Exit;
-      end;
-
+      if PSParam.Mode <> SepiKindToPSMode[SepiParam.Kind] then
+        Exit;
       if SepiParam.ParamType <> Root.GetType(PSParam.aType.Name) then
         Exit;
     end;
@@ -273,7 +267,7 @@ begin
         (not Sender.IsUnit)) then
       begin
         if not ExportUnexisting(SepiUnit, Proc) then
-          Sender.MakeWarning(Proc.DeclareUnit, ewCustomWarning,
+          Sender.MakeWarning(''{Proc.DeclareUnit}, ewCustomWarning,
             Format(sCantExportProc, [Proc.OriginalName]));
       end;
     end;

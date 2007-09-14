@@ -262,7 +262,7 @@ begin
       Inc(Integer(DestData), SepiField.Offset);
     end else
 
-      // Read access
+    // Read access
     begin
       SelfParam := Stack[Stack.Count-2];
       if (SelfParam = nil) or (SelfParam.FType.BaseType <> btClass) then
@@ -350,11 +350,7 @@ begin
 
   // Replace an overloaded method by its first real method
   if Meta is TSepiOverloadedMethod then
-  begin
     Meta := TSepiOverloadedMethod(Meta).Methods[0];
-    if Meta = nil then
-      Exit;
-  end;
 
   // Set the proper calling handler
   if Meta is TSepiMethod then
