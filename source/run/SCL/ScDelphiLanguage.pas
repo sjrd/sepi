@@ -23,10 +23,10 @@ type
 
 function CorrectIdentifier(const Ident: string): Boolean;
 
-procedure SetBit(var Value: Integer; const Bit: Byte); register;
-procedure ClearBit(var Value: Integer; const Bit: Byte); register;
-procedure ToggleBit(var Value: Integer; const Bit: Byte); register;
-function TestBit(const Value: Integer; const Bit: Byte): Boolean; register;
+procedure SetBit(var Value; Bit: LongWord);
+procedure ClearBit(var Value; Bit: LongWord);
+procedure ToggleBit(var Value; Bit: LongWord);
+function TestBit(const Value; Bit: LongWord): Boolean;
 
 function GetMethodFromName(Obj: TObject;
   const MethodName: ShortString): TMethod;
@@ -212,10 +212,12 @@ end;
   Positionne un bit à 1
   @param Value   Valeur à modifier
   @param Bit     Index du bit à modifier
-  @author waskol
+  @author waskol - extended by sjrd
 *}
-procedure SetBit(var Value: Integer; const Bit: Byte); register;
+procedure SetBit(var Value; Bit: LongWord);
 asm
+        { -> EAX        Value address
+             EDX        Bit index     }
         BTS     [EAX],EDX
 end;
 
@@ -223,10 +225,12 @@ end;
   Positionne un bit à 0
   @param Value   Valeur à modifier
   @param Bit     Index du bit à modifier
-  @author waskol
+  @author waskol - extended by sjrd
 *}
-procedure ClearBit(var Value: Integer; const Bit: Byte); register;
+procedure ClearBit(var Value; Bit: LongWord);
 asm
+        { -> EAX        Value address
+             EDX        Bit index     }
         BTR     [EAX],EDX
 end;
 
@@ -234,10 +238,12 @@ end;
   Inverse un bit
   @param Value   Valeur à modifier
   @param Bit     Index du bit à modifier
-  @author waskol
+  @author waskol - extended by sjrd
 *}
-procedure ToggleBit(var Value: Integer; const Bit: Byte); register;
+procedure ToggleBit(var Value; Bit: LongWord);
 asm
+        { -> EAX        Value address
+             EDX        Bit index     }
         BTC     [EAX],EDX
 end;
 
@@ -246,11 +252,14 @@ end;
   @param Value   Valeur à tester
   @param Bit     Index du bit à tester
   @return True si le bit est à 1, False sinon
-  @author waskol
+  @author waskol - extended by sjrd
 *}
-function TestBit(const Value: Integer; const Bit: Byte): Boolean; register;
+function TestBit(const Value; Bit: LongWord): Boolean;
 asm
-        BT      EAX,EDX
+        { -> EAX        Value address
+             EDX        Bit index
+          <- AL         Result        }
+        BT      [EAX],EDX
         SETB    AL
 end;
 
