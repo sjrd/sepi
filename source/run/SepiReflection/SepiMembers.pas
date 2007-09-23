@@ -20,7 +20,7 @@ const
   NoDefaultValue = Integer($80000000);
 
 type
-  TSepiMethodSignature = class;
+  TSepiSignature = class;
 
   {*
     Type de paramètre caché
@@ -125,9 +125,9 @@ type
   *}
   TSepiParam = class(TObject)
   private
-    FOwner: TSepiMethodSignature; /// Propriétaire
-    FName: string;                /// Nom
-    FLoading: Boolean;            /// True si en chargement depuis un flux
+    FOwner: TSepiSignature; /// Signature propriétaire
+    FName: string;          /// Nom
+    FLoading: Boolean;      /// True si en chargement depuis un flux
 
     FHiddenKind: TSepiHiddenParamKind; /// Type de paramètre caché
     FKind: TSepiParamKind;             /// Type de paramètre
@@ -138,19 +138,19 @@ type
     FFlags: TParamFlags;           /// Flags du paramètre
     FCallInfo: TSepiParamCallInfo; /// Informations d'appel du paramètre
 
-    constructor CreateHidden(AOwner: TSepiMethodSignature;
+    constructor CreateHidden(AOwner: TSepiSignature;
       AHiddenKind: TSepiHiddenParamKind; AType: TSepiType = nil);
-    constructor RegisterParamData(AOwner: TSepiMethodSignature;
+    constructor RegisterParamData(AOwner: TSepiSignature;
       var ParamData: Pointer);
-    constructor Load(AOwner: TSepiMethodSignature; Stream: TStream);
-    class procedure CreateFromString(AOwner: TSepiMethodSignature;
+    constructor Load(AOwner: TSepiSignature; Stream: TStream);
+    class procedure CreateFromString(AOwner: TSepiSignature;
       const Definition: string);
     procedure MakeFlags;
 
     procedure ListReferences;
     procedure Save(Stream: TStream);
   public
-    constructor Create(AOwner: TSepiMethodSignature; const AName: string;
+    constructor Create(AOwner: TSepiSignature; const AName: string;
       AType: TSepiType; AKind: TSepiParamKind = pkValue;
       AOpenArray: Boolean = False);
 
@@ -159,7 +159,7 @@ type
     function Equals(AParam: TSepiParam): Boolean;
     function CompatibleWith(AType: TSepiType): Boolean;
 
-    property Owner: TSepiMethodSignature read FOwner;
+    property Owner: TSepiSignature read FOwner;
     property Name: string read FName;
 
     property HiddenKind: TSepiHiddenParamKind read FHiddenKind;
@@ -173,11 +173,11 @@ type
   end;
 
   {*
-    Signature d'une méthode
+    Signature de routine, méthode ou propriété
     @author sjrd
     @version 1.0
   *}
-  TSepiMethodSignature = class
+  TSepiSignature = class
   private
     FOwner: TSepiMeta;      /// Propriétaire de la signature
     FRoot: TSepiRoot;       /// Racine
@@ -197,7 +197,7 @@ type
 
     procedure MakeCallInfo;
 
-    function CheckInherited(ASignature: TSepiMethodSignature): Boolean;
+    function CheckInherited(ASignature: TSepiSignature): Boolean;
 
     function GetParamCount: Integer;
     function GetParams(Index: Integer): TSepiParam;
@@ -215,7 +215,7 @@ type
       ACallingConvention: TCallingConvention = ccRegister);
     destructor Destroy; override;
 
-    function Equals(ASignature: TSepiMethodSignature): Boolean;
+    function Equals(ASignature: TSepiSignature): Boolean;
     function CompatibleWith(const ATypes: array of TSepiType): Boolean;
 
     property Owner: TSepiMeta read FOwner;
@@ -250,13 +250,13 @@ type
   *}
   TSepiMethod = class(TSepiMeta)
   private
-    FCode: Pointer;                   /// Adresse de code natif
-    FCodeJumper: TJmpInstruction;     /// Jumper sur le code, si non native
-    FSignature: TSepiMethodSignature; /// Signature de la méthode
-    FLinkKind: TMethodLinkKind;       /// Type de liaison d'appel
-    FFirstDeclaration: Boolean;       /// Faux uniquement quand 'override'
-    FAbstract: Boolean;               /// Indique si la méthode est abstraite
-    FInherited: TSepiMethod;          /// Méthode héritée
+    FCode: Pointer;               /// Adresse de code natif
+    FCodeJumper: TJmpInstruction; /// Jumper sur le code, si non native
+    FSignature: TSepiSignature;   /// Signature de la méthode
+    FLinkKind: TMethodLinkKind;   /// Type de liaison d'appel
+    FFirstDeclaration: Boolean;   /// Faux uniquement quand 'override'
+    FAbstract: Boolean;           /// Indique si la méthode est abstraite
+    FInherited: TSepiMethod;      /// Méthode héritée
 
     FLinkIndex: Integer; /// Offset de VMT ou index de DMT, selon la liaison
 
@@ -291,7 +291,7 @@ type
     procedure SetCodeMethod(const AMethod: TMethod);
 
     property Code: Pointer read FCode;
-    property Signature: TSepiMethodSignature read FSignature;
+    property Signature: TSepiSignature read FSignature;
     property LinkKind: TMethodLinkKind read FLinkKind;
     property FirstDeclaration: Boolean read FFirstDeclaration;
     property IsAbstract: Boolean read FAbstract;
@@ -318,7 +318,7 @@ type
     FMethods: TObjectList; /// Liste des méthodes de même nom
 
     function FindInherited(
-      ASignature: TSepiMethodSignature): TSepiMethod;
+      ASignature: TSepiSignature): TSepiMethod;
 
     function GetMethodCount: Integer;
     function GetMethods(Index: Integer): TSepiMethod;
@@ -328,7 +328,7 @@ type
     destructor Destroy; override;
 
     function FindMethod(
-      ASignature: TSepiMethodSignature): TSepiMethod; overload;
+      ASignature: TSepiSignature): TSepiMethod; overload;
     function FindMethod(
       const ATypes: array of TSepiType): TSepiMethod; overload;
 
@@ -371,7 +371,7 @@ type
   *}
   TSepiProperty = class(TSepiMeta)
   private
-    FSignature: TSepiMethodSignature; /// Signature
+    FSignature: TSepiSignature; /// Signature
 
     FReadAccess: TSepiPropertyAccess;  /// Accès en lecture
     FWriteAccess: TSepiPropertyAccess; /// Accès en écriture
@@ -410,7 +410,7 @@ type
 
     destructor Destroy; override;
 
-    property Signature: TSepiMethodSignature read FSignature;
+    property Signature: TSepiSignature read FSignature;
     property PropType: TSepiType read GetPropType;
 
     property ReadAccess: TSepiPropertyAccess read FReadAccess;
@@ -715,7 +715,7 @@ type
   *}
   TSepiMethodRefType = class(TSepiType)
   private
-    FSignature: TSepiMethodSignature; /// Signature
+    FSignature: TSepiSignature; /// Signature
   protected
     procedure ListReferences; override;
     procedure Save(Stream: TStream); override;
@@ -730,7 +730,7 @@ type
 
     function CompatibleWith(AType: TSepiType): Boolean; override;
 
-    property Signature: TSepiMethodSignature read FSignature;
+    property Signature: TSepiSignature read FSignature;
   end;
 
   {*
@@ -932,7 +932,7 @@ end;
   @param AHiddenKind   Type de paramètre caché (doit être différent de pkNormal)
   @param AType         Type du paramètre (uniquement pour AKind = pkResult)
 *}
-constructor TSepiParam.CreateHidden(AOwner: TSepiMethodSignature;
+constructor TSepiParam.CreateHidden(AOwner: TSepiSignature;
   AHiddenKind: TSepiHiddenParamKind; AType: TSepiType = nil);
 begin
   Assert(AHiddenKind <> hpNormal);
@@ -978,7 +978,7 @@ end;
   @param AOwner      Propriétaire du paramètre
   @param ParamData   Pointeur vers les données du paramètre
 *}
-constructor TSepiParam.RegisterParamData(AOwner: TSepiMethodSignature;
+constructor TSepiParam.RegisterParamData(AOwner: TSepiSignature;
   var ParamData: Pointer);
 var
   AFlags: TParamFlags;
@@ -1026,7 +1026,7 @@ end;
 {*
   Charge un paramètre depuis un flux
 *}
-constructor TSepiParam.Load(AOwner: TSepiMethodSignature; Stream: TStream);
+constructor TSepiParam.Load(AOwner: TSepiSignature; Stream: TStream);
 begin
   inherited Create;
 
@@ -1049,7 +1049,7 @@ end;
   @param AOwner       Propriétaire du ou des paramètre(s)
   @param Definition   Définition Delphi du ou des paramètre(s)
 *}
-class procedure TSepiParam.CreateFromString(AOwner: TSepiMethodSignature;
+class procedure TSepiParam.CreateFromString(AOwner: TSepiSignature;
   const Definition: string);
 var
   NamePart, NamePart2, TypePart, KindStr, AName, ATypeStr: string;
@@ -1107,7 +1107,7 @@ end;
   @param AKind        Type de paramètre
   @param AOpenArray   True pour un paramètre tableau ouvert
 *}
-constructor TSepiParam.Create(AOwner: TSepiMethodSignature; const AName: string;
+constructor TSepiParam.Create(AOwner: TSepiSignature; const AName: string;
   AType: TSepiType; AKind: TSepiParamKind = pkValue;
   AOpenArray: Boolean = False);
 begin
@@ -1219,14 +1219,14 @@ begin
 end;
 
 {-----------------------------}
-{ Classe TSepiMethodSignature }
+{ Classe TSepiSignature }
 {-----------------------------}
 
 {*
   Constructeur de base
   @param AOwner   Propriétaire de la signature
 *}
-constructor TSepiMethodSignature.BaseCreate(AOwner: TSepiMeta);
+constructor TSepiSignature.BaseCreate(AOwner: TSepiMeta);
 begin
   inherited Create;
 
@@ -1243,7 +1243,7 @@ end;
   @param AOwner      Propriétaire de la signature
   @param ATypeData   Données de type
 *}
-constructor TSepiMethodSignature.RegisterTypeData(AOwner: TSepiMeta;
+constructor TSepiSignature.RegisterTypeData(AOwner: TSepiMeta;
   ATypeData: PTypeData);
 var
   ParamData: Pointer;
@@ -1276,7 +1276,7 @@ end;
   @param AOwner   Propriétaire de la signature
   @param Stream   Flux depuis lequel charger la signature
 *}
-constructor TSepiMethodSignature.Load(AOwner: TSepiMeta; Stream: TStream);
+constructor TSepiSignature.Load(AOwner: TSepiMeta; Stream: TStream);
 var
   Count: Integer;
 begin
@@ -1302,7 +1302,7 @@ end;
   @param ASignature           Signature Delphi
   @param ACallingConvention   Convention d'appel
 *}
-constructor TSepiMethodSignature.Create(AOwner: TSepiMeta;
+constructor TSepiSignature.Create(AOwner: TSepiMeta;
   const ASignature: string;
   ACallingConvention: TCallingConvention = ccRegister);
 
@@ -1377,7 +1377,7 @@ end;
 {*
   [@inheritDoc]
 *}
-destructor TSepiMethodSignature.Destroy;
+destructor TSepiSignature.Destroy;
 begin
   FParams.Free;
   FActualParams.Free;
@@ -1388,7 +1388,7 @@ end;
 {*
   Construit les informations d'appel de la signature
 *}
-procedure TSepiMethodSignature.MakeCallInfo;
+procedure TSepiSignature.MakeCallInfo;
 var
   I, ParamCount: Integer;
   Param: TSepiParam;
@@ -1452,8 +1452,8 @@ end;
   @param ASignature   Signature à comparer
   @return True si les signatures sont identiques, False sinon
 *}
-function TSepiMethodSignature.CheckInherited(
-  ASignature: TSepiMethodSignature): Boolean;
+function TSepiSignature.CheckInherited(
+  ASignature: TSepiSignature): Boolean;
 var
   OldCallingConv: TCallingConvention;
 begin
@@ -1475,7 +1475,7 @@ end;
   Nombre de paramètres déclarés (visibles)
   @return Nombre de paramètres
 *}
-function TSepiMethodSignature.GetParamCount: Integer;
+function TSepiSignature.GetParamCount: Integer;
 begin
   Result := FParams.Count;
 end;
@@ -1485,7 +1485,7 @@ end;
   @param Index   Index du paramètre à récupérer
   @return Paramètre situé à l'index Index
 *}
-function TSepiMethodSignature.GetParams(Index: Integer): TSepiParam;
+function TSepiSignature.GetParams(Index: Integer): TSepiParam;
 begin
   Result := TSepiParam(FParams[Index]);
 end;
@@ -1494,7 +1494,7 @@ end;
   Nombre de paramètres réels (incluant les paramètres cachés)
   @return Nombre de paramètres réels
 *}
-function TSepiMethodSignature.GetActualParamCount: Integer;
+function TSepiSignature.GetActualParamCount: Integer;
 begin
   Result := FActualParams.Count;
 end;
@@ -1504,7 +1504,7 @@ end;
   @param Index   Index du paramètre à récupérer
   @return Paramètre situé à l'index Index
 *}
-function TSepiMethodSignature.GetActualParams(Index: Integer): TSepiParam;
+function TSepiSignature.GetActualParams(Index: Integer): TSepiParam;
 begin
   Result := TSepiParam(FActualParams[Index]);
 end;
@@ -1514,7 +1514,7 @@ end;
   @param Kind   Type de paramètre caché
   @return Le paramètre caché correspondant, ou nil s'il n'y en a pas
 *}
-function TSepiMethodSignature.GetHiddenParam(
+function TSepiSignature.GetHiddenParam(
   Kind: TSepiHiddenParamKind): TSepiParam;
 var
   I: Integer;
@@ -1534,7 +1534,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiMethodSignature.ListReferences;
+procedure TSepiSignature.ListReferences;
 var
   I: Integer;
 begin
@@ -1546,7 +1546,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiMethodSignature.Save(Stream: TStream);
+procedure TSepiSignature.Save(Stream: TStream);
 var
   I, Count: Integer;
 begin
@@ -1567,8 +1567,8 @@ end;
   @param ASignature   Signature à comparer
   @return True si les signatures sont identiques, False sinon
 *}
-function TSepiMethodSignature.Equals(
-  ASignature: TSepiMethodSignature): Boolean;
+function TSepiSignature.Equals(
+  ASignature: TSepiSignature): Boolean;
 var
   I: Integer;
 begin
@@ -1595,7 +1595,7 @@ end;
   @param ATypes   Liste des types à tester
   @return True si la liste de types est compatible, False sinon
 *}
-function TSepiMethodSignature.CompatibleWith(
+function TSepiSignature.CompatibleWith(
   const ATypes: array of TSepiType): Boolean;
 var
   I: Integer;
@@ -1623,7 +1623,7 @@ begin
   inherited;
 
   FCode := nil;
-  FSignature := TSepiMethodSignature.Load(Self, Stream);
+  FSignature := TSepiSignature.Load(Self, Stream);
   Stream.ReadBuffer(FLinkKind, 1);
   FFirstDeclaration := FLinkKind <> mlkOverride;
   Stream.ReadBuffer(FAbstract, 1);
@@ -1677,7 +1677,7 @@ begin
     SignPrefix := '';
 
   FCode := ACode;
-  FSignature := TSepiMethodSignature.Create(Self,
+  FSignature := TSepiSignature.Create(Self,
     SignPrefix + ASignature, ACallingConvention);
   FLinkKind := ALinkKind;
   FFirstDeclaration := FLinkKind <> mlkOverride;
@@ -2000,7 +2000,7 @@ end;
   @return Méthode effective correspondante
 *}
 function TSepiOverloadedMethod.FindInherited(
-  ASignature: TSepiMethodSignature): TSepiMethod;
+  ASignature: TSepiSignature): TSepiMethod;
 var
   I: Integer;
 begin
@@ -2039,7 +2039,7 @@ end;
   @return Méthode effective correspondante
 *}
 function TSepiOverloadedMethod.FindMethod(
-  ASignature: TSepiMethodSignature): TSepiMethod;
+  ASignature: TSepiSignature): TSepiMethod;
 var
   I: Integer;
 begin
@@ -2082,7 +2082,7 @@ constructor TSepiProperty.Load(AOwner: TSepiMeta; Stream: TStream);
 begin
   inherited;
 
-  FSignature := TSepiMethodSignature.Load(Self, Stream);
+  FSignature := TSepiSignature.Load(Self, Stream);
   LoadChildren(Stream);
 
   OwningUnit.ReadRef(Stream, FReadAccess.Meta);
@@ -2125,7 +2125,7 @@ constructor TSepiProperty.Create(AOwner: TSepiMeta;
 begin
   inherited Create(AOwner, AName);
 
-  FSignature := TSepiMethodSignature.Create(Self, ASignature);
+  FSignature := TSepiSignature.Create(Self, ASignature);
 
   FReadAccess.Meta := FindAccess(AReadAccess);
   MakePropertyAccessKind(FReadAccess);
@@ -4051,7 +4051,7 @@ constructor TSepiMethodRefType.RegisterTypeInfo(AOwner: TSepiMeta;
   ATypeInfo: PTypeInfo);
 begin
   inherited;
-  FSignature := TSepiMethodSignature.RegisterTypeData(Self, TypeData);
+  FSignature := TSepiSignature.RegisterTypeData(Self, TypeData);
 
   if Signature.Kind in mkOfObject then
   begin
@@ -4067,7 +4067,7 @@ end;
 constructor TSepiMethodRefType.Load(AOwner: TSepiMeta; Stream: TStream);
 begin
   inherited;
-  FSignature := TSepiMethodSignature.Load(Self, Stream);
+  FSignature := TSepiSignature.Load(Self, Stream);
 
   if Signature.Kind in mkOfObject then
   begin
@@ -4097,7 +4097,7 @@ begin
     Prefix := ''
   else
     Prefix := 'unit ';
-  FSignature := TSepiMethodSignature.Create(Self,
+  FSignature := TSepiSignature.Create(Self,
     Prefix + ASignature, ACallingConvention);
 
   if Signature.Kind in mkOfObject then

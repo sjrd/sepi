@@ -105,7 +105,7 @@ end;
   @return Déclaration Delphi de la signature
 *}
 function SignatureToString(PSCompiler: TPSPascalCompiler;
-  Signature: TSepiMethodSignature; const Name: string = ''): string;
+  Signature: TSepiSignature; const Name: string = ''): string;
 var
   I: Integer;
   StrParam: string;

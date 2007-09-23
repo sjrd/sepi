@@ -90,7 +90,7 @@ function ClassCallProcMethod(Caller: TPSExec; Method: TPSExternalProcRec;
 
 var
   SepiMethod: TSepiMethod;
-  Signature: TSepiMethodSignature;
+  Signature: TSepiSignature;
   TrueBoolValue: Integer;
   CallingConv: TPSCallingConvention;
   HasResult: Boolean;
