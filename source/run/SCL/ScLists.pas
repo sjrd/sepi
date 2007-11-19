@@ -327,8 +327,7 @@ type
     @param Continue   Positionner à False pour interrompre l'énumération
   *}
   TValueBucketProc = procedure(Info: Pointer; const Key, Data;
-    var
-    Continue: Boolean);
+    var Continue: Boolean);
 
   {*
     Méthode de call-back pour la méthode ForEach de TCustomValueBucketList
@@ -337,8 +336,7 @@ type
     @param Continue   Positionner à False pour interrompre l'énumération
   *}
   TValueBucketEvent = procedure(const Key, Data;
-    var
-    Continue: Boolean) of object;
+    var Continue: Boolean) of object;
 
   {*
     Classe de base pour les tables associatives hashées par valeur

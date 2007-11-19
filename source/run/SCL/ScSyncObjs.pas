@@ -231,7 +231,7 @@ implementation
 
 {*
   Incrémente un compteur de façon thread-safe
-  @param Compteur à incrémenter
+  @param I   Compteur à incrémenter
   @return Nouvelle valeur du compteur
 *}
 function InterlockedIncrement(var I: Integer): Integer;
@@ -243,7 +243,7 @@ end;
 
 {*
   Décrémente un compteur de façon thread-safe
-  @param Compteur à décrémenter
+  @param I   Compteur à décrémenter
   @return Nouvelle valeur du compteur
 *}
 function InterlockedDecrement(var I: Integer): Integer;

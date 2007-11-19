@@ -82,11 +82,11 @@ begin
 
   // Création, utilisation et libération du flux de compression
   with TCompressionStream.Create(CompressionLevel, Destination) do
-    try
-      CopyFrom(Stream, 0);
-    finally
-      Free;
-    end;
+  try
+    CopyFrom(Stream, 0);
+  finally
+    Free;
+  end;
 
   // Si Dest vaut nil, on recopie Destination dans Stream
   if Dest = nil then
@@ -106,7 +106,7 @@ end;
 procedure DecompressStream(Stream: TStream; Dest: TStream = nil);
 var
   Destination: TStream;
-  Buffer: array [0..1023] of Byte;
+  Buffer: array[0..1023] of Byte;
   Copied: Integer;
 begin
   if Dest = Stream then
@@ -124,15 +124,15 @@ begin
 
   // Création, utilisation et libération du flux de décompression
   with TDecompressionStream.Create(Stream) do
-    try
-      Position := 0;
-      repeat
-        Copied := Read(Buffer, 1024);
-        Destination.Write(Buffer, Copied);
-      until Copied < 1024;
-    finally
-      Free;
-    end;
+  try
+    Position := 0;
+    repeat
+      Copied := Read(Buffer, 1024);
+      Destination.Write(Buffer, Copied);
+    until Copied < 1024;
+  finally
+    Free;
+  end;
 
   // Si Dest vaut nil, on recopie Destination dans Stream
   if Dest = nil then

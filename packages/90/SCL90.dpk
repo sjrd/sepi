@@ -45,7 +45,11 @@ contains
   ScZLib in '..\..\source\run\SCL\ScZLib.pas',
   ScSyncObjs in '..\..\source\run\SCL\ScSyncObjs.pas',
   ScCompilerMagic in '..\..\source\run\SCL\ScCompilerMagic.pas',
-  ScTypInfo in '..\..\source\run\SCL\ScTypInfo.pas';
+  ScTypInfo in '..\..\source\run\SCL\ScTypInfo.pas',
+  ScPipes in '..\..\source\run\SCL\ScPipes.pas',
+  ScClasses in '..\..\source\run\SCL\ScClasses.pas',
+  ScCoroutines in '..\..\source\run\SCL\ScCoroutines.pas',
+  ScEnumerators in '..\..\source\run\SCL\ScEnumerators.pas';
 
 end.
 
