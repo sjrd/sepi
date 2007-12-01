@@ -110,9 +110,9 @@ type
   public
     constructor Create(ATransformMethod: TTransformStreamMethod;
       AInput: TStream; AOwnsInput: Boolean = False;
-      AStackSize: Cardinal = MinStackSize); overload;
+      AStackSize: Cardinal = DefaultStackSize); overload;
     constructor Create(AInput: TStream = nil; AOwnsInput: Boolean = False;
-      AStackSize: Cardinal = MinStackSize); overload;
+      AStackSize: Cardinal = DefaultStackSize); overload;
     destructor Destroy; override;
 
     function Read(var Buffer; Count: Longint): Longint; override;
@@ -179,7 +179,8 @@ procedure MultiCoroutineTransformStream(Input, Output: TStream;
   const StackSizes: array of Cardinal; FreeInput: Boolean = False); overload;
 procedure MultiCoroutineTransformStream(Input, Output: TStream;
   const Transformations: array of TTransformStreamMethod;
-  StackSize: Cardinal = MinStackSize; FreeInput: Boolean = False); overload;
+  StackSize: Cardinal = DefaultStackSize;
+  FreeInput: Boolean = False); overload;
 
 function MakeThreadTransformStream(Input: TStream;
   const Transformations: array of TTransformStreamMethod;
@@ -301,7 +302,7 @@ end;
 *}
 procedure MultiCoroutineTransformStream(Input, Output: TStream;
   const Transformations: array of TTransformStreamMethod;
-  StackSize: Cardinal = MinStackSize; FreeInput: Boolean = False);
+  StackSize: Cardinal = DefaultStackSize; FreeInput: Boolean = False);
 var
   StackSizes: array of Cardinal;
   I: Integer;
@@ -512,11 +513,11 @@ end;
   @param ATransformMethod   Méthode de transformation du flux
   @param AInput             Flux entrant
   @param AOwnsInput         True libère le flux d'entrée lors de la destruction
-  @param AStackSize         Taille de la pile (défaut = MinStackSize)
+  @param AStackSize         Taille de la pile (défaut = DefaultStackSize)
 *}
 constructor TCoroutineTransformationStream.Create(
   ATransformMethod: TTransformStreamMethod; AInput: TStream;
-  AOwnsInput: Boolean = False; AStackSize: Cardinal = MinStackSize);
+  AOwnsInput: Boolean = False; AStackSize: Cardinal = DefaultStackSize);
 begin
   inherited Create(ATransformMethod, AInput, AOwnsInput);
 
@@ -533,10 +534,10 @@ end;
   transformation.
   @param AInput       Flux entrant
   @param AOwnsInput   True libère le flux d'entrée lors de la destruction
-  @param AStackSize   Taille de la pile (défaut = MinStackSize)
+  @param AStackSize   Taille de la pile (défaut = DefaultStackSize)
 *}
 constructor TCoroutineTransformationStream.Create(AInput: TStream = nil;
-  AOwnsInput: Boolean = False; AStackSize: Cardinal = MinStackSize);
+  AOwnsInput: Boolean = False; AStackSize: Cardinal = DefaultStackSize);
 begin
   Create(TTransformStreamMethod(nil), AInput, AOwnsInput, AStackSize);
 end;

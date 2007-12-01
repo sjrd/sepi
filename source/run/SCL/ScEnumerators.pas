@@ -79,7 +79,8 @@ type
     procedure Execute; override;
   public
     constructor Create(AEnumerateMethod: TIntegerEnumeratorMethod;
-      ALoop: TCoroutineLoop = clNoLoop; StackSize: Cardinal = MinStackSize);
+      ALoop: TCoroutineLoop = clNoLoop;
+      StackSize: Cardinal = DefaultStackSize);
 
     procedure Yield(Value: Integer);
 
@@ -119,11 +120,11 @@ end;
   Crée une coroutine
   @param AEnumerateMethod   Méthode contenu de la coroutine
   @param ALoop              Type de boucle de la coroutine (défaut : clNoLoop)
-  @param StackSize          Taille de la pile (défaut et minimum : MinStackSize)
+  @param StackSize          Taille de la pile (défaut : DefaultStackSize)
 *}
 constructor TIntegerEnumerator.Create(
   AEnumerateMethod: TIntegerEnumeratorMethod;
-  ALoop: TCoroutineLoop = clNoLoop; StackSize: Cardinal = MinStackSize);
+  ALoop: TCoroutineLoop = clNoLoop; StackSize: Cardinal = DefaultStackSize);
 begin
   inherited Create(ALoop, StackSize);
   FEnumerateMethod := AEnumerateMethod;

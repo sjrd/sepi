@@ -34,9 +34,11 @@ statement from your version.
 
 {*
   Classes de gestion de coroutines
-  ScCoroutines propose deux classes principales. TCoroutine est la classe de
-  base de gestion d'une coroutine. TCoroutineEnumerator en est une dérivée
-  spécialisée pour la création d'un énumérateur en coroutine.
+  ScCoroutines propose deux classes principales. TCustomCoroutine est une
+  classe abstraite gérant des coroutines. Il faut la sucharger à la manière
+  dont on surcharge TThread pour avoir une coroutine concrète. TCoroutine est
+  une implémentation de celle-ci qui prend une méthode en paramètre, et exécute
+  celle-ci comme coroutine.
   Cette unité a besoin d'un test sous Windows 95/98/Me pour l'agrandissement de
   la pile, car PAGE_GUARD n'est pas supporté dans ces versions.
   @author sjrd, sur une idée de Bart van der Werf
@@ -50,8 +52,8 @@ uses
   Windows, SysUtils, Classes;
 
 const
-  /// Taille minimale de pile
-  MinStackSize = $10000;
+  /// Taille de pile par défaut
+  DefaultStackSize = $10000;
 
 resourcestring
   SCoroutInvalidOpWhileRunning =
@@ -59,7 +61,7 @@ resourcestring
   SCoroutInvalidOpWhileNotRunning =
     'Opération invalide lorsque la coroutine n''est pas en exécution';
   SCoroutBadStackSize =
-    'Taille de pile incorrecte (%d) : doit être multiple de 64 Ko';
+    'Taille de pile incorrecte (%d) : doit être multiple de la taille de page';
   SCoroutTerminating =
     'La coroutine est en train de se terminer';
   SCoroutTerminated =
@@ -124,6 +126,11 @@ type
     cet état, une exception de type ECoroutineTerminating assure que celle-ci
     se termine immédiatement.
 
+    La taille de pile doit être un multiple de la taille de page du système (en
+    général 4096) et être supérieure ou égale à 2 fois cette valeur. Toutefois,
+    cela reste peu, et une taille recommandée est donnée par DefaultStackSize.
+    Vous ne devriez en changer que si celle par défaut ne vous convient pas.
+
     @author sjrd, sur une idée de Bart van der Werf
     @version 1.0
   *}
@@ -167,7 +174,7 @@ type
     property Terminated: Boolean read FTerminated;
   public
     constructor Create(ALoop: TCoroutineLoop = clNoLoop;
-      StackSize: Cardinal = MinStackSize);
+      StackSize: Cardinal = DefaultStackSize);
     destructor Destroy; override;
 
     procedure BeforeDestruction; override;
@@ -189,7 +196,8 @@ type
     procedure Execute; override;
   public
     constructor Create(AExecuteMethod: TCoroutineMethod;
-      ALoop: TCoroutineLoop = clNoLoop; StackSize: Cardinal = MinStackSize);
+      ALoop: TCoroutineLoop = clNoLoop;
+      StackSize: Cardinal = DefaultStackSize);
 
     procedure Invoke;
     procedure Yield;
@@ -341,15 +349,15 @@ end;
 {*
   Crée une coroutine avec une taille de pile donnée
   @param ALoop       Type de boucle de la coroutine (défaut : clNoLoop)
-  @param StackSize   Taille de la pile (défaut et minimum : MinStackSize)
+  @param StackSize   Taille de la pile (défaut : DefaultStackSize)
 *}
 constructor TCustomCoroutine.Create(ALoop: TCoroutineLoop = clNoLoop;
-  StackSize: Cardinal = MinStackSize);
+  StackSize: Cardinal = DefaultStackSize);
 begin
   inherited Create;
 
   // Check stack size
-  if (StackSize < MinStackSize) or (StackSize mod MinStackSize <> 0) then
+  if (StackSize < 2*PageSize) or (StackSize mod PageSize <> 0) then
     Error(@SCoroutBadStackSize, StackSize);
 
   // Reserve stack address space
@@ -606,10 +614,10 @@ end;
   Crée une coroutine
   @param AExecuteMethod   Méthode contenu de la coroutine
   @param ALoop            Type de boucle de la coroutine (défaut : clNoLoop)
-  @param StackSize        Taille de la pile (défaut et minimum : MinStackSize)
+  @param StackSize        Taille de la pile (défaut : DefaultStackSize)
 *}
 constructor TCoroutine.Create(AExecuteMethod: TCoroutineMethod;
-  ALoop: TCoroutineLoop = clNoLoop; StackSize: Cardinal = MinStackSize);
+  ALoop: TCoroutineLoop = clNoLoop; StackSize: Cardinal = DefaultStackSize);
 begin
   inherited Create(ALoop, StackSize);
   FExecuteMethod := AExecuteMethod;
