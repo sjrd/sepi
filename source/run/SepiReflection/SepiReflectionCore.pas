@@ -63,8 +63,7 @@ type
     @param Code     Adresse de code de la méthode
   *}
   TGetMethodCodeEvent = procedure(Sender: TObject;
-    var
-    Code: Pointer) of object;
+    var Code: Pointer) of object;
 
   {*
     Déclenchée si l'on tente de recréer un meta (second appel au constructeur)

@@ -48,6 +48,26 @@ type
   TMethodThread = class;
 
   {*
+    Flux travaillant dans la mémoire vive de façon absolue
+    @author sjrd
+    @version 1.0
+  *}
+  TAbsoluteMemoryStream = class(TStream)
+  private
+    FPosition: Pointer;
+  protected
+    function GetSize: Int64; override;
+  public
+    constructor Create(APosition: Pointer = nil);
+
+    function Read(var Buffer; Count: Longint): Longint; override;
+    function Write(const Buffer; Count: Longint): Longint; override;
+    function Seek(Offset: Longint; Origin: Word): Longint; override;
+
+    property PointerPos: Pointer read FPosition write FPosition;
+  end;
+
+  {*
     Prototype d'une méthode d'exécution d'un thread
     @param Thread   Objet thread qui contrôle le thread de la méthode
   *}
@@ -77,6 +97,64 @@ type
   end;
 
 implementation
+
+{---------------------------- }
+{ TAbsoluteMemoryStream class }
+{-----------------------------}
+
+{*
+  Crée un nouveau flux de mémoire vive
+  @param APosition   Adresse initiale
+*}
+constructor TAbsoluteMemoryStream.Create(APosition: Pointer = nil);
+begin
+  inherited Create;
+  FPosition := APosition;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TAbsoluteMemoryStream.GetSize: Int64;
+begin
+  Result := Int64($100000000);
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TAbsoluteMemoryStream.Read(var Buffer; Count: Longint): Longint;
+begin
+  Move(FPosition^, Buffer, Count);
+  Inc(Integer(FPosition), Count);
+  Result := Count;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TAbsoluteMemoryStream.Write(const Buffer; Count: Longint): Longint;
+begin
+  Move(Buffer, FPosition^, Count);
+  Inc(Integer(FPosition), Count);
+  Result := Count;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TAbsoluteMemoryStream.Seek(Offset: Longint; Origin: Word): Longint;
+begin
+  case Origin of
+    soFromBeginning, soFromEnd: FPosition := Pointer(Offset);
+    soFromCurrent: Inc(Integer(FPosition), Offset);
+  end;
+  Result := Longint(FPosition);
+end;
+
+{---------------------}
+{ TMethodThread class }
+{---------------------}
 
 {*
   Crée l'objet thread
