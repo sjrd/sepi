@@ -130,6 +130,7 @@ type
     ByAddress: Boolean;     /// True pour le passer par adresse
     Place: TSepiParamPlace; /// Endroit où le placer
     StackOffset: Word;      /// Offset où le placer dans la pile
+    SepiStackOffset: Word;  /// Offset dans la pile pour des appels Sepi
   end;
 
   {*
@@ -209,8 +210,9 @@ type
     FParams: TObjectList;       /// Paramètres déclarés (visibles)
     FActualParams: TObjectList; /// Paramètres réels
 
-    FRegUsage: Byte;   /// Nombre de registres utilisés (entre 0 et 3)
-    FStackUsage: Word; /// Taille utilisée sur la pile (en octets)
+    FRegUsage: Byte;       /// Nombre de registres utilisés (entre 0 et 3)
+    FStackUsage: Word;     /// Taille utilisée sur la pile (en octets)
+    FSepiStackUsage: Word; /// Taille utilisée sur la pile Sepi (en octets)
 
     constructor BaseCreate(AOwner: TSepiMeta);
 
@@ -260,6 +262,7 @@ type
 
     property RegUsage: Byte read FRegUsage;
     property StackUsage: Word read FStackUsage;
+    property SepiStackUsage: Word read FSepiStackUsage;
   end;
 
   {*
@@ -271,11 +274,13 @@ type
   private
     FCode: Pointer;               /// Adresse de code natif
     FCodeJumper: TJmpInstruction; /// Jumper sur le code, si non native
-    FSignature: TSepiSignature;   /// Signature de la méthode
-    FLinkKind: TMethodLinkKind;   /// Type de liaison d'appel
-    FFirstDeclaration: Boolean;   /// Faux uniquement quand 'override'
-    FAbstract: Boolean;           /// Indique si la méthode est abstraite
-    FInherited: TSepiMethod;      /// Méthode héritée
+    FCodeHandler: TObject;        /// Gestionnaire de code
+
+    FSignature: TSepiSignature; /// Signature de la méthode
+    FLinkKind: TMethodLinkKind; /// Type de liaison d'appel
+    FFirstDeclaration: Boolean; /// Faux uniquement quand 'override'
+    FAbstract: Boolean;         /// Indique si la méthode est abstraite
+    FInherited: TSepiMethod;    /// Méthode héritée
 
     FLinkIndex: Integer; /// Offset de VMT ou index de DMT, selon la liaison
 
@@ -306,10 +311,13 @@ type
 
     procedure AfterConstruction; override;
 
-    procedure SetCode(ACode: Pointer);
-    procedure SetCodeMethod(const AMethod: TMethod);
+    procedure SetCode(ACode: Pointer; ACodeHandler: TObject = nil);
+    procedure SetCodeMethod(const AMethod: TMethod;
+      ACodeHandler: TObject = nil);
 
     property Code: Pointer read FCode;
+    property CodeHandler: TObject read FCodeHandler;
+
     property Signature: TSepiSignature read FSignature;
     property LinkKind: TMethodLinkKind read FLinkKind;
     property FirstDeclaration: Boolean read FFirstDeclaration;
@@ -1282,7 +1290,7 @@ begin
   if Kind in [mkFunction, mkClassFunction] then
   begin
     FReturnType := Root.FindType(PShortString(ParamData)^);
-    if ReturnType.ParamBehavior.AlwaysByAddress then
+    if ReturnType.ResultBehavior = rbParameter then
       TSepiParam.CreateHidden(Self, hpResult, ReturnType);
   end else
     FReturnType := nil;
@@ -1306,6 +1314,7 @@ begin
   Stream.ReadBuffer(FCallingConvention, 1);
   Stream.ReadBuffer(FRegUsage, 1);
   Stream.ReadBuffer(FStackUsage, 2);
+  Stream.ReadBuffer(FSepiStackUsage, 2);
 
   Stream.ReadBuffer(Count, 4);
   while Count > 0 do
@@ -1384,7 +1393,7 @@ begin
     end;
   end;
 
-  if (ReturnType <> nil) and ReturnType.ParamBehavior.AlwaysByAddress then
+  if (ReturnType <> nil) and (ReturnType.ResultBehavior = rbParameter) then
     TSepiParam.CreateHidden(Self, hpResult, ReturnType);
 
   if (Kind in mkOfObject) and (CallingConvention = ccPascal) then
@@ -1451,6 +1460,7 @@ begin
       if Place = ppStack then
       begin
         StackOffset := FStackUsage;
+        SepiStackOffset := FStackUsage;
         if ByAddress then
           Inc(FStackUsage, 4)
         else
@@ -1459,6 +1469,24 @@ begin
           if FStackUsage mod 4 <> 0 then
             FStackUsage := (FStackUsage and $FFFC) + 4;
         end;
+      end;
+    end;
+  end;
+
+  // Third pass: adapt SepiStackOffset for register methods
+  FSepiStackUsage := FStackUsage;
+  if CallingConvention = ccRegister then
+  begin
+    Inc(FSepiStackUsage, 4*RegUsage);
+
+    for I := 0 to ParamCount-1 do
+    begin
+      with ActualParams[I].FCallInfo do
+      begin
+        if Place = ppStack then
+          Inc(SepiStackOffset, 4*RegUsage)
+        else
+          SepiStackOffset := 4*Ord(Place);
       end;
     end;
   end;
@@ -1574,6 +1602,7 @@ begin
   Stream.WriteBuffer(FCallingConvention, 1);
   Stream.WriteBuffer(FRegUsage, 1);
   Stream.WriteBuffer(FStackUsage, 2);
+  Stream.WriteBuffer(FSepiStackUsage, 2);
 
   Count := ActualParamCount;
   Stream.WriteBuffer(Count, 4);
@@ -1642,6 +1671,8 @@ begin
   inherited;
 
   FCode := nil;
+  FCodeHandler := nil;
+  
   FSignature := TSepiSignature.Load(Self, Stream);
   Stream.ReadBuffer(FLinkKind, 1);
   FFirstDeclaration := FLinkKind <> mlkOverride;
@@ -1664,7 +1695,7 @@ begin
   if not IsAbstract then
   begin
     if Assigned(OwningUnit.OnGetMethodCode) then
-      OwningUnit.OnGetMethodCode(Self, FCode);
+      OwningUnit.OnGetMethodCode(Self, FCode, FCodeHandler);
     if not Assigned(FCode) then
       FCode := @FCodeJumper;
   end;
@@ -1696,6 +1727,8 @@ begin
     SignPrefix := '';
 
   FCode := ACode;
+  FCodeHandler := nil;
+
   FSignature := TSepiSignature.Create(Self,
     SignPrefix + ASignature, ACallingConvention);
   FLinkKind := ALinkKind;
@@ -1849,11 +1882,13 @@ begin
   case LinkKind of
     mlkVirtual: FCode := TSepiClass(Owner).VMTEntries[VMTOffset];
     mlkDynamic, mlkMessage:
+    begin
       try
         FCode := GetClassDynamicCode(TSepiClass(Owner).DelphiClass, DMTIndex);
       except
         on Error: EAbstractError do;
       end;
+    end;
   end;
 end;
 
@@ -1921,22 +1956,26 @@ end;
   Donne l'adresse de début du code de la méthode
   Cette méthode ne peut être appelée qu'une seule fois par méthode, et
   seulement pour les méthodes non natives.
-  @param ACode   Adresse de code
+  @param ACode          Adresse de code
+  @param ACodeHandler   Gestionnaire de code
 *}
-procedure TSepiMethod.SetCode(ACode: Pointer);
+procedure TSepiMethod.SetCode(ACode: Pointer; ACodeHandler: TObject = nil);
 begin
   Assert(FCode = @FCodeJumper);
   Assert(FCodeJumper.OpCode = 0);
   MakeJmp(FCodeJumper, ACode);
+  FCodeHandler := ACodeHandler;
 end;
 
 {*
   Donne l'adresse de début du code de la méthode, à partir d'une méthode
   Cette méthode ne peut être appelée qu'une seule fois par méthode, et
   seulement pour les méthodes non natives.
-  @param AMethod   Méthode de code
+  @param AMethod        Méthode de code
+  @param ACodeHandler   Gestionnaire de code
 *}
-procedure TSepiMethod.SetCodeMethod(const AMethod: TMethod);
+procedure TSepiMethod.SetCodeMethod(const AMethod: TMethod;
+  ACodeHandler: TObject = nil);
 var
   I, MoveStackCount: Integer;
   ACode: Pointer;
@@ -1975,7 +2014,7 @@ begin
   end;
 
   AddPtrResource(ACode);
-  SetCode(ACode);
+  SetCode(ACode, ACodeHandler);
 end;
 
 {------------------------------}
@@ -2622,8 +2661,13 @@ begin
   FCompleted := True;
   if not IsPacked then
     AlignOffset(FSize);
+
   if Size > 4 then
+  begin
     FParamBehavior.AlwaysByAddress := True;
+    FResultBehavior := rbParameter;
+  end;
+
   if TypeInfo = nil then
     MakeTypeInfo;
 end;
@@ -2652,6 +2696,7 @@ begin
 
   FSize := 4;
   FNeedInit := True;
+  FResultBehavior := rbParameter;
 
   if Assigned(TypeData.IntfParent) then
   begin
@@ -2685,6 +2730,7 @@ begin
 
   FSize := 4;
   FNeedInit := True;
+  FResultBehavior := rbParameter;
 
   OwningUnit.ReadRef(Stream, FParent);
   FCompleted := False;
@@ -2715,6 +2761,7 @@ begin
 
   FSize := 4;
   FNeedInit := True;
+  FResultBehavior := rbParameter;
 
   if Assigned(AParent) then
     FParent := AParent
@@ -2801,8 +2848,12 @@ end;
 class function TSepiInterface.NewInstance: TObject;
 begin
   Result := inherited NewInstance;
-  TSepiInterface(Result).FSize := 4;
-  TSepiInterface(Result).FNeedInit := True;
+  with TSepiInterface(Result) do
+  begin
+    FSize := 4;
+    FNeedInit := True;
+    FResultBehavior := rbParameter;
+  end;
 end;
 
 {*
@@ -4076,6 +4127,7 @@ begin
   begin
     FSize := 8;
     FParamBehavior.AlwaysByStack := True;
+    FResultBehavior := rbParameter;
   end else
     FSize := 4;
 end;
@@ -4092,6 +4144,7 @@ begin
   begin
     FSize := 8;
     FParamBehavior.AlwaysByStack := True;
+    FResultBehavior := rbParameter;
   end else
     FSize := 4;
 end;
@@ -4123,6 +4176,7 @@ begin
   begin
     FSize := 8;
     FParamBehavior.AlwaysByStack := True;
+    FResultBehavior := rbParameter;
   end else
     FSize := 4;
 end;
@@ -4178,6 +4232,7 @@ begin
   FSize := 16;
   FNeedInit := True;
   FParamBehavior.AlwaysByAddress := True;
+  FResultBehavior := rbParameter;
 end;
 
 {*
@@ -4192,6 +4247,7 @@ begin
   FSize := 16;
   FNeedInit := True;
   FParamBehavior.AlwaysByAddress := True;
+  FResultBehavior := rbParameter;
 end;
 
 {*

@@ -146,6 +146,7 @@ begin
   FMaxLength := TypeData.MaxLength;
   FSize := FMaxLength + 1;
   FParamBehavior.AlwaysByAddress := True;
+  FResultBehavior := rbParameter;
 end;
 
 {*
@@ -223,12 +224,13 @@ begin
 
   FSize := 4;
   FNeedInit := True;
+  FResultBehavior := rbParameter;
   FIsUnicode := Kind = tkWString;
 end;
 
 initialization
   SepiRegisterMetaClasses([
     TSepiShortStringType, TSepiStringType
-    ]);
+  ]);
 end.
 

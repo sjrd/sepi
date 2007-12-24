@@ -59,11 +59,12 @@ type
 
   {*
     Type de l'événement OnGetMethodCode de TSepiUnit
-    @param Sender   Méthode déclenchant l'événement (toujours TSepiMethod)
-    @param Code     Adresse de code de la méthode
+    @param Sender        Méthode déclenchant l'événement (toujours TSepiMethod)
+    @param Code          Adresse de code de la méthode
+    @param CodeHandler   Gestionnaire de code
   *}
-  TGetMethodCodeEvent = procedure(Sender: TObject;
-    var Code: Pointer) of object;
+  TGetMethodCodeEvent = procedure(Sender: TObject; var Code: Pointer;
+    var CodeHandler: TObject) of object;
 
   {*
     Déclenchée si l'on tente de recréer un meta (second appel au constructeur)
@@ -207,6 +208,22 @@ type
   end;
 
   {*
+    Comportement d'un type lorsqu'il est valeur de retour
+    - rbOrdinal : renvoyé comme un ordinal, via EAX
+    - rbInt64 : renvoyé comme Int64, via EDX:EAX
+    - rbSingle : renvoyé comme Single, via ST(0)
+    - rbDouble : renvoyé comme Double, via ST(0)
+    - rbExtended : renvoyé comme Extended, via ST(0)
+    - rbCurrency : renvoyé comme Currency, via ST(0)
+    - rbParameter : l'adresse du résultat est passée en paramètre
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiTypeResultBehavior = (
+    rbOrdinal, rbInt64, rbSingle, rbDouble, rbExtended, rbCurrency, rbParameter
+  );
+
+  {*
     Type
     @author sjrd
     @version 1.0
@@ -223,7 +240,8 @@ type
     FSize: Integer;     /// Taille d'une variable de ce type
     FNeedInit: Boolean; /// Indique si ce type requiert une initialisation
 
-    FParamBehavior: TSepiTypeParamBehavior; /// Comportement comme paramètre
+    FParamBehavior: TSepiTypeParamBehavior;   /// Comportement comme paramètre
+    FResultBehavior: TSepiTypeResultBehavior; /// Comportement comme résultat
 
     procedure Save(Stream: TStream); override;
 
@@ -261,6 +279,7 @@ type
     property NeedInit: Boolean read FNeedInit;
     property Alignment: Integer read GetAlignment;
     property ParamBehavior: TSepiTypeParamBehavior read FParamBehavior;
+    property ResultBehavior: TSepiTypeResultBehavior read FResultBehavior;
   end;
 
   {*
@@ -1152,6 +1171,7 @@ begin
   FTypeData := GetTypeData(FTypeInfo);
   FSize := 0;
   FParamBehavior := DefaultTypeParamBehavior;
+  FResultBehavior := rbOrdinal;
 end;
 
 {*
@@ -1173,6 +1193,7 @@ begin
   FSize := 0;
   FNeedInit := False;
   FParamBehavior := DefaultTypeParamBehavior;
+  FResultBehavior := rbOrdinal;
 end;
 
 {*
@@ -1192,6 +1213,7 @@ begin
   FSize := 0;
   FNeedInit := False;
   FParamBehavior := DefaultTypeParamBehavior;
+  FResultBehavior := rbOrdinal;
 end;
 
 {*
@@ -1213,6 +1235,7 @@ begin
   FSize := 0;
   FNeedInit := False;
   FParamBehavior := DefaultTypeParamBehavior;
+  FResultBehavior := rbOrdinal;
 end;
 
 {*

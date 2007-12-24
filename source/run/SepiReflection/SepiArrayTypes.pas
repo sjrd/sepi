@@ -153,7 +153,9 @@ begin
 
   MakeSize;
   FNeedInit := FElementType.NeedInit;
-  FParamBehavior.AlwaysByAddress := True;
+  FParamBehavior.AlwaysByAddress := Size > 4;
+  if FParamBehavior.AlwaysByAddress then
+    FResultBehavior := rbParameter;
 
   MakeTypeInfo;
 end;
@@ -182,7 +184,9 @@ begin
 
   MakeSize;
   FNeedInit := FElementType.NeedInit;
-  FParamBehavior.AlwaysByAddress := True;
+  FParamBehavior.AlwaysByAddress := Size > 4;
+  if FParamBehavior.AlwaysByAddress then
+    FResultBehavior := rbParameter;
 
   if AIsNative then
     ForceNative(ATypeInfo);
@@ -361,6 +365,7 @@ begin
 
   FSize := 4;
   FNeedInit := True;
+  FResultBehavior := rbParameter;
 
   // Element size
   TypeData.elSize := FElementType.Size;
@@ -414,6 +419,7 @@ begin
 
   FSize := 4;
   FNeedInit := True;
+  FResultBehavior := rbParameter;
 
   if Assigned(TypeData.elType2) then
     FElementType := Root.FindType(TypeData.elType2^);
@@ -456,6 +462,6 @@ end;
 initialization
   SepiRegisterMetaClasses([
     TSepiArrayType, TSepiDynArrayType
-    ]);
+  ]);
 end.
 

@@ -608,6 +608,7 @@ begin
 
   FSize := 8;
   FParamBehavior.AlwaysByStack := True;
+  FResultBehavior := rbInt64;
   FMinValue := TypeData.MinInt64Value;
   FMaxValue := TypeData.MaxInt64Value;
 
@@ -692,18 +693,19 @@ end;
   [@inheritedDoc]
 *}
 procedure TSepiFloatType.ExtractTypeData;
+const
+  Sizes: array[TFloatType] of Integer = (4, 8, 10, 8, 8);
+  ResultBehaviors: array[TFloatType] of TSepiTypeResultBehavior = (
+    rbSingle, rbDouble, rbExtended, rbCurrency, rbCurrency
+  );
 begin
   inherited;
 
   FFloatType := TypeData.FloatType;
 
-  case FFloatType of
-    ftSingle: FSize := 4;
-    ftDouble, ftComp, ftCurr: FSize := 8;
-    ftExtended: FSize := 10;
-  end;
-
+  FSize := Sizes[FFloatType];
   FParamBehavior.AlwaysByStack := True;
+  FResultBehavior := ResultBehaviors[FFloatType];
 end;
 
 {*
@@ -1065,6 +1067,8 @@ begin
     FSize := 4;
 
   FParamBehavior.AlwaysByAddress := Size > 4;
+  if FParamBehavior.AlwaysByAddress then
+    FResultBehavior := rbParameter;
 end;
 
 {*
@@ -1234,6 +1238,6 @@ initialization
   SepiRegisterMetaClasses([
     TSepiIntegerType, TSepiCharType, TSepiInt64Type, TSepiFloatType,
     TSepiBooleanType, TSepiEnumType, TSepiSetType, TSepiPointerType
-    ]);
+  ]);
 end.
 
