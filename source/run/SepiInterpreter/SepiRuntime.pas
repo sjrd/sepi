@@ -27,9 +27,9 @@ unit SepiRuntime;
 interface
 
 uses
-  SysUtils, Classes, Contnrs, TypInfo, ScUtils, ScClasses, ScTypInfo,
-  ScCompilerMagic, SepiReflectionCore, SepiMembers, SepiReflectionConsts,
-  SepiOpCodes, SepiRuntimeOperations;
+  SysUtils, Classes, Contnrs, TypInfo, ScUtils, ScStrUtils, ScClasses,
+  ScTypInfo, ScDelphiLanguage, ScCompilerMagic, SepiReflectionCore,
+  SepiMembers, SepiReflectionConsts, SepiOpCodes, SepiRuntimeOperations;
 
 type
   TSepiRuntimeMethod = class;
@@ -68,6 +68,20 @@ type
   end;
 
   {*
+    Informations de recopiage d'un paramètre local
+    @author sjrd
+    @version 1.0
+  *}
+  TLocalParam = record
+    StackOffset: Integer; /// Offset dans la pile
+    LocalOffset: Integer; /// Offset dans les paramètres locaux
+    Size: Integer;        /// Taille du paramètre
+  end;
+
+  /// Informations de recopiage des paramètres locaux
+  TLocalParams = array of TLocalParam;
+
+  {*
     Méthode d'exécution Sepi
     @author sjrd
     @version 1.0
@@ -83,13 +97,19 @@ type
     FCodeSize: Integer;   /// Taille du code
     FCode: Pointer;       /// Code
 
+    FParamsAddRef: PTypeInfo;    /// Infos sur les paramètres à référencer
+    FLocalParamsSize: Integer;   /// Taille des paramètres recopiés en local
+    FLocalParams: TLocalParams;  /// Infos de recopiage local des paramètres
+    FLocalParamsInfo: PTypeInfo; /// Infos sur les paramètres recopiés en local
+
     FResultSize: Integer;       /// Taille du résultat
-    FResultTypeInfo: PTypeInfo; /// RTTI du résultat
 
     FLocalsInfo: PTypeInfo; /// Informations sur les variables locales
 
     FNativeCode: Pointer; /// Code natif
 
+    procedure MakeParamsAddRef;
+    procedure MakeLocalParams;
     procedure SetSepiMethod(AMethod: TSepiMethod);
     procedure ReadLocalsInfo(Stream: TStream);
   public
@@ -127,8 +147,12 @@ type
     procedure OpCodeNope(OpCode: TSepiOpCode);
     procedure OpCodeJump(OpCode: TSepiOpCode);
     procedure OpCodeJumpIf(OpCode: TSepiOpCode);
+
     procedure OpCodePrepareParams(OpCode: TSepiOpCode);
-    procedure OpCodeCall(OpCode: TSepiOpCode);
+    procedure OpCodeBasicCall(OpCode: TSepiOpCode);
+    procedure OpCodeSignedCall(OpCode: TSepiOpCode);
+    procedure OpCodeStaticCall(OpCode: TSepiOpCode);
+    procedure OpCodeDynamicCall(OpCode: TSepiOpCode);
 
     procedure OpCodeLoadAddress(OpCode: TSepiOpCode);
     procedure OpCodeSimpleMove(OpCode: TSepiOpCode);
@@ -147,6 +171,7 @@ type
 
     function ReadAddress(ConstSize: Integer = 0): Pointer;
     procedure ReadJumpDest(out Value: Integer; out Origin: Word);
+    procedure ReleasePreparedParams;
   public
     constructor Create(ARuntimeUnit: TSepiRuntimeUnit;
       AInstructions, AParameters, ALocals: Pointer);
@@ -171,6 +196,8 @@ const
     1, 1, 2, 4, 8, 1, 2, 4, 8, 4, 8, 10, 8, 8, 4, 4, 0
   );
 
+  ConstAsNil = Integer($80000000); /// Constante prise comme nil
+
 type
   TSepiAccessTypeInfoRef = class(TSepiType)
   public
@@ -193,13 +220,17 @@ begin
   @OpCodeProcs[ocExtended] := @TSepiRuntimeContext.UnknownOpCode;
 
   // Flow control
-  @OpCodeProcs[ocJump]          := @TSepiRuntimeContext.OpCodeJump;
-  @OpCodeProcs[ocJumpIfTrue]    := @TSepiRuntimeContext.OpCodeJumpIf;
-  @OpCodeProcs[ocJumpIfFalse]   := @TSepiRuntimeContext.OpCodeJumpIf;
-  @OpCodeProcs[ocReturn]        := @TSepiRuntimeContext.OpCodeNope;
+  @OpCodeProcs[ocJump]        := @TSepiRuntimeContext.OpCodeJump;
+  @OpCodeProcs[ocJumpIfTrue]  := @TSepiRuntimeContext.OpCodeJumpIf;
+  @OpCodeProcs[ocJumpIfFalse] := @TSepiRuntimeContext.OpCodeJumpIf;
+  @OpCodeProcs[ocReturn]      := @TSepiRuntimeContext.OpCodeNope;
+
+  // Calls
   @OpCodeProcs[ocPrepareParams] := @TSepiRuntimeContext.OpCodePrepareParams;
-  @OpCodeProcs[ocCall]          := @TSepiRuntimeContext.OpCodeCall;
-  @OpCodeProcs[ocCallResult]    := @TSepiRuntimeContext.OpCodeCall;
+  @OpCodeProcs[ocBasicCall]     := @TSepiRuntimeContext.OpCodeBasicCall;
+  @OpCodeProcs[ocSignedCall]    := @TSepiRuntimeContext.OpCodeSignedCall;
+  @OpCodeProcs[ocStaticCall]    := @TSepiRuntimeContext.OpCodeStaticCall;
+  @OpCodeProcs[ocDynamicCall]   := @TSepiRuntimeContext.OpCodeDynamicCall;
 
   // Memory moves
   @OpCodeProcs[ocLoadAddress] := @TSepiRuntimeContext.OpCodeLoadAddress;
@@ -229,6 +260,20 @@ begin
   // Comparisons
   for I := ocCompEquals to ocCompGreaterEq do
     @OpCodeProcs[I] := @TSepiRuntimeContext.OpCodeCompare;
+end;
+
+{*
+  Alloue les RTTI d'un type record anonyme
+  @param FieldCount   Nombre de champ requérant une initialisation
+  @return Pointeur sur les RTTI du type
+*}
+function AllocRecordTypeInfo(FieldCount: Integer): PTypeInfo;
+var
+  Size: Integer;
+begin
+  Size := 2 + SizeOf(TRecordTypeData) + (FieldCount-1)*SizeOf(TRecordField);
+  GetMem(Result, Size);
+  PWord(Result)^ := Word(tkRecord); // second byte is name length (so 0)
 end;
 
 {------------------------}
@@ -324,10 +369,12 @@ procedure TSepiRuntimeUnit.GetMethodCode(Sender: TObject; var Code: Pointer;
   var CodeHandler: TObject);
 var
   SepiMethod: TSepiMethod;
+  UnitName, MethodName: string;
   Method: TSepiRuntimeMethod;
 begin
   SepiMethod := Sender as TSepiMethod;
-  Method := FindMethod(SepiMethod.GetFullName);
+  SplitToken(SepiMethod.GetFullName, '.', UnitName, MethodName);
+  Method := FindMethod(MethodName);
 
   Method.SetSepiMethod(SepiMethod);
   Code := Method.NativeCode;
@@ -381,8 +428,11 @@ begin
   GetMem(FCode, FCodeSize);
   Stream.ReadBuffer(FCode^, FCodeSize);
 
+  FParamsAddRef := nil;
+  FLocalParamsSize := 0;
+  FLocalParamsInfo := nil;
+
   FResultSize := 0;
-  FResultTypeInfo := nil;
 
   FLocalsInfo := nil;
 
@@ -398,9 +448,133 @@ begin
     FreeMem(FNativeCode);
   if Assigned(FLocalsInfo) then
     FreeMem(FLocalsInfo);
+  if Assigned(FLocalParamsInfo) then
+    FreeMem(FLocalParamsInfo);
+  if Assigned(FParamsAddRef) then
+    FreeMem(FParamsAddRef);
   FreeMem(FCode);
-  
+
   inherited;
+end;
+
+{*
+  Construit les informations de référencement des paramètres
+*}
+procedure TSepiRuntimeMethod.MakeParamsAddRef;
+var
+  Signature: TSepiSignature;
+  I, Count: Integer;
+  AddRefInfo: array of TRecordField;
+begin
+  Signature := SepiMethod.Signature;
+
+  // Register parameters which need add ref
+
+  SetLength(AddRefInfo, Signature.ActualParamCount);
+  Count := 0;
+
+  for I := Signature.ActualParamCount-1 downto 0 do
+  begin
+    with Signature.ActualParams[I] do
+    begin
+      { An "add ref" is required if the three following conditions meet:
+        - The parameter is a value parameter (not const/var/out) ;
+        - It is transmitted by value (and not by address, i.e. big records) ;
+        - Its type requires initialization. }
+      if (Kind = pkValue) and (not CallInfo.ByAddress) and
+        ParamType.NeedInit then
+      begin
+        with AddRefInfo[Count] do
+        begin
+          TypeInfo := TSepiAccessTypeInfoRef(ParamType).TypeInfoRef;
+          Offset := CallInfo.SepiStackOffset;
+        end;
+
+        Inc(Count);
+      end;
+    end;
+  end;
+
+  // If Count = 0, don't allocate anything
+
+  if Count = 0 then
+    Exit;
+
+  // Allocate and fill in type information
+
+  FParamsAddRef := AllocRecordTypeInfo(Count);
+  with PRecordTypeData(Integer(FParamsAddRef)+2)^ do
+  begin
+    Size := FParamsSize;
+    FieldCount := Count;
+    Move(AddRefInfo[0], Fields[0], Count * SizeOf(TRecordField));
+  end;
+end;
+
+{*
+  Construit les informations de recopie locale des paramètres
+*}
+procedure TSepiRuntimeMethod.MakeLocalParams;
+var
+  Signature: TSepiSignature;
+  I, Count: Integer;
+  LocalParamsInfo: array of TRecordField;
+begin
+  Signature := SepiMethod.Signature;
+
+  // Register parameters which need copying
+
+  SetLength(LocalParamsInfo, Signature.ActualParamCount);
+  Count := 0;
+  FLocalParamsSize := 0;
+  SetLength(FLocalParams, Signature.ActualParamCount);
+
+  for I := Signature.ActualParamCount-1 downto 0 do
+  begin
+    with Signature.ActualParams[I] do
+    begin
+      { Copying is required if both following conditions meet:
+        - The parameter is a value parameter (not const/var/out) ;
+        - It is transmitted by address (i.e. big records). }
+      if (Kind = pkValue) and CallInfo.ByAddress then
+      begin
+        with FLocalParams[Count] do
+        begin
+          StackOffset := CallInfo.SepiStackOffset;
+          LocalOffset := FLocalParamsSize;
+          Size := ParamType.Size;
+        end;
+
+        with LocalParamsInfo[Count] do
+        begin
+          TypeInfo := TSepiAccessTypeInfoRef(ParamType).TypeInfoRef;
+          Offset := FLocalParamsSize;
+        end;
+
+        Inc(FLocalParamsSize, ParamType.Size);
+        Inc(Count);
+      end;
+    end;
+  end;
+
+  // Pack FLocalParams array
+
+  SetLength(FLocalParams, Count);
+
+  // If Count = 0, don't allocate anything
+
+  if Count = 0 then
+    Exit;
+
+  // Allocate and fill in type information
+
+  FLocalParamsInfo := AllocRecordTypeInfo(Count);
+  with PRecordTypeData(Integer(FLocalParamsInfo)+2)^ do
+  begin
+    Size := FLocalParamsSize;
+    FieldCount := Count;
+    Move(LocalParamsInfo[0], Fields[0], Count * SizeOf(TRecordField));
+  end;
 end;
 
 {*
@@ -409,23 +583,23 @@ end;
 *}
 procedure TSepiRuntimeMethod.SetSepiMethod(AMethod: TSepiMethod);
 var
+  Signature: TSepiSignature;
   ResultType: TSepiType;
 begin
   FSepiMethod := AMethod;
+  Signature := FSepiMethod.Signature;
 
-  // Update result information
-  if FResultSize = 0 then
-  begin
-    ResultType := FSepiMethod.Signature.ReturnType;
-    if (ResultType <> nil) and (ResultType.ResultBehavior <> rbParameter) then
-    begin
-      FResultSize := ResultType.Size;
-      FResultTypeInfo := ResultType.TypeInfo;
-    end;
-  end;
+  // Set up local params information
+  MakeParamsAddRef;
+  MakeLocalParams;
+
+  // Set up result information
+  ResultType := Signature.ReturnType;
+  if (ResultType <> nil) and (ResultType.ResultBehavior <> rbParameter) then
+    FResultSize := ResultType.Size;
 
   // Make native code
-  with SepiMethod, Signature do
+  with Signature do
   begin
     FNativeCode := MakeInCallCode(Self, ReturnType, CallingConvention,
       SepiStackUsage, RegUsage);
@@ -438,7 +612,7 @@ end;
 *}
 procedure TSepiRuntimeMethod.ReadLocalsInfo(Stream: TStream);
 var
-  Count, AllocSize, I: Integer;
+  Count, I: Integer;
   SepiType: TSepiType;
 begin
   // Read count
@@ -447,9 +621,7 @@ begin
     Exit;
 
   // Allocate type information
-  AllocSize := 2 + SizeOf(TRecordTypeData) + (Count-1) * SizeOf(TRecordField);
-  GetMem(FLocalsInfo, AllocSize);
-  PWord(FLocalsInfo)^ := Word(tkRecord); // second byte is name length (0)
+  FLocalsInfo := AllocRecordTypeInfo(Count);
 
   // Fill type data
   with PRecordTypeData(Integer(FLocalsInfo)+2)^ do
@@ -477,20 +649,50 @@ end;
 procedure TSepiRuntimeMethod.Invoke(Parameters: Pointer;
   Result: Pointer = nil);
 var
-  LocalsSize: Integer;
-  Locals: Pointer;
+  LocalsSize, I: Integer;
+  Locals, LocalParams: Pointer;
+  ParamsPPtr: PPointer;
+  LocalsPtr: Pointer;
   Context: TSepiRuntimeContext;
 begin
-  LocalsSize := FLocalsSize;
-
+  // Allocate locals on stack
+  LocalsSize := FLocalsSize + FLocalParamsSize;
   asm
         SUB     ESP,LocalsSize
         MOV     Locals,ESP
   end;
+  LocalParams := Pointer(Integer(Locals) + FLocalsSize);
 
+  // Initialize local variables
   if Assigned(FLocalsInfo) then
     Initialize(Locals^, FLocalsInfo);
+
+  // Add references to parameters
+  if Assigned(FParamsAddRef) then
+    AddRef(Parameters^, FParamsAddRef);
+
+  // Copy local parameters
+  if FLocalParamsSize <> 0 then
+  begin
+    // Copy data and change references
+    for I := Length(FLocalParams)-1 downto 0 do
+    begin
+      with FLocalParams[I] do
+      begin
+        ParamsPPtr := PPointer(Integer(Parameters) + StackOffset);
+        LocalsPtr := Pointer(Integer(LocalParams) + LocalOffset);
+        Move(ParamsPPtr^^, LocalsPtr^, Size);
+        ParamsPPtr^ := LocalsPtr;
+      end;
+    end;
+
+    // Add references
+    if Assigned(FLocalParamsInfo) then
+      AddRef(LocalParams^, FLocalParamsInfo);
+  end;
+
   try
+    // Execute the method code
     Context := TSepiRuntimeContext.Create(RuntimeUnit, Code,
       Parameters, Locals);
     try
@@ -499,13 +701,20 @@ begin
       Context.Free;
     end;
 
+    // Fetch result, if required (a result never requires initialization)
     if Assigned(Result) then
-      CopyData(Locals^, Result^, FResultSize, FResultTypeInfo);
+      Move(Locals^, Result^, FResultSize);
   finally
+    // Finalize all local variables (including value parameters)
+    if Assigned(FLocalParamsInfo) then
+      Finalize(LocalParams^, FLocalParamsInfo);
+    if Assigned(FParamsAddRef) then
+      Finalize(Parameters^, FParamsAddRef);
     if Assigned(FLocalsInfo) then
       Finalize(Locals^, FLocalsInfo);
   end;
 
+  // Deallocate locals from stack
   asm
         ADD     ESP,LocalsSize
   end;
@@ -618,10 +827,79 @@ begin
 end;
 
 {*
-  OpCode Call
+  OpCode BasicCall
   @param OpCode   OpCode
 *}
-procedure TSepiRuntimeContext.OpCodeCall(OpCode: TSepiOpCode);
+procedure TSepiRuntimeContext.OpCodeBasicCall(OpCode: TSepiOpCode);
+var
+  CallSettings: TSepiCallSettings;
+  CallingConvention: TCallingConvention;
+  RegUsage: Byte;
+  ResultBehavior: TSepiTypeResultBehavior;
+  Address: Pointer;
+  Result: Pointer;
+begin
+  // Read the instruction
+  Instructions.ReadBuffer(CallSettings, 1);
+  CallSettingsDecode(CallSettings, CallingConvention,
+    RegUsage, ResultBehavior);
+  Address := ReadAddress; // it would be foolish to have a constant here
+  Result := ReadAddress(ConstAsNil);
+
+  // Effective call
+  SepiCallOut(Address, CallingConvention, PreparedParams, PreparedParamsSize,
+    RegUsage, ResultBehavior, Result);
+
+  // Release prepared parameters
+  ReleasePreparedParams;
+end;
+
+{*
+  OpCode SignedCall
+  @param OpCode   OpCode
+*}
+procedure TSepiRuntimeContext.OpCodeSignedCall(OpCode: TSepiOpCode);
+var
+  SignatureOwner: TSepiMeta;
+  Address: Pointer;
+  Result: Pointer;
+  Signature: TSepiSignature;
+  CallingConvention: TCallingConvention;
+  RegUsage: Byte;
+  ResultBehavior: TSepiTypeResultBehavior;
+begin
+  // Read the instruction
+  RuntimeUnit.ReadRef(Instructions, SignatureOwner);
+  Address := ReadAddress; // it would be foolish to have a constant here
+  Result := ReadAddress(ConstAsNil);
+
+  // Find signature
+  if SignatureOwner is TSepiMethod then
+    Signature := TSepiMethod(SignatureOwner).Signature
+  else
+    Signature := (SignatureOwner as TSepiMethodRefType).Signature;
+
+  // Get settings
+  CallingConvention := Signature.CallingConvention;
+  RegUsage := Signature.RegUsage;
+  if Signature.ReturnType = nil then
+    ResultBehavior := rbParameter
+  else
+    ResultBehavior := Signature.ReturnType.ResultBehavior;
+
+  // Effective call
+  SepiCallOut(Address, CallingConvention, PreparedParams, PreparedParamsSize,
+    RegUsage, ResultBehavior, Result);
+
+  // Release prepared parameters
+  ReleasePreparedParams;
+end;
+
+{*
+  OpCode StaticCall
+  @param OpCode   OpCode
+*}
+procedure TSepiRuntimeContext.OpCodeStaticCall(OpCode: TSepiOpCode);
 var
   SepiMethod: TSepiMethod;
   Result: Pointer;
@@ -630,10 +908,7 @@ var
 begin
   // Read the instruction
   RuntimeUnit.ReadRef(Instructions, SepiMethod);
-  if OpCode = ocCallResult then
-    Result := ReadAddress
-  else
-    Result := nil;
+  Result := ReadAddress(ConstAsNil);
 
   // Effective call
   if SepiMethod.CodeHandler is TSepiRuntimeMethod then
@@ -655,12 +930,74 @@ begin
   end;
 
   // Release prepared parameters
-  if Assigned(PreparedParams) then
-  begin
-    FreeMem(PreparedParams);
-    PreparedParams := nil;
-    PreparedParamsSize := 0;
+  ReleasePreparedParams;
+end;
+
+{*
+  OpCode DynamicCall
+  @param OpCode   OpCode
+*}
+procedure TSepiRuntimeContext.OpCodeDynamicCall(OpCode: TSepiOpCode);
+var
+  SepiMethod: TSepiMethod;
+  Result: Pointer;
+  SelfPtr: Pointer;
+  SelfClass: TClass;
+  Address: Pointer;
+  ResultBehavior: TSepiTypeResultBehavior;
+begin
+  // Read the instruction
+  RuntimeUnit.ReadRef(Instructions, SepiMethod);
+  Result := ReadAddress(ConstAsNil);
+
+  // Get Self parameter: it is always the first one on the stack
+  SelfPtr := Pointer(PreparedParams^);
+  case SepiMethod.Signature.Kind of
+    mkProcedure, mkFunction, mkDestructor:
+      SelfClass := TObject(SelfPtr).ClassType;
+    mkClassProcedure, mkClassFunction:
+      SelfClass := TClass(SelfPtr);
+    mkConstructor:
+    begin
+      { Constructors are quite special. They have a Boolean parameter in the
+        second position which is set to True if Self is a class, and False if
+        it is already an instance. }
+      if PBoolean(Integer(PreparedParams)+4)^ then
+        SelfClass := TClass(SelfPtr)
+      else
+        SelfClass := TObject(SelfPtr).ClassType;
+    end;
+  else
+    RaiseInvalidOpCode;
+    SelfClass := nil; // avoid compiler warning
   end;
+
+  // Find the method code
+  case SepiMethod.LinkKind of
+    mlkStatic: Address := SepiMethod.Code;
+    mlkVirtual:
+      Address := GetClassVirtualCode(SelfClass, SepiMethod.VMTOffset);
+    mlkDynamic, mlkMessage:
+      Address := GetClassDynamicCode(SelfClass, SepiMethod.DMTIndex);
+  else
+    RaiseInvalidOpCode;
+    Address := nil; // avoid compiler warning
+  end;
+
+  // Effective call
+  with SepiMethod, Signature do
+  begin
+    if ReturnType = nil then
+      ResultBehavior := rbParameter
+    else
+      ResultBehavior := ReturnType.ResultBehavior;
+
+    SepiCallOut(Address, CallingConvention, PreparedParams, PreparedParamsSize,
+      RegUsage, ResultBehavior, Result);
+  end;
+
+  // Release prepared parameters
+  ReleasePreparedParams;
 end;
 
 {*
@@ -869,18 +1206,26 @@ begin
 
   // Read address space
   Instructions.ReadBuffer(MemoryRef, SizeOf(TSepiMemoryRef));
-  MemPlace := TSepiMemoryPlace(MemoryRef and MemPlaceMask);
-  DerefKind := TSepiDereferenceKind(
-    (MemoryRef and MemDerefMask) shr MemDerefShift);
+  MemoryRefDecode(MemoryRef, MemPlace, DerefKind);
 
   // Read address
   case MemPlace of
     mpConstant:
     begin
-      if (ConstSize <= 0) or (DerefKind <> dkNone) then
-        RaiseInvalidOpCode;
-      Result := Pointer(Integer(Instructions.Position));
-      Instructions.Seek(ConstSize, soFromCurrent);
+      if ConstSize = ConstAsNil then
+      begin
+        // Treat constant as nil return value
+        if DerefKind <> dkNone then
+          RaiseInvalidOpCode;
+        Result := nil;
+      end else
+      begin
+        // Read the constant directly into the code
+        if (ConstSize <= 0) or (DerefKind <> dkNone) then
+          RaiseInvalidOpCode;
+        Result := Instructions.PointerPos;
+        Instructions.Seek(ConstSize, soFromCurrent);
+      end;
     end;
     mpLocalsByte:
     begin
@@ -995,6 +1340,19 @@ begin
       Value := ValuePtr^;
       Origin := soFromBeginning;
     end;
+  end;
+end;
+
+{*
+  Libère les paramètres préparés, s'il y en a
+*}
+procedure TSepiRuntimeContext.ReleasePreparedParams;
+begin
+  if Assigned(PreparedParams) then
+  begin
+    FreeMem(PreparedParams);
+    PreparedParams := nil;
+    PreparedParamsSize := 0;
   end;
 end;
 

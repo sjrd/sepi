@@ -27,7 +27,7 @@ unit SepiOpCodes;
 interface
 
 uses
-  SysUtils;
+  SysUtils, SepiReflectionCore, SepiMembers;
 
 resourcestring
   SInvalidOpCode = 'OpCode invalide';
@@ -62,6 +62,10 @@ type
     mpPreparedParamsByte, mpPreparedParamsWord, mpGlobalVar
   );
 
+const
+  mpNoResult = mpConstant; /// Ne pas garder le résultat
+
+type
   {*
     Type de déréférencement
     - dkNone : pas de déréférencement
@@ -92,23 +96,33 @@ type
   *}
   TSepiJumpDestKind = (jdkShortint, jdkSmallint, jdkLongint, jdkMemory);
 
+  /// Configuration d'un appel basique
+  TSepiCallSettings = type Byte;
+
 const
-  MemPlaceMask = $0F; /// Memory place mask
-  MemDerefMask = $F0; /// Memory dereference mask
-  MemDerefShift = 4;  /// Memory dereference shift
+  MemPlaceMask = $0F; /// Masque d'espace mémoire
+  MemDerefMask = $F0; /// Masque de déréférencement
+  MemDerefShift = 4;  /// Offset de déréférencement
+
+  SettingsCallingConvMask = $07;    /// Masque de la convention d'appel
+  SettingsRegUsageMask = $18;       /// Masque de l'usage des registres
+  SettingsRegUsageShift = 3;        /// Offset de l'usage des registres
+  SettingsResultBehaviorMask = $E0; /// Masque du comportement du résultat
+  SettingsResultBehaviorShift = 5;  /// Offset du comportement du résultat
 
 const
   {
     Mem := TSepiMemoryPlace + Value [+ DerefValue]
     Value :=
-      Constant           -> Constant of the relevant type
-      LocalsByte         -> Byte offset in local vars
-      LocalsWord         -> Word offset in local vars
-      ParamsByte         -> Byte offset in parameters
-      ParamsWord         -> Word offset in parameters
-      PreparedParamsByte -> Byte offset in prepared parameters
-      PreparedParamsWord -> Word offset in prepared parameters
-      GlobalVar          -> Variable reference
+      Constant (const accepted) -> Constant of the relevant type
+      Constant (as CALL result) -> Nothing (don't fetch result)
+      LocalsByte                -> Byte offset in local vars
+      LocalsWord                -> Word offset in local vars
+      ParamsByte                -> Byte offset in parameters
+      ParamsWord                -> Word offset in parameters
+      PreparedParamsByte        -> Byte offset in prepared parameters
+      PreparedParamsWord        -> Word offset in prepared parameters
+      GlobalVar                 -> Variable reference
     Dest := TSepiJumpestKind + DestValue
     DestValue :=
       Shortint -> Shortint relative value
@@ -123,13 +137,17 @@ const
   ocExtended    = TSepiOpCode($01); /// Instruction étendue (non utilisé)
 
   // Flow control (destinations are relative to end of instruction)
-  ocJump          = TSepiOpCode($02); /// JUMP Dest
-  ocJumpIfTrue    = TSepiOpCode($03); /// JIT  Dest, Test
-  ocJumpIfFalse   = TSepiOpCode($04); /// JIF  Dest, Test
-  ocReturn        = TSepiOpCode($05); /// RET
+  ocJump        = TSepiOpCode($02); /// JUMP Dest
+  ocJumpIfTrue  = TSepiOpCode($03); /// JIT  Dest, Test
+  ocJumpIfFalse = TSepiOpCode($04); /// JIF  Dest, Test
+  ocReturn      = TSepiOpCode($05); /// RET
+
+  // Calls
   ocPrepareParams = TSepiOpCode($06); /// PRPA Word-Size
-  ocCall          = TSepiOpCode($07); /// CALL Method-Ref
-  ocCallResult    = TSepiOpCode($08); /// CALL Method-Ref Result
+  ocBasicCall     = TSepiOpCode($07); /// CALL CallSettings Address [Result]
+  ocSignedCall    = TSepiOpCode($08); /// CALL Signature-Ref Address [Result]
+  ocStaticCall    = TSepiOpCode($09); /// CALL Method-Ref [Result]
+  ocDynamicCall   = TSepiOpCode($0A); /// CALL Method-Ref [Result]
 
   // Memory moves
   ocLoadAddress = TSepiOpCode($10); /// LEA   Dest, Src
@@ -197,9 +215,78 @@ const
   ocCompLowerEq   = TSepiOpCode($44); /// LE  Type, Dest, Left, Right
   ocCompGreaterEq = TSepiOpCode($45); /// GE  Type, Dest, Left, Right
 
+function MemoryRefEncode(Place: TSepiMemoryPlace;
+  DereferenceKind: TSepiDereferenceKind): TSepiMemoryRef;
+procedure MemoryRefDecode(MemoryRef: TSepiMemoryRef;
+  out Place: TSepiMemoryPlace; out DereferenceKind: TSepiDereferenceKind);
+
+function CallSettingsEncode(CallingConvention: TCallingConvention;
+  RegUsage: Byte; ResultBehavior: TSepiTypeResultBehavior): TSepiCallSettings;
+procedure CallSettingsDecode(Settings: TSepiCallSettings;
+  out CallingConvention: TCallingConvention; out RegUsage: Byte;
+  out ResultBehavior: TSepiTypeResultBehavior);
+
 procedure RaiseInvalidOpCode;
 
 implementation
+
+{*
+  Encode une référence mémoire
+  @param Place             Espace mémoire
+  @param DereferenceKind   Type de déréférencement
+  @return Référence mémoire correspondante
+*}
+function MemoryRefEncode(Place: TSepiMemoryPlace;
+  DereferenceKind: TSepiDereferenceKind): TSepiMemoryRef;
+begin
+  Result := Byte(Place) or (Byte(DereferenceKind) shl MemDerefShift);
+end;
+
+{*
+  Décode une référence mémoire
+  @param MemoryRef         Référence mémoire à décoder
+  @param Place             En sortie : Espace mémoire
+  @param DereferenceKind   En sortie : Type de déréférencement
+*}
+procedure MemoryRefDecode(MemoryRef: TSepiMemoryRef;
+  out Place: TSepiMemoryPlace; out DereferenceKind: TSepiDereferenceKind);
+begin
+  Place := TSepiMemoryPlace(MemoryRef and MemPlaceMask);
+  DereferenceKind := TSepiDereferenceKind(
+    (MemoryRef and MemDerefMask) shr MemDerefShift);
+end;
+
+{*
+  Encode une configuration d'appel
+  @param CallingConvention   Convention d'appel
+  @param RegUsage            Usage des registres
+  @param ResultBehavior      Comportement du résultat
+  @return Configuration d'appel correspondante
+*}
+function CallSettingsEncode(CallingConvention: TCallingConvention;
+  RegUsage: Byte; ResultBehavior: TSepiTypeResultBehavior): TSepiCallSettings;
+begin
+  Result := Byte(CallingConvention) or
+    (RegUsage shl SettingsRegUsageShift) or
+    (Byte(ResultBehavior) shl SettingsResultBehaviorShift);
+end;
+
+{*
+  Décode une configuration d'appel
+  @param Settings            Configuration à décoder
+  @param CallingConvention   En sortie : Convention d'appel
+  @param RegUsage            En sortie : Usage des registres
+  @param ResultBehavior      En sortie : Comportement du résultat
+*}
+procedure CallSettingsDecode(Settings: TSepiCallSettings;
+  out CallingConvention: TCallingConvention; out RegUsage: Byte;
+  out ResultBehavior: TSepiTypeResultBehavior);
+begin
+  CallingConvention := TCallingConvention(Settings and SettingsCallingConvMask);
+  RegUsage := (Settings and SettingsRegUsageMask) shr SettingsRegUsageShift;
+  ResultBehavior := TSepiTypeResultBehavior(
+    (Settings and SettingsResultBehaviorMask) shr SettingsResultBehaviorShift);
+end;
 
 {*
   Déclenche une exception OpCode invalide
