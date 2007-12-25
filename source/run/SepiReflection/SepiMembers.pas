@@ -3702,8 +3702,12 @@ end;
 class function TSepiClass.NewInstance: TObject;
 begin
   Result := inherited NewInstance;
-  TSepiClass(Result).FSize := 4;
-  TSepiClass(Result).FNeedInit := False;
+  with TSepiClass(Result) do
+  begin
+    FSize := 4;
+    FNeedInit := False;
+    FResultBehavior := rbOrdinal;
+  end;
 end;
 
 {*

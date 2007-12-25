@@ -209,6 +209,7 @@ type
 
   {*
     Comportement d'un type lorsqu'il est valeur de retour
+    - rbNone : pas de résultat (procédure)
     - rbOrdinal : renvoyé comme un ordinal, via EAX
     - rbInt64 : renvoyé comme Int64, via EDX:EAX
     - rbSingle : renvoyé comme Single, via ST(0)
@@ -220,7 +221,8 @@ type
     @version 1.0
   *}
   TSepiTypeResultBehavior = (
-    rbOrdinal, rbInt64, rbSingle, rbDouble, rbExtended, rbCurrency, rbParameter
+    rbNone, rbOrdinal, rbInt64, rbSingle, rbDouble, rbExtended, rbCurrency,
+    rbParameter
   );
 
   {*
@@ -250,6 +252,7 @@ type
     procedure ExtractTypeData; virtual;
 
     function GetAlignment: Integer; virtual;
+    function GetSafeResultBehavior: TSepiTypeResultBehavior;
 
     property TypeInfoRef: PPTypeInfo read FTypeInfoRef;
   public
@@ -280,6 +283,8 @@ type
     property Alignment: Integer read GetAlignment;
     property ParamBehavior: TSepiTypeParamBehavior read FParamBehavior;
     property ResultBehavior: TSepiTypeResultBehavior read FResultBehavior;
+    property SafeResultBehavior: TSepiTypeResultBehavior
+      read GetSafeResultBehavior;
   end;
 
   {*
@@ -1311,6 +1316,18 @@ end;
 function TSepiType.GetAlignment: Integer;
 begin
   Result := Size;
+end;
+
+{*
+  Variante de ResultBehavior valide aussi sur un type nil
+  @return rbNone si le type est nil, ResultBehavior sinon
+*}
+function TSepiType.GetSafeResultBehavior: TSepiTypeResultBehavior;
+begin
+  if Self = nil then
+    Result := rbNone
+  else
+    Result := FResultBehavior;
 end;
 
 {*

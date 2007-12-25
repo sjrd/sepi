@@ -49,6 +49,7 @@ procedure AbstractError;
 
 procedure Initialize(var Value; TypeInfo: PTypeInfo; Count: Cardinal = 1);
 procedure Finalize(var Value; TypeInfo: PTypeInfo; Count: Cardinal = 1);
+procedure AddRef(var Value; TypeInfo: PTypeInfo; Count: Cardinal = 1);
 
 procedure CopyArray(Dest, Source, TypeInfo: Pointer; Count: Integer);
 procedure CopyRecord(Dest, Source, TypeInfo: Pointer);
@@ -79,6 +80,17 @@ end;
 procedure Initialize(var Value; TypeInfo: PTypeInfo; Count: Cardinal = 1);
 asm
         JMP     System.@InitializeArray
+end;
+
+{*
+  Ajoute une référence à une variable - alias de @AddRefArray
+  @param Value      Variable à laquelle ajouter une référence
+  @param TypeInfo   RTTI du type de la variable
+  @param Count      Nombre d'éléments dans la variable
+*}
+procedure AddRef(var Value; TypeInfo: PTypeInfo; Count: Cardinal = 1);
+asm
+        JMP     System.@AddRefArray
 end;
 
 {*

@@ -1230,8 +1230,12 @@ end;
 class function TSepiPointerType.NewInstance: TObject;
 begin
   Result := inherited NewInstance;
-  TSepiPointerType(Result).FSize := 4;
-  TSepiPointerType(Result).FNeedInit := False;
+  with TSepiPointerType(Result) do
+  begin
+    FSize := 4;
+    FNeedInit := False;
+    FResultBehavior := rbOrdinal;
+  end;
 end;
 
 initialization

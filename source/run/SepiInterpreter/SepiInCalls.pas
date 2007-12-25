@@ -250,17 +250,14 @@ function MakeInCallCode(RuntimeMethod: TSepiRuntimeMethod;
   SepiStackUsage: Word; RegUsage: Word = 0): Pointer;
 const
   ResultThunks: array[TSepiTypeResultBehavior] of Pointer = (
-    @OrdinalThunk, @Int64Thunk, @SingleThunk, @DoubleThunk, @ExtendedThunk,
-    @CurrencyThunk, @NoneThunk
+    @NoneThunk, @OrdinalThunk, @Int64Thunk, @SingleThunk, @DoubleThunk,
+    @ExtendedThunk, @CurrencyThunk, @NoneThunk
   );
 var
   ResultThunk: Pointer;
 begin
   // Find the appropriate result thunk
-  if ResultType = nil then
-    ResultThunk := @NoneThunk
-  else
-    ResultThunk := ResultThunks[ResultType.ResultBehavior];
+  ResultThunk := ResultThunks[ResultType.SafeResultBehavior];
 
   // Use the appropriate function maker
   case CallingConvention of
