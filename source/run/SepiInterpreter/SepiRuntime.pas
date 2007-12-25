@@ -28,8 +28,8 @@ interface
 
 uses
   SysUtils, Classes, Contnrs, TypInfo, ScUtils, ScClasses, ScTypInfo,
-  SepiReflectionCore, SepiMembers, SepiReflectionConsts, SepiOpCodes,
-  SepiRuntimeOperations;
+  ScCompilerMagic, SepiReflectionCore, SepiMembers, SepiReflectionConsts,
+  SepiOpCodes, SepiRuntimeOperations;
 
 type
   TSepiRuntimeMethod = class;
@@ -86,9 +86,12 @@ type
     FResultSize: Integer;       /// Taille du résultat
     FResultTypeInfo: PTypeInfo; /// RTTI du résultat
 
+    FLocalsInfo: PTypeInfo; /// Informations sur les variables locales
+
     FNativeCode: Pointer; /// Code natif
 
     procedure SetSepiMethod(AMethod: TSepiMethod);
+    procedure ReadLocalsInfo(Stream: TStream);
   public
     constructor Create(AUnit: TSepiRuntimeUnit; Stream: TStream);
     destructor Destroy; override;
@@ -168,6 +171,13 @@ const
     1, 1, 2, 4, 8, 1, 2, 4, 8, 4, 8, 10, 8, 8, 4, 4, 0
   );
 
+type
+  TSepiAccessTypeInfoRef = class(TSepiType)
+  public
+    // I swear I won't use this property in order to modify the pointed value.
+    property TypeInfoRef;
+  end;
+
 {*
   Initialise les OpCodeProcs
 *}
@@ -239,6 +249,7 @@ begin
   // Read methods
   FMethods := TObjectList.Create;
   Stream.ReadBuffer(Count, SizeOf(Integer));
+  FMethods.Capacity := Count;
   for I := 0 to Count-1 do
     FMethods.Add(TSepiRuntimeMethod.Create(Self, Stream));
 
@@ -250,6 +261,10 @@ begin
   SetLength(FReferences, Count);
   for I := 0 to Count-1 do
     FReferences[I] := SepiRoot.FindMeta(ReadStrFromStream(Stream));
+
+  // Read locals information
+  for I := 0 to FMethods.Count-1 do
+    TSepiRuntimeMethod(FMethods[I]).ReadLocalsInfo(Stream);
 end;
 
 {*
@@ -369,6 +384,8 @@ begin
   FResultSize := 0;
   FResultTypeInfo := nil;
 
+  FLocalsInfo := nil;
+
   FNativeCode := nil;
 end;
 
@@ -379,6 +396,8 @@ destructor TSepiRuntimeMethod.Destroy;
 begin
   if Assigned(FNativeCode) then
     FreeMem(FNativeCode);
+  if Assigned(FLocalsInfo) then
+    FreeMem(FLocalsInfo);
   FreeMem(FCode);
   
   inherited;
@@ -414,6 +433,40 @@ begin
 end;
 
 {*
+  Lit les informations d'init/finit des variables locales depuis un flux
+  @param Stream   Flux source
+*}
+procedure TSepiRuntimeMethod.ReadLocalsInfo(Stream: TStream);
+var
+  Count, AllocSize, I: Integer;
+  SepiType: TSepiType;
+begin
+  // Read count
+  Stream.ReadBuffer(Count, SizeOf(Integer));
+  if Count = 0 then
+    Exit;
+
+  // Allocate type information
+  AllocSize := 2 + SizeOf(TRecordTypeData) + (Count-1) * SizeOf(TRecordField);
+  GetMem(FLocalsInfo, AllocSize);
+  PWord(FLocalsInfo)^ := Word(tkRecord); // second byte is name length (0)
+
+  // Fill type data
+  with PRecordTypeData(Integer(FLocalsInfo)+2)^ do
+  begin
+    Size := FLocalsSize;
+    FieldCount := Count;
+
+    for I := 0 to Count-1 do
+    begin
+      RuntimeUnit.ReadRef(Stream, SepiType);
+      Fields[I].TypeInfo := TSepiAccessTypeInfoRef(SepiType).TypeInfoRef;
+      Stream.ReadBuffer(Fields[I].Offset, SizeOf(Integer));
+    end;
+  end;
+end;
+
+{*
   Invoque la méthode
   Le pointeur sur le résultat Result ne doit être renseigné que s'il s'agit
   bien d'une fonction, et que le résultat n'est pas transmis par adresse en
@@ -435,15 +488,23 @@ begin
         MOV     Locals,ESP
   end;
 
-  Context := TSepiRuntimeContext.Create(RuntimeUnit, Code, Parameters, Locals);
+  if Assigned(FLocalsInfo) then
+    Initialize(Locals^, FLocalsInfo);
   try
-    Context.Execute;
-  finally
-    Context.Free;
-  end;
+    Context := TSepiRuntimeContext.Create(RuntimeUnit, Code,
+      Parameters, Locals);
+    try
+      Context.Execute;
+    finally
+      Context.Free;
+    end;
 
-  if Assigned(Result) then
-    CopyData(Locals^, Result^, FResultSize, FResultTypeInfo);
+    if Assigned(Result) then
+      CopyData(Locals^, Result^, FResultSize, FResultTypeInfo);
+  finally
+    if Assigned(FLocalsInfo) then
+      Finalize(Locals^, FLocalsInfo);
+  end;
 
   asm
         ADD     ESP,LocalsSize

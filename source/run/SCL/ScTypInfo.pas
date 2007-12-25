@@ -47,11 +47,11 @@ uses
 const
   /// Types qui requièrent une initialisation
   { tkArray and tkRecord are listed here, though static arrays and record don't
-    always need initialization, because thes types have got RTTI if and only if
-    the particular type needs initialization. }
+    always need initialization, because these types have got RTTI if and only
+    if the particular type needs initialization. }
   NeedInitTypeKinds = [
     tkLString, tkWString, tkVariant, tkArray, tkRecord, tkInterface, tkDynArray
-    ];
+  ];
 
 type
   /// Pointeur vers TRecordField
