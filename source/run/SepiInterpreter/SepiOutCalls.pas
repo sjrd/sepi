@@ -124,6 +124,7 @@ begin
   begin
     // Get result
     case ResultBehavior of
+      rbNone, // if Result is specified, it must be a construtor, so ordinal
       rbOrdinal:  Longint (Result^) := Registers.OrdinalRes;
       rbInt64:    Int64   (Result^) := Registers.Int64Res;
       rbSingle:   Single  (Result^) := GetSingleResult;

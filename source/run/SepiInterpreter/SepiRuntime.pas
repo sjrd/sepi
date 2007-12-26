@@ -167,6 +167,10 @@ type
 
     procedure OpCodeCompare(OpCode: TSepiOpCode);
 
+    procedure OpCodeGetTypeInfo(OpCode: TSepiOpCode);
+    procedure OpCodeGetDelphiClass(OpCode: TSepiOpCode);
+    procedure OpCodeGetMethodCode(OpCode: TSepiOpCode);
+
     // Other methods
 
     function ReadBaseAddress(ConstSize: Integer;
@@ -263,6 +267,11 @@ begin
   // Comparisons
   for I := ocCompEquals to ocCompGreaterEq do
     @OpCodeProcs[I] := @TSepiRuntimeContext.OpCodeCompare;
+
+  // Compile time objects which must be read at runtime in Sepi
+  @OpCodeProcs[ocGetTypeInfo]    := @TSepiRuntimeContext.OpCodeGetTypeInfo;
+  @OpCodeProcs[ocGetDelphiClass] := @TSepiRuntimeContext.OpCodeGetDelphiClass;
+  @OpCodeProcs[ocGetMethodCode]  := @TSepiRuntimeContext.OpCodeGetMethodCode;
 end;
 
 {*
@@ -839,19 +848,19 @@ var
   CallingConvention: TCallingConvention;
   RegUsage: Byte;
   ResultBehavior: TSepiTypeResultBehavior;
-  Address: Pointer;
+  AddressPtr: PPointer;
   Result: Pointer;
 begin
   // Read the instruction
   Instructions.ReadBuffer(CallSettings, 1);
   CallSettingsDecode(CallSettings, CallingConvention,
     RegUsage, ResultBehavior);
-  Address := ReadAddress; // it would be foolish to have a constant here
+  AddressPtr := ReadAddress; // it would be foolish to have a constant here
   Result := ReadAddress(ConstAsNil);
 
   // Effective call
-  SepiCallOut(Address, CallingConvention, PreparedParams, PreparedParamsSize,
-    RegUsage, ResultBehavior, Result);
+  SepiCallOut(AddressPtr^, CallingConvention, PreparedParams,
+    PreparedParamsSize, RegUsage, ResultBehavior, Result);
 
   // Release prepared parameters
   ReleasePreparedParams;
@@ -864,7 +873,7 @@ end;
 procedure TSepiRuntimeContext.OpCodeSignedCall(OpCode: TSepiOpCode);
 var
   SignatureOwner: TSepiMeta;
-  Address: Pointer;
+  AddressPtr: PPointer;
   Result: Pointer;
   Signature: TSepiSignature;
   CallingConvention: TCallingConvention;
@@ -873,7 +882,7 @@ var
 begin
   // Read the instruction
   RuntimeUnit.ReadRef(Instructions, SignatureOwner);
-  Address := ReadAddress; // it would be foolish to have a constant here
+  AddressPtr := ReadAddress; // it would be foolish to have a constant here
   Result := ReadAddress(ConstAsNil);
 
   // Find signature
@@ -888,8 +897,8 @@ begin
   ResultBehavior := Signature.ReturnType.SafeResultBehavior;
 
   // Effective call
-  SepiCallOut(Address, CallingConvention, PreparedParams, PreparedParamsSize,
-    RegUsage, ResultBehavior, Result);
+  SepiCallOut(AddressPtr^, CallingConvention, PreparedParams,
+    PreparedParamsSize, RegUsage, ResultBehavior, Result);
 
   // Release prepared parameters
   ReleasePreparedParams;
@@ -1185,6 +1194,51 @@ begin
   RightPtr := ReadAddress(BaseTypeConstSizes[VarType]);
 
   Compare(OpCode, VarType, DestPtr^, LeftPtr^, RightPtr^);
+end;
+
+{*
+  OpCode GetTypeInfo
+  @param OpCode   OpCode
+*}
+procedure TSepiRuntimeContext.OpCodeGetTypeInfo(OpCode: TSepiOpCode);
+var
+  DestPtr: PPTypeInfo;
+  SepiType: TSepiType;
+begin
+  DestPtr := ReadAddress;
+  RuntimeUnit.ReadRef(Instructions, SepiType);
+
+  DestPtr^ := SepiType.TypeInfo;
+end;
+
+{*
+  OpCode GetDelphiClass
+  @param OpCode   OpCode
+*}
+procedure TSepiRuntimeContext.OpCodeGetDelphiClass(OpCode: TSepiOpCode);
+var
+  DestPtr: ^TClass;
+  SepiClass: TSepiClass;
+begin
+  DestPtr := ReadAddress;
+  RuntimeUnit.ReadRef(Instructions, SepiClass);
+
+  DestPtr^ := SepiClass.DelphiClass;
+end;
+
+{*
+  OpCode GetMethodCode
+  @param OpCode   OpCode
+*}
+procedure TSepiRuntimeContext.OpCodeGetMethodCode(OpCode: TSepiOpCode);
+var
+  DestPtr: PPointer;
+  SepiMethod: TSepiMethod;
+begin
+  DestPtr := ReadAddress;
+  RuntimeUnit.ReadRef(Instructions, SepiMethod);
+
+  DestPtr^ := SepiMethod.Code;
 end;
 
 {*

@@ -285,6 +285,11 @@ const
   ocCompLowerEq   = TSepiOpCode($44); /// LE  Type, Dest, Left, Right
   ocCompGreaterEq = TSepiOpCode($45); /// GE  Type, Dest, Left, Right
 
+  // Compile time objects which must be read at runtime in Sepi
+  ocGetTypeInfo    = TSepiOpCode($50); /// GTI Dest, Type-Ref
+  ocGetDelphiClass = TSepiOpCode($51); /// GDC Dest, Class-Ref
+  ocGetMethodCode  = TSepiOpCode($52); /// GMC Dest, Method-Ref
+
 function MemoryRefEncode(MemorySpace: TSepiMemorySpace;
   OpCount: Integer): TSepiMemoryRef;
 procedure MemoryRefDecode(MemoryRef: TSepiMemoryRef;
