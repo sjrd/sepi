@@ -61,11 +61,16 @@ end;
 
 {*
   Appel sortant de Sepi
+  Attention ! Le paramètre ResultBehavior ne doit valoir rbNone que si la
+  routine appelée est bel et bien une procédure (sans résultat). Si c'est une
+  fonction, vous devez donner la bonne valeur, même si vous ne voulez pas
+  récupérer le résultat.
   @param Address             Pointeur sur le code de la procédure à appeler
   @param CallingConvention   Convention d'appel à utiliser
   @param Parameters          Pointeur sur les paramètres
   @param ParamsSize          Taille des paramètres
   @param RegUsage            Nombre de registres utilsés (défaut = 0)
+  @param ResultBehavior      Comportement du résultat (défaut = rbNone)
   @param Result              Pointeur sur le résultat (défaut = nil)
 *}
 procedure SepiCallOut(Address: Pointer; CallingConvention: TCallingConvention;
@@ -76,7 +81,6 @@ type
   TRegisters = packed record
     case Integer of
       0: (EAX, EDX, ECX: Longint);
-      1: (Regs: array[0..2] of Longint);
       2: (OrdinalRes: Longint);
       3: (Int64Res: Int64);
   end;

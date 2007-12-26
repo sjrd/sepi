@@ -102,7 +102,7 @@ type
     FLocalParams: TLocalParams;  /// Infos de recopiage local des paramètres
     FLocalParamsInfo: PTypeInfo; /// Infos sur les paramètres recopiés en local
 
-    FResultSize: Integer;       /// Taille du résultat
+    FResultSize: Integer; /// Taille du résultat
 
     FLocalsInfo: PTypeInfo; /// Informations sur les variables locales
 
@@ -169,6 +169,9 @@ type
 
     // Other methods
 
+    function ReadBaseAddress(ConstSize: Integer;
+      MemorySpace: TSepiMemorySpace): Pointer;
+    procedure ReadAddressOperation(var Address: Pointer);
     function ReadAddress(ConstSize: Integer = 0): Pointer;
     procedure ReadJumpDest(out Value: Integer; out Origin: Word);
     procedure ReleasePreparedParams;
@@ -595,7 +598,7 @@ begin
 
   // Set up result information
   ResultType := Signature.ReturnType;
-  if (ResultType <> nil) and (ResultType.ResultBehavior <> rbParameter) then
+  if not (ResultType.SafeResultBehavior in [rbNone, rbParameter]) then
     FResultSize := ResultType.Size;
 
   // Make native code
@@ -882,10 +885,7 @@ begin
   // Get settings
   CallingConvention := Signature.CallingConvention;
   RegUsage := Signature.RegUsage;
-  if Signature.ReturnType = nil then
-    ResultBehavior := rbParameter
-  else
-    ResultBehavior := Signature.ReturnType.ResultBehavior;
+  ResultBehavior := Signature.ReturnType.SafeResultBehavior;
 
   // Effective call
   SepiCallOut(Address, CallingConvention, PreparedParams, PreparedParamsSize,
@@ -903,7 +903,6 @@ procedure TSepiRuntimeContext.OpCodeStaticCall(OpCode: TSepiOpCode);
 var
   SepiMethod: TSepiMethod;
   Result: Pointer;
-  ResultBehavior: TSepiTypeResultBehavior;
   RuntimeMethod: TSepiRuntimeMethod;
 begin
   // Read the instruction
@@ -919,13 +918,8 @@ begin
   begin
     with SepiMethod, Signature do
     begin
-      if ReturnType = nil then
-        ResultBehavior := rbParameter
-      else
-        ResultBehavior := ReturnType.ResultBehavior;
-
       SepiCallOut(Code, CallingConvention, PreparedParams, PreparedParamsSize,
-        RegUsage, ResultBehavior, Result);
+        RegUsage, ReturnType.SafeResultBehavior, Result);
     end;
   end;
 
@@ -944,7 +938,6 @@ var
   SelfPtr: Pointer;
   SelfClass: TClass;
   Address: Pointer;
-  ResultBehavior: TSepiTypeResultBehavior;
 begin
   // Read the instruction
   RuntimeUnit.ReadRef(Instructions, SepiMethod);
@@ -987,13 +980,8 @@ begin
   // Effective call
   with SepiMethod, Signature do
   begin
-    if ReturnType = nil then
-      ResultBehavior := rbParameter
-    else
-      ResultBehavior := ReturnType.ResultBehavior;
-
     SepiCallOut(Address, CallingConvention, PreparedParams, PreparedParamsSize,
-      RegUsage, ResultBehavior, Result);
+      RegUsage, ReturnType.SafeResultBehavior, Result);
   end;
 
   // Release prepared parameters
@@ -1189,116 +1177,240 @@ begin
 end;
 
 {*
-  Lit l'adresse d'une zone mémoire depuis le flux d'instructions
+  Lit une adresse de base depuis les instructions
   @param ConstSize   Taille d'une constante (0 n'accepte pas les constantes)
+  @param MemPlace    Espace d'adressage
+  @return Adresse de base lue
 *}
-function TSepiRuntimeContext.ReadAddress(ConstSize: Integer = 0): Pointer;
+function TSepiRuntimeContext.ReadBaseAddress(ConstSize: Integer;
+  MemorySpace: TSepiMemorySpace): Pointer;
 var
-  MemoryRef: TSepiMemoryRef;
-  MemPlace: TSepiMemoryPlace;
-  DerefKind: TSepiDereferenceKind;
-  ByteOffset: Shortint;
-  WordOffset: Shortint;
-  LongOffset: Longint;
+  ByteOffset: Byte;
+  WordOffset: Word;
+  GlobalConst: TSepiConstant;
   GlobalVar: TSepiVariable;
 begin
-  Result := nil;
-
-  // Read address space
-  Instructions.ReadBuffer(MemoryRef, SizeOf(TSepiMemoryRef));
-  MemoryRefDecode(MemoryRef, MemPlace, DerefKind);
-
-  // Read address
-  case MemPlace of
+  // Read base address
+  case MemorySpace of
     mpConstant:
     begin
       if ConstSize = ConstAsNil then
       begin
         // Treat constant as nil return value
-        if DerefKind <> dkNone then
-          RaiseInvalidOpCode;
         Result := nil;
-      end else
+      end
+      else
       begin
         // Read the constant directly into the code
-        if (ConstSize <= 0) or (DerefKind <> dkNone) then
+        if ConstSize <= 0 then
           RaiseInvalidOpCode;
         Result := Instructions.PointerPos;
         Instructions.Seek(ConstSize, soFromCurrent);
       end;
     end;
+    mpLocalsBase:
+    begin
+      // Local variables, no offset
+      Result := Locals;
+    end;
     mpLocalsByte:
     begin
+      // Local variables, byte-offset
       Instructions.ReadBuffer(ByteOffset, 1);
       Result := Locals;
       Inc(Integer(Result), ByteOffset);
     end;
     mpLocalsWord:
     begin
+      // Local variables, word-offset
       Instructions.ReadBuffer(WordOffset, 2);
       Result := Locals;
       Inc(Integer(Result), WordOffset);
     end;
+    mpParamsBase:
+    begin
+      // Parameters, no offset
+      Result := Parameters;
+    end;
     mpParamsByte:
     begin
+      // Parameters, byte-offset
       Instructions.ReadBuffer(ByteOffset, 1);
       Result := Parameters;
       Inc(Integer(Result), ByteOffset);
     end;
     mpParamsWord:
     begin
+      // Parameters, word-offset
       Instructions.ReadBuffer(WordOffset, 2);
       Result := Parameters;
       Inc(Integer(Result), WordOffset);
     end;
+    mpPreparedParamsBase:
+    begin
+      // Prepared params, no offset
+      Result := PreparedParams;
+    end;
     mpPreparedParamsByte:
     begin
+      // Prepared params, byte-offset
       Instructions.ReadBuffer(ByteOffset, 1);
       Result := PreparedParams;
       Inc(Integer(Result), ByteOffset);
     end;
     mpPreparedParamsWord:
     begin
+      // Prepared params, word-offset
       Instructions.ReadBuffer(WordOffset, 2);
       Result := PreparedParams;
       Inc(Integer(Result), WordOffset);
     end;
+    mpGlobalConst:
+    begin
+      // Reference to TSepiConstant
+      if ConstSize <= 0 then
+        RaiseInvalidOpCode;
+      RuntimeUnit.ReadRef(Instructions, GlobalConst);
+      Result := GlobalConst.ValuePtr;
+    end;
     mpGlobalVar:
     begin
+      // Reference to TSepiVariable
       RuntimeUnit.ReadRef(Instructions, GlobalVar);
       Result := GlobalVar.Value;
     end;
   else
     RaiseInvalidOpCode;
+    Result := nil; // avoid compiler warning
+  end;
+end;
+
+{*
+  Lit une opération sur une adresse et l'applique à une adresse donnée
+  @param Address   Adresse à modifier
+*}
+procedure TSepiRuntimeContext.ReadAddressOperation(var Address: Pointer);
+var
+  IntAddress: Integer absolute Address;
+  AddrDerefAndOp: TSepiAddressDerefAndOp;
+  AddrDereference: TSepiAddressDereference;
+  AddrOperation: TSepiAddressOperation;
+  ShortOffset: Shortint;
+  SmallOffset: Smallint;
+  LongOffset: Longint;
+  OffsetPtr: Pointer;
+  ShortFactor: Shortint;
+begin
+  // Read deref and op
+  Instructions.ReadBuffer(AddrDerefAndOp, SizeOf(TSepiAddressDerefAndOp));
+  AddressDerefAndOpDecode(AddrDerefAndOp, AddrDereference, AddrOperation);
+
+  // Handle dereference
+  case AddrDereference of
+    adNone: ;
+    adSimple: Address := PPointer(Address)^;
+    adDouble: Address := PPointer(PPointer(Address)^)^;
+  else
+    RaiseInvalidOpCode;
   end;
 
-  // Handle dereference kind
-  if DerefKind <> dkNone then
-  begin
-    Result := PPointer(Result)^;
-
-    case DerefKind of
-      dkPlusShortint:
-      begin
-        Instructions.ReadBuffer(ByteOffset, 1);
-        Inc(Integer(Result), ByteOffset);
-      end;
-      dkPlusSmallint:
-      begin
-        Instructions.ReadBuffer(WordOffset, 2);
-        Inc(Integer(Result), WordOffset);
-      end;
-      dkPlusLongint:
-      begin
-        Instructions.ReadBuffer(LongOffset, 4);
-        Inc(Integer(Result), LongOffset);
-      end;
-      dkDouble:
-      begin
-        Result := PPointer(Result)^;
-      end;
+  // Handle operation
+  case AddrOperation of
+    aoNone: ;
+    aoPlusConstShortint:
+    begin
+      // Read a Shortint from code, and add it to the address
+      Instructions.ReadBuffer(ShortOffset, 1);
+      Inc(IntAddress, ShortOffset);
     end;
+    aoPlusConstSmallint:
+    begin
+      // Read a Smallint from code, and add it to the address
+      Instructions.ReadBuffer(SmallOffset, 1);
+      Inc(IntAddress, SmallOffset);
+    end;
+    aoPlusConstLongint:
+    begin
+      // Read a Longint from code, and add it to the address
+      Instructions.ReadBuffer(LongOffset, 1);
+      Inc(IntAddress, LongOffset);
+    end;
+    aoPlusMemShortint:
+    begin
+      // Read a Shortint from memory, and add it to the address
+      OffsetPtr := ReadAddress(SizeOf(Shortint));
+      Inc(IntAddress, PShortint(OffsetPtr)^);
+    end;
+    aoPlusMemSmallint:
+    begin
+      // Read a Smallint from memory, and add it to the address
+      OffsetPtr := ReadAddress(SizeOf(Smallint));
+      Inc(IntAddress, PSmallint(OffsetPtr)^);
+    end;
+    aoPlusMemLongint:
+    begin
+      // Read a Longint from memory, and add it to the address
+      OffsetPtr := ReadAddress(SizeOf(Longint));
+      Inc(IntAddress, PLongint(OffsetPtr)^);
+    end;
+    aoPlusConstTimesMemShortint:
+    begin
+      { Read a Shortint from code and a Shortint from memory. Then, multiply
+        them and add the result to the address. }
+      Instructions.ReadBuffer(ShortFactor, 1);
+      OffsetPtr := ReadAddress(SizeOf(Shortint));
+      Inc(IntAddress, ShortFactor * PShortint(OffsetPtr)^);
+    end;
+    aoPlusConstTimesMemSmallint:
+    begin
+      { Read a Shortint from code and a Smallint from memory. Then, multiply
+        them and add the result to the address. }
+      Instructions.ReadBuffer(ShortFactor, 1);
+      OffsetPtr := ReadAddress(SizeOf(Smallint));
+      Inc(IntAddress, ShortFactor * PSmallint(OffsetPtr)^);
+    end;
+    aoPlusConstTimesMemLongint:
+    begin
+      { Read a Shortint from code and a Longint from memory. Then, multiply
+        them and add the result to the address. }
+      Instructions.ReadBuffer(ShortFactor, 1);
+      OffsetPtr := ReadAddress(SizeOf(Longint));
+      Inc(IntAddress, ShortFactor * PLongint(OffsetPtr)^);
+    end;
+  else
+    RaiseInvalidOpCode;
   end;
+end;
+
+{*
+  Lit l'adresse d'une zone mémoire depuis le flux d'instructions
+  @param ConstSize   Taille d'une constante (0 n'accepte pas les constantes)
+*}
+function TSepiRuntimeContext.ReadAddress(ConstSize: Integer = 0): Pointer;
+var
+  MemoryRef: TSepiMemoryRef;
+  MemorySpace: TSepiMemorySpace;
+  OpCount: Integer;
+  I: Integer;
+begin
+  // Read memory reference
+  Instructions.ReadBuffer(MemoryRef, SizeOf(TSepiMemoryRef));
+  MemoryRefDecode(MemoryRef, MemorySpace, OpCount);
+
+  // Read base address
+  Result := ReadBaseAddress(ConstSize, MemorySpace);
+
+  // Check for nil result
+  if Result = nil then
+  begin
+    if OpCount <> 0 then
+      RaiseInvalidOpCode;
+    Exit;
+  end;
+
+  // Handle operations
+  for I := 0 to OpCount-1 do
+    ReadAddressOperation(Result);
 end;
 
 {*
