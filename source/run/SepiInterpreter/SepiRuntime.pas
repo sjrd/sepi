@@ -945,36 +945,47 @@ begin
 
   // Get Self parameter: it is always the first one on the stack
   SelfPtr := Pointer(PreparedParams^);
-  case SepiMethod.Signature.Kind of
-    mkProcedure, mkFunction, mkDestructor:
-      SelfClass := TObject(SelfPtr).ClassType;
-    mkClassProcedure, mkClassFunction:
-      SelfClass := TClass(SelfPtr);
-    mkConstructor:
-    begin
-      { Constructors are quite special. They have a Boolean parameter in the
-        second position which is set to True if Self is a class, and False if
-        it is already an instance. }
-      if PBoolean(Integer(PreparedParams)+4)^ then
-        SelfClass := TClass(SelfPtr)
-      else
-        SelfClass := TObject(SelfPtr).ClassType;
-    end;
-  else
-    RaiseInvalidOpCode;
-    SelfClass := nil; // avoid compiler warning
-  end;
 
-  // Find the method code
-  case SepiMethod.LinkKind of
-    mlkStatic: Address := SepiMethod.Code;
-    mlkVirtual:
-      Address := GetClassVirtualCode(SelfClass, SepiMethod.VMTOffset);
-    mlkDynamic, mlkMessage:
-      Address := GetClassDynamicCode(SelfClass, SepiMethod.DMTIndex);
-  else
-    RaiseInvalidOpCode;
-    Address := nil; // avoid compiler warning
+  if SepiMethod.LinkKind = mlkInterface then
+  begin
+    // SelfPtr is an interface, thus points to a pointer to an IMT
+    Address := PPointerList(SelfPtr^)^[SepiMethod.IMTIndex];
+  end else
+  begin
+    // SelfPtr is an objet or a class
+
+    // Find the class
+    case SepiMethod.Signature.Kind of
+      mkProcedure, mkFunction, mkDestructor:
+        SelfClass := TObject(SelfPtr).ClassType;
+      mkClassProcedure, mkClassFunction:
+        SelfClass := TClass(SelfPtr);
+      mkConstructor:
+      begin
+        { Constructors are quite special. They have a Boolean parameter in the
+          second position which is set to True if Self is a class, and False if
+          it is already an instance. }
+        if PBoolean(Integer(PreparedParams)+4)^ then
+          SelfClass := TClass(SelfPtr)
+        else
+          SelfClass := TObject(SelfPtr).ClassType;
+      end;
+    else
+      RaiseInvalidOpCode;
+      SelfClass := nil; // avoid compiler warning
+    end;
+
+    // Find the method code
+    case SepiMethod.LinkKind of
+      mlkStatic: Address := SepiMethod.Code;
+      mlkVirtual:
+        Address := GetClassVirtualCode(SelfClass, SepiMethod.VMTOffset);
+      mlkDynamic, mlkMessage:
+        Address := GetClassDynamicCode(SelfClass, SepiMethod.DMTIndex);
+    else
+      RaiseInvalidOpCode;
+      Address := nil; // avoid compiler warning
+    end;
   end;
 
   // Effective call
