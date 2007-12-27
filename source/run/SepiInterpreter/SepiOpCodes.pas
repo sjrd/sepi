@@ -297,12 +297,10 @@ const
   ocAsClass = TSepiOpCode($54); /// AS Object, Class
 
   // Exception handling
-  ocRaise           = TSepiOpCode($60); /// RAISE ExceptObject
-  ocReraise         = TSepiOpCode($61); /// RERS
-  ocBeginTryExcept  = TSepiOpCode($62); /// BTE Dest, [ExceptObject]
-  ocEndTryExcept    = TSepiOpCode($63); /// ETE Dest
-  ocBeginTryFinally = TSepiOpCode($64); /// BTF Dest
-  ocEndTryFinally   = TSepiOpCode($65); /// ETF
+  ocRaise      = TSepiOpCode($60); /// RAISE ExceptObject
+  ocReraise    = TSepiOpCode($61); /// RERS
+  ocTryExcept  = TSepiOpCode($62); /// TRYE Dest, [ExceptObject]
+  ocTryFinally = TSepiOpCode($63); /// TRYF Dest
 
 function MemoryRefEncode(MemorySpace: TSepiMemorySpace;
   OpCount: Integer): TSepiMemoryRef;

@@ -140,7 +140,6 @@ type
     PreparedParams: Pointer;             /// Paramètres en préparation
     PreparedParamsAllocSize: Integer;    /// Taille allouée des paramètres
     PreparedParamsSize: Integer;         /// Taille des paramètres préparés
-    ExceptionHandling: TStack;           /// Pile des gestionnaires d'exception
 
     // Op-code procs
 
@@ -178,10 +177,8 @@ type
 
     procedure OpCodeRaise(OpCode: TSepiOpCode);
     procedure OpCodeReraise(OpCode: TSepiOpCode);
-    procedure OpCodeBeginTryExcept(OpCode: TSepiOpCode);
-    procedure OpCodeEndTryExcept(OpCode: TSepiOpCode);
-    procedure OpCodeBeginTryFinally(OpCode: TSepiOpCode);
-    procedure OpCodeEndTryFinally(OpCode: TSepiOpCode);
+    procedure OpCodeTryExcept(OpCode: TSepiOpCode);
+    procedure OpCodeTryFinally(OpCode: TSepiOpCode);
 
     // Other methods
 
@@ -308,12 +305,10 @@ begin
   @OpCodeProcs[ocAsClass] := @TSepiRuntimeContext.OpCodeAsClass;
 
   // Exception handling
-  @OpCodeProcs[ocRaise]           := @TSepiRuntimeContext.OpCodeRaise;
-  @OpCodeProcs[ocReraise]         := @TSepiRuntimeContext.OpCodeReraise;
-  @OpCodeProcs[ocBeginTryExcept]  := @TSepiRuntimeContext.OpCodeBeginTryExcept;
-  @OpCodeProcs[ocEndTryExcept]    := @TSepiRuntimeContext.OpCodeEndTryExcept;
-  @OpCodeProcs[ocBeginTryFinally] := @TSepiRuntimeContext.OpCodeBeginTryFinally;
-  @OpCodeProcs[ocEndTryFinally]   := @TSepiRuntimeContext.OpCodeEndTryFinally;
+  @OpCodeProcs[ocRaise]      := @TSepiRuntimeContext.OpCodeRaise;
+  @OpCodeProcs[ocReraise]    := @TSepiRuntimeContext.OpCodeReraise;
+  @OpCodeProcs[ocTryExcept]  := @TSepiRuntimeContext.OpCodeTryExcept;
+  @OpCodeProcs[ocTryFinally] := @TSepiRuntimeContext.OpCodeTryFinally;
 end;
 
 {*
@@ -797,7 +792,6 @@ begin
   PreparedParams := nil;
   PreparedParamsAllocSize := 0;
   PreparedParamsSize := 0;
-  ExceptionHandling := TStack.Create;
 end;
 
 {*
@@ -805,7 +799,6 @@ end;
 *}
 destructor TSepiRuntimeContext.Destroy;
 begin
-  ExceptionHandling.Free;
   if Assigned(PreparedParams) then
     FreeMem(PreparedParams);
   Instructions.Free;
@@ -1341,91 +1334,54 @@ end;
   OpCode BeginTryExcept
   @param OpCode   OpCode
 *}
-procedure TSepiRuntimeContext.OpCodeBeginTryExcept(OpCode: TSepiOpCode);
+procedure TSepiRuntimeContext.OpCodeTryExcept(OpCode: TSepiOpCode);
 var
   Offset: Integer;
   Origin: Word;
-  ExceptObjPtr: Pointer;
-  ExceptionHandler: PExceptionHandler;
+  ExceptObjectPtr: ^TObject;
+  ExceptCode: Pointer;
 begin
   // Read instruction
   ReadJumpDest(Offset, Origin);
-  ExceptObjPtr := ReadAddress(ConstAsNil);
+  ExceptObjectPtr := ReadAddress(ConstAsNil);
+  ExceptCode := Pointer(Instructions.Position + Offset);
 
-  // Build exception handler
-  New(ExceptionHandler);
-  with ExceptionHandler^ do
-  begin
-    IsTryFinally := False;
-    Code := Pointer(Instructions.Position + Offset);
-    ExceptObjectPtr := ExceptObjPtr;
+  try
+    // Execute try block
+    Execute;
+  except
+    // Set exception object, if required
+    if Assigned(ExceptObjectPtr) then
+      ExceptObjectPtr^ := ExceptObject;
+
+    // Execute except block
+    Instructions.PointerPos := ExceptCode;
+    Execute;
   end;
-
-  // Add exception handler to stack
-  ExceptionHandling.Push(ExceptionHandler);
-end;
-
-{*
-  OpCode EndTryExcept
-  @param OpCode   OpCode
-*}
-procedure TSepiRuntimeContext.OpCodeEndTryExcept(OpCode: TSepiOpCode);
-var
-  Offset: Integer;
-  Origin: Word;
-  ExceptionHandler: PExceptionHandler;
-begin
-  // Read instruction
-  ReadJumpDest(Offset, Origin);
-
-  // Release exception handler
-  ExceptionHandler := ExceptionHandling.Pop;
-  Dispose(ExceptionHandler);
-
-  // Jump to destination
-  Instructions.Seek(Offset, Origin);
 end;
 
 {*
   OpCode BeginTryFinally
   @param OpCode   OpCode
 *}
-procedure TSepiRuntimeContext.OpCodeBeginTryFinally(OpCode: TSepiOpCode);
+procedure TSepiRuntimeContext.OpCodeTryFinally(OpCode: TSepiOpCode);
 var
   Offset: Integer;
   Origin: Word;
-  ExceptionHandler: PExceptionHandler;
+  FinallyCode: Pointer;
 begin
   // Read instruction
   ReadJumpDest(Offset, Origin);
+  FinallyCode := Pointer(Instructions.Position + Offset);
 
-  // Build exception handler
-  New(ExceptionHandler);
-  with ExceptionHandler^ do
-  begin
-    IsTryFinally := True;
-    Code := Pointer(Instructions.Position + Offset);
-    ExceptObjectPtr := nil;
+  try
+    // Execute try block
+    Execute;
+  finally
+    // Execute finally block
+    Instructions.PointerPos := FinallyCode;
+    Execute;
   end;
-
-  // Add exception handler to stack
-  ExceptionHandling.Push(ExceptionHandler);
-end;
-
-{*
-  OpCode EndTryFinally
-  @param OpCode   OpCode
-*}
-procedure TSepiRuntimeContext.OpCodeEndTryFinally(OpCode: TSepiOpCode);
-var
-  ExceptionHandler: PExceptionHandler;
-begin
-  // Release exception handler
-  ExceptionHandler := ExceptionHandling.Pop;
-  Dispose(ExceptionHandler);
-
-  // Execute Finally code until RET OpCode
-  Execute;
 end;
 
 {*
@@ -1734,87 +1690,12 @@ end;
 *}
 procedure TSepiRuntimeContext.Execute;
 var
-  Finished: Boolean;
-  ExceptionHandlingBase: Integer;
-  ReraisedObject: TObject;
   OpCode: TSepiOpCode;
-  ExceptionHandler: PExceptionHandler;
 begin
-  // Initialize
-  Finished := False;
-  ExceptionHandlingBase := ExceptionHandling.Count;
-  ReraisedObject := nil;
-
-  // Main loop
   repeat
-    try
-      try
-        // Reraise an exception if present
-        if Assigned(ReraisedObject) then
-          raise ReraisedObject;
-
-        // Execute instructions normally until RET OpCode
-        repeat
-          Instructions.ReadBuffer(OpCode, SizeOf(TSepiOpCode));
-          OpCodeProcs[OpCode](Self, OpCode);
-        until (OpCode = ocReturn) or (OpCode = ocJumpAndReturn);
-      finally
-        { If we get here via normal flow (not because of an exception), the
-          exception handling stack will always be empty - unless the compiler
-          didn't do its job correctly.
-          Why do we use a Delphi try-finally construct then? In order to have
-          RTL low level code behave as in a finally block. }
-
-        // Unwind exception handling stack while the handler is a try-finally
-        while ExceptionHandling.AtLeast(ExceptionHandlingBase+1) and
-          PExceptionHandler(ExceptionHandling.Peek).IsTryFinally do
-        begin
-          // Pop exception handler and read its fields, then dispose of it
-          ExceptionHandler := ExceptionHandling.Pop;
-          Instructions.PointerPos := ExceptionHandler.Code;
-          Dispose(ExceptionHandler);
-
-          // Execute finally handler
-          Execute;
-        end;
-      end;
-
-      // When getting an RET OpCode, Execute is finished
-      Finished := True;
-    except
-      { If exception handling stack is greater than its base, there is a
-        try-except handler in this (sub-)procedure. Otherwise, just let the
-        exception propagate to the caller. }
-      if not ExceptionHandling.AtLeast(ExceptionHandlingBase+1) then
-        raise;
-
-      // Pop exception handler and read its fields, then dispose of it
-      ExceptionHandler := ExceptionHandling.Pop;
-      with ExceptionHandler^ do
-      begin
-        Instructions.PointerPos := Code;
-        if ExceptObjectPtr <> nil then
-          TObject(ExceptObjectPtr^) := ExceptObject;
-      end;
-      Dispose(ExceptionHandler);
-
-      // Execute handler code
-      try
-        Execute;
-        ReraisedObject := nil;
-      except
-        { If an exception occurs while executing the handler code, we must
-          catch it and reraise it into the try-finally block above. Indeed,
-          there could be another finally or except handler waiting in the
-          exception handling stack. }
-        ReraisedObject := AcquireExceptionObject;
-      end;
-
-      { Since Finished is False, and the preceding Execute has left the
-        instruction pointer pointing to instructions following the except
-        clause, we simply let it continue. }
-    end;
-  until Finished;
+    Instructions.ReadBuffer(OpCode, SizeOf(TSepiOpCode));
+    OpCodeProcs[OpCode](Self, OpCode);
+  until (OpCode = ocReturn) or (OpCode = ocJumpAndReturn);
 end;
 
 initialization
