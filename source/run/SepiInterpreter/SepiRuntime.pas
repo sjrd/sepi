@@ -1736,14 +1736,23 @@ procedure TSepiRuntimeContext.Execute;
 var
   Finished: Boolean;
   ExceptionHandlingBase: Integer;
+  ReraisedObject: TObject;
   OpCode: TSepiOpCode;
   ExceptionHandler: PExceptionHandler;
 begin
+  // Initialize
   Finished := False;
   ExceptionHandlingBase := ExceptionHandling.Count;
+  ReraisedObject := nil;
+
+  // Main loop
   repeat
     try
       try
+        // Reraise an exception if present
+        if Assigned(ReraisedObject) then
+          raise ReraisedObject;
+
         // Execute instructions normally until RET OpCode
         repeat
           Instructions.ReadBuffer(OpCode, SizeOf(TSepiOpCode));
@@ -1775,7 +1784,7 @@ begin
     except
       { If exception handling stack is greater than its base, there is a
         try-except handler in this (sub-)procedure. Otherwise, just let the
-        exception be propagated to the caller. }
+        exception propagate to the caller. }
       if not ExceptionHandling.AtLeast(ExceptionHandlingBase+1) then
         raise;
 
@@ -1790,7 +1799,16 @@ begin
       Dispose(ExceptionHandler);
 
       // Execute handler code
-      Execute;
+      try
+        Execute;
+        ReraisedObject := nil;
+      except
+        { If an exception occurs while executing the handler code, we must
+          catch it and reraise it into the try-finally block above. Indeed,
+          there could be another finally or except handler waiting in the
+          exception handling stack. }
+        ReraisedObject := AcquireExceptionObject;
+      end;
 
       { Since Finished is False, and the preceding Execute has left the
         instruction pointer pointing to instructions following the except
