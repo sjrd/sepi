@@ -138,7 +138,9 @@ type
     Parameters: Pointer;                 /// Paramètres
     Locals: Pointer;                     /// Variables locales
     PreparedParams: Pointer;             /// Paramètres en préparation
+    PreparedParamsAllocSize: Integer;    /// Taille allouée des paramètres
     PreparedParamsSize: Integer;         /// Taille des paramètres préparés
+    ExceptionHandling: TStack;           /// Pile des gestionnaires d'exception
 
     // Op-code procs
 
@@ -171,14 +173,25 @@ type
     procedure OpCodeGetDelphiClass(OpCode: TSepiOpCode);
     procedure OpCodeGetMethodCode(OpCode: TSepiOpCode);
 
+    procedure OpCodeIsClass(OpCode: TSepiOpCode);
+    procedure OpCodeAsClass(OpCode: TSepiOpCode);
+
+    procedure OpCodeRaise(OpCode: TSepiOpCode);
+    procedure OpCodeReraise(OpCode: TSepiOpCode);
+    procedure OpCodeBeginTryExcept(OpCode: TSepiOpCode);
+    procedure OpCodeEndTryExcept(OpCode: TSepiOpCode);
+    procedure OpCodeBeginTryFinally(OpCode: TSepiOpCode);
+    procedure OpCodeEndTryFinally(OpCode: TSepiOpCode);
+
     // Other methods
 
     function ReadBaseAddress(ConstSize: Integer;
       MemorySpace: TSepiMemorySpace): Pointer;
     procedure ReadAddressOperation(var Address: Pointer);
     function ReadAddress(ConstSize: Integer = 0): Pointer;
-    procedure ReadJumpDest(out Value: Integer; out Origin: Word);
-    procedure ReleasePreparedParams;
+    function ReadClassValue: TClass;
+    procedure ReadJumpDest(out Value: Integer; out Origin: Word;
+      AllowAbsolute: Boolean = False);
   public
     constructor Create(ARuntimeUnit: TSepiRuntimeUnit;
       AInstructions, AParameters, ALocals: Pointer);
@@ -193,12 +206,15 @@ uses
   SepiInCalls, SepiOutCalls;
 
 type
+  /// Méthode de traitement d'un OpCode
   TOpCodeProc = procedure(Self: TSepiRuntimeContext; OpCode: TSepiOpCode);
 
 var
+  /// Tableau des méthodes de traitement des OpCodes
   OpCodeProcs: array[TSepiOpCode] of TOpCodeProc;
 
 const
+  /// Taille des constantes en fonction des types de base
   BaseTypeConstSizes: array[TSepiBaseType] of Integer = (
     1, 1, 2, 4, 8, 1, 2, 4, 8, 4, 8, 10, 8, 8, 4, 4, 0
   );
@@ -206,10 +222,23 @@ const
   ConstAsNil = Integer($80000000); /// Constante prise comme nil
 
 type
+  /// Accès à la propriété TypeInfoRef de TSepiType
   TSepiAccessTypeInfoRef = class(TSepiType)
   public
     // I swear I won't use this property in order to modify the pointed value.
     property TypeInfoRef;
+  end;
+
+  /// Pointeur sur un gestionnaire d'exception
+  PExceptionHandler = ^TExceptionHandler;
+
+  {*
+    Gestionnaire d'exception (de type try-except ou try-finally)
+  *}
+  TExceptionHandler = record
+    IsTryFinally: Boolean;    /// True : try-finally ; False : try-except
+    Code: Pointer;            /// Pointeur sur le code (Sepi) du gestionnaire
+    ExceptObjectPtr: Pointer; /// Où stocker l'objet exception (peut être nil)
   end;
 
 {*
@@ -227,10 +256,11 @@ begin
   @OpCodeProcs[ocExtended] := @TSepiRuntimeContext.UnknownOpCode;
 
   // Flow control
-  @OpCodeProcs[ocJump]        := @TSepiRuntimeContext.OpCodeJump;
-  @OpCodeProcs[ocJumpIfTrue]  := @TSepiRuntimeContext.OpCodeJumpIf;
-  @OpCodeProcs[ocJumpIfFalse] := @TSepiRuntimeContext.OpCodeJumpIf;
-  @OpCodeProcs[ocReturn]      := @TSepiRuntimeContext.OpCodeNope;
+  @OpCodeProcs[ocJump]          := @TSepiRuntimeContext.OpCodeJump;
+  @OpCodeProcs[ocJumpIfTrue]    := @TSepiRuntimeContext.OpCodeJumpIf;
+  @OpCodeProcs[ocJumpIfFalse]   := @TSepiRuntimeContext.OpCodeJumpIf;
+  @OpCodeProcs[ocReturn]        := @TSepiRuntimeContext.OpCodeNope;
+  @OpCodeProcs[ocJumpAndReturn] := @TSepiRuntimeContext.OpCodeJump;
 
   // Calls
   @OpCodeProcs[ocPrepareParams] := @TSepiRuntimeContext.OpCodePrepareParams;
@@ -272,6 +302,18 @@ begin
   @OpCodeProcs[ocGetTypeInfo]    := @TSepiRuntimeContext.OpCodeGetTypeInfo;
   @OpCodeProcs[ocGetDelphiClass] := @TSepiRuntimeContext.OpCodeGetDelphiClass;
   @OpCodeProcs[ocGetMethodCode]  := @TSepiRuntimeContext.OpCodeGetMethodCode;
+
+  // is and as operators
+  @OpCodeProcs[ocIsClass] := @TSepiRuntimeContext.OpCodeIsClass;
+  @OpCodeProcs[ocAsClass] := @TSepiRuntimeContext.OpCodeAsClass;
+
+  // Exception handling
+  @OpCodeProcs[ocRaise]           := @TSepiRuntimeContext.OpCodeRaise;
+  @OpCodeProcs[ocReraise]         := @TSepiRuntimeContext.OpCodeReraise;
+  @OpCodeProcs[ocBeginTryExcept]  := @TSepiRuntimeContext.OpCodeBeginTryExcept;
+  @OpCodeProcs[ocEndTryExcept]    := @TSepiRuntimeContext.OpCodeEndTryExcept;
+  @OpCodeProcs[ocBeginTryFinally] := @TSepiRuntimeContext.OpCodeBeginTryFinally;
+  @OpCodeProcs[ocEndTryFinally]   := @TSepiRuntimeContext.OpCodeEndTryFinally;
 end;
 
 {*
@@ -753,7 +795,9 @@ begin
   Parameters := AParameters;
   Locals := ALocals;
   PreparedParams := nil;
+  PreparedParamsAllocSize := 0;
   PreparedParamsSize := 0;
+  ExceptionHandling := TStack.Create;
 end;
 
 {*
@@ -761,6 +805,7 @@ end;
 *}
 destructor TSepiRuntimeContext.Destroy;
 begin
+  ExceptionHandling.Free;
   if Assigned(PreparedParams) then
     FreeMem(PreparedParams);
   Instructions.Free;
@@ -795,7 +840,7 @@ var
   Offset: Integer;
   Origin: Word;
 begin
-  ReadJumpDest(Offset, Origin);
+  ReadJumpDest(Offset, Origin, True);
   Instructions.Seek(Offset, Origin);
 end;
 
@@ -809,7 +854,7 @@ var
   Origin: Word;
   TestPtr: PBoolean;
 begin
-  ReadJumpDest(Offset, Origin);
+  ReadJumpDest(Offset, Origin, True);
   TestPtr := ReadAddress(SizeOf(Boolean));
 
   case OpCode of
@@ -830,11 +875,19 @@ procedure TSepiRuntimeContext.OpCodePrepareParams(OpCode: TSepiOpCode);
 var
   Size: Word;
 begin
-  if Assigned(PreparedParams) then
-    RaiseInvalidOpCode;
-
+  // Read instruction
   Instructions.ReadBuffer(Size, SizeOf(Word));
-  GetMem(PreparedParams, Size);
+
+  // Realloc prepared params if needed
+  if Size > PreparedParamsAllocSize then
+  begin
+    if Assigned(PreparedParams) then
+      FreeMem(PreparedParams);
+    GetMem(PreparedParams, Size);
+    PreparedParamsAllocSize := Size;
+  end;
+
+  // Update PreparedParamsSize
   PreparedParamsSize := Size;
 end;
 
@@ -861,9 +914,6 @@ begin
   // Effective call
   SepiCallOut(AddressPtr^, CallingConvention, PreparedParams,
     PreparedParamsSize, RegUsage, ResultBehavior, Result);
-
-  // Release prepared parameters
-  ReleasePreparedParams;
 end;
 
 {*
@@ -899,9 +949,6 @@ begin
   // Effective call
   SepiCallOut(AddressPtr^, CallingConvention, PreparedParams,
     PreparedParamsSize, RegUsage, ResultBehavior, Result);
-
-  // Release prepared parameters
-  ReleasePreparedParams;
 end;
 
 {*
@@ -931,9 +978,6 @@ begin
         RegUsage, ReturnType.SafeResultBehavior, Result);
     end;
   end;
-
-  // Release prepared parameters
-  ReleasePreparedParams;
 end;
 
 {*
@@ -1003,9 +1047,6 @@ begin
     SepiCallOut(Address, CallingConvention, PreparedParams, PreparedParamsSize,
       RegUsage, ReturnType.SafeResultBehavior, Result);
   end;
-
-  // Release prepared parameters
-  ReleasePreparedParams;
 end;
 
 {*
@@ -1239,6 +1280,152 @@ begin
   RuntimeUnit.ReadRef(Instructions, SepiMethod);
 
   DestPtr^ := SepiMethod.Code;
+end;
+
+{*
+  OpCode IsClass
+  @param OpCode   OpCode
+*}
+procedure TSepiRuntimeContext.OpCodeIsClass(OpCode: TSepiOpCode);
+var
+  DestPtr: PBoolean;
+  ObjectPtr: ^TObject;
+  DelphiClass: TClass;
+begin
+  DestPtr := ReadAddress;
+  ObjectPtr := ReadAddress(4);
+  DelphiClass := ReadClassValue;
+
+  DestPtr^ := ObjectPtr^ is DelphiClass;
+end;
+
+{*
+  OpCode AsClass
+  @param OpCode   OpCode
+*}
+procedure TSepiRuntimeContext.OpCodeAsClass(OpCode: TSepiOpCode);
+var
+  ObjectPtr: ^TObject;
+  DelphiClass: TClass;
+begin
+  ObjectPtr := ReadAddress(4);
+  DelphiClass := ReadClassValue;
+
+  TObject(DelphiClass) := // just give something to the Delphi syntax
+    ObjectPtr^ as DelphiClass;
+end;
+
+{*
+  OpCode Raise
+  @param OpCode   OpCode
+*}
+procedure TSepiRuntimeContext.OpCodeRaise(OpCode: TSepiOpCode);
+var
+  ExceptObjectPtr: Pointer;
+begin
+  ExceptObjectPtr := ReadAddress;
+
+  raise TObject(ExceptObjectPtr^);
+end;
+
+{*
+  OpCode Reraise
+  @param OpCode   OpCode
+*}
+procedure TSepiRuntimeContext.OpCodeReraise(OpCode: TSepiOpCode);
+begin
+  raise TObject(AcquireExceptionObject);
+end;
+
+{*
+  OpCode BeginTryExcept
+  @param OpCode   OpCode
+*}
+procedure TSepiRuntimeContext.OpCodeBeginTryExcept(OpCode: TSepiOpCode);
+var
+  Offset: Integer;
+  Origin: Word;
+  ExceptObjPtr: Pointer;
+  ExceptionHandler: PExceptionHandler;
+begin
+  // Read instruction
+  ReadJumpDest(Offset, Origin);
+  ExceptObjPtr := ReadAddress(ConstAsNil);
+
+  // Build exception handler
+  New(ExceptionHandler);
+  with ExceptionHandler^ do
+  begin
+    IsTryFinally := False;
+    Code := Pointer(Instructions.Position + Offset);
+    ExceptObjectPtr := ExceptObjPtr;
+  end;
+
+  // Add exception handler to stack
+  ExceptionHandling.Push(ExceptionHandler);
+end;
+
+{*
+  OpCode EndTryExcept
+  @param OpCode   OpCode
+*}
+procedure TSepiRuntimeContext.OpCodeEndTryExcept(OpCode: TSepiOpCode);
+var
+  Offset: Integer;
+  Origin: Word;
+  ExceptionHandler: PExceptionHandler;
+begin
+  // Read instruction
+  ReadJumpDest(Offset, Origin);
+
+  // Release exception handler
+  ExceptionHandler := ExceptionHandling.Pop;
+  Dispose(ExceptionHandler);
+
+  // Jump to destination
+  Instructions.Seek(Offset, Origin);
+end;
+
+{*
+  OpCode BeginTryFinally
+  @param OpCode   OpCode
+*}
+procedure TSepiRuntimeContext.OpCodeBeginTryFinally(OpCode: TSepiOpCode);
+var
+  Offset: Integer;
+  Origin: Word;
+  ExceptionHandler: PExceptionHandler;
+begin
+  // Read instruction
+  ReadJumpDest(Offset, Origin);
+
+  // Build exception handler
+  New(ExceptionHandler);
+  with ExceptionHandler^ do
+  begin
+    IsTryFinally := True;
+    Code := Pointer(Instructions.Position + Offset);
+    ExceptObjectPtr := nil;
+  end;
+
+  // Add exception handler to stack
+  ExceptionHandling.Push(ExceptionHandler);
+end;
+
+{*
+  OpCode EndTryFinally
+  @param OpCode   OpCode
+*}
+procedure TSepiRuntimeContext.OpCodeEndTryFinally(OpCode: TSepiOpCode);
+var
+  ExceptionHandler: PExceptionHandler;
+begin
+  // Release exception handler
+  ExceptionHandler := ExceptionHandling.Pop;
+  Dispose(ExceptionHandler);
+
+  // Execute Finally code until RET OpCode
+  Execute;
 end;
 
 {*
@@ -1479,16 +1666,36 @@ begin
 end;
 
 {*
+  Lit une valeur de type classe (TClass)
+  @return Classe lue
+*}
+function TSepiRuntimeContext.ReadClassValue: TClass;
+var
+  ClassPtr: Pointer;
+  SepiClass: TSepiClass;
+begin
+  ClassPtr := ReadAddress(ConstAsNil);
+
+  if ClassPtr = nil then
+  begin
+    RuntimeUnit.ReadRef(Instructions, SepiClass);
+    Result := SepiClass.DelphiClass;
+  end else
+    Result := TClass(ClassPtr^);
+end;
+
+{*
   Lit une destination de Jump
-  @param Value    En sortie : valeur de déplacement
-  @param Origin   En sortie : orgine du déplacement (voir TStream.Seek)
+  @param Value           En sortie : valeur de déplacement
+  @param Origin          En sortie : orgine du déplacement (voir TStream.Seek)
+  @param AllowAbsolute   True autorise une adresse de code absolue
 *}
 procedure TSepiRuntimeContext.ReadJumpDest(out Value: Integer;
-  out Origin: Word);
+  out Origin: Word; AllowAbsolute: Boolean = False);
 var
   DestKind: TSepiJumpDestKind;
-  ByteOffset: Shortint;
-  WordOffset: Smallint;
+  ShortintOffset: Shortint;
+  SmallintOffset: Smallint;
   ValuePtr: PLongint;
 begin
   Instructions.ReadBuffer(DestKind, SizeOf(TSepiJumpDestKind));
@@ -1496,14 +1703,14 @@ begin
   case DestKind of
     jdkShortint:
     begin
-      Instructions.ReadBuffer(ByteOffset, 1);
-      Value := ByteOffset;
+      Instructions.ReadBuffer(ShortintOffset, 1);
+      Value := ShortintOffset;
       Origin := soFromCurrent;
     end;
     jdkSmallint:
     begin
-      Instructions.ReadBuffer(WordOffset, 2);
-      Value := WordOffset;
+      Instructions.ReadBuffer(SmallintOffset, 2);
+      Value := SmallintOffset;
       Origin := soFromCurrent;
     end;
     jdkLongint:
@@ -1513,6 +1720,8 @@ begin
     end;
     jdkMemory:
     begin
+      if not AllowAbsolute then
+        RaiseInvalidOpCode;
       ValuePtr := ReadAddress(SizeOf(Pointer));
       Value := ValuePtr^;
       Origin := soFromBeginning;
@@ -1521,29 +1730,73 @@ begin
 end;
 
 {*
-  Libère les paramètres préparés, s'il y en a
-*}
-procedure TSepiRuntimeContext.ReleasePreparedParams;
-begin
-  if Assigned(PreparedParams) then
-  begin
-    FreeMem(PreparedParams);
-    PreparedParams := nil;
-    PreparedParamsSize := 0;
-  end;
-end;
-
-{*
   Exécute les instructions jusqu'à un RET
 *}
 procedure TSepiRuntimeContext.Execute;
 var
+  Finished: Boolean;
+  ExceptionHandlingBase: Integer;
   OpCode: TSepiOpCode;
+  ExceptionHandler: PExceptionHandler;
 begin
+  Finished := False;
+  ExceptionHandlingBase := ExceptionHandling.Count;
   repeat
-    Instructions.ReadBuffer(OpCode, SizeOf(TSepiOpCode));
-    OpCodeProcs[OpCode](Self, OpCode);
-  until OpCode = ocReturn;
+    try
+      try
+        // Execute instructions normally until RET OpCode
+        repeat
+          Instructions.ReadBuffer(OpCode, SizeOf(TSepiOpCode));
+          OpCodeProcs[OpCode](Self, OpCode);
+        until (OpCode = ocReturn) or (OpCode = ocJumpAndReturn);
+      finally
+        { If we get here via normal flow (not because of an exception), the
+          exception handling stack will always be empty - unless the compiler
+          didn't do its job correctly.
+          Why do we use a Delphi try-finally construct then? In order to have
+          RTL low level code behave as in a finally block. }
+
+        // Unwind exception handling stack while the handler is a try-finally
+        while ExceptionHandling.AtLeast(ExceptionHandlingBase+1) and
+          PExceptionHandler(ExceptionHandling.Peek).IsTryFinally do
+        begin
+          // Pop exception handler and read its fields, then dispose of it
+          ExceptionHandler := ExceptionHandling.Pop;
+          Instructions.PointerPos := ExceptionHandler.Code;
+          Dispose(ExceptionHandler);
+
+          // Execute finally handler
+          Execute;
+        end;
+      end;
+
+      // When getting an RET OpCode, Execute is finished
+      Finished := True;
+    except
+      { If exception handling stack is greater than its base, there is a
+        try-except handler in this (sub-)procedure. Otherwise, just let the
+        exception be propagated to the caller. }
+      if not ExceptionHandling.AtLeast(ExceptionHandlingBase+1) then
+        raise;
+
+      // Pop exception handler and read its fields, then dispose of it
+      ExceptionHandler := ExceptionHandling.Pop;
+      with ExceptionHandler^ do
+      begin
+        Instructions.PointerPos := Code;
+        if ExceptObjectPtr <> nil then
+          TObject(ExceptObjectPtr^) := ExceptObject;
+      end;
+      Dispose(ExceptionHandler);
+
+      // Execute handler code
+      Execute;
+
+      { Since Finished is False, and the preceding Execute has left the
+        instruction pointer pointing to instructions following the except
+        clause, we simply let it continue. }
+    end;
+  until Finished;
 end;
 
 initialization

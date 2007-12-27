@@ -193,6 +193,7 @@ const
       PreparedParamsWord        -> Word offset in prepared parameters
       GlobalConst               -> Constant reference
       GlobalVar                 -> Variable reference
+    Class := Mem(4) where a constant is a TSepiClass reference
     Dest := TSepiJumpestKind + DestValue
     DestValue :=
       Shortint -> Shortint relative value
@@ -207,17 +208,18 @@ const
   ocExtended    = TSepiOpCode($01); /// Instruction étendue (non utilisé)
 
   // Flow control (destinations are relative to end of instruction)
-  ocJump        = TSepiOpCode($02); /// JUMP Dest
-  ocJumpIfTrue  = TSepiOpCode($03); /// JIT  Dest, Test
-  ocJumpIfFalse = TSepiOpCode($04); /// JIF  Dest, Test
-  ocReturn      = TSepiOpCode($05); /// RET
+  ocJump          = TSepiOpCode($02); /// JUMP Dest
+  ocJumpIfTrue    = TSepiOpCode($03); /// JIT  Dest, Test
+  ocJumpIfFalse   = TSepiOpCode($04); /// JIF  Dest, Test
+  ocReturn        = TSepiOpCode($05); /// RET
+  ocJumpAndReturn = TSepiOpCode($06); /// JRET Dest
 
   // Calls
-  ocPrepareParams = TSepiOpCode($06); /// PRPA Word-Size
-  ocBasicCall     = TSepiOpCode($07); /// CALL CallSettings Address [Result]
-  ocSignedCall    = TSepiOpCode($08); /// CALL Signature-Ref Address [Result]
-  ocStaticCall    = TSepiOpCode($09); /// CALL Method-Ref [Result]
-  ocDynamicCall   = TSepiOpCode($0A); /// CALL Method-Ref [Result]
+  ocPrepareParams = TSepiOpCode($07); /// PRPA Word-Size
+  ocBasicCall     = TSepiOpCode($08); /// CALL CallSettings Address [Result]
+  ocSignedCall    = TSepiOpCode($09); /// CALL Signature-Ref Address [Result]
+  ocStaticCall    = TSepiOpCode($0A); /// CALL Method-Ref [Result]
+  ocDynamicCall   = TSepiOpCode($0B); /// CALL Method-Ref [Result]
 
   // Memory moves
   ocLoadAddress = TSepiOpCode($10); /// LEA   Dest, Src
@@ -289,6 +291,18 @@ const
   ocGetTypeInfo    = TSepiOpCode($50); /// GTI Dest, Type-Ref
   ocGetDelphiClass = TSepiOpCode($51); /// GDC Dest, Class-Ref
   ocGetMethodCode  = TSepiOpCode($52); /// GMC Dest, Method-Ref
+
+  // is and as operators
+  ocIsClass = TSepiOpCode($53); /// IS Dest, Object, Class
+  ocAsClass = TSepiOpCode($54); /// AS Object, Class
+
+  // Exception handling
+  ocRaise           = TSepiOpCode($60); /// RAISE ExceptObject
+  ocReraise         = TSepiOpCode($61); /// RERS
+  ocBeginTryExcept  = TSepiOpCode($62); /// BTE Dest, [ExceptObject]
+  ocEndTryExcept    = TSepiOpCode($63); /// ETE Dest
+  ocBeginTryFinally = TSepiOpCode($64); /// BTF Dest
+  ocEndTryFinally   = TSepiOpCode($65); /// ETF
 
 function MemoryRefEncode(MemorySpace: TSepiMemorySpace;
   OpCount: Integer): TSepiMemoryRef;
