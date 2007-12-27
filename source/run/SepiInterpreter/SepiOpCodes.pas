@@ -301,6 +301,8 @@ const
   ocReraise    = TSepiOpCode($61); /// RERS
   ocTryExcept  = TSepiOpCode($62); /// TRYE Dest, [ExceptObject]
   ocTryFinally = TSepiOpCode($63); /// TRYF Dest
+  /// ON ExceptObject, Byte-Count, Class-Refs{Count}, Dest-Kind, Dests{Count}
+  ocMultiOn    = TSepiOpCode($64);
 
 function MemoryRefEncode(MemorySpace: TSepiMemorySpace;
   OpCount: Integer): TSepiMemoryRef;

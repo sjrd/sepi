@@ -179,6 +179,7 @@ type
     procedure OpCodeReraise(OpCode: TSepiOpCode);
     procedure OpCodeTryExcept(OpCode: TSepiOpCode);
     procedure OpCodeTryFinally(OpCode: TSepiOpCode);
+    procedure OpCodeMultiOn(OpCode: TSepiOpCode);
 
     // Other methods
 
@@ -309,6 +310,7 @@ begin
   @OpCodeProcs[ocReraise]    := @TSepiRuntimeContext.OpCodeReraise;
   @OpCodeProcs[ocTryExcept]  := @TSepiRuntimeContext.OpCodeTryExcept;
   @OpCodeProcs[ocTryFinally] := @TSepiRuntimeContext.OpCodeTryFinally;
+  @OpCodeProcs[ocMultiOn]    := @TSepiRuntimeContext.OpCodeMultiOn;
 end;
 
 {*
@@ -1381,6 +1383,75 @@ begin
     // Execute finally block
     Instructions.PointerPos := FinallyCode;
     Execute;
+  end;
+end;
+
+{*
+  OpCode MultiOn
+  @param OpCode   OpCode
+*}
+procedure TSepiRuntimeContext.OpCodeMultiOn(OpCode: TSepiOpCode);
+type
+  TShortintArray = array[0..255] of Shortint;
+  TSmallintArray = array[0..255] of Smallint;
+  TLongintArray  = array[0..255] of Longint;
+  PShortintArray = ^TShortintArray;
+  PSmallintArray = ^TSmallintArray;
+  PLongintArray = ^TLongintArray;
+const
+  OffsetSizes: array[TSepiJumpDestKind] of Integer = (1, 2, 4, 0);
+var
+  Obj: TObject;
+  Count, Index, Skip: Integer;
+  SepiClass: TSepiClass;
+  DestKind: TSepiJumpDestKind;
+  OffsetSize: Integer;
+  DestsArray: Pointer;
+  Offset: Integer;
+begin
+  // Read object pointer and count
+  Obj := TObject((ReadAddress)^);
+  Count := 0;
+  Instructions.ReadBuffer(Count, 1);
+
+  // Look for a matching class
+  Index := 0;
+  while Index < Count do
+  begin
+    RuntimeUnit.ReadRef(Instructions, SepiClass);
+    if Obj is SepiClass.DelphiClass then
+      Break;
+    Inc(Index);
+  end;
+
+  // Skip left class references
+  Skip := Count-Index-1;
+  if Skip > 0 then
+    Instructions.Seek(4*Skip, soFromCurrent);
+
+  // Read offset size
+  Instructions.ReadBuffer(DestKind, SizeOf(TSepiJumpDestKind));
+  if not (DestKind in [jdkShortint, jdkSmallint, jdkLongint]) then
+    RaiseInvalidOpCode;
+  OffsetSize := OffsetSizes[DestKind];
+
+  // Get dests array address and jump over it
+  DestsArray := Instructions.PointerPos;
+  Instructions.Seek(Count*OffsetSize, soFromCurrent);
+
+  if Index < Count then
+  begin
+    // Read offset
+    case DestKind of
+      jdkShortint: Offset := PShortintArray(DestsArray)^[Index];
+      jdkSmallint: Offset := PSmallintArray(DestsArray)^[Index];
+      jdkLongint:  Offset := PLongintArray (DestsArray)^[Index];
+    else
+      Offset := 0; // avoid compiler warning
+    end;
+
+    // Seek according to offset
+    Instructions.Seek(Offset, soFromCurrent);
   end;
 end;
 
