@@ -33,6 +33,13 @@ uses
 
 type
   TSepiRuntimeMethod = class;
+  TSepiRuntimeContext = class;
+
+  {*
+    Type d'un événement déclenché pour le débogage d'un code Sepi
+    @param Context   Contexte d'exécution du débogage
+  *}
+  TSepiDebugEvent = procedure(Context: TSepiRuntimeContext) of object;
 
   {*
     Unité d'exécution Sepi
@@ -50,6 +57,8 @@ type
     FMethods: TObjectList;           /// Méthodes
     FSepiUnit: TSepiUnit;            /// Unité Sepi
     FReferences: array of TSepiMeta; /// Références internes
+
+    FOnDebug: TSepiDebugEvent; /// Evénément de débogage
 
     function FindMethod(const QName: string): TSepiRuntimeMethod;
     procedure GetMethodCode(Sender: TObject; var Code: Pointer;
@@ -70,6 +79,8 @@ type
     property SepiUnit: TSepiUnit read FSepiUnit;
     property MethodCount: Integer read GetMethodCount;
     property Methods[Index: Integer]: TSepiRuntimeMethod read GetMethods;
+
+    property OnDebug: TSepiDebugEvent read FOnDebug write FOnDebug;
   end;
 
   {*
@@ -142,13 +153,16 @@ type
   *}
   TSepiRuntimeContext = class(TObject)
   private
-    RuntimeUnit: TSepiRuntimeUnit;       /// Unité d'exécution
-    Instructions: TAbsoluteMemoryStream; /// Instructions
-    Parameters: Pointer;                 /// Paramètres
-    Locals: Pointer;                     /// Variables locales
-    PreparedParams: Pointer;             /// Paramètres en préparation
-    PreparedParamsAllocSize: Integer;    /// Taille allouée des paramètres
-    PreparedParamsSize: Integer;         /// Taille des paramètres préparés
+    FRuntimeMethod: TSepiRuntimeMethod; /// Méthode d'exécution
+    FRuntimeUnit: TSepiRuntimeUnit;     /// Unité d'exécution
+
+    FInstructions: TAbsoluteMemoryStream; /// Instructions
+
+    FParameters: Pointer;              /// Paramètres
+    FLocals: Pointer;                  /// Variables locales
+    FPreparedParams: Pointer;          /// Paramètres en préparation
+    FPreparedParamsAllocSize: Integer; /// Taille allouée des paramètres
+    FPreparedParamsSize: Integer;      /// Taille des paramètres préparés
 
     // Op-code procs
 
@@ -199,12 +213,30 @@ type
     function ReadClassValue: TClass;
     procedure ReadJumpDest(out Value: Integer; out Origin: Word;
       AllowAbsolute: Boolean = False);
+
+    // Access methods
+
+    function GetNextInstruction: Pointer;
+
+    // Properties
+
+    property Instructions: TAbsoluteMemoryStream read FInstructions;
   public
-    constructor Create(ARuntimeUnit: TSepiRuntimeUnit;
+    constructor Create(ARuntimeMethod: TSepiRuntimeMethod;
       AInstructions, AParameters, ALocals: Pointer);
     destructor Destroy; override;
 
     procedure Execute;
+
+    property RuntimeMethod: TSepiRuntimeMethod read FRuntimeMethod;
+    property RuntimeUnit: TSepiRuntimeUnit read FRuntimeUnit;
+
+    property NextInstruction: Pointer read GetNextInstruction;
+
+    property Parameters: Pointer read FParameters;
+    property Locals: Pointer read FLocals;
+    property PreparedParams: Pointer read FPreparedParams;
+    property PreparedParamsSize: Integer read FPreparedParamsSize;
   end;
 
 implementation
@@ -755,8 +787,7 @@ begin
 
   try
     // Execute the method code
-    Context := TSepiRuntimeContext.Create(RuntimeUnit, Code,
-      Parameters, Locals);
+    Context := TSepiRuntimeContext.Create(Self, Code, Parameters, Locals);
     try
       Context.Execute;
     finally
@@ -793,18 +824,19 @@ end;
   @param AParameters     Paramètres
   @param ALocals         Variables locales
 *}
-constructor TSepiRuntimeContext.Create(ARuntimeUnit: TSepiRuntimeUnit;
+constructor TSepiRuntimeContext.Create(ARuntimeMethod: TSepiRuntimeMethod;
   AInstructions, AParameters, ALocals: Pointer);
 begin
   inherited Create;
 
-  RuntimeUnit := ARuntimeUnit;
-  Instructions := TAbsoluteMemoryStream.Create(AInstructions);
-  Parameters := AParameters;
-  Locals := ALocals;
-  PreparedParams := nil;
-  PreparedParamsAllocSize := 0;
-  PreparedParamsSize := 0;
+  FRuntimeMethod := ARuntimeMethod;
+  FRuntimeUnit := FRuntimeMethod.RuntimeUnit;
+  FInstructions := TAbsoluteMemoryStream.Create(AInstructions);
+  FParameters := AParameters;
+  FLocals := ALocals;
+  FPreparedParams := nil;
+  FPreparedParamsAllocSize := 0;
+  FPreparedParamsSize := 0;
 end;
 
 {*
@@ -885,16 +917,16 @@ begin
   Instructions.ReadBuffer(Size, SizeOf(Word));
 
   // Realloc prepared params if needed
-  if Size > PreparedParamsAllocSize then
+  if Size > FPreparedParamsAllocSize then
   begin
-    if Assigned(PreparedParams) then
-      FreeMem(PreparedParams);
-    GetMem(PreparedParams, Size);
-    PreparedParamsAllocSize := Size;
+    if Assigned(FPreparedParams) then
+      FreeMem(FPreparedParams);
+    GetMem(FPreparedParams, Size);
+    FPreparedParamsAllocSize := Size;
   end;
 
   // Update PreparedParamsSize
-  PreparedParamsSize := Size;
+  FPreparedParamsSize := Size;
 end;
 
 {*
@@ -1763,7 +1795,18 @@ begin
       Value := ValuePtr^;
       Origin := soFromBeginning;
     end;
+  else
+    RaiseInvalidOpCode;
   end;
+end;
+
+{*
+  Pointeur sur la prochaine instruction à exécuter
+  @return Pointeur sur la prochaine instruction à exécuter
+*}
+function TSepiRuntimeContext.GetNextInstruction: Pointer;
+begin
+  Result := Instructions.PointerPos;
 end;
 
 {*
@@ -1774,6 +1817,11 @@ var
   OpCode: TSepiOpCode;
 begin
   repeat
+    // Debug event
+    if Assigned(RuntimeUnit.OnDebug) then
+      RuntimeUnit.OnDebug(Self);
+
+    // Execute instruction
     Instructions.ReadBuffer(OpCode, SizeOf(TSepiOpCode));
     OpCodeProcs[OpCode](Self, OpCode);
   until (OpCode = ocReturn) or (OpCode = ocJumpAndReturn);
