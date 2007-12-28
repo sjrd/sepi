@@ -162,6 +162,12 @@ type
   TSepiCallSettings = type Byte;
 
 const
+  /// Taille des constantes en fonction des types de base
+  BaseTypeConstSizes: array[TSepiBaseType] of Integer = (
+    1, 1, 2, 4, 8, 1, 2, 4, 8, 4, 8, 10, 8, 8, 4, 4, 0
+  );
+
+const
   MemPlaceMask = $0F;   /// Masque d'espace mémoire
   MemOpCountMask = $F0; /// Masque du nombre d'opérations
   MemOpCountShift = 4;  /// Offset du nombre d'opérations
@@ -248,7 +254,7 @@ const
   ocSelfSubtract = TSepiOpCode($25); /// SUB Type, Var, Value
   ocSelfMultiply = TSepiOpCode($26); /// MUL Type, Var, Value
   ocSelfDivide   = TSepiOpCode($27); /// DIV Type, Var, Value
-  ocSelfIntDiv   = TSepiOpCode($28); /// DIV Type, Var, Value
+  ocSelfIntDiv   = TSepiOpCode($28); /// IDV Type, Var, Value
   ocSelfModulus  = TSepiOpCode($29); /// MOD Type, Var, Value
   ocSelfShl      = TSepiOpCode($2A); /// SHL Type, Var, Value
   ocSelfShr      = TSepiOpCode($2B); /// SHR Type, Var, Value
@@ -269,7 +275,7 @@ const
   ocOtherSubtract = TSepiOpCode($35); /// SUB Type, Dest, Left, Right
   ocOtherMultiply = TSepiOpCode($36); /// MUL Type, Dest, Left, Right
   ocOtherDivide   = TSepiOpCode($37); /// DIV Type, Dest, Left, Right
-  ocOtherIntDiv   = TSepiOpCode($38); /// DIV Type, Dest, Left, Right
+  ocOtherIntDiv   = TSepiOpCode($38); /// IDV Type, Dest, Left, Right
   ocOtherModulus  = TSepiOpCode($39); /// MOD Type, Dest, Left, Right
   ocOtherShl      = TSepiOpCode($3A); /// SHL Type, Dest, Left, Right
   ocOtherShr      = TSepiOpCode($3B); /// SHR Type, Dest, Left, Right

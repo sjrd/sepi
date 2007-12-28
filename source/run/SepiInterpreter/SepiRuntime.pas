@@ -54,6 +54,9 @@ type
     function FindMethod(const QName: string): TSepiRuntimeMethod;
     procedure GetMethodCode(Sender: TObject; var Code: Pointer;
       var CodeHandler: TObject);
+
+    function GetMethodCount: Integer;
+    function GetMethods(Index: Integer): TSepiRuntimeMethod;
   public
     constructor Create(SepiRoot: TSepiRoot; Stream: TStream); overload;
     constructor Create(SepiRoot: TSepiRoot;
@@ -65,6 +68,8 @@ type
     procedure ReadRef(Stream: TStream; out Ref);
 
     property SepiUnit: TSepiUnit read FSepiUnit;
+    property MethodCount: Integer read GetMethodCount;
+    property Methods[Index: Integer]: TSepiRuntimeMethod read GetMethods;
   end;
 
   {*
@@ -123,7 +128,11 @@ type
     property SepiMethod: TSepiMethod read FSepiMethod;
 
     property Code: Pointer read FCode;
+    property CodeSize: Integer read FCodeSize;
     property NativeCode: Pointer read FNativeCode;
+
+    property ParamsSize: Integer read FParamsSize;
+    property LocalsSize: Integer read FLocalsSize;
   end;
 
   {*
@@ -212,11 +221,6 @@ var
   OpCodeProcs: array[TSepiOpCode] of TOpCodeProc;
 
 const
-  /// Taille des constantes en fonction des types de base
-  BaseTypeConstSizes: array[TSepiBaseType] of Integer = (
-    1, 1, 2, 4, 8, 1, 2, 4, 8, 4, 8, 10, 8, 8, 4, 4, 0
-  );
-
   ConstAsNil = Integer($80000000); /// Constante prise comme nil
 
 type
@@ -225,18 +229,6 @@ type
   public
     // I swear I won't use this property in order to modify the pointed value.
     property TypeInfoRef;
-  end;
-
-  /// Pointeur sur un gestionnaire d'exception
-  PExceptionHandler = ^TExceptionHandler;
-
-  {*
-    Gestionnaire d'exception (de type try-except ou try-finally)
-  *}
-  TExceptionHandler = record
-    IsTryFinally: Boolean;    /// True : try-finally ; False : try-except
-    Code: Pointer;            /// Pointeur sur le code (Sepi) du gestionnaire
-    ExceptObjectPtr: Pointer; /// Où stocker l'objet exception (peut être nil)
   end;
 
 {*
@@ -430,6 +422,25 @@ begin
   Method.SetSepiMethod(SepiMethod);
   Code := Method.NativeCode;
   CodeHandler := Method;
+end;
+
+{*
+  Nombre de méthodes
+  @return Nombre de méthodes
+*}
+function TSepiRuntimeUnit.GetMethodCount: Integer;
+begin
+  Result := FMethods.Count;
+end;
+
+{*
+  Tableau zero-based des méthodes
+  @param Index   Index d'une méthode
+  @return Méthode à l'index spécifié
+*}
+function TSepiRuntimeUnit.GetMethods(Index: Integer): TSepiRuntimeMethod;
+begin
+  Result := TSepiRuntimeMethod(FMethods[Index]);
 end;
 
 {*
@@ -700,16 +711,16 @@ end;
 procedure TSepiRuntimeMethod.Invoke(Parameters: Pointer;
   Result: Pointer = nil);
 var
-  LocalsSize, I: Integer;
+  AllLocalsSize, I: Integer;
   Locals, LocalParams: Pointer;
   ParamsPPtr: PPointer;
   LocalsPtr: Pointer;
   Context: TSepiRuntimeContext;
 begin
   // Allocate locals on stack
-  LocalsSize := FLocalsSize + FLocalParamsSize;
+  AllLocalsSize := FLocalsSize + FLocalParamsSize;
   asm
-        SUB     ESP,LocalsSize
+        SUB     ESP,AllLocalsSize
         MOV     Locals,ESP
   end;
   LocalParams := Pointer(Integer(Locals) + FLocalsSize);
@@ -767,7 +778,7 @@ begin
 
   // Deallocate locals from stack
   asm
-        ADD     ESP,LocalsSize
+        ADD     ESP,AllLocalsSize
   end;
 end;
 
@@ -1477,8 +1488,7 @@ begin
       begin
         // Treat constant as nil return value
         Result := nil;
-      end
-      else
+      end else
       begin
         // Read the constant directly into the code
         if ConstSize <= 0 then
