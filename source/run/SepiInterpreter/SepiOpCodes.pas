@@ -58,9 +58,15 @@ type
     l'indique, des constantes. Certaines opérations n'acceptent pas les
     constantes en paramètre, par exemple la destination d'un MOV ne peut pas
     être une constante.
-    La valeur mpConstant en tant que valeur de retour d'un CALL est interprétée
+    La valeur mpZero est parfois acceptée par des instructions n'acceptant pas
+    de constantes, bien que 0 soit manifestement une constante. C'est le cas
+    par exemple de l'affectation de chaîne, qui n'accepte que la constante
+    nulle (qui vaut la chaîne vide '').
+    La valeur mpZero en tant que valeur de retour d'un CALL est interprétée
     plutôt en temps que mpNoResult, autrement dit cela demande que le résultat
-    ne soit pas stocké.
+    ne soit pas stocké. C'est également le cas de l'argument ExceptObject d'un
+    TRYE (try-except).
+    - mpZero : 0, nil, '', etc. selon le type de variable
     - mpConstant : la variable est une constante, stockée juste derrière
     - mpLocalsBase : variable locale, sans offset
     - mpLocalsByte : variable locale, offset d'un octet
@@ -75,7 +81,7 @@ type
     - mpGlobalVar : référence à une TSepiVariable
   *}
   TSepiMemorySpace = (
-    mpConstant, mpLocalsBase, mpLocalsByte, mpLocalsWord, mpParamsBase,
+    mpZero, mpConstant, mpLocalsBase, mpLocalsByte, mpLocalsWord, mpParamsBase,
     mpParamsByte, mpParamsWord, mpPreparedParamsBase, mpPreparedParamsByte,
     mpPreparedParamsWord, mpGlobalConst, mpGlobalVar
   );
@@ -85,7 +91,8 @@ type
 {$IFEND}
 
 const
-  mpNoResult = mpConstant;               /// Ne pas garder le résultat
+  mpNil = mpZero;                        /// Constante nil
+  mpNoResult = mpZero;                   /// Ne pas garder le résultat
   mpResult = mpLocalsBase;               /// Variable résultat
   mpSelf = mpParamsBase;                 /// Paramètre Self
   mpPreparedSelf = mpPreparedParamsBase; /// Paramètre Self en préparation
@@ -162,9 +169,14 @@ type
   TSepiCallSettings = type Byte;
 
 const
+  ZeroAsNil = Integer($80000000); /// Interpréter 0 comme nil en retour
+  NoConstButZero = 0;             /// Pas de constante, sauf 0
+  NoConst = -1;                   /// Pas de constante du tout
+
   /// Taille des constantes en fonction des types de base
   BaseTypeConstSizes: array[TSepiBaseType] of Integer = (
-    1, 1, 2, 4, 8, 1, 2, 4, 8, 4, 8, 10, 8, 8, 4, 4, 0
+    1, 1, 2, 4, 8, 1, 2, 4, 8, 4, 8, 10, 8, 8,
+    NoConstButZero, NoConstButZero, NoConstButZero
   );
 
 const
@@ -186,19 +198,19 @@ const
   {
     Mem := TSepiMemoryPlace + Value [+ Operations]
     Value :=
-      Constant (const accepted) -> Constant of the relevant type
-      Constant (as CALL result) -> Nothing (don't fetch result)
-      LocalsBase                -> Local vars, no offset
-      LocalsByte                -> Byte offset in local vars
-      LocalsWord                -> Word offset in local vars
-      ParamsBase                -> Parameters, no offset
-      ParamsByte                -> Byte offset in parameters
-      ParamsWord                -> Word offset in parameters
-      PreparedParamsBase        -> Prepared parameters, no offset
-      PreparedParamsByte        -> Byte offset in prepared parameters
-      PreparedParamsWord        -> Word offset in prepared parameters
-      GlobalConst               -> Constant reference
-      GlobalVar                 -> Variable reference
+      Zero               -> Nothing
+      Constant           -> Constant of the relevant type
+      LocalsBase         -> Local vars, no offset
+      LocalsByte         -> Byte offset in local vars
+      LocalsWord         -> Word offset in local vars
+      ParamsBase         -> Parameters, no offset
+      ParamsByte         -> Byte offset in parameters
+      ParamsWord         -> Word offset in parameters
+      PreparedParamsBase -> Prepared parameters, no offset
+      PreparedParamsByte -> Byte offset in prepared parameters
+      PreparedParamsWord -> Word offset in prepared parameters
+      GlobalConst        -> Constant reference
+      GlobalVar          -> Variable reference
     Class := Mem(4) where a constant is a TSepiClass reference
     Dest := TSepiJumpestKind + DestValue
     DestValue :=

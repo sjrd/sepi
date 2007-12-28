@@ -84,7 +84,7 @@ type
     function ReadBaseAddress(ConstSize: Integer;
       MemorySpace: TSepiMemorySpace): string;
     procedure ReadAddressOperation(var Address: string);
-    function ReadAddress(ConstSize: Integer = 0): string;
+    function ReadAddress(ConstSize: Integer = NoConst): string;
     function ReadClassValue: string;
     function ReadJumpDest(out Offset: Integer; out Memory: string;
       AllowAbsolute: Boolean = False): Boolean;
@@ -112,9 +112,6 @@ type
 var
   /// Tableau des méthodes de traitement des OpCodes
   OpCodeArgsFuncs: array[TSepiOpCode] of TOpCodeArgsFunc;
-
-const
-  ConstAsNil = Integer($80000000); /// Constante prise comme nil
 
 const
   MaxKnownOpCode = ocMultiOn; /// Plus grand OpCode connu
@@ -357,7 +354,7 @@ begin
   CallSettingsDecode(CallSettings, CallingConvention,
     RegUsage, ResultBehavior);
   AddressPtr := ReadAddress;
-  ResultPtr := ReadAddress(ConstAsNil);
+  ResultPtr := ReadAddress(ZeroAsNil);
 
   // Format arguments
   if ResultPtr <> '' then
@@ -380,7 +377,7 @@ begin
   // Read the instruction
   Signature := ReadRef;
   AddressPtr := ReadAddress;
-  ResultPtr := ReadAddress(ConstAsNil);
+  ResultPtr := ReadAddress(ZeroAsNil);
 
   // Format arguments
   if ResultPtr <> '' then
@@ -400,7 +397,7 @@ var
 begin
   // Read the instruction
   Method := ReadRef;
-  ResultPtr := ReadAddress(ConstAsNil);
+  ResultPtr := ReadAddress(ZeroAsNil);
 
   // Format arguments
   if ResultPtr <> '' then
@@ -431,7 +428,8 @@ end;
 function TSepiDisassembler.OpCodeSimpleMove(OpCode: TSepiOpCode): string;
 const
   ConstSizes: array[ocMoveByte..ocMoveIntf] of Integer = (
-    1, 2, 4, 8, 10, 4, 4, 0, 4
+    1, 2, 4, 8, 10, NoConstButZero, NoConstButZero, NoConstButZero,
+    NoConstButZero
   );
 var
   DestPtr: string;
@@ -626,7 +624,7 @@ var
   DelphiClass: string;
 begin
   DestPtr := ReadAddress;
-  ObjectPtr := ReadAddress(4);
+  ObjectPtr := ReadAddress(NoConstButZero);
   DelphiClass := ReadClassValue;
 
   Result := Format('%s, %s, %s', {don't localize}
@@ -642,7 +640,7 @@ var
   ObjectPtr: string;
   DelphiClass: string;
 begin
-  ObjectPtr := ReadAddress(4);
+  ObjectPtr := ReadAddress(NoConstButZero);
   DelphiClass := ReadClassValue;
 
   Result := Format('%s, %s', {don't localize}
@@ -680,7 +678,7 @@ var
 begin
   // Read instruction
   ReadJumpDest(Offset, Memory);
-  ExceptObjectPtr := ReadAddress(ConstAsNil);
+  ExceptObjectPtr := ReadAddress(ZeroAsNil);
   ExceptCode := Pointer(Instructions.Position + Offset);
 
   // Format arguments
@@ -772,7 +770,7 @@ const // don't localize
   LocalsName = 'LO:';
   ParamsName = 'PA:';
   PreparedParamsName = 'PR:';
-  BaseName = '0';
+  ZeroName = '0';
 var
   I: Integer;
   ByteOffset: Byte;
@@ -780,30 +778,36 @@ var
 begin
   // Read base address
   case MemorySpace of
-    mpConstant:
+    mpZero:
     begin
-      if ConstSize = ConstAsNil then
+      if ConstSize = ZeroAsNil then
       begin
         // Treat constant as nil return value
         Result := '';
       end else
       begin
-        // Read the constant directly into the code
-        if ConstSize <= 0 then
+        if ConstSize < NoConstButZero then
           RaiseInvalidOpCode;
+        Result := ZeroName;
+      end;
+    end;
+    mpConstant:
+    begin
+      // Read the constant directly into the code
+      if ConstSize <= 0 then
+        RaiseInvalidOpCode;
 
-        Result := '$'; {don't localize}
-        for I := 0 to ConstSize-1 do
-        begin
-          Instructions.ReadBuffer(ByteOffset, 1);
-          Result := Result + IntToHex(ByteOffset, 2);
-        end;
+      Result := '$'; {don't localize}
+      for I := 0 to ConstSize-1 do
+      begin
+        Instructions.ReadBuffer(ByteOffset, 1);
+        Result := Result + IntToHex(ByteOffset, 2);
       end;
     end;
     mpLocalsBase:
     begin
       // Local variables, no offset
-      Result := LocalsName + BaseName;
+      Result := LocalsName + ZeroName;
     end;
     mpLocalsByte:
     begin
@@ -820,7 +824,7 @@ begin
     mpParamsBase:
     begin
       // Parameters, no offset
-      Result := ParamsName + BaseName;
+      Result := ParamsName + ZeroName;
     end;
     mpParamsByte:
     begin
@@ -837,7 +841,7 @@ begin
     mpPreparedParamsBase:
     begin
       // Prepared params, no offset
-      Result := PreparedParamsName + BaseName;
+      Result := PreparedParamsName + ZeroName;
     end;
     mpPreparedParamsByte:
     begin
@@ -970,7 +974,7 @@ end;
   Lit l'adresse d'une zone mémoire depuis le flux d'instructions
   @param ConstSize   Taille d'une constante (0 n'accepte pas les constantes)
 *}
-function TSepiDisassembler.ReadAddress(ConstSize: Integer = 0): string;
+function TSepiDisassembler.ReadAddress(ConstSize: Integer = NoConst): string;
 var
   MemoryRef: TSepiMemoryRef;
   MemorySpace: TSepiMemorySpace;
@@ -1003,7 +1007,7 @@ end;
 *}
 function TSepiDisassembler.ReadClassValue: string;
 begin
-  Result := ReadAddress(ConstAsNil);
+  Result := ReadAddress(ZeroAsNil);
 
   if Result = '' then
     Result := ReadRef;

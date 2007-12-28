@@ -209,7 +209,7 @@ type
     function ReadBaseAddress(ConstSize: Integer;
       MemorySpace: TSepiMemorySpace): Pointer;
     procedure ReadAddressOperation(var Address: Pointer);
-    function ReadAddress(ConstSize: Integer = 0): Pointer;
+    function ReadAddress(ConstSize: Integer = NoConst): Pointer;
     function ReadClassValue: TClass;
     procedure ReadJumpDest(out Value: Integer; out Origin: Word;
       AllowAbsolute: Boolean = False);
@@ -252,9 +252,6 @@ var
   /// Tableau des méthodes de traitement des OpCodes
   OpCodeProcs: array[TSepiOpCode] of TOpCodeProc;
 
-const
-  ConstAsNil = Integer($80000000); /// Constante prise comme nil
-
 type
   /// Accès à la propriété TypeInfoRef de TSepiType
   TSepiAccessTypeInfoRef = class(TSepiType)
@@ -262,6 +259,10 @@ type
     // I swear I won't use this property in order to modify the pointed value.
     property TypeInfoRef;
   end;
+
+const
+  /// Zero memory, big enough to accept a Variant
+  ZeroMemory: array[0..3] of Integer = (0, 0, 0, 0);
 
 {*
   Initialise les OpCodeProcs
@@ -947,7 +948,7 @@ begin
   CallSettingsDecode(CallSettings, CallingConvention,
     RegUsage, ResultBehavior);
   AddressPtr := ReadAddress; // it would be foolish to have a constant here
-  Result := ReadAddress(ConstAsNil);
+  Result := ReadAddress(ZeroAsNil);
 
   // Effective call
   SepiCallOut(AddressPtr^, CallingConvention, PreparedParams,
@@ -971,7 +972,7 @@ begin
   // Read the instruction
   RuntimeUnit.ReadRef(Instructions, SignatureOwner);
   AddressPtr := ReadAddress; // it would be foolish to have a constant here
-  Result := ReadAddress(ConstAsNil);
+  Result := ReadAddress(ZeroAsNil);
 
   // Find signature
   if SignatureOwner is TSepiMethod then
@@ -1001,7 +1002,7 @@ var
 begin
   // Read the instruction
   RuntimeUnit.ReadRef(Instructions, SepiMethod);
-  Result := ReadAddress(ConstAsNil);
+  Result := ReadAddress(ZeroAsNil);
 
   // Effective call
   if SepiMethod.CodeHandler is TSepiRuntimeMethod then
@@ -1032,7 +1033,7 @@ var
 begin
   // Read the instruction
   RuntimeUnit.ReadRef(Instructions, SepiMethod);
-  Result := ReadAddress(ConstAsNil);
+  Result := ReadAddress(ZeroAsNil);
 
   // Get Self parameter: it is always the first one on the stack
   SelfPtr := Pointer(PreparedParams^);
@@ -1109,7 +1110,8 @@ end;
 procedure TSepiRuntimeContext.OpCodeSimpleMove(OpCode: TSepiOpCode);
 const
   ConstSizes: array[ocMoveByte..ocMoveIntf] of Integer = (
-    1, 2, 4, 8, 10, 4, 4, 0, 4
+    1, 2, 4, 8, 10, NoConstButZero, NoConstButZero, NoConstButZero,
+    NoConstButZero
   );
 var
   DestPtr: Pointer;
@@ -1331,7 +1333,7 @@ var
   DelphiClass: TClass;
 begin
   DestPtr := ReadAddress;
-  ObjectPtr := ReadAddress(4);
+  ObjectPtr := ReadAddress(NoConstButZero);
   DelphiClass := ReadClassValue;
 
   DestPtr^ := ObjectPtr^ is DelphiClass;
@@ -1346,7 +1348,7 @@ var
   ObjectPtr: ^TObject;
   DelphiClass: TClass;
 begin
-  ObjectPtr := ReadAddress(4);
+  ObjectPtr := ReadAddress(NoConstButZero);
   DelphiClass := ReadClassValue;
 
   TObject(DelphiClass) := // just give something to the Delphi syntax
@@ -1388,7 +1390,7 @@ var
 begin
   // Read instruction
   ReadJumpDest(Offset, Origin);
-  ExceptObjectPtr := ReadAddress(ConstAsNil);
+  ExceptObjectPtr := ReadAddress(ZeroAsNil);
   ExceptCode := Pointer(Instructions.Position + Offset);
 
   try
@@ -1514,20 +1516,26 @@ var
 begin
   // Read base address
   case MemorySpace of
-    mpConstant:
+    mpZero:
     begin
-      if ConstSize = ConstAsNil then
+      if ConstSize = ZeroAsNil then
       begin
         // Treat constant as nil return value
         Result := nil;
       end else
       begin
-        // Read the constant directly into the code
-        if ConstSize <= 0 then
+        if ConstSize < NoConstButZero then
           RaiseInvalidOpCode;
-        Result := Instructions.PointerPos;
-        Instructions.Seek(ConstSize, soFromCurrent);
+        Result := @ZeroMemory;
       end;
+    end;
+    mpConstant:
+    begin
+      // Read the constant directly into the code
+      if ConstSize <= 0 then
+        RaiseInvalidOpCode;
+      Result := Instructions.PointerPos;
+      Instructions.Seek(ConstSize, soFromCurrent);
     end;
     mpLocalsBase:
     begin
@@ -1707,7 +1715,8 @@ end;
   Lit l'adresse d'une zone mémoire depuis le flux d'instructions
   @param ConstSize   Taille d'une constante (0 n'accepte pas les constantes)
 *}
-function TSepiRuntimeContext.ReadAddress(ConstSize: Integer = 0): Pointer;
+function TSepiRuntimeContext.ReadAddress(
+  ConstSize: Integer = NoConst): Pointer;
 var
   MemoryRef: TSepiMemoryRef;
   MemorySpace: TSepiMemorySpace;
@@ -1743,7 +1752,7 @@ var
   ClassPtr: Pointer;
   SepiClass: TSepiClass;
 begin
-  ClassPtr := ReadAddress(ConstAsNil);
+  ClassPtr := ReadAddress(ZeroAsNil);
 
   if ClassPtr = nil then
   begin
