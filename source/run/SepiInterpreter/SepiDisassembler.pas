@@ -714,9 +714,13 @@ const
   OffsetSizes: array[TSepiJumpDestKind] of Integer = (1, 2, 4, 0);
 var
   ObjectPtr: string;
-  Count: Integer;
+  I, Count: Integer;
+  ClassNames: array of string;
   DestKind: TSepiJumpDestKind;
-  OffsetSize: Integer;
+  ShortDest: Shortint;
+  SmallDest: Smallint;
+  Dests: array of Integer;
+  Dest: Integer;
 begin
   // Read object pointer and count
   ObjectPtr := ReadAddress;
@@ -724,19 +728,47 @@ begin
   Instructions.ReadBuffer(Count, 1);
 
   // Classes
-  Instructions.Seek(4*Count, soFromCurrent);
+  SetLength(ClassNames, Count);
+  for I := 0 to Count-1 do
+    ClassNames[I] := ReadRef;
 
   // Read offset size
   Instructions.ReadBuffer(DestKind, SizeOf(TSepiJumpDestKind));
   if not (DestKind in [jdkShortint, jdkSmallint, jdkLongint]) then
     RaiseInvalidOpCode;
-  OffsetSize := OffsetSizes[DestKind];
 
   // Dests
-  Instructions.Seek(OffsetSize*Count, soFromCurrent);
+  SetLength(Dests, Count);
+  case DestKind of
+    jdkShortint:
+    begin
+      for I := 0 to Count-1 do
+      begin
+        Instructions.ReadBuffer(ShortDest, 1);
+        Dests[I] := ShortDest;
+      end;
+    end;
+    jdkSmallint:
+    begin
+      for I := 0 to Count-1 do
+      begin
+        Instructions.ReadBuffer(SmallDest, 2);
+        Dests[I] := SmallDest;
+      end;
+    end;
+    jdkLongint:
+    begin
+      Instructions.ReadBuffer(Dests[0], 4*Count);
+    end;
+  end;
 
   // Format arguments
   Result := ObjectPtr;
+  for I := 0 to Count-1 do
+  begin
+    Dest := Integer(Instructions.PointerPos) + Dests[I];
+    Result := Result + Comma + ClassNames[I] + ':' + IntToHex(Dest, 8);
+  end;
 end;
 
 {*

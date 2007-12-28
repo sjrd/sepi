@@ -434,7 +434,7 @@ procedure RaiseInvalidOpCode;
 
   function ReturnAddress: Pointer;
   asm
-        MOV     EAX,[ESP]
+        MOV     EAX,[ESP+4]
   end;
 
 begin
