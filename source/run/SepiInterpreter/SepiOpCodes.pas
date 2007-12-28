@@ -221,11 +221,11 @@ const
   ocJumpAndReturn = TSepiOpCode($06); /// JRET Dest
 
   // Calls
-  ocPrepareParams = TSepiOpCode($07); /// PRPA Word-Size
-  ocBasicCall     = TSepiOpCode($08); /// CALL CallSettings Address [Result]
-  ocSignedCall    = TSepiOpCode($09); /// CALL Signature-Ref Address [Result]
-  ocStaticCall    = TSepiOpCode($0A); /// CALL Method-Ref [Result]
-  ocDynamicCall   = TSepiOpCode($0B); /// CALL Method-Ref [Result]
+  ocPrepareParams = TSepiOpCode($07); /// PRPA  Word-Size
+  ocBasicCall     = TSepiOpCode($08); /// CALL  CallSettings Address [Result]
+  ocSignedCall    = TSepiOpCode($09); /// CALL  Signature-Ref Address [Result]
+  ocStaticCall    = TSepiOpCode($0A); /// SCALL Method-Ref [Result]
+  ocDynamicCall   = TSepiOpCode($0B); /// DCALL Method-Ref [Result]
 
   // Memory moves
   ocLoadAddress = TSepiOpCode($10); /// LEA   Dest, Src

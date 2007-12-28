@@ -35,7 +35,8 @@ contains
   SepiOpCodes in '..\..\source\run\SepiInterpreter\SepiOpCodes.pas',
   SepiOutCalls in '..\..\source\run\SepiInterpreter\SepiOutCalls.pas',
   SepiRuntime in '..\..\source\run\SepiInterpreter\SepiRuntime.pas',
-  SepiRuntimeOperations in '..\..\source\run\SepiInterpreter\SepiRuntimeOperations.pas';
+  SepiRuntimeOperations in '..\..\source\run\SepiInterpreter\SepiRuntimeOperations.pas',
+  SepiDisassembler in '..\..\source\run\SepiInterpreter\SepiDisassembler.pas';
 
 end.
 
