@@ -49,10 +49,10 @@ type
     function OpCodeJump(OpCode: TSepiOpCode): string;
     function OpCodeJumpIf(OpCode: TSepiOpCode): string;
 
-    function OpCodePrepareParams(OpCode: TSepiOpCode): string;
     function OpCodeBasicCall(OpCode: TSepiOpCode): string;
     function OpCodeSignedCall(OpCode: TSepiOpCode): string;
-    function OpCodeStatDynaCall(OpCode: TSepiOpCode): string;
+    function OpCodeStaticCall(OpCode: TSepiOpCode): string;
+    function OpCodeDynamicCall(OpCode: TSepiOpCode): string;
 
     function OpCodeLoadAddress(OpCode: TSepiOpCode): string;
     function OpCodeSimpleMove(OpCode: TSepiOpCode): string;
@@ -88,6 +88,7 @@ type
     function ReadClassValue: string;
     function ReadJumpDest(out Offset: Integer; out Memory: string;
       AllowAbsolute: Boolean = False): Boolean;
+    function ReadParams: string;
 
     function DisassembleInstruction: string;
   public
@@ -124,7 +125,7 @@ const
     // Flow control
     'JUMP', 'JIT', 'JIF', 'RET', 'JRET',
     // Calls
-    'PRPA', 'CALL', 'CALL', 'SCALL', 'DCALL', '', '', '', '',
+    'PRPA', 'CALL', 'CALL', 'CALL', 'CALL', '', '', '', '',
     // Memory moves
     'LEA', 'MOVB', 'MOVW', 'MOVD', 'MOVQ', 'MOVE', 'MOVAS', 'MOVWS', 'MOVV',
     'MOVI', 'MOVS', 'MOVM', 'MOVO', 'CVRT', '', '',
@@ -192,11 +193,10 @@ begin
   @OpCodeArgsFuncs[ocJumpAndReturn] := @TSepiDisassembler.OpCodeJump;
 
   // Calls
-  @OpCodeArgsFuncs[ocPrepareParams] := @TSepiDisassembler.OpCodePrepareParams;
   @OpCodeArgsFuncs[ocBasicCall]     := @TSepiDisassembler.OpCodeBasicCall;
   @OpCodeArgsFuncs[ocSignedCall]    := @TSepiDisassembler.OpCodeSignedCall;
-  @OpCodeArgsFuncs[ocStaticCall]    := @TSepiDisassembler.OpCodeStatDynaCall;
-  @OpCodeArgsFuncs[ocDynamicCall]   := @TSepiDisassembler.OpCodeStatDynaCall;
+  @OpCodeArgsFuncs[ocStaticCall]    := @TSepiDisassembler.OpCodeStaticCall;
+  @OpCodeArgsFuncs[ocDynamicCall]   := @TSepiDisassembler.OpCodeDynamicCall;
 
   // Memory moves
   @OpCodeArgsFuncs[ocLoadAddress] := @TSepiDisassembler.OpCodeLoadAddress;
@@ -325,18 +325,6 @@ begin
 end;
 
 {*
-  OpCode PrepareParams
-  @param OpCode   OpCode
-*}
-function TSepiDisassembler.OpCodePrepareParams(OpCode: TSepiOpCode): string;
-var
-  Size: Word;
-begin
-  Instructions.ReadBuffer(Size, SizeOf(Word));
-  Result := IntToStr(Size);
-end;
-
-{*
   OpCode BasicCall
   @param OpCode   OpCode
 *}
@@ -347,21 +335,19 @@ var
   RegUsage: Byte;
   ResultBehavior: TSepiTypeResultBehavior;
   AddressPtr: string;
-  ResultPtr: string;
+  Parameters: string;
 begin
   // Read the instruction
   Instructions.ReadBuffer(CallSettings, 1);
   CallSettingsDecode(CallSettings, CallingConvention,
     RegUsage, ResultBehavior);
   AddressPtr := ReadAddress;
-  ResultPtr := ReadAddress(ZeroAsNil);
+  Parameters := ReadParams;
 
   // Format arguments
-  if ResultPtr <> '' then
-    ResultPtr := Comma + ResultPtr;
   Result := Format('(%s, %d, %s) %s%s', {don't localize}
     [CallingConventionNames[CallingConvention], RegUsage,
-    ResultBehaviorNames[ResultBehavior], AddressPtr, ResultPtr]);
+    ResultBehaviorNames[ResultBehavior], AddressPtr, Parameters]);
 end;
 
 {*
@@ -372,38 +358,54 @@ function TSepiDisassembler.OpCodeSignedCall(OpCode: TSepiOpCode): string;
 var
   Signature: string;
   AddressPtr: string;
-  ResultPtr: string;
+  Parameters: string;
 begin
   // Read the instruction
   Signature := ReadRef;
   AddressPtr := ReadAddress;
-  ResultPtr := ReadAddress(ZeroAsNil);
+  Parameters := ReadParams;
 
   // Format arguments
-  if ResultPtr <> '' then
-    ResultPtr := Comma + ResultPtr;
   Result := Format('(%s) %s%s', {don't localize}
-    [Signature, AddressPtr, ResultPtr]);
+    [Signature, AddressPtr, Parameters]);
 end;
 
 {*
-  OpCode StaticCall ou DynamicCall
+  OpCode StaticCall
   @param OpCode   OpCode
 *}
-function TSepiDisassembler.OpCodeStatDynaCall(OpCode: TSepiOpCode): string;
+function TSepiDisassembler.OpCodeStaticCall(OpCode: TSepiOpCode): string;
 var
   Method: string;
-  ResultPtr: string;
+  Parameters: string;
 begin
   // Read the instruction
   Method := ReadRef;
-  ResultPtr := ReadAddress(ZeroAsNil);
+  Parameters := ReadParams;
 
   // Format arguments
-  if ResultPtr <> '' then
-    ResultPtr := Comma + ResultPtr;
   Result := Format('%s%s', {don't localize}
-    [Method, ResultPtr]);
+    [Method, Parameters]);
+end;
+
+{*
+  OpCode DynamicCall
+  @param OpCode   OpCode
+*}
+function TSepiDisassembler.OpCodeDynamicCall(OpCode: TSepiOpCode): string;
+var
+  Method: string;
+  SelfPtr: string;
+  Parameters: string;
+begin
+  // Read the instruction
+  Method := ReadRef;
+  SelfPtr := ReadAddress(NoConstButZero);
+  Parameters := ReadParams;
+
+  // Format arguments
+  Result := Format('%s -> %s%s', {don't localize}
+    [SelfPtr, Method, Parameters]);
 end;
 
 {*
@@ -870,23 +872,6 @@ begin
       Instructions.ReadBuffer(WordOffset, 2);
       Result := ParamsName + IntToStr(WordOffset);
     end;
-    mpPreparedParamsBase:
-    begin
-      // Prepared params, no offset
-      Result := PreparedParamsName + ZeroName;
-    end;
-    mpPreparedParamsByte:
-    begin
-      // Prepared params, byte-offset
-      Instructions.ReadBuffer(ByteOffset, 1);
-      Result := PreparedParamsName + IntToStr(ByteOffset);
-    end;
-    mpPreparedParamsWord:
-    begin
-      // Prepared params, word-offset
-      Instructions.ReadBuffer(WordOffset, 2);
-      Result := PreparedParamsName + IntToStr(WordOffset);
-    end;
     mpGlobalConst:
     begin
       // Reference to TSepiConstant
@@ -1090,6 +1075,70 @@ begin
     RaiseInvalidOpCode;
     Result := False; // avoid compiler warning
   end;
+end;
+
+{*
+  Lit les paramètres et le résultat d'un CALL
+  @return Paramètres et résultat
+*}
+function TSepiDisassembler.ReadParams: string;
+
+const
+  MaxParamCountForByteSize = 255 div 3; // 3 is max param size (Extended)
+  MaxParamSize = 10;
+  TrueParamSizes: array[0..10] of Integer = (
+    4 {address}, 4, 4, 4, 4, 8, 8, 8, 8, 12, 12
+  );
+
+var
+  ParamCount: Integer;
+  ParamsSize: Integer;
+  ParamIndex: Integer;
+  ParamSize: TSepiParamSize;
+  Params: string;
+  ResultPtr: string;
+begin
+  // Read param count
+  ParamCount := 0;
+  Instructions.ReadBuffer(ParamCount, 1);
+
+  // Read params size (in 4 bytes in code)
+  ParamsSize := 0;
+  if ParamCount <= MaxParamCountForByteSize then
+    Instructions.ReadBuffer(ParamsSize, 1)
+  else
+    Instructions.ReadBuffer(ParamsSize, 2);
+  ParamsSize := ParamsSize*4;
+
+  // Read parameters
+  Params := '';
+  for ParamIndex := 0 to ParamCount-1 do
+  begin
+    // Read param size
+    Instructions.ReadBuffer(ParamSize, 1);
+    if ParamSize > MaxParamSize then
+      RaiseInvalidOpCode;
+
+    // Read parameter
+    if ParamIndex > 0 then
+      Params := Params + Comma;
+
+    if ParamSize = psByAddress then
+      Params := Params + '@' + ReadAddress {don't localize}
+    else
+      Params := Params + ReadAddress(ParamSize);
+  end;
+
+  // Read result
+  ResultPtr := ReadAddress(ZeroAsNil);
+
+  // Format result
+  if Params <> '' then
+    Params := '(' + Params + ')'; {don't localize}
+  if ResultPtr <> '' then
+    ResultPtr := ': ' + ResultPtr; {don't localize}
+
+  Result := Params + ResultPtr;
 end;
 
 {*

@@ -158,11 +158,8 @@ type
 
     FInstructions: TAbsoluteMemoryStream; /// Instructions
 
-    FParameters: Pointer;              /// Paramètres
-    FLocals: Pointer;                  /// Variables locales
-    FPreparedParams: Pointer;          /// Paramètres en préparation
-    FPreparedParamsAllocSize: Integer; /// Taille allouée des paramètres
-    FPreparedParamsSize: Integer;      /// Taille des paramètres préparés
+    FParameters: Pointer; /// Paramètres
+    FLocals: Pointer;     /// Variables locales
 
     // Op-code procs
 
@@ -172,7 +169,6 @@ type
     procedure OpCodeJump(OpCode: TSepiOpCode);
     procedure OpCodeJumpIf(OpCode: TSepiOpCode);
 
-    procedure OpCodePrepareParams(OpCode: TSepiOpCode);
     procedure OpCodeBasicCall(OpCode: TSepiOpCode);
     procedure OpCodeSignedCall(OpCode: TSepiOpCode);
     procedure OpCodeStaticCall(OpCode: TSepiOpCode);
@@ -213,6 +209,9 @@ type
     function ReadClassValue: TClass;
     procedure ReadJumpDest(out Value: Integer; out Origin: Word;
       AllowAbsolute: Boolean = False);
+    procedure ReadParamsAndCall(Address: Pointer;
+      CallingConvention: TCallingConvention; RegUsage: Byte;
+      ResultBehavior: TSepiTypeResultBehavior);
 
     // Access methods
 
@@ -235,14 +234,12 @@ type
 
     property Parameters: Pointer read FParameters;
     property Locals: Pointer read FLocals;
-    property PreparedParams: Pointer read FPreparedParams;
-    property PreparedParamsSize: Integer read FPreparedParamsSize;
   end;
 
 implementation
 
 uses
-  SepiInCalls, SepiOutCalls;
+  SepiInCalls;
 
 type
   /// Méthode de traitement d'un OpCode
@@ -286,11 +283,10 @@ begin
   @OpCodeProcs[ocJumpAndReturn] := @TSepiRuntimeContext.OpCodeJump;
 
   // Calls
-  @OpCodeProcs[ocPrepareParams] := @TSepiRuntimeContext.OpCodePrepareParams;
-  @OpCodeProcs[ocBasicCall]     := @TSepiRuntimeContext.OpCodeBasicCall;
-  @OpCodeProcs[ocSignedCall]    := @TSepiRuntimeContext.OpCodeSignedCall;
-  @OpCodeProcs[ocStaticCall]    := @TSepiRuntimeContext.OpCodeStaticCall;
-  @OpCodeProcs[ocDynamicCall]   := @TSepiRuntimeContext.OpCodeDynamicCall;
+  @OpCodeProcs[ocBasicCall]   := @TSepiRuntimeContext.OpCodeBasicCall;
+  @OpCodeProcs[ocSignedCall]  := @TSepiRuntimeContext.OpCodeSignedCall;
+  @OpCodeProcs[ocStaticCall]  := @TSepiRuntimeContext.OpCodeStaticCall;
+  @OpCodeProcs[ocDynamicCall] := @TSepiRuntimeContext.OpCodeDynamicCall;
 
   // Memory moves
   @OpCodeProcs[ocLoadAddress] := @TSepiRuntimeContext.OpCodeLoadAddress;
@@ -350,6 +346,26 @@ begin
   Size := 2 + SizeOf(TRecordTypeData) + (FieldCount-1)*SizeOf(TRecordField);
   GetMem(Result, Size);
   PWord(Result)^ := Word(tkRecord); // second byte is name length (so 0)
+end;
+
+{--------------------------------------}
+{ Syntactic trick to get float results }
+{--------------------------------------}
+
+function GetSingleResult: Single;
+asm
+end;
+
+function GetDoubleResult: Double;
+asm
+end;
+
+function GetExtendedResult: Extended;
+asm
+end;
+
+function GetCurrencyResult: Currency;
+asm
 end;
 
 {------------------------}
@@ -835,9 +851,6 @@ begin
   FInstructions := TAbsoluteMemoryStream.Create(AInstructions);
   FParameters := AParameters;
   FLocals := ALocals;
-  FPreparedParams := nil;
-  FPreparedParamsAllocSize := 0;
-  FPreparedParamsSize := 0;
 end;
 
 {*
@@ -845,8 +858,6 @@ end;
 *}
 destructor TSepiRuntimeContext.Destroy;
 begin
-  if Assigned(PreparedParams) then
-    FreeMem(PreparedParams);
   Instructions.Free;
 
   inherited;
@@ -907,30 +918,6 @@ begin
 end;
 
 {*
-  OpCode PrepareParams
-  @param OpCode   OpCode
-*}
-procedure TSepiRuntimeContext.OpCodePrepareParams(OpCode: TSepiOpCode);
-var
-  Size: Word;
-begin
-  // Read instruction
-  Instructions.ReadBuffer(Size, SizeOf(Word));
-
-  // Realloc prepared params if needed
-  if Size > FPreparedParamsAllocSize then
-  begin
-    if Assigned(FPreparedParams) then
-      FreeMem(FPreparedParams);
-    GetMem(FPreparedParams, Size);
-    FPreparedParamsAllocSize := Size;
-  end;
-
-  // Update PreparedParamsSize
-  FPreparedParamsSize := Size;
-end;
-
-{*
   OpCode BasicCall
   @param OpCode   OpCode
 *}
@@ -941,18 +928,15 @@ var
   RegUsage: Byte;
   ResultBehavior: TSepiTypeResultBehavior;
   AddressPtr: PPointer;
-  Result: Pointer;
 begin
   // Read the instruction
   Instructions.ReadBuffer(CallSettings, 1);
   CallSettingsDecode(CallSettings, CallingConvention,
     RegUsage, ResultBehavior);
   AddressPtr := ReadAddress; // it would be foolish to have a constant here
-  Result := ReadAddress(ZeroAsNil);
 
-  // Effective call
-  SepiCallOut(AddressPtr^, CallingConvention, PreparedParams,
-    PreparedParamsSize, RegUsage, ResultBehavior, Result);
+  // Read params and call
+  ReadParamsAndCall(AddressPtr^, CallingConvention, RegUsage, ResultBehavior);
 end;
 
 {*
@@ -963,16 +947,11 @@ procedure TSepiRuntimeContext.OpCodeSignedCall(OpCode: TSepiOpCode);
 var
   SignatureOwner: TSepiMeta;
   AddressPtr: PPointer;
-  Result: Pointer;
   Signature: TSepiSignature;
-  CallingConvention: TCallingConvention;
-  RegUsage: Byte;
-  ResultBehavior: TSepiTypeResultBehavior;
 begin
   // Read the instruction
   RuntimeUnit.ReadRef(Instructions, SignatureOwner);
   AddressPtr := ReadAddress; // it would be foolish to have a constant here
-  Result := ReadAddress(ZeroAsNil);
 
   // Find signature
   if SignatureOwner is TSepiMethod then
@@ -980,14 +959,12 @@ begin
   else
     Signature := (SignatureOwner as TSepiMethodRefType).Signature;
 
-  // Get settings
-  CallingConvention := Signature.CallingConvention;
-  RegUsage := Signature.RegUsage;
-  ResultBehavior := Signature.ReturnType.SafeResultBehavior;
-
-  // Effective call
-  SepiCallOut(AddressPtr^, CallingConvention, PreparedParams,
-    PreparedParamsSize, RegUsage, ResultBehavior, Result);
+  // Read params and call
+  with Signature do
+  begin
+    ReadParamsAndCall(AddressPtr^, CallingConvention, RegUsage,
+      ReturnType.SafeResultBehavior);
+  end;
 end;
 
 {*
@@ -997,25 +974,15 @@ end;
 procedure TSepiRuntimeContext.OpCodeStaticCall(OpCode: TSepiOpCode);
 var
   SepiMethod: TSepiMethod;
-  Result: Pointer;
-  RuntimeMethod: TSepiRuntimeMethod;
 begin
   // Read the instruction
   RuntimeUnit.ReadRef(Instructions, SepiMethod);
-  Result := ReadAddress(ZeroAsNil);
 
-  // Effective call
-  if SepiMethod.CodeHandler is TSepiRuntimeMethod then
+  // Read params and call
+  with SepiMethod, Signature do
   begin
-    RuntimeMethod := TSepiRuntimeMethod(SepiMethod.CodeHandler);
-    RuntimeMethod.Invoke(PreparedParams, Result);
-  end else
-  begin
-    with SepiMethod, Signature do
-    begin
-      SepiCallOut(Code, CallingConvention, PreparedParams, PreparedParamsSize,
-        RegUsage, ReturnType.SafeResultBehavior, Result);
-    end;
+    ReadParamsAndCall(Code, CallingConvention, RegUsage,
+      ReturnType.SafeResultBehavior);
   end;
 end;
 
@@ -1026,18 +993,15 @@ end;
 procedure TSepiRuntimeContext.OpCodeDynamicCall(OpCode: TSepiOpCode);
 var
   SepiMethod: TSepiMethod;
-  Result: Pointer;
   SelfPtr: Pointer;
   SelfClass: TClass;
   Address: Pointer;
 begin
   // Read the instruction
   RuntimeUnit.ReadRef(Instructions, SepiMethod);
-  Result := ReadAddress(ZeroAsNil);
+  SelfPtr := PPointer(ReadAddress(NoConstButZero))^;
 
-  // Get Self parameter: it is always the first one on the stack
-  SelfPtr := Pointer(PreparedParams^);
-
+  // Find code address
   if SepiMethod.LinkKind = mlkInterface then
   begin
     // SelfPtr is an interface, thus points to a pointer to an IMT
@@ -1050,18 +1014,8 @@ begin
     case SepiMethod.Signature.Kind of
       mkProcedure, mkFunction, mkDestructor:
         SelfClass := TObject(SelfPtr).ClassType;
-      mkClassProcedure, mkClassFunction:
+      mkConstructor, mkClassProcedure, mkClassFunction:
         SelfClass := TClass(SelfPtr);
-      mkConstructor:
-      begin
-        { Constructors are quite special. They have a Boolean parameter in the
-          second position which is set to True if Self is a class, and False if
-          it is already an instance. }
-        if PBoolean(Integer(PreparedParams)+4)^ then
-          SelfClass := TClass(SelfPtr)
-        else
-          SelfClass := TObject(SelfPtr).ClassType;
-      end;
     else
       RaiseInvalidOpCode;
       SelfClass := nil; // avoid compiler warning
@@ -1080,11 +1034,11 @@ begin
     end;
   end;
 
-  // Effective call
-  with SepiMethod, Signature do
+  // Read params and call
+  with SepiMethod.Signature do
   begin
-    SepiCallOut(Address, CallingConvention, PreparedParams, PreparedParamsSize,
-      RegUsage, ReturnType.SafeResultBehavior, Result);
+    ReadParamsAndCall(Address, CallingConvention, RegUsage,
+      ReturnType.SafeResultBehavior);
   end;
 end;
 
@@ -1575,25 +1529,6 @@ begin
       Result := Parameters;
       Inc(Integer(Result), WordOffset);
     end;
-    mpPreparedParamsBase:
-    begin
-      // Prepared params, no offset
-      Result := PreparedParams;
-    end;
-    mpPreparedParamsByte:
-    begin
-      // Prepared params, byte-offset
-      Instructions.ReadBuffer(ByteOffset, 1);
-      Result := PreparedParams;
-      Inc(Integer(Result), ByteOffset);
-    end;
-    mpPreparedParamsWord:
-    begin
-      // Prepared params, word-offset
-      Instructions.ReadBuffer(WordOffset, 2);
-      Result := PreparedParams;
-      Inc(Integer(Result), WordOffset);
-    end;
     mpGlobalConst:
     begin
       // Reference to TSepiConstant
@@ -1806,6 +1741,131 @@ begin
     end;
   else
     RaiseInvalidOpCode;
+  end;
+end;
+
+{*
+  Lit les paramètres (et résultat) depuis les instructions et fait l'appel
+  @param Address             Pointeur sur le code de la procédure à appeler
+  @param CallingConvention   Convention d'appel à utiliser
+  @param RegUsage            Nombre de registres utilsés
+  @param ResultBehavior      Comportement du résultat
+*}
+procedure TSepiRuntimeContext.ReadParamsAndCall(Address: Pointer;
+  CallingConvention: TCallingConvention; RegUsage: Byte;
+  ResultBehavior: TSepiTypeResultBehavior);
+
+type
+  TOrdResult = packed record
+    case Integer of
+      0: (EAX, EDX: Longint);
+      2: (OrdinalRes: Longint);
+      3: (Int64Res: Int64);
+  end;
+
+const
+  MaxParamCountForByteSize = 255 div 3; // 3 is max param size (Extended)
+  MaxParamSize = 10;
+  TrueParamSizes: array[0..10] of Integer = (
+    4 {address}, 4, 4, 4, 4, 8, 8, 8, 8, 12, 12
+  );
+
+var
+  ParamCount: Integer;
+  ParamsSize: Integer;
+  Parameters: Pointer;
+  ParamPos, ParamIndex: Integer;
+  ParamSize: TSepiParamSize;
+  ParamPtr: Pointer;
+  Result: Pointer;
+  OrdResult: TOrdResult;
+begin
+  // Read param count
+  ParamCount := 0;
+  Instructions.ReadBuffer(ParamCount, 1);
+
+  // Read params size (in 4 bytes in code)
+  ParamsSize := 0;
+  if ParamCount <= MaxParamCountForByteSize then
+    Instructions.ReadBuffer(ParamsSize, 1)
+  else
+    Instructions.ReadBuffer(ParamsSize, 2);
+  ParamsSize := ParamsSize*4;
+
+  // Allocate parameters on stack
+  asm
+        SUB     ESP,ParamsSize
+        MOV     Parameters,ESP
+  end;
+
+  // Read parameters
+  ParamPos := 0;
+  for ParamIndex := 0 to ParamCount-1 do
+  begin
+    // Read param size
+    Instructions.ReadBuffer(ParamSize, 1);
+    if ParamSize > MaxParamSize then
+      RaiseInvalidOpCode;
+
+    // Read parameter
+    if ParamSize = psByAddress then
+    begin
+      PPointer(Integer(Parameters)+ParamPos)^ := ReadAddress;
+      Inc(ParamPos, SizeOf(Pointer));
+    end else
+    begin
+      ParamPtr := ReadAddress(ParamSize);
+      Move(ParamPtr^, Pointer(Integer(Parameters)+ParamPos)^, ParamSize);
+      Inc(ParamPos, TrueParamSizes[ParamSize]);
+    end;
+  end;
+
+  // Read result
+  Result := ReadAddress(ZeroAsNil);
+
+  // Actual call
+  asm
+        MOV     CL, RegUsage
+        TEST    CL,CL
+        JZ      @@doCall
+        POP     EAX
+        DEC     CL
+        JZ      @@doCall
+        POP     EDX
+        DEC     CL
+        JZ      @@doCall
+        POP     ECX
+@@doCall:
+        CALL    Address
+        MOV     DWORD PTR OrdResult[4],EDX
+        MOV     DWORD PTR OrdResult[0],EAX
+  end;
+
+  // Release parameters - only with cdecl calling convention
+  // Note: RegUsage is always 0 in this case, thus ParamsSize is still valid
+  if CallingConvention = ccCDecl then
+  asm
+        ADD     ESP,ParamsSize
+  end;
+
+  // Handle result
+  if Assigned(Result) then
+  begin
+    // Get result
+    case ResultBehavior of
+      rbNone, // if Result is specified, it must be a construtor, so ordinal
+      rbOrdinal:  Longint (Result^) := OrdResult.OrdinalRes;
+      rbInt64:    Int64   (Result^) := OrdResult.Int64Res;
+      rbSingle:   Single  (Result^) := GetSingleResult;
+      rbDouble:   Double  (Result^) := GetDoubleResult;
+      rbExtended: Extended(Result^) := GetExtendedResult;
+      rbCurrency: Currency(Result^) := GetCurrencyResult;
+    end;
+  end else
+  begin
+    // Discard result if float
+    if ResultBehavior in [rbSingle, rbDouble, rbExtended, rbCurrency] then
+      GetExtendedResult;
   end;
 end;
 

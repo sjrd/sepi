@@ -74,16 +74,12 @@ type
     - mpParamsBase : paramètre, sans offset
     - mpParamsByte : paramètre, offset d'un octet
     - mpParamsWord : paramètre, offset de deux octets
-    - mpPreparedParamsBase : paramètres en préparation, sans offset
-    - mpPreparedParamsByte : paramètres en préparation, offset d'un octet
-    - mpPreparedParamsWord : paramètres en préparation, offset de deux octet
     - mpGlobalConst : référence à une TSepiConstant
     - mpGlobalVar : référence à une TSepiVariable
   *}
   TSepiMemorySpace = (
     mpZero, mpConstant, mpLocalsBase, mpLocalsByte, mpLocalsWord, mpParamsBase,
-    mpParamsByte, mpParamsWord, mpPreparedParamsBase, mpPreparedParamsByte,
-    mpPreparedParamsWord, mpGlobalConst, mpGlobalVar
+    mpParamsByte, mpParamsWord, mpGlobalConst, mpGlobalVar
   );
 
 {$IF Byte(High(TSepiMemorySpace)) >= 16}
@@ -91,11 +87,10 @@ type
 {$IFEND}
 
 const
-  mpNil = mpZero;                        /// Constante nil
-  mpNoResult = mpZero;                   /// Ne pas garder le résultat
-  mpResult = mpLocalsBase;               /// Variable résultat
-  mpSelf = mpParamsBase;                 /// Paramètre Self
-  mpPreparedSelf = mpPreparedParamsBase; /// Paramètre Self en préparation
+  mpNil = mpZero;          /// Constante nil
+  mpNoResult = mpZero;     /// Ne pas garder le résultat
+  mpResult = mpLocalsBase; /// Variable résultat
+  mpSelf = mpParamsBase;   /// Paramètre Self
 
 type
   {*
@@ -168,6 +163,9 @@ type
   /// Configuration d'un appel basique
   TSepiCallSettings = type Byte;
 
+  /// Taille d'un paramètre à passer à une procédure
+  TSepiParamSize = type Byte;
+
 const
   ZeroAsNil = Integer($80000000); /// Interpréter 0 comme nil en retour
   NoConstButZero = 0;             /// Pas de constante, sauf 0
@@ -178,6 +176,9 @@ const
     1, 1, 2, 4, 8, 1, 2, 4, 8, 4, 8, 10, 8, 8,
     NoConstButZero, NoConstButZero, NoConstButZero
   );
+
+  /// Le paramètre est passé par adresse
+  psByAddress = TSepiParamSize(0);
 
 const
   MemPlaceMask = $0F;   /// Masque d'espace mémoire
@@ -195,22 +196,24 @@ const
   SettingsResultBehaviorShift = 5;  /// Offset du comportement du résultat
 
 const
-  {
+  (*
     Mem := TSepiMemoryPlace + Value [+ Operations]
     Value :=
-      Zero               -> Nothing
-      Constant           -> Constant of the relevant type
-      LocalsBase         -> Local vars, no offset
-      LocalsByte         -> Byte offset in local vars
-      LocalsWord         -> Word offset in local vars
-      ParamsBase         -> Parameters, no offset
-      ParamsByte         -> Byte offset in parameters
-      ParamsWord         -> Word offset in parameters
-      PreparedParamsBase -> Prepared parameters, no offset
-      PreparedParamsByte -> Byte offset in prepared parameters
-      PreparedParamsWord -> Word offset in prepared parameters
-      GlobalConst        -> Constant reference
-      GlobalVar          -> Variable reference
+      Zero        -> Nothing
+      Constant    -> Constant of the relevant type
+      LocalsBase  -> Local vars, no offset
+      LocalsByte  -> Byte offset in local vars
+      LocalsWord  -> Word offset in local vars
+      ParamsBase  -> Parameters, no offset
+      ParamsByte  -> Byte offset in parameters
+      ParamsWord  -> Word offset in parameters
+      GlobalConst -> Constant reference
+      GlobalVar   -> Variable reference
+    Params := Byte-Count + (Byte or Word)-Size + (Param){Count} + Result
+      (Size is counted by 4 bytes ; it is Byte-wide if Count <= (255 div 3))
+      Parameters must be ordered in growing SepiStackOffset.
+    Param := Param-Size + Mem
+    Result := Mem (zero as nil)
     Class := Mem(4) where a constant is a TSepiClass reference
     Dest := TSepiJumpestKind + DestValue
     DestValue :=
@@ -219,7 +222,7 @@ const
       Longint  -> Longint relative value
       Memory   -> Mem (absolute)
     Type := TSepiBaseType
-  }
+  *)
 
   // No category
   ocNope        = TSepiOpCode($00); /// NOP
@@ -233,11 +236,10 @@ const
   ocJumpAndReturn = TSepiOpCode($06); /// JRET Dest
 
   // Calls
-  ocPrepareParams = TSepiOpCode($07); /// PRPA  Word-Size
-  ocBasicCall     = TSepiOpCode($08); /// CALL  CallSettings Address [Result]
-  ocSignedCall    = TSepiOpCode($09); /// CALL  Signature-Ref Address [Result]
-  ocStaticCall    = TSepiOpCode($0A); /// SCALL Method-Ref [Result]
-  ocDynamicCall   = TSepiOpCode($0B); /// DCALL Method-Ref [Result]
+  ocBasicCall     = TSepiOpCode($07); /// CALL CallSettings Address Params
+  ocSignedCall    = TSepiOpCode($08); /// CALL Signature-Ref Address Params
+  ocStaticCall    = TSepiOpCode($09); /// CALL Method-Ref Params
+  ocDynamicCall   = TSepiOpCode($0A); /// CALL Method-Ref Self Params
 
   // Memory moves
   ocLoadAddress = TSepiOpCode($10); /// LEA   Dest, Src

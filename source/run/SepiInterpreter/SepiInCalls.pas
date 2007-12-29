@@ -233,7 +233,7 @@ begin
 end;
 
 {-------------------------}
-{ MakeNativeCode function }
+{ MakeInCallCode function }
 {-------------------------}
 
 {*
