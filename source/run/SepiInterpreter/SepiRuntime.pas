@@ -222,8 +222,9 @@ type
     property Instructions: TAbsoluteMemoryStream read FInstructions;
   public
     constructor Create(ARuntimeMethod: TSepiRuntimeMethod;
-      AInstructions, AParameters, ALocals: Pointer);
-    destructor Destroy; override;
+      AInstructions: TAbsoluteMemoryStream; AParameters, ALocals: Pointer);
+    { If you add a destructor to this class, please read the big comment in
+      TSepiRuntimeMethod.Invoke! }
 
     procedure Execute;
 
@@ -760,19 +761,28 @@ end;
 procedure TSepiRuntimeMethod.Invoke(Parameters: Pointer;
   Result: Pointer = nil);
 var
+  ContextSize, InstructionsSize: Integer;
+  Context: TSepiRuntimeContext;
+  Instructions: TAbsoluteMemoryStream;
   AllLocalsSize, I: Integer;
   Locals, LocalParams: Pointer;
   ParamsPPtr: PPointer;
   LocalsPtr: Pointer;
-  Context: TSepiRuntimeContext;
 begin
+  // Allocate context on stack
+  ContextSize := TSepiRuntimeContext.InstanceSize;
+  InstructionsSize := TAbsoluteMemoryStream.InstanceSize;
+
   // Allocate locals on stack
-  AllLocalsSize := FLocalsSize + FLocalParamsSize;
+  AllLocalsSize := ContextSize + InstructionsSize +
+    FLocalsSize + FLocalParamsSize;
   asm
         SUB     ESP,AllLocalsSize
         MOV     Locals,ESP
   end;
   LocalParams := Pointer(Integer(Locals) + FLocalsSize);
+  Pointer(Context) := Pointer(Integer(LocalParams) + FLocalParamsSize);
+  Pointer(Instructions) := Pointer(Integer(Context) + ContextSize);
 
   // Initialize local variables
   if Assigned(FLocalsInfo) then
@@ -802,14 +812,21 @@ begin
       AddRef(LocalParams^, FLocalParamsInfo);
   end;
 
+  // Initialize context and instructions
+  TSepiRuntimeContext.InitInstance(Context);
+  TAbsoluteMemoryStream.InitInstance(Instructions);
+  { Sure, this is dirty. As a matter of fact, we use TSepiRuntimeContext and
+    TAbsoluteMemoryStream as though they were advanced records. Since none of
+    them have got a destructor, this happens to be safe.
+    Using this hack, the Sepi interpreter never allocates memory on the heap
+    during execution by itself (the interpreted code could do it). This is all
+    about having a fast execution. }
+
   try
     // Execute the method code
-    Context := TSepiRuntimeContext.Create(Self, Code, Parameters, Locals);
-    try
-      Context.Execute;
-    finally
-      Context.Free;
-    end;
+    Instructions.Create(Code);
+    Context.Create(Self, Instructions, Parameters, Locals);
+    Context.Execute;
 
     // Fetch result, if required (a result never requires initialization)
     if Assigned(Result) then
@@ -822,6 +839,10 @@ begin
       Finalize(Parameters^, FParamsAddRef);
     if Assigned(FLocalsInfo) then
       Finalize(Locals^, FLocalsInfo);
+
+    // Finalize context and instructions
+    Context.CleanupInstance;
+    Instructions.CleanupInstance;
   end;
 
   // Deallocate locals from stack
@@ -842,25 +863,15 @@ end;
   @param ALocals         Variables locales
 *}
 constructor TSepiRuntimeContext.Create(ARuntimeMethod: TSepiRuntimeMethod;
-  AInstructions, AParameters, ALocals: Pointer);
+  AInstructions: TAbsoluteMemoryStream; AParameters, ALocals: Pointer);
 begin
   inherited Create;
 
   FRuntimeMethod := ARuntimeMethod;
   FRuntimeUnit := FRuntimeMethod.RuntimeUnit;
-  FInstructions := TAbsoluteMemoryStream.Create(AInstructions);
+  FInstructions := AInstructions;
   FParameters := AParameters;
   FLocals := ALocals;
-end;
-
-{*
-  [@inheritDoc]
-*}
-destructor TSepiRuntimeContext.Destroy;
-begin
-  Instructions.Free;
-
-  inherited;
 end;
 
 {*
