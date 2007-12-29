@@ -767,7 +767,7 @@ begin
   for I := 0 to Count-1 do
   begin
     Dest := Integer(Instructions.PointerPos) + Dests[I];
-    Result := Result + Comma + ClassNames[I] + ':' + IntToHex(Dest, 8);
+    Result := Result + Comma + ClassNames[I] + ':$' + IntToHex(Dest, 8);
   end;
 end;
 

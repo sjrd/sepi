@@ -69,8 +69,8 @@ end;
   @param CallingConvention   Convention d'appel à utiliser
   @param Parameters          Pointeur sur les paramètres
   @param ParamsSize          Taille des paramètres
-  @param RegUsage            Nombre de registres utilsés (défaut = 0)
-  @param ResultBehavior      Comportement du résultat (défaut = rbNone)
+  @param RegUsage            Nombre de registres utilsés
+  @param ResultBehavior      Comportement du résultat
   @param Result              Pointeur sur le résultat (défaut = nil)
 *}
 procedure SepiCallOut(Address: Pointer; CallingConvention: TCallingConvention;
