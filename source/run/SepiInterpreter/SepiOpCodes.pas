@@ -54,43 +54,43 @@ type
 
   {*
     Espace d'adressage
-    Les deux valeurs mpConstant et mpGlobalConst représentent, comme leur nom
+    Les deux valeurs msConstant et msGlobalConst représentent, comme leur nom
     l'indique, des constantes. Certaines opérations n'acceptent pas les
     constantes en paramètre, par exemple la destination d'un MOV ne peut pas
     être une constante.
-    La valeur mpZero est parfois acceptée par des instructions n'acceptant pas
+    La valeur msZero est parfois acceptée par des instructions n'acceptant pas
     de constantes, bien que 0 soit manifestement une constante. C'est le cas
     par exemple de l'affectation de chaîne, qui n'accepte que la constante
     nulle (qui vaut la chaîne vide '').
-    La valeur mpZero en tant que valeur de retour d'un CALL est interprétée
-    plutôt en temps que mpNoResult, autrement dit cela demande que le résultat
+    La valeur msZero en tant que valeur de retour d'un CALL est interprétée
+    plutôt en temps que msNoResult, autrement dit cela demande que le résultat
     ne soit pas stocké. C'est également le cas de l'argument ExceptObject d'un
     TRYE (try-except).
-    - mpZero : 0, nil, '', etc. selon le type de variable
-    - mpConstant : la variable est une constante, stockée juste derrière
-    - mpLocalsBase : variable locale, sans offset
-    - mpLocalsByte : variable locale, offset d'un octet
-    - mpLocalsWord : variable locale, offset de deux octets
-    - mpParamsBase : paramètre, sans offset
-    - mpParamsByte : paramètre, offset d'un octet
-    - mpParamsWord : paramètre, offset de deux octets
-    - mpGlobalConst : référence à une TSepiConstant
-    - mpGlobalVar : référence à une TSepiVariable
+    - msZero : 0, nil, '', etc. selon le type de variable
+    - msConstant : la variable est une constante, stockée juste derrière
+    - msLocalsBase : variable locale, sans offset
+    - msLocalsByte : variable locale, offset d'un octet
+    - msLocalsWord : variable locale, offset de deux octets
+    - msParamsBase : paramètre, sans offset
+    - msParamsByte : paramètre, offset d'un octet
+    - msParamsWord : paramètre, offset de deux octets
+    - msGlobalConst : référence à une TSepiConstant
+    - msGlobalVar : référence à une TSepiVariable
   *}
   TSepiMemorySpace = (
-    mpZero, mpConstant, mpLocalsBase, mpLocalsByte, mpLocalsWord, mpParamsBase,
-    mpParamsByte, mpParamsWord, mpGlobalConst, mpGlobalVar
+    msZero, msConstant, msLocalsBase, msLocalsByte, msLocalsWord, msParamsBase,
+    msParamsByte, msParamsWord, msGlobalConst, msGlobalVar
   );
 
 {$IF Byte(High(TSepiMemorySpace)) >= 16}
-  {$MESSAGE Error 'TSepiMemoryPlace mustn''t have more than 16 values'}
+  {$MESSAGE Error 'TSepiMemorySpace mustn''t have more than 16 values'}
 {$IFEND}
 
 const
-  mpNil = mpZero;          /// Constante nil
-  mpNoResult = mpZero;     /// Ne pas garder le résultat
-  mpResult = mpLocalsBase; /// Variable résultat
-  mpSelf = mpParamsBase;   /// Paramètre Self
+  msNil = msZero;          /// Constante nil
+  msNoResult = msZero;     /// Ne pas garder le résultat
+  msResult = msLocalsBase; /// Variable résultat
+  msSelf = msParamsBase;   /// Paramètre Self
 
 type
   {*

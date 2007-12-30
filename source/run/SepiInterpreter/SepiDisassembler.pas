@@ -812,7 +812,7 @@ var
 begin
   // Read base address
   case MemorySpace of
-    mpZero:
+    msZero:
     begin
       if ConstSize = ZeroAsNil then
       begin
@@ -825,7 +825,7 @@ begin
         Result := ZeroName;
       end;
     end;
-    mpConstant:
+    msConstant:
     begin
       // Read the constant directly into the code
       if ConstSize <= 0 then
@@ -838,48 +838,48 @@ begin
         Result := Result + IntToHex(ByteOffset, 2);
       end;
     end;
-    mpLocalsBase:
+    msLocalsBase:
     begin
       // Local variables, no offset
       Result := LocalsName + ZeroName;
     end;
-    mpLocalsByte:
+    msLocalsByte:
     begin
       // Local variables, byte-offset
       Instructions.ReadBuffer(ByteOffset, 1);
       Result := LocalsName + IntToStr(ByteOffset);
     end;
-    mpLocalsWord:
+    msLocalsWord:
     begin
       // Local variables, word-offset
       Instructions.ReadBuffer(WordOffset, 2);
       Result := LocalsName + IntToStr(WordOffset);
     end;
-    mpParamsBase:
+    msParamsBase:
     begin
       // Parameters, no offset
       Result := ParamsName + ZeroName;
     end;
-    mpParamsByte:
+    msParamsByte:
     begin
       // Parameters, byte-offset
       Instructions.ReadBuffer(ByteOffset, 1);
       Result := ParamsName + IntToStr(ByteOffset);
     end;
-    mpParamsWord:
+    msParamsWord:
     begin
       // Parameters, word-offset
       Instructions.ReadBuffer(WordOffset, 2);
       Result := ParamsName + IntToStr(WordOffset);
     end;
-    mpGlobalConst:
+    msGlobalConst:
     begin
       // Reference to TSepiConstant
       if ConstSize <= 0 then
         RaiseInvalidOpCode;
       Result := ReadRef;
     end;
-    mpGlobalVar:
+    msGlobalVar:
     begin
       // Reference to TSepiVariable
       Result := ReadRef;

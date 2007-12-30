@@ -1481,7 +1481,7 @@ var
 begin
   // Read base address
   case MemorySpace of
-    mpZero:
+    msZero:
     begin
       if ConstSize = ZeroAsNil then
       begin
@@ -1494,7 +1494,7 @@ begin
         Result := @ZeroMemory;
       end;
     end;
-    mpConstant:
+    msConstant:
     begin
       // Read the constant directly into the code
       if ConstSize <= 0 then
@@ -1502,45 +1502,45 @@ begin
       Result := Instructions.PointerPos;
       Instructions.Seek(ConstSize, soFromCurrent);
     end;
-    mpLocalsBase:
+    msLocalsBase:
     begin
       // Local variables, no offset
       Result := Locals;
     end;
-    mpLocalsByte:
+    msLocalsByte:
     begin
       // Local variables, byte-offset
       Instructions.ReadBuffer(ByteOffset, 1);
       Result := Locals;
       Inc(Integer(Result), ByteOffset);
     end;
-    mpLocalsWord:
+    msLocalsWord:
     begin
       // Local variables, word-offset
       Instructions.ReadBuffer(WordOffset, 2);
       Result := Locals;
       Inc(Integer(Result), WordOffset);
     end;
-    mpParamsBase:
+    msParamsBase:
     begin
       // Parameters, no offset
       Result := Parameters;
     end;
-    mpParamsByte:
+    msParamsByte:
     begin
       // Parameters, byte-offset
       Instructions.ReadBuffer(ByteOffset, 1);
       Result := Parameters;
       Inc(Integer(Result), ByteOffset);
     end;
-    mpParamsWord:
+    msParamsWord:
     begin
       // Parameters, word-offset
       Instructions.ReadBuffer(WordOffset, 2);
       Result := Parameters;
       Inc(Integer(Result), WordOffset);
     end;
-    mpGlobalConst:
+    msGlobalConst:
     begin
       // Reference to TSepiConstant
       if ConstSize <= 0 then
@@ -1548,7 +1548,7 @@ begin
       RuntimeUnit.ReadRef(Instructions, GlobalConst);
       Result := GlobalConst.ValuePtr;
     end;
-    mpGlobalVar:
+    msGlobalVar:
     begin
       // Reference to TSepiVariable
       RuntimeUnit.ReadRef(Instructions, GlobalVar);
