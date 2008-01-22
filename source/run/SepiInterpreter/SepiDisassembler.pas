@@ -81,10 +81,11 @@ type
     // Other methods
 
     function ReadRef: string;
-    function ReadBaseAddress(ConstSize: Integer;
+    function ReadBaseAddress(Options: TSepiAddressOptions; ConstSize: Integer;
       MemorySpace: TSepiMemorySpace): string;
     procedure ReadAddressOperation(var Address: string);
-    function ReadAddress(ConstSize: Integer = NoConst): string;
+    function ReadAddress(Options: TSepiAddressOptions = [];
+      ConstSize: Integer = 0): string;
     function ReadClassValue: string;
     function ReadJumpDest(out Offset: Integer; out Memory: string;
       AllowAbsolute: Boolean = False): Boolean;
@@ -314,7 +315,7 @@ var
   TestPtr: string;
 begin
   IsMemory := ReadJumpDest(Offset, Memory, True);
-  TestPtr := ReadAddress(SizeOf(Boolean));
+  TestPtr := ReadAddress(aoAcceptAllConsts, SizeOf(Boolean));
 
   if IsMemory then
     Result := Memory
@@ -400,7 +401,7 @@ var
 begin
   // Read the instruction
   Method := ReadRef;
-  SelfPtr := ReadAddress(NoConstButZero);
+  SelfPtr := ReadAddress([aoAcceptZero]);
   Parameters := ReadParams;
 
   // Format arguments
@@ -429,16 +430,18 @@ end;
 *}
 function TSepiDisassembler.OpCodeSimpleMove(OpCode: TSepiOpCode): string;
 const
-  ConstSizes: array[ocMoveByte..ocMoveIntf] of Integer = (
-    1, 2, 4, 8, 10, NoConstButZero, NoConstButZero, NoConstButZero,
-    NoConstButZero
+  ConstSizes: array[ocMoveByte..ocMoveWideStr] of Integer = (
+    1, 2, 4, 8, 10, 0, 0
   );
 var
   DestPtr: string;
   SourcePtr: string;
 begin
   DestPtr := ReadAddress;
-  SourcePtr := ReadAddress(ConstSizes[OpCode]);
+  if OpCode in [ocMoveVariant, ocMoveIntf] then
+    SourcePtr := ReadAddress([aoAcceptZero])
+  else
+    SourcePtr := ReadAddress(aoAcceptAllConsts, ConstSizes[OpCode]);
 
   Result := DestPtr + Comma + SourcePtr;
 end;
@@ -462,7 +465,10 @@ begin
 
   // Read dest and source
   DestPtr := ReadAddress;
-  SourcePtr := ReadAddress(Count);
+  if Count <= SizeOf(Variant) then
+    SourcePtr := ReadAddress(aoAcceptAllConsts, Count)
+  else
+    SourcePtr := ReadAddress([aoAcceptAddressedConst]);
 
   // Format arguments
   Result := Format('%d, %s, %s', {don't localize}
@@ -501,7 +507,7 @@ begin
   Instructions.ReadBuffer(ToType, SizeOf(TSepiBaseType));
   Instructions.ReadBuffer(FromType, SizeOf(TSepiBaseType));
   DestPtr := ReadAddress;
-  SourcePtr := ReadAddress(BaseTypeConstSizes[FromType]);
+  SourcePtr := ReadAddress(aoAcceptAllConsts, BaseTypeConstSizes[FromType]);
 
   Result := Format('(%s, %s), %s, %s', {don't localize}
     [BaseTypeNames[ToType], BaseTypeNames[FromType], DestPtr, SourcePtr]);
@@ -535,9 +541,9 @@ begin
   Instructions.ReadBuffer(VarType, SizeOf(TSepiBaseType));
   VarPtr := ReadAddress;
   if OpCode in [ocSelfShl, ocSelfShr, ocSelfSar] then
-    ValuePtr := ReadAddress(1)
+    ValuePtr := ReadAddress(aoAcceptAllConsts, 1)
   else
-    ValuePtr := ReadAddress(BaseTypeConstSizes[VarType]);
+    ValuePtr := ReadAddress(aoAcceptAllConsts, BaseTypeConstSizes[VarType]);
 
   Result := Format('(%s) %s, %s', {don't localize}
     [BaseTypeNames[VarType], VarPtr, ValuePtr]);
@@ -554,7 +560,7 @@ var
 begin
   Instructions.ReadBuffer(VarType, SizeOf(TSepiBaseType));
   DestPtr := ReadAddress;
-  ValuePtr := ReadAddress(BaseTypeConstSizes[VarType]);
+  ValuePtr := ReadAddress(aoAcceptAllConsts, BaseTypeConstSizes[VarType]);
 
   Result := Format('(%s) %s, %s', {don't localize}
     [BaseTypeNames[VarType], DestPtr, ValuePtr]);
@@ -571,11 +577,11 @@ var
 begin
   Instructions.ReadBuffer(VarType, SizeOf(TSepiBaseType));
   DestPtr := ReadAddress;
-  LeftPtr := ReadAddress(BaseTypeConstSizes[VarType]);
+  LeftPtr := ReadAddress(aoAcceptAllConsts, BaseTypeConstSizes[VarType]);
   if OpCode in [ocOtherShl, ocOtherShr, ocOtherSar] then
-    RightPtr := ReadAddress(1)
+    RightPtr := ReadAddress(aoAcceptAllConsts, 1)
   else
-    RightPtr := ReadAddress(BaseTypeConstSizes[VarType]);
+    RightPtr := ReadAddress(aoAcceptAllConsts, BaseTypeConstSizes[VarType]);
 
   Result := Format('(%s) %s, %s, %s', {don't localize}
     [BaseTypeNames[VarType], DestPtr, LeftPtr, RightPtr]);
@@ -592,8 +598,8 @@ var
 begin
   Instructions.ReadBuffer(VarType, SizeOf(TSepiBaseType));
   DestPtr := ReadAddress;
-  LeftPtr := ReadAddress(BaseTypeConstSizes[VarType]);
-  RightPtr := ReadAddress(BaseTypeConstSizes[VarType]);
+  LeftPtr := ReadAddress(aoAcceptAllConsts, BaseTypeConstSizes[VarType]);
+  RightPtr := ReadAddress(aoAcceptAllConsts, BaseTypeConstSizes[VarType]);
 
   Result := Format('(%s) %s, %s, %s', {don't localize}
     [BaseTypeNames[VarType], DestPtr, LeftPtr, RightPtr]);
@@ -626,7 +632,7 @@ var
   DelphiClass: string;
 begin
   DestPtr := ReadAddress;
-  ObjectPtr := ReadAddress(NoConstButZero);
+  ObjectPtr := ReadAddress([aoAcceptZero]);
   DelphiClass := ReadClassValue;
 
   Result := Format('%s, %s, %s', {don't localize}
@@ -642,7 +648,7 @@ var
   ObjectPtr: string;
   DelphiClass: string;
 begin
-  ObjectPtr := ReadAddress(NoConstButZero);
+  ObjectPtr := ReadAddress([aoAcceptZero]);
   DelphiClass := ReadClassValue;
 
   Result := Format('%s, %s', {don't localize}
@@ -680,7 +686,7 @@ var
 begin
   // Read instruction
   ReadJumpDest(Offset, Memory);
-  ExceptObjectPtr := ReadAddress(ZeroAsNil);
+  ExceptObjectPtr := ReadAddress([aoZeroAsNil]);
   ExceptCode := Pointer(Instructions.Position + Offset);
 
   // Format arguments
@@ -794,16 +800,16 @@ end;
 
 {*
   Lit une adresse de base depuis les instructions
-  @param ConstSize   Taille d'une constante (0 n'accepte pas les constantes)
-  @param MemPlace    Espace d'adressage
+  @param Options       Options de lecture d'addresse
+  @param ConstSize     Taille d'une constante dans le code
+  @param MemorySpace   Espace d'adressage
   @return Adresse de base lue
 *}
-function TSepiDisassembler.ReadBaseAddress(ConstSize: Integer;
-  MemorySpace: TSepiMemorySpace): string;
+function TSepiDisassembler.ReadBaseAddress(Options: TSepiAddressOptions;
+  ConstSize: Integer; MemorySpace: TSepiMemorySpace): string;
 const // don't localize
   LocalsName = 'LO:';
   ParamsName = 'PA:';
-  PreparedParamsName = 'PR:';
   ZeroName = '0';
 var
   I: Integer;
@@ -814,13 +820,13 @@ begin
   case MemorySpace of
     msZero:
     begin
-      if ConstSize = ZeroAsNil then
+      if aoZeroAsNil in Options then
       begin
         // Treat constant as nil return value
         Result := '';
       end else
       begin
-        if ConstSize < NoConstButZero then
+        if not (aoAcceptZero in Options) then
           RaiseInvalidOpCode;
         Result := ZeroName;
       end;
@@ -828,7 +834,7 @@ begin
     msConstant:
     begin
       // Read the constant directly into the code
-      if ConstSize <= 0 then
+      if not (aoAcceptConstInCode in Options) then
         RaiseInvalidOpCode;
 
       Result := '$'; {don't localize}
@@ -872,14 +878,14 @@ begin
       Instructions.ReadBuffer(WordOffset, 2);
       Result := ParamsName + IntToStr(WordOffset);
     end;
-    msGlobalConst:
+    msTrueConst:
     begin
       // Reference to TSepiConstant
-      if ConstSize <= 0 then
+      if not (aoAcceptTrueConst in Options) then
         RaiseInvalidOpCode;
       Result := ReadRef;
     end;
-    msGlobalVar:
+    msVariable:
     begin
       // Reference to TSepiVariable
       Result := ReadRef;
@@ -943,19 +949,19 @@ begin
     aoPlusMemShortint:
     begin
       // Read a Shortint from memory, and add it to the address
-      OffsetPtr := ReadAddress(SizeOf(Shortint));
+      OffsetPtr := ReadAddress(aoAcceptAllConsts, SizeOf(Shortint));
       Address := Address + '+(' + OffsetPtr + ')';
     end;
     aoPlusMemSmallint:
     begin
       // Read a Smallint from memory, and add it to the address
-      OffsetPtr := ReadAddress(SizeOf(Smallint));
+      OffsetPtr := ReadAddress(aoAcceptAllConsts, SizeOf(Smallint));
       Address := Address + '+(' + OffsetPtr + ')';
     end;
     aoPlusMemLongint:
     begin
       // Read a Longint from memory, and add it to the address
-      OffsetPtr := ReadAddress(SizeOf(Longint));
+      OffsetPtr := ReadAddress(aoAcceptAllConsts, SizeOf(Longint));
       Address := Address + '+(' + OffsetPtr + ')';
     end;
     aoPlusConstTimesMemShortint:
@@ -963,7 +969,7 @@ begin
       { Read a Shortint from code and a Shortint from memory. Then, multiply
         them and add the result to the address. }
       Instructions.ReadBuffer(ShortFactor, 1);
-      OffsetPtr := ReadAddress(SizeOf(Shortint));
+      OffsetPtr := ReadAddress(aoAcceptAllConsts, SizeOf(Shortint));
       Address := Address + '+' + IntToStr(ShortFactor) + '*(' + OffsetPtr + ')';
     end;
     aoPlusConstTimesMemSmallint:
@@ -971,7 +977,7 @@ begin
       { Read a Shortint from code and a Smallint from memory. Then, multiply
         them and add the result to the address. }
       Instructions.ReadBuffer(ShortFactor, 1);
-      OffsetPtr := ReadAddress(SizeOf(Smallint));
+      OffsetPtr := ReadAddress(aoAcceptAllConsts, SizeOf(Smallint));
       Address := Address + '+' + IntToStr(ShortFactor) + '*(' + OffsetPtr + ')';
     end;
     aoPlusConstTimesMemLongint:
@@ -979,7 +985,7 @@ begin
       { Read a Shortint from code and a Longint from memory. Then, multiply
         them and add the result to the address. }
       Instructions.ReadBuffer(ShortFactor, 1);
-      OffsetPtr := ReadAddress(SizeOf(Longint));
+      OffsetPtr := ReadAddress(aoAcceptAllConsts, SizeOf(Longint));
       Address := Address + '+' + IntToStr(ShortFactor) + '*(' + OffsetPtr + ')';
     end;
   else
@@ -989,9 +995,11 @@ end;
 
 {*
   Lit l'adresse d'une zone mémoire depuis le flux d'instructions
-  @param ConstSize   Taille d'une constante (0 n'accepte pas les constantes)
+  @param Options     Options de lecture d'addresse
+  @param ConstSize   Taille d'une constante dans le code
 *}
-function TSepiDisassembler.ReadAddress(ConstSize: Integer = NoConst): string;
+function TSepiDisassembler.ReadAddress(Options: TSepiAddressOptions = [];
+  ConstSize: Integer = 0): string;
 var
   MemoryRef: TSepiMemoryRef;
   MemorySpace: TSepiMemorySpace;
@@ -1003,7 +1011,7 @@ begin
   MemoryRefDecode(MemoryRef, MemorySpace, OpCount);
 
   // Read base address
-  Result := ReadBaseAddress(ConstSize, MemorySpace);
+  Result := ReadBaseAddress(Options, ConstSize, MemorySpace);
 
   // Check for nil result
   if Result = '' then
@@ -1024,7 +1032,7 @@ end;
 *}
 function TSepiDisassembler.ReadClassValue: string;
 begin
-  Result := ReadAddress(ZeroAsNil);
+  Result := ReadAddress([aoZeroAsNil]);
 
   if Result = '' then
     Result := ReadRef;
@@ -1068,7 +1076,7 @@ begin
     begin
       if not AllowAbsolute then
         RaiseInvalidOpCode;
-      Memory := ReadAddress(SizeOf(Pointer));
+      Memory := ReadAddress;
       Result := True;
     end;
   else
@@ -1126,11 +1134,11 @@ begin
     if ParamSize = psByAddress then
       Params := Params + '@' + ReadAddress {don't localize}
     else
-      Params := Params + ReadAddress(ParamSize);
+      Params := Params + ReadAddress(aoAcceptAllConsts, ParamSize);
   end;
 
   // Read result
-  ResultPtr := ReadAddress(ZeroAsNil);
+  ResultPtr := ReadAddress([aoZeroAsNil]);
 
   // Format result
   if Params <> '' then

@@ -46,7 +46,7 @@ type
   {*
     Type d'adressage
     L'octet est décomposé en deux partie : $HL. Les 4 bits de poids faible (L)
-    sont une valeur de type TSepiMemoryPlace. Les 4 bits de poids fort (H)
+    sont une valeur de type TSepiMemorySpace. Les 4 bits de poids fort (H)
     indiquent le nombre d'opérations de type Address à appliquer successivement
     sur l'adresse.
   *}
@@ -54,16 +54,19 @@ type
 
   {*
     Espace d'adressage
-    Les deux valeurs msConstant et msGlobalConst représentent, comme leur nom
+    Les deux valeurs msConstant et msTrueConst représentent, comme leur nom
     l'indique, des constantes. Certaines opérations n'acceptent pas les
     constantes en paramètre, par exemple la destination d'un MOV ne peut pas
-    être une constante.
+    être une constante. De même, msVariable indique une TSepiVariable, qui peut
+    également être une constante (adressée) : la plupart des opérations
+    n'acceptant pas les constantes n'acceptent pas non plus une TSepiVariable
+    constante.
     La valeur msZero est parfois acceptée par des instructions n'acceptant pas
     de constantes, bien que 0 soit manifestement une constante. C'est le cas
     par exemple de l'affectation de chaîne, qui n'accepte que la constante
     nulle (qui vaut la chaîne vide '').
     La valeur msZero en tant que valeur de retour d'un CALL est interprétée
-    plutôt en temps que msNoResult, autrement dit cela demande que le résultat
+    plutôt en tant que msNoResult, autrement dit cela demande que le résultat
     ne soit pas stocké. C'est également le cas de l'argument ExceptObject d'un
     TRYE (try-except).
     - msZero : 0, nil, '', etc. selon le type de variable
@@ -74,12 +77,12 @@ type
     - msParamsBase : paramètre, sans offset
     - msParamsByte : paramètre, offset d'un octet
     - msParamsWord : paramètre, offset de deux octets
-    - msGlobalConst : référence à une TSepiConstant
-    - msGlobalVar : référence à une TSepiVariable
+    - msTrueConst : référence à une TSepiConstant
+    - msVariable : référence à une TSepiVariable
   *}
   TSepiMemorySpace = (
     msZero, msConstant, msLocalsBase, msLocalsByte, msLocalsWord, msParamsBase,
-    msParamsByte, msParamsWord, msGlobalConst, msGlobalVar
+    msParamsByte, msParamsWord, msTrueConst, msVariable
   );
 
 {$IF Byte(High(TSepiMemorySpace)) >= 16}
@@ -166,15 +169,40 @@ type
   /// Taille d'un paramètre à passer à une procédure
   TSepiParamSize = type Byte;
 
+  {*
+    Option de lecture d'adresse
+    Si aoZeroAsNil est spécifié, aoAcceptZero n'a aucun effet.
+    Si la taille des constantes est négative ou nulle, aoAcceptConstInCode n'a
+    aucun effet.
+    - aoZeroAsNil : mappe un msZero en nil au retour
+    - aoAcceptZero : accepte msZero
+    - aoAcceptTrueConst : accepte les vraies constantes
+    - aoAcceptAddressedConst : accepte les constantes adressées
+    - aoAcceptConstInCode : accepte les constantes dans le code
+  *}
+  TSepiAddressOption = (
+    aoZeroAsNil, aoAcceptZero, aoAcceptTrueConst, aoAcceptAddressedConst,
+    aoAcceptConstInCode
+  );
+
+  /// Options de lecture d'adresse
+  TSepiAddressOptions = set of TSepiAddressOption;
+
 const
-  ZeroAsNil = Integer($80000000); /// Interpréter 0 comme nil en retour
-  NoConstButZero = 0;             /// Pas de constante, sauf 0
-  NoConst = -1;                   /// Pas de constante du tout
+  // Accepte tous les types de constantes
+  aoAcceptAllConsts = [
+    aoAcceptZero, aoAcceptTrueConst, aoAcceptAddressedConst,
+    aoAcceptConstInCode
+  ];
+
+  /// Accepte tous les types de constantes hors code
+  aoAcceptNonCodeConsts = [
+    aoAcceptZero, aoAcceptTrueConst, aoAcceptAddressedConst
+  ];
 
   /// Taille des constantes en fonction des types de base
   BaseTypeConstSizes: array[TSepiBaseType] of Integer = (
-    1, 1, 2, 4, 8, 1, 2, 4, 8, 4, 8, 10, 8, 8,
-    NoConstButZero, NoConstButZero, NoConstButZero
+    1, 1, 2, 4, 8, 1, 2, 4, 8, 4, 8, 10, 8, 8, 0, 0, 0
   );
 
   /// Le paramètre est passé par adresse
@@ -197,7 +225,7 @@ const
 
 const
   (*
-    Mem := TSepiMemoryPlace + Value [+ Operations]
+    Mem := TSepiMemoryRef + Value [+ Operations]
     Value :=
       Zero        -> Nothing
       Constant    -> Constant of the relevant type
@@ -215,7 +243,7 @@ const
     Param := Param-Size + Mem
     Result := Mem (zero as nil)
     Class := Mem(4) where a constant is a TSepiClass reference
-    Dest := TSepiJumpestKind + DestValue
+    Dest := TSepiJumpDestKind + DestValue
     DestValue :=
       Shortint -> Shortint relative value
       Smallint -> Smallint relative value
@@ -225,8 +253,8 @@ const
   *)
 
   // No category
-  ocNope        = TSepiOpCode($00); /// NOP
-  ocExtended    = TSepiOpCode($01); /// Instruction étendue (non utilisé)
+  ocNope     = TSepiOpCode($00); /// NOP
+  ocExtended = TSepiOpCode($01); /// Instruction étendue (non utilisé)
 
   // Flow control (destinations are relative to end of instruction)
   ocJump          = TSepiOpCode($02); /// JUMP Dest
@@ -236,10 +264,10 @@ const
   ocJumpAndReturn = TSepiOpCode($06); /// JRET Dest
 
   // Calls
-  ocBasicCall     = TSepiOpCode($07); /// CALL CallSettings Address Params
-  ocSignedCall    = TSepiOpCode($08); /// CALL Signature-Ref Address Params
-  ocStaticCall    = TSepiOpCode($09); /// CALL Method-Ref Params
-  ocDynamicCall   = TSepiOpCode($0A); /// CALL Method-Ref Self Params
+  ocBasicCall   = TSepiOpCode($07); /// CALL CallSettings Address Params
+  ocSignedCall  = TSepiOpCode($08); /// CALL Signature-Ref Address Params
+  ocStaticCall  = TSepiOpCode($09); /// CALL Method-Ref Params
+  ocDynamicCall = TSepiOpCode($0A); /// CALL Method-Ref Self Params
 
   // Memory moves
   ocLoadAddress = TSepiOpCode($10); /// LEA   Dest, Src
