@@ -208,8 +208,6 @@ type
     function ReadAddress(Options: TSepiAddressOptions = [];
       ConstSize: Integer = 0): Pointer;
     function ReadClassValue: TClass;
-    procedure ReadJumpDest(out Value: Integer; out Origin: Word;
-      AllowAbsolute: Boolean = False);
     procedure ReadParamsAndCall(Address: Pointer;
       CallingConvention: TCallingConvention; RegUsage: Byte;
       ResultBehavior: TSepiTypeResultBehavior);
@@ -899,11 +897,10 @@ end;
 *}
 procedure TSepiRuntimeContext.OpCodeJump(OpCode: TSepiOpCode);
 var
-  Offset: Integer;
-  Origin: Word;
+  Offset: Smallint;
 begin
-  ReadJumpDest(Offset, Origin, True);
-  Instructions.Seek(Offset, Origin);
+  Instructions.ReadBuffer(Offset, SizeOf(Smallint));
+  Instructions.Seek(Offset, soFromCurrent);
 end;
 
 {*
@@ -912,20 +909,19 @@ end;
 *}
 procedure TSepiRuntimeContext.OpCodeJumpIf(OpCode: TSepiOpCode);
 var
-  Offset: Integer;
-  Origin: Word;
+  Offset: Smallint;
   TestPtr: PBoolean;
 begin
-  ReadJumpDest(Offset, Origin, True);
+  Instructions.ReadBuffer(Offset, SizeOf(Smallint));
   TestPtr := ReadAddress(aoAcceptAllConsts, SizeOf(Boolean));
 
   case OpCode of
     ocJumpIfTrue:
       if TestPtr^ then
-        Instructions.Seek(Offset, Origin);
+        Instructions.Seek(Offset, soFromCurrent);
     ocJumpIfFalse:
       if not TestPtr^ then
-        Instructions.Seek(Offset, Origin);
+        Instructions.Seek(Offset, soFromCurrent);
   end;
 end;
 
@@ -1064,7 +1060,7 @@ var
   SourcePtr: Pointer;
 begin
   DestPtr := ReadAddress;
-  SourcePtr := ReadAddress;
+  SourcePtr := ReadAddress([aoAcceptAddressedConst]);
 
   DestPtr^ := SourcePtr;
 end;
@@ -1355,13 +1351,12 @@ end;
 *}
 procedure TSepiRuntimeContext.OpCodeTryExcept(OpCode: TSepiOpCode);
 var
-  Offset: Integer;
-  Origin: Word;
+  Offset: Smallint;
   ExceptObjectPtr: ^TObject;
   ExceptCode: Pointer;
 begin
   // Read instruction
-  ReadJumpDest(Offset, Origin);
+  Instructions.ReadBuffer(Offset, SizeOf(Smallint));
   ExceptObjectPtr := ReadAddress([aoZeroAsNil]);
   ExceptCode := Pointer(Instructions.Position + Offset);
 
@@ -1385,12 +1380,11 @@ end;
 *}
 procedure TSepiRuntimeContext.OpCodeTryFinally(OpCode: TSepiOpCode);
 var
-  Offset: Integer;
-  Origin: Word;
+  Offset: Smallint;
   FinallyCode: Pointer;
 begin
   // Read instruction
-  ReadJumpDest(Offset, Origin);
+  Instructions.ReadBuffer(Offset, SizeOf(Smallint));
   FinallyCode := Pointer(Instructions.Position + Offset);
 
   try
@@ -1408,67 +1402,33 @@ end;
   @param OpCode   OpCode
 *}
 procedure TSepiRuntimeContext.OpCodeMultiOn(OpCode: TSepiOpCode);
-type
-  TShortintArray = array[0..255] of Shortint;
-  TSmallintArray = array[0..255] of Smallint;
-  TLongintArray  = array[0..255] of Longint;
-  PShortintArray = ^TShortintArray;
-  PSmallintArray = ^TSmallintArray;
-  PLongintArray = ^TLongintArray;
-const
-  OffsetSizes: array[TSepiJumpDestKind] of Integer = (1, 2, 4, 0);
 var
   Obj: TObject;
-  Count, Index, Skip: Integer;
+  Count: Integer;
   SepiClass: TSepiClass;
-  DestKind: TSepiJumpDestKind;
-  OffsetSize: Integer;
-  DestsArray: Pointer;
-  Offset: Integer;
+  Offset: Smallint;
 begin
   // Read object pointer and count
   Obj := TObject((ReadAddress)^);
   Count := 0;
   Instructions.ReadBuffer(Count, 1);
 
-  // Look for a matching class
-  Index := 0;
-  while Index < Count do
+  // Look for a matching class, and jump if found
+  while Count > 0 do
   begin
     RuntimeUnit.ReadRef(Instructions, SepiClass);
+
     if Obj is SepiClass.DelphiClass then
+    begin
+      // Found
+      Instructions.ReadBuffer(Offset, SizeOf(Smallint));
+      Instructions.Seek(Offset, soFromCurrent);
       Break;
-    Inc(Index);
-  end;
-
-  // Skip left class references
-  Skip := Count-Index-1;
-  if Skip > 0 then
-    Instructions.Seek(4*Skip, soFromCurrent);
-
-  // Read offset size
-  Instructions.ReadBuffer(DestKind, SizeOf(TSepiJumpDestKind));
-  if not (DestKind in [jdkShortint, jdkSmallint, jdkLongint]) then
-    RaiseInvalidOpCode;
-  OffsetSize := OffsetSizes[DestKind];
-
-  // Get dests array address and jump over it
-  DestsArray := Instructions.PointerPos;
-  Instructions.Seek(Count*OffsetSize, soFromCurrent);
-
-  if Index < Count then
-  begin
-    // Read offset
-    case DestKind of
-      jdkShortint: Offset := PShortintArray(DestsArray)^[Index];
-      jdkSmallint: Offset := PSmallintArray(DestsArray)^[Index];
-      jdkLongint:  Offset := PLongintArray (DestsArray)^[Index];
-    else
-      Offset := 0; // avoid compiler warning
+    end else
+    begin
+      // Not found
+      Instructions.Seek(SizeOf(Smallint), soFromCurrent);
     end;
-
-    // Seek according to offset
-    Instructions.Seek(Offset, soFromCurrent);
   end;
 end;
 
@@ -1721,53 +1681,6 @@ begin
 end;
 
 {*
-  Lit une destination de Jump
-  @param Value           En sortie : valeur de déplacement
-  @param Origin          En sortie : orgine du déplacement (voir TStream.Seek)
-  @param AllowAbsolute   True autorise une adresse de code absolue
-*}
-procedure TSepiRuntimeContext.ReadJumpDest(out Value: Integer;
-  out Origin: Word; AllowAbsolute: Boolean = False);
-var
-  DestKind: TSepiJumpDestKind;
-  ShortintOffset: Shortint;
-  SmallintOffset: Smallint;
-  ValuePtr: PLongint;
-begin
-  Instructions.ReadBuffer(DestKind, SizeOf(TSepiJumpDestKind));
-
-  case DestKind of
-    jdkShortint:
-    begin
-      Instructions.ReadBuffer(ShortintOffset, 1);
-      Value := ShortintOffset;
-      Origin := soFromCurrent;
-    end;
-    jdkSmallint:
-    begin
-      Instructions.ReadBuffer(SmallintOffset, 2);
-      Value := SmallintOffset;
-      Origin := soFromCurrent;
-    end;
-    jdkLongint:
-    begin
-      Instructions.ReadBuffer(Value, 4);
-      Origin := soFromCurrent;
-    end;
-    jdkMemory:
-    begin
-      if not AllowAbsolute then
-        RaiseInvalidOpCode;
-      ValuePtr := ReadAddress;
-      Value := ValuePtr^;
-      Origin := soFromBeginning;
-    end;
-  else
-    RaiseInvalidOpCode;
-  end;
-end;
-
-{*
   Lit les paramètres (et résultat) depuis les instructions et fait l'appel
   @param Address             Pointeur sur le code de la procédure à appeler
   @param CallingConvention   Convention d'appel à utiliser
@@ -1848,7 +1761,7 @@ begin
 
   // Actual call
   asm
-        MOV     CL, RegUsage
+        MOV     CL,RegUsage
         TEST    CL,CL
         JZ      @@doCall
         POP     EAX

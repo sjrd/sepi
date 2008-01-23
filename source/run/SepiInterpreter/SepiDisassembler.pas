@@ -87,8 +87,6 @@ type
     function ReadAddress(Options: TSepiAddressOptions = [];
       ConstSize: Integer = 0): string;
     function ReadClassValue: string;
-    function ReadJumpDest(out Offset: Integer; out Memory: string;
-      AllowAbsolute: Boolean = False): Boolean;
     function ReadParams: string;
 
     function DisassembleInstruction: string;
@@ -294,13 +292,10 @@ end;
 *}
 function TSepiDisassembler.OpCodeJump(OpCode: TSepiOpCode): string;
 var
-  Offset: Integer;
-  Memory: string;
+  Offset: Smallint;
 begin
-  if ReadJumpDest(Offset, Memory, True) then
-    Result := Memory
-  else
-    Result := '$' + IntToHex(Instructions.Position + Offset, 8);
+  Instructions.ReadBuffer(Offset, SizeOf(Smallint));
+  Result := '$' + IntToHex(Instructions.Position + Offset, 8);
 end;
 
 {*
@@ -309,20 +304,14 @@ end;
 *}
 function TSepiDisassembler.OpCodeJumpIf(OpCode: TSepiOpCode): string;
 var
-  IsMemory: Boolean;
-  Offset: Integer;
-  Memory: string;
+  Offset: Smallint;
   TestPtr: string;
 begin
-  IsMemory := ReadJumpDest(Offset, Memory, True);
+  Instructions.ReadBuffer(Offset, SizeOf(Smallint));
   TestPtr := ReadAddress(aoAcceptAllConsts, SizeOf(Boolean));
 
-  if IsMemory then
-    Result := Memory
-  else
-    Result := '$' + IntToHex(Instructions.Position + Offset, 8);
-
-  Result := Result + Comma + TestPtr;
+  Result := '$' + IntToHex(Instructions.Position + Offset, 8) + Comma +
+    TestPtr;
 end;
 
 {*
@@ -679,13 +668,12 @@ end;
 *}
 function TSepiDisassembler.OpCodeTryExcept(OpCode: TSepiOpCode): string;
 var
-  Offset: Integer;
-  Memory: string;
+  Offset: Smallint;
   ExceptObjectPtr: string;
   ExceptCode: Pointer;
 begin
   // Read instruction
-  ReadJumpDest(Offset, Memory);
+  Instructions.ReadBuffer(Offset, SizeOf(Smallint));
   ExceptObjectPtr := ReadAddress([aoZeroAsNil]);
   ExceptCode := Pointer(Instructions.Position + Offset);
 
@@ -701,12 +689,11 @@ end;
 *}
 function TSepiDisassembler.OpCodeTryFinally(OpCode: TSepiOpCode): string;
 var
-  Offset: Integer;
-  Memory: string;
+  Offset: Smallint;
   FinallyCode: Pointer;
 begin
   // Read instruction
-  ReadJumpDest(Offset, Memory);
+  Instructions.ReadBuffer(Offset, SizeOf(Smallint));
   FinallyCode := Pointer(Instructions.Position + Offset);
 
   // Format arguments
@@ -718,64 +705,25 @@ end;
   @param OpCode   OpCode
 *}
 function TSepiDisassembler.OpCodeMultiOn(OpCode: TSepiOpCode): string;
-const
-  OffsetSizes: array[TSepiJumpDestKind] of Integer = (1, 2, 4, 0);
 var
-  ObjectPtr: string;
   I, Count: Integer;
-  ClassNames: array of string;
-  DestKind: TSepiJumpDestKind;
-  ShortDest: Shortint;
-  SmallDest: Smallint;
-  Dests: array of Integer;
+  ClassName: string;
+  Offset: Smallint;
   Dest: Integer;
 begin
   // Read object pointer and count
-  ObjectPtr := ReadAddress;
+  Result := ReadAddress;
   Count := 0;
   Instructions.ReadBuffer(Count, 1);
 
-  // Classes
-  SetLength(ClassNames, Count);
-  for I := 0 to Count-1 do
-    ClassNames[I] := ReadRef;
-
-  // Read offset size
-  Instructions.ReadBuffer(DestKind, SizeOf(TSepiJumpDestKind));
-  if not (DestKind in [jdkShortint, jdkSmallint, jdkLongint]) then
-    RaiseInvalidOpCode;
-
-  // Dests
-  SetLength(Dests, Count);
-  case DestKind of
-    jdkShortint:
-    begin
-      for I := 0 to Count-1 do
-      begin
-        Instructions.ReadBuffer(ShortDest, 1);
-        Dests[I] := ShortDest;
-      end;
-    end;
-    jdkSmallint:
-    begin
-      for I := 0 to Count-1 do
-      begin
-        Instructions.ReadBuffer(SmallDest, 2);
-        Dests[I] := SmallDest;
-      end;
-    end;
-    jdkLongint:
-    begin
-      Instructions.ReadBuffer(Dests[0], 4*Count);
-    end;
-  end;
-
-  // Format arguments
-  Result := ObjectPtr;
+  // Read pairs Class/Offset
   for I := 0 to Count-1 do
   begin
-    Dest := Integer(Instructions.PointerPos) + Dests[I];
-    Result := Result + Comma + ClassNames[I] + ':$' + IntToHex(Dest, 8);
+    ClassName := ReadRef;
+    Instructions.ReadBuffer(Offset, SizeOf(Smallint));
+
+    Dest := Integer(Instructions.PointerPos) + Offset;
+    Result := Result + Comma + ClassName + ':$' + IntToHex(Dest, 8);
   end;
 end;
 
@@ -1036,53 +984,6 @@ begin
 
   if Result = '' then
     Result := ReadRef;
-end;
-
-{*
-  Lit une destination de Jump
-  @param Offset          En sortie : valeur de déplacement si relatif
-  @param Memory          En sortie : adresse mémoire si absolue
-  @param AllowAbsolute   True autorise une adresse de code absolue
-  @return True si c'est une adresse absolue, False si c'est une relative
-*}
-function TSepiDisassembler.ReadJumpDest(out Offset: Integer;
-  out Memory: string; AllowAbsolute: Boolean = False): Boolean;
-var
-  DestKind: TSepiJumpDestKind;
-  ShortintOffset: Shortint;
-  SmallintOffset: Smallint;
-begin
-  Instructions.ReadBuffer(DestKind, SizeOf(TSepiJumpDestKind));
-
-  case DestKind of
-    jdkShortint:
-    begin
-      Instructions.ReadBuffer(ShortintOffset, 1);
-      Offset := ShortintOffset;
-      Result := False;
-    end;
-    jdkSmallint:
-    begin
-      Instructions.ReadBuffer(SmallintOffset, 2);
-      Offset := SmallintOffset;
-      Result := False;
-    end;
-    jdkLongint:
-    begin
-      Instructions.ReadBuffer(Offset, 4);
-      Result := False;
-    end;
-    jdkMemory:
-    begin
-      if not AllowAbsolute then
-        RaiseInvalidOpCode;
-      Memory := ReadAddress;
-      Result := True;
-    end;
-  else
-    RaiseInvalidOpCode;
-    Result := False; // avoid compiler warning
-  end;
 end;
 
 {*

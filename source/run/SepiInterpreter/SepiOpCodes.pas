@@ -155,14 +155,6 @@ type
     btAnsiStr, btWideStr, btVariant
   );
 
-  {*
-    Type de destination d'un JUMP
-    jdkShortint, jdkSmallint et jdkLongint ont des valeurs relatives par
-    rapport à la fin de l'instruction de JUMP.
-    jdkMemory est une valeur pointeur absolue lue en mémoire
-  *}
-  TSepiJumpDestKind = (jdkShortint, jdkSmallint, jdkLongint, jdkMemory);
-
   /// Configuration d'un appel basique
   TSepiCallSettings = type Byte;
 
@@ -243,12 +235,6 @@ const
     Param := Param-Size + Mem
     Result := Mem (zero as nil)
     Class := Mem(4) where a constant is a TSepiClass reference
-    Dest := TSepiJumpDestKind + DestValue
-    DestValue :=
-      Shortint -> Shortint relative value
-      Smallint -> Smallint relative value
-      Longint  -> Longint relative value
-      Memory   -> Mem (absolute)
     Type := TSepiBaseType
   *)
 
