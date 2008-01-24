@@ -169,8 +169,7 @@ type
     procedure OpCodeJump(OpCode: TSepiOpCode);
     procedure OpCodeJumpIf(OpCode: TSepiOpCode);
 
-    procedure OpCodeBasicCall(OpCode: TSepiOpCode);
-    procedure OpCodeSignedCall(OpCode: TSepiOpCode);
+    procedure OpCodeAddressCall(OpCode: TSepiOpCode);
     procedure OpCodeStaticCall(OpCode: TSepiOpCode);
     procedure OpCodeDynamicCall(OpCode: TSepiOpCode);
 
@@ -283,8 +282,7 @@ begin
   @OpCodeProcs[ocJumpAndReturn] := @TSepiRuntimeContext.OpCodeJump;
 
   // Calls
-  @OpCodeProcs[ocBasicCall]   := @TSepiRuntimeContext.OpCodeBasicCall;
-  @OpCodeProcs[ocSignedCall]  := @TSepiRuntimeContext.OpCodeSignedCall;
+  @OpCodeProcs[ocAddressCall] := @TSepiRuntimeContext.OpCodeAddressCall;
   @OpCodeProcs[ocStaticCall]  := @TSepiRuntimeContext.OpCodeStaticCall;
   @OpCodeProcs[ocDynamicCall] := @TSepiRuntimeContext.OpCodeDynamicCall;
 
@@ -929,7 +927,7 @@ end;
   OpCode BasicCall
   @param OpCode   OpCode
 *}
-procedure TSepiRuntimeContext.OpCodeBasicCall(OpCode: TSepiOpCode);
+procedure TSepiRuntimeContext.OpCodeAddressCall(OpCode: TSepiOpCode);
 var
   CallSettings: TSepiCallSettings;
   CallingConvention: TCallingConvention;
@@ -945,34 +943,6 @@ begin
 
   // Read params and call
   ReadParamsAndCall(AddressPtr^, CallingConvention, RegUsage, ResultBehavior);
-end;
-
-{*
-  OpCode SignedCall
-  @param OpCode   OpCode
-*}
-procedure TSepiRuntimeContext.OpCodeSignedCall(OpCode: TSepiOpCode);
-var
-  SignatureOwner: TSepiMeta;
-  AddressPtr: PPointer;
-  Signature: TSepiSignature;
-begin
-  // Read the instruction
-  RuntimeUnit.ReadRef(Instructions, SignatureOwner);
-  AddressPtr := ReadAddress; // it would be foolish to have a constant here
-
-  // Find signature
-  if SignatureOwner is TSepiMethod then
-    Signature := TSepiMethod(SignatureOwner).Signature
-  else
-    Signature := (SignatureOwner as TSepiMethodRefType).Signature;
-
-  // Read params and call
-  with Signature do
-  begin
-    ReadParamsAndCall(AddressPtr^, CallingConvention, RegUsage,
-      ReturnType.SafeResultBehavior);
-  end;
 end;
 
 {*

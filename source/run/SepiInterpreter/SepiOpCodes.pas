@@ -86,7 +86,7 @@ type
   );
 
 {$IF Byte(High(TSepiMemorySpace)) >= 16}
-  {$MESSAGE Error 'TSepiMemorySpace mustn''t have more than 16 values'}
+  {$MESSAGE ERROR 'TSepiMemorySpace mustn''t have more than 16 values'}
 {$IFEND}
 
 const
@@ -250,10 +250,9 @@ const
   ocJumpAndReturn = TSepiOpCode($06); /// JRET Dest
 
   // Calls
-  ocBasicCall   = TSepiOpCode($07); /// CALL CallSettings Address Params
-  ocSignedCall  = TSepiOpCode($08); /// CALL Signature-Ref Address Params
-  ocStaticCall  = TSepiOpCode($09); /// CALL Method-Ref Params
-  ocDynamicCall = TSepiOpCode($0A); /// CALL Method-Ref Self Params
+  ocAddressCall = TSepiOpCode($07); /// CALL CallSettings Address Params
+  ocStaticCall  = TSepiOpCode($08); /// CALL Method-Ref Params
+  ocDynamicCall = TSepiOpCode($09); /// CALL Method-Ref Self Params
 
   // Memory moves
   ocLoadAddress = TSepiOpCode($10); /// LEA   Dest, Src
@@ -335,7 +334,7 @@ const
   ocReraise    = TSepiOpCode($61); /// RERS
   ocTryExcept  = TSepiOpCode($62); /// TRYE Dest, [ExceptObject]
   ocTryFinally = TSepiOpCode($63); /// TRYF Dest
-  /// ON ExceptObject, Byte-Count, Class-Refs{Count}, Dest-Kind, Dests{Count}
+  /// ON ExceptObject, Byte-Count, (Class-Ref, Dest){Count}
   ocMultiOn    = TSepiOpCode($64);
 
 function MemoryRefEncode(MemorySpace: TSepiMemorySpace;

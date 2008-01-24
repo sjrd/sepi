@@ -49,8 +49,7 @@ type
     function OpCodeJump(OpCode: TSepiOpCode): string;
     function OpCodeJumpIf(OpCode: TSepiOpCode): string;
 
-    function OpCodeBasicCall(OpCode: TSepiOpCode): string;
-    function OpCodeSignedCall(OpCode: TSepiOpCode): string;
+    function OpCodeAddressCall(OpCode: TSepiOpCode): string;
     function OpCodeStaticCall(OpCode: TSepiOpCode): string;
     function OpCodeDynamicCall(OpCode: TSepiOpCode): string;
 
@@ -124,7 +123,7 @@ const
     // Flow control
     'JUMP', 'JIT', 'JIF', 'RET', 'JRET',
     // Calls
-    'PRPA', 'CALL', 'CALL', 'CALL', 'CALL', '', '', '', '',
+    'CALL', 'CALL', 'CALL', '', '', '', '', '', '',
     // Memory moves
     'LEA', 'MOVB', 'MOVW', 'MOVD', 'MOVQ', 'MOVE', 'MOVAS', 'MOVWS', 'MOVV',
     'MOVI', 'MOVS', 'MOVM', 'MOVO', 'CVRT', '', '',
@@ -192,8 +191,7 @@ begin
   @OpCodeArgsFuncs[ocJumpAndReturn] := @TSepiDisassembler.OpCodeJump;
 
   // Calls
-  @OpCodeArgsFuncs[ocBasicCall]     := @TSepiDisassembler.OpCodeBasicCall;
-  @OpCodeArgsFuncs[ocSignedCall]    := @TSepiDisassembler.OpCodeSignedCall;
+  @OpCodeArgsFuncs[ocAddressCall]   := @TSepiDisassembler.OpCodeAddressCall;
   @OpCodeArgsFuncs[ocStaticCall]    := @TSepiDisassembler.OpCodeStaticCall;
   @OpCodeArgsFuncs[ocDynamicCall]   := @TSepiDisassembler.OpCodeDynamicCall;
 
@@ -318,7 +316,7 @@ end;
   OpCode BasicCall
   @param OpCode   OpCode
 *}
-function TSepiDisassembler.OpCodeBasicCall(OpCode: TSepiOpCode): string;
+function TSepiDisassembler.OpCodeAddressCall(OpCode: TSepiOpCode): string;
 var
   CallSettings: TSepiCallSettings;
   CallingConvention: TCallingConvention;
@@ -338,26 +336,6 @@ begin
   Result := Format('(%s, %d, %s) %s%s', {don't localize}
     [CallingConventionNames[CallingConvention], RegUsage,
     ResultBehaviorNames[ResultBehavior], AddressPtr, Parameters]);
-end;
-
-{*
-  OpCode SignedCall
-  @param OpCode   OpCode
-*}
-function TSepiDisassembler.OpCodeSignedCall(OpCode: TSepiOpCode): string;
-var
-  Signature: string;
-  AddressPtr: string;
-  Parameters: string;
-begin
-  // Read the instruction
-  Signature := ReadRef;
-  AddressPtr := ReadAddress;
-  Parameters := ReadParams;
-
-  // Format arguments
-  Result := Format('(%s) %s%s', {don't localize}
-    [Signature, AddressPtr, Parameters]);
 end;
 
 {*
