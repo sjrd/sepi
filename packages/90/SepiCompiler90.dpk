@@ -27,7 +27,16 @@ package SepiCompiler90;
 {$IMPLICITBUILD OFF}
 
 requires
-  rtl;
+  rtl,
+  SCL90,
+  vcl,
+  SepiCore90,
+  SepiInterpreter90,
+  DclSepiReflection90;
+
+contains
+  SepiAsmInstructions in '..\..\source\run\SepiCompiler\SepiAsmInstructions.pas',
+  SepiAssembler in '..\..\source\run\SepiCompiler\SepiAssembler.pas';
 
 end.
 
