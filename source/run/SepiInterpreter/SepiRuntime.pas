@@ -224,7 +224,7 @@ type
     { If you add a destructor to this class, please read the big comment in
       TSepiRuntimeMethod.Invoke! }
 
-    procedure Execute;
+    procedure Execute(BlockBegin, BlockEnd: Pointer);
 
     property RuntimeMethod: TSepiRuntimeMethod read FRuntimeMethod;
     property RuntimeUnit: TSepiRuntimeUnit read FRuntimeUnit;
@@ -275,11 +275,9 @@ begin
   @OpCodeProcs[ocExtended] := @TSepiRuntimeContext.UnknownOpCode;
 
   // Flow control
-  @OpCodeProcs[ocJump]          := @TSepiRuntimeContext.OpCodeJump;
-  @OpCodeProcs[ocJumpIfTrue]    := @TSepiRuntimeContext.OpCodeJumpIf;
-  @OpCodeProcs[ocJumpIfFalse]   := @TSepiRuntimeContext.OpCodeJumpIf;
-  @OpCodeProcs[ocReturn]        := @TSepiRuntimeContext.OpCodeNope;
-  @OpCodeProcs[ocJumpAndReturn] := @TSepiRuntimeContext.OpCodeJump;
+  @OpCodeProcs[ocJump]        := @TSepiRuntimeContext.OpCodeJump;
+  @OpCodeProcs[ocJumpIfTrue]  := @TSepiRuntimeContext.OpCodeJumpIf;
+  @OpCodeProcs[ocJumpIfFalse] := @TSepiRuntimeContext.OpCodeJumpIf;
 
   // Calls
   @OpCodeProcs[ocAddressCall] := @TSepiRuntimeContext.OpCodeAddressCall;
@@ -823,7 +821,7 @@ begin
     // Execute the method code
     Instructions.Create(Code);
     Context.Create(Self, Instructions, Parameters, Locals);
-    Context.Execute;
+    Context.Execute(Code, Pointer(Cardinal(Code)+CodeSize));
 
     // Fetch result, if required (a result never requires initialization)
     if Assigned(Result) then
@@ -1321,26 +1319,35 @@ end;
 *}
 procedure TSepiRuntimeContext.OpCodeTryExcept(OpCode: TSepiOpCode);
 var
-  Offset: Smallint;
+  TrySize, ExceptSize: Word;
   ExceptObjectPtr: ^TObject;
-  ExceptCode: Pointer;
+  TryPos, ExceptPos, EndPos: Pointer;
 begin
   // Read instruction
-  Instructions.ReadBuffer(Offset, SizeOf(Smallint));
+  Instructions.ReadBuffer(TrySize, SizeOf(Word));
+  Instructions.ReadBuffer(ExceptSize, SizeOf(Word));
   ExceptObjectPtr := ReadAddress([aoZeroAsNil]);
-  ExceptCode := Pointer(Instructions.Position + Offset);
+
+  // Compute block boundaries
+  TryPos := Instructions.PointerPos;
+  ExceptPos := Pointer(Cardinal(TryPos) + TrySize);
+  EndPos := Pointer(Cardinal(ExceptPos) + ExceptSize);
 
   try
     // Execute try block
-    Execute;
+    Execute(TryPos, ExceptPos);
+
+    // Skip except block
+    if Instructions.PointerPos = ExceptPos then
+      Instructions.PointerPos := EndPos;
   except
     // Set exception object, if required
     if Assigned(ExceptObjectPtr) then
       ExceptObjectPtr^ := ExceptObject;
 
     // Execute except block
-    Instructions.PointerPos := ExceptCode;
-    Execute;
+    Instructions.PointerPos := ExceptPos;
+    Execute(ExceptPos, EndPos);
   end;
 end;
 
@@ -1350,20 +1357,31 @@ end;
 *}
 procedure TSepiRuntimeContext.OpCodeTryFinally(OpCode: TSepiOpCode);
 var
-  Offset: Smallint;
-  FinallyCode: Pointer;
+  TrySize, FinallySize: Word;
+  TryPos, FinallyPos, EndPos, SavedPos: Pointer;
 begin
   // Read instruction
-  Instructions.ReadBuffer(Offset, SizeOf(Smallint));
-  FinallyCode := Pointer(Instructions.Position + Offset);
+  Instructions.ReadBuffer(TrySize, SizeOf(Word));
+  Instructions.ReadBuffer(FinallySize, SizeOf(Word));
+
+  // Compute block boundaries
+  TryPos := Instructions.PointerPos;
+  FinallyPos := Pointer(Cardinal(TryPos) + TrySize);
+  EndPos := Pointer(Cardinal(FinallyPos) + FinallySize);
 
   try
     // Execute try block
-    Execute;
+    Execute(TryPos, FinallyPos);
+
+    // Skip finally block
+    if Instructions.PointerPos = FinallyPos then
+      Instructions.PointerPos := EndPos;
   finally
-    // Execute finally block
-    Instructions.PointerPos := FinallyCode;
-    Execute;
+    // Execute finally block and get back to current position
+    SavedPos := Instructions.PointerPos;
+    Instructions.PointerPos := FinallyPos;
+    Execute(FinallyPos, EndPos);
+    Instructions.PointerPos := SavedPos;
   end;
 end;
 
@@ -1785,13 +1803,17 @@ begin
 end;
 
 {*
-  Exécute les instructions jusqu'à un RET
+  Exécute les instructions jusqu'à sortir du bloc
+  @param BlockBegin   Début du bloc
+  @param BlockEnd     Fin du bloc
 *}
-procedure TSepiRuntimeContext.Execute;
+procedure TSepiRuntimeContext.Execute(BlockBegin, BlockEnd: Pointer);
 var
   OpCode: TSepiOpCode;
 begin
-  repeat
+  while (Cardinal(Instructions.PointerPos) < Cardinal(BlockEnd)) and
+    (Cardinal(Instructions.PointerPos) >= Cardinal(BlockBegin)) do
+  begin
     // Debug event
     if Assigned(RuntimeUnit.OnDebug) then
       RuntimeUnit.OnDebug(Self);
@@ -1799,7 +1821,7 @@ begin
     // Execute instruction
     Instructions.ReadBuffer(OpCode, SizeOf(TSepiOpCode));
     OpCodeProcs[OpCode](Self, OpCode);
-  until (OpCode = ocReturn) or (OpCode = ocJumpAndReturn);
+  end;
 end;
 
 initialization

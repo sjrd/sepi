@@ -121,9 +121,9 @@ const
     // No category
     'NOP', 'EXT',
     // Flow control
-    'JUMP', 'JIT', 'JIF', 'RET', 'JRET',
+    'JUMP', 'JIT', 'JIF',
     // Calls
-    'CALL', 'CALL', 'CALL', '', '', '', '', '', '',
+    'CALL', 'CALL', 'CALL', '', '', '', '', '', '', '', '',
     // Memory moves
     'LEA', 'MOVB', 'MOVW', 'MOVD', 'MOVQ', 'MOVE', 'MOVAS', 'MOVWS', 'MOVV',
     'MOVI', 'MOVS', 'MOVM', 'MOVO', 'CVRT', '', '',
@@ -184,16 +184,14 @@ begin
   @OpCodeArgsFuncs[ocExtended] := @TSepiDisassembler.UnknownOpCode;
 
   // Flow control
-  @OpCodeArgsFuncs[ocJump]          := @TSepiDisassembler.OpCodeJump;
-  @OpCodeArgsFuncs[ocJumpIfTrue]    := @TSepiDisassembler.OpCodeJumpIf;
-  @OpCodeArgsFuncs[ocJumpIfFalse]   := @TSepiDisassembler.OpCodeJumpIf;
-  @OpCodeArgsFuncs[ocReturn]        := @TSepiDisassembler.OpCodeNope;
-  @OpCodeArgsFuncs[ocJumpAndReturn] := @TSepiDisassembler.OpCodeJump;
+  @OpCodeArgsFuncs[ocJump]        := @TSepiDisassembler.OpCodeJump;
+  @OpCodeArgsFuncs[ocJumpIfTrue]  := @TSepiDisassembler.OpCodeJumpIf;
+  @OpCodeArgsFuncs[ocJumpIfFalse] := @TSepiDisassembler.OpCodeJumpIf;
 
   // Calls
-  @OpCodeArgsFuncs[ocAddressCall]   := @TSepiDisassembler.OpCodeAddressCall;
-  @OpCodeArgsFuncs[ocStaticCall]    := @TSepiDisassembler.OpCodeStaticCall;
-  @OpCodeArgsFuncs[ocDynamicCall]   := @TSepiDisassembler.OpCodeDynamicCall;
+  @OpCodeArgsFuncs[ocAddressCall] := @TSepiDisassembler.OpCodeAddressCall;
+  @OpCodeArgsFuncs[ocStaticCall]  := @TSepiDisassembler.OpCodeStaticCall;
+  @OpCodeArgsFuncs[ocDynamicCall] := @TSepiDisassembler.OpCodeDynamicCall;
 
   // Memory moves
   @OpCodeArgsFuncs[ocLoadAddress] := @TSepiDisassembler.OpCodeLoadAddress;
@@ -646,17 +644,16 @@ end;
 *}
 function TSepiDisassembler.OpCodeTryExcept(OpCode: TSepiOpCode): string;
 var
-  Offset: Smallint;
+  TrySize, ExceptSize: Word;
   ExceptObjectPtr: string;
-  ExceptCode: Pointer;
 begin
   // Read instruction
-  Instructions.ReadBuffer(Offset, SizeOf(Smallint));
+  Instructions.ReadBuffer(TrySize, SizeOf(Word));
+  Instructions.ReadBuffer(ExceptSize, SizeOf(Word));
   ExceptObjectPtr := ReadAddress([aoZeroAsNil]);
-  ExceptCode := Pointer(Instructions.Position + Offset);
 
   // Format arguments
-  Result := '$'+IntToHex(Cardinal(ExceptCode), 8); {don't localize}
+  Result := Format('%d, %d', [TrySize, ExceptSize]); {don't localize}
   if ExceptObjectPtr <> '' then
     Result := Result + Comma + ExceptObjectPtr;
 end;
@@ -667,15 +664,14 @@ end;
 *}
 function TSepiDisassembler.OpCodeTryFinally(OpCode: TSepiOpCode): string;
 var
-  Offset: Smallint;
-  FinallyCode: Pointer;
+  TrySize, FinallySize: Word;
 begin
   // Read instruction
-  Instructions.ReadBuffer(Offset, SizeOf(Smallint));
-  FinallyCode := Pointer(Instructions.Position + Offset);
+  Instructions.ReadBuffer(TrySize, SizeOf(Word));
+  Instructions.ReadBuffer(FinallySize, SizeOf(Word));
 
   // Format arguments
-  Result := '$'+IntToHex(Cardinal(FinallyCode), 8); {don't localize}
+  Result := Format('%d, %d', [TrySize, FinallySize]); {don't localize}
 end;
 
 {*

@@ -243,16 +243,14 @@ const
   ocExtended = TSepiOpCode($01); /// Instruction étendue (non utilisé)
 
   // Flow control (destinations are relative to end of instruction)
-  ocJump          = TSepiOpCode($02); /// JUMP Dest
-  ocJumpIfTrue    = TSepiOpCode($03); /// JIT  Dest, Test
-  ocJumpIfFalse   = TSepiOpCode($04); /// JIF  Dest, Test
-  ocReturn        = TSepiOpCode($05); /// RET
-  ocJumpAndReturn = TSepiOpCode($06); /// JRET Dest
+  ocJump        = TSepiOpCode($02); /// JUMP Dest
+  ocJumpIfTrue  = TSepiOpCode($03); /// JIT  Dest, Test
+  ocJumpIfFalse = TSepiOpCode($04); /// JIF  Dest, Test
 
   // Calls
-  ocAddressCall = TSepiOpCode($07); /// CALL CallSettings Address Params
-  ocStaticCall  = TSepiOpCode($08); /// CALL Method-Ref Params
-  ocDynamicCall = TSepiOpCode($09); /// CALL Method-Ref Self Params
+  ocAddressCall = TSepiOpCode($05); /// CALL CallSettings Address Params
+  ocStaticCall  = TSepiOpCode($06); /// CALL Method-Ref Params
+  ocDynamicCall = TSepiOpCode($07); /// CALL Method-Ref Self Params
 
   // Memory moves
   ocLoadAddress = TSepiOpCode($10); /// LEA   Dest, Src
@@ -332,8 +330,8 @@ const
   // Exception handling
   ocRaise      = TSepiOpCode($60); /// RAISE ExceptObject
   ocReraise    = TSepiOpCode($61); /// RERS
-  ocTryExcept  = TSepiOpCode($62); /// TRYE Dest, [ExceptObject]
-  ocTryFinally = TSepiOpCode($63); /// TRYF Dest
+  ocTryExcept  = TSepiOpCode($62); /// TRYE TrySize, ExceptSize, [ExceptObject]
+  ocTryFinally = TSepiOpCode($63); /// TRYF TrySize, FinallySize
   /// ON ExceptObject, Byte-Count, (Class-Ref, Dest){Count}
   ocMultiOn    = TSepiOpCode($64);
 
