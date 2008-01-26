@@ -1417,6 +1417,8 @@ begin
       // Not found
       Instructions.Seek(SizeOf(Smallint), soFromCurrent);
     end;
+
+    Dec(Count);
   end;
 end;
 
