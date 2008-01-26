@@ -27,7 +27,7 @@ unit SepiRuntime;
 interface
 
 uses
-  SysUtils, Classes, Contnrs, TypInfo, ScUtils, ScStrUtils, ScClasses,
+  Windows, SysUtils, Classes, Contnrs, TypInfo, ScUtils, ScStrUtils, ScClasses,
   ScTypInfo, ScDelphiLanguage, ScCompilerMagic, SepiReflectionCore,
   SepiMembers, SepiReflectionConsts, SepiOpCodes, SepiRuntimeOperations;
 

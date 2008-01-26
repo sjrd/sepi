@@ -23,6 +23,7 @@ resourcestring
     'La référence mémoire ne peut être une vraie constante';
   SMemorySpaceOffsetMustBeWord =
     'L''offset d''espace mémoire doit être contenu dans un Word';
+  SMemoryCantAccessObject = 'Impossible d''accéder à l''objet %s';
   STooManyOperations =
     'Une référence mémoire ne peut avoir que 15 opérations maximum';
   SZeroMemoryCantHaveOperations =
@@ -236,6 +237,8 @@ type
   *}
   TSepiMemoryReference = class(TObject)
   private
+    FMethodAssembler: TSepiMethodAssembler; /// Assembleur de méthode
+
     FOptions: TSepiAddressOptions; /// Options
     FConstSize: Integer;           /// Taille d'une constante
 
@@ -251,11 +254,19 @@ type
     function GetOperationCount: Integer;
     function GetOperations(Index: Integer): TSepiAddressDerefAndOpRec;
   public
-    constructor Create(AOptions: TSepiAddressOptions = [];
-      AConstSize: Integer = 0);
+    constructor Create(AMethodAssembler: TSepiMethodAssembler;
+      AOptions: TSepiAddressOptions = []; AConstSize: Integer = 0);
     destructor Destroy; override;
 
-    procedure SetSpace(ASpace: TSepiMemorySpace; ASpaceArgument: Integer = 0);
+    procedure SetSpace(ASpace: TSepiMemorySpace;
+      ASpaceArgument: Integer = 0); overload;
+    procedure SetSpace(Meta: TSepiMeta); overload;
+    procedure SetSpace(Param: TSepiParam; AutoDeref: Boolean = True); overload;
+
+    procedure SetAsConst(Value: Int64); overload;
+    procedure SetAsConst(Value: Boolean); overload;
+    procedure SetAsConst(Value: Extended); overload;
+    procedure SetAsConst(Value: Currency); overload;
 
     procedure ClearOperations;
     function AddOperation(ADereference: TSepiAddressDereference;
@@ -271,6 +282,8 @@ type
     procedure Make;
 
     procedure WriteToStream(Stream: TStream);
+
+    property MethodAssembler: TSepiMethodAssembler read FMethodAssembler;
 
     property Options: TSepiAddressOptions read FOptions;
     property ConstSize: Integer read FConstSize;
@@ -910,10 +923,12 @@ end;
   @param AOptions     Options
   @param AConstSize   Taille de constante
 *}
-constructor TSepiMemoryReference.Create(AOptions: TSepiAddressOptions = [];
-  AConstSize: Integer = 0);
+constructor TSepiMemoryReference.Create(AMethodAssembler: TSepiMethodAssembler;
+  AOptions: TSepiAddressOptions = []; AConstSize: Integer = 0);
 begin
   inherited Create;
+
+  FMethodAssembler := AMethodAssembler;
 
   FOptions := AOptions;
   FConstSize := AConstSize;
@@ -1021,6 +1036,128 @@ begin
 end;
 
 {*
+  Modifie l'espace mémoire sur base d'un meta
+  Le meta peut être une variable locale, une variable globale ou une constante
+  globale (sous réserve d'acceptation des constantes).
+  @param Meta   Meta à pointer par l'espace mémoire
+*}
+procedure TSepiMemoryReference.SetSpace(Meta: TSepiMeta);
+begin
+  if Meta is TSepiField then
+  begin
+    // Local variable
+
+    if Meta.Owner <> MethodAssembler.Locals then
+      raise ESepiInvalidMemoryReference.CreateResFmt(@SMemoryCantAccessObject,
+        [Meta.GetFullName]);
+
+    SetSpace(msLocalsBase, TSepiField(Meta).Offset);
+  end else if Meta is TSepiConstant then
+  begin
+    // Global true constant
+    with TSepiConstant(Meta) do
+    begin
+      if (not ConstType.NeedInit) and (ConstType.Size <= SizeOf(Extended)) then
+      begin
+        { Small constants which do not require initialization are directly
+          written in the code. }
+        SetSpace(msConstant);
+        SetConstant(ValuePtr^);
+      end else
+      begin
+        SetSpace(msTrueConst,
+          MethodAssembler.UnitAssembler.MakeReference(Meta));
+      end;
+    end;
+  end else if Meta is TSepiVariable then
+  begin
+    // Global variable or addressed constant
+    SetSpace(msVariable, MethodAssembler.UnitAssembler.MakeReference(Meta));
+  end else
+  begin
+    // Other types of meta are not accepted
+    raise ESepiInvalidMemoryReference.CreateResFmt(@SMemoryCantAccessObject,
+      [Meta.GetFullName]);
+  end;
+end;
+
+{*
+  Modifie l'espace mémoire sur base d'un paramètre
+  Le paramètre doit être de la méthode courante. Si AutoDeref vaut True, et que
+  le paramètre est passé par adresse, le déréférencement est ajouté
+  automatiquement.
+  @param Param       Paramètre à pointer par l'espace mémoire
+  @param AutoDeref   Déréférence automatiquement
+*}
+procedure TSepiMemoryReference.SetSpace(Param: TSepiParam;
+  AutoDeref: Boolean = True);
+begin
+  if Param.Owner <> MethodAssembler.SepiMethod.Signature then
+    raise ESepiInvalidMemoryReference.CreateResFmt(@SMemoryCantAccessObject,
+      [Param.Owner.Owner.GetFullName + '.' + Param.Name]);
+
+  SetSpace(msParamsBase, Param.CallInfo.SepiStackOffset);
+
+  if AutoDeref and Param.CallInfo.ByAddress then
+    AddOperation(adSimple);
+end;
+
+{*
+  Assigne la référence mémoire à une constante entière
+  @param Value   Valeur constante
+*}
+procedure TSepiMemoryReference.SetAsConst(Value: Int64);
+begin
+  if Value = 0 then
+    SetSpace(msZero)
+  else
+  begin
+    SetSpace(msConstant);
+    SetConstant(Value);
+  end;
+end;
+
+{*
+  Assigne la référence mémoire à une constante booléenne
+  @param Value   Valeur constante
+*}
+procedure TSepiMemoryReference.SetAsConst(Value: Boolean);
+begin
+  if not Value then
+    SetSpace(msZero)
+  else
+  begin
+    SetSpace(msConstant);
+    SetConstant(Value);
+  end;
+end;
+
+{*
+  Assigne la référence mémoire à une constante flottante
+  @param Value   Valeur constante
+*}
+procedure TSepiMemoryReference.SetAsConst(Value: Extended);
+begin
+  SetSpace(msConstant);
+  case ConstSize of
+    4: Single(FConstant^) := Value;
+    8: Double(FConstant^) := Value;
+  else
+    SetConstant(Value);
+  end;
+end;
+
+{*
+  Assigne la référence mémoire à une constante Currency
+  @param Value   Valeur constante
+*}
+procedure TSepiMemoryReference.SetAsConst(Value: Currency);
+begin
+  SetSpace(msConstant);
+  SetConstant(Value);
+end;
+
+{*
   Supprime toutes les opérations
 *}
 procedure TSepiMemoryReference.ClearOperations;
@@ -1047,35 +1184,61 @@ const
     aoPlusConstTimesMemShortint, aoPlusConstTimesMemSmallint,
     aoPlusConstTimesMemLongint
   ];
+  ConstArgSizeToOp: array[1..4] of TSepiAddressOperation = (
+    aoPlusConstShortint, aoPlusConstSmallint, aoPlusConstLongint,
+    aoPlusConstLongint
+  );
   MemArgSizes: array[aoPlusMemShortint..aoPlusConstTimesMemLongint] of Integer
     = (1, 2, 4, 1, 2, 4);
 var
   Index: Integer;
 begin
-  if Length(FOperations) >= MaxOperationCount then
-    raise ESepiInvalidMemoryReference.CreateRes(@STooManyOperations);
+  Index := Length(FOperations);
 
-  if Space = msZero then
-    raise ESepiInvalidMemoryReference.CreateRes(
-      @SZeroMemoryCantHaveOperations);
-
+  // Check parameters consistency
   if (AOperation in OnlyShortConstArgOps) and
     (IntegerSize(AConstOperationArg) > 1) then
     raise ESepiInvalidMemoryReference.CreateRes(@SConstArgMustBeShort);
 
-  Index := Length(FOperations);
-  SetLength(FOperations, Index+1);
+  // Try to compress dereference and operation
+  if (Index > 0) and (ADereference = adNone) and
+    (FOperations[Index-1].Operation = aoNone) then
+  begin
+    // Compression OK
+    Dec(Index);
+  end else
+  begin
+    // Some checks
+    if Length(FOperations) >= MaxOperationCount then
+      raise ESepiInvalidMemoryReference.CreateRes(@STooManyOperations);
 
+    if Space = msZero then
+      raise ESepiInvalidMemoryReference.CreateRes(
+        @SZeroMemoryCantHaveOperations);
+
+    // Add a new operation
+    SetLength(FOperations, Index+1);
+
+    // Set dereference
+    FOperations[Index].Dereference := ADereference;
+  end;
+
+  // Set operation
   with FOperations[Index] do
   begin
-    Dereference := ADereference;
     Operation := AOperation;
     ConstOperationArg := AConstOperationArg;
 
+    // Adapt operation to const arg size
+    if Operation in [aoPlusConstShortint..aoPlusConstLongint] then
+      Operation := ConstArgSizeToOp[IntegerSize(AConstOperationArg)];
+
+    // Create memory reference
     if Operation in OpsWithMemArg then
-      MemOperationArg := TSepiMemoryReference.Create(aoAcceptAllConsts,
-        MemArgSizes[Operation])
-    else
+    begin
+      MemOperationArg := TSepiMemoryReference.Create(MethodAssembler,
+        aoAcceptAllConsts, MemArgSizes[Operation]);
+    end else
       MemOperationArg := nil;
 
     Result := MemOperationArg;

@@ -86,7 +86,8 @@ type
 
     FSize: Integer; /// Taille écrite dans le flux
   public
-    constructor Create(ASepiStackOffset: Integer; AParamSize: TSepiParamSize);
+    constructor Create(AMethodAssembler: TSepiMethodAssembler;
+      ASepiStackOffset: Integer; AParamSize: TSepiParamSize);
     destructor Destroy; override;
 
     procedure Make;
@@ -107,6 +108,8 @@ type
   *}
   TSepiAsmCallParams = class(TObject)
   private
+    FMethodAssembler: TSepiMethodAssembler; /// Assembleur de méthode
+
     FParameters: array of TSepiAsmCallParam; /// Paramètres
     FResult: TSepiMemoryReference;           /// Résultat
 
@@ -117,14 +120,16 @@ type
     function GetCount: Integer;
     function GetParameters(Index: Integer): TSepiAsmCallParam;
   public
-    constructor Create;
+    constructor Create(AMethodAssembler: TSepiMethodAssembler);
     destructor Destroy; override;
 
-    function NewParam(SepiStackOffset: Integer;
+    function AddParam(SepiStackOffset: Integer;
       ParamSize: TSepiParamSize): TSepiMemoryReference;
 
     procedure Make;
     procedure WriteToStream(Stream: TStream);
+
+    property MethodAssembler: TSepiMethodAssembler read FMethodAssembler;
 
     property Count: Integer read GetCount;
     property Parameters[Index: Integer]: TSepiAsmCallParam
@@ -190,6 +195,8 @@ type
   public
     constructor Create(AOwner: TSepiAsmInstrList);
 
+    procedure SetMethod(Method: TSepiMethod);
+
     procedure Make; override;
     procedure WriteToStream(Stream: TStream); override;
 
@@ -208,6 +215,8 @@ type
   public
     constructor Create(AOwner: TSepiAsmInstrList);
     destructor Destroy; override;
+
+    procedure SetMethod(Method: TSepiMethod);
 
     procedure Make; override;
     procedure WriteToStream(Stream: TStream); override;
@@ -530,7 +539,8 @@ type
     constructor Create(AOwner: TSepiAsmInstrList);
     destructor Destroy; override;
 
-    function AddOnClause(AClassRef: Integer): TSepiJumpDest;
+    function AddOnClause(AClassRef: Integer): TSepiJumpDest; overload;
+    function AddOnClause(SepiClass: TSepiClass): TSepiJumpDest; overload;
 
     procedure Make; override;
     procedure WriteToStream(Stream: TStream); override;
@@ -624,7 +634,8 @@ begin
 
   FIfTrue := AIfTrue;
   FDestination := TSepiJumpDest.Create(MethodAssembler);
-  FTest := TSepiMemoryReference.Create(aoAcceptAllConsts, SizeOf(Boolean));
+  FTest := TSepiMemoryReference.Create(MethodAssembler, aoAcceptAllConsts,
+    SizeOf(Boolean));
 end;
 
 {*
@@ -671,17 +682,19 @@ end;
 
 {*
   Crée un paramètre
+  @param AMethodAssembler   Assembleur de méthode Sepi
   @param ASepiStackOffset   Offset dans la pile Sepi
   @param AParamSize         Taille de paramètre
 *}
-constructor TSepiAsmCallParam.Create(ASepiStackOffset: Integer;
-  AParamSize: TSepiParamSize);
+constructor TSepiAsmCallParam.Create(AMethodAssembler: TSepiMethodAssembler;
+  ASepiStackOffset: Integer; AParamSize: TSepiParamSize);
 begin
   inherited Create;
 
   FSepiStackOffset := ASepiStackOffset;
   FParamSize := AParamSize;
-  FMemoryRef := TSepiMemoryReference.Create(aoAcceptAllConsts, ParamSize);
+  FMemoryRef := TSepiMemoryReference.Create(AMethodAssembler,
+    aoAcceptAllConsts, ParamSize);
 end;
 
 {*
@@ -727,11 +740,13 @@ end;
 {*
   Crée une liste de paramètres d'intruction CALL
 *}
-constructor TSepiAsmCallParams.Create;
+constructor TSepiAsmCallParams.Create(AMethodAssembler: TSepiMethodAssembler);
 begin
   inherited Create;
 
-  FResult := TSepiMemoryReference.Create([aoZeroAsNil]);
+  FMethodAssembler := AMethodAssembler;
+
+  FResult := TSepiMemoryReference.Create(MethodAssembler, [aoZeroAsNil]);
 end;
 
 {*
@@ -829,7 +844,7 @@ end;
   @param SepiStackOffset   Offset dans la pile Sepi
   @param ParamSize         Taille de paramètre
 *}
-function TSepiAsmCallParams.NewParam(SepiStackOffset: Integer;
+function TSepiAsmCallParams.AddParam(SepiStackOffset: Integer;
   ParamSize: TSepiParamSize): TSepiMemoryReference;
 var
   Index: Integer;
@@ -837,7 +852,8 @@ begin
   Index := Length(FParameters);
   SetLength(FParameters, Index+1);
 
-  FParameters[Index] := TSepiAsmCallParam.Create(SepiStackOffset, ParamSize);
+  FParameters[Index] := TSepiAsmCallParam.Create(MethodAssembler,
+    SepiStackOffset, ParamSize);
   Result := FParameters[Index].MemoryRef;
 end;
 
@@ -921,7 +937,7 @@ constructor TSepiAsmCall.Create(AOwner: TSepiAsmInstrList);
 begin
   inherited Create(AOwner);
 
-  FParameters := TSepiAsmCallParams.Create;
+  FParameters := TSepiAsmCallParams.Create(MethodAssembler)
 end;
 
 {*
@@ -961,7 +977,7 @@ begin
   FRegUsage := 0;
   FResultBehavior := rbNone;
 
-  FAddress := TSepiMemoryReference.Create;
+  FAddress := TSepiMemoryReference.Create(MethodAssembler);
 end;
 
 {*
@@ -1022,6 +1038,15 @@ begin
 end;
 
 {*
+  Renseigne la méthode à appeler
+  @param Method   Méthode à appeler
+*}
+procedure TSepiAsmStaticCall.SetMethod(Method: TSepiMethod);
+begin
+  FMethodRef := MethodAssembler.UnitAssembler.MakeReference(Method);
+end;
+
+{*
   [@inheritDoc]
 *}
 procedure TSepiAsmStaticCall.Make;
@@ -1058,7 +1083,7 @@ begin
   FOpCode := ocDynamicCall;
 
   FMethodRef := 0;
-  FSelfMem := TSepiMemoryReference.Create([aoAcceptZero]);
+  FSelfMem := TSepiMemoryReference.Create(MethodAssembler, [aoAcceptZero]);
 end;
 
 {*
@@ -1069,6 +1094,15 @@ begin
   FSelfMem.Free;
 
   inherited;
+end;
+
+{*
+  Renseigne la méthode à appeler
+  @param Method   Méthode à appeler
+*}
+procedure TSepiAsmDynamicCall.SetMethod(Method: TSepiMethod);
+begin
+  FMethodRef := MethodAssembler.UnitAssembler.MakeReference(Method);
 end;
 
 {*
@@ -1111,8 +1145,9 @@ begin
 
   FOpCode := ocLoadAddress;
 
-  FDestination := TSepiMemoryReference.Create;
-  FSource := TSepiMemoryReference.Create([aoAcceptAddressedConst]);
+  FDestination := TSepiMemoryReference.Create(MethodAssembler);
+  FSource := TSepiMemoryReference.Create(MethodAssembler,
+    [aoAcceptAddressedConst]);
 end;
 
 {*
@@ -1182,11 +1217,16 @@ begin
     FOpCode := ocMoveMany;
   end;
 
-  FDestination := TSepiMemoryReference.Create;
+  FDestination := TSepiMemoryReference.Create(MethodAssembler);
   if DataSize <= SizeOf(Variant) then
-    FSource := TSepiMemoryReference.Create(aoAcceptAllConsts, DataSize)
-  else
-    FSource := TSepiMemoryReference.Create([aoAcceptAddressedConst]);
+  begin
+    FSource := TSepiMemoryReference.Create(MethodAssembler, aoAcceptAllConsts,
+      DataSize);
+  end else
+  begin
+    FSource := TSepiMemoryReference.Create(MethodAssembler,
+      [aoAcceptAddressedConst]);
+  end;
 end;
 
 {*
@@ -1218,14 +1258,16 @@ begin
     FOpCode := ocMoveOther;
   end;
 
-  FDestination := TSepiMemoryReference.Create;
+  FDestination := TSepiMemoryReference.Create(MethodAssembler);
 
   if DataType.Kind in [tkLString, tkWString] then
-    FSource := TSepiMemoryReference.Create(aoAcceptNonCodeConsts)
-  else if DataType.Kind in [tkInterface, tkVariant] then
-    FSource := TSepiMemoryReference.Create([aoAcceptZero])
+  begin
+    FSource := TSepiMemoryReference.Create(MethodAssembler,
+      aoAcceptNonCodeConsts);
+  end else if DataType.Kind in [tkInterface, tkVariant] then
+    FSource := TSepiMemoryReference.Create(MethodAssembler, [aoAcceptZero])
   else
-    FSource := TSepiMemoryReference.Create;
+    FSource := TSepiMemoryReference.Create(MethodAssembler);
 end;
 
 {*
@@ -1302,8 +1344,8 @@ begin
   FToType := AToType;
   FFromType := AFromType;
 
-  FDestination := TSepiMemoryReference.Create;
-  FSource := TSepiMemoryReference.Create(aoAcceptAllConsts,
+  FDestination := TSepiMemoryReference.Create(MethodAssembler);
+  FSource := TSepiMemoryReference.Create(MethodAssembler, aoAcceptAllConsts,
     BaseTypeConstSizes[FromType]);
 end;
 
@@ -1372,7 +1414,7 @@ begin
   FUseLeft := False;
   FUseRight := False;
 
-  FDestination := TSepiMemoryReference.Create;
+  FDestination := TSepiMemoryReference.Create(MethodAssembler);
 
   if OpCode in SelfUnaryOps then
   begin
@@ -1385,15 +1427,19 @@ begin
     FLeft := FDestination;
 
     if OpCode in [ocSelfShl, ocSelfShr, ocSelfSar] then
-      FRight := TSepiMemoryReference.Create(aoAcceptAllConsts, 1)
-    else
-      FRight := TSepiMemoryReference.Create(aoAcceptAllConsts,
+    begin
+      FRight := TSepiMemoryReference.Create(MethodAssembler,
+        aoAcceptAllConsts, 1);
+    end else
+    begin
+      FRight := TSepiMemoryReference.Create(MethodAssembler, aoAcceptAllConsts,
         BaseTypeConstSizes[VarType]);
+    end;
   end else if OpCode in OtherUnaryOps then
   begin
     FUseLeft := True;
 
-    FLeft := TSepiMemoryReference.Create(aoAcceptAllConsts,
+    FLeft := TSepiMemoryReference.Create(MethodAssembler, aoAcceptAllConsts,
       BaseTypeConstSizes[VarType]);
     FRight := FLeft;
   end else if OpCode in OtherBinaryOps then
@@ -1401,14 +1447,18 @@ begin
     FUseLeft := True;
     FUseRight := True;
 
-    FLeft := TSepiMemoryReference.Create(aoAcceptAllConsts,
+    FLeft := TSepiMemoryReference.Create(MethodAssembler, aoAcceptAllConsts,
       BaseTypeConstSizes[VarType]);
 
     if OpCode in [ocOtherShl, ocOtherShr, ocOtherSar] then
-      FRight := TSepiMemoryReference.Create(aoAcceptAllConsts, 1)
-    else
-      FRight := TSepiMemoryReference.Create(aoAcceptAllConsts,
+    begin
+      FRight := TSepiMemoryReference.Create(MethodAssembler,
+        aoAcceptAllConsts, 1);
+    end else
+    begin
+      FRight := TSepiMemoryReference.Create(MethodAssembler, aoAcceptAllConsts,
         BaseTypeConstSizes[VarType]);
+    end;
   end;
 end;
 
@@ -1489,10 +1539,10 @@ begin
 
   FVarType := AVarType;
 
-  FDestination := TSepiMemoryReference.Create;
-  FLeft := TSepiMemoryReference.Create(aoAcceptAllConsts,
+  FDestination := TSepiMemoryReference.Create(MethodAssembler);
+  FLeft := TSepiMemoryReference.Create(MethodAssembler, aoAcceptAllConsts,
     BaseTypeConstSizes[VarType]);
-  FRight := TSepiMemoryReference.Create(aoAcceptAllConsts,
+  FRight := TSepiMemoryReference.Create(MethodAssembler, aoAcceptAllConsts,
     BaseTypeConstSizes[VarType]);
 end;
 
@@ -1559,7 +1609,7 @@ begin
 
   FOpCode := AOpCode;
 
-  FDestination := TSepiMemoryReference.Create;
+  FDestination := TSepiMemoryReference.Create(MethodAssembler);
   FReference := 0;
 end;
 
@@ -1611,9 +1661,9 @@ begin
 
   FOpCode := ocIsClass;
 
-  FDestination := TSepiMemoryReference.Create;
-  FMemObject := TSepiMemoryReference.Create([aoAcceptZero]);
-  FMemClass := TSepiMemoryReference.Create([aoZeroAsNil]);
+  FDestination := TSepiMemoryReference.Create(MethodAssembler);
+  FMemObject := TSepiMemoryReference.Create(MethodAssembler, [aoAcceptZero]);
+  FMemClass := TSepiMemoryReference.Create(MethodAssembler, [aoZeroAsNil]);
   FClassRef := 0;
 end;
 
@@ -1677,8 +1727,8 @@ begin
 
   FOpCode := ocAsClass;
 
-  FMemObject := TSepiMemoryReference.Create([aoAcceptZero]);
-  FMemClass := TSepiMemoryReference.Create([aoZeroAsNil]);
+  FMemObject := TSepiMemoryReference.Create(MethodAssembler, [aoAcceptZero]);
+  FMemClass := TSepiMemoryReference.Create(MethodAssembler, [aoZeroAsNil]);
   FClassRef := 0;
 end;
 
@@ -1738,7 +1788,7 @@ begin
 
   FOpCode := ocRaise;
 
-  FExceptObject := TSepiMemoryReference.Create;
+  FExceptObject := TSepiMemoryReference.Create(MethodAssembler);
 end;
 
 {*
@@ -1804,7 +1854,7 @@ begin
 
   FTryInstructions := TSepiAsmInstrList.Create(MethodAssembler);
   FExceptInstructions := TSepiAsmInstrList.Create(MethodAssembler);
-  FExceptObject := TSepiMemoryReference.Create([aoZeroAsNil]);
+  FExceptObject := TSepiMemoryReference.Create(MethodAssembler, [aoZeroAsNil]);
 end;
 
 {*
@@ -2005,7 +2055,7 @@ begin
 
   FOpCode := ocMultiOn;
 
-  FExceptObject := TSepiMemoryReference.Create;
+  FExceptObject := TSepiMemoryReference.Create(MethodAssembler);
 end;
 
 {*
@@ -2055,6 +2105,17 @@ begin
     Destination := TSepiJumpDest.Create(MethodAssembler);
     Result := Destination;
   end;
+end;
+
+{*
+  Ajoute une clause ON
+  @param SepiClass   Classe d'exception
+  @return Destination du ON
+*}
+function TSepiAsmMultiOn.AddOnClause(SepiClass: TSepiClass): TSepiJumpDest;
+begin
+  Result := AddOnClause(
+    MethodAssembler.UnitAssembler.MakeReference(SepiClass));
 end;
 
 {*
