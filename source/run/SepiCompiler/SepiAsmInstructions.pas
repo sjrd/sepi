@@ -12,6 +12,7 @@ resourcestring
   SParamsSepiStackOffsetsDontFollow =
     'Les SepiStackOffset des paramètres ne se suivent pas';
   SInvalidDataSize = 'Taille de données invalide';
+  SObjectMustHaveASignature = 'L''objet %s n''a pas de signature';
 
 type
   {*
@@ -159,7 +160,9 @@ type
     constructor Create(AOwner: TSepiAsmInstrList);
     destructor Destroy; override;
 
-    procedure Prepare(Signature: TSepiSignature); virtual;
+    procedure Prepare(Signature: TSepiSignature); overload; virtual;
+    procedure Prepare(Meta: TSepiMeta); overload;
+    procedure Prepare(const MetaName: string); overload;
 
     procedure Make; override;
 
@@ -197,23 +200,35 @@ type
   end;
 
   {*
-    Instruction Static CALL
+    Instruction CALL avec une référence à la méthode
     @author sjrd
     @version 1.0
   *}
-  TSepiAsmStaticCall = class(TSepiAsmCall)
+  TSepiAsmRefCall = class(TSepiAsmCall)
   private
     FMethodRef: Integer; /// Référence à la méthode
   public
     constructor Create(AOwner: TSepiAsmInstrList);
 
     procedure SetMethod(Method: TSepiMethod;
-      PrepareParams: Boolean = True);
+      PrepareParams: Boolean = True); overload;
+    procedure SetMethod(const MethodName: string;
+      PrepareParams: Boolean = True); overload;
+
+    property MethodRef: Integer read FMethodRef write FMethodRef;
+  end;
+
+  {*
+    Instruction Static CALL
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiAsmStaticCall = class(TSepiAsmRefCall)
+  public
+    constructor Create(AOwner: TSepiAsmInstrList);
 
     procedure Make; override;
     procedure WriteToStream(Stream: TStream); override;
-
-    property MethodRef: Integer read FMethodRef write FMethodRef;
   end;
 
   {*
@@ -221,21 +236,16 @@ type
     @author sjrd
     @version 1.0
   *}
-  TSepiAsmDynamicCall = class(TSepiAsmCall)
+  TSepiAsmDynamicCall = class(TSepiAsmRefCall)
   private
-    FMethodRef: Integer;            /// Référence à la méthode
     FSelfMem: TSepiMemoryReference; /// Référence mémoire au Self
   public
     constructor Create(AOwner: TSepiAsmInstrList);
     destructor Destroy; override;
 
-    procedure SetMethod(Method: TSepiMethod;
-      PrepareParams: Boolean = True);
-
     procedure Make; override;
     procedure WriteToStream(Stream: TStream); override;
 
-    property MethodRef: Integer read FMethodRef write FMethodRef;
     property SelfMem: TSepiMemoryReference read FSelfMem;
   end;
 
@@ -388,6 +398,9 @@ type
   public
     constructor Create(AOwner: TSepiAsmInstrList; AOpCode: TSepiOpCode);
     destructor Destroy; override;
+
+    procedure SetReference(Reference: TSepiMeta); overload;
+    procedure SetReference(const RefName: string); overload;
 
     procedure Make; override;
     procedure WriteToStream(Stream: TStream); override;
@@ -555,6 +568,7 @@ type
 
     function AddOnClause(AClassRef: Integer): TSepiJumpDest; overload;
     function AddOnClause(SepiClass: TSepiClass): TSepiJumpDest; overload;
+    function AddOnClause(const ClassName: string): TSepiJumpDest; overload;
 
     procedure Make; override;
     procedure WriteToStream(Stream: TStream); override;
@@ -1036,6 +1050,38 @@ begin
 end;
 
 {*
+  Prépare les paramètres en fonction de la signature d'un meta
+  @param Meta   Méthode ou type référence de méthode
+*}
+procedure TSepiAsmCall.Prepare(Meta: TSepiMeta);
+begin
+  if Meta is TSepiMethod then
+    Prepare(TSepiMethod(Meta).Signature)
+  else if Meta is TSepiMethodRefType then
+    Prepare(TSepiMethodRefType(Meta).Signature)
+  else
+    raise ESepiAssemblerError.CreateResFmt(@SObjectMustHaveASignature,
+      [Meta.GetFullName]);
+end;
+
+{*
+  Prépare les paramètres en fonction de la signature d'un meta
+  @param Signature   Signature
+*}
+procedure TSepiAsmCall.Prepare(const MetaName: string);
+var
+  Meta: TSepiMeta;
+begin
+  Meta := MethodAssembler.SepiMethod.LookFor(MetaName);
+
+  if Meta = nil then
+    raise ESepiMetaNotFoundError.CreateResFmt(@SSepiObjectNotFound,
+      [MetaName]);
+
+  Prepare(Meta);
+end;
+
+{*
   [@inheritDoc]
 *}
 procedure TSepiAsmCall.Make;
@@ -1117,6 +1163,54 @@ begin
   Parameters.WriteToStream(Stream);
 end;
 
+{-----------------------}
+{ TSepiAsmRefCall class }
+{-----------------------}
+
+{*
+  Crée une instruction CALL avec une référence à la méthode
+  @param AOwner   Liste d'instructions propriétaire
+*}
+constructor TSepiAsmRefCall.Create(AOwner: TSepiAsmInstrList);
+begin
+  inherited Create(AOwner);
+
+  FMethodRef := 0;
+end;
+
+{*
+  Renseigne la méthode à appeler
+  @param Method     Méthode à appeler
+  @param APrepare   Si True, prépare les paramètres
+*}
+procedure TSepiAsmRefCall.SetMethod(Method: TSepiMethod;
+  PrepareParams: Boolean = True);
+begin
+  FMethodRef := MethodAssembler.UnitAssembler.MakeReference(Method);
+
+  if PrepareParams then
+    Prepare(Method.Signature);
+end;
+
+{*
+  Renseigne la méthode à appeler
+  @param Method     Méthode à appeler
+  @param APrepare   Si True, prépare les paramètres
+*}
+procedure TSepiAsmRefCall.SetMethod(const MethodName: string;
+  PrepareParams: Boolean = True);
+var
+  Method: TSepiMethod;
+begin
+  Method := MethodAssembler.SepiMethod.LookFor(MethodName) as TSepiMethod;
+
+  if Method = nil then
+    raise ESepiMetaNotFoundError.CreateResFmt(@SSepiObjectNotFound,
+      [MethodName]);
+
+  SetMethod(Method, PrepareParams);
+end;
+
 {--------------------------}
 { TSepiAsmStaticCall class }
 {--------------------------}
@@ -1130,22 +1224,6 @@ begin
   inherited Create(AOwner);
 
   FOpCode := ocStaticCall;
-
-  FMethodRef := 0;
-end;
-
-{*
-  Renseigne la méthode à appeler
-  @param Method     Méthode à appeler
-  @param APrepare   Si True, prépare les paramètres
-*}
-procedure TSepiAsmStaticCall.SetMethod(Method: TSepiMethod;
-  PrepareParams: Boolean = True);
-begin
-  FMethodRef := MethodAssembler.UnitAssembler.MakeReference(Method);
-
-  if PrepareParams then
-    Prepare(Method.Signature);
 end;
 
 {*
@@ -1184,7 +1262,6 @@ begin
 
   FOpCode := ocDynamicCall;
 
-  FMethodRef := 0;
   FSelfMem := TSepiMemoryReference.Create(MethodAssembler, [aoAcceptZero]);
 end;
 
@@ -1196,20 +1273,6 @@ begin
   FSelfMem.Free;
 
   inherited;
-end;
-
-{*
-  Renseigne la méthode à appeler
-  @param Method     Méthode à appeler
-  @param APrepare   Si True, prépare les paramètres
-*}
-procedure TSepiAsmDynamicCall.SetMethod(Method: TSepiMethod;
-  PrepareParams: Boolean = True);
-begin
-  FMethodRef := MethodAssembler.UnitAssembler.MakeReference(Method);
-
-  if PrepareParams then
-    Prepare(Method.Signature);
 end;
 
 {*
@@ -1731,6 +1794,24 @@ begin
 end;
 
 {*
+  Assigne la référence
+  @param Reference   Référence
+*}
+procedure TSepiAsmGetRunInfo.SetReference(Reference: TSepiMeta);
+begin
+  FReference := MethodAssembler.UnitAssembler.MakeReference(Reference);
+end;
+
+{*
+  Assigne la référence
+  @param RefName   Nom de la référence
+*}
+procedure TSepiAsmGetRunInfo.SetReference(const RefName: string);
+begin
+  SetReference(MethodAssembler.SepiMethod.LookFor(RefName));
+end;
+
+{*
   [@inheritDoc]
 *}
 procedure TSepiAsmGetRunInfo.Make;
@@ -2223,6 +2304,24 @@ function TSepiAsmMultiOn.AddOnClause(SepiClass: TSepiClass): TSepiJumpDest;
 begin
   Result := AddOnClause(
     MethodAssembler.UnitAssembler.MakeReference(SepiClass));
+end;
+
+{*
+  Ajoute une clause ON
+  @param ClassName   Nom de la classe d'exception
+  @return Destination du ON
+*}
+function TSepiAsmMultiOn.AddOnClause(const ClassName: string): TSepiJumpDest;
+var
+  SepiClass: TSepiClass;
+begin
+  SepiClass := MethodAssembler.SepiMethod.LookFor(ClassName) as TSepiClass;
+
+  if SepiClass = nil then
+    raise ESepiMetaNotFoundError.CreateResFmt(@SSepiObjectNotFound,
+      [ClassName]);
+
+  Result := AddOnClause(SepiClass);
 end;
 
 {*
