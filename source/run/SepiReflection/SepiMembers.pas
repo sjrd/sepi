@@ -530,6 +530,9 @@ type
   protected
     procedure ListReferences; override;
     procedure Save(Stream: TStream); override;
+
+    function InternalLookFor(const Name: string; FromUnit: TSepiUnit;
+      FromClass: TSepiMeta = nil): TSepiMeta; override;
   public
     constructor RegisterTypeInfo(AOwner: TSepiMeta;
       ATypeInfo: PTypeInfo); override;
@@ -544,9 +547,6 @@ type
       ATypeInfo: PTypeInfo): TSepiInterface; overload;
     class function ForwardDecl(AOwner: TSepiMeta;
       const AName: string): TSepiInterface; overload;
-
-    function LookFor(const Name: string; FromUnit: TSepiUnit;
-      FromClass: TSepiMeta = nil): TSepiMeta; override;
 
     function AddMethod(const MethodName, ASignature: string;
       ACallingConvention: TCallingConvention = ccRegister): TSepiMethod;
@@ -635,6 +635,9 @@ type
     procedure ListReferences; override;
     procedure Save(Stream: TStream); override;
 
+    function InternalLookFor(const Name: string; FromUnit: TSepiUnit;
+      FromClass: TSepiMeta = nil): TSepiMeta; override;
+
     property VMTEntries[Index: Integer]: Pointer
       read GetVMTEntries write SetVMTEntries;
   public
@@ -651,9 +654,6 @@ type
       ATypeInfo: PTypeInfo): TSepiClass; overload;
     class function ForwardDecl(AOwner: TSepiMeta;
       const AName: string): TSepiClass; overload;
-
-    function LookFor(const Name: string; FromUnit: TSepiUnit;
-      FromClass: TSepiMeta = nil): TSepiMeta; override;
 
     procedure AddInterface(AInterface: TSepiInterface); overload;
     procedure AddInterface(AIntfTypeInfo: PTypeInfo); overload;
@@ -2885,6 +2885,20 @@ begin
 end;
 
 {*
+  [@inheritDoc]
+*}
+function TSepiInterface.InternalLookFor(const Name: string;
+  FromUnit: TSepiUnit; FromClass: TSepiMeta = nil): TSepiMeta;
+begin
+  // Look for a member first
+  Result := LookForMember(Name);
+
+  // If not found, continue search a level up
+  if (Result = nil) and (Owner <> nil) then
+    Result := TSepiInterface(Owner).InternalLookFor(Name, FromUnit, FromClass);
+end;
+
+{*
   Crée une nouvelle instance de TSepiInterface
   @return Instance créée
 *}
@@ -2922,20 +2936,6 @@ class function TSepiInterface.ForwardDecl(AOwner: TSepiMeta;
 begin
   Result := TSepiInterface(NewInstance);
   TSepiInterface(AOwner).AddForward(AName, Result);
-end;
-
-{*
-  [@inheritDoc]
-*}
-function TSepiInterface.LookFor(const Name: string; FromUnit: TSepiUnit;
-  FromClass: TSepiMeta = nil): TSepiMeta;
-begin
-  // Look for a member first
-  Result := LookForMember(Name);
-
-  // If not found, continue search a level up
-  if (Result = nil) and (Owner <> nil) then
-    Result := Owner.LookFor(Name, FromUnit, FromClass);
 end;
 
 {*
@@ -3753,6 +3753,20 @@ begin
 end;
 
 {*
+  [@inheritDoc]
+*}
+function TSepiClass.InternalLookFor(const Name: string; FromUnit: TSepiUnit;
+  FromClass: TSepiMeta = nil): TSepiMeta;
+begin
+  // Look for a member first
+  Result := LookForMember(Name, FromUnit, TSepiClass(FromClass));
+
+  // If not found, continue search a level up
+  if (Result = nil) and (Owner <> nil) then
+    Result := TSepiClass(Owner).InternalLookFor(Name, FromUnit, FromClass);
+end;
+
+{*
   Crée une nouvelle instance de TSepiClass
   @return Instance créée
 *}
@@ -3790,20 +3804,6 @@ class function TSepiClass.ForwardDecl(AOwner: TSepiMeta;
 begin
   Result := TSepiClass(NewInstance);
   TSepiClass(AOwner).AddForward(AName, Result);
-end;
-
-{*
-  [@inheritDoc]
-*}
-function TSepiClass.LookFor(const Name: string; FromUnit: TSepiUnit;
-  FromClass: TSepiMeta = nil): TSepiMeta;
-begin
-  // Look for a member first
-  Result := LookForMember(Name, FromUnit, FromClass as TSepiClass);
-
-  // If not found, continue search a level up
-  if (Result = nil) and (Owner <> nil) then
-    Result := Owner.LookFor(Name, FromUnit, FromClass);
 end;
 
 {*

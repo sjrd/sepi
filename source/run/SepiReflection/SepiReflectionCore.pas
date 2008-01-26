@@ -165,6 +165,9 @@ type
 
     procedure Destroying; virtual;
 
+    function InternalLookFor(const Name: string; FromUnit: TSepiUnit;
+      FromClass: TSepiMeta = nil): TSepiMeta; virtual;
+
     property State: TSepiMetaState read FState;
   public
     constructor Load(AOwner: TSepiMeta; Stream: TStream); virtual;
@@ -182,7 +185,7 @@ type
     function IsVisibleFrom(FromUnit: TSepiUnit;
       FromClass: TSepiMeta = nil): Boolean;
     function LookFor(const Name: string; FromUnit: TSepiUnit;
-      FromClass: TSepiMeta = nil): TSepiMeta; overload; virtual;
+      FromClass: TSepiMeta = nil): TSepiMeta; overload;
     function LookFor(const Name: string): TSepiMeta; overload;
 
     procedure AddObjResource(Obj: TObject);
@@ -315,12 +318,12 @@ type
     function GetUnits(Index: Integer): TSepiUnit;
   protected
     procedure ChildAdded(Child: TSepiMeta); override;
+
+    function InternalLookFor(const Name: string; FromUnit: TSepiUnit;
+      FromClass: TSepiMeta = nil): TSepiMeta; override;
   public
     constructor Create;
     destructor Destroy; override;
-
-    function LookFor(const Name: string; FromUnit: TSepiUnit;
-      FromClass: TSepiMeta = nil): TSepiMeta; override;
 
     function LoadUnit(const UnitName: string): TSepiUnit;
     procedure UnloadUnit(const UnitName: string);
@@ -362,14 +365,14 @@ type
     function GetUsedUnits(Index: Integer): TSepiUnit;
   protected
     procedure Save(Stream: TStream); override;
+
+    function InternalLookFor(const Name: string; FromUnit: TSepiUnit;
+      FromClass: TSepiMeta = nil): TSepiMeta; override;
   public
     constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
     constructor Create(AOwner: TSepiMeta; const AName: string;
       const AUses: array of string);
     destructor Destroy; override;
-
-    function LookFor(const Name: string; FromUnit: TSepiUnit;
-      FromClass: TSepiMeta = nil): TSepiMeta; override;
 
     procedure MoreUses(const AUses: array of string);
 
@@ -1099,6 +1102,31 @@ begin
 end;
 
 {*
+  Recherche un meta à partir de son nom
+  InternalLookFor ne doit pas être appelée directement : passez par LookFor.
+  LookFor n'appelle InternalLookFor qu'avec un nom non-composé (sans .), et un
+  paramètre FromClass qui est toujours de type TSepiClass.
+  @param Name        Nom du meta recherché
+  @param FromUnit    Unité depuis laquelle on recherche
+  @param FromClass   Classe depuis laquelle on recherche (défaut = nil)
+  @return Le meta recherché, ou nil si non trouvé
+*}
+function TSepiMeta.InternalLookFor(const Name: string; FromUnit: TSepiUnit;
+  FromClass: TSepiMeta = nil): TSepiMeta;
+begin
+  // Basic search
+  Result := GetMeta(Name);
+
+  // Check for visibility
+  if (Result <> nil) and (not Result.IsVisibleFrom(FromUnit, FromClass)) then
+    Result := nil;
+
+  // If not found, continue search a level up
+  if (Result = nil) and (Owner <> nil) then
+    Result := Owner.InternalLookFor(Name, FromUnit, FromClass);
+end;
+
+{*
   Crée une nouvelle instance de TSepiMeta
   @return Instance créée
 *}
@@ -1193,8 +1221,9 @@ end;
 {*
   Recherche un meta à partir de son nom
   LookFor, au contraire de GetMeta/FindMeta, tient compte des héritages, des
-  visibilités, des uses, etc. En revanche, son comportement est indéterminé
-  avec des noms composés (contenant des .).
+  visibilités, des uses, etc.
+  Si Name est un nom composé, la première partie est recherchée selon
+  l'algorithme LookFor, et les suivantes selon l'algorithme GetMeta.
   Le paramètre FromClass doit être de type TSepiClass.
   @param Name        Nom du meta recherché
   @param FromUnit    Unité depuis laquelle on recherche
@@ -1203,17 +1232,15 @@ end;
 *}
 function TSepiMeta.LookFor(const Name: string; FromUnit: TSepiUnit;
   FromClass: TSepiMeta = nil): TSepiMeta;
+var
+  FirstName, ChildName: string;
 begin
-  // Basic search
-  Result := GetMeta(Name);
+  if not SplitToken(Name, '.', FirstName, ChildName) then
+    ChildName := '';
 
-  // Check for visibility
-  if (Result <> nil) and (not Result.IsVisibleFrom(FromUnit, FromClass)) then
-    Result := nil;
-
-  // If not found, continue search a level up
-  if (Result = nil) and (Owner <> nil) then
-    Result := Owner.LookFor(Name, FromUnit, FromClass);
+  Result := InternalLookFor(FirstName, FromUnit, FromClass as TSepiClass);
+  if (Result <> nil) and (ChildName <> '') then
+    Result := Result.GetMeta(ChildName);
 end;
 
 {*
@@ -1569,20 +1596,20 @@ end;
 {*
   [@inheritDoc]
 *}
-function TSepiRoot.LookFor(const Name: string; FromUnit: TSepiUnit;
+function TSepiRoot.InternalLookFor(const Name: string; FromUnit: TSepiUnit;
   FromClass: TSepiMeta = nil): TSepiMeta;
 var
   I: Integer;
 begin
   // Search in root
-  Result := inherited LookFor(Name, FromUnit, FromClass);
+  Result := inherited InternalLookFor(Name, FromUnit, FromClass);
   if Result <> nil then
     Exit;
 
   // Search in FromUnit
   if FromUnit <> nil then
   begin
-    Result := FromUnit.LookFor(Name, FromUnit, FromClass);
+    Result := FromUnit.InternalLookFor(Name, FromUnit, FromClass);
     if Result <> nil then
       Exit;
   end;
@@ -1592,7 +1619,7 @@ begin
   begin
     if Children[I] = FromUnit then
       Continue;
-    Result := Children[I].LookFor(Name, FromUnit, FromClass);
+    Result := Children[I].InternalLookFor(Name, FromUnit, FromClass);
     if Result <> nil then
       Exit;
   end;
@@ -1916,7 +1943,7 @@ end;
 {*
   [@inheritDoc]
 *}
-function TSepiUnit.LookFor(const Name: string; FromUnit: TSepiUnit;
+function TSepiUnit.InternalLookFor(const Name: string; FromUnit: TSepiUnit;
   FromClass: TSepiMeta = nil): TSepiMeta;
 var
   I: Integer;
@@ -1950,7 +1977,7 @@ begin
     Exit;
   for I := UsedUnitCount-1 downto 0 do
   begin
-    Result := UsedUnits[I].LookFor(Name, FromUnit, FromClass);
+    Result := UsedUnits[I].InternalLookFor(Name, FromUnit, FromClass);
     if Result <> nil then
       Exit;
   end;
