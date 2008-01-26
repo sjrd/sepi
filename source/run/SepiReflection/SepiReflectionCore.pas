@@ -147,6 +147,8 @@ type
 
     function GetChildCount: Integer;
     function GetChildren(Index: Integer): TSepiMeta;
+
+    function GetChildByName(const ChildName: string): TSepiMeta;
   protected
     FVisibility: TMemberVisibility; /// Visibilité
 
@@ -190,6 +192,8 @@ type
 
     property ChildCount: Integer read GetChildCount;
     property Children[Index: Integer]: TSepiMeta read GetChildren;
+    property ChildByName[const ChildName: string]: TSepiMeta
+      read GetChildByName; default;
   end;
 
   {*
@@ -893,6 +897,20 @@ end;
 function TSepiMeta.GetChildren(Index: Integer): TSepiMeta;
 begin
   Result := TSepiMeta(FChildren[Index]);
+end;
+
+{*
+  Tableau des enfants indexés par leurs noms
+  À l'inverse de la fonction FindMeta, les noms composés ne sont pas acceptés.
+  @param ChildName   Nom de l'enfant recherché
+  @return Enfant dont le nom est ChildName
+  @throws ESepiMetaNotFoundError L'enfant n'a pas été trouvé
+*}
+function TSepiMeta.GetChildByName(const ChildName: string): TSepiMeta;
+begin
+  Result := FChildren.MetaFromName[ChildName];
+  if Result = nil then
+    raise ESepiMetaNotFoundError.CreateFmt(SSepiObjectNotFound, [ChildName]);
 end;
 
 {*

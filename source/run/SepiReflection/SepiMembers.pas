@@ -224,6 +224,7 @@ type
     function GetParams(Index: Integer): TSepiParam;
     function GetActualParamCount: Integer;
     function GetActualParams(Index: Integer): TSepiParam;
+    function GetParamByName(const ParamName: string): TSepiParam;
 
     function GetHiddenParam(Kind: TSepiHiddenParamKind): TSepiParam;
   protected
@@ -235,6 +236,8 @@ type
     constructor Create(AOwner: TSepiMeta; const ASignature: string;
       ACallingConvention: TCallingConvention = ccRegister);
     destructor Destroy; override;
+
+    function GetParam(const ParamName: string): TSepiParam;
 
     function Equals(ASignature: TSepiSignature): Boolean;
     function CompatibleWith(const ATypes: array of TSepiType): Boolean;
@@ -249,6 +252,8 @@ type
     property ActualParamCount: Integer read GetActualParamCount;
     property ActualParams[Index: Integer]: TSepiParam
       read GetActualParams;
+    property ParamByName[const ParamName: string]: TSepiParam
+      read GetParamByName; default;
 
     property ReturnType: TSepiType read FReturnType;
     property CallingConvention: TCallingConvention read FCallingConvention;
@@ -1557,6 +1562,19 @@ begin
 end;
 
 {*
+  Tableau des paramètres indexés par leurs noms
+  @param ParamName   Nom du paramètre recherché
+  @return Paramètre dont le nom est ParamName
+  @throws ESepiMetaNotFoundError Le paramètre n'a pas été trouvé
+*}
+function TSepiSignature.GetParamByName(const ParamName: string): TSepiParam;
+begin
+  Result := GetParam(ParamName);
+  if Result = nil then
+    raise ESepiMetaNotFoundError.CreateFmt(SSepiObjectNotFound, [ParamName]);
+end;
+
+{*
   Paramètres cachés d'après leur type
   @param Kind   Type de paramètre caché
   @return Le paramètre caché correspondant, ou nil s'il n'y en a pas
@@ -1608,6 +1626,25 @@ begin
   Stream.WriteBuffer(Count, 4);
   for I := 0 to Count-1 do
     ActualParams[I].Save(Stream);
+end;
+
+{*
+  Cherche un paramètre par son nom
+  @param ParamName   Nom du paramètre
+  @return Paramètre correspondant, ou nil si non trouvé
+*}
+function TSepiSignature.GetParam(const ParamName: string): TSepiParam;
+var
+  I: Integer;
+begin
+  for I := 0 to FActualParams.Count-1 do
+  begin
+    Result := TSepiParam(FActualParams[I]);
+    if AnsiSameText(Result.Name, ParamName) then
+      Exit;
+  end;
+
+  Result := nil;
 end;
 
 {*
