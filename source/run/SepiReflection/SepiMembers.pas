@@ -545,6 +545,9 @@ type
     class function ForwardDecl(AOwner: TSepiMeta;
       const AName: string): TSepiInterface; overload;
 
+    function LookFor(const Name: string; FromUnit: TSepiUnit;
+      FromClass: TSepiMeta = nil): TSepiMeta; override;
+
     function AddMethod(const MethodName, ASignature: string;
       ACallingConvention: TCallingConvention = ccRegister): TSepiMethod;
 
@@ -648,6 +651,9 @@ type
       ATypeInfo: PTypeInfo): TSepiClass; overload;
     class function ForwardDecl(AOwner: TSepiMeta;
       const AName: string): TSepiClass; overload;
+
+    function LookFor(const Name: string; FromUnit: TSepiUnit;
+      FromClass: TSepiMeta = nil): TSepiMeta; override;
 
     procedure AddInterface(AInterface: TSepiInterface); overload;
     procedure AddInterface(AIntfTypeInfo: PTypeInfo); overload;
@@ -2919,6 +2925,20 @@ begin
 end;
 
 {*
+  [@inheritDoc]
+*}
+function TSepiInterface.LookFor(const Name: string; FromUnit: TSepiUnit;
+  FromClass: TSepiMeta = nil): TSepiMeta;
+begin
+  // Look for a member first
+  Result := LookForMember(Name);
+
+  // If not found, continue search a level up
+  if (Result = nil) and (Owner <> nil) then
+    Result := Owner.LookFor(Name, FromUnit, FromClass);
+end;
+
+{*
   Ajoute une méthode à l'interface
   @param MethodName           Nom de la méthode
   @param ASignature           Signature Delphi de la méthode
@@ -3694,7 +3714,7 @@ begin
   inherited;
 
   if State = msConstructing then
-    TSepiClass(Child).FVisibility := FCurrentVisibility;
+    Child.Visibility := FCurrentVisibility;
 
   if Child is TSepiField then
     with TSepiField(Child) do
@@ -3770,6 +3790,20 @@ class function TSepiClass.ForwardDecl(AOwner: TSepiMeta;
 begin
   Result := TSepiClass(NewInstance);
   TSepiClass(AOwner).AddForward(AName, Result);
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiClass.LookFor(const Name: string; FromUnit: TSepiUnit;
+  FromClass: TSepiMeta = nil): TSepiMeta;
+begin
+  // Look for a member first
+  Result := LookForMember(Name, FromUnit, FromClass as TSepiClass);
+
+  // If not found, continue search a level up
+  if (Result = nil) and (Owner <> nil) then
+    Result := Owner.LookFor(Name, FromUnit, FromClass);
 end;
 
 {*
@@ -4044,24 +4078,8 @@ begin
 
   Result := GetMeta(MemberName);
 
-  if Result <> nil then
-  begin
-    case Result.Visibility of
-      mvStrictPrivate:
-        if FromClass <> Self then
-          Result := nil;
-      mvPrivate:
-        if FromUnit <> OwningUnit then
-          Result := nil;
-      mvStrictProtected:
-        if (FromClass = nil) or (not FromClass.ClassInheritsFrom(Self)) then
-          Result := nil;
-      mvProtected:
-        if (FromUnit <> OwningUnit) and
-          ((FromClass = nil) or (not FromClass.ClassInheritsFrom(Self))) then
-          Result := nil;
-    end;
-  end;
+  if (Result <> nil) and (not Result.IsVisibleFrom(FromUnit, FromClass)) then
+    Result := nil;
 
   if (Result = nil) and (Parent <> nil) then
     Result := Parent.LookForMember(MemberName, FromUnit, FromClass);
