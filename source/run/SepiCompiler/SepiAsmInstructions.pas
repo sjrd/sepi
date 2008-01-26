@@ -3,8 +3,8 @@ unit SepiAsmInstructions;
 interface
 
 uses
-  Classes, TypInfo, SepiReflectionCore, SepiMembers, SepiOpCodes,
-  SepiAssembler;
+  Windows, Classes, SysUtils, TypInfo, SepiReflectionCore, SepiMembers,
+  SepiOpCodes, SepiAssembler, SepiReflectionConsts;
 
 resourcestring
   SMultipleParamsWithSameSepiStackOffset =
@@ -79,6 +79,7 @@ type
   *}
   TSepiAsmCallParam = class(TObject)
   private
+    FName: string;                    /// Nom du paramètre
     FSepiStackOffset: Integer;        /// Offset dans la pile Sepi
     FParamSize: TSepiParamSize;       /// Taille du paramètre
     FStackUsage: Integer;             /// Nombre de DWord utilisés dans la pile
@@ -87,12 +88,14 @@ type
     FSize: Integer; /// Taille écrite dans le flux
   public
     constructor Create(AMethodAssembler: TSepiMethodAssembler;
-      ASepiStackOffset: Integer; AParamSize: TSepiParamSize);
+      ASepiStackOffset: Integer; AParamSize: TSepiParamSize;
+      const AName: string = '');
     destructor Destroy; override;
 
     procedure Make;
     procedure WriteToStream(Stream: TStream);
 
+    property Name: string read FName;
     property SepiStackOffset: Integer read FSepiStackOffset;
     property ParamSize: TSepiParamSize read FParamSize;
     property StackUsage: Integer read FStackUsage;
@@ -119,9 +122,12 @@ type
 
     function GetCount: Integer;
     function GetParameters(Index: Integer): TSepiAsmCallParam;
+    function GetParamByName(const Name: string): TSepiMemoryReference;
   public
     constructor Create(AMethodAssembler: TSepiMethodAssembler);
     destructor Destroy; override;
+
+    procedure Prepare(Signature: TSepiSignature);
 
     function AddParam(SepiStackOffset: Integer;
       ParamSize: TSepiParamSize): TSepiMemoryReference;
@@ -133,7 +139,9 @@ type
 
     property Count: Integer read GetCount;
     property Parameters[Index: Integer]: TSepiAsmCallParam
-      read GetParameters; default;
+      read GetParameters;
+    property ParamByName[const Name: string]: TSepiMemoryReference
+      read GetParamByName; default;
     property Result: TSepiMemoryReference read FResult;
 
     property Size: Integer read FSize;
@@ -150,6 +158,8 @@ type
   public
     constructor Create(AOwner: TSepiAsmInstrList);
     destructor Destroy; override;
+
+    procedure Prepare(Signature: TSepiSignature); virtual;
 
     procedure Make; override;
 
@@ -171,6 +181,8 @@ type
   public
     constructor Create(AOwner: TSepiAsmInstrList);
     destructor Destroy; override;
+
+    procedure Prepare(Signature: TSepiSignature); override;
 
     procedure Make; override;
     procedure WriteToStream(Stream: TStream); override;
@@ -195,7 +207,8 @@ type
   public
     constructor Create(AOwner: TSepiAsmInstrList);
 
-    procedure SetMethod(Method: TSepiMethod);
+    procedure SetMethod(Method: TSepiMethod;
+      PrepareParams: Boolean = True);
 
     procedure Make; override;
     procedure WriteToStream(Stream: TStream); override;
@@ -216,7 +229,8 @@ type
     constructor Create(AOwner: TSepiAsmInstrList);
     destructor Destroy; override;
 
-    procedure SetMethod(Method: TSepiMethod);
+    procedure SetMethod(Method: TSepiMethod;
+      PrepareParams: Boolean = True);
 
     procedure Make; override;
     procedure WriteToStream(Stream: TStream); override;
@@ -687,10 +701,12 @@ end;
   @param AParamSize         Taille de paramètre
 *}
 constructor TSepiAsmCallParam.Create(AMethodAssembler: TSepiMethodAssembler;
-  ASepiStackOffset: Integer; AParamSize: TSepiParamSize);
+  ASepiStackOffset: Integer; AParamSize: TSepiParamSize;
+  const AName: string = '');
 begin
   inherited Create;
 
+  FName := AName;
   FSepiStackOffset := ASepiStackOffset;
   FParamSize := AParamSize;
   FMemoryRef := TSepiMemoryReference.Create(AMethodAssembler,
@@ -840,6 +856,66 @@ begin
 end;
 
 {*
+  Tableau des références mémoires des paramètres préparés indexés par leurs noms
+  @param Name   Nom du paramètre
+  @return Référence mémoire du paramètre
+  @throws ESepiMetaNotFoundError Le paramètre n'a pas été trouvé
+*}
+function TSepiAsmCallParams.GetParamByName(
+  const Name: string): TSepiMemoryReference;
+var
+  I: Integer;
+begin
+  for I := 0 to Length(FParameters)-1 do
+  begin
+    if AnsiSameText(FParameters[I].Name, Name) then
+    begin
+      Result := FParameters[I].MemoryRef;
+      Exit;
+    end;
+  end;
+
+  raise ESepiMetaNotFoundError.CreateResFmt(@SSepiObjectNotFound, [Name]);
+end;
+
+{*
+  Prépare les paramètres en fonction d'une signature
+  Préparer les paramètres a de multiples avantages. Il ne faut plus se
+  préoccuper des offsets et des tailles des paramètres, ni de leur éventuel
+  passage par adresse. De plus, pour les résultats qui sont passés comme
+  paramètres, le fait de préparer les paramètres assigne à la propriété Result
+  la référence mémoire à ce paramètre. Il n'y a donc plus de différences entre
+  un résultat passé par adresse ou pas.
+  @param Signature   Signature
+*}
+procedure TSepiAsmCallParams.Prepare(Signature: TSepiSignature);
+var
+  I: Integer;
+  Param: TSepiParam;
+  ParamSize: TSepiParamSize;
+begin
+  for I := 0 to Length(FParameters)-1 do
+    FParameters[I].Free;
+  SetLength(FParameters, Signature.ActualParamCount);
+
+  for I := 0 to Signature.ActualParamCount-1 do
+  begin
+    Param := Signature.ActualParams[I];
+
+    if Param.CallInfo.ByAddress then
+      ParamSize := psByAddress
+    else
+      ParamSize := Param.ParamType.Size;
+
+    FParameters[I] := TSepiAsmCallParam.Create(MethodAssembler,
+      Param.CallInfo.SepiStackOffset, ParamSize, Param.Name);
+
+    if Param.HiddenKind = hpResult then
+      FResult := FParameters[I].MemoryRef;
+  end;
+end;
+
+{*
   Ajoute un paramètre
   @param SepiStackOffset   Offset dans la pile Sepi
   @param ParamSize         Taille de paramètre
@@ -951,6 +1027,15 @@ begin
 end;
 
 {*
+  Prépare les paramètres en fonction d'une signature
+  @param Signature   Signature
+*}
+procedure TSepiAsmCall.Prepare(Signature: TSepiSignature);
+begin
+  Parameters.Prepare(Signature);
+end;
+
+{*
   [@inheritDoc]
 *}
 procedure TSepiAsmCall.Make;
@@ -988,6 +1073,18 @@ begin
   FAddress.Free;
 
   inherited;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiAsmAddressCall.Prepare(Signature: TSepiSignature);
+begin
+  inherited;
+
+  CallingConvention := Signature.CallingConvention;
+  RegUsage := Signature.RegUsage;
+  ResultBehavior := Signature.ReturnType.SafeResultBehavior;
 end;
 
 {*
@@ -1039,11 +1136,16 @@ end;
 
 {*
   Renseigne la méthode à appeler
-  @param Method   Méthode à appeler
+  @param Method     Méthode à appeler
+  @param APrepare   Si True, prépare les paramètres
 *}
-procedure TSepiAsmStaticCall.SetMethod(Method: TSepiMethod);
+procedure TSepiAsmStaticCall.SetMethod(Method: TSepiMethod;
+  PrepareParams: Boolean = True);
 begin
   FMethodRef := MethodAssembler.UnitAssembler.MakeReference(Method);
+
+  if PrepareParams then
+    Prepare(Method.Signature);
 end;
 
 {*
@@ -1098,11 +1200,16 @@ end;
 
 {*
   Renseigne la méthode à appeler
-  @param Method   Méthode à appeler
+  @param Method     Méthode à appeler
+  @param APrepare   Si True, prépare les paramètres
 *}
-procedure TSepiAsmDynamicCall.SetMethod(Method: TSepiMethod);
+procedure TSepiAsmDynamicCall.SetMethod(Method: TSepiMethod;
+  PrepareParams: Boolean = True);
 begin
   FMethodRef := MethodAssembler.UnitAssembler.MakeReference(Method);
+
+  if PrepareParams then
+    Prepare(Method.Signature);
 end;
 
 {*

@@ -9,7 +9,7 @@ interface
 
 uses
   SysUtils, Classes, Contnrs, ScUtils, SepiReflectionCore, SepiMembers,
-  SepiOpCodes;
+  SepiOpCodes, SepiReflectionConsts;
 
 resourcestring
   SNoInstruction = 'Aucune instruction';
@@ -169,6 +169,8 @@ type
 
     procedure AfterConstruction; override;
 
+    function LookFor(const Name: string): TObject;
+
     function MakeLabel: Integer; overload;
     function MakeLabel(const LabelName: string): Integer; overload;
 
@@ -262,6 +264,8 @@ type
       ASpaceArgument: Integer = 0); overload;
     procedure SetSpace(Meta: TSepiMeta); overload;
     procedure SetSpace(Param: TSepiParam; AutoDeref: Boolean = True); overload;
+    procedure SetSpace(const Name: string;
+      AutoDerefParam: Boolean = True); overload;
 
     procedure SetAsConst(Value: Int64); overload;
     procedure SetAsConst(Value: Boolean); overload;
@@ -646,6 +650,27 @@ begin
   inherited;
 
   UnitAssembler.FMethods.Add(Self);
+end;
+
+{*
+  Cherche un objet à partir de son nom
+  LookFor cherche parmi les variables locales, puis les paramètres, et enfin
+  essaie la méthode LookFor de la méthode Sepi correspondante. Le résultat peut
+  être de type TSepiMeta ou TSepiParam.
+  @param Name   Nom de l'objet recherché
+  @return Objet recherché, ou nil si non trouvé
+*}
+function TSepiMethodAssembler.LookFor(const Name: string): TObject;
+begin
+  Result := Locals.GetMeta(Name);
+  if Result <> nil then
+    Exit;
+
+  Result := SepiMethod.Signature.GetParam(Name);
+  if Result <> nil then
+    Exit;
+
+  Result := SepiMethod.LookFor(Name);
 end;
 
 {*
@@ -1100,6 +1125,29 @@ begin
 
   if AutoDeref and Param.CallInfo.ByAddress then
     AddOperation(adSimple);
+end;
+
+{*
+  Modifie l'espace mémoire sur base d'un nom, qui est d'abord recherché
+  L'espace mémoire est recherché dans les variables locales, puis dans les
+  paramètres, puis via la méthode LookFor de la méthode qui est asssemblée.
+  Si AutoDerefParam vaut True, et que c'est un paramètre est passé par adresse,
+  le déréférencement est ajouté automatiquement.
+  @param Name             Nom de l'espace mémoire, à rechercher
+  @param AutoDerefParam   Déréférence automatiquement les paramètres
+*}
+procedure TSepiMemoryReference.SetSpace(const Name: string;
+  AutoDerefParam: Boolean = True);
+var
+  Obj: TObject;
+begin
+  Obj := MethodAssembler.LookFor(Name);
+  if Obj is TSepiMeta then
+    SetSpace(TSepiMeta(Obj))
+  else if Obj is TSepiParam then
+    SetSpace(TSepiParam(Obj), AutoDerefParam)
+  else
+    raise ESepiMetaNotFoundError.CreateResFmt(@SSepiObjectNotFound, [Name]);
 end;
 
 {*
