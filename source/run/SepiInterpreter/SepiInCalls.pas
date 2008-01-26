@@ -120,6 +120,95 @@ asm
         ADD     ESP,8
 end;
 
+{*
+  Thunk pour les constructeurs
+*}
+function ConstructorThunk(Method: TObject; Parameters: Pointer): TObject;
+asm
+        { -> EAX  Method
+             EDX  Pointer to parameters
+                  [EDX] is Self pointer
+                  [EDX+4] is the Alloc hidden parameter
+          <- EAX  Constructed instance }
+
+        PUSH    EBX
+        MOV     EBX,EDX
+        MOV     ECX,EAX
+
+        // Allocate instance
+
+        MOV     EDX,[EBX+4]
+        TEST    DL,DL
+        JZ      @@noClassCreate
+        MOV     EAX,[EBX]
+        SUB     ESP,$10
+        CALL    System.@ClassCreate // keeps ECX
+        MOV     [EBX],EAX           // update Self parameter
+@@noClassCreate:
+
+        // Invoke constructor code
+
+        MOV     EAX,ECX
+        MOV     EDX,EBX
+        XOR     ECX,ECX
+        CALL    TSepiRuntimeMethod.Invoke
+
+        // Execute the AfterConstruction method
+
+        MOV     EDX,[EBX+4]
+        TEST    DL,DL
+        JZ      @@noAfterConstruction
+        MOV     EAX,[EBX]
+        CALL    System.@AfterConstruction
+        POP     DWORD PTR FS:[0]
+        ADD     ESP,$0C
+@@noAfterConstruction:
+
+        MOV     EAX,[EBX]
+        POP     EBX
+end;
+
+{*
+  Thunk pour les destructeurs
+*}
+procedure DestructorThunk(Method: TObject; Parameters: Pointer);
+asm
+        { -> EAX  Method
+             EDX  Pointer to parameters
+                  [EDX] is Self pointer
+                  [EDX+4] is the Free hidden parameter }
+
+        PUSH    EBX
+        PUSH    ESI
+        MOV     EBX,EDX
+        MOV     ESI,EAX
+
+        // Execute the BeforeDestruction method
+
+        MOV     EAX,[EBX]
+        MOV     EDX,[EBX+4]
+        CALL    System.@BeforeDestruction
+
+        // Invoke the destructor code
+
+        MOV     EAX,ESI
+        MOV     EDX,EBX
+        XOR     ECX,ECX
+        CALL    TSepiRuntimeMethod.Invoke
+
+        // Free instance
+
+        MOV     EDX,[EBX+4]
+        TEST    DL,DL
+        JZ      @@noClassDestroy
+        MOV     EAX,[EBX]
+        CALL    System.@ClassDestroy
+@@noClassDestroy:
+
+        POP     ESI
+        POP     EBX
+end;
+
 {-----------------}
 { Function makers }
 {-----------------}
@@ -257,7 +346,12 @@ var
   ResultThunk: Pointer;
 begin
   // Find the appropriate result thunk
-  ResultThunk := ResultThunks[ResultType.SafeResultBehavior];
+  case RuntimeMethod.SepiMethod.Signature.Kind of
+    mkConstructor: ResultThunk := @ConstructorThunk;
+    mkDestructor: ResultThunk := @DestructorThunk;
+  else
+    ResultThunk := ResultThunks[ResultType.SafeResultBehavior];
+  end;
 
   // Use the appropriate function maker
   case CallingConvention of

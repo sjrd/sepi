@@ -1397,7 +1397,7 @@ var
   Offset: Smallint;
 begin
   // Read object pointer and count
-  Obj := TObject((ReadAddress)^);
+  Obj := TObject(ReadAddress^);
   Count := 0;
   Instructions.ReadBuffer(Count, 1);
 
