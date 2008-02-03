@@ -449,7 +449,7 @@ type
     property WriteAccess: TSepiPropertyAccess read FWriteAccess;
     property Index: Integer read FIndex;
 
-    property DefaultValue: Integer read FIndex;
+    property DefaultValue: Integer read FDefaultValue;
     property Storage: TSepiPropertyStorage read FStorage;
 
     property IsDefault: Boolean read FIsDefault;
@@ -1813,8 +1813,6 @@ begin
     FOverloaded := TSepiOverloadedMethod.Create(AOwner, AName);
   FOverloadIndex := FOverloaded.MethodCount;
 
-  FOverloaded.FMethods.Add(Self);
-
   Create(AOwner, Format(OverloadedNameFormat, [AName, FOverloadIndex]),
     ACode, ASignature, ALinkKind, AAbstract, AMsgID, ACallingConvention);
 end;
@@ -2713,6 +2711,8 @@ begin
 
   if TypeInfo = nil then
     MakeTypeInfo;
+
+  TSepiRecordType(Owner).ReAddChild(Self);
 end;
 
 {*
@@ -2995,6 +2995,8 @@ begin
   FCompleted := True;
   if not Native then
     MakeTypeInfo;
+
+  TSepiInterface(Owner).ReAddChild(Self);
 end;
 
 {*
@@ -4038,6 +4040,8 @@ begin
   MakeIMTs;
   if not Native then
     MakeVMT;
+
+  TSepiClass(Owner).ReAddChild(Self);
 end;
 
 {*
@@ -4320,8 +4324,8 @@ end;
 initialization
   SepiRegisterMetaClasses([
     TSepiField, TSepiMethod, TSepiOverloadedMethod, TSepiProperty,
-    TSepiRecordType, TSepiInterface, TSepiClass, TSepiMethodRefType,
-    TSepiVariantType
+    TSepiRecordType, TSepiInterface, TSepiClass, TSepiMetaClass,
+    TSepiMethodRefType, TSepiVariantType
   ]);
 end.
 

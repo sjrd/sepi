@@ -48,6 +48,9 @@ type
   protected
     procedure ExtractTypeData; override;
   public
+    function ValueAsInteger(const Value): Integer;
+    function ValueAsCardinal(const Value): Cardinal;
+
     property MinValue: Longint read FMinValue;
     property MaxValue: Longint read FMaxValue;
   end;
@@ -324,6 +327,40 @@ begin
 
   FMinValue := TypeData.MinValue;
   FMaxValue := TypeData.MaxValue;
+end;
+
+{*
+  Lit une valeur de ce type comme un Integer
+  @param Value   Valeur de ce type
+  @return Value comme Integer
+*}
+function TSepiOrdType.ValueAsInteger(const Value): Integer;
+begin
+  case TypeData.OrdType of
+    otSByte: Result := Shortint(Value);
+    otUByte: Result := Byte(Value);
+    otSWord: Result := Smallint(Value);
+    otUWord: Result := Word(Value);
+  else
+    Result := Longint(Value);
+  end;
+end;
+
+{*
+  Lit une valeur de ce type comme un Cardinal
+  @param Value   Valeur de ce type
+  @return Value comme Cardinal
+*}
+function TSepiOrdType.ValueAsCardinal(const Value): Cardinal;
+begin
+  case TypeData.OrdType of
+    otSByte: Result := Shortint(Value);
+    otUByte: Result := Byte(Value);
+    otSWord: Result := Smallint(Value);
+    otUWord: Result := Word(Value);
+  else
+    Result := LongWord(Value);
+  end;
 end;
 
 {-------------------------}

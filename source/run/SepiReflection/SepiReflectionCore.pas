@@ -146,11 +146,15 @@ type
     procedure AddChild(Child: TSepiMeta);
     procedure RemoveChild(Child: TSepiMeta);
 
+    function GetWasForward: Boolean;
+
     function GetChildCount: Integer;
     function GetChildren(Index: Integer): TSepiMeta;
 
     function GetChildByName(const ChildName: string): TSepiMeta;
   protected
+    procedure ReAddChild(Child: TSepiMeta);
+
     procedure LoadChildren(Stream: TStream);
     procedure SaveChildren(Stream: TStream);
 
@@ -192,6 +196,7 @@ type
     procedure AddPtrResource(Ptr: Pointer);
 
     property IsForward: Boolean read FIsForward;
+    property WasForward: Boolean read GetWasForward;
     property Owner: TSepiMeta read FOwner;
     property Root: TSepiRoot read FRoot;
     property OwningUnit: TSepiUnit read FOwningUnit;
@@ -602,7 +607,7 @@ begin
   else
     Index := SepiMetaClasses.IndexOf(MetaClassName);
   if Index < 0 then
-    EClassNotFound.CreateFmt(SClassNotFound, [MetaClassName]);
+    raise EClassNotFound.CreateFmt(SClassNotFound, [MetaClassName]);
 
   Result := TSepiMetaClass(SepiMetaClasses.Objects[Index]);
 end;
@@ -895,6 +900,15 @@ begin
 end;
 
 {*
+  True si le meta a été créé forward, False sinon
+  @return True si le meta a été créé forward, False sinon
+*}
+function TSepiMeta.GetWasForward: Boolean;
+begin
+  Result := FOwner.FForwards.IndexOfObject(Self) >= 0;
+end;
+
+{*
   Nombre d'enfants
   @return Nombre d'enfants
 *}
@@ -925,6 +939,22 @@ begin
   Result := FChildren.MetaFromName[ChildName];
   if Result = nil then
     raise ESepiMetaNotFoundError.CreateFmt(SSepiObjectNotFound, [ChildName]);
+end;
+
+{*
+  Ajoute de nouveau un meta à la liste des enfants
+  Cela a pour effet de replacer Child à la fin de la liste des enfants ajoutés
+  jusque là. Les types composites se servent de cette méthode pour se replacer
+  derrière les types anonymes qu'ils ont créés.
+  @param Child   Enfant concerné
+*}
+procedure TSepiMeta.ReAddChild(Child: TSepiMeta);
+var
+  Index: Integer;
+begin
+  Index := FChildren.IndexOfMeta(Child);
+  if Index >= 0 then
+    FChildren.Move(Index, FChildren.Count-1);
 end;
 
 {*
