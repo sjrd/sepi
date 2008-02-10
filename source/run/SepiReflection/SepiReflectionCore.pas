@@ -293,14 +293,8 @@ type
     constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
     constructor Create(AOwner: TSepiMeta; const AName: string;
       AKind: TTypeKind);
-    {*
-      Clone un type
-      @param AOwner   Propriétaire du type
-      @param AName    Nom du type
-      @param Source   Type à cloner
-    *}
     constructor Clone(AOwner: TSepiMeta; const AName: string;
-      Source: TSepiType); virtual; abstract;
+      Source: TSepiType); virtual;
     destructor Destroy; override;
 
     class function NewInstance: TObject; override;
@@ -1416,6 +1410,18 @@ begin
   FNeedInit := False;
   FParamBehavior := DefaultTypeParamBehavior;
   FResultBehavior := rbOrdinal;
+end;
+
+{*
+  Clone un type
+  @param AOwner   Propriétaire du type
+  @param AName    Nom du type
+  @param Source   Type à cloner
+*}
+constructor TSepiType.Clone(AOwner: TSepiMeta; const AName: string;
+  Source: TSepiType);
+begin
+  raise ESepiError.CreateFmt(SCantCloneType, [Source.Name]);
 end;
 
 {*

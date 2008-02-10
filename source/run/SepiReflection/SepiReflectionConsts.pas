@@ -33,6 +33,7 @@ resourcestring
   SSepiObjectNotFound = 'Objet %s non trouvé';
   SSepiUnitNotFound = 'Impossible de trouver l''unité %s';
   SSepiNoRegisterTypeInfo = 'Ce type n''implémente pas RegisterTypeInfo';
+  SCantCloneType = 'Ne peut cloner le type %s';
   SSepiBadConstType = 'Impossible de créer une constante de type variant %d';
 
   SSepiUnsupportedIntfCallConvention =
