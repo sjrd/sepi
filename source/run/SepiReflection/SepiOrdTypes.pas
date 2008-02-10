@@ -238,7 +238,9 @@ type
     constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
     constructor Create(AOwner: TSepiMeta; const AName: string;
       const AValues: array of string;
-      AMinemumSize: TSepiEnumMinemumSize = msByte);
+      AMinemumSize: TSepiEnumMinemumSize = msByte); overload;
+    constructor Create(AOwner: TSepiMeta; const AName: string;
+      ABaseType: TSepiEnumType; AMinValue, AMaxValue: Integer); overload;
     constructor Clone(AOwner: TSepiMeta; const AName: string;
       Source: TSepiType); override;
 
@@ -1072,31 +1074,49 @@ begin
 end;
 
 {*
-  [@inheritDoc]
+  Crée un nouveau type énuméré basé sur un type existant
+  @param AOwner      Propriétaire du type
+  @param AName       Nom du type
+  @param ABaseType   Type énuméré de base
+  @param AMinValue   Valeur minimale
+  @param AMaxValue   Valeur maximale
 *}
-constructor TSepiEnumType.Clone(AOwner: TSepiMeta; const AName: string;
-  Source: TSepiType);
+constructor TSepiEnumType.Create(AOwner: TSepiMeta; const AName: string;
+  ABaseType: TSepiEnumType; AMinValue, AMaxValue: Integer);
 var
   OwningUnitName: ShortString;
 begin
-  inherited;
+  inherited Create(AOwner, AName, tkEnumeration);
 
+  ABaseType := ABaseType.BaseType;
   OwningUnitName := OwningUnit.Name;
 
   // Allocate type info
   TypeDataLength := EnumTypeDataLength + 1 + Length(OwningUnitName);
   AllocateTypeInfo(TypeDataLength);
 
-  // Copy source type data
-  Move(Source.TypeData^, TypeData^, EnumTypeDataLength);
+  // Copy source type data and set MinValue and MaxValue
+  Move(ABaseType.TypeData^, TypeData^, EnumTypeDataLength);
+  TypeData.MinValue := AMinValue;
+  TypeData.MaxValue := AMaxValue;
 
   // Write unit name
   Move(OwningUnitName[0], TypeData.NameList[0], Length(OwningUnitName)+1);
 
   // Set fields
   inherited ExtractTypeData;
-  FBaseType := (Source as TSepiEnumType).BaseType;
-  FValueCount := TSepiEnumType(Source).ValueCount;
+  FBaseType := ABaseType;
+  FValueCount := ABaseType.ValueCount;
+end;
+
+{*
+  [@inheritDoc]
+*}
+constructor TSepiEnumType.Clone(AOwner: TSepiMeta; const AName: string;
+  Source: TSepiType);
+begin
+  with Source as TSepiEnumType do
+    Self.Create(AOwner, AName, BaseType, MinValue, MaxValue);
 end;
 
 {*
