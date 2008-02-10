@@ -41,6 +41,11 @@ type
   *}
   TBooleanKind = (bkBoolean, bkByteBool, bkWordBool, bkLongBool);
 
+  {*
+    Taille minimale d'un type énuméré
+  *}
+  TSepiEnumMinemumSize = (msByte, msWord, msLongWord);
+
   TSepiOrdType = class(TSepiType)
   private
     FMinValue: Longint; /// Valeur minimale
@@ -215,7 +220,8 @@ type
       ATypeInfo: PTypeInfo); override;
     constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
     constructor Create(AOwner: TSepiMeta; const AName: string;
-      const AValues: array of string);
+      const AValues: array of string;
+      AMinemumSize: TSepiEnumMinemumSize = msByte);
 
     function CompatibleWith(AType: TSepiType): Boolean; override;
 
@@ -868,12 +874,13 @@ end;
 
 {*
   Crée un nouveau type énuméré
-  @param AOwner    Propriétaire du type
-  @param AName     Nom du type
-  @param AValues   Noms des éléments de l'énumération
+  @param AOwner         Propriétaire du type
+  @param AName          Nom du type
+  @param AValues        Noms des éléments de l'énumération
+  @param AMinimumSize   Taille minimale (pour compatibilité avec C/C++)
 *}
 constructor TSepiEnumType.Create(AOwner: TSepiMeta; const AName: string;
-  const AValues: array of string);
+  const AValues: array of string; AMinemumSize: TSepiEnumMinemumSize = msByte);
 var
   I, Len: Integer;
   Current: PChar;
@@ -896,10 +903,23 @@ begin
   SetLength(FValues, ValueCount);
 
   // Initialisation des informations scalaires des données de type
-  TypeData.OrdType := otUByte;
-  TypeData.MinValue := 0;
-  TypeData.MaxValue := ValueCount-1;
-  TypeData.BaseType := TypeInfoRef;
+  with TypeData^ do
+  begin
+    case AMinemumSize of
+      msWord: OrdType := otUWord;
+      msLongWord: OrdType := otULong;
+    else
+      if ValueCount >= 256 then
+        OrdType := otUWord
+      else
+        OrdType := otUByte;
+    end;
+
+    MinValue := 0;
+    MaxValue := ValueCount-1;
+    BaseType := TypeInfoRef;
+  end;
+
   inherited ExtractTypeData;
 
   // Enregistrement des noms d'énumération dans les données de type

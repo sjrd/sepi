@@ -988,6 +988,7 @@ var
   Count, I: Integer;
   ForwardChild: TObject;
   IsForward: Boolean;
+  Str: string;
 begin
   // Forwards
   Stream.ReadBuffer(Count, 4);
@@ -1002,10 +1003,11 @@ begin
   for I := 0 to Count-1 do
   begin
     Stream.ReadBuffer(IsForward, 1);
+    Str := ReadStrFromStream(Stream);
     if IsForward then
-      FindMeta(ReadStrFromStream(Stream)).Load(Self, Stream)
+      FindMeta(Str).Load(Self, Stream)
     else
-      SepiFindMetaClass(ReadStrFromStream(Stream)).Load(Self, Stream);
+      SepiFindMetaClass(Str).Load(Self, Stream);
   end;
 end;
 
