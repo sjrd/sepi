@@ -122,7 +122,7 @@ type
   end;
 
   {*
-    Informations d'appel d'un paramètre (ou et comment le passer)
+    Informations d'appel d'un paramètre (où et comment le passer)
     @author sjrd
     @version 1.0
   *}
@@ -482,6 +482,8 @@ type
     constructor Create(AOwner: TSepiMeta; const AName: string;
       APacked: Boolean = False; AIsNative: Boolean = False;
       ATypeInfo: PTypeInfo = nil);
+    constructor Clone(AOwner: TSepiMeta; const AName: string;
+      Source: TSepiType); override;
 
     function AddField(const FieldName: string; FieldType: TSepiType;
       ForcePack: Boolean = False): TSepiField; overload;
@@ -740,6 +742,8 @@ type
       AClassInfo: PTypeInfo; AIsNative: Boolean = False); overload;
     constructor Create(AOwner: TSepiMeta; const AName, AClassName: string;
       AIsNative: Boolean = False); overload;
+    constructor Clone(AOwner: TSepiMeta; const AName: string;
+      Source: TSepiType); override;
 
     function CompatibleWith(AType: TSepiType): Boolean; override;
 
@@ -754,6 +758,7 @@ type
   TSepiMethodRefType = class(TSepiType)
   private
     FSignature: TSepiSignature; /// Signature
+    FOwnsSignature: Boolean;    /// True si possède la signature
   protected
     procedure ListReferences; override;
     procedure Save(Stream: TStream); override;
@@ -764,6 +769,8 @@ type
     constructor Create(AOwner: TSepiMeta; const AName, ASignature: string;
       AOfObject: Boolean = False;
       ACallingConvention: TCallingConvention = ccRegister);
+    constructor Clone(AOwner: TSepiMeta; const AName: string;
+      Source: TSepiType); override;
     destructor Destroy; override;
 
     function CompatibleWith(AType: TSepiType): Boolean; override;
@@ -784,6 +791,8 @@ type
     constructor RegisterTypeInfo(AOwner: TSepiMeta;
       ATypeInfo: PTypeInfo); override;
     constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
+    constructor Clone(AOwner: TSepiMeta; const AName: string;
+      Source: TSepiType); override;
   end;
 
 const
@@ -2492,6 +2501,27 @@ begin
 end;
 
 {*
+  [@inheritDoc]
+*}
+constructor TSepiRecordType.Clone(AOwner: TSepiMeta; const AName: string;
+  Source: TSepiType);
+var
+  SrcRec: TSepiRecordType;
+  I: Integer;
+begin
+  SrcRec := Source as TSepiRecordType;
+
+  Create(AOwner, AName, SrcRec.IsPacked);
+
+  for I := 0 to SrcRec.ChildCount-1 do
+    if SrcRec.Children[I] is TSepiField then
+      with TSepiField(SrcRec.Children[I]) do
+        TSepiField.Create(Self, Name, FieldType, Offset);
+
+  Complete;
+end;
+
+{*
   Ajoute un champ au record
   @param FieldName   Nom du champ
   @param FieldType   Type du champ
@@ -4152,6 +4182,15 @@ end;
 {*
   [@inheritDoc]
 *}
+constructor TSepiMetaClass.Clone(AOwner: TSepiMeta; const AName: string;
+  Source: TSepiType);
+begin
+  Create(AOwner, AName, (Source as TSepiMetaClass).SepiClass);
+end;
+
+{*
+  [@inheritDoc]
+*}
 procedure TSepiMetaClass.ListReferences;
 begin
   inherited;
@@ -4188,6 +4227,7 @@ constructor TSepiMethodRefType.RegisterTypeInfo(AOwner: TSepiMeta;
 begin
   inherited;
   FSignature := TSepiSignature.RegisterTypeData(Self, TypeData);
+  FOwnsSignature := True;
 
   if Signature.Kind in mkOfObject then
   begin
@@ -4205,6 +4245,7 @@ constructor TSepiMethodRefType.Load(AOwner: TSepiMeta; Stream: TStream);
 begin
   inherited;
   FSignature := TSepiSignature.Load(Self, Stream);
+  FOwnsSignature := True;
 
   if Signature.Kind in mkOfObject then
   begin
@@ -4237,6 +4278,27 @@ begin
     Prefix := 'unit ';
   FSignature := TSepiSignature.Create(Self,
     Prefix + ASignature, ACallingConvention);
+  FOwnsSignature := True;
+
+  if Signature.Kind in mkOfObject then
+  begin
+    FSize := 8;
+    FParamBehavior.AlwaysByStack := True;
+    FResultBehavior := rbParameter;
+  end else
+    FSize := 4;
+end;
+
+{*
+  [@inheritDoc]
+*}
+constructor TSepiMethodRefType.Clone(AOwner: TSepiMeta; const AName: string;
+  Source: TSepiType);
+begin
+  inherited Create(AOwner, AName, tkMethod);
+
+  FSignature := (Source as TSepiMethodRefType).Signature;
+  FOwnsSignature := False;
 
   if Signature.Kind in mkOfObject then
   begin
@@ -4252,7 +4314,8 @@ end;
 *}
 destructor TSepiMethodRefType.Destroy;
 begin
-  FSignature.Free;
+  if FOwnsSignature then
+    FSignature.Free;
   inherited Destroy;
 end;
 
@@ -4310,6 +4373,22 @@ begin
 
   if not Native then
     AllocateTypeInfo;
+
+  FSize := 16;
+  FNeedInit := True;
+  FParamBehavior.AlwaysByAddress := True;
+  FResultBehavior := rbParameter;
+end;
+
+{*
+  [@inheritDoc]
+*}
+constructor TSepiVariantType.Clone(AOwner: TSepiMeta; const AName: string;
+  Source: TSepiType);
+begin
+  inherited Create(AOwner, AName, tkVariant);
+
+  AllocateTypeInfo;
 
   FSize := 16;
   FNeedInit := True;

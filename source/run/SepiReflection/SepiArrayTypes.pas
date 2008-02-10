@@ -71,6 +71,8 @@ type
     constructor Create(AOwner: TSepiMeta; const AName: string;
       const ADimensions: array of Integer; const AElementTypeName: string;
       AIsNative: Boolean = False; ATypeInfo: PTypeInfo = nil); overload;
+    constructor Clone(AOwner: TSepiMeta; const AName: string;
+      Source: TSepiType); override;
 
     function CompatibleWith(AType: TSepiType): Boolean; override;
 
@@ -107,6 +109,8 @@ type
     constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
     constructor Create(AOwner: TSepiMeta; const AName: string;
       AElementType: TSepiType);
+    constructor Clone(AOwner: TSepiMeta; const AName: string;
+      Source: TSepiType); override;
 
     procedure SetElementType(AElementType: TSepiType); overload;
     procedure SetElementType(const AElementTypeName: string); overload;
@@ -227,6 +231,28 @@ constructor TSepiArrayType.Create(AOwner: TSepiMeta; const AName: string;
 begin
   Create(AOwner, AName, ADimensions, AOwner.Root.FindType(AElementTypeName),
     AIsNative, ATypeInfo);
+end;
+
+{*
+  [@inheritDoc]
+*}
+constructor TSepiArrayType.Clone(AOwner: TSepiMeta; const AName: string;
+  Source: TSepiType);
+var
+  ADimensions: array of Integer;
+  I: Integer;
+begin
+  with Source as TSepiArrayType do
+  begin
+    SetLength(ADimensions, 2*DimCount);
+    for I := 0 to DimCount-1 do
+    begin
+      ADimensions[2*I+0] := MinValues[I];
+      ADimensions[2*I+1] := MaxValues[I];
+    end;
+  end;
+
+  Create(AOwner, AName, ADimensions, (Source as TSepiArrayType).ElementType);
 end;
 
 {*
@@ -351,6 +377,15 @@ begin
 
   FElementType := AElementType;
   MakeTypeInfo;
+end;
+
+{*
+  [@inheritDoc]
+*}
+constructor TSepiDynArrayType.Clone(AOwner: TSepiMeta; const AName: string;
+  Source: TSepiType);
+begin
+  Create(AOwner, AName, (Source as TSepiDynArrayType).ElementType);
 end;
 
 {*

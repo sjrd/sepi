@@ -50,6 +50,8 @@ type
     constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
     constructor Create(AOwner: TSepiMeta; const AName: string;
       AMaxLength: Integer = 255);
+    constructor Clone(AOwner: TSepiMeta; const AName: string;
+      Source: TSepiType); override;
 
     property MaxLength: Integer read FMaxLength;
   end;
@@ -72,6 +74,8 @@ type
     constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
     constructor Create(AOwner: TSepiMeta; const AName: string;
       AIsUnicode: Boolean = False);
+    constructor Clone(AOwner: TSepiMeta; const AName: string;
+      Source: TSepiType); override;
 
     property IsUnicode: Boolean read FIsUnicode;
   end;
@@ -129,6 +133,15 @@ begin
   TypeData.MaxLength := AMaxLength;
 
   ExtractTypeData;
+end;
+
+{*
+  [@inheritDoc]
+*}
+constructor TSepiShortStringType.Clone(AOwner: TSepiMeta; const AName: string;
+  Source: TSepiType);
+begin
+  Create(AOwner, AName, (Source as TSepiShortStringType).MaxLength);
 end;
 
 {*
@@ -212,6 +225,15 @@ begin
   AllocateTypeInfo(StringTypeDataLength);
 
   ExtractTypeData;
+end;
+
+{*
+  [@inheritDoc]
+*}
+constructor TSepiStringType.Clone(AOwner: TSepiMeta; const AName: string;
+  Source: TSepiType);
+begin
+  Create(AOwner, AName, (Source as TSepiStringType).IsUnicode);
 end;
 
 {*

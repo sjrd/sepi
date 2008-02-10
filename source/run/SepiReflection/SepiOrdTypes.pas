@@ -46,6 +46,11 @@ type
   *}
   TSepiEnumMinemumSize = (msByte, msWord, msLongWord);
 
+  {*
+    Type ordinal
+    @author sjrd
+    @version 1.0
+  *}
   TSepiOrdType = class(TSepiType)
   private
     FMinValue: Longint; /// Valeur minimale
@@ -80,6 +85,8 @@ type
     constructor Create(AOwner: TSepiMeta; const AName: string;
       AMinValue: Longint = -MaxInt-1; AMaxValue: Longint = MaxInt;
       ASigned: Boolean = True);
+    constructor Clone(AOwner: TSepiMeta; const AName: string;
+      Source: TSepiType); override;
 
     function InRange(Value: Longint): Boolean;
     procedure CheckInRange(Value: Longint);
@@ -110,6 +117,8 @@ type
     constructor Create(AOwner: TSepiMeta; const AName: string;
       AMinValue: WideChar = #0; AMaxValue: WideChar = #255;
       AForceUnicode: Boolean = False);
+    constructor Clone(AOwner: TSepiMeta; const AName: string;
+      Source: TSepiType); override;
 
     function InRange(Value: WideChar): Boolean;
     procedure CheckInRange(Value: WideChar);
@@ -140,6 +149,8 @@ type
     constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
     constructor Create(AOwner: TSepiMeta; const AName: string;
       AMinValue: Int64 = MinInt64; AMaxValue: Int64 = MaxInt64);
+    constructor Clone(AOwner: TSepiMeta; const AName: string;
+      Source: TSepiType); override;
 
     function InRange(Value: Int64): Boolean;
     procedure CheckInRange(Value: Int64);
@@ -169,6 +180,8 @@ type
     constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
     constructor Create(AOwner: TSepiMeta; const AName: string;
       AFloatType: TFloatType = ftDouble);
+    constructor Clone(AOwner: TSepiMeta; const AName: string;
+      Source: TSepiType); override;
 
     property FloatType: TFloatType read FFloatType;
   end;
@@ -182,6 +195,8 @@ type
   TSepiBooleanType = class(TSepiOrdType)
   private
     FBooleanKind: TBooleanKind;
+
+    procedure MakeTypeInfo;
   protected
     procedure Save(Stream: TStream); override;
 
@@ -190,6 +205,8 @@ type
     constructor RegisterTypeInfo(AOwner: TSepiMeta;
       ATypeInfo: PTypeInfo); override;
     constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
+    constructor Clone(AOwner: TSepiMeta; const AName: string;
+      Source: TSepiType); override;
 
     property BooleanKind: TBooleanKind read FBooleanKind;
   end;
@@ -222,6 +239,8 @@ type
     constructor Create(AOwner: TSepiMeta; const AName: string;
       const AValues: array of string;
       AMinemumSize: TSepiEnumMinemumSize = msByte);
+    constructor Clone(AOwner: TSepiMeta; const AName: string;
+      Source: TSepiType); override;
 
     function CompatibleWith(AType: TSepiType): Boolean; override;
 
@@ -254,6 +273,8 @@ type
       ACompType: TSepiOrdType); overload;
     constructor Create(AOwner: TSepiMeta; const AName: string;
       ACompType: PTypeInfo); overload;
+    constructor Clone(AOwner: TSepiMeta; const AName: string;
+      Source: TSepiType); override;
 
     function CompatibleWith(AType: TSepiType): Boolean; override;
 
@@ -297,6 +318,8 @@ type
       APointTo: PTypeInfo; AIsNative: Boolean = False); overload;
     constructor Create(AOwner: TSepiMeta; const AName, APointTo: string;
       AIsNative: Boolean = False); overload;
+    constructor Clone(AOwner: TSepiMeta; const AName: string;
+      Source: TSepiType); override;
 
     class function NewInstance: TObject; override;
 
@@ -306,12 +329,18 @@ type
 implementation
 
 const
+  /// Chaînes 'False' et 'True' en packed ShortString
+  PackedShortStrFalseTrue: array[0..10] of Char = (
+    #5, 'F', 'a', 'l', 's', 'e', #4, 'T', 'r', 'u', 'e' {don't localize}
+  );
+
   // Tailles de structure TTypeData en fonction des types
   IntegerTypeDataLength = SizeOf(TOrdType) + 2*SizeOf(Longint);
   CharTypeDataLength = IntegerTypeDataLength;
   Int64TypeDataLength = 2*SizeOf(Int64);
   FloatTypeDataLength = SizeOf(TFloatType);
   EnumTypeDataLength = SizeOf(TOrdType) + 2*SizeOf(Longint) + SizeOf(Pointer);
+  BooleanTypeDataLength = EnumTypeDataLength + SizeOf(PackedShortStrFalseTrue);
   SetTypeDataLength = SizeOf(TOrdType) + SizeOf(Pointer);
 
 {---------------------}
@@ -445,6 +474,16 @@ end;
 {*
   [@inheritDoc]
 *}
+constructor TSepiIntegerType.Clone(AOwner: TSepiMeta; const AName: string;
+  Source: TSepiType);
+begin
+  with Source as TSepiIntegerType do
+    Self.Create(AOwner, AName, MinValue, MaxValue, Signed);
+end;
+
+{*
+  [@inheritDoc]
+*}
 procedure TSepiIntegerType.Save(Stream: TStream);
 begin
   inherited;
@@ -550,6 +589,16 @@ end;
 {*
   [@inheritDoc]
 *}
+constructor TSepiCharType.Clone(AOwner: TSepiMeta; const AName: string;
+  Source: TSepiType);
+begin
+  with Source as TSepiCharType do
+    Self.Create(AOwner, AName, ChrMinValue, ChrMaxValue, IsUnicode);
+end;
+
+{*
+  [@inheritDoc]
+*}
 procedure TSepiCharType.Save(Stream: TStream);
 begin
   inherited;
@@ -643,6 +692,16 @@ begin
   TypeData.MaxValue := AMaxValue;
 
   ExtractTypeData;
+end;
+
+{*
+  [@inheritDoc]
+*}
+constructor TSepiInt64Type.Clone(AOwner: TSepiMeta; const AName: string;
+  Source: TSepiType);
+begin
+  with Source as TSepiInt64Type do
+    Self.Create(AOwner, AName, MinValue, MaxValue);
 end;
 
 {*
@@ -742,6 +801,15 @@ end;
 {*
   [@inheritDoc]
 *}
+constructor TSepiFloatType.Clone(AOwner: TSepiMeta; const AName: string;
+  Source: TSepiType);
+begin
+  Create(AOwner, AName, (Source as TSepiFloatType).FloatType);
+end;
+
+{*
+  [@inheritDoc]
+*}
 procedure TSepiFloatType.Save(Stream: TStream);
 begin
   inherited;
@@ -799,14 +867,69 @@ constructor TSepiBooleanType.Load(AOwner: TSepiMeta; Stream: TStream);
 begin
   inherited;
 
+  Stream.ReadBuffer(FBooleanKind, SizeOf(TBooleanKind));
   if not Native then
-  begin
-    AllocateTypeInfo(EnumTypeDataLength);
-    Stream.ReadBuffer(TypeData^, EnumTypeDataLength);
-  end else
-    Stream.Seek(EnumTypeDataLength, soFromCurrent);
+    MakeTypeInfo;
 
   ExtractTypeData;
+end;
+
+{*
+  [@inheritDoc]
+*}
+constructor TSepiBooleanType.Clone(AOwner: TSepiMeta; const AName: string;
+  Source: TSepiType);
+begin
+  inherited Create(AOwner, AName, tkEnumeration);
+
+  FBooleanKind := (Source as TSepiBooleanType).BooleanKind;
+  MakeTypeInfo;
+
+  ExtractTypeData;
+end;
+
+{*
+  Construit les RTTI
+*}
+procedure TSepiBooleanType.MakeTypeInfo;
+const
+  KindToOrdType: array[TBooleanKind] of TOrdType =
+    (otUByte, otSByte, otSWord, otSLong);
+var
+  BaseTypeInfo: PTypeInfo;
+begin
+  AllocateTypeInfo(BooleanTypeDataLength);
+
+  with TypeData^ do
+  begin
+    // OrdType
+    OrdType := KindToOrdType[BooleanKind];
+
+    // MinValue and MaxValue
+    if BooleanKind = bkBoolean then
+    begin
+      MinValue := 0;
+      MaxValue := 1;
+    end else
+    begin
+      MinValue := -MaxInt-1;
+      MaxValue := MaxInt;
+    end;
+
+    // BaseType
+    case BooleanKind of
+      bkByteBool: BaseTypeInfo := System.TypeInfo(ByteBool);
+      bkWordBool: BaseTypeInfo := System.TypeInfo(WordBool);
+      bkLongBool: BaseTypeInfo := System.TypeInfo(LongBool);
+    else
+      BaseTypeInfo := System.TypeInfo(Boolean);
+    end;
+
+    BaseType := GetTypeData(BaseTypeInfo).BaseType;
+
+    // NameList
+    Move(PackedShortStrFalseTrue, NameList, SizeOf(PackedShortStrFalseTrue));
+  end;
 end;
 
 {*
@@ -946,6 +1069,34 @@ begin
 
   // Créer les constantes énumérées
   CreateConstants;
+end;
+
+{*
+  [@inheritDoc]
+*}
+constructor TSepiEnumType.Clone(AOwner: TSepiMeta; const AName: string;
+  Source: TSepiType);
+var
+  OwningUnitName: ShortString;
+begin
+  inherited;
+
+  OwningUnitName := OwningUnit.Name;
+
+  // Allocate type info
+  TypeDataLength := EnumTypeDataLength + 1 + Length(OwningUnitName);
+  AllocateTypeInfo(TypeDataLength);
+
+  // Copy source type data
+  Move(Source.TypeData^, TypeData^, EnumTypeDataLength);
+
+  // Write unit name
+  Move(OwningUnitName[0], TypeData.NameList[0], Length(OwningUnitName)+1);
+
+  // Set fields
+  inherited ExtractTypeData;
+  FBaseType := (Source as TSepiEnumType).BaseType;
+  FValueCount := TSepiEnumType(Source).ValueCount;
 end;
 
 {*
@@ -1126,6 +1277,15 @@ end;
 {*
   [@inheritDoc]
 *}
+constructor TSepiSetType.Clone(AOwner: TSepiMeta; const AName: string;
+  Source: TSepiType);
+begin
+  Create(AOwner, AName, (Source as TSepiSetType).CompType);
+end;
+
+{*
+  [@inheritDoc]
+*}
 procedure TSepiSetType.ListReferences;
 begin
   inherited;
@@ -1269,6 +1429,27 @@ begin
     FForwardInfo.PointToName := APointTo;
     FForwardInfo.IsNative := AIsNative;
     TSepiPointerType(AOwner).AddForward(AName, Self);
+  end;
+end;
+
+{*
+  [@inheritDoc]
+*}
+constructor TSepiPointerType.Clone(AOwner: TSepiMeta; const AName: string;
+  Source: TSepiType);
+begin
+  if not Source.IsForward then
+  begin
+    Create(AOwner, AName, (Source as TSepiPointerType).PointTo);
+  end else
+  begin
+    with (Source as TSepiPointerType).FForwardInfo^ do
+    begin
+      if PointToTypeInfo <> nil then
+        Create(Owner, Name, PointToTypeInfo)
+      else
+        Create(Owner, Name, PointToName);
+    end;
   end;
 end;
 

@@ -290,11 +290,17 @@ type
   public
     constructor RegisterTypeInfo(AOwner: TSepiMeta;
       ATypeInfo: PTypeInfo); virtual;
-    constructor Clone(AOwner: TSepiMeta; const AName: string;
-      Source: TSepiType); virtual;
     constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
     constructor Create(AOwner: TSepiMeta; const AName: string;
       AKind: TTypeKind);
+    {*
+      Clone un type
+      @param AOwner   Propriétaire du type
+      @param AName    Nom du type
+      @param Source   Type à cloner
+    *}
+    constructor Clone(AOwner: TSepiMeta; const AName: string;
+      Source: TSepiType); virtual; abstract;
     destructor Destroy; override;
 
     class function NewInstance: TObject; override;
@@ -1361,28 +1367,6 @@ begin
 end;
 
 {*
-  Clone un type
-  @param AOwner   Propriétaire du type
-  @param AName    Nom du type
-  @param Source   Type à cloner
-*}
-constructor TSepiType.Clone(AOwner: TSepiMeta; const AName: string;
-  Source: TSepiType);
-begin
-  inherited Create(AOwner, AName);
-
-  FKind := Source.Kind;
-  FNative := False;
-  FTypeInfoLength := 0;
-  FTypeInfo := nil;
-  FTypeData := nil;
-  FSize := 0;
-  FNeedInit := False;
-  FParamBehavior := DefaultTypeParamBehavior;
-  FResultBehavior := rbOrdinal;
-end;
-
-{*
   Charge un type depuis un flux
   @param AOwner   Propriétaire du type
   @param Stream   Flux depuis lequel charger le type
@@ -1445,6 +1429,9 @@ begin
   inherited Destroy;
 end;
 
+{*
+  [@inheritDoc]
+*}
 procedure TSepiType.Save(Stream: TStream);
 begin
   inherited;
