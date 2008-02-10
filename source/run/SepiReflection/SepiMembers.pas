@@ -2709,7 +2709,7 @@ begin
     FResultBehavior := rbParameter;
   end;
 
-  if TypeInfo = nil then
+  if not Native then
     MakeTypeInfo;
 
   TSepiRecordType(Owner).ReAddChild(Self);
@@ -3071,7 +3071,10 @@ begin
   inherited;
 
   FSize := 4;
-  FDelphiClass := nil;
+  if Native then
+    FDelphiClass := TypeData.ClassType
+  else
+    FDelphiClass := nil;
   OwningUnit.ReadRef(Stream, FParent);
   FCompleted := False;
 
@@ -4305,7 +4308,8 @@ constructor TSepiVariantType.Load(AOwner: TSepiMeta; Stream: TStream);
 begin
   inherited;
 
-  AllocateTypeInfo;
+  if not Native then
+    AllocateTypeInfo;
 
   FSize := 16;
   FNeedInit := True;

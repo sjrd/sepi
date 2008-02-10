@@ -67,6 +67,19 @@ type
     var CodeHandler: TObject) of object;
 
   {*
+    Type de l'événement OnGetTypeInfo de TSepiUnit
+    Si TypeInfo est laissé à nil et si Found est laissé à False, Sepi créera
+    ses propres RTTI pour le type. Ce cas ne devrait se présenter que pour des
+    types anonymes pour lesquels le code est incapable de trouver les RTTI
+    natives.
+    @param Sender     Type déclenchant l'événement (toujours TSepiType)
+    @param TypeInfo   RTTI du type
+    @param Found      Positionnez à True si les RTTI ont été trouvées
+  *}
+  TGetTypeInfoEvent = procedure(Sender: TObject; var TypeInfo: PTypeInfo;
+    var Found: Boolean) of object;
+
+  {*
     Déclenchée si l'on tente de recréer un meta (second appel au constructeur)
     @author sjrd
     @version 1.0
@@ -138,6 +151,7 @@ type
     FOwningUnit: TSepiUnit;         /// Unité contenante
     FName: string;                  /// Nom
     FVisibility: TMemberVisibility; /// Visibilité
+    FTag: Integer;                  /// Tag
     FForwards: TStrings;            /// Liste des enfants forwards
     FChildren: TSepiMetaList;       /// Liste des enfants
     FObjResources: TObjectList;     /// Liste des ressources objet
@@ -202,6 +216,7 @@ type
     property OwningUnit: TSepiUnit read FOwningUnit;
     property Name: string read FName;
     property Visibility: TMemberVisibility read FVisibility write FVisibility;
+    property Tag: Integer read FTag write FTag;
 
     property ChildCount: Integer read GetChildCount;
     property Children[Index: Integer]: TSepiMeta read GetChildren;
@@ -355,6 +370,8 @@ type
   private
     /// Déclenché pour chaque méthode au chargement, pour obtenir son code
     FOnGetMethodCode: TGetMethodCodeEvent;
+    /// Déclenché pour chaque type au chargement, pour obtenir ses RTTI
+    FOnGetTypeInfo: TGetTypeInfoEvent;
 
     FRefCount: Integer;                    /// Compteur de références
     FUsesList: TStrings;                   /// Liste des uses
@@ -385,7 +402,8 @@ type
 
     procedure SaveToStream(Stream: TStream);
     class function LoadFromStream(AOwner: TSepiMeta; Stream: TStream;
-      const AOnGetMethodCode: TGetMethodCodeEvent = nil): TSepiUnit;
+      const AOnGetMethodCode: TGetMethodCodeEvent = nil;
+      const AOnGetTypeInfo: TGetTypeInfoEvent = nil): TSepiUnit;
 
     procedure ReadRef(Stream: TStream; out Ref);
     procedure AddRef(Ref: TSepiMeta);
@@ -398,6 +416,7 @@ type
     property UsedUnits[Index: Integer]: TSepiUnit read GetUsedUnits;
 
     property OnGetMethodCode: TGetMethodCodeEvent read FOnGetMethodCode;
+    property OnGetTypeInfo: TGetTypeInfoEvent read FOnGetTypeInfo;
   end;
 
   {*
@@ -785,7 +804,8 @@ end;
 function TSepiMetaList.Remove(Meta: TSepiMeta): Integer;
 begin
   Result := IndexOfMeta(Meta);
-  Delete(Result);
+  if Result >= 0 then
+    Delete(Result);
 end;
 
 {------------------}
@@ -801,6 +821,7 @@ constructor TSepiMeta.Load(AOwner: TSepiMeta; Stream: TStream);
 begin
   Create(AOwner, ReadStrFromStream(Stream));
   Stream.ReadBuffer(FVisibility, 1);
+  Stream.ReadBuffer(FTag, SizeOf(Integer));
   FState := msLoading;
 end;
 
@@ -820,6 +841,7 @@ begin
   FOwner := AOwner;
   FName := AName;
   FVisibility := mvPublic;
+  FTag := 0;
   FForwards := THashedStringList.Create;
   FChildren := TSepiMetaList.Create;
   FObjResources := TObjectList.Create;
@@ -1091,6 +1113,7 @@ procedure TSepiMeta.Save(Stream: TStream);
 begin
   WriteStrToStream(Stream, Name);
   Stream.WriteBuffer(FVisibility, 1);
+  Stream.WriteBuffer(FTag, SizeOf(Integer));
 end;
 
 {*
@@ -1375,6 +1398,16 @@ begin
   FNeedInit := False;
   FParamBehavior := DefaultTypeParamBehavior;
   FResultBehavior := rbOrdinal;
+
+  if Assigned(OwningUnit.OnGetTypeInfo) then
+  begin
+    OwningUnit.OnGetTypeInfo(Self, FTypeInfo, FNative);
+    if FTypeInfo <> nil then
+    begin
+      FNative := True;
+      FTypeData := GetTypeData(FTypeInfo);
+    end;
+  end;
 end;
 
 {*
@@ -2086,15 +2119,19 @@ end;
   @param Stream             Flux depuis lequel charger l'unité
   @param AOnGetMethodCode   Méthode de call-back pour récupérer le code d'une
                             méthode
+  @param AOnGetTypeInfo     Méthode de call-back pour récupérer les RTTI d'un
+                            type
 *}
-class function TSepiUnit.LoadFromStream(AOwner: TSepiMeta;
-  Stream: TStream;
-  const AOnGetMethodCode: TGetMethodCodeEvent = nil): TSepiUnit;
+class function TSepiUnit.LoadFromStream(AOwner: TSepiMeta; Stream: TStream;
+  const AOnGetMethodCode: TGetMethodCodeEvent = nil;
+  const AOnGetTypeInfo: TGetTypeInfoEvent = nil): TSepiUnit;
 begin
   Result := TSepiUnit(NewInstance);
   Result.FOnGetMethodCode := AOnGetMethodCode;
+  Result.FOnGetTypeInfo := AOnGetTypeInfo;
   Result.Load(AOwner, Stream);
   Result.FOnGetMethodCode := nil;
+  Result.FOnGetTypeInfo := nil;
 end;
 
 {*

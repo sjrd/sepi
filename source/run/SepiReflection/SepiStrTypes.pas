@@ -104,8 +104,12 @@ constructor TSepiShortStringType.Load(AOwner: TSepiMeta; Stream: TStream);
 begin
   inherited;
 
-  AllocateTypeInfo(ShortStringTypeDataLength);
-  Stream.ReadBuffer(TypeData^, ShortStringTypeDataLength);
+  if not Native then
+  begin
+    AllocateTypeInfo(ShortStringTypeDataLength);
+    Stream.ReadBuffer(TypeData^, ShortStringTypeDataLength);
+  end else
+    Stream.Seek(ShortStringTypeDataLength, soFromCurrent);
 
   ExtractTypeData;
 end;
@@ -178,8 +182,12 @@ constructor TSepiStringType.Load(AOwner: TSepiMeta; Stream: TStream);
 begin
   inherited;
 
-  AllocateTypeInfo(StringTypeDataLength);
-  Stream.ReadBuffer(TypeData^, StringTypeDataLength);
+  if not Native then
+  begin
+    AllocateTypeInfo(StringTypeDataLength);
+    Stream.ReadBuffer(TypeData^, StringTypeDataLength);
+  end else
+    Stream.Seek(StringTypeDataLength, soFromCurrent);
 
   ExtractTypeData;
 end;

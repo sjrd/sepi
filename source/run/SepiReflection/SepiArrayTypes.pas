@@ -157,7 +157,8 @@ begin
   if FParamBehavior.AlwaysByAddress then
     FResultBehavior := rbParameter;
 
-  MakeTypeInfo;
+  if not Native then
+    MakeTypeInfo;
 end;
 
 {*
@@ -333,7 +334,8 @@ begin
 
   OwningUnit.ReadRef(Stream, FElementType);
 
-  MakeTypeInfo;
+  if not Native then
+    MakeTypeInfo;
 end;
 
 {*

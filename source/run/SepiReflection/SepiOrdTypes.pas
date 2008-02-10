@@ -384,8 +384,12 @@ constructor TSepiIntegerType.Load(AOwner: TSepiMeta; Stream: TStream);
 begin
   inherited;
 
-  AllocateTypeInfo(IntegerTypeDataLength);
-  Stream.ReadBuffer(TypeData^, IntegerTypeDataLength);
+  if not Native then
+  begin
+    AllocateTypeInfo(IntegerTypeDataLength);
+    Stream.ReadBuffer(TypeData^, IntegerTypeDataLength);
+  end else
+    Stream.Seek(IntegerTypeDataLength, soFromCurrent);
 
   ExtractTypeData;
 end;
@@ -494,8 +498,12 @@ constructor TSepiCharType.Load(AOwner: TSepiMeta; Stream: TStream);
 begin
   inherited;
 
-  AllocateTypeInfo(CharTypeDataLength);
-  Stream.ReadBuffer(TypeData^, CharTypeDataLength);
+  if not Native then
+  begin
+    AllocateTypeInfo(CharTypeDataLength);
+    Stream.ReadBuffer(TypeData^, CharTypeDataLength);
+  end else
+    Stream.Seek(CharTypeDataLength, soFromCurrent);
 
   ExtractTypeData;
 end;
@@ -601,8 +609,12 @@ constructor TSepiInt64Type.Load(AOwner: TSepiMeta; Stream: TStream);
 begin
   inherited;
 
-  AllocateTypeInfo(Int64TypeDataLength);
-  Stream.ReadBuffer(TypeData^, Int64TypeDataLength);
+  if not Native then
+  begin
+    AllocateTypeInfo(Int64TypeDataLength);
+    Stream.ReadBuffer(TypeData^, Int64TypeDataLength);
+  end else
+    Stream.Seek(Int64TypeDataLength, soFromCurrent);
 
   ExtractTypeData;
 end;
@@ -694,8 +706,12 @@ constructor TSepiFloatType.Load(AOwner: TSepiMeta; Stream: TStream);
 begin
   inherited;
 
-  AllocateTypeInfo(FloatTypeDataLength);
-  Stream.ReadBuffer(TypeData^, FloatTypeDataLength);
+  if not Native then
+  begin
+    AllocateTypeInfo(FloatTypeDataLength);
+    Stream.ReadBuffer(TypeData^, FloatTypeDataLength);
+  end else
+    Stream.Seek(FloatTypeDataLength, soFromCurrent);
 
   ExtractTypeData;
 end;
@@ -777,8 +793,12 @@ constructor TSepiBooleanType.Load(AOwner: TSepiMeta; Stream: TStream);
 begin
   inherited;
 
-  AllocateTypeInfo(EnumTypeDataLength);
-  Stream.ReadBuffer(TypeData^, EnumTypeDataLength);
+  if not Native then
+  begin
+    AllocateTypeInfo(EnumTypeDataLength);
+    Stream.ReadBuffer(TypeData^, EnumTypeDataLength);
+  end else
+    Stream.Seek(EnumTypeDataLength, soFromCurrent);
 
   ExtractTypeData;
 end;
@@ -832,11 +852,16 @@ begin
   inherited;
 
   Stream.ReadBuffer(TypeDataLength, 4);
-  AllocateTypeInfo(TypeDataLength);
-  Stream.ReadBuffer(TypeData^, TypeDataLength);
+  if not Native then
+  begin
+    AllocateTypeInfo(TypeDataLength);
+    Stream.ReadBuffer(TypeData^, TypeDataLength);
+  end else
+    Stream.Seek(TypeDataLength, soFromCurrent);
 
   OwningUnit.ReadRef(Stream, FBaseType);
-  TypeData.BaseType := FBaseType.TypeInfoRef;
+  if not Native then
+    TypeData.BaseType := FBaseType.TypeInfoRef;
 
   ExtractTypeData;
 end;
@@ -1023,11 +1048,16 @@ constructor TSepiSetType.Load(AOwner: TSepiMeta; Stream: TStream);
 begin
   inherited;
 
-  AllocateTypeInfo(SetTypeDataLength);
-  Stream.ReadBuffer(TypeData^, SetTypeDataLength);
+  if not Native then
+  begin
+    AllocateTypeInfo(SetTypeDataLength);
+    Stream.ReadBuffer(TypeData^, SetTypeDataLength);
+  end else
+    Stream.Seek(SetTypeDataLength, soFromCurrent);
 
   OwningUnit.ReadRef(Stream, FCompType);
-  TypeData.CompType := FCompType.TypeInfoRef;
+  if not Native then
+    TypeData.CompType := FCompType.TypeInfoRef;
 
   ExtractTypeData;
 end;
