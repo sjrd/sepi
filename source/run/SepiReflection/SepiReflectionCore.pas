@@ -28,8 +28,8 @@ interface
 
 uses
   Windows, SysUtils, Classes, Contnrs, RTLConsts, IniFiles, TypInfo, Variants,
-  StrUtils, ScUtils, ScStrUtils, ScSyncObjs, ScCompilerMagic, SepiCore,
-  SepiReflectionConsts;
+  StrUtils, ScUtils, ScStrUtils, ScSyncObjs, ScCompilerMagic, ScSerializer,
+  SepiCore, SepiReflectionConsts;
 
 type
   TSepiMeta = class;
@@ -303,6 +303,11 @@ type
       ATypeInfo: PTypeInfo): TSepiType;
 
     procedure AlignOffset(var Offset: Integer);
+
+    procedure InitializeValue(var Value);
+    procedure FinalizeValue(var Value);
+    function NewValue: Pointer;
+    procedure DisposeValue(Value: Pointer);
 
     function CompatibleWith(AType: TSepiType): Boolean; virtual;
 
@@ -1572,6 +1577,46 @@ begin
 end;
 
 {*
+  Initialise une valeur de ce type
+  @param Value   Valeur à initialiser
+*}
+procedure TSepiType.InitializeValue(var Value);
+begin
+  if NeedInit then
+    Initialize(Value, TypeInfo);
+end;
+
+{*
+  Finalise une valeur de ce type
+  @param Value   Valeur à finaliser
+*}
+procedure TSepiType.FinalizeValue(var Value);
+begin
+  if NeedInit then
+    Finalize(Value, TypeInfo);
+end;
+
+{*
+  Alloue une nouvelle valeur de ce type, et l'initialise si besoin
+  @return Pointeur sur la nouvelle valeur
+*}
+function TSepiType.NewValue: Pointer;
+begin
+  GetMem(Result, Size);
+  InitializeValue(Result^);
+end;
+
+{*
+  Libère une valeur de ce type, et la finalise si besoin
+  @param Value   Pointeur sur la valeur à libérer
+*}
+procedure TSepiType.DisposeValue(Value: Pointer);
+begin
+  FinalizeValue(Value^);
+  FreeMem(Value);
+end;
+
+{*
   Teste si un type est compatible avec un autre
   Il faut appeler CompatibleWith sur le type de la variable affectée, et avec en
   paramètre le type de l'expression à droite de l'assignation.
@@ -2359,9 +2404,7 @@ begin
       varWord: ATypeInfo := System.TypeInfo(Word);
       varLongWord: ATypeInfo := System.TypeInfo(LongWord);
       varInt64: ATypeInfo := System.TypeInfo(Int64);
-
       varOleStr, varStrArg, varString: ATypeInfo := System.TypeInfo(string);
-
     else
       raise ESepiBadConstTypeError.CreateFmt(
         SSepiBadConstType, [VarType(AValue)]);
@@ -2429,15 +2472,10 @@ begin
 
   OwningUnit.ReadRef(Stream, FType);
 
-  GetMem(FValue, FType.Size);
+  FValue := FType.NewValue;
   FOwnValue := True;
 
-  if FType is TSepiStringType then
-  begin
-    Pointer(FValue^) := nil;
-    string(FValue^) := ReadStrFromStream(Stream);
-  end else
-    Stream.ReadBuffer(FValue^, FType.Size);
+  ReadDataFromStream(Stream, FValue^, FType.TypeInfo);
 end;
 
 {*
@@ -2559,12 +2597,9 @@ end;
 procedure TSepiVariable.Save(Stream: TStream);
 begin
   inherited;
-  OwningUnit.WriteRef(Stream, FType);
 
-  if FType is TSepiStringType then
-    WriteStrToStream(Stream, string(FValue^))
-  else
-    Stream.WriteBuffer(FValue^, FType.Size);
+  OwningUnit.WriteRef(Stream, FType);
+  WriteDataToStream(Stream, FValue^, FType.TypeInfo);
 end;
 
 {*
@@ -2574,8 +2609,8 @@ procedure TSepiVariable.Destroying;
 begin
   inherited;
 
-  if FOwnValue and FType.NeedInit then
-    Finalize(FValue^, FType.TypeInfo);
+  if FOwnValue then
+    FType.FinalizeValue(FValue^);
 end;
 
 {--------------------------}
