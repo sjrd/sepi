@@ -1084,6 +1084,7 @@ begin
     begin
       InstructionPos := Instructions.PointerPos;
       Result.AddObject(DisassembleInstruction, TObject(InstructionPos));
+      Dec(MaxInstructions);
     end;
   except
     on Error: ESepiInvalidOpCode do;

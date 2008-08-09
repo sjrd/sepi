@@ -1,3 +1,22 @@
+{-------------------------------------------------------------------------------
+Sepi - Object-oriented script engine for Delphi
+Copyright (C) 2006-2007  Sébastien Doeraene
+All Rights Reserved
+
+This file is part of Sepi.
+
+Sepi is free software: you can redistribute it and/or modify it under the terms
+of the GNU General Public License as published by the Free Software Foundation,
+either version 3 of the License, or (at your option) any later version.
+
+Sepi is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with
+Sepi.  If not, see <http://www.gnu.org/licenses/>.
+-------------------------------------------------------------------------------}
+
 {*
   Assembleur Sepi
   @author sjrd
@@ -13,9 +32,8 @@ uses
 
 resourcestring
   SNoInstruction = 'Aucune instruction';
-  SLabelNotFound = 'Label %d non trouvé';
-  SLabelAlreadySet = 'Le label %d a déjà été assigné';
-  SNamedLabelNotFound = 'Label ''%s'' non trouvé';
+  SLabelAlreadyExists = 'Le label ''%s'' existe déjà';
+  SLabelNotFound = 'Label ''%s'' non trouvé';
   SMixBetweenAssemblers = 'Mélange de données entre différents assembleurs';
   SMemoryCantBeZero = 'La référence mémoire ne peut être zéro';
   SMemoryCantBeConstant = 'La référence mémoire ne peut être constante';
@@ -38,6 +56,7 @@ resourcestring
 
 type
   TSepiAsmInstrList = class;
+  TSepiInstructionList = class;
   TSepiMethodAssembler = class;
   TSepiUnitAssembler = class;
   TSepiMemoryReference = class;
@@ -63,40 +82,112 @@ type
   ESepiInvalidJumpDest = class(ESepiAssemblerError);
 
   {*
+    Référence à une instruction
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiInstructionRef = class(TObject)
+  private
+    FMethodAssembler: TSepiMethodAssembler; /// Assembleur de code
+
+    FInstructionIndex: Integer; /// Position de l'instruction référencée
+
+    procedure SetInstructionIndex(Value: Integer);
+
+    function GetPosition: Integer;
+  public
+    constructor Create(AMethodAssembler: TSepiMethodAssembler);
+
+    property MethodAssembler: TSepiMethodAssembler read FMethodAssembler;
+    property InstructionIndex: Integer read FInstructionIndex;
+    property Position: Integer read GetPosition;
+  end;
+
+  {*
+    Instruction Sepi
+    Les instructions Sepi sont toujours rattachées à un assembleur de méthodes.
+    Lorsque l'assembleur de méthodes est libérés, toutes les instructions qui
+    lui ont été rattachées sont libérées elles aussi. Ne libérez donc pas
+    manuellement une instruction Sepi.
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiInstruction = class(TObject)
+  private
+    FMethodAssembler: TSepiMethodAssembler; /// Assembleur de code
+    FUnitAssembler: TSepiUnitAssembler;     /// Assembleur d'unité
+
+    FBeforeRef: TSepiInstructionRef; /// Référence avant cette instruction
+    FAfterRef: TSepiInstructionRef;  /// Référence après cette instruction
+  protected
+    procedure CustomCompile; virtual;
+  public
+    constructor Create(AMethodAssembler: TSepiMethodAssembler);
+    destructor Destroy; override;
+
+    procedure AfterConstruction; override;
+
+    procedure Compile;
+
+    property MethodAssembler: TSepiMethodAssembler read FMethodAssembler;
+    property UnitAssembler: TSepiUnitAssembler read FUnitAssembler;
+
+    property BeforeRef: TSepiInstructionRef read FBeforeRef;
+    property AfterRef: TSepiInstructionRef read FAfterRef;
+  end;
+
+  {*
     Instruction d'assemblage Sepi
     @author sjrd
     @version 1.0
   *}
-  TSepiAsmInstr = class(TObject)
+  TSepiAsmInstr = class(TSepiInstruction)
   private
-    FOwner: TSepiAsmInstrList;              /// Liste propriétaire
-    FMethodAssembler: TSepiMethodAssembler; /// Assembleur de code
-    FUnitAssembler: TSepiUnitAssembler;     /// Assembleur d'unité
-
     FPosition: Integer; /// Position de l'instruction
   protected
     FOpCode: TSepiOpCode; /// OpCode
     FSize: Integer;       /// Taille
 
+    procedure CustomCompile; override;
+
     function GetEndPosition: Integer; virtual;
   public
-    constructor Create(AOwner: TSepiAsmInstrList);
-
-    procedure AfterConstruction; override;
+    constructor Create(AMethodAssembler: TSepiMethodAssembler);
 
     procedure Make; virtual;
     procedure ComputeActualSize; virtual;
     procedure SetPosition(Value: Integer); virtual;
     procedure WriteToStream(Stream: TStream); virtual;
 
-    property Owner: TSepiAsmInstrList read FOwner;
-    property MethodAssembler: TSepiMethodAssembler read FMethodAssembler;
-    property UnitAssembler: TSepiUnitAssembler read FUnitAssembler;
-
     property Position: Integer read FPosition;
     property OpCode: TSepiOpCode read FOpCode;
     property Size: Integer read FSize;
     property EndPosition: Integer read GetEndPosition;
+  end;
+
+  {*
+    Liste d'instructions Sepi
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiInstructionList = class(TSepiInstruction)
+  private
+    FInstructions: TObjectList; /// Instructions
+
+    function GetCount: Integer;
+    function GetInstructions(Index: Integer): TSepiInstruction;
+  protected
+    procedure CustomCompile; override;
+  public
+    constructor Create(AMethodAssembler: TSepiMethodAssembler);
+    destructor Destroy; override;
+
+    function Add(Instruction: TSepiInstruction): Integer;
+    procedure Insert(Index: Integer; Instruction: TSepiInstruction);
+
+    property Count: Integer read GetCount;
+    property Instructions[Index: Integer]: TSepiInstruction
+      read GetInstructions; default;
   end;
 
   {*
@@ -112,15 +203,23 @@ type
 
     FSize: Integer; /// Taille
 
+    procedure Make;
+    procedure ComputeActualSize;
+    procedure SetPositions;
+
     function GetCount: Integer;
     function GetInstructions(Index: Integer): TSepiAsmInstr;
+  protected
+    procedure Add(Instruction: TSepiAsmInstr);
+
+    property CurrentPos: Integer read GetCount;
   public
     constructor Create(AMethodAssembler: TSepiMethodAssembler);
     destructor Destroy; override;
 
-    procedure Make;
-    procedure ComputeActualSize;
-    procedure SetPosition(Value: Integer);
+    procedure Clear;
+
+    procedure Assemble;
     procedure WriteToStream(Stream: TStream);
 
     property MethodAssembler: TSepiMethodAssembler read FMethodAssembler;
@@ -130,6 +229,25 @@ type
       read GetInstructions; default;
 
     property Size: Integer read FSize;
+  end;
+
+  {*
+    Pseudo-instruction label nommé
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiNamedLabel = class(TSepiInstruction)
+  private
+    FName: string;
+  protected
+    procedure CustomCompile; override;
+  public
+    constructor Create(AMethodAssembler: TSepiMethodAssembler;
+      const AName: string);
+
+    procedure AfterConstruction; override;
+
+    property Name: string read FName;
   end;
 
   {*
@@ -151,34 +269,39 @@ type
   private
     FUnitAssembler: TSepiUnitAssembler; /// Assembleur d'unité
 
+    FObjFreeList: TObjectList; /// Liste des objets à libérer en fin de vie
+
     FSepiMethod: TSepiMethod; /// Méthode Sepi correspondante
     FLocals: TSepiRecordType; /// Variables locales
 
-    FInstructions: TSepiAsmInstrList; /// Instructions
-    FLastInstruction: TSepiAsmInstr;  /// Dernière instruction ajoutée
-    FSize: Integer;                   /// Taille totale (après assemblage)
+    FInstructions: TSepiInstructionList; /// Instructions
+    FAsmInstructions: TSepiAsmInstrList; /// Instructions assembleur
+    FSize: Integer;                      /// Taille totale (après assemblage)
 
-    FLabels: TObjectList;   /// Labels numériques
+    FLastInstruction: TSepiAsmInstrList;
+
     FNamedLabels: TStrings; /// Labels nommés (paire nom/instruction)
 
     FLocalsInfo: array of TLocalInfo; /// Informations sur les locales
+
+    procedure SetLabel(NamedLabel: TSepiNamedLabel);
+  protected
+    property AsmInstructions: TSepiAsmInstrList read FAsmInstructions;
   public
     constructor Create(AUnitAssembler: TSepiUnitAssembler;
       ASepiMethod: TSepiMethod);
     destructor Destroy; override;
 
     procedure AfterConstruction; override;
+    procedure BeforeDestruction; override;
+
+    procedure AddObjToFreeList(Obj: TObject);
 
     function LookFor(const Name: string): TObject;
 
-    function MakeLabel: Integer; overload;
-    function MakeLabel(const LabelName: string): Integer; overload;
-
-    procedure SetLabel(LabelID: Integer); overload;
-    procedure SetLabel(const LabelName: string); overload;
-
-    function FindLabel(LabelID: Integer): Integer; overload;
-    function FindLabel(const LabelName: string): Integer; overload;
+    function LabelExists(const LabelName: string): Boolean;
+    function FindLabel(const LabelName: string;
+      Create: Boolean = False): TSepiNamedLabel;
 
     procedure Assemble;
     procedure WriteToStream(Stream: TStream);
@@ -188,7 +311,7 @@ type
     property SepiMethod: TSepiMethod read FSepiMethod;
     property Locals: TSepiRecordType read FLocals;
 
-    property Instructions: TSepiAsmInstrList read FInstructions;
+    property Instructions: TSepiInstructionList read FInstructions;
     property Size: Integer read FSize;
   end;
 
@@ -310,13 +433,13 @@ type
   private
     FMethodAssembler: TSepiMethodAssembler; /// Assembleur de méthode
 
-    FLabelID: Integer;         /// ID du label
-    FLabelName: string;        /// Nom du label
-
-    procedure SetLabelID(Value: Integer);
-    procedure SetLabelName(const Value: string);
+    FInstructionRef: TSepiInstructionRef; /// Ref à l'instruction destination
   public
     constructor Create(AMethodAssembler: TSepiMethodAssembler);
+
+    procedure SetToLabel(NamedLabel: TSepiNamedLabel); overload;
+    procedure SetToLabel(const LabelName: string;
+      Create: Boolean = False); overload;
 
     procedure Make;
 
@@ -327,8 +450,8 @@ type
 
     property MethodAssembler: TSepiMethodAssembler read FMethodAssembler;
 
-    property LabelID: Integer read FLabelID write SetLabelID;
-    property LabelName: string read FLabelName write SetLabelName;
+    property InstructionRef: TSepiInstructionRef
+      read FInstructionRef write FInstructionRef;
   end;
 
 const // don't localize
@@ -398,23 +521,139 @@ begin
     Result := 4;
 end;
 
+{------------------------}
+{ TSepiInstruction class }
+{------------------------}
+
+{*
+  Crée une nouvelle instruction Sepi
+  @param AMethodAssembler   Assembleur de méthode
+*}
+constructor TSepiInstruction.Create(AMethodAssembler: TSepiMethodAssembler);
+begin
+  inherited Create;
+
+  FMethodAssembler := AMethodAssembler;
+  FUnitAssembler := FMethodAssembler.UnitAssembler;
+
+  FBeforeRef := TSepiInstructionRef.Create(MethodAssembler);
+  FAfterRef := TSepiInstructionRef.Create(MethodAssembler);
+end;
+
+{*
+  [@inheritDoc]
+*}
+destructor TSepiInstruction.Destroy;
+begin
+  FBeforeRef.Free;
+  FAfterRef.Free;
+
+  inherited;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiInstruction.AfterConstruction;
+begin
+  inherited;
+
+  MethodAssembler.AddObjToFreeList(Self);
+end;
+
+{*
+  Compile l'instruction
+  Cette méthode doit être surchargée par toutes les instructions afin de se
+  compiler. La compilation fera intervenir la création d'instructions assembleur
+  et leur compilation, en fin de récursion. La compilation des instructions
+  assembleur est particulière et consiste uniquement à s'ajouter à la liste des
+  instructions assembleur de la méthode.
+  Pour compiler les instructions subalternes, appelez Compile et non
+  CustomCompile. Mais surchargez CustomCompile.
+*}
+procedure TSepiInstruction.CustomCompile;
+begin
+end;
+
+{*
+  Compile l'instruction
+*}
+procedure TSepiInstruction.Compile;
+begin
+  FBeforeRef.SetInstructionIndex(MethodAssembler.FAsmInstructions.CurrentPos);
+
+  CustomCompile;
+
+  FAfterRef.SetInstructionIndex(MethodAssembler.FAsmInstructions.CurrentPos);
+end;
+
+{---------------------------}
+{ TSepiInstructionRef class }
+{---------------------------}
+
+{*
+  Crée une référence à une instruction
+  @param AMethodAssembler   Assembleur de méthode
+*}
+constructor TSepiInstructionRef.Create(AMethodAssembler: TSepiMethodAssembler);
+begin
+  inherited Create;
+
+  FMethodAssembler := AMethodAssembler;
+  FInstructionIndex := -1;
+end;
+
+{*
+  Renseigne la position de l'instruction référencée
+  @param Value Position de l'instruction référencée
+*}
+procedure TSepiInstructionRef.SetInstructionIndex(Value: Integer);
+begin
+  Assert(FInstructionIndex < 0);
+  FInstructionIndex := Value;
+end;
+
+{*
+  Position de la référence
+  @return Position de la référence
+*}
+function TSepiInstructionRef.GetPosition: Integer;
+var
+  Instructions: TSepiAsmInstrList;
+begin
+  Assert(FInstructionIndex >= 0);
+
+  Instructions := MethodAssembler.AsmInstructions;
+
+  if InstructionIndex < Instructions.Count then
+    Result := Instructions[InstructionIndex].Position
+  else
+    Result := Instructions.Size;
+end;
+
 {---------------------}
 { TSepiAsmInstr class }
 {---------------------}
 
 {*
   Crée une nouvelle instruction assembleur Sepi
-  @param AOwner   Liste d'instructions propriétaire
+  @param AMethodAssembler   Assembleur de méthode
 *}
-constructor TSepiAsmInstr.Create(AOwner: TSepiAsmInstrList);
+constructor TSepiAsmInstr.Create(AMethodAssembler: TSepiMethodAssembler);
 begin
-  inherited Create;
-
-  FOwner := AOwner;
-  FMethodAssembler := FOwner.MethodAssembler;
-  FUnitAssembler := FMethodAssembler.UnitAssembler;
+  inherited Create(AMethodAssembler);
 
   FOpCode := ocNope;
+end;
+
+{*
+  Compile l'instruction assembleur
+  La compilation d'une instruction assembleur consiste uniquement à s'ajouter à
+  la liste des instructions assembleur de son assembleur de méthode.
+*}
+procedure TSepiAsmInstr.CustomCompile;
+begin
+  MethodAssembler.FAsmInstructions.Add(Self);
 end;
 
 {*
@@ -424,17 +663,6 @@ end;
 function TSepiAsmInstr.GetEndPosition: Integer;
 begin
   Result := Position + Size;
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TSepiAsmInstr.AfterConstruction;
-begin
-  inherited;
-
-  FOwner.FInstructions.Add(Self);
-  FMethodAssembler.FLastInstruction := Self;
 end;
 
 {*
@@ -480,12 +708,88 @@ begin
   Stream.WriteBuffer(FOpCode, SizeOf(TSepiOpCode));
 end;
 
+{----------------------------}
+{ TSepiInstructionList class }
+{----------------------------}
+
+{*
+  Crée une liste d'instructions
+  @param AMethodAssembler   Assembleur de méthode
+*}
+constructor TSepiInstructionList.Create(AMethodAssembler: TSepiMethodAssembler);
+begin
+  inherited Create(AMethodAssembler);
+
+  FInstructions := TObjectList.Create(False);
+end;
+
+{*
+  [@inheritDoc]
+*}
+destructor TSepiInstructionList.Destroy;
+begin
+  FInstructions.Free;
+
+  inherited;
+end;
+
+{*
+  Nombre d'instructions
+  @return Nombre d'instructions dans la liste
+*}
+function TSepiInstructionList.GetCount: Integer;
+begin
+  Result := FInstructions.Count;
+end;
+
+{*
+  Tableau zero-based des instructions
+  @param Index   Index d'une instruction
+  @return L'instruction à l'index spécifié
+*}
+function TSepiInstructionList.GetInstructions(Index: Integer): TSepiInstruction;
+begin
+  Result := TSepiInstruction(FInstructions[Index]);
+end;
+
+{*
+  Compile les instructions
+*}
+procedure TSepiInstructionList.CustomCompile;
+var
+  I: Integer;
+begin
+  for I := 0 to Count-1 do
+    Instructions[I].Compile;
+end;
+
+{*
+  Ajoute une instruction à la fin de la liste
+  @param Instruction   Instruction à ajouter
+  @return Position de l'instruction dans la liste
+*}
+function TSepiInstructionList.Add(Instruction: TSepiInstruction): Integer;
+begin
+  Result := FInstructions.Add(Instruction);
+end;
+
+{*
+  Insère une instruction à une position donnée dans la liste
+  @param Index         Index où insérer l'instruction
+  @param Instruction   Instruction à insérer
+*}
+procedure TSepiInstructionList.Insert(Index: Integer;
+  Instruction: TSepiInstruction);
+begin
+  FInstructions.Insert(Index, Instruction);
+end;
+
 {-------------------------}
 { TSepiAsmInstrList class }
 {-------------------------}
 
 {*
-  Crée une liste d'instructions
+  Crée une liste d'instructions assembleur
   @param AMethodAssembler   Assembleur de méthode
 *}
 constructor TSepiAsmInstrList.Create(AMethodAssembler: TSepiMethodAssembler);
@@ -493,7 +797,7 @@ begin
   inherited Create;
 
   FMethodAssembler := AMethodAssembler;
-  FInstructions := TObjectList.Create;
+  FInstructions := TObjectList.Create(False);
 
   FSize := 0;
 end;
@@ -506,25 +810,6 @@ begin
   FInstructions.Free;
 
   inherited;
-end;
-
-{*
-  Nombre d'instructions
-  @return Nombre d'instructions dans la liste
-*}
-function TSepiAsmInstrList.GetCount: Integer;
-begin
-  Result := FInstructions.Count;
-end;
-
-{*
-  Tableau zero-based des instructions
-  @param Index   Index d'une instruction
-  @return L'instruction à l'index spécifié
-*}
-function TSepiAsmInstrList.GetInstructions(Index: Integer): TSepiAsmInstr;
-begin
-  Result := TSepiAsmInstr(FInstructions[Index]);
 end;
 
 {*
@@ -561,15 +846,64 @@ end;
   Donne leur position aux instructions
   @param Value   Position de base
 *}
-procedure TSepiAsmInstrList.SetPosition(Value: Integer);
+procedure TSepiAsmInstrList.SetPositions;
 var
-  I: Integer;
+  I, Pos: Integer;
 begin
+  Pos := 0;
+
   for I := 0 to Count-1 do
   begin
-    Instructions[I].SetPosition(Value);
-    Inc(Value, Instructions[I].Size);
+    Instructions[I].SetPosition(Pos);
+    Inc(Pos, Instructions[I].Size);
   end;
+end;
+
+{*
+  Nombre d'instructions
+  @return Nombre d'instructions dans la liste
+*}
+function TSepiAsmInstrList.GetCount: Integer;
+begin
+  Result := FInstructions.Count;
+end;
+
+{*
+  Tableau zero-based des instructions
+  @param Index   Index d'une instruction
+  @return L'instruction à l'index spécifié
+*}
+function TSepiAsmInstrList.GetInstructions(Index: Integer): TSepiAsmInstr;
+begin
+  Result := TSepiAsmInstr(FInstructions[Index]);
+end;
+
+{*
+  Ajoute une instruction assembleur à la liste
+  @param Instruction Instruction à ajouter
+*}
+procedure TSepiAsmInstrList.Add(Instruction: TSepiAsmInstr);
+begin
+  FInstructions.Add(Instruction);
+end;
+
+{*
+  Vide la liste des instructions
+*}
+procedure TSepiAsmInstrList.Clear;
+begin
+  FInstructions.Clear;
+end;
+
+{*
+  Assemble les instructions
+*}
+procedure TSepiAsmInstrList.Assemble;
+begin
+  Make;
+  SetPositions;
+  ComputeActualSize;
+  SetPositions;
 end;
 
 {*
@@ -586,6 +920,38 @@ begin
     Instructions[I].WriteToStream(Stream);
 end;
 
+{-----------------------}
+{ TSepiNamedLabel class }
+{-----------------------}
+
+{*
+  Crée une nouveau label nommé
+  @param AMethodAssembler   Assembleur de méthode
+  @param AName              Nom du label
+*}
+constructor TSepiNamedLabel.Create(AMethodAssembler: TSepiMethodAssembler;
+  const AName: string);
+begin
+  inherited Create(AMethodAssembler);
+
+  FName := AName;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiNamedLabel.CustomCompile;
+begin
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiNamedLabel.AfterConstruction;
+begin
+  MethodAssembler.SetLabel(Self);
+end;
+
 {----------------------------}
 { TSepiMethodAssembler class }
 {----------------------------}
@@ -596,7 +962,8 @@ end;
   record dont le nom est LocalVarsName est présent - celles-ci sont prises
   comme variables locales d'assemblage. Sinon, l'assembleur crée un record de
   variables locales, et le libèrera à sa destruction.
-  @param ASepiMethod   Méthode Sepi
+  @param AUnitAssembler   Assembleur d'unité
+  @param ASepiMethod      Méthode Sepi
 *}
 constructor TSepiMethodAssembler.Create(AUnitAssembler: TSepiUnitAssembler;
   ASepiMethod: TSepiMethod);
@@ -605,6 +972,8 @@ begin
 
   FUnitAssembler := AUnitAssembler;
   FSepiMethod := ASepiMethod;
+
+  FObjFreeList := TObjectList.Create(False);
 
   // Fetch locals or create them if they don't exist
 
@@ -621,11 +990,11 @@ begin
 
   // Initialize other fields
 
-  FInstructions := TSepiAsmInstrList.Create(Self);
+  FInstructions := TSepiInstructionList.Create(Self);
+  FAsmInstructions := TSepiAsmInstrList.Create(Self);
   FLastInstruction := nil;
   FSize := 0;
 
-  FLabels := TObjectList.Create(False);
   FNamedLabels := TStringList.Create;
   TStringList(FNamedLabels).CaseSensitive := False;
 end;
@@ -636,10 +1005,27 @@ end;
 destructor TSepiMethodAssembler.Destroy;
 begin
   FNamedLabels.Free;
-  FLabels.Free;
-  FInstructions.Free;
+  FAsmInstructions.Free;
+
+  FObjFreeList.Free;
 
   inherited;
+end;
+
+{*
+  Notifie l'existence d'un label nommé
+  @param NamedLabel   Label nommé à ajouter
+*}
+procedure TSepiMethodAssembler.SetLabel(NamedLabel: TSepiNamedLabel);
+var
+  Index: Integer;
+begin
+  Index := FNamedLabels.IndexOf(NamedLabel.Name);
+  
+  if Index < 0 then
+    FNamedLabels.AddObject(NamedLabel.Name, NamedLabel)
+  else
+    raise ESepiLabelError.CreateResFmt(@SLabelAlreadyExists, [NamedLabel.Name]);
 end;
 
 {*
@@ -650,6 +1036,29 @@ begin
   inherited;
 
   UnitAssembler.FMethods.Add(Self);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiMethodAssembler.BeforeDestruction;
+var
+  I: Integer;
+begin
+  inherited;
+
+  for I := 0 to FObjFreeList.Count-1 do
+    FObjFreeList[I].Free;
+  FObjFreeList.Clear;
+end;
+
+{*
+  Ajoute un objet à ceux devant être libérés en fin de vie
+*}
+procedure TSepiMethodAssembler.AddObjToFreeList(Obj: TObject);
+begin
+  if FObjFreeList.IndexOf(Obj) < 0 then
+    FObjFreeList.Add(Obj);
 end;
 
 {*
@@ -674,91 +1083,35 @@ begin
 end;
 
 {*
-  Crée un nouveau label
-  @return ID du label créé
-*}
-function TSepiMethodAssembler.MakeLabel: Integer;
-begin
-  Result := FLabels.Add(LabelUnassigned);
-end;
-
-{*
-  Crée un nouveau label nommé
+  Teste l'existence d'un un label nommé
   @param LabelName   Nom du label
-  @return ID du label créé
+  @return True si un label de ce nom existe, False sinon
 *}
-function TSepiMethodAssembler.MakeLabel(const LabelName: string): Integer;
+function TSepiMethodAssembler.LabelExists(const LabelName: string): Boolean;
 begin
-  Result := FNamedLabels.IndexOf(LabelName);
-  if Result < 0 then
-  begin
-    Result := MakeLabel;
-    FNamedLabels.AddObject(LabelName, TObject(Result));
-  end else
-    Result := Integer(FNamedLabels.Objects[Result]);
-end;
-
-{*
-  Assigne un label
-  @param LabelID   ID du label
-*}
-procedure TSepiMethodAssembler.SetLabel(LabelID: Integer);
-begin
-  // Check label validity
-  if (LabelID < 0) or (LabelID >= FLabels.Count) then
-    raise ESepiLabelError.CreateResFmt(@SLabelNotFound, [LabelID]);
-  if FLabels[LabelID] <> LabelUnassigned then
-    raise ESepiLabelError.CreateResFmt(@SLabelAlreadySet, [LabelID]);
-
-  // Set label
-  FLabels[LabelID] := FLastInstruction;
-end;
-
-{*
-  Assigne un label nommé
-  @param LabelName   Nom du label
-*}
-procedure TSepiMethodAssembler.SetLabel(const LabelName: string);
-begin
-  SetLabel(MakeLabel(LabelName));
-end;
-
-{*
-  Cherche un label
-  @param LabelID   ID du label recherché
-  @return Position du label
-  @throws ESepiLabelError Le label n'a pas été trouvé
-*}
-function TSepiMethodAssembler.FindLabel(LabelID: Integer): Integer;
-var
-  Instruction: TSepiAsmInstr;
-begin
-  if (LabelID < 0) or (LabelID >= FLabels.Count) then
-    raise ESepiLabelError.CreateResFmt(@SLabelNotFound, [LabelID]);
-  if FLabels[LabelID] = LabelUnassigned then
-    raise ESepiLabelError.CreateResFmt(@SLabelNotFound, [LabelID]);
-
-  Instruction := TSepiAsmInstr(FLabels[LabelID]);
-  if Instruction = nil then
-    Result := 0
-  else
-    Result := Instruction.EndPosition;
+  Result := FNamedLabels.IndexOf(LabelName) >= 0;
 end;
 
 {*
   Cherche un label nommé
   @param LabelName   Nom du label recherché
-  @return Position du label
+  @param Create      Si True, un label non trouvé est créé automatiquement
+  @return Label nommé
   @throws ESepiLabelError Le label n'a pas été trouvé
 *}
-function TSepiMethodAssembler.FindLabel(const LabelName: string): Integer;
+function TSepiMethodAssembler.FindLabel(
+  const LabelName: string; Create: Boolean = False): TSepiNamedLabel;
+var
+  Index: Integer;
 begin
-  try
-    Result := FindLabel(MakeLabel(LabelName));
-  except
-    on Error: ESepiLabelError do
-      raise ESepiLabelError.CreateResFmt(@SNamedLabelNotFound, [LabelName]);
-  end;
+  Index := FNamedLabels.IndexOf(LabelName);
+
+  if Index >= 0 then
+    Result := TSepiNamedLabel(FNamedLabels.Objects[Index])
+  else if Create then
+    Result := TSepiNamedLabel.Create(Self, LabelName)
+  else
+    raise ESepiLabelError.CreateResFmt(@SLabelNotFound, [LabelName]);
 end;
 
 {*
@@ -774,12 +1127,13 @@ begin
   if not Locals.Completed then
     Locals.Complete;
 
+  // Compile
+  AsmInstructions.Clear;
+  Instructions.Compile;
+
   // Assemble
-  Instructions.Make;
-  Instructions.SetPosition(0);
-  Instructions.ComputeActualSize;
-  Instructions.SetPosition(0);
-  FSize := Instructions.Size;
+  AsmInstructions.Assemble;
+  FSize := AsmInstructions.Size;
 
   // Make locals info
   SetLength(FLocalsInfo, Locals.ChildCount);
@@ -831,7 +1185,7 @@ begin
   Stream.WriteBuffer(FSize, 4);
 
   // Write code
-  Instructions.WriteToStream(Stream);
+  AsmInstructions.WriteToStream(Stream);
 end;
 
 {*
@@ -1446,7 +1800,6 @@ end;
 {*
   Crée une destination de JUMP
   @param AMethodAssembler   Assembleur de méthode
-  @param AAllowMemory       Autoriser ou non les destinations mémoire
 *}
 constructor TSepiJumpDest.Create(AMethodAssembler: TSepiMethodAssembler);
 begin
@@ -1454,31 +1807,26 @@ begin
 
   FMethodAssembler := AMethodAssembler;
 
-  FLabelID := -1;
-  FLabelName := '';
+  FInstructionRef := nil;
 end;
 
 {*
-  Modifie l'ID du label
-  @param Value   Nouvel ID du label
+  Position la destination du Jump sur un label nommé
+  @param NamedLabel   Label nommé
 *}
-procedure TSepiJumpDest.SetLabelID(Value: Integer);
+procedure TSepiJumpDest.SetToLabel(NamedLabel: TSepiNamedLabel);
 begin
-  if Value = FLabelID then
-    Exit;
-
-  FLabelID := Value;
-  FLabelName := '';
+  InstructionRef := NamedLabel.BeforeRef;
 end;
 
 {*
-  Modifie le nom du label
-  @param Value   Nouveau nom du label
+  Position la destination du Jump sur un label nommé
+  @param LabelName   Nom du label
 *}
-procedure TSepiJumpDest.SetLabelName(const Value: string);
+procedure TSepiJumpDest.SetToLabel(const LabelName: string;
+  Create: Boolean = False);
 begin
-  FLabelID := MethodAssembler.MakeLabel(Value);
-  FLabelName := Value;
+  SetToLabel(MethodAssembler.FindLabel(LabelName, Create));
 end;
 
 {*
@@ -1486,6 +1834,7 @@ end;
 *}
 procedure TSepiJumpDest.Make;
 begin
+  Assert(InstructionRef <> nil);
 end;
 
 {*
@@ -1495,7 +1844,7 @@ end;
 *}
 function TSepiJumpDest.MakeOffset(FromPos: Integer): Integer;
 begin
-  Result := MethodAssembler.FindLabel(LabelID) - FromPos;
+  Result := InstructionRef.Position - FromPos;
 end;
 
 {*

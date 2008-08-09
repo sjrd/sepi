@@ -1,3 +1,27 @@
+{-------------------------------------------------------------------------------
+Sepi - Object-oriented script engine for Delphi
+Copyright (C) 2006-2007  Sébastien Doeraene
+All Rights Reserved
+
+This file is part of Sepi.
+
+Sepi is free software: you can redistribute it and/or modify it under the terms
+of the GNU General Public License as published by the Free Software Foundation,
+either version 3 of the License, or (at your option) any later version.
+
+Sepi is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with
+Sepi.  If not, see <http://www.gnu.org/licenses/>.
+-------------------------------------------------------------------------------}
+
+{*
+  Instructions assembleur Sepi
+  @author sjrd
+  @version 1.0
+*}
 unit SepiAsmInstructions;
 
 interface
@@ -42,7 +66,7 @@ type
   private
     FDestination: TSepiJumpDest; /// Destination du JUMP
   public
-    constructor Create(AOwner: TSepiAsmInstrList);
+    constructor Create(AMethodAssembler: TSepiMethodAssembler);
     destructor Destroy; override;
 
     procedure Make; override;
@@ -62,7 +86,8 @@ type
     FDestination: TSepiJumpDest; /// Destination du JUMP
     FTest: TSepiMemoryReference; /// Condition du saut
   public
-    constructor Create(AOwner: TSepiAsmInstrList; AIfTrue: Boolean = True);
+    constructor Create(AMethodAssembler: TSepiMethodAssembler;
+      AIfTrue: Boolean = True);
     destructor Destroy; override;
 
     procedure Make; override;
@@ -157,7 +182,7 @@ type
   private
     FParameters: TSepiAsmCallParams; /// Paramètres
   public
-    constructor Create(AOwner: TSepiAsmInstrList);
+    constructor Create(AMethodAssembler: TSepiMethodAssembler);
     destructor Destroy; override;
 
     procedure Prepare(Signature: TSepiSignature); overload; virtual;
@@ -182,7 +207,7 @@ type
 
     FAddress: TSepiMemoryReference; /// Adresse de la méthode à appeler
   public
-    constructor Create(AOwner: TSepiAsmInstrList);
+    constructor Create(AMethodAssembler: TSepiMethodAssembler);
     destructor Destroy; override;
 
     procedure Prepare(Signature: TSepiSignature); override;
@@ -208,7 +233,7 @@ type
   private
     FMethodRef: Integer; /// Référence à la méthode
   public
-    constructor Create(AOwner: TSepiAsmInstrList);
+    constructor Create(AMethodAssembler: TSepiMethodAssembler);
 
     procedure SetMethod(Method: TSepiMethod;
       PrepareParams: Boolean = True); overload;
@@ -225,7 +250,7 @@ type
   *}
   TSepiAsmStaticCall = class(TSepiAsmRefCall)
   public
-    constructor Create(AOwner: TSepiAsmInstrList);
+    constructor Create(AMethodAssembler: TSepiMethodAssembler);
 
     procedure Make; override;
     procedure WriteToStream(Stream: TStream); override;
@@ -240,7 +265,7 @@ type
   private
     FSelfMem: TSepiMemoryReference; /// Référence mémoire au Self
   public
-    constructor Create(AOwner: TSepiAsmInstrList);
+    constructor Create(AMethodAssembler: TSepiMethodAssembler);
     destructor Destroy; override;
 
     procedure Make; override;
@@ -259,7 +284,7 @@ type
     FDestination: TSepiMemoryReference; /// Destination
     FSource: TSepiMemoryReference;      /// Source
   public
-    constructor Create(AOwner: TSepiAsmInstrList);
+    constructor Create(AMethodAssembler: TSepiMethodAssembler);
     destructor Destroy; override;
 
     procedure Make; override;
@@ -282,9 +307,9 @@ type
     FDestination: TSepiMemoryReference; /// Destination
     FSource: TSepiMemoryReference;      /// Source
   public
-    constructor Create(AOwner: TSepiAsmInstrList;
+    constructor Create(AMethodAssembler: TSepiMethodAssembler;
       ADataSize: Word); overload;
-    constructor Create(AOwner: TSepiAsmInstrList;
+    constructor Create(AMethodAssembler: TSepiMethodAssembler;
       ADataType: TSepiType); overload;
     destructor Destroy; override;
 
@@ -311,7 +336,7 @@ type
     FDestination: TSepiMemoryReference; /// Destination
     FSource: TSepiMemoryReference;      /// Source
   public
-    constructor Create(AOwner: TSepiAsmInstrList;
+    constructor Create(AMethodAssembler: TSepiMethodAssembler;
       AToType, AFromType: TSepiBaseType);
     destructor Destroy; override;
 
@@ -340,8 +365,8 @@ type
     FLeft: TSepiMemoryReference;        /// Opérande gauche
     FRight: TSepiMemoryReference;       /// Opérande droit
   public
-    constructor Create(AOwner: TSepiAsmInstrList; AOpCode: TSepiOpCode;
-      AVarType: TSepiBaseType);
+    constructor Create(AMethodAssembler: TSepiMethodAssembler;
+      AOpCode: TSepiOpCode; AVarType: TSepiBaseType);
     destructor Destroy; override;
 
     procedure Make; override;
@@ -372,8 +397,8 @@ type
     FLeft: TSepiMemoryReference;        /// Opérande gauche
     FRight: TSepiMemoryReference;       /// Opérande droit
   public
-    constructor Create(AOwner: TSepiAsmInstrList; AOpCode: TSepiOpCode;
-      AVarType: TSepiBaseType);
+    constructor Create(AMethodAssembler: TSepiMethodAssembler;
+      AOpCode: TSepiOpCode; AVarType: TSepiBaseType);
     destructor Destroy; override;
 
     procedure Make; override;
@@ -396,7 +421,8 @@ type
     FDestination: TSepiMemoryReference; /// Destination
     FReference: Integer;                /// Référence
   public
-    constructor Create(AOwner: TSepiAsmInstrList; AOpCode: TSepiOpCode);
+    constructor Create(AMethodAssembler: TSepiMethodAssembler;
+      AOpCode: TSepiOpCode);
     destructor Destroy; override;
 
     procedure SetReference(Reference: TSepiMeta); overload;
@@ -421,7 +447,7 @@ type
     FMemClass: TSepiMemoryReference;    /// Classe mémoire
     FClassRef: Integer;                 /// Référence à une classe (si msZero)
   public
-    constructor Create(AOwner: TSepiAsmInstrList);
+    constructor Create(AMethodAssembler: TSepiMethodAssembler);
     destructor Destroy; override;
 
     procedure Make; override;
@@ -444,7 +470,7 @@ type
     FMemClass: TSepiMemoryReference;  /// Classe mémoire
     FClassRef: Integer;               /// Référence à une classe (si msZero)
   public
-    constructor Create(AOwner: TSepiAsmInstrList);
+    constructor Create(AMethodAssembler: TSepiMethodAssembler);
     destructor Destroy; override;
 
     procedure Make; override;
@@ -464,7 +490,7 @@ type
   private
     FExceptObject: TSepiMemoryReference; /// Objet exception
   public
-    constructor Create(AOwner: TSepiAsmInstrList);
+    constructor Create(AMethodAssembler: TSepiMethodAssembler);
     destructor Destroy; override;
 
     procedure Make; override;
@@ -480,7 +506,7 @@ type
   *}
   TSepiAsmReraise = class(TSepiAsmInstr)
   public
-    constructor Create(AOwner: TSepiAsmInstrList);
+    constructor Create(AMethodAssembler: TSepiMethodAssembler);
   end;
 
   {*
@@ -490,25 +516,18 @@ type
   *}
   TSepiAsmTryExcept = class(TSepiAsmInstr)
   private
-    FTryInstructions: TSepiAsmInstrList;    /// Instructions dans le try
-    FExceptInstructions: TSepiAsmInstrList; /// Instructions dans le except
-    FExceptObject: TSepiMemoryReference;    /// Objet exception
-
-    FTrySize: Word;    /// Taille du try
-    FExceptSize: Word; /// Taille du except
-  protected
-    function GetEndPosition: Integer; override;
+    FEndOfTry: TSepiJumpDest;            /// Fin du try
+    FEndOfExcept: TSepiJumpDest;         /// Fin du except
+    FExceptObject: TSepiMemoryReference; /// Objet exception
   public
-    constructor Create(AOwner: TSepiAsmInstrList);
+    constructor Create(AMethodAssembler: TSepiMethodAssembler);
     destructor Destroy; override;
 
     procedure Make; override;
-    procedure ComputeActualSize; override;
-    procedure SetPosition(Value: Integer); override;
     procedure WriteToStream(Stream: TStream); override;
 
-    property TryInstructions: TSepiAsmInstrList read FTryInstructions;
-    property ExceptInstructions: TSepiAsmInstrList read FExceptInstructions;
+    property EndOfTry: TSepiJumpDest read FEndOfTry;
+    property EndOfExcept: TSepiJumpDest read FEndOfExcept;
     property ExceptObject: TSepiMemoryReference read FExceptObject;
   end;
 
@@ -519,24 +538,17 @@ type
   *}
   TSepiAsmTryFinally = class(TSepiAsmInstr)
   private
-    FTryInstructions: TSepiAsmInstrList;     /// Instructions dans le try
-    FFinallyInstructions: TSepiAsmInstrList; /// Instructions dans le finally
-
-    FTrySize: Word;     /// Taille du try
-    FFinallySize: Word; /// Taille du finally
-  protected
-    function GetEndPosition: Integer; override;
+    FEndOfTry: TSepiJumpDest;     /// Fin du try
+    FEndOfFinally: TSepiJumpDest; /// Fin du finally
   public
-    constructor Create(AOwner: TSepiAsmInstrList);
+    constructor Create(AMethodAssembler: TSepiMethodAssembler);
     destructor Destroy; override;
 
     procedure Make; override;
-    procedure ComputeActualSize; override;
-    procedure SetPosition(Value: Integer); override;
     procedure WriteToStream(Stream: TStream); override;
 
-    property TryInstructions: TSepiAsmInstrList read FTryInstructions;
-    property FinallyInstructions: TSepiAsmInstrList read FFinallyInstructions;
+    property EndOfTry: TSepiJumpDest read FEndOfTry;
+    property EndOfFinally: TSepiJumpDest read FEndOfFinally;
   end;
 
   {*
@@ -563,7 +575,7 @@ type
     function GetOnClauseCount: Integer;
     function GetOnClauses(Index: Integer): TSepiAsmOnClause;
   public
-    constructor Create(AOwner: TSepiAsmInstrList);
+    constructor Create(AMethodAssembler: TSepiMethodAssembler);
     destructor Destroy; override;
 
     function AddOnClause(AClassRef: Integer): TSepiJumpDest; overload;
@@ -607,11 +619,11 @@ const
 
 {*
   Crée une instruction JUMP
-  @param AOwner   Liste d'instructions propriétaire
+  @param AMethodAssembler   Assembleur de méthode
 *}
-constructor TSepiAsmJump.Create(AOwner: TSepiAsmInstrList);
+constructor TSepiAsmJump.Create(AMethodAssembler: TSepiMethodAssembler);
 begin
-  inherited Create(AOwner);
+  inherited Create(AMethodAssembler);
 
   FOpCode := ocJump;
 
@@ -652,13 +664,13 @@ end;
 
 {*
   Crée une instruction JIT ou JIF
-  @param AOwner    Liste d'instructions propriétaire
-  @param AIfTrue   True donne un JIT plutôt qu'un JIF
+  @param AMethodAssembler   Assembleur de méthode
+  @param AIfTrue            True donne un JIT plutôt qu'un JIF
 *}
-constructor TSepiAsmCondJump.Create(AOwner: TSepiAsmInstrList;
+constructor TSepiAsmCondJump.Create(AMethodAssembler: TSepiMethodAssembler;
   AIfTrue: Boolean = True);
 begin
-  inherited Create(AOwner);
+  inherited Create(AMethodAssembler);
 
   FIfTrue := AIfTrue;
   FDestination := TSepiJumpDest.Create(MethodAssembler);
@@ -769,6 +781,7 @@ end;
 
 {*
   Crée une liste de paramètres d'intruction CALL
+  @param AMethodAssembler   Assembleur de méthode
 *}
 constructor TSepiAsmCallParams.Create(AMethodAssembler: TSepiMethodAssembler);
 begin
@@ -1021,11 +1034,11 @@ end;
 
 {*
   Crée une instruction CALL
-  @param AOwner   Liste d'instructions propriétaire
+  @param AMethodAssembler   Assembleur de méthode
 *}
-constructor TSepiAsmCall.Create(AOwner: TSepiAsmInstrList);
+constructor TSepiAsmCall.Create(AMethodAssembler: TSepiMethodAssembler);
 begin
-  inherited Create(AOwner);
+  inherited Create(AMethodAssembler);
 
   FParameters := TSepiAsmCallParams.Create(MethodAssembler)
 end;
@@ -1096,11 +1109,11 @@ end;
 
 {*
   Crée une instruction Basic CALL
-  @param AOwner   Liste d'instructions propriétaire
+  @param AMethodAssembler   Assembleur de méthode
 *}
-constructor TSepiAsmAddressCall.Create(AOwner: TSepiAsmInstrList);
+constructor TSepiAsmAddressCall.Create(AMethodAssembler: TSepiMethodAssembler);
 begin
-  inherited Create(AOwner);
+  inherited Create(AMethodAssembler);
 
   FOpCode := ocAddressCall;
 
@@ -1169,11 +1182,11 @@ end;
 
 {*
   Crée une instruction CALL avec une référence à la méthode
-  @param AOwner   Liste d'instructions propriétaire
+  @param AMethodAssembler   Assembleur de méthode
 *}
-constructor TSepiAsmRefCall.Create(AOwner: TSepiAsmInstrList);
+constructor TSepiAsmRefCall.Create(AMethodAssembler: TSepiMethodAssembler);
 begin
-  inherited Create(AOwner);
+  inherited Create(AMethodAssembler);
 
   FMethodRef := 0;
 end;
@@ -1217,11 +1230,11 @@ end;
 
 {*
   Crée une instruction Static CALL
-  @param AOwner   Liste d'instructions propriétaire
+  @param AMethodAssembler   Assembleur de méthode
 *}
-constructor TSepiAsmStaticCall.Create(AOwner: TSepiAsmInstrList);
+constructor TSepiAsmStaticCall.Create(AMethodAssembler: TSepiMethodAssembler);
 begin
-  inherited Create(AOwner);
+  inherited Create(AMethodAssembler);
 
   FOpCode := ocStaticCall;
 end;
@@ -1254,11 +1267,11 @@ end;
 
 {*
   Crée une instruction Dynamic CALL
-  @param AOwner   Liste d'instructions propriétaire
+  @param AMethodAssembler   Assembleur de méthode
 *}
-constructor TSepiAsmDynamicCall.Create(AOwner: TSepiAsmInstrList);
+constructor TSepiAsmDynamicCall.Create(AMethodAssembler: TSepiMethodAssembler);
 begin
-  inherited Create(AOwner);
+  inherited Create(AMethodAssembler);
 
   FOpCode := ocDynamicCall;
 
@@ -1307,11 +1320,11 @@ end;
 
 {*
   Crée une instruction LEA
-  @param AOwner   Liste d'instructions propriétaire
+  @param AMethodAssembler   Assembleur de méthode
 *}
-constructor TSepiAsmLoadAddress.Create(AOwner: TSepiAsmInstrList);
+constructor TSepiAsmLoadAddress.Create(AMethodAssembler: TSepiMethodAssembler);
 begin
-  inherited Create(AOwner);
+  inherited Create(AMethodAssembler);
 
   FOpCode := ocLoadAddress;
 
@@ -1362,10 +1375,11 @@ end;
 
 {*
   Crée une instruction MOVE non typée
-  @param AOwner      Liste d'instructions propriétaire
-  @param ADataSize   Taille des données à copier
+  @param AMethodAssembler   Assembleur de méthode
+  @param ADataSize          Taille des données à copier
 *}
-constructor TSepiAsmMove.Create(AOwner: TSepiAsmInstrList; ADataSize: Word);
+constructor TSepiAsmMove.Create(AMethodAssembler: TSepiMethodAssembler;
+  ADataSize: Word);
 const
   SmallDataSizeOpCodes: array[1..10] of TSepiOpCode = (
     ocMoveByte, ocMoveWord, ocMoveSome, ocMoveDWord, ocMoveSome,
@@ -1375,7 +1389,7 @@ begin
   if ADataSize = 0 then
     raise ESepiInvalidDataSizeError.CreateRes(@SInvalidDataSize);
 
-  inherited Create(AOwner);
+  inherited Create(AMethodAssembler);
 
   FDataSize := ADataSize;
   FDataType := nil;
@@ -1401,20 +1415,20 @@ end;
 
 {*
   Crée une instruction MOVE typée
-  @param AOwner      Liste d'instructions propriétaire
-  @param ADataType   Type des données à copier
+  @param AMethodAssembler   Assembleur de méthode
+  @param ADataType          Type des données à copier
 *}
-constructor TSepiAsmMove.Create(AOwner: TSepiAsmInstrList;
+constructor TSepiAsmMove.Create(AMethodAssembler: TSepiMethodAssembler;
   ADataType: TSepiType);
 begin
   if (not ADataType.NeedInit) and
     (CardinalSize(ADataType.Size) <= SizeOf(Word)) then
   begin
-    Create(AOwner, ADataType.Size);
+    Create(AMethodAssembler, ADataType.Size);
     Exit;
   end;
 
-  inherited Create(AOwner);
+  inherited Create(AMethodAssembler);
 
   FDataSize := ADataType.Size;
   FDataType := ADataType;
@@ -1500,14 +1514,14 @@ end;
 
 {*
   Crée une instruction CVRT
-  @param AOwner      Liste d'instructions propriétaire
-  @param AToType     Type de destination
-  @param AFromType   Type de la source
+  @param AMethodAssembler   Assembleur de méthode
+  @param AToType            Type de destination
+  @param AFromType          Type de la source
 *}
-constructor TSepiAsmConvert.Create(AOwner: TSepiAsmInstrList;
+constructor TSepiAsmConvert.Create(AMethodAssembler: TSepiMethodAssembler;
   AToType, AFromType: TSepiBaseType);
 begin
-  inherited Create(AOwner);
+  inherited Create(AMethodAssembler);
 
   FOpCode := ocConvert;
 
@@ -1566,17 +1580,17 @@ end;
 
 {*
   Crée une instruction opération
-  @param AOwner     Liste d'instructions propriétaire
-  @param AOpCode    OpCode de l'instruction (doit être de type opération)
-  @param AVarType   Type des variables
+  @param AMethodAssembler   Assembleur de méthode
+  @param AOpCode            OpCode de l'instruction (de type opération)
+  @param AVarType           Type des variables
 *}
-constructor TSepiAsmOperation.Create(AOwner: TSepiAsmInstrList;
+constructor TSepiAsmOperation.Create(AMethodAssembler: TSepiMethodAssembler;
   AOpCode: TSepiOpCode; AVarType: TSepiBaseType);
 begin
   if not (AOpCode in OperationsOpCodes) then
     RaiseInvalidOpCode;
 
-  inherited Create(AOwner);
+  inherited Create(AMethodAssembler);
 
   FOpCode := AOpCode;
 
@@ -1693,17 +1707,17 @@ end;
 
 {*
   Crée une instruction de comparaison
-  @param AOwner     Liste d'instructions propriétaire
-  @param AOpCode    OpCode de l'instruction (doit être de type comparaison)
-  @param AVarType   Type des variables
+  @param AMethodAssembler   Assembleur de méthode
+  @param AOpCode            OpCode de l'instruction (de type comparaison)
+  @param AVarType           Type des variables
 *}
-constructor TSepiAsmCompare.Create(AOwner: TSepiAsmInstrList;
+constructor TSepiAsmCompare.Create(AMethodAssembler: TSepiMethodAssembler;
   AOpCode: TSepiOpCode; AVarType: TSepiBaseType);
 begin
   if not (AOpCode in [ocCompEquals..ocCompGreaterEq]) then
     RaiseInvalidOpCode;
 
-  inherited Create(AOwner);
+  inherited Create(AMethodAssembler);
 
   FOpCode := AOpCode;
 
@@ -1766,16 +1780,16 @@ end;
 
 {*
   Crée une instruction GTI, GDC ou GMC
-  @param AOwner     Liste d'instructions propriétaire
-  @param AOpCode   OpCode de l'instruction (GTI, GDC ou GMC)
+  @param AMethodAssembler   Assembleur de méthode
+  @param AOpCode            OpCode de l'instruction (GTI, GDC ou GMC)
 *}
-constructor TSepiAsmGetRunInfo.Create(AOwner: TSepiAsmInstrList;
+constructor TSepiAsmGetRunInfo.Create(AMethodAssembler: TSepiMethodAssembler;
   AOpCode: TSepiOpCode);
 begin
   if not (AOpCode in [ocGetTypeInfo, ocGetDelphiClass, ocGetMethodCode]) then
     RaiseInvalidOpCode;
 
-  inherited Create(AOwner);
+  inherited Create(AMethodAssembler);
 
   FOpCode := AOpCode;
 
@@ -1841,11 +1855,11 @@ end;
 
 {*
   Crée une instruction IS
-  @param AOwner   Liste d'instructions propriétaire
+  @param AMethodAssembler   Assembleur de méthode
 *}
-constructor TSepiAsmIsClass.Create(AOwner: TSepiAsmInstrList);
+constructor TSepiAsmIsClass.Create(AMethodAssembler: TSepiMethodAssembler);
 begin
-  inherited Create(AOwner);
+  inherited Create(AMethodAssembler);
 
   FOpCode := ocIsClass;
 
@@ -1907,11 +1921,11 @@ end;
 
 {*
   Crée une instruction AS
-  @param AOwner   Liste d'instructions propriétaire
+  @param AMethodAssembler   Assembleur de méthode
 *}
-constructor TSepiAsmAsClass.Create(AOwner: TSepiAsmInstrList);
+constructor TSepiAsmAsClass.Create(AMethodAssembler: TSepiMethodAssembler);
 begin
-  inherited Create(AOwner);
+  inherited Create(AMethodAssembler);
 
   FOpCode := ocAsClass;
 
@@ -1968,11 +1982,11 @@ end;
 
 {*
   Crée une instruction RAISE
-  @param AOwner   Liste d'instructions propriétaire
+  @param AMethodAssembler   Assembleur de méthode
 *}
-constructor TSepiAsmRaise.Create(AOwner: TSepiAsmInstrList);
+constructor TSepiAsmRaise.Create(AMethodAssembler: TSepiMethodAssembler);
 begin
-  inherited Create(AOwner);
+  inherited Create(AMethodAssembler);
 
   FOpCode := ocRaise;
 
@@ -2017,11 +2031,11 @@ end;
 
 {*
   Crée une instruction RERS
-  @param AOwner   Liste d'instructions propriétaire
+  @param AMethodAssembler   Assembleur de méthode
 *}
-constructor TSepiAsmReraise.Create(AOwner: TSepiAsmInstrList);
+constructor TSepiAsmReraise.Create(AMethodAssembler: TSepiMethodAssembler);
 begin
-  inherited Create(AOwner);
+  inherited Create(AMethodAssembler);
 
   FOpCode := ocReraise;
 end;
@@ -2034,14 +2048,14 @@ end;
   Crée une instruction TRYE
   @param AOwner   Liste d'instructions propriétaire
 *}
-constructor TSepiAsmTryExcept.Create(AOwner: TSepiAsmInstrList);
+constructor TSepiAsmTryExcept.Create(AMethodAssembler: TSepiMethodAssembler);
 begin
-  inherited Create(AOwner);
+  inherited Create(AMethodAssembler);
 
   FOpCode := ocTryExcept;
 
-  FTryInstructions := TSepiAsmInstrList.Create(MethodAssembler);
-  FExceptInstructions := TSepiAsmInstrList.Create(MethodAssembler);
+  FEndOfTry := TSepiJumpDest.Create(MethodAssembler);
+  FEndOfExcept := TSepiJumpDest.Create(MethodAssembler);
   FExceptObject := TSepiMemoryReference.Create(MethodAssembler, [aoZeroAsNil]);
 end;
 
@@ -2051,19 +2065,10 @@ end;
 destructor TSepiAsmTryExcept.Destroy;
 begin
   FExceptObject.Free;
-  FExceptInstructions.Free;
-  FTryInstructions.Free;
+  FEndOfExcept.Free;
+  FEndOfTry.Free;
 
   inherited;
-end;
-
-{*
-  [@inheritDoc]
-*}
-function TSepiAsmTryExcept.GetEndPosition: Integer;
-begin
-  Result := Position + SizeOf(TSepiOpCode) + 2*SizeOf(Word) +
-    ExceptObject.Size;
 end;
 
 {*
@@ -2075,60 +2080,30 @@ begin
 
   Inc(FSize, 2*SizeOf(Word));
 
+  EndOfTry.Make;
+  EndOfExcept.Make;
+
   ExceptObject.Make;
   Inc(FSize, ExceptObject.Size);
-
-  TryInstructions.Make;
-  Inc(FSize, TryInstructions.Size);
-
-  ExceptInstructions.Make;
-  Inc(FSize, ExceptInstructions.Size);
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TSepiAsmTryExcept.ComputeActualSize;
-begin
-  FSize := SizeOf(TSepiOpCode) + 2*SizeOf(Word) + ExceptObject.Size;
-
-  TryInstructions.ComputeActualSize;
-  FTrySize := TryInstructions.Size;
-  Inc(FSize, FTrySize);
-
-  ExceptInstructions.ComputeActualSize;
-  FExceptSize := ExceptInstructions.Size;
-  Inc(FSize, FExceptSize);
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TSepiAsmTryExcept.SetPosition(Value: Integer);
-begin
-  inherited;
-
-  Inc(Value, SizeOf(TSepiOpCode) + 2*SizeOf(Word) + ExceptObject.Size);
-
-  TryInstructions.SetPosition(Value);
-  Inc(Value, TryInstructions.Size);
-
-  ExceptInstructions.SetPosition(Value);
 end;
 
 {*
   [@inheritDoc]
 *}
 procedure TSepiAsmTryExcept.WriteToStream(Stream: TStream);
+var
+  ClauseSize: Integer;
 begin
   inherited;
 
-  Stream.WriteBuffer(FTrySize, SizeOf(Word));
-  Stream.WriteBuffer(FExceptSize, SizeOf(Word));
-  ExceptObject.WriteToStream(Stream);
+  ClauseSize := EndOfTry.InstructionRef.Position - EndPosition;
+  Stream.WriteBuffer(ClauseSize, SizeOf(Word));
 
-  TryInstructions.WriteToStream(Stream);
-  ExceptInstructions.WriteToStream(Stream);
+  ClauseSize :=
+      EndOfExcept.InstructionRef.Position - EndOfTry.InstructionRef.Position;
+  Stream.WriteBuffer(ClauseSize, SizeOf(Word));
+
+  ExceptObject.WriteToStream(Stream);
 end;
 
 {--------------------------}
@@ -2137,16 +2112,16 @@ end;
 
 {*
   Crée une instruction TRYF
-  @param AOwner   Liste d'instructions propriétaire
+  @param AMethodAssembler   Assembleur de méthode
 *}
-constructor TSepiAsmTryFinally.Create(AOwner: TSepiAsmInstrList);
+constructor TSepiAsmTryFinally.Create(AMethodAssembler: TSepiMethodAssembler);
 begin
-  inherited Create(AOwner);
+  inherited Create(AMethodAssembler);
 
   FOpCode := ocTryFinally;
 
-  FTryInstructions := TSepiAsmInstrList.Create(MethodAssembler);
-  FFinallyInstructions := TSepiAsmInstrList.Create(MethodAssembler);
+  FEndOfTry := TSepiJumpDest.Create(MethodAssembler);
+  FEndOfFinally := TSepiJumpDest.Create(MethodAssembler);
 end;
 
 {*
@@ -2154,18 +2129,10 @@ end;
 *}
 destructor TSepiAsmTryFinally.Destroy;
 begin
-  FFinallyInstructions.Free;
-  FTryInstructions.Free;
+  FEndOfFinally.Free;
+  FEndOfTry.Free;
 
   inherited;
-end;
-
-{*
-  [@inheritDoc]
-*}
-function TSepiAsmTryFinally.GetEndPosition: Integer;
-begin
-  Result := Position + SizeOf(TSepiOpCode) + 2*SizeOf(Word);
 end;
 
 {*
@@ -2177,56 +2144,25 @@ begin
 
   Inc(FSize, 2*SizeOf(Word));
 
-  TryInstructions.Make;
-  Inc(FSize, TryInstructions.Size);
-
-  FinallyInstructions.Make;
-  Inc(FSize, FinallyInstructions.Size);
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TSepiAsmTryFinally.ComputeActualSize;
-begin
-  FSize := SizeOf(TSepiOpCode) + 2*SizeOf(Word);
-
-  TryInstructions.ComputeActualSize;
-  FTrySize := TryInstructions.Size;
-  Inc(FSize, FTrySize);
-
-  FinallyInstructions.ComputeActualSize;
-  FFinallySize := FinallyInstructions.Size;
-  Inc(FSize, FFinallySize);
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TSepiAsmTryFinally.SetPosition(Value: Integer);
-begin
-  inherited;
-
-  Inc(Value, SizeOf(TSepiOpCode) + 2*SizeOf(Word));
-
-  TryInstructions.SetPosition(Value);
-  Inc(Value, TryInstructions.Size);
-
-  FinallyInstructions.SetPosition(Value);
+  EndOfTry.Make;
+  EndOfFinally.Make;
 end;
 
 {*
   [@inheritDoc]
 *}
 procedure TSepiAsmTryFinally.WriteToStream(Stream: TStream);
+var
+  ClauseSize: Integer;
 begin
   inherited;
 
-  Stream.WriteBuffer(FTrySize, SizeOf(Word));
-  Stream.WriteBuffer(FFinallySize, SizeOf(Word));
+  ClauseSize := EndOfTry.InstructionRef.Position - EndPosition;
+  Stream.WriteBuffer(ClauseSize, SizeOf(Word));
 
-  TryInstructions.WriteToStream(Stream);
-  FinallyInstructions.WriteToStream(Stream);
+  ClauseSize :=
+      EndOfFinally.InstructionRef.Position - EndOfTry.InstructionRef.Position;
+  Stream.WriteBuffer(ClauseSize, SizeOf(Word));
 end;
 
 {-----------------------}
@@ -2235,11 +2171,11 @@ end;
 
 {*
   Crée une instruction ON
-  @param AOwner   Liste d'instructions propriétaire
+  @param AMethodAssembler   Assembleur de méthode
 *}
-constructor TSepiAsmMultiOn.Create(AOwner: TSepiAsmInstrList);
+constructor TSepiAsmMultiOn.Create(AMethodAssembler: TSepiMethodAssembler);
 begin
-  inherited Create(AOwner);
+  inherited Create(AMethodAssembler);
 
   FOpCode := ocMultiOn;
 
@@ -2328,10 +2264,15 @@ end;
   [@inheritDoc]
 *}
 procedure TSepiAsmMultiOn.Make;
+var
+  I: Integer;
 begin
   inherited;
 
   ExceptObject.Make;
+
+  for I := 0 to Length(FOnClauses)-1 do
+    FOnClauses[I].Destination.Make;
 
   Inc(FSize, ExceptObject.Size + SizeOf(Byte));
   Inc(FSize, Length(FOnClauses) * (SizeOf(Integer)+SizeOf(Smallint)));
