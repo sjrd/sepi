@@ -155,6 +155,18 @@ type
     btWideStr, btVariant
   );
 
+  {*
+    Ensemble de types de données de base
+  *}
+  TSepiBaseTypes = set of TSepiBaseType;
+
+const
+  btIntegers =
+    [btByte, btWord, btDWord, btShortint, btSmallint, btLongint, btInt64];
+  btFloats = [btSingle, btDouble, btExtended, btComp, btCurrency];
+  btStrings = [btAnsiStr, btWideStr];
+
+type
   /// Configuration d'un appel basique
   TSepiCallSettings = type Byte;
 

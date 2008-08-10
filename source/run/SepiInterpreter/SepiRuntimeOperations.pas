@@ -962,7 +962,7 @@ begin
   // Boolean type convert with integer types, but not with anything else
   if btBoolean in BaseTypes then
   begin
-    Result := BaseTypes - BoolFriendlyTypes = [];
+    Result := BaseTypes <= BoolFriendlyTypes;
     Exit;
   end;
 
