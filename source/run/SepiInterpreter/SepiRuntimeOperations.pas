@@ -39,6 +39,8 @@ procedure Compare(OpCode: TSepiOpCode; VarType: TSepiBaseType;
 
 procedure Convert(ToType, FromType: TSepiBaseType; var Dest; const Source);
 
+function ConversionExists(SrcBaseType, DestBaseType: TSepiBaseType): Boolean;
+
 implementation
 
 type
@@ -123,8 +125,6 @@ end;
 *}
 procedure BinaryOp(OpCode: TSepiOpCode; VarType: TSepiBaseType;
   var Dest; const Left, Right);
-var
-  Negative: Boolean;
 begin
   case OpCode of
     ocSelfAdd, ocOtherAdd:
@@ -133,7 +133,7 @@ begin
         btByte, btShortint: Shortint(Dest) := Shortint(Left) + Shortint(Right);
         btWord, btSmallint: Smallint(Dest) := Smallint(Left) + Smallint(Right);
         btDWord, btLongint: Longint (Dest) := Longint (Left) + Longint (Right);
-        btQWord, btInt64:   Int64   (Dest) := Int64   (Left) + Int64   (Right);
+        btInt64:            Int64   (Dest) := Int64   (Left) + Int64   (Right);
 
         btSingle:   Single    (Dest) := Single    (Left) + Single    (Right);
         btDouble:   Double    (Dest) := Double    (Left) + Double    (Right);
@@ -153,7 +153,7 @@ begin
         btByte, btShortint: Shortint(Dest) := Shortint(Left) - Shortint(Right);
         btWord, btSmallint: Smallint(Dest) := Smallint(Left) - Smallint(Right);
         btDWord, btLongint: Longint (Dest) := Longint (Left) - Longint (Right);
-        btQWord, btInt64:   Int64   (Dest) := Int64   (Left) - Int64   (Right);
+        btInt64:            Int64   (Dest) := Int64   (Left) - Int64   (Right);
 
         btSingle:   Single  (Dest) := Single  (Left) - Single  (Right);
         btDouble:   Double  (Dest) := Double  (Left) - Double  (Right);
@@ -235,7 +235,7 @@ begin
         btByte, btShortint: Shortint(Dest) := Shortint(Left) shl Byte(Right);
         btWord, btSmallint: Smallint(Dest) := Smallint(Left) shl Byte(Right);
         btDWord, btLongint: Longint (Dest) := Longint (Left) shl Byte(Right);
-        btQWord, btInt64:   Int64   (Dest) := Int64   (Left) shl Byte(Right);
+        btInt64:            Int64   (Dest) := Int64   (Left) shl Byte(Right);
 
         btVariant: Variant(Dest) := Variant(Left) shl Variant(Right);
       else
@@ -248,44 +248,9 @@ begin
         btByte, btShortint: Shortint(Dest) := Shortint(Left) shr Byte(Right);
         btWord, btSmallint: Smallint(Dest) := Smallint(Left) shr Byte(Right);
         btDWord, btLongint: Longint (Dest) := Longint (Left) shr Byte(Right);
-        btQWord, btInt64:   Int64   (Dest) := Int64   (Left) shr Byte(Right);
+        btInt64:            Int64   (Dest) := Int64   (Left) shr Byte(Right);
 
         btVariant: Variant(Dest) := Variant(Left) shr Variant(Right);
-      else
-        RaiseInvalidOpCode;
-      end;
-    end;
-    ocSelfSar, ocOtherSar:
-    begin
-      case VarType of
-        btByte, btShortint:
-        begin
-          Negative := Shortint(Left) < 0;
-          Shortint(Dest) := Shortint(Left) shr Byte(Right);
-          if Negative then
-            Shortint(Dest) := Shortint(Dest) and Shortint($80);
-        end;
-        btWord, btSmallint:
-        begin
-          Negative := Smallint(Left) < 0;
-          Smallint(Dest) := Smallint(Left) shr Byte(Right);
-          if Negative then
-            Smallint(Dest) := Smallint(Dest) and Smallint($8000);
-        end;
-        btDWord, btLongint:
-        begin
-          Negative := Longint(Left) < 0;
-          Longint(Dest) := Longint(Left) shr Byte(Right);
-          if Negative then
-            Longint(Dest) := Longint(Dest) and Longint($80000000);
-        end;
-        btQWord, btInt64:
-        begin
-          Negative := Int64(Left) < 0;
-          Int64(Dest) := Int64(Left) shr Byte(Right);
-          if Negative then
-            Int64(Dest) := Int64(Dest) and Int64($8000000000000000);
-        end;
       else
         RaiseInvalidOpCode;
       end;
@@ -301,7 +266,7 @@ begin
           Smallint(Dest) := Smallint(Left) and Smallint(Right);
 
         btDWord, btLongint: Longint(Dest) := Longint(Left) and Longint(Right);
-        btQWord, btInt64:   Int64  (Dest) := Int64  (Left) and Int64  (Right);
+        btInt64:            Int64  (Dest) := Int64  (Left) and Int64  (Right);
 
         btVariant: Variant(Dest) := Variant(Left) and Variant(Right);
       else
@@ -319,7 +284,7 @@ begin
           Smallint(Dest) := Smallint(Left) or Smallint(Right);
 
         btDWord, btLongint: Longint(Dest) := Longint(Left) or Longint(Right);
-        btQWord, btInt64:   Int64  (Dest) := Int64  (Left) or Int64  (Right);
+        btInt64:            Int64  (Dest) := Int64  (Left) or Int64  (Right);
 
         btVariant: Variant(Dest) := Variant(Left) or Variant(Right);
       else
@@ -337,7 +302,7 @@ begin
           Smallint(Dest) := Smallint(Left) xor Smallint(Right);
 
         btDWord, btLongint: Longint(Dest) := Longint(Left) xor Longint(Right);
-        btQWord, btInt64:   Int64  (Dest) := Int64  (Left) xor Int64  (Right);
+        btInt64:            Int64  (Dest) := Int64  (Left) xor Int64  (Right);
 
         btVariant: Variant(Dest) := Variant(Left) xor Variant(Right);
       else
@@ -369,7 +334,7 @@ begin
         btByte, btShortint: Boolean(Dest) := Shortint(Left) = Shortint(Right);
         btWord, btSmallint: Boolean(Dest) := Smallint(Left) = Smallint(Right);
         btDWord, btLongint: Boolean(Dest) := Longint (Left) = Longint (Right);
-        btQWord, btInt64:   Boolean(Dest) := Int64   (Left) = Int64   (Right);
+        btInt64:            Boolean(Dest) := Int64   (Left) = Int64   (Right);
 
         btSingle:   Boolean(Dest) := Single  (Left) = Single  (Right);
         btDouble:   Boolean(Dest) := Double  (Left) = Double  (Right);
@@ -392,7 +357,7 @@ begin
         btByte, btShortint: Boolean(Dest) := Shortint(Left) <> Shortint(Right);
         btWord, btSmallint: Boolean(Dest) := Smallint(Left) <> Smallint(Right);
         btDWord, btLongint: Boolean(Dest) := Longint (Left) <> Longint (Right);
-        btQWord, btInt64:   Boolean(Dest) := Int64   (Left) <> Int64   (Right);
+        btInt64:            Boolean(Dest) := Int64   (Left) <> Int64   (Right);
 
         btSingle:   Boolean(Dest) := Single  (Left) <> Single  (Right);
         btDouble:   Boolean(Dest) := Double  (Left) <> Double  (Right);
@@ -546,7 +511,7 @@ begin
     btSmallint: Smallint(Dest) := Smallint(Source);
     btLongint:  Longint (Dest) := Longint (Source);
     btInt64:    Int64   (Dest) := Int64   (Source);
-    btVariant:  Variant(Dest) := Source;
+    btVariant:  Variant (Dest) := Source;
   else
     RaiseInvalidOpCode;
   end;
@@ -562,7 +527,7 @@ procedure ConvertFromByte(DestType: TSepiBaseType; var Dest;
   var Source: Byte);
 begin
   case DestType of
-    btBoolean:  Boolean (Dest) := Boolean (Source);
+    btBoolean:  Boolean (Dest) := ByteBool(Source);
     btByte:     Byte    (Dest) := Byte    (Source);
     btWord:     Word    (Dest) := Word    (Source);
     btDWord:    LongWord(Dest) := LongWord(Source);
@@ -575,7 +540,7 @@ begin
     btExtended: Extended(Dest) := Source;
     btComp:     Comp    (Dest) := Source;
     btCurrency: Currency(Dest) := Source;
-    btVariant:  Variant(Dest) := Source;
+    btVariant:  Variant (Dest) := Source;
   else
     RaiseInvalidOpCode;
   end;
@@ -591,7 +556,7 @@ procedure ConvertFromWord(DestType: TSepiBaseType; var Dest;
   var Source: Word);
 begin
   case DestType of
-    btBoolean:  Boolean (Dest) := Boolean (Source);
+    btBoolean:  Boolean (Dest) := WordBool(Source);
     btByte:     Byte    (Dest) := Byte    (Source);
     btWord:     Word    (Dest) := Word    (Source);
     btDWord:    LongWord(Dest) := LongWord(Source);
@@ -604,7 +569,7 @@ begin
     btExtended: Extended(Dest) := Source;
     btComp:     Comp    (Dest) := Source;
     btCurrency: Currency(Dest) := Source;
-    btVariant:  Variant(Dest) := Source;
+    btVariant:  Variant (Dest) := Source;
   else
     RaiseInvalidOpCode;
   end;
@@ -620,7 +585,7 @@ procedure ConvertFromLongWord(DestType: TSepiBaseType; var Dest;
   var Source: LongWord);
 begin
   case DestType of
-    btBoolean:  Boolean (Dest) := Boolean (Source);
+    btBoolean:  Boolean (Dest) := LongBool(Source);
     btByte:     Byte    (Dest) := Byte    (Source);
     btWord:     Word    (Dest) := Word    (Source);
     btDWord:    LongWord(Dest) := LongWord(Source);
@@ -633,22 +598,10 @@ begin
     btExtended: Extended(Dest) := Source;
     btComp:     Comp    (Dest) := Source;
     btCurrency: Currency(Dest) := Source;
-    btVariant:  Variant(Dest) := Source;
+    btVariant:  Variant (Dest) := Source;
   else
     RaiseInvalidOpCode;
   end;
-end;
-
-{*
-  Conversion standard depuis un QWord
-  @param DestType   Type de destination
-  @param Dest       Destination
-  @param Source     Source
-*}
-procedure ConvertFromQWord(DestType: TSepiBaseType; var Dest;
-  var Source: Int64);
-begin
-  RaiseInvalidOpCode;
 end;
 
 {*
@@ -661,7 +614,7 @@ procedure ConvertFromShortint(DestType: TSepiBaseType; var Dest;
   var Source: Shortint);
 begin
   case DestType of
-    btBoolean:  Boolean (Dest) := Boolean (Source);
+    btBoolean:  Boolean (Dest) := ByteBool(Source);
     btByte:     Byte    (Dest) := Byte    (Source);
     btWord:     Word    (Dest) := Word    (Source);
     btDWord:    LongWord(Dest) := LongWord(Source);
@@ -674,7 +627,7 @@ begin
     btExtended: Extended(Dest) := Source;
     btComp:     Comp    (Dest) := Source;
     btCurrency: Currency(Dest) := Source;
-    btVariant:  Variant(Dest) := Source;
+    btVariant:  Variant (Dest) := Source;
   else
     RaiseInvalidOpCode;
   end;
@@ -690,7 +643,7 @@ procedure ConvertFromSmallint(DestType: TSepiBaseType; var Dest;
   var Source: Smallint);
 begin
   case DestType of
-    btBoolean:  Boolean (Dest) := Boolean (Source);
+    btBoolean:  Boolean (Dest) := WordBool(Source);
     btByte:     Byte    (Dest) := Byte    (Source);
     btWord:     Word    (Dest) := Word    (Source);
     btDWord:    LongWord(Dest) := LongWord(Source);
@@ -703,7 +656,7 @@ begin
     btExtended: Extended(Dest) := Source;
     btComp:     Comp    (Dest) := Source;
     btCurrency: Currency(Dest) := Source;
-    btVariant:  Variant(Dest) := Source;
+    btVariant:  Variant (Dest) := Source;
   else
     RaiseInvalidOpCode;
   end;
@@ -719,7 +672,7 @@ procedure ConvertFromLongint(DestType: TSepiBaseType; var Dest;
   var Source: Longint);
 begin
   case DestType of
-    btBoolean:  Boolean (Dest) := Boolean (Source);
+    btBoolean:  Boolean (Dest) := LongBool(Source);
     btByte:     Byte    (Dest) := Byte    (Source);
     btWord:     Word    (Dest) := Word    (Source);
     btDWord:    LongWord(Dest) := LongWord(Source);
@@ -732,7 +685,7 @@ begin
     btExtended: Extended(Dest) := Source;
     btComp:     Comp    (Dest) := Source;
     btCurrency: Currency(Dest) := Source;
-    btVariant:  Variant(Dest) := Source;
+    btVariant:  Variant (Dest) := Source;
   else
     RaiseInvalidOpCode;
   end;
@@ -761,7 +714,7 @@ begin
     btExtended: Extended(Dest) := Source;
     btComp:     Comp    (Dest) := Source;
     btCurrency: Currency(Dest) := Source;
-    btVariant:  Variant(Dest) := Source;
+    btVariant:  Variant (Dest) := Source;
   else
     RaiseInvalidOpCode;
   end;
@@ -789,7 +742,7 @@ begin
     btExtended: Extended(Dest) := Source;
     btComp:     Comp    (Dest) := Source;
     btCurrency: Currency(Dest) := Source;
-    btVariant:  Variant(Dest) := Source;
+    btVariant:  Variant (Dest) := Source;
   else
     RaiseInvalidOpCode;
   end;
@@ -817,7 +770,7 @@ begin
     btExtended: Extended(Dest) := Source;
     btComp:     Comp    (Dest) := Source;
     btCurrency: Currency(Dest) := Source;
-    btVariant:  Variant(Dest) := Source;
+    btVariant:  Variant (Dest) := Source;
   else
     RaiseInvalidOpCode;
   end;
@@ -845,7 +798,7 @@ begin
     btExtended: Extended(Dest) := Source;
     btComp:     Comp    (Dest) := Source;
     btCurrency: Currency(Dest) := Source;
-    btVariant:  Variant(Dest) := Source;
+    btVariant:  Variant (Dest) := Source;
   else
     RaiseInvalidOpCode;
   end;
@@ -873,7 +826,7 @@ begin
     btExtended: Extended(Dest) := Source;
     btComp:     Comp    (Dest) := Source;
     btCurrency: Currency(Dest) := Source;
-    btVariant:  Variant(Dest) := Source;
+    btVariant:  Variant (Dest) := Source;
   else
     RaiseInvalidOpCode;
   end;
@@ -901,7 +854,7 @@ begin
     btExtended: Extended(Dest) := Source;
     btComp:     Comp    (Dest) := Source;
     btCurrency: Currency(Dest) := Source;
-    btVariant:  Variant(Dest) := Source;
+    btVariant:  Variant (Dest) := Source;
   else
     RaiseInvalidOpCode;
   end;
@@ -919,7 +872,7 @@ begin
   case DestType of
     btAnsiStr:  AnsiString(Dest) := AnsiString(Source);
     btWideStr:  WideString(Dest) := WideString(Source);
-    btVariant:  Variant(Dest) := Source;
+    btVariant:  Variant   (Dest) := Source;
   else
     RaiseInvalidOpCode;
   end;
@@ -937,7 +890,7 @@ begin
   case DestType of
     btAnsiStr:  AnsiString(Dest) := AnsiString(Source);
     btWideStr:  WideString(Dest) := WideString(Source);
-    btVariant:  Variant(Dest) := Source;
+    btVariant:  Variant   (Dest) := Source;
   else
     RaiseInvalidOpCode;
   end;
@@ -974,6 +927,48 @@ begin
   end;
 end;
 
+function ConversionExists(SrcBaseType, DestBaseType: TSepiBaseType): Boolean;
+const
+  BoolFriendlyTypes = [
+    btBoolean, btByte, btWord, btDWord, btShortint, btSmallint, btLongint,
+    btInt64
+  ];
+var
+  BaseTypes: set of TSepiBaseType;
+begin
+  Result := True;
+
+  // Converting any type to itself is possible
+  if SrcBaseType = DestBaseType then
+    Exit;
+
+  // Variant always supports conversion
+  if (SrcBaseType = btVariant) or (DestBaseType = btVariant) then
+    Exit;
+
+  BaseTypes := [];
+  Include(BaseTypes, SrcBaseType);
+  Include(BaseTypes, DestBaseType);
+
+  // String types convert between each other, but not with anything else
+  if BaseTypes = [btAnsiStr, btWideStr] then
+    Exit;
+  if BaseTypes * [btAnsiStr, btWideStr] <> [] then
+  begin
+    Result := False;
+    Exit;
+  end;
+
+  // Boolean type convert with integer types, but not with anything else
+  if btBoolean in BaseTypes then
+  begin
+    Result := BaseTypes - BoolFriendlyTypes = [];
+    Exit;
+  end;
+
+  // All other cases are number to number conversions, which are supported
+end;
+
 {*
   Initialise les ConvertProcs
 *}
@@ -983,7 +978,6 @@ begin
   @ConvertProcs[btByte]     := @ConvertFromByte;
   @ConvertProcs[btWord]     := @ConvertFromWord;
   @ConvertProcs[btDWord]    := @ConvertFromLongWord;
-  @ConvertProcs[btQWord]    := @ConvertFromQWord;
   @ConvertProcs[btShortint] := @ConvertFromShortint;
   @ConvertProcs[btSmallint] := @ConvertFromSmallint;
   @ConvertProcs[btLongint]  := @ConvertFromLongint;

@@ -150,9 +150,9 @@ type
     Types de données de base que gère l'interpréteur Sepi
   *}
   TSepiBaseType = (
-    btBoolean, btByte, btWord, btDWord, btQWord, btShortint, btSmallint,
-    btLongint, btInt64, btSingle, btDouble, btExtended, btComp, btCurrency,
-    btAnsiStr, btWideStr, btVariant
+    btBoolean, btByte, btWord, btDWord, btShortint, btSmallint, btLongint,
+    btInt64, btSingle, btDouble, btExtended, btComp, btCurrency, btAnsiStr,
+    btWideStr, btVariant
   );
 
   /// Configuration d'un appel basique
@@ -194,7 +194,7 @@ const
 
   /// Taille des constantes en fonction des types de base
   BaseTypeConstSizes: array[TSepiBaseType] of Integer = (
-    1, 1, 2, 4, 8, 1, 2, 4, 8, 4, 8, 10, 8, 8, 0, 0, 0
+    1, 1, 2, 4, 1, 2, 4, 8, 4, 8, 10, 8, 8, 0, 0, 0
   );
 
   /// Le paramètre est passé par adresse
@@ -283,11 +283,9 @@ const
   ocSelfModulus  = TSepiOpCode($29); /// MOD Type, Var, Value
   ocSelfShl      = TSepiOpCode($2A); /// SHL Type, Var, Value
   ocSelfShr      = TSepiOpCode($2B); /// SHR Type, Var, Value
-  ocSelfSal      = TSepiOpCode($2A); /// SAL Type, Var, Value
-  ocSelfSar      = TSepiOpCode($2C); /// SAR Type, Var, Value
-  ocSelfAnd      = TSepiOpCode($2D); /// AND Type, Var, Value
-  ocSelfOr       = TSepiOpCode($2E); /// OR  Type, Var, Value
-  ocSelfXor      = TSepiOpCode($2F); /// XOR Type, Var, Value
+  ocSelfAnd      = TSepiOpCode($2C); /// AND Type, Var, Value
+  ocSelfOr       = TSepiOpCode($2D); /// OR  Type, Var, Value
+  ocSelfXor      = TSepiOpCode($2E); /// XOR Type, Var, Value
 
   // Other dest unary operations
   ocOtherInc = TSepiOpCode($30); /// INC Type, Dest, Value
@@ -304,11 +302,9 @@ const
   ocOtherModulus  = TSepiOpCode($39); /// MOD Type, Dest, Left, Right
   ocOtherShl      = TSepiOpCode($3A); /// SHL Type, Dest, Left, Right
   ocOtherShr      = TSepiOpCode($3B); /// SHR Type, Dest, Left, Right
-  ocOtherSal      = TSepiOpCode($3A); /// SAL Type, Dest, Left, Right
-  ocOtherSar      = TSepiOpCode($3C); /// SAR Type, Dest, Left, Right
-  ocOtherAnd      = TSepiOpCode($3D); /// AND Type, Dest, Left, Right
-  ocOtherOr       = TSepiOpCode($3E); /// OR  Type, Dest, Left, Right
-  ocOtherXor      = TSepiOpCode($3F); /// XOR Type, Dest, Left, Right
+  ocOtherAnd      = TSepiOpCode($3C); /// AND Type, Dest, Left, Right
+  ocOtherOr       = TSepiOpCode($3D); /// OR  Type, Dest, Left, Right
+  ocOtherXor      = TSepiOpCode($3E); /// XOR Type, Dest, Left, Right
 
   // Comparisons
   ocCompEquals    = TSepiOpCode($40); /// EQ  Type, Dest, Left, Right

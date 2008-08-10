@@ -1610,7 +1610,7 @@ begin
 
     FLeft := FDestination;
 
-    if OpCode in [ocSelfShl, ocSelfShr, ocSelfSar] then
+    if OpCode in [ocSelfShl, ocSelfShr] then
     begin
       FRight := TSepiMemoryReference.Create(MethodAssembler,
         aoAcceptAllConsts, 1);
@@ -1634,7 +1634,7 @@ begin
     FLeft := TSepiMemoryReference.Create(MethodAssembler, aoAcceptAllConsts,
       BaseTypeConstSizes[VarType]);
 
-    if OpCode in [ocOtherShl, ocOtherShr, ocOtherSar] then
+    if OpCode in [ocOtherShl, ocOtherShr] then
     begin
       FRight := TSepiMemoryReference.Create(MethodAssembler,
         aoAcceptAllConsts, 1);

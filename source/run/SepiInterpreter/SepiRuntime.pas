@@ -1152,7 +1152,7 @@ var
 begin
   Instructions.ReadBuffer(VarType, SizeOf(TSepiBaseType));
   VarPtr := ReadAddress;
-  if OpCode in [ocSelfShl, ocSelfShr, ocSelfSar] then
+  if OpCode in [ocSelfShl, ocSelfShr] then
     ValuePtr := ReadAddress(aoAcceptAllConsts, 1)
   else
     ValuePtr := ReadAddress(aoAcceptAllConsts, BaseTypeConstSizes[VarType]);
@@ -1188,7 +1188,7 @@ begin
   Instructions.ReadBuffer(VarType, SizeOf(TSepiBaseType));
   DestPtr := ReadAddress;
   LeftPtr := ReadAddress(aoAcceptAllConsts, BaseTypeConstSizes[VarType]);
-  if OpCode in [ocOtherShl, ocOtherShr, ocOtherSar] then
+  if OpCode in [ocOtherShl, ocOtherShr] then
     RightPtr := ReadAddress(aoAcceptAllConsts, 1)
   else
     RightPtr := ReadAddress(aoAcceptAllConsts, BaseTypeConstSizes[VarType]);
