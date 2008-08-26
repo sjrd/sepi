@@ -36,7 +36,7 @@ requires
 
 contains
   SepiAsmInstructions in '..\..\source\run\SepiCompiler\SepiAsmInstructions.pas',
-  SepiAssembler in '..\..\source\run\SepiCompiler\SepiAssembler.pas',
+  SepiCompiler in '..\..\source\run\SepiCompiler\SepiCompiler.pas',
   SepiInstructions in '..\..\source\run\SepiCompiler\SepiInstructions.pas';
 
 end.

@@ -27,7 +27,7 @@ unit SepiInstructions;
 interface
 
 uses
-  SepiOpCodes, SepiAssembler, SepiAsmInstructions;
+  SepiOpCodes, SepiCompiler, SepiAsmInstructions;
 
 type
   {*
@@ -45,7 +45,7 @@ type
   protected
     procedure CustomCompile; override;
   public
-    constructor Create(AMethodAssembler: TSepiMethodAssembler);
+    constructor Create(AMethodCompiler: TSepiMethodCompiler);
 
     property TryInstructions: TSepiInstructionList read FTryInstructions;
     property ExceptInstructions: TSepiInstructionList read FExceptInstructions;
@@ -57,7 +57,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TSepiTryFinally = class(TSepiAsmInstr)
+  TSepiTryFinally = class(TSepiInstruction)
   private
     FAsmInstruction: TSepiAsmTryFinally;        /// Instruction TRYF
     FTryInstructions: TSepiInstructionList;     /// Instructions dans le try
@@ -65,7 +65,7 @@ type
   protected
     procedure CustomCompile; override;
   public
-    constructor Create(AMethodAssembler: TSepiMethodAssembler);
+    constructor Create(AMethodCompiler: TSepiMethodCompiler);
 
     property TryInstructions: TSepiInstructionList read FTryInstructions;
     property FinallyInstructions: TSepiInstructionList read FFinallyInstructions;
@@ -79,15 +79,15 @@ implementation
 
 {*
   Crée une instruction try..except
-  @param AMethodAssembler   Assembleur de méthode
+  @param AMethodCompiler   Compilateur de méthode
 *}
-constructor TSepiTryExcept.Create(AMethodAssembler: TSepiMethodAssembler);
+constructor TSepiTryExcept.Create(AMethodCompiler: TSepiMethodCompiler);
 begin
-  inherited Create(AMethodAssembler);
+  inherited Create(AMethodCompiler);
 
-  FAsmInstruction := TSepiAsmTryExcept.Create(MethodAssembler);
-  FTryInstructions := TSepiInstructionList.Create(MethodAssembler);
-  FExceptInstructions := TSepiInstructionList.Create(MethodAssembler);
+  FAsmInstruction := TSepiAsmTryExcept.Create(MethodCompiler);
+  FTryInstructions := TSepiInstructionList.Create(MethodCompiler);
+  FExceptInstructions := TSepiInstructionList.Create(MethodCompiler);
 
   FAsmInstruction.EndOfTry.InstructionRef := TryInstructions.AfterRef;
   FAsmInstruction.EndOfExcept.InstructionRef := ExceptInstructions.AfterRef;
@@ -118,15 +118,15 @@ end;
 
 {*
   Crée une instruction try..finally
-  @param AMethodAssembler   Assembleur de méthode
+  @param AMethodCompiler   Compilateur de méthode
 *}
-constructor TSepiTryFinally.Create(AMethodAssembler: TSepiMethodAssembler);
+constructor TSepiTryFinally.Create(AMethodCompiler: TSepiMethodCompiler);
 begin
-  inherited Create(AMethodAssembler);
+  inherited Create(AMethodCompiler);
 
-  FAsmInstruction := TSepiAsmTryFinally.Create(MethodAssembler);
-  FTryInstructions := TSepiInstructionList.Create(MethodAssembler);
-  FFinallyInstructions := TSepiInstructionList.Create(MethodAssembler);
+  FAsmInstruction := TSepiAsmTryFinally.Create(MethodCompiler);
+  FTryInstructions := TSepiInstructionList.Create(MethodCompiler);
+  FFinallyInstructions := TSepiInstructionList.Create(MethodCompiler);
 
   FAsmInstruction.EndOfTry.InstructionRef := TryInstructions.AfterRef;
   FAsmInstruction.EndOfFinally.InstructionRef := FinallyInstructions.AfterRef;
