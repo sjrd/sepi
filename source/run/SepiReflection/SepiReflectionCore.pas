@@ -29,7 +29,7 @@ interface
 uses
   Windows, SysUtils, Classes, Contnrs, RTLConsts, IniFiles, TypInfo, Variants,
   StrUtils, ScUtils, ScStrUtils, ScSyncObjs, ScCompilerMagic, ScSerializer,
-  SepiCore, SepiReflectionConsts;
+  ScTypInfo, SepiCore, SepiReflectionConsts;
 
 type
   TSepiMeta = class;
@@ -308,6 +308,7 @@ type
     procedure FinalizeValue(var Value);
     function NewValue: Pointer;
     procedure DisposeValue(Value: Pointer);
+    procedure CopyData(const Source; var Dest);
 
     function CompatibleWith(AType: TSepiType): Boolean; virtual;
 
@@ -1614,6 +1615,16 @@ procedure TSepiType.DisposeValue(Value: Pointer);
 begin
   FinalizeValue(Value^);
   FreeMem(Value);
+end;
+
+{*
+  Copie des données de ce type
+  @param Source   Source
+  @param Dest     Destination
+*}
+procedure TSepiType.CopyData(const Source; var Dest);
+begin
+  ScTypInfo.CopyData(Source, Dest, Size, TypeInfo);
 end;
 
 {*
