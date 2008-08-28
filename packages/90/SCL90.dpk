@@ -51,7 +51,8 @@ contains
   ScCoroutines in '..\..\source\run\SCL\ScCoroutines.pas',
   ScEnumerators in '..\..\source\run\SCL\ScEnumerators.pas',
   ScSerializer in '..\..\source\run\SCL\ScSerializer.pas',
-  ScIntegerSets in '..\..\source\run\SCL\ScIntegerSets.pas';
+  ScIntegerSets in '..\..\source\run\SCL\ScIntegerSets.pas',
+  ScInterfaces in '..\..\source\run\SCL\ScInterfaces.pas';
 
 end.
 

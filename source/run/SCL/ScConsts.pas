@@ -88,6 +88,10 @@ resourcestring
   sScSetOf = 'ensemble de %s';
   sScWrongEnumSet = 'Impossible de convertir "%s" en %s';
 
+  // Interfaces errors
+  SAlreadyHasController = 'Cet objet a déjà un contrôleur';
+  SHasNoController = 'Cet objet n''a pas de contrôleur';
+
   // Maths errors
   sScErrorMaths = 'Erreur de mathématiques :'+#10;
   sScErrorDegree = 'Erreur avec le degré %s';
