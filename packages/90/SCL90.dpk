@@ -50,7 +50,8 @@ contains
   ScClasses in '..\..\source\run\SCL\ScClasses.pas',
   ScCoroutines in '..\..\source\run\SCL\ScCoroutines.pas',
   ScEnumerators in '..\..\source\run\SCL\ScEnumerators.pas',
-  ScSerializer in '..\..\source\run\SCL\ScSerializer.pas';
+  ScSerializer in '..\..\source\run\SCL\ScSerializer.pas',
+  ScIntegerSets in '..\..\source\run\SCL\ScIntegerSets.pas';
 
 end.
 
