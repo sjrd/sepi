@@ -34,6 +34,7 @@ uses
 resourcestring
   SLabelAlreadyExists = 'Le label ''%s'' existe déjà';
   SLabelNotFound = 'Label ''%s'' non trouvé';
+  SMemoryRefIsSealed = 'La référence mémoire est scellée';
   SMemoryCantBeZero = 'La référence mémoire ne peut être zéro';
   SMemoryCantBeConstant = 'La référence mémoire ne peut être constante';
   SMemoryCantBeTrueConst =
@@ -47,6 +48,7 @@ resourcestring
     'Une référence mémoire vers des 0 ne peut avoir d''opérations';
   SConstArgMustBeShort =
     'L''argument constant doit être contenu dans un Shortint';
+  SCantRemoveDereference = 'Ne peut retirer de déréférencement';
 
 type
   TSepiAsmInstrList = class;
@@ -66,9 +68,19 @@ type
   ESepiLabelError = class(ESepiCompilerError);
 
   {*
+    Erreur de référence mémoire
+  *}
+  ESepiMemoryReferenceError = class(ESepiCompilerError);
+
+  {*
+    Référence mémoire scellée
+  *}
+  ESepiSealedMemoryReference = class(ESepiMemoryReferenceError);
+
+  {*
     Référence mémoire invalide d'après l'instruction contenante
   *}
-  ESepiInvalidMemoryReference = class(ESepiCompilerError);
+  ESepiInvalidMemoryReference = class(ESepiMemoryReferenceError);
 
   {*
     Destination de JUMP invalide
@@ -482,6 +494,7 @@ type
 
     FOptions: TSepiAddressOptions; /// Options
     FConstSize: Integer;           /// Taille d'une constante
+    FIsSealed: Boolean;            /// Indique si la référence est scellée
 
     FSpace: TSepiMemorySpace; /// Espace d'adressage
     FSpaceArgument: Integer;  /// Argument de l'espace d'adressage (offset)
@@ -494,11 +507,14 @@ type
 
     FSize: Integer; /// Taille de la référence mémoire dans le code
 
+    procedure CheckUnsealed;
+
     function GetOperationCount: Integer;
     function GetOperations(Index: Integer): TSepiAddressDerefAndOpRec;
   public
     constructor Create(AMethodCompiler: TSepiMethodCompiler;
       AOptions: TSepiAddressOptions = []; AConstSize: Integer = 0);
+    constructor Clone(Source: TSepiMemoryReference);
     destructor Destroy; override;
 
     procedure SetSpace(ASpace: TSepiMemorySpace;
@@ -520,8 +536,13 @@ type
     function AddOperation(AOperation: TSepiAddressOperation;
       AConstOperationArg: Integer = 0): TSepiMemoryReference; overload;
 
+    function CanRemoveDereference: Boolean;
+    procedure RemoveDereference;
+
     procedure GetConstant(var AConstant);
     procedure SetConstant(const AConstant);
+
+    procedure Seal;
 
     procedure Make;
 
@@ -531,6 +552,7 @@ type
 
     property Options: TSepiAddressOptions read FOptions;
     property ConstSize: Integer read FConstSize;
+    property IsSealed: Boolean read FIsSealed;
     property Space: TSepiMemorySpace read FSpace;
     property SpaceArgument: Integer read FSpaceArgument;
 
@@ -1964,15 +1986,52 @@ begin
 end;
 
 {*
+  Construit une copie d'une référence mémoire
+  La copie est en tout point identique à l'originale, excepté qu'elle n'est
+  jamais scellée.
+  @param Source   Référence mémoire à copier
+*}
+constructor TSepiMemoryReference.Clone(Source: TSepiMemoryReference);
+begin
+  inherited Create;
+
+  FMethodCompiler := Source.MethodCompiler;
+
+  FOptions := Source.Options;
+  FConstSize := Source.FConstSize;
+  FSpace := Source.Space;
+  FSpaceArgument := Source.SpaceArgument;
+
+  if Source.FConstant <> nil then
+  begin
+    GetMem(FConstant, ConstSize);
+    Move(Source.FConstant^, FConstant^, ConstSize);
+  end;
+
+  FSize := Source.Size;
+end;
+
+{*
   [@inheritDoc]
 *}
 destructor TSepiMemoryReference.Destroy;
 begin
+  FIsSealed := False;
+
   if Assigned(FConstant) then
     FreeMem(FConstant);
   ClearOperations;
 
   inherited;
+end;
+
+{*
+  Vérifie que la référence mémoire n'est pas scellée
+*}
+procedure TSepiMemoryReference.CheckUnsealed;
+begin
+  if IsSealed then
+    raise ESepiSealedMemoryReference.Create(SMemoryRefIsSealed);
 end;
 
 {*
@@ -2004,6 +2063,8 @@ end;
 procedure TSepiMemoryReference.SetSpace(ASpace: TSepiMemorySpace;
   ASpaceArgument: Integer = 0);
 begin
+  CheckUnsealed;
+
   case ASpace of
     msZero:
     begin
@@ -2190,6 +2251,8 @@ procedure TSepiMemoryReference.ClearOperations;
 var
   I: Integer;
 begin
+  CheckUnsealed;
+
   for I := 0 to Length(FOperations)-1 do
     FOperations[I].MemOperationArg.Free;
   SetLength(FOperations, 0);
@@ -2219,6 +2282,8 @@ const
 var
   Index: Integer;
 begin
+  CheckUnsealed;
+
   Index := Length(FOperations);
 
   // Check parameters consistency
@@ -2294,6 +2359,40 @@ begin
 end;
 
 {*
+  Teste s'il est possible de retirer un déréférencement à la fin
+  @return True si c'est possible, False sinon
+*}
+function TSepiMemoryReference.CanRemoveDereference: Boolean;
+var
+  Index: Integer;
+begin
+  Index := Length(FOperations)-1;
+  Result := (Index > 0) and (FOperations[Index].Operation = aoNone) and
+    (FOperations[Index].Dereference <> adNone);
+end;
+
+{*
+  Retire le déréférencement en bout d'opérations
+  L'appel à cette méthode n'est pas valide si CanRemoveDereference renvoie
+  False.
+*}
+procedure TSepiMemoryReference.RemoveDereference;
+var
+  Index: Integer;
+begin
+  CheckUnsealed;
+
+  if not CanRemoveDereference then
+    raise ESepiMemoryReferenceError.Create(SCantRemoveDereference);
+
+  Index := Length(FOperations)-1;
+  if FOperations[Index].Dereference = adSimple then
+    SetLength(FOperations, Index)
+  else
+    FOperations[Index].Dereference := adSimple;
+end;
+
+{*
   Récupère la constante
   La référence mémoire doit accepter les constantes non nulles.
   @param AConstant   En sortie : valeur de la constante
@@ -2310,7 +2409,19 @@ end;
 *}
 procedure TSepiMemoryReference.SetConstant(const AConstant);
 begin
+  CheckUnsealed;
+
   Move(AConstant, FConstant^, ConstSize);
+end;
+
+{*
+  Scelle la référence mémoire
+  Dès lors qu'une référence mémoire est scellée, toute tentative de modification
+  de celle-ci provoquera une exception.
+*}
+procedure TSepiMemoryReference.Seal;
+begin
+  FIsSealed := True;
 end;
 
 {*
@@ -2322,7 +2433,13 @@ var
 begin
   // Resolve the local var, if needed
   if Space = msUnresolvedLocalVar then
+  begin
+    FIsSealed := False;
     SetSpace(FUnresolvedLocalVar);
+  end;
+
+  // Seal the memory reference
+  Seal;
 
   // Head byte (TSepiMemoryRef)
   FSize := SizeOf(TSepiMemoryRef);
