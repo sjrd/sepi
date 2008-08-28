@@ -101,6 +101,8 @@ procedure CopyData(const Source; var Dest; Size: Integer;
   TypeInfo: PTypeInfo); overload;
 procedure CopyData(const Source; var Dest; TypeInfo: PTypeInfo); overload;
 
+function AreInitFinitCompatible(Left, Right: PTypeInfo): Boolean;
+
 implementation
 
 uses
@@ -191,6 +193,100 @@ begin
     tkDynArray: DynArrayCopy(Pointer(Source), TypeInfo, Pointer(Dest));
   else
     Move(Source, Dest, TypeSize(TypeInfo));
+  end;
+end;
+
+{*
+  Teste si deux types tableau statique sont compatibles init/finit
+  @param Left    Premier type
+  @param Right   Second type
+  @return True s'ils sont compatibles, False sinon
+*}
+function AreArraysInitFinitCompatible(Left, Right: PArrayTypeData): Boolean;
+begin
+  Result := (Left.Size = Right.Size) and (Left.Count = Right.Count) and
+    AreInitFinitCompatible(Left.ElType^, Right.ElType^);
+end;
+
+{*
+  Teste si deux types record sont compatibles init/finit
+  @param Left    Premier type
+  @param Right   Second type
+  @return True s'ils sont compatibles, False sinon
+*}
+function AreRecordsInitFinitCompatible(Left, Right: PRecordTypeData): Boolean;
+var
+  I: Integer;
+begin
+  Result := False;
+
+  if Left.FieldCount <> Right.FieldCount then
+    Exit;
+
+  for I := 0 to Left.FieldCount-1 do
+  begin
+    if Left.Fields[I].Offset <> Right.Fields[I].Offset then
+      Exit;
+    if not AreInitFinitCompatible(
+      Left.Fields[I].TypeInfo^, Right.Fields[I].TypeInfo^) then
+      Exit;
+  end;
+
+  Result := True;
+end;
+
+{*
+  Teste si deux types tableau dynamique sont compatibles init/finit
+  @param Left    Premier type
+  @param Right   Second type
+  @return True s'ils sont compatibles, False sinon
+*}
+function AreDynArraysInitFinitCompatible(Left, Right: PTypeData): Boolean;
+begin
+  Result := (Left.elSize = Right.elSize) and
+    AreInitFinitCompatible(Left.elType^, Right.elType^);
+end;
+
+{*
+  Teste si deux types sont compatibles au niveau de leur initialisation
+  Deux types sont compatibles si et seulement si initialiser/finaliser une
+  variable d'un des deux types avec les RTTI de l'autre type est valide.
+  Notez que les tailles des types n'ont pas besoin d'être égales. En
+  particulier, deux types de tailles quelconques et différentes sont compatibles
+  s'ils ne nécessitent aucune initialisation.
+  Un cas très particulier n'est pas traité parfaitement dans cette
+  implémentation : celui ou un type record a la même structure qu'un tableau
+  statique. Est alors renvoyé False au lieu de True.
+  @param Left    Premier type
+  @param Right   Second type
+  @return True s'ils sont compatibles, False sinon
+*}
+function AreInitFinitCompatible(Left, Right: PTypeInfo): Boolean;
+var
+  LeftData, RightData: Pointer;
+begin
+  if ((Left = nil) or (not (Left.Kind in NeedInitTypeKinds))) and
+    ((Right = nil) or (not (Right.Kind in NeedInitTypeKinds))) then
+    Result := True
+  else if (Left = nil) or (Right = nil) then
+    Result := False
+  else if Left.Kind <> Right.Kind then
+    Result := False
+  else
+  begin
+    LeftData := GetTypeData(Left);
+    RightData := GetTypeData(Right);
+
+    case Left.Kind of
+      tkArray:
+        Result := AreArraysInitFinitCompatible(LeftData, RightData);
+      tkRecord:
+        Result := AreRecordsInitFinitCompatible(LeftData, RightData);
+      tkDynArray:
+        Result := AreDynArraysInitFinitCompatible(LeftData, RightData);
+    else
+      Result := True;
+    end;
   end;
 end;
 
