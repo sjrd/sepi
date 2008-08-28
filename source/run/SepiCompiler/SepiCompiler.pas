@@ -27,8 +27,9 @@ unit SepiCompiler;
 interface
 
 uses
-  SysUtils, Classes, Contnrs, ScUtils, SepiReflectionCore, SepiMembers,
-  SepiOpCodes, SepiReflectionConsts;
+  Windows, SysUtils, Classes, Contnrs, TypInfo, ScUtils, ScTypInfo,
+  ScIntegerSets, SepiReflectionCore, SepiMembers, SepiOpCodes,
+  SepiReflectionConsts;
 
 resourcestring
   SLabelAlreadyExists = 'Le label ''%s'' existe déjà';
@@ -244,13 +245,137 @@ type
   end;
 
   {*
+    Vie d'une variable locale
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiLocalVarLife = class(TScIntegerSet)
+  private
+    /// Tableau des intervalles d'instructions en attente de compilation
+    FInstrIntervals: array of TSepiInstructionRef;
+
+    FBegunAt: TSepiInstructionRef; /// Commencement de l'intervalle à compléter
+  public
+    constructor Create;
+
+    procedure AddInstrInterval(BeginAt, EndAt: TSepiInstructionRef);
+    procedure BeginInstrInterval(At: TSepiInstructionRef);
+    procedure EndInstrInterval(At: TSepiInstructionRef);
+
+    procedure Compile;
+
+    function InterfereWith(Other: TSepiLocalVarLife): Boolean;
+  end;
+
+  {*
+    Variable locale d'une méthode Sepi
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiLocalVar = class(TObject)
+  private
+    FName: string;                      /// Nom (peut être vide)
+    FType: TSepiType;                   /// Type de la variable
+    FAbsoluteTo: TSepiLocalVar;         /// Variable sur laquelle se caler
+    FAbsolutes: array of TSepiLocalVar; /// Variables calées sur celle-ci
+    FIsFixed: Boolean;                  /// Indique si sa position est fixée
+    FIsParam: Boolean;                  /// Indique si c'est un paramètre
+    FParamKind: TSepiParamKind;         /// Type de paramètre
+    FLife: TSepiLocalVarLife;           /// Vie de la variable (peut être vide)
+    FOffset: Integer;                   /// Offset
+
+    procedure AddAbsolute(AbsVar: TSepiLocalVar);
+    procedure SetLife(ALife: TSepiLocalVarLife);
+
+    function GetIsAbsolute: Boolean;
+    function GetIsConstant: Boolean;
+    function GetNeedDereference: Boolean;
+    function GetIsLifeShared: Boolean;
+    function GetIsLifeHandled: Boolean;
+  public
+    constructor CreateVar(const AName: string; AType: TSepiType);
+    constructor CreateTempVar(AType: TSepiType);
+    constructor CreateParam(Param: TSepiParam);
+    constructor CreateResult(AType: TSepiType);
+    constructor CreateAbsolute(const AName: string; AType: TSepiType;
+      AAbsoluteTo: TSepiLocalVar);
+    destructor Destroy; override;
+
+    procedure HandleLife;
+    procedure CompileLife;
+
+    function InterfereWith(Other: TSepiLocalVar): Boolean;
+    procedure SetOffset(AOffset: Integer);
+
+    property Name: string read FName;
+    property VarType: TSepiType read FType;
+    property IsAbsolute: Boolean read GetIsAbsolute;
+    property AbsoluteTo: TSepiLocalVar read FAbsoluteTo;
+    property IsFixed: Boolean read FIsFixed;
+    property IsParam: Boolean read FIsParam;
+    property ParamKind: TSepiParamKind read FParamKind;
+    property IsConstant: Boolean read GetIsConstant;
+    property NeedDereference: Boolean read GetNeedDereference;
+    property IsLifeShared: Boolean read GetIsLifeShared;
+    property IsLifeHandled: Boolean read GetIsLifeHandled;
+    property Life: TSepiLocalVarLife read FLife;
+    property Offset: Integer read FOffset;
+  end;
+
+  {*
     Informations d'initialisation d'une variable locale
     @author sjrd
     @version 1.0
   *}
-  TLocalInfo = record
+  TLocalInitInfo = record
     TypeRef: Integer; /// Référence au type de la variable
     Offset: Integer;  /// Offset de la variable
+  end;
+
+  {*
+    Variables locales d'une méthode Sepi
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiLocalVariables = class(TObject)
+  private
+    FCompiler: TSepiMethodCompiler; /// Compilateur de méthode
+    FVariables: TObjectList;        /// Variables
+
+    FSize: Integer;                     /// Taille des variables locales
+    FInitInfo: array of TLocalInitInfo; /// Informations d'initialisation
+
+    procedure AllocateOffsets;
+    procedure MakeInitInfo;
+
+    function GetCount: Integer;
+    function GetVariables(Index: Integer): TSepiLocalVar;
+  public
+    constructor Create(ACompiler: TSepiMethodCompiler);
+    destructor Destroy; override;
+
+    procedure AddFromSignature(Signature: TSepiSignature);
+    function AddLocalVar(const AName: string;
+      AType: TSepiType): TSepiLocalVar; overload;
+    function AddLocalVar(const AName: string;
+      ATypeInfo: PTypeInfo): TSepiLocalVar; overload;
+    function AddLocalVar(const AName: string;
+      const ATypeName: string): TSepiLocalVar; overload;
+    function AddTempVar(AType: TSepiType): TSepiLocalVar;
+    function AddAbsolute(const AName: string; AType: TSepiType;
+      AAbsoluteTo: TSepiLocalVar): TSepiLocalVar;
+
+    function GetVarByName(const Name: string): TSepiLocalVar;
+
+    procedure Compile;
+    procedure WriteInitInfo(Stream: TStream);
+
+    property Compiler: TSepiMethodCompiler read FCompiler;
+    property Count: Integer read GetCount;
+    property Variables[Index: Integer]: TSepiLocalVar
+      read GetVariables; default;
+
+    property Size: Integer read FSize;
   end;
 
   {*
@@ -264,8 +389,8 @@ type
 
     FObjFreeList: TObjectList; /// Liste des objets à libérer en fin de vie
 
-    FSepiMethod: TSepiMethod; /// Méthode Sepi correspondante
-    FLocals: TSepiRecordType; /// Variables locales
+    FSepiMethod: TSepiMethod;     /// Méthode Sepi correspondante
+    FLocals: TSepiLocalVariables; /// Variables locales
 
     FInstructions: TSepiInstructionList; /// Instructions
     FAsmInstructions: TSepiAsmInstrList; /// Instructions assembleur
@@ -274,8 +399,6 @@ type
     FLastInstruction: TSepiAsmInstrList;
 
     FNamedLabels: TStrings; /// Labels nommés (paire nom/instruction)
-
-    FLocalsInfo: array of TLocalInfo; /// Informations sur les locales
 
     procedure SetLabel(NamedLabel: TSepiNamedLabel);
   protected
@@ -302,7 +425,7 @@ type
 
     property UnitCompiler: TSepiUnitCompiler read FUnitCompiler;
     property SepiMethod: TSepiMethod read FSepiMethod;
-    property Locals: TSepiRecordType read FLocals;
+    property Locals: TSepiLocalVariables read FLocals;
 
     property Instructions: TSepiInstructionList read FInstructions;
     property Size: Integer read FSize;
@@ -363,6 +486,8 @@ type
     FSpace: TSepiMemorySpace; /// Espace d'adressage
     FSpaceArgument: Integer;  /// Argument de l'espace d'adressage (offset)
 
+    FUnresolvedLocalVar: TSepiLocalVar; /// Variable locale non résolue
+
     FOperations: array of TSepiAddressDerefAndOpRec; /// Opérations
 
     FConstant: Pointer; /// Constante (si Space = msConstant) - 0 par défaut
@@ -379,9 +504,8 @@ type
     procedure SetSpace(ASpace: TSepiMemorySpace;
       ASpaceArgument: Integer = 0); overload;
     procedure SetSpace(Meta: TSepiMeta); overload;
-    procedure SetSpace(Param: TSepiParam; AutoDeref: Boolean = True); overload;
-    procedure SetSpace(const Name: string;
-      AutoDerefParam: Boolean = True); overload;
+    procedure SetSpace(Variable: TSepiLocalVar); overload;
+    procedure SetSpace(const Name: string); overload;
 
     procedure SetAsConst(Value: Int64); overload;
     procedure SetAsConst(Value: Boolean); overload;
@@ -453,6 +577,9 @@ const // don't localize
 
 const
   MaxOperationCount = $0F; /// Nombre maximum d'opérations sur une adresse
+
+  /// Indique une variable locale non encore résolue
+  msUnresolvedLocalVar = TSepiMemorySpace(-1);
 
 function IntegerSize(Value: Integer; ZeroGivesZero: Boolean = False): Integer;
 function CardinalSize(Value: Cardinal;
@@ -943,16 +1070,578 @@ begin
   MethodCompiler.SetLabel(Self);
 end;
 
+{-------------------------}
+{ TSepiLocalVarLife class }
+{-------------------------}
+
+{*
+  Crée la vie d'une variable locale
+*}
+constructor TSepiLocalVarLife.Create;
+begin
+  inherited Create;
+end;
+
+{*
+  Ajoute un intervalle d'instructions
+  @param BeginAt   Début de l'intervalle
+  @param EndAt     Fin de l'intervalle
+*}
+procedure TSepiLocalVarLife.AddInstrInterval(
+  BeginAt, EndAt: TSepiInstructionRef);
+var
+  Index: Integer;
+begin
+  Index := Length(FInstrIntervals);
+  SetLength(FInstrIntervals, Index+2);
+
+  FInstrIntervals[Index] := BeginAt;
+  FInstrIntervals[Index+1] := EndAt;
+end;
+
+{*
+  Commence un intervalle de vie
+  L'intervalle devra être terminé avec EndInstrInterval.
+  @param At   Début de l'intervalle
+*}
+procedure TSepiLocalVarLife.BeginInstrInterval(At: TSepiInstructionRef);
+begin
+  Assert(FBegunAt = nil);
+  FBegunAt := At;
+end;
+
+{*
+  Termine un intervalle de vie commencé avec BeginInstrInterval
+  @param At   Fin de l'intervalle
+*}
+procedure TSepiLocalVarLife.EndInstrInterval(At: TSepiInstructionRef);
+begin
+  Assert(FBegunAt <> nil);
+  AddInstrInterval(FBegunAt, At);
+  FBegunAt := nil;
+end;
+
+{*
+  Compile les références d'instructions en leurs positions
+*}
+procedure TSepiLocalVarLife.Compile;
+var
+  I: Integer;
+begin
+  for I := 0 to Length(FInstrIntervals) div 2 - 1 do
+    AddInterval(FInstrIntervals[I].Position, FInstrIntervals[I+1].Position);
+end;
+
+{*
+  Teste si cette vie interfère avec une autre
+  @param Other   Vie à comparer
+  @return True si les vies interfèrent entre elles, False sinon
+*}
+function TSepiLocalVarLife.InterfereWith(Other: TSepiLocalVarLife): Boolean;
+var
+  Temp: TScIntegerSet;
+begin
+  Temp := TScIntegerSet.Clone(Self);
+  try
+    Temp.Intersect(Other);
+    Result := Temp.IntervalCount = 0;
+  finally
+    Temp.Free;
+  end;
+end;
+
+{---------------------}
+{ TSepiLocalVar class }
+{---------------------}
+
+{*
+  Crée une nouvelle variable locale
+  @param AName   Nom
+  @param AType   Type
+*}
+constructor TSepiLocalVar.CreateVar(const AName: string; AType: TSepiType);
+begin
+  inherited Create;
+
+  FName := AName;
+  FType := AType;
+end;
+
+{*
+  Crée une nouvelle variable temporaire
+  @param AType   Type
+*}
+constructor TSepiLocalVar.CreateTempVar(AType: TSepiType);
+begin
+  inherited Create;
+
+  FType := AType;
+end;
+
+{*
+  Crée une variable d'accès à un paramètre
+  @param Param   Paramètre à accéder
+*}
+constructor TSepiLocalVar.CreateParam(Param: TSepiParam);
+begin
+  inherited Create;
+
+  FName := Param.Name;
+  FType := Param.ParamType;
+  FIsFixed := True;
+  FIsParam := True;
+  FParamKind := Param.Kind;
+  FOffset := Param.CallInfo.SepiStackOffset;
+end;
+
+{*
+  Crée la variable résultat d'une méthode
+  @param AType   Type de retour
+*}
+constructor TSepiLocalVar.CreateResult(AType: TSepiType);
+begin
+  inherited Create;
+
+  FName := ResultFieldName;
+  FType := AType;
+  FIsFixed := True;
+  FOffset := 0;
+end;
+
+{*
+  Crée une variable calée sur une autre
+  Une variable calée sur une autre aura le même offset que celle-ci, quels que
+  soit leurs types respectifs. Leurs lignes de vies sont combinées, et
+  l'initialisation/finalisation du type de la variable calée n'est jamais prise
+  en compte.
+  @param AName         Nom
+  @param AType         Type
+  @param AAbsoluteTo   Variable sur laquelle se caler
+*}
+constructor TSepiLocalVar.CreateAbsolute(const AName: string; AType: TSepiType;
+  AAbsoluteTo: TSepiLocalVar);
+begin
+  inherited Create;
+
+  FName := AName;
+  FType := AType;
+
+  if AAbsoluteTo.IsAbsolute then
+    AAbsoluteTo := AAbsoluteTo.AbsoluteTo;
+
+  FAbsoluteTo := AAbsoluteTo;
+  FAbsoluteTo.AddAbsolute(Self);
+
+  FIsFixed := AbsoluteTo.IsFixed;
+  FIsParam := AbsoluteTo.IsParam;
+  FParamKind := AbsoluteTo.ParamKind;
+  FLife := AbsoluteTo.Life;
+  FOffset := AbsoluteTo.Offset;
+end;
+
+{*
+  [@inheritDoc]
+*}
+destructor TSepiLocalVar.Destroy;
+begin
+  if not IsAbsolute then
+    FLife.Free;
+
+  inherited;
+end;
+
+{*
+  Recense une variable qui est calée sur celle-ci
+  @param AbsVar   Variable à recenser
+*}
+procedure TSepiLocalVar.AddAbsolute(AbsVar: TSepiLocalVar);
+begin
+  SetLength(FAbsolutes, Length(FAbsolutes)+1);
+  FAbsolutes[Length(FAbsolutes)-1] := AbsVar;
+end;
+
+{*
+  Renseigne la vie de la variable
+  Pour une variable sur laquelle sont calées d'autres, ces dernières sont
+  également notifiées de cette affectation.
+  @param ALife   Vie de la variable
+*}
+procedure TSepiLocalVar.SetLife(ALife: TSepiLocalVarLife);
+var
+  I: Integer;
+begin
+  FLife := ALife;
+
+  for I := 0 to Length(FAbsolutes)-1 do
+    FAbsolutes[I].SetLife(FLife);
+end;
+
+{*
+  Indique si la variable est calée sur une autre
+  @return True si elle est calée sur une autre, False sinon
+*}
+function TSepiLocalVar.GetIsAbsolute: Boolean;
+begin
+  Result := FAbsoluteTo <> nil;
+end;
+
+{*
+  Indique si la variable est en lecture seule
+  @return True si elle est en lecture seule, False sinon
+*}
+function TSepiLocalVar.GetIsConstant: Boolean;
+begin
+  Result := IsParam and (ParamKind = pkConst);
+end;
+
+{*
+  Indique si la variable doit être déréférencée pour y accéder
+  Les variables qui doivent être déréférencées sont les paramètres qui sont
+  transmis par adresse, et eux seuls.
+  @return True si elle doit être déréférencée, False sinon
+*}
+function TSepiLocalVar.GetNeedDereference: Boolean;
+begin
+  Result := IsParam and
+    ((ParamKind in [pkVar, pkOut]) or
+    VarType.ParamBehavior.AlwaysByAddress);
+end;
+
+{*
+  Indique si la vie de cette variable est partagée avec une autre
+  Seules les vies de variables calées les unes sur les autres sont partagées.
+  Si vous écrivez une analyse de vie dans votre compilateur, tenez compte de
+  cette information, sous peine de rater votre analyse, et donc de corrompre la
+  compilation.
+  @return True si sa vie est partagée, False sinon
+*}
+function TSepiLocalVar.GetIsLifeShared: Boolean;
+begin
+  Result := (FAbsoluteTo <> nil) or (Length(FAbsolutes) <> 0);
+end;
+
+{*
+  Indique si la vie de cette variable est gérée
+  @return True si sa vie est gérée, False sinon
+*}
+function TSepiLocalVar.GetIsLifeHandled: Boolean;
+begin
+  Result := FLife <> nil;
+end;
+
+{*
+  Commence la gestion de la vie de cette variable
+*}
+procedure TSepiLocalVar.HandleLife;
+begin
+  if FLife <> nil then
+    Exit;
+
+  if IsAbsolute then
+    AbsoluteTo.HandleLife
+  else
+    SetLife(TSepiLocalVarLife.Create);
+end;
+
+{*
+  Compile la vie de cette variable
+*}
+procedure TSepiLocalVar.CompileLife;
+begin
+  if Life <> nil then
+    Life.Compile;
+end;
+
+{*
+  Teste si cette variable interfère avec une autre
+  Deux variables qui interfèrent entre elles ne peuvent être positionnée au
+  même offset dans les variables locales.
+  @param Other   Variable avec laquelle comparer
+  @return True si les variables interfèrent, False sinon
+*}
+function TSepiLocalVar.InterfereWith(Other: TSepiLocalVar): Boolean;
+begin
+  Result := True;
+
+  if IsAbsolute then
+    Exit;
+  if (not IsLifeHandled) or (not Other.IsLifeHandled) then
+    Exit;
+  if not AreInitFinitCompatible(VarType.TypeInfo,
+    Other.VarType.TypeInfo) then
+    Exit;
+  if Life.InterfereWith(Other.Life) then
+    Exit;
+
+  Result := False;
+end;
+
+{*
+  Renseigne l'offset de cette variable
+  Pour les variables sur lesquelles sont calées d'autres, celles-ci sont
+  également notifiées de cette affectation.
+*}
+procedure TSepiLocalVar.SetOffset(AOffset: Integer);
+var
+  I: Integer;
+begin
+  FIsFixed := True;
+  FOffset := AOffset;
+
+  for I := 0 to Length(FAbsolutes)-1 do
+    FAbsolutes[I].SetOffset(AOffset);
+end;
+
+{---------------------------}
+{ TSepiLocalVariables class }
+{---------------------------}
+
+{*
+  Crée les variables locales d'une méthode
+  @param ACompiler   Compilateur de méthode
+*}
+constructor TSepiLocalVariables.Create(ACompiler: TSepiMethodCompiler);
+begin
+  inherited Create;
+
+  FCompiler := ACompiler;
+  FVariables := TObjectList.Create;
+end;
+
+{*
+  [@inheritDoc]
+*}
+destructor TSepiLocalVariables.Destroy;
+begin
+  FVariables.Free;
+
+  inherited;
+end;
+
+{*
+  Alloue l'espace mémoire pour les variables locales et renseigne leurs offsets
+  Cette méthode renseigne également la propriété Size.
+*}
+procedure TSepiLocalVariables.AllocateOffsets;
+var
+  I: Integer;
+  LocalVar: TSepiLocalVar;
+begin
+  FSize := 0;
+
+  // Bypass all fixed variables
+  for I := 0 to Count-1 do
+  begin
+    LocalVar := Variables[I];
+    if LocalVar.IsAbsolute or LocalVar.IsParam or (not LocalVar.IsFixed) then
+      Continue;
+    if LocalVar.Offset + LocalVar.VarType.Size > FSize then
+      FSize := LocalVar.Offset + LocalVar.VarType.Size;
+  end;
+
+  // Give offsets to non fixed variables
+  for I := 0 to Count-1 do
+  begin
+    LocalVar := Variables[I];
+    if LocalVar.IsAbsolute or LocalVar.IsFixed then
+      Continue;
+
+    LocalVar.VarType.AlignOffset(FSize);
+    LocalVar.SetOffset(FSize);
+    Inc(FSize, LocalVar.VarType.Size);
+  end;
+
+  // Align total size on a 4-byte boundary
+  if FSize and 3 <> 0 then
+    FSize := (FSize and not 3) + 4;
+end;
+
+{*
+  Construit les informations d'initialisation/finalisation
+*}
+procedure TSepiLocalVariables.MakeInitInfo;
+var
+  InitCount, I: Integer;
+  LocalVar: TSepiLocalVar;
+begin
+  SetLength(FInitInfo, Count);
+  InitCount := 0;
+
+  for I := 0 to Count-1 do
+  begin
+    LocalVar := Variables[I];
+
+    { Ignore parameters, absolute variables and variables whose type doesn't
+      require initialization. }
+    if LocalVar.IsParam or LocalVar.IsAbsolute or
+      (not LocalVar.VarType.NeedInit) then
+      Continue;
+
+    // Add an item to locals info
+    with FInitInfo[InitCount] do
+    begin
+      TypeRef := Compiler.UnitCompiler.MakeReference(LocalVar.VarType);
+      Offset := LocalVar.Offset;
+      Inc(InitCount);
+    end;
+  end;
+
+  SetLength(FInitInfo, InitCount);
+end;
+
+{*
+  Nombre de variables
+  @return Nombre de variables
+*}
+function TSepiLocalVariables.GetCount: Integer;
+begin
+  Result := FVariables.Count;
+end;
+
+{*
+  Tableau zero-based des variables
+  @param Index   Index d'une variable
+  @return Variable à l'index spécifié
+*}
+function TSepiLocalVariables.GetVariables(Index: Integer): TSepiLocalVar;
+begin
+  Result := TSepiLocalVar(FVariables[Index]);
+end;
+
+{*
+  Ajoute toutes les variables correspondant à une signature
+  @param Signature   Signature
+*}
+procedure TSepiLocalVariables.AddFromSignature(Signature: TSepiSignature);
+var
+  I: Integer;
+begin
+  with Signature do
+  begin
+    for I := 0 to ActualParamCount-1 do
+      FVariables.Add(TSepiLocalVar.CreateParam(ActualParams[I]));
+
+    if not (ReturnType.SafeResultBehavior in [rbNone, rbParameter]) then
+      FVariables.Add(TSepiLocalVar.CreateResult(ReturnType));
+  end;
+end;
+
+{*
+  Ajoute une variable locale
+  @param AName   Nom de la variable
+  @param AType   Type de la variable
+  @return Variable créée
+*}
+function TSepiLocalVariables.AddLocalVar(const AName: string;
+  AType: TSepiType): TSepiLocalVar;
+begin
+  Result := TSepiLocalVar.CreateVar(AName, AType);
+  FVariables.Add(Result);
+end;
+
+{*
+  Ajoute une variable locale
+  @param AName       Nom de la variable
+  @param ATypeInfo   RTTI du type de la variable
+  @return Variable créée
+*}
+function TSepiLocalVariables.AddLocalVar(const AName: string;
+  ATypeInfo: PTypeInfo): TSepiLocalVar;
+begin
+  Result := AddLocalVar(AName,
+    Compiler.SepiMethod.Root.FindType(ATypeInfo));
+end;
+
+{*
+  Ajoute une variable locale
+  @param AName      Nom de la variable
+  @param ATypeNom   Nom du type de la variable
+  @return Variable créée
+*}
+function TSepiLocalVariables.AddLocalVar(const AName: string;
+  const ATypeName: string): TSepiLocalVar;
+begin
+  Result := AddLocalVar(AName,
+    Compiler.SepiMethod.Root.FindType(ATypeName));
+end;
+
+{*
+  Ajoute une variable temporaire
+  @param AType   Type de la variable
+  @return Variable créée
+*}
+function TSepiLocalVariables.AddTempVar(AType: TSepiType): TSepiLocalVar;
+begin
+  Result := TSepiLocalVar.CreateTempVar(AType);
+  FVariables.Add(Result);
+end;
+
+{*
+  Ajoute une variable callée sur une autre
+  @param AName         Nom de la variable
+  @param AType         Type de la variable
+  @param AAbsoluteTo   Variable sur laquelle se caller
+*}
+function TSepiLocalVariables.AddAbsolute(const AName: string; AType: TSepiType;
+  AAbsoluteTo: TSepiLocalVar): TSepiLocalVar;
+begin
+  Result := TSepiLocalVar.CreateAbsolute(AName, AType, AAbsoluteTo);
+  FVariables.Add(Result);
+end;
+
+{*
+  Récupère une variable locale par son nom
+  @param Name   Nom de la variable recherchée
+  @return Variable correspondante, ou nil si non trouvée
+*}
+function TSepiLocalVariables.GetVarByName(const Name: string): TSepiLocalVar;
+var
+  I: Integer;
+begin
+  for I := 0 to Count-1 do
+  begin
+    Result := Variables[I];
+    if AnsiSameText(Result.Name, Name) then
+      Exit;
+  end;
+
+  Result := nil;
+end;
+
+{*
+  Compile les variables locales et leur donne des offsets
+*}
+procedure TSepiLocalVariables.Compile;
+var
+  I: Integer;
+begin
+  for I := 0 to Count-1 do
+    Variables[I].CompileLife;
+
+  AllocateOffsets;
+  MakeInitInfo;
+end;
+
+{*
+  Ecrit les informations d'initialisation des variables locales
+  @param Stream   Flux de destination
+*}
+procedure TSepiLocalVariables.WriteInitInfo(Stream: TStream);
+var
+  InitCount: Integer;
+begin
+  InitCount := Length(FInitInfo);
+  Stream.WriteBuffer(InitCount, 4);
+
+  Stream.WriteBuffer(FInitInfo[0], InitCount * SizeOf(TLocalInitInfo));
+end;
+
 {---------------------------}
 { TSepiMethodCompiler class }
 {---------------------------}
 
 {*
   Crée un nouveau compilateur de méthode Sepi
-  Si la méthode possède déjà des variables locales - c'est-à-dire si un type
-  record dont le nom est LocalVarsName est présent - celles-ci sont prises
-  comme variables locales de compilation. Sinon, le compilateur crée un record
-  de variables locales, et le libèrera à sa destruction.
   @param AUnitCompiler   Compilateur d'unité
   @param ASepiMethod     Méthode Sepi
 *}
@@ -966,20 +1655,8 @@ begin
 
   FObjFreeList := TObjectList.Create(False);
 
-  // Fetch locals or create them if they don't exist
-
-  FLocals := SepiMethod.GetMeta(LocalVarsName) as TSepiRecordType;
-  if FLocals = nil then
-    FLocals := TSepiRecordType.Create(SepiMethod, LocalVarsName);
-
-  with SepiMethod.Signature do
-  begin
-    if (FLocals.ChildCount = 0) and
-      (not (ReturnType.SafeResultBehavior in [rbNone, rbParameter])) then
-      FLocals.AddField(ResultFieldName, ReturnType);
-  end;
-
-  // Initialize other fields
+  FLocals := TSepiLocalVariables.Create(Self);
+  FLocals.AddFromSignature(SepiMethod.Signature);
 
   FInstructions := TSepiInstructionList.Create(Self);
   FAsmInstructions := TSepiAsmInstrList.Create(Self);
@@ -997,6 +1674,8 @@ destructor TSepiMethodCompiler.Destroy;
 begin
   FNamedLabels.Free;
   FAsmInstructions.Free;
+
+  FLocals.Free;
 
   FObjFreeList.Free;
 
@@ -1062,7 +1741,7 @@ end;
 *}
 function TSepiMethodCompiler.LookFor(const Name: string): TObject;
 begin
-  Result := Locals.GetMeta(Name);
+  Result := Locals.GetVarByName(Name);
   if Result <> nil then
     Exit;
 
@@ -1109,46 +1788,15 @@ end;
   Compile les instructions
 *}
 procedure TSepiMethodCompiler.Compile;
-var
-  Count: Integer;
-  I: Integer;
-  LocalVar: TSepiField;
 begin
-  // Local variables must have been completed
-  if not Locals.Completed then
-    Locals.Complete;
-
   // Compile
   AsmInstructions.Clear;
   Instructions.Compile;
+  Locals.Compile;
 
   // Assemble
   AsmInstructions.Assemble;
   FSize := AsmInstructions.Size;
-
-  // Make locals info
-  SetLength(FLocalsInfo, Locals.ChildCount);
-  Count := 0;
-  for I := 0 to Locals.ChildCount-1 do
-  begin
-    // Ignore non-field children
-    if not (Locals.Children[I] is TSepiField) then
-      Continue;
-
-    // Ignore variables whose type doesn't require initialization
-    LocalVar := TSepiField(Locals.Children[I]);
-    if not LocalVar.FieldType.NeedInit then
-      Continue;
-
-    // Add an item to locals info
-    with FLocalsInfo[Count] do
-    begin
-      TypeRef := UnitCompiler.MakeReference(LocalVar.FieldType);
-      Offset := LocalVar.Offset;
-      Inc(Count);
-    end;
-  end;
-  SetLength(FLocalsInfo, Count);
 end;
 
 {*
@@ -1184,13 +1832,8 @@ end;
   @param Stream   Flux de destination
 *}
 procedure TSepiMethodCompiler.WriteLocalsInfo(Stream: TStream);
-var
-  Count: Integer;
 begin
-  Count := Length(FLocalsInfo);
-  Stream.WriteBuffer(Count, 4);
-
-  Stream.WriteBuffer(FLocalsInfo[0], Count*SizeOf(TLocalInfo));
+  Locals.WriteInitInfo(Stream);
 end;
 
 {-------------------------}
@@ -1404,26 +2047,18 @@ begin
 
   FSpace := ASpace;
   FSpaceArgument := ASpaceArgument;
+  FUnresolvedLocalVar := nil;
 end;
 
 {*
   Modifie l'espace mémoire sur base d'un meta
-  Le meta peut être une variable locale, une variable globale ou une constante
-  globale (sous réserve d'acceptation des constantes).
+  Le meta peut être une une variable globale ou une constante globale (sous
+  réserve d'acceptation des constantes).
   @param Meta   Meta à pointer par l'espace mémoire
 *}
 procedure TSepiMemoryReference.SetSpace(Meta: TSepiMeta);
 begin
-  if Meta is TSepiField then
-  begin
-    // Local variable
-
-    if Meta.Owner <> MethodCompiler.Locals then
-      raise ESepiInvalidMemoryReference.CreateResFmt(@SMemoryCantAccessObject,
-        [Meta.GetFullName]);
-
-    SetSpace(msLocalsBase, TSepiField(Meta).Offset);
-  end else if Meta is TSepiConstant then
+  if Meta is TSepiConstant then
   begin
     // Global true constant
     with TSepiConstant(Meta) do
@@ -1453,45 +2088,42 @@ begin
 end;
 
 {*
-  Modifie l'espace mémoire sur base d'un paramètre
-  Le paramètre doit être de la méthode courante. Si AutoDeref vaut True, et que
-  le paramètre est passé par adresse, le déréférencement est ajouté
-  automatiquement.
-  @param Param       Paramètre à pointer par l'espace mémoire
-  @param AutoDeref   Déréférence automatiquement
+  Modifie l'espace mémoire sur base d'une variable locale
+  @param Variable   Variable à pointer par l'espace mémoire
 *}
-procedure TSepiMemoryReference.SetSpace(Param: TSepiParam;
-  AutoDeref: Boolean = True);
+procedure TSepiMemoryReference.SetSpace(Variable: TSepiLocalVar);
 begin
-  if Param.Owner <> MethodCompiler.SepiMethod.Signature then
-    raise ESepiInvalidMemoryReference.CreateResFmt(@SMemoryCantAccessObject,
-      [Param.Owner.Owner.GetFullName + '.' + Param.Name]);
+  if Variable.IsFixed then
+  begin
+    if Variable.IsParam then
+      SetSpace(msParamsBase, Variable.Offset)
+    else
+      SetSpace(msLocalsBase, Variable.Offset);
 
-  SetSpace(msParamsBase, Param.CallInfo.SepiStackOffset);
-
-  if AutoDeref and Param.CallInfo.ByAddress then
-    AddOperation(adSimple);
+    if Variable.NeedDereference then
+      AddOperation(adSimple);
+  end else
+  begin
+    SetSpace(msUnresolvedLocalVar);
+    FUnresolvedLocalVar := Variable;
+  end;
 end;
 
 {*
   Modifie l'espace mémoire sur base d'un nom, qui est d'abord recherché
   L'espace mémoire est recherché dans les variables locales, puis dans les
   paramètres, puis via la méthode LookFor de la méthode qui est asssemblée.
-  Si AutoDerefParam vaut True, et que c'est un paramètre est passé par adresse,
-  le déréférencement est ajouté automatiquement.
-  @param Name             Nom de l'espace mémoire, à rechercher
-  @param AutoDerefParam   Déréférence automatiquement les paramètres
+  @param Name   Nom de l'espace mémoire, à rechercher
 *}
-procedure TSepiMemoryReference.SetSpace(const Name: string;
-  AutoDerefParam: Boolean = True);
+procedure TSepiMemoryReference.SetSpace(const Name: string);
 var
   Obj: TObject;
 begin
   Obj := MethodCompiler.LookFor(Name);
-  if Obj is TSepiMeta then
+  if Obj is TSepiLocalVar then
+    SetSpace(TSepiLocalVar(Obj))
+  else if Obj is TSepiMeta then
     SetSpace(TSepiMeta(Obj))
-  else if Obj is TSepiParam then
-    SetSpace(TSepiParam(Obj), AutoDerefParam)
   else
     raise ESepiMetaNotFoundError.CreateResFmt(@SSepiObjectNotFound, [Name]);
 end;
@@ -1688,6 +2320,10 @@ procedure TSepiMemoryReference.Make;
 var
   I: Integer;
 begin
+  // Resolve the local var, if needed
+  if Space = msUnresolvedLocalVar then
+    SetSpace(FUnresolvedLocalVar);
+
   // Head byte (TSepiMemoryRef)
   FSize := SizeOf(TSepiMemoryRef);
 
