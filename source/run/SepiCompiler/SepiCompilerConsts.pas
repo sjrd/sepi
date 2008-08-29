@@ -39,8 +39,14 @@ resourcestring
   SIdentifier = 'Identificateur';
   SRedeclaredIdentifier = 'Identificateur redéclaré';
   SIdentifierNotFound = 'Identificateur %s non déclaré';
-  STypeMismatch = 'Types incompatibles : %s attendu mais %s trouvé';
+  STypeMismatch = 'Types incompatibles : %s et %s';
   SNeedConstExpression = 'Expression constante attendue';
+
+  // Erreurs de compilation sur les expressions
+  STypeIsNotBaseType =
+    'Le type %s n''est pas un type de base pour l''interpréteur Sepi';
+  SInvalidCast = 'Transtypage invalide de %s en %s';
+  STypeNotApplicableToOp = 'Type non applicable à cette opération';
 
   // Erreurs de compilateur
   SLabelAlreadyExists = 'Le label ''%s'' existe déjà';

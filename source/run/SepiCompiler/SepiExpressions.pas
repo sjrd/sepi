@@ -32,6 +32,23 @@ uses
   SepiAsmInstructions;
 
 type
+  /// Opération Sepi
+  TSepiOperation = opAdd..opCmpGE;
+
+const
+  /// Toutes les opérations valides
+  opAllOps = [Low(TSepiOperation)..High(TSepiOperation)];
+
+  /// Opérations unaires
+  opUnaryOps = [opNegate, opNot];
+
+  /// Operations binaires (dont comparaisons)
+  opBinaryOps = opAllOps - opUnaryOps;
+
+  /// Opérations de comparaison
+  opComparisonOps = [opCmpEQ..opCmpGE];
+
+type
   {*
     Valeur qui peut être lue à l'exécution
     @author sjrd
@@ -326,6 +343,70 @@ type
   end;
 
   {*
+    Valeur constante (vraie constante ou constante litérale)
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiTrueConstValue = class(TSepiCustomDirectValue)
+  private
+    FConstant: TSepiConstant;
+
+    constructor Create(AType: TSepiType); overload;
+  protected
+    function CompileAsMemoryRef(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList;
+      TempVars: TSepiTempVarsLifeManager): TSepiMemoryReference; override;
+  public
+    constructor Create(Constant: TSepiConstant); overload;
+
+    constructor Create(SepiRoot: TSepiRoot; Value: Int64); overload;
+    constructor Create(SepiRoot: TSepiRoot; Value: Extended); overload;
+
+    constructor Create(SepiRoot: TSepiRoot; Value: AnsiChar); overload;
+    constructor Create(SepiRoot: TSepiRoot; Value: WideChar); overload;
+
+    constructor Create(SepiRoot: TSepiRoot; const Value: AnsiString); overload;
+    constructor Create(SepiRoot: TSepiRoot; const Value: WideString); overload;
+
+    destructor Destroy; override;
+
+    property Constant: TSepiConstant read FConstant;
+    property ConstValuePtr;
+  end;
+
+  {*
+    Opérateur de transtypage
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiCastOperator = class(TSepiCustomDirectValue)
+  private
+    FOperand: ISepiExpression; /// Expression source
+    FForceCast: Boolean;      /// True force même avec des tailles différentes
+
+    procedure CollapseConsts;
+  protected
+    procedure CompileRead(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
+      TempVars: TSepiTempVarsLifeManager); override;
+
+    procedure CompileWrite(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList; Source: ISepiReadableValue); override;
+
+    procedure CompileLoadAddress(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
+      TempVars: TSepiTempVarsLifeManager); override;
+  public
+    constructor Create(DestType: TSepiType;
+      const AOperand: ISepiExpression = nil);
+
+    procedure Complete;
+
+    property Operand: ISepiExpression read FOperand write FOperand;
+    property ForceCast: Boolean read FForceCast write FForceCast;
+  end;
+
+  {*
     Valeur nil
     @author sjrd
     @version 1.0
@@ -369,7 +450,15 @@ procedure NeedDestination(var Destination: TSepiMemoryReference;
   ValueType: TSepiType; Compiler: TSepiMethodCompiler;
   TempVars: TSepiTempVarsLifeManager; BeginLifeAt: TSepiInstructionRef);
 
+function IsZeroMemory(Address: Pointer; Size: Integer): Boolean;
+
 implementation
+
+const
+  /// Zéro mémoire
+  ZeroMemory: array[0..SizeOf(Variant)-1] of Byte = (
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  );
 
 {-----------------}
 { Global routines }
@@ -400,6 +489,36 @@ begin
   Destination := TSepiMemoryReference.Create(Compiler);
   Destination.SetSpace(TempVar);
   Destination.Seal;
+end;
+
+{*
+  Teste si une valeur est un zéro mémoire, tel qu'on peut utiliser msZero
+  Une valeur est un zéro mémoire si et seulement si sa taille n'est pas plus
+  grande qu'un Variant et que tous ses octets sont nuls.
+  @param Address   Adresse mémoire de la valeur
+  @param Size      Taille de la valeur
+  @return True si la valeur est un zéro mémoire, False sinon
+*}
+function IsZeroMemory(Address: Pointer; Size: Integer): Boolean;
+begin
+  if Size > SizeOf(Variant) then
+    Result := False
+  else
+  begin
+    while Size > 0 do
+    begin
+      if PByte(Address)^ <> 0 then
+      begin
+        Result := False;
+        Exit;
+      end;
+
+      Inc(Cardinal(Address));
+      Dec(Size);
+    end;
+
+    Result := True;
+  end;
 end;
 
 {---------------------------------}
@@ -666,9 +785,6 @@ end;
 procedure TSepiCustomComputedValue.CompileRead(Compiler: TSepiMethodCompiler;
   Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
   TempVars: TSepiTempVarsLifeManager);
-var
-  I: Integer;
-  IsZeroConst: Boolean;
 begin
   if ConstValuePtr = nil then
     CompileCompute(Compiler, Instructions, Destination, TempVars)
@@ -677,25 +793,7 @@ begin
     Destination := TSepiMemoryReference.Create(Compiler, aoAcceptAllConsts,
       ValueType.Size);
 
-    // Test whether we can use msZero space
-    if ValueType.Size > SizeOf(Variant) then
-      IsZeroConst := False
-    else
-    begin
-      IsZeroConst := True;
-
-      for I := 0 to ValueType.Size-1 do
-      begin
-        if PByte(Integer(ConstValuePtr) + I)^ <> 0 then
-        begin
-          IsZeroConst := False;
-          Break;
-        end;
-      end;
-    end;
-
-    // Set destination space
-    if IsZeroConst then
+    if IsZeroMemory(ConstValuePtr, ValueType.Size) then
       Destination.SetSpace(msZero)
     else if ValueType.NeedInit then
     begin
@@ -709,6 +807,286 @@ begin
 
     Destination.Seal;
   end;
+end;
+
+{---------------------}
+{ TSepiTrueConstValue }
+{---------------------}
+
+{*
+  Tronc commun des créations de constantes litérales
+  @param AType   Type de la constante
+*}
+constructor TSepiTrueConstValue.Create(AType: TSepiType);
+begin
+  inherited Create;
+
+  SetValueType(AType);
+  ConstValuePtr := ValueType.NewValue;
+
+  IsReadable := True;
+end;
+
+{*
+  Crée une expression représentant une vraie constante
+  @param Constant   Vraie constante représentée
+*}
+constructor TSepiTrueConstValue.Create(Constant: TSepiConstant);
+begin
+  inherited Create;
+
+  FConstant := Constant;
+  SetValueType(Constant.ConstType);
+  ConstValuePtr := Constant.ValuePtr;
+
+  IsReadable := True;
+end;
+
+{*
+  Crée une constante litérale entière
+  @param SepiRoot   Racine Sepi (pour trouver le type Sepi)
+  @param Value      Valeur de la constante
+*}
+constructor TSepiTrueConstValue.Create(SepiRoot: TSepiRoot;
+  Value: Int64);
+begin
+  Create(SepiRoot.FindType(TypeInfo(Int64)));
+
+  Int64(ConstValuePtr^) := Value;
+end;
+
+{*
+  Crée une constante litérale flottante
+  @param SepiRoot   Racine Sepi (pour trouver le type Sepi)
+  @param Value      Valeur de la constante
+*}
+constructor TSepiTrueConstValue.Create(SepiRoot: TSepiRoot;
+  Value: Extended);
+begin
+  Create(SepiRoot.FindType(TypeInfo(Extended)));
+
+  Extended(ConstValuePtr^) := Value;
+end;
+
+{*
+  Crée une constante litérale caractère ANSI
+  @param SepiRoot   Racine Sepi (pour trouver le type Sepi)
+  @param Value      Valeur de la constante
+*}
+constructor TSepiTrueConstValue.Create(SepiRoot: TSepiRoot;
+  Value: AnsiChar);
+begin
+  Create(SepiRoot.FindType(TypeInfo(AnsiChar)));
+
+  AnsiChar(ConstValuePtr^) := Value;
+end;
+
+{*
+  Crée une constante litérale caractère Unicode
+  @param SepiRoot   Racine Sepi (pour trouver le type Sepi)
+  @param Value      Valeur de la constante
+*}
+constructor TSepiTrueConstValue.Create(SepiRoot: TSepiRoot;
+  Value: WideChar);
+begin
+  Create(SepiRoot.FindType(TypeInfo(WideChar)));
+
+  WideChar(ConstValuePtr^) := Value;
+end;
+
+{*
+  Crée une constante litérale chaîne ANSI
+  @param SepiRoot   Racine Sepi (pour trouver le type Sepi)
+  @param Value      Valeur de la constante
+*}
+constructor TSepiTrueConstValue.Create(SepiRoot: TSepiRoot;
+  const Value: AnsiString);
+begin
+  Create(SepiRoot.FindType(TypeInfo(AnsiString)));
+
+  AnsiString(ConstValuePtr^) := Value;
+end;
+
+{*
+  Crée une constante litérale chaîne Unicode
+  @param SepiRoot   Racine Sepi (pour trouver le type Sepi)
+  @param Value      Valeur de la constante
+*}
+constructor TSepiTrueConstValue.Create(SepiRoot: TSepiRoot;
+  const Value: WideString);
+begin
+  Create(SepiRoot.FindType(TypeInfo(WideString)));
+
+  WideString(ConstValuePtr^) := Value;
+end;
+
+{*
+  [@inheritDoc]
+*}
+destructor TSepiTrueConstValue.Destroy;
+begin
+  if FConstant = nil then
+    ValueType.DisposeValue(ConstValuePtr);
+
+  inherited;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiTrueConstValue.CompileAsMemoryRef(Compiler: TSepiMethodCompiler;
+  Instructions: TSepiInstructionList;
+  TempVars: TSepiTempVarsLifeManager): TSepiMemoryReference;
+begin
+  Result := TSepiMemoryReference.Create(Compiler, aoAcceptAllConsts,
+    ValueType.Size);
+  try
+    if IsZeroMemory(ConstValuePtr, ValueType.Size) then
+      Result.SetSpace(msZero)
+    else if Constant <> nil then
+    begin
+      Result.SetSpace(Constant);
+    end else if ValueType.NeedInit then
+    begin
+      Result.SetSpace(Compiler.MakeUnnamedTrueConst(
+        ValueType, ConstValuePtr^));
+    end else
+    begin
+      Result.SetSpace(msConstant);
+      Result.SetConstant(ConstValuePtr^);
+    end;
+
+    Result.Seal;
+  except
+    Result.Free;
+    raise;
+  end;
+end;
+
+{-------------------------}
+{ TSepiCastOperator class }
+{-------------------------}
+
+constructor TSepiCastOperator.Create(DestType: TSepiType;
+  const AOperand: ISepiExpression = nil);
+begin
+  inherited Create;
+
+  SetValueType(DestType);
+  FOperand := AOperand;
+end;
+
+{*
+  Pliage des constantes
+*}
+procedure TSepiCastOperator.CollapseConsts;
+var
+  ConstOp: ISepiConstantValue;
+  OpType: TSepiType;
+begin
+  // Handle nil constant
+  if Supports(Operand, ISepiNilValue) then
+  begin
+    ConstValuePtr := @ZeroMemory;
+    Exit;
+  end;
+
+  // If operand is not a constant value, exit
+  if Operand.QueryInterface(ISepiConstantValue, ConstOp) <> 0 then
+    Exit;
+
+  // Can't collapse a cast if operand type is unknown
+  OpType := ConstOp.ValueType;
+  if OpType = nil then
+    Exit;
+
+  // Can't collapse a cast on a need-init-type (unless operand is zero-memory)
+  if (OpType.NeedInit or ValueType.NeedInit) and
+    (not IsZeroMemory(ConstOp.ValuePtr, OpType.Size)) then
+    Exit;
+
+  // Do the job
+  ConstValuePtr := ConstOp.ValuePtr;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiCastOperator.CompileRead(Compiler: TSepiMethodCompiler;
+  Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
+  TempVars: TSepiTempVarsLifeManager);
+begin
+  (Operand as ISepiReadableValue).CompileRead(Compiler, Instructions,
+    Destination, TempVars);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiCastOperator.CompileWrite(Compiler: TSepiMethodCompiler;
+  Instructions: TSepiInstructionList; Source: ISepiReadableValue);
+begin
+  (Operand as ISepiWritableValue).CompileWrite(Compiler, Instructions,
+    Source);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiCastOperator.CompileLoadAddress(
+  Compiler: TSepiMethodCompiler; Instructions: TSepiInstructionList;
+  var Destination: TSepiMemoryReference; TempVars: TSepiTempVarsLifeManager);
+begin
+  (Operand as ISepiAddressableValue).CompileLoadAddress(Compiler, Instructions,
+    Destination, TempVars);
+end;
+
+{*
+  Complète le transtypage
+*}
+procedure TSepiCastOperator.Complete;
+var
+  OpType: TSepiType;
+begin
+  Assert(Operand <> nil);
+
+  OpType := nil;
+
+  if Supports(Operand, ISepiNilValue) then
+    IsReadable := True;
+
+  if Supports(Operand, ISepiReadableValue) then
+  begin
+    IsReadable := True;
+    OpType := (Operand as ISepiReadableValue).ValueType;
+  end;
+
+  if Supports(Operand, ISepiWritableValue) then
+  begin
+    IsWritable := (OpType = nil) or
+      ((Operand as ISepiReadableValue).ValueType = OpType);
+    if OpType = nil then
+      OpType := (Operand as ISepiReadableValue).ValueType;
+  end;
+
+  if Supports(Operand, ISepiAddressableValue) then
+    IsAddressable := True;
+
+  if (OpType <> nil) and (OpType.Size <> ValueType.Size) then
+  begin
+    if (OpType.Size < ValueType.Size) or (not ForceCast) then
+    begin
+      MakeError(Format(SInvalidCast, [OpType.Name, ValueType.Name]));
+
+      IsReadable := False;
+      IsWritable := False;
+      IsAddressable := False;
+
+      Exit;
+    end;
+  end;
+
+  CollapseConsts;
 end;
 
 {---------------------------}
