@@ -647,8 +647,9 @@ type
 
     procedure SetSpace(ASpace: TSepiMemorySpace;
       ASpaceArgument: Integer = 0); overload;
-    procedure SetSpace(Meta: TSepiMeta); overload;
-    procedure SetSpace(Variable: TSepiLocalVar); overload;
+    procedure SetSpace(LocalVar: TSepiLocalVar); overload;
+    procedure SetSpace(Constant: TSepiConstant); overload;
+    procedure SetSpace(Variable: TSepiVariable); overload;
     procedure SetSpace(const Name: string); overload;
 
     procedure SetAsConst(Value: Int64); overload;
@@ -2454,62 +2455,56 @@ begin
 end;
 
 {*
-  Modifie l'espace mémoire sur base d'un meta
-  Le meta peut être une une variable globale ou une constante globale (sous
-  réserve d'acceptation des constantes).
-  @param Meta   Meta à pointer par l'espace mémoire
-*}
-procedure TSepiMemoryReference.SetSpace(Meta: TSepiMeta);
-begin
-  if Meta is TSepiConstant then
-  begin
-    // Global true constant
-    with TSepiConstant(Meta) do
-    begin
-      if (not ConstType.NeedInit) and (ConstType.Size <= SizeOf(Extended)) then
-      begin
-        { Small constants which do not require initialization are directly
-          written in the code. }
-        SetSpace(msConstant);
-        SetConstant(ValuePtr^);
-      end else
-      begin
-        SetSpace(msTrueConst,
-          MethodCompiler.UnitCompiler.MakeReference(Meta));
-      end;
-    end;
-  end else if Meta is TSepiVariable then
-  begin
-    // Global variable or addressed constant
-    SetSpace(msVariable, MethodCompiler.UnitCompiler.MakeReference(Meta));
-  end else
-  begin
-    // Other types of meta are not accepted
-    raise ESepiInvalidMemoryReference.CreateResFmt(@SMemoryCantAccessObject,
-      [Meta.GetFullName]);
-  end;
-end;
-
-{*
   Modifie l'espace mémoire sur base d'une variable locale
   @param Variable   Variable à pointer par l'espace mémoire
 *}
-procedure TSepiMemoryReference.SetSpace(Variable: TSepiLocalVar);
+procedure TSepiMemoryReference.SetSpace(LocalVar: TSepiLocalVar);
 begin
-  if Variable.IsFixed then
+  if LocalVar.IsFixed then
   begin
-    if Variable.IsParam then
-      SetSpace(msParamsBase, Variable.Offset)
+    if LocalVar.IsParam then
+      SetSpace(msParamsBase, LocalVar.Offset)
     else
-      SetSpace(msLocalsBase, Variable.Offset);
+      SetSpace(msLocalsBase, LocalVar.Offset);
 
-    if Variable.NeedDereference then
+    if LocalVar.NeedDereference then
       AddOperation(adSimple);
   end else
   begin
     SetSpace(msUnresolvedLocalVar);
-    FUnresolvedLocalVar := Variable;
+    FUnresolvedLocalVar := LocalVar;
   end;
+end;
+
+{*
+  Modifie l'espace mémoire sur base d'une vraie constante
+  @param Constant   Constante à pointer par l'espace mémoire
+*}
+procedure TSepiMemoryReference.SetSpace(Constant: TSepiConstant);
+begin
+  with Constant do
+  begin
+    if (not ConstType.NeedInit) and (ConstType.Size <= SizeOf(Extended)) then
+    begin
+      { Small constants which do not require initialization are directly
+        written in the code. }
+      SetSpace(msConstant);
+      SetConstant(ValuePtr^);
+    end else
+    begin
+      SetSpace(msTrueConst,
+        MethodCompiler.UnitCompiler.MakeReference(Constant));
+    end;
+  end;
+end;
+
+{*
+  Modifie l'espace mémoire sur base d'une variable globale
+  @param Variable   Variable à pointer par l'espace mémoire
+*}
+procedure TSepiMemoryReference.SetSpace(Variable: TSepiVariable);
+begin
+  SetSpace(msVariable, MethodCompiler.UnitCompiler.MakeReference(Variable));
 end;
 
 {*
@@ -2525,8 +2520,10 @@ begin
   Obj := MethodCompiler.LookFor(Name);
   if Obj is TSepiLocalVar then
     SetSpace(TSepiLocalVar(Obj))
-  else if Obj is TSepiMeta then
-    SetSpace(TSepiMeta(Obj))
+  else if Obj is TSepiConstant then
+    SetSpace(TSepiConstant(Obj))
+  else if Obj is TSepiVariable then
+    SetSpace(TSepiVariable(Obj))
   else
     raise ESepiMetaNotFoundError.CreateResFmt(@SSepiObjectNotFound, [Name]);
 end;
