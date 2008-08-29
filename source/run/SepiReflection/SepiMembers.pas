@@ -1744,6 +1744,8 @@ begin
 
   MakeLink;
 
+  LoadChildren(Stream);
+
   if not IsAbstract then
   begin
     if Assigned(OwningUnit.OnGetMethodCode) then
@@ -1990,6 +1992,8 @@ begin
     OwningUnit.WriteRef(Stream, FOverloaded);
     Stream.WriteBuffer(FOverloadIndex, 1);
   end;
+
+  SaveChildren(Stream);
 end;
 
 {*

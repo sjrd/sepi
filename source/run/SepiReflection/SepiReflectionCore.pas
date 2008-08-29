@@ -457,12 +457,15 @@ type
   private
     FType: TSepiType;   /// Type de la constante
     FValuePtr: Pointer; /// Pointeur sur la valeur
-    FStrValue: string;  /// Contenu de la valeur de type chaîne
   protected
     procedure ListReferences; override;
     procedure Save(Stream: TStream); override;
   public
     constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
+    constructor Create(AOwner: TSepiMeta; const AName: string;
+      AType: TSepiType); overload;
+    constructor Create(AOwner: TSepiMeta; const AName: string;
+      AType: TSepiType; const AValue); overload;
     constructor Create(AOwner: TSepiMeta; const AName: string;
       const AValue: Variant; AType: TSepiType); overload;
     constructor Create(AOwner: TSepiMeta; const AName: string;
@@ -2356,14 +2359,37 @@ begin
   inherited;
 
   OwningUnit.ReadRef(Stream, FType);
-  GetMem(FValuePtr, FType.Size);
+  FValuePtr := ConstType.NewValue;
 
-  if FType is TSepiStringType then
-  begin
-    FStrValue := ReadStrFromStream(Stream);
-    PPointer(FValuePtr)^ := Pointer(FStrValue);
-  end else
-    Stream.ReadBuffer(FValuePtr^, FType.Size);
+  ReadDataFromStream(Stream, FValuePtr^, ConstType.TypeInfo);
+end;
+
+{*
+  Crée une nouvelle vraie constante sans initialiser sa valeur
+  @param AOwner   Propriétaire de la constante
+  @param AName    Nom de la constante
+  @param AType    Type de la constante
+*}
+constructor TSepiConstant.Create(AOwner: TSepiMeta;
+  const AName: string; AType: TSepiType);
+begin
+  inherited Create(AOwner, AName);
+
+  FType := AType;
+  FValuePtr := ConstType.NewValue;
+end;
+
+{*
+  Crée une nouvelle vraie constante sans initialiser sa valeur
+  @param AOwner   Propriétaire de la constante
+  @param AName    Nom de la constante
+  @param AType    Type de la constante
+*}
+constructor TSepiConstant.Create(AOwner: TSepiMeta;
+  const AName: string; AType: TSepiType; const AValue);
+begin
+  Create(AOwner, AName, AType);
+  ConstType.CopyData(AValue, ValuePtr^);
 end;
 
 {*
@@ -2376,17 +2402,7 @@ end;
 constructor TSepiConstant.Create(AOwner: TSepiMeta;
   const AName: string; const AValue: Variant; AType: TSepiType);
 begin
-  inherited Create(AOwner, AName);
-
-  FType := AType;
-  GetMem(FValuePtr, FType.Size);
-
-  if FType is TSepiStringType then
-  begin
-    FStrValue := AValue;
-    PPointer(FValuePtr)^ := Pointer(FStrValue);
-  end else
-    Move(TVarData(AValue).VAny, FValuePtr^, FType.Size);
+  Create(AOwner, AName, AType, TVarData(AValue).VAny);
 end;
 
 {*
@@ -2403,18 +2419,19 @@ begin
   begin
     case VarType(AValue) of
       varSmallint: ATypeInfo := System.TypeInfo(Smallint);
-      varInteger: ATypeInfo := System.TypeInfo(Integer);
-      varSingle: ATypeInfo := System.TypeInfo(Single);
-      varDouble: ATypeInfo := System.TypeInfo(Double);
+      varInteger:  ATypeInfo := System.TypeInfo(Integer);
+      varSingle:   ATypeInfo := System.TypeInfo(Single);
+      varDouble:   ATypeInfo := System.TypeInfo(Double);
       varCurrency: ATypeInfo := System.TypeInfo(Currency);
-      varDate: ATypeInfo := System.TypeInfo(TDateTime);
-      varError: ATypeInfo := System.TypeInfo(HRESULT);
-      varBoolean: ATypeInfo := System.TypeInfo(Boolean);
+      varDate:     ATypeInfo := System.TypeInfo(TDateTime);
+      varError:    ATypeInfo := System.TypeInfo(HRESULT);
+      varBoolean:  ATypeInfo := System.TypeInfo(Boolean);
       varShortInt: ATypeInfo := System.TypeInfo(Shortint);
-      varByte: ATypeInfo := System.TypeInfo(Byte);
-      varWord: ATypeInfo := System.TypeInfo(Word);
+      varByte:     ATypeInfo := System.TypeInfo(Byte);
+      varWord:     ATypeInfo := System.TypeInfo(Word);
       varLongWord: ATypeInfo := System.TypeInfo(LongWord);
-      varInt64: ATypeInfo := System.TypeInfo(Int64);
+      varInt64:    ATypeInfo := System.TypeInfo(Int64);
+
       varOleStr, varStrArg, varString: ATypeInfo := System.TypeInfo(string);
     else
       raise ESepiBadConstTypeError.CreateFmt(
@@ -2462,12 +2479,9 @@ end;
 procedure TSepiConstant.Save(Stream: TStream);
 begin
   inherited;
-  OwningUnit.WriteRef(Stream, FType);
 
-  if FType is TSepiStringType then
-    WriteStrToStream(Stream, FStrValue)
-  else
-    Stream.WriteBuffer(FValuePtr^, FType.Size);
+  OwningUnit.WriteRef(Stream, FType);
+  WriteDataToStream(Stream, FValuePtr^, FType.Size, FType.TypeInfo);
 end;
 
 {----------------------}
@@ -2486,7 +2500,7 @@ begin
   FValue := FType.NewValue;
   FOwnValue := True;
 
-  ReadDataFromStream(Stream, FValue^, FType.TypeInfo);
+  ReadDataFromStream(Stream, FValue^, FType.Size, FType.TypeInfo);
 end;
 
 {*
@@ -2610,7 +2624,7 @@ begin
   inherited;
 
   OwningUnit.WriteRef(Stream, FType);
-  WriteDataToStream(Stream, FValue^, FType.TypeInfo);
+  WriteDataToStream(Stream, FValue^, FType.Size, FType.TypeInfo);
 end;
 
 {*
