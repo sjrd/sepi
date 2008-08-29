@@ -29,26 +29,7 @@ interface
 uses
   Windows, SysUtils, Classes, Contnrs, TypInfo, ScUtils, ScTypInfo,
   ScIntegerSets, SepiReflectionCore, SepiMembers, SepiOpCodes,
-  SepiReflectionConsts;
-
-resourcestring
-  SLabelAlreadyExists = 'Le label ''%s'' existe déjà';
-  SLabelNotFound = 'Label ''%s'' non trouvé';
-  SMemoryRefIsSealed = 'La référence mémoire est scellée';
-  SMemoryCantBeZero = 'La référence mémoire ne peut être zéro';
-  SMemoryCantBeConstant = 'La référence mémoire ne peut être constante';
-  SMemoryCantBeTrueConst =
-    'La référence mémoire ne peut être une vraie constante';
-  SMemorySpaceOffsetMustBeWord =
-    'L''offset d''espace mémoire doit être contenu dans un Word';
-  SMemoryCantAccessObject = 'Impossible d''accéder à l''objet %s';
-  STooManyOperations =
-    'Une référence mémoire ne peut avoir que 15 opérations maximum';
-  SZeroMemoryCantHaveOperations =
-    'Une référence mémoire vers des 0 ne peut avoir d''opérations';
-  SConstArgMustBeShort =
-    'L''argument constant doit être contenu dans un Shortint';
-  SCantRemoveDereference = 'Ne peut retirer de déréférencement';
+  SepiReflectionConsts, SepiCompilerErrors, SepiCompilerConsts;
 
 type
   TSepiAsmInstrList = class;
@@ -450,6 +431,8 @@ type
   *}
   TSepiUnitCompiler = class(TObject)
   private
+    FErrors: TSepiCompilerErrorList; /// Erreurs
+
     FSepiUnit: TSepiUnit;  /// Unité Sepi
     FMethods: TObjectList; /// Compilateurs de méthodes
 
@@ -458,12 +441,15 @@ type
     function GetMethodCount: Integer;
     function GetMethods(Index: Integer): TSepiMethodCompiler;
   public
-    constructor Create(ASepiUnit: TSepiUnit);
+    constructor Create(AErrors: TSepiCompilerErrorList;
+      ASepiUnit: TSepiUnit);
     destructor Destroy; override;
 
     function MakeReference(Meta: TSepiMeta): Integer;
 
     procedure WriteToStream(Stream: TStream);
+
+    property Errors: TSepiCompilerErrorList read FErrors;
 
     property SepiUnit: TSepiUnit read FSepiUnit;
 
@@ -594,7 +580,6 @@ type
   end;
 
 const // don't localize
-  LocalVarsName = '$Locals';  /// Nom du type record des variables locales
   ResultFieldName = 'Result'; /// Nom de la variable locale Result
 
 const
@@ -1866,9 +1851,12 @@ end;
   Crée un nouveau compilateur d'unité Sepi
   @param ASepiUnit   Unité Sepi à assembler
 *}
-constructor TSepiUnitCompiler.Create(ASepiUnit: TSepiUnit);
+constructor TSepiUnitCompiler.Create(AErrors: TSepiCompilerErrorList;
+  ASepiUnit: TSepiUnit);
 begin
   inherited Create;
+
+  FErrors := AErrors;
 
   FSepiUnit := ASepiUnit;
   FMethods := TObjectList.Create;

@@ -37,7 +37,9 @@ requires
 contains
   SepiAsmInstructions in '..\..\source\run\SepiCompiler\SepiAsmInstructions.pas',
   SepiCompiler in '..\..\source\run\SepiCompiler\SepiCompiler.pas',
-  SepiInstructions in '..\..\source\run\SepiCompiler\SepiInstructions.pas';
+  SepiInstructions in '..\..\source\run\SepiCompiler\SepiInstructions.pas',
+  SepiCompilerErrors in '..\..\source\run\SepiCompiler\SepiCompilerErrors.pas',
+  SepiCompilerConsts in '..\..\source\run\SepiCompiler\SepiCompilerConsts.pas';
 
 end.
 

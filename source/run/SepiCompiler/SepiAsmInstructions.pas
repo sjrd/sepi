@@ -28,15 +28,7 @@ interface
 
 uses
   Windows, Classes, SysUtils, TypInfo, SepiReflectionCore, SepiMembers,
-  SepiOpCodes, SepiCompiler, SepiReflectionConsts;
-
-resourcestring
-  SMultipleParamsWithSameSepiStackOffset =
-    'Plusieurs paramètres ont la même valeur de SepiStackOffset';
-  SParamsSepiStackOffsetsDontFollow =
-    'Les SepiStackOffset des paramètres ne se suivent pas';
-  SInvalidDataSize = 'Taille de données invalide';
-  SObjectMustHaveASignature = 'L''objet %s n''a pas de signature';
+  SepiOpCodes, SepiCompiler, SepiReflectionConsts, SepiCompilerConsts;
 
 type
   {*
