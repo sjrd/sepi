@@ -378,6 +378,24 @@ type
   end;
 
   {*
+    Gestionnaire de vie de plusieurs variables temporaires
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiTempVarsLifeManager = class(TObject)
+  private
+    FTempVars: TObjectList;
+  public
+    constructor Create;
+    destructor Destroy; override;
+
+    procedure BeginLife(TempVar: TSepiLocalVar; At: TSepiInstructionRef);
+    procedure EndLife(TempVar: TSepiLocalVar; At: TSepiInstructionRef);
+
+    procedure EndAllLifes(At: TSepiInstructionRef);
+  end;
+
+  {*
     Partie liable dynamiquement à une expression Sepi
   *}
   ISepiExpressionPart = interface(IDynamicallyLinkable)
@@ -1761,6 +1779,81 @@ begin
   Stream.WriteBuffer(InitCount, 4);
 
   Stream.WriteBuffer(FInitInfo[0], InitCount * SizeOf(TLocalInitInfo));
+end;
+
+{--------------------------------}
+{ TSepiTempVarsLifeManager class }
+{--------------------------------}
+
+{*
+  Crée un gestionnaire
+*}
+constructor TSepiTempVarsLifeManager.Create;
+begin
+  inherited Create;
+
+  FTempVars := TObjectList.Create(False);
+end;
+
+{*
+  [@inheritDoc]
+*}
+destructor TSepiTempVarsLifeManager.Destroy;
+begin
+  FTempVars.Free;
+
+  inherited;
+end;
+
+{*
+  Commence la vie d'une variable temporaire
+  @param TempVar   Variable
+  @param At        Position où la vie commence
+*}
+procedure TSepiTempVarsLifeManager.BeginLife(TempVar: TSepiLocalVar;
+  At: TSepiInstructionRef);
+begin
+  if TempVar = nil then
+    Exit;
+
+  Assert(FTempVars.IndexOf(TempVar) < 0);
+
+  FTempVars.Add(TempVar);
+  TempVar.HandleLife;
+  TempVar.Life.BeginInstrInterval(At);
+end;
+
+{*
+  Termine la vie d'une variable temporaire
+  @param TempVar   Variable
+  @param At        Position où la vie s'arrête
+*}
+procedure TSepiTempVarsLifeManager.EndLife(TempVar: TSepiLocalVar;
+  At: TSepiInstructionRef);
+var
+  Index: Integer;
+begin
+  if TempVar = nil then
+    Exit;
+
+  Index := FTempVars.IndexOf(TempVar);
+  Assert(Index >= 0);
+
+  TempVar.Life.EndInstrInterval(At);
+  FTempVars.Delete(Index);
+end;
+
+{*
+  Termine la vie de toutes les variables temporaires de ce gestionnaire
+  @param At   Position où la vie s'arrête
+*}
+procedure TSepiTempVarsLifeManager.EndAllLifes(At: TSepiInstructionRef);
+var
+  I: Integer;
+begin
+  for I := 0 to FTempVars.Count-1 do
+    TSepiLocalVar(FTempVars[I]).Life.EndInstrInterval(At);
+  FTempVars.Clear;
 end;
 
 {-----------------------}
