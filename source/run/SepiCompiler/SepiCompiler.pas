@@ -28,7 +28,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, Contnrs, TypInfo, ScUtils, ScTypInfo,
-  ScIntegerSets, SepiReflectionCore, SepiMembers, SepiOpCodes,
+  ScIntegerSets, ScInterfaces, SepiReflectionCore, SepiMembers, SepiOpCodes,
   SepiReflectionConsts, SepiCompilerErrors, SepiCompilerConsts;
 
 type
@@ -104,6 +104,8 @@ type
     FMethodCompiler: TSepiMethodCompiler; /// Compilateur
     FUnitCompiler: TSepiUnitCompiler;     /// Compilateur d'unité
 
+    FSourcePos: TSepiSourcePosition; /// Position dans le source
+
     FBeforeRef: TSepiInstructionRef; /// Référence avant cette instruction
     FAfterRef: TSepiInstructionRef;  /// Référence après cette instruction
   protected
@@ -114,10 +116,14 @@ type
 
     procedure AfterConstruction; override;
 
+    procedure MakeError(const Msg: string; Kind: TSepiErrorKind = ekError);
+
     procedure Compile;
 
     property MethodCompiler: TSepiMethodCompiler read FMethodCompiler;
     property UnitCompiler: TSepiUnitCompiler read FUnitCompiler;
+
+    property SourcePos: TSepiSourcePosition read FSourcePos write FSourcePos;
 
     property BeforeRef: TSepiInstructionRef read FBeforeRef;
     property AfterRef: TSepiInstructionRef read FAfterRef;
@@ -369,6 +375,109 @@ type
       read GetVariables; default;
 
     property Size: Integer read FSize;
+  end;
+
+  {*
+    Partie liable dynamiquement à une expression Sepi
+  *}
+  ISepiExpressionPart = interface(IDynamicallyLinkable)
+    ['{2BBD5F29-1EDF-4C3F-A114-3820BAFB355A}']
+  end;
+
+  {*
+    Expression Sepi
+    Dans Sepi, une expression peut avoir différents types en même temps. Elle
+    peut à la fois être un meta et l'appel à une méthode, par exemple.
+    Les expressions Sepi sont donc des contrôleurs d'interfaces dynamiques, et
+    il est possible de leur attacher/détacher toute interface implémentant
+    IDynamicLinkable.
+    @author sjrd
+    @version 1.0
+  *}
+  ISepiExpression = interface(IInterface)
+    ['{C747A8D6-6563-4B4C-8781-28769F808430}']
+
+    {*
+      Racine Sepi
+      @return Racine Sepi
+    *}
+    function GetSepiRoot: TSepiRoot;
+
+    {*
+      Compilateur d'unité
+      @return Compilateur d'unité
+    *}
+    function GetUnitCompiler: TSepiUnitCompiler;
+
+    {*
+      Compilateur de méthode
+      @return Compilateur de méthode
+    *}
+    function GetMethodCompiler: TSepiMethodCompiler;
+
+    {*
+      Attache une interface dynamique
+      @param IID    ID de l'interface à attacher
+      @param Intf   Interface à lier
+    *}
+    procedure Attach(const IID: TGUID; const Intf: ISepiExpressionPart);
+
+    {*
+      Détache une interface dynamique identifiée par son ID
+      @param IID   ID de l'interface à détacher
+    *}
+    procedure Detach(const IID: TGUID);
+
+    {*
+      Produit une erreur de compilation au niveau de cette expression
+      @param Msg    Message de l'erreur
+      @param Kind   Type d'erreur (défaut = ekError)
+    *}
+    procedure MakeError(const Msg: string; Kind: TSepiErrorKind = ekError);
+
+    property SepiRoot: TSepiRoot read GetSepiRoot;
+    property UnitCompiler: TSepiUnitCompiler read GetUnitCompiler;
+    property MethodCompiler: TSepiMethodCompiler read GetMethodCompiler;
+  end;
+
+  {*
+    Méthode de call-back de résolution d'identificateur
+    @param Identifier   Identificateur recherché
+    @return Expression correspondant à cet identificateur
+  *}
+  TSepiResolveIdentFunc = function(
+    const Identifier: string): ISepiExpression of object;
+
+  {*
+    Implémentation principale de ISepiExpression
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiExpression = class(TDynamicIntfController, ISepiExpression)
+  private
+    FSepiRoot: TSepiRoot;                 /// Racine Sepi
+    FUnitCompiler: TSepiUnitCompiler;     /// Compilateur d'unité
+    FMethodCompiler: TSepiMethodCompiler; /// Compilateur de méthode
+
+    FSourcePos: TSepiSourcePosition; /// Position dans le source
+  protected
+    function GetSepiRoot: TSepiRoot;
+    function GetUnitCompiler: TSepiUnitCompiler;
+    function GetMethodCompiler: TSepiMethodCompiler;
+  public
+    constructor Create(AUnitCompiler: TSepiUnitCompiler); overload;
+    constructor Create(AMethodCompiler: TSepiMethodCompiler); overload;
+
+    procedure Attach(const IID: TGUID; const Intf: ISepiExpressionPart);
+    procedure Detach(const IID: TGUID);
+
+    procedure MakeError(const Msg: string; Kind: TSepiErrorKind = ekError);
+
+    property SepiRoot: TSepiRoot read FSepiRoot;
+    property UnitCompiler: TSepiUnitCompiler read FUnitCompiler;
+    property MethodCompiler: TSepiMethodCompiler read FMethodCompiler;
+
+    property SourcePos: TSepiSourcePosition read FSourcePos write FSourcePos;
   end;
 
   {*
@@ -700,6 +809,17 @@ end;
 *}
 procedure TSepiInstruction.CustomCompile;
 begin
+end;
+
+{*
+  Produit une erreur de compilation au niveau de cette instruction
+  @param Msg    Message de l'erreur
+  @param Kind   Type d'erreur (défaut = ekError)
+*}
+procedure TSepiInstruction.MakeError(const Msg: string;
+  Kind: TSepiErrorKind = ekError);
+begin
+  MethodCompiler.UnitCompiler.Errors.MakeError(Msg, Kind, SourcePos);
 end;
 
 {*
@@ -1641,6 +1761,88 @@ begin
   Stream.WriteBuffer(InitCount, 4);
 
   Stream.WriteBuffer(FInitInfo[0], InitCount * SizeOf(TLocalInitInfo));
+end;
+
+{-----------------------}
+{ TSepiExpression class }
+{-----------------------}
+
+{*
+  Crée une expression relative à une unité
+  @param AUnitCompiler   Compilateur d'unité
+*}
+constructor TSepiExpression.Create(AUnitCompiler: TSepiUnitCompiler);
+begin
+  inherited Create;
+
+  FUnitCompiler := AUnitCompiler;
+  FSepiRoot := UnitCompiler.SepiUnit.Root;
+end;
+
+{*
+  Crée une expression relative à une méthode
+  @param AMethodCompiler   Compilateur de méthode
+*}
+constructor TSepiExpression.Create(AMethodCompiler: TSepiMethodCompiler);
+begin
+  inherited Create;
+
+  FMethodCompiler := AMethodCompiler;
+  FUnitCompiler := MethodCompiler.UnitCompiler;
+  FSepiRoot := UnitCompiler.SepiUnit.Root;
+end;
+
+{*
+  Racine Sepi
+  @return Racine Sepi
+*}
+function TSepiExpression.GetSepiRoot: TSepiRoot;
+begin
+  Result := FSepiRoot;
+end;
+
+{*
+  Compilateur d'unité
+  @return Compilateur d'unité
+*}
+function TSepiExpression.GetUnitCompiler: TSepiUnitCompiler;
+begin
+  Result := FUnitCompiler;
+end;
+
+{*
+  Compilateur de méthode
+  @return Compilateur de méthode
+*}
+function TSepiExpression.GetMethodCompiler: TSepiMethodCompiler;
+begin
+  Result := FMethodCompiler;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiExpression.Attach(const IID: TGUID;
+  const Intf: ISepiExpressionPart);
+begin
+  inherited Attach(IID, Intf);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiExpression.Detach(const IID: TGUID);
+begin
+  inherited Detach(IID);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiExpression.MakeError(const Msg: string;
+  Kind: TSepiErrorKind = ekError);
+begin
+  UnitCompiler.Errors.MakeError(Msg, Kind, SourcePos);
 end;
 
 {---------------------------}
