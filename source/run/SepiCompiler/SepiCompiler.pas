@@ -178,6 +178,8 @@ type
     function Add(Instruction: TSepiInstruction): Integer;
     procedure Insert(Index: Integer; Instruction: TSepiInstruction);
 
+    function GetCurrentEndRef: TSepiInstructionRef;
+
     property Count: Integer read GetCount;
     property Instructions[Index: Integer]: TSepiInstruction
       read GetInstructions; default;
@@ -434,6 +436,12 @@ type
     function GetMethodCompiler: TSepiMethodCompiler;
 
     {*
+      Position dans le source
+      @return Position dans le source
+    *}
+    function GetSourcePos: TSepiSourcePosition;
+
+    {*
       Attache une interface dynamique
       @param IID    ID de l'interface à attacher
       @param Intf   Interface à lier
@@ -456,6 +464,8 @@ type
     property SepiRoot: TSepiRoot read GetSepiRoot;
     property UnitCompiler: TSepiUnitCompiler read GetUnitCompiler;
     property MethodCompiler: TSepiMethodCompiler read GetMethodCompiler;
+
+    property SourcePos: TSepiSourcePosition read GetSourcePos;
   end;
 
   {*
@@ -482,6 +492,8 @@ type
     function GetSepiRoot: TSepiRoot;
     function GetUnitCompiler: TSepiUnitCompiler;
     function GetMethodCompiler: TSepiMethodCompiler;
+
+    function GetSourcePos: TSepiSourcePosition;
   public
     constructor Create(AUnitCompiler: TSepiUnitCompiler); overload;
     constructor Create(AMethodCompiler: TSepiMethodCompiler); overload;
@@ -538,6 +550,9 @@ type
     function LabelExists(const LabelName: string): Boolean;
     function FindLabel(const LabelName: string;
       Create: Boolean = False): TSepiNamedLabel;
+
+    function MakeUnnamedTrueConst(AType: TSepiType;
+      const AValue): TSepiConstant;
 
     procedure Compile;
     procedure WriteToStream(Stream: TStream);
@@ -654,6 +669,9 @@ type
 
     procedure GetConstant(var AConstant);
     procedure SetConstant(const AConstant);
+
+    procedure Assign(Source: TSepiMemoryReference;
+      SealAfter: Boolean = True);
 
     procedure Seal;
 
@@ -1047,6 +1065,18 @@ procedure TSepiInstructionList.Insert(Index: Integer;
   Instruction: TSepiInstruction);
 begin
   FInstructions.Insert(Index, Instruction);
+end;
+
+{*
+  Obtient une référence sur la fin courante de la liste d'instructions
+  @return Référence sur la fin courante de la liste d'instructions
+*}
+function TSepiInstructionList.GetCurrentEndRef: TSepiInstructionRef;
+begin
+  if Count = 0 then
+    Result := BeforeRef
+  else
+    Result := Instructions[Count-1].AfterRef;
 end;
 
 {-------------------------}
@@ -1913,6 +1943,15 @@ begin
 end;
 
 {*
+  Position dans le source
+  @return Position dans le source
+*}
+function TSepiExpression.GetSourcePos: TSepiSourcePosition;
+begin
+  Result := FSourcePos;
+end;
+
+{*
   [@inheritDoc]
 *}
 procedure TSepiExpression.Attach(const IID: TGUID;
@@ -2084,6 +2123,26 @@ begin
     Result := TSepiNamedLabel.Create(Self, LabelName)
   else
     raise ESepiLabelError.CreateResFmt(@SLabelNotFound, [LabelName]);
+end;
+
+{*
+  Crée une vraie constante anonyme avec une valeur
+  @param AType    Type de la constante
+  @param AValue   Valeur de la constante
+  @return Constante créée
+*}
+function TSepiMethodCompiler.MakeUnnamedTrueConst(AType: TSepiType;
+  const AValue): TSepiConstant;
+var
+  UnnamedIndex: Integer;
+begin
+  UnnamedIndex := 1;
+
+  while SepiMethod.GetMeta('$' + IntToStr(UnnamedIndex)) <> nil do
+    Inc(UnnamedIndex);
+
+  Result := TSepiConstant.Create(SepiMethod, '$' + IntToStr(UnnamedIndex),
+    AType, AValue);
 end;
 
 {*
@@ -2695,6 +2754,33 @@ begin
   CheckUnsealed;
 
   Move(AConstant, FConstant^, ConstSize);
+end;
+
+{*
+  Recopie depuis une référence mémoire
+  Cette méthode ne fait pas un clône : elle copie les espace mémoire et
+  opérations, mais pas les options ou le statut scellé. Il est donc possible
+  que cette méthode échoue si la référence source n'est pas compatible avec les
+  options de celles-ci.
+  @param Source      Référence mémoire à recopier
+  @param SealAfter   Si True (par défaut), scelle cette référence mémoire après
+*}
+procedure TSepiMemoryReference.Assign(Source: TSepiMemoryReference;
+  SealAfter: Boolean = True);
+var
+  I: Integer;
+begin
+  CheckUnsealed;
+
+  ClearOperations;
+  SetSpace(Source.Space, Source.SpaceArgument);
+
+  if Space = msConstant then
+    Source.GetConstant(FConstant^);
+
+  for I := 0 to Source.OperationCount-1 do
+    with Source.Operations[I] do
+      AddOperation(Dereference, Operation, ConstOperationArg);
 end;
 
 {*
