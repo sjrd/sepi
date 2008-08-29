@@ -50,8 +50,15 @@ resourcestring
 type
   ESerializerError = class(Exception);
 
-procedure WriteDataToStream(Stream: TStream; const Data; TypeInfo: PTypeInfo);
-procedure ReadDataFromStream(Stream: TStream; var Data; TypeInfo: PTypeInfo);
+procedure WriteDataToStream(Stream: TStream; const Data; Size: Integer;
+  TypeInfo: PTypeInfo); overload;
+procedure WriteDataToStream(Stream: TStream; const Data;
+  TypeInfo: PTypeInfo); overload;
+
+procedure ReadDataFromStream(Stream: TStream; var Data; Size: Integer;
+  TypeInfo: PTypeInfo); overload;
+procedure ReadDataFromStream(Stream: TStream; var Data;
+  TypeInfo: PTypeInfo); overload;
 
 implementation
 
@@ -334,9 +341,17 @@ end;
   @param Data       Source
   @param TypeInfo   RTTI du type de données
 *}
-procedure WriteDataToStream(Stream: TStream; const Data; TypeInfo: PTypeInfo);
+procedure WriteDataToStream(Stream: TStream; const Data; Size: Integer;
+  TypeInfo: PTypeInfo);
+var
+  Kind: TTypeKind;
 begin
-  case TypeInfo.Kind of
+  if TypeInfo = nil then
+    Kind := tkUnknown
+  else
+    Kind := TypeInfo.Kind;
+
+  case Kind of
     tkLString: WriteAnsiStringToStream(Stream, AnsiString(Data));
     tkWString: WriteWideStringToStream(Stream, WideString(Data));
     tkArray: WriteArrayToStream(Stream, Data, TypeInfo);
@@ -346,7 +361,53 @@ begin
       raise ESerializerError.CreateResFmt(@SCantSerializeType,
         [TypeInfo.Name]);
   else
-    Stream.WriteBuffer(Data, TypeSize(TypeInfo));
+    Stream.WriteBuffer(Data, Size);
+  end;
+end;
+
+{*
+  Écrit des données dans un flux
+  WriteDataToStream peut sérialiser correctement des chaînes ANSI et Unicode,
+  des tableaux statiques ou dynamiques, et des record. Cette routine ne peut
+  pas sérialiser les variants ni les interfaces.
+  @param Stream     Flux de destination
+  @param Data       Source
+  @param TypeInfo   RTTI du type de données
+*}
+procedure WriteDataToStream(Stream: TStream; const Data; TypeInfo: PTypeInfo);
+begin
+  WriteDataToStream(Stream, Data, TypeSize(TypeInfo), TypeInfo);
+end;
+
+{*
+  Lit des données depuis un flux
+  ReadDataFromStream relit des données qui ont été écrites avec
+  WriteDataToStream.
+  @param Stream     Flux source
+  @param Data       Destination
+  @param TypeInfo   RTTI du type de données
+*}
+procedure ReadDataFromStream(Stream: TStream; var Data; Size: Integer;
+  TypeInfo: PTypeInfo);
+var
+  Kind: TTypeKind;
+begin
+  if TypeInfo = nil then
+    Kind := tkUnknown
+  else
+    Kind := TypeInfo.Kind;
+
+  case Kind of
+    tkLString: ReadAnsiStringFromStream(Stream, AnsiString(Data));
+    tkWString: ReadWideStringFromStream(Stream, WideString(Data));
+    tkArray: ReadArrayFromStream(Stream, Data, TypeInfo);
+    tkRecord: ReadRecordFromStream(Stream, Data, TypeInfo);
+    tkDynArray: ReadDynArrayFromStream(Stream, Data, TypeInfo);
+    tkVariant, tkInterface:
+      raise ESerializerError.CreateResFmt(@SCantSerializeType,
+        [TypeInfo.Name]);
+  else
+    Stream.ReadBuffer(Data, Size);
   end;
 end;
 
@@ -360,18 +421,7 @@ end;
 *}
 procedure ReadDataFromStream(Stream: TStream; var Data; TypeInfo: PTypeInfo);
 begin
-  case TypeInfo.Kind of
-    tkLString: ReadAnsiStringFromStream(Stream, AnsiString(Data));
-    tkWString: ReadWideStringFromStream(Stream, WideString(Data));
-    tkArray: ReadArrayFromStream(Stream, Data, TypeInfo);
-    tkRecord: ReadRecordFromStream(Stream, Data, TypeInfo);
-    tkDynArray: ReadDynArrayFromStream(Stream, Data, TypeInfo);
-    tkVariant, tkInterface:
-      raise ESerializerError.CreateResFmt(@SCantSerializeType,
-        [TypeInfo.Name]);
-  else
-    Stream.ReadBuffer(Data, TypeSize(TypeInfo));
-  end;
+  ReadDataFromStream(Stream, Data, TypeSize(TypeInfo), TypeInfo);
 end;
 
 end.
