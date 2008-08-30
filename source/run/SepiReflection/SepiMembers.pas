@@ -613,8 +613,6 @@ type
     FVMTSize: Integer;      /// Taille de la VMT dans les index positifs
     FDMTNextIndex: Integer; /// Prochain index à utiliser dans la DMT
 
-    FCurrentVisibility: TMemberVisibility; /// Visibilité courante des enfants
-
     procedure MakeIMT(IntfEntry: PSepiInterfaceEntry);
     procedure MakeIMTs;
 
@@ -719,9 +717,6 @@ type
 
     property InstSize: Integer read FInstSize;
     property VMTSize: Integer read FVMTSize;
-
-    property CurrentVisibility: TMemberVisibility
-      read FCurrentVisibility write FCurrentVisibility;
   end;
 
   {*
@@ -3092,8 +3087,6 @@ begin
     FDMTNextIndex := -1;
   end;
   FCompleted := False;
-
-  FCurrentVisibility := mvPublic;
 end;
 
 {*
@@ -3123,8 +3116,6 @@ begin
   FVMTSize := Parent.VMTSize;
   FDMTNextIndex := Parent.FDMTNextIndex;
 
-  FCurrentVisibility := mvPublic;
-
   LoadChildren(Stream);
 
   Complete;
@@ -3152,8 +3143,6 @@ begin
   FInstSize := Parent.InstSize;
   FVMTSize := Parent.VMTSize;
   FDMTNextIndex := Parent.FDMTNextIndex;
-
-  FCurrentVisibility := mvPublic;
 end;
 
 {*
@@ -3752,9 +3741,6 @@ end;
 procedure TSepiClass.ChildAdded(Child: TSepiMeta);
 begin
   inherited;
-
-  if State = msConstructing then
-    Child.Visibility := FCurrentVisibility;
 
   if Child is TSepiField then
     with TSepiField(Child) do

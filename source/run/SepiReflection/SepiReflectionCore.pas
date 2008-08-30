@@ -151,6 +151,8 @@ type
     FOwningUnit: TSepiUnit;         /// Unité contenante
     FName: string;                  /// Nom
     FVisibility: TMemberVisibility; /// Visibilité
+    /// Visibilité courante des enfants
+    FCurrentVisibility: TMemberVisibility;
     FTag: Integer;                  /// Tag
     FForwards: TStrings;            /// Liste des enfants forwards
     FChildren: TSepiMetaList;       /// Liste des enfants
@@ -216,6 +218,8 @@ type
     property OwningUnit: TSepiUnit read FOwningUnit;
     property Name: string read FName;
     property Visibility: TMemberVisibility read FVisibility write FVisibility;
+    property CurrentVisibility: TMemberVisibility
+      read FCurrentVisibility write FCurrentVisibility;
     property Tag: Integer read FTag write FTag;
 
     property ChildCount: Integer read GetChildCount;
@@ -849,7 +853,13 @@ begin
   FState := msConstructing;
   FOwner := AOwner;
   FName := AName;
-  FVisibility := mvPublic;
+
+  if Owner = nil then
+    FVisibility := mvPublic
+  else
+    FVisibility := Owner.CurrentVisibility;
+    
+  FCurrentVisibility := mvPublic;
   FTag := 0;
   FForwards := THashedStringList.Create;
   FChildren := TSepiMetaList.Create;
