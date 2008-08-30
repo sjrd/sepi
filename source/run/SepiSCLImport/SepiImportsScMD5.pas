@@ -46,8 +46,8 @@ begin
 
   // Types
   TSepiPointerType.Create(Result, 'PMD5Digest', 'TMD5Digest', True);
-  TSepiArrayType.Create(Result, '$1',
-    [0, 15], TypeInfo(Byte), True);
+  TSepiArrayType.Create(Result, '$1', TypeInfo(Integer),
+    0, 15, TypeInfo(Byte), True);
   SepiImportTMD5Digest(Result);
 
   // Routines

@@ -27,19 +27,10 @@ unit SepiArrayTypes;
 interface
 
 uses
-  Classes, SysUtils, SysConst, TypInfo, ScUtils, SepiReflectionCore;
+  Classes, SysUtils, SysConst, TypInfo, ScUtils, SepiReflectionCore,
+  SepiOrdTypes;
 
 type
-  {*
-    Informations sur une dimension de tableau
-    @author sjrd
-    @version 1.0
-  *}
-  TDimInfo = record
-    MinValue: Integer;
-    MaxValue: Integer;
-  end;
-
   {*
     Type tableau statique (à N dimensions)
     @author sjrd
@@ -47,14 +38,16 @@ type
   *}
   TSepiArrayType = class(TSepiType)
   private
-    FDimCount: Integer;             /// Nombre de dimensions
-    FDimensions: array of TDimInfo; /// Dimensions
-    FElementType: TSepiType;        /// Type des éléments
+    FIndexType: TSepiOrdType; /// Type de l'index
+    FLowerBound: Integer;     /// Borne inférieure
+    FHigherBound: Integer;    /// Borne supérieure
+
+    FElementType: TSepiType; /// Type des éléments
 
     procedure MakeSize;
     procedure MakeTypeInfo;
 
-    function GetDimensions(Index, Kind: Integer): Integer;
+    function GetLength: Integer;
   protected
     procedure ListReferences; override;
     procedure Save(Stream: TStream); override;
@@ -62,28 +55,42 @@ type
     function GetAlignment: Integer; override;
   public
     constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
+
+    constructor Create(AOwner: TSepiMeta; const AName: string;
+      AIndexType: TSepiOrdType; ALowerBound, AHigherBound: Integer;
+      AElementType: TSepiType; AIsNative: Boolean = False;
+      ATypeInfo: PTypeInfo = nil); overload;
+    constructor Create(AOwner: TSepiMeta; const AName: string;
+      AIndexTypeInfo: PTypeInfo; ALowerBound, AHigherBound: Integer;
+      AElementTypeInfo: PTypeInfo; AIsNative: Boolean = False;
+      ATypeInfo: PTypeInfo = nil); overload;
+    constructor Create(AOwner: TSepiMeta; const AName: string;
+      const AIndexTypeName: string; ALowerBound, AHigherBound: Integer;
+      const AElementTypeName: string; AIsNative: Boolean = False;
+      ATypeInfo: PTypeInfo = nil); overload;
+
     constructor Create(AOwner: TSepiMeta; const AName: string;
       const ADimensions: array of Integer; AElementType: TSepiType;
       AIsNative: Boolean = False; ATypeInfo: PTypeInfo = nil); overload;
+      deprecated;
     constructor Create(AOwner: TSepiMeta; const AName: string;
       const ADimensions: array of Integer; AElementTypeInfo: PTypeInfo;
       AIsNative: Boolean = False; ATypeInfo: PTypeInfo = nil); overload;
+      deprecated;
     constructor Create(AOwner: TSepiMeta; const AName: string;
       const ADimensions: array of Integer; const AElementTypeName: string;
       AIsNative: Boolean = False; ATypeInfo: PTypeInfo = nil); overload;
+      deprecated;
+
     constructor Clone(AOwner: TSepiMeta; const AName: string;
       Source: TSepiType); override;
 
     function CompatibleWith(AType: TSepiType): Boolean; override;
 
-    property DimCount: Integer read FDimCount;
-
-    /// Bornes inférieures des dimensions
-    property MinValues[Index: Integer]: Integer index 1 read GetDimensions;
-    /// Bornes supérieures des dimensions
-    property MaxValues[Index: Integer]: Integer index 2 read GetDimensions;
-    /// Nombres d'éléments des dimensions
-    property Dimensions[Index: Integer]: Integer index 3 read GetDimensions;
+    property IndexType: TSepiOrdType read FIndexType;
+    property LowerBound: Integer read FLowerBound;
+    property HigherBound: Integer read FHigherBound;
+    property ArrayLength: Integer read GetLength;
 
     property ElementType: TSepiType read FElementType;
   end;
@@ -148,11 +155,10 @@ constructor TSepiArrayType.Load(AOwner: TSepiMeta; Stream: TStream);
 begin
   inherited;
 
-  FDimCount := 0;
-  Stream.ReadBuffer(FDimCount, 1);
+  OwningUnit.ReadRef(Stream, FIndexType);
+  Stream.ReadBuffer(FLowerBound, 4);
+  Stream.ReadBuffer(FHigherBound, 4);
 
-  SetLength(FDimensions, FDimCount);
-  Stream.ReadBuffer(FDimensions[0], FDimCount*SizeOf(TDimInfo));
   OwningUnit.ReadRef(Stream, FElementType);
 
   MakeSize;
@@ -168,22 +174,23 @@ end;
 {*
   Crée un nouveau type tableau
   @param AOwner         Propriétaire du type
-  @param AName          Nom du type
-  @param ADimensions    Dimensions du tableau [Min1, Max1, Min2, Max2, ...]
-  @param AElementType   Type des éléments
+  @param AIndexType     Type de l'index
+  @param ALowerBound    Borne inférieure
+  @param AHigherBound   Borne supérieure
+  @param AElemenType    Type des éléments
   @param AIsNative      Indique si le type tableau est natif
   @param ATypeInfo      RTTI du type tableau natif
 *}
 constructor TSepiArrayType.Create(AOwner: TSepiMeta; const AName: string;
-  const ADimensions: array of Integer; AElementType: TSepiType;
-  AIsNative: Boolean = False; ATypeInfo: PTypeInfo = nil);
+  AIndexType: TSepiOrdType; ALowerBound, AHigherBound: Integer;
+  AElementType: TSepiType; AIsNative: Boolean = False;
+  ATypeInfo: PTypeInfo = nil);
 begin
   inherited Create(AOwner, AName, tkArray);
 
-  FDimCount := Length(ADimensions) div 2;
-  SetLength(FDimensions, FDimCount);
-  Move(ADimensions[Low(ADimensions)], FDimensions[0],
-    FDimCount*SizeOf(TDimInfo));
+  FIndexType := AIndexType;
+  FLowerBound := ALowerBound;
+  FHigherBound := AHigherBound;
 
   FElementType := AElementType;
 
@@ -198,6 +205,90 @@ begin
   if ATypeInfo = nil then
     MakeTypeInfo;
 end;
+
+{*
+  Crée un nouveau type tableau
+  @param AOwner            Propriétaire du type
+  @param AIndexTypeInfo    RTTI du type de l'index
+  @param ALowerBound       Borne inférieure
+  @param AHigherBound      Borne supérieure
+  @param AElemenTypeInfo   RTTI du type des éléments
+  @param AIsNative         Indique si le type tableau est natif
+  @param ATypeInfo         RTTI du type tableau natif
+*}
+constructor TSepiArrayType.Create(AOwner: TSepiMeta; const AName: string;
+  AIndexTypeInfo: PTypeInfo; ALowerBound, AHigherBound: Integer;
+  AElementTypeInfo: PTypeInfo; AIsNative: Boolean = False;
+  ATypeInfo: PTypeInfo = nil);
+begin
+  Create(AOwner, AName, AOwner.Root.FindType(AIndexTypeInfo) as TSepiOrdType,
+    ALowerBound, AHigherBound, AOwner.Root.FindType(AElementTypeInfo),
+    AIsNative, ATypeInfo);
+end;
+
+{*
+  Crée un nouveau type tableau
+  @param AOwner            Propriétaire du type
+  @param AIndexTypeName    Nom du type de l'index
+  @param ALowerBound       Borne inférieure
+  @param AHigherBound      Borne supérieure
+  @param AElemenTypeName   Nom du type des éléments
+  @param AIsNative         Indique si le type tableau est natif
+  @param ATypeInfo         RTTI du type tableau natif
+*}
+constructor TSepiArrayType.Create(AOwner: TSepiMeta; const AName: string;
+  const AIndexTypeName: string; ALowerBound, AHigherBound: Integer;
+  const AElementTypeName: string; AIsNative: Boolean = False;
+  ATypeInfo: PTypeInfo = nil);
+begin
+  Create(AOwner, AName, AOwner.Root.FindType(AIndexTypeName) as TSepiOrdType,
+    ALowerBound, AHigherBound, AOwner.Root.FindType(AElementTypeName),
+    AIsNative, ATypeInfo);
+end;
+
+{*
+  Crée un nouveau type tableau
+  @param AOwner         Propriétaire du type
+  @param AName          Nom du type
+  @param ADimensions    Dimensions du tableau [Min1, Max1, Min2, Max2, ...]
+  @param AElementType   Type des éléments
+  @param AIsNative      Indique si le type tableau est natif
+  @param ATypeInfo      RTTI du type tableau natif
+*}
+constructor TSepiArrayType.Create(AOwner: TSepiMeta; const AName: string;
+  const ADimensions: array of Integer; AElementType: TSepiType;
+  AIsNative: Boolean = False; ATypeInfo: PTypeInfo = nil);
+const
+  UnnamedPrefix = '$Array$';
+var
+  IntegerType: TSepiOrdType;
+  DimCount, UnnamedIndex, CurDim: Integer;
+begin
+  IntegerType := AOwner.Root.FindType(System.TypeInfo(Integer)) as TSepiOrdType;
+
+  DimCount := Length(ADimensions) div 2;
+
+  if DimCount > 1 then
+  begin
+    UnnamedIndex := 1;
+    while AOwner.GetMeta(UnnamedPrefix + IntToStr(UnnamedIndex)) <> nil do
+      Inc(UnnamedIndex);
+
+    for CurDim := DimCount-1 downto 1 do
+    begin
+      AElementType := TSepiArrayType.Create(AOwner,
+        UnnamedPrefix + IntToStr(UnnamedIndex), IntegerType,
+        ADimensions[2*CurDim], ADimensions[2*CurDim+1], AElementType,
+        AIsNative);
+      Inc(UnnamedIndex);
+    end;
+  end;
+
+  Create(AOwner, AName, IntegerType, ADimensions[0], ADimensions[1],
+    AElementType, AIsNative, ATypeInfo);
+end;
+
+{$WARN SYMBOL_DEPRECATED OFF}
 
 {*
   Crée un nouveau type tableau
@@ -233,72 +324,57 @@ begin
     AIsNative, ATypeInfo);
 end;
 
+{$WARN SYMBOL_DEPRECATED ON}
+
 {*
   [@inheritDoc]
 *}
 constructor TSepiArrayType.Clone(AOwner: TSepiMeta; const AName: string;
   Source: TSepiType);
-var
-  ADimensions: array of Integer;
-  I: Integer;
 begin
   with Source as TSepiArrayType do
-  begin
-    SetLength(ADimensions, 2*DimCount);
-    for I := 0 to DimCount-1 do
-    begin
-      ADimensions[2*I+0] := MinValues[I];
-      ADimensions[2*I+1] := MaxValues[I];
-    end;
-  end;
-
-  Create(AOwner, AName, ADimensions, (Source as TSepiArrayType).ElementType);
+    Create(AOwner, AName, IndexType, LowerBound, HigherBound, ElementType);
 end;
 
 {*
   Calcule la taille du tableau et la range dans FSize
 *}
 procedure TSepiArrayType.MakeSize;
-var
-  I: Integer;
 begin
-  FSize := FElementType.Size;
-  for I := 0 to DimCount-1 do
-    FSize := FSize * Dimensions[I];
+  FSize := ArrayLength * FElementType.Size;
 end;
 
 {*
   Construit les RTTI (si besoin)
 *}
 procedure TSepiArrayType.MakeTypeInfo;
+var
+  AElementType: TSepiType;
 begin
   if not NeedInit then
     Exit;
+
+  AElementType := ElementType;
+  while AElementType is TSepiArrayType do
+    AElementType := TSepiArrayType(AElementType).ElementType;
 
   AllocateTypeInfo(ArrayTypeDataLength);
   with PArrayTypeData(TypeData)^ do
   begin
     Size := FSize;
-    Count := FSize div FElementType.Size;
-    ElemType := TSepiArrayType(FElementType).TypeInfoRef;
+    Count := FSize div AElementType.Size;
+    ElemType := TSepiArrayType(AElementType).TypeInfoRef;
     ElemOffset := 0;
   end;
 end;
 
 {*
-  Récupère une information sur une dimension
+  Longueur du tableau
+  @return Longueur du tableau
 *}
-function TSepiArrayType.GetDimensions(Index, Kind: Integer): Integer;
+function TSepiArrayType.GetLength: Integer;
 begin
-  with FDimensions[Index] do
-  begin
-    case Kind of
-      1: Result := MinValue;
-      2: Result := MaxValue;
-    else
-      Result := MaxValue-MinValue+1;
-    end;
-  end;
+  Result := HigherBound - LowerBound + 1;
 end;
 
 {*
@@ -307,6 +383,7 @@ end;
 procedure TSepiArrayType.ListReferences;
 begin
   inherited;
+  OwningUnit.AddRef(FIndexType);
   OwningUnit.AddRef(FElementType);
 end;
 
@@ -316,8 +393,11 @@ end;
 procedure TSepiArrayType.Save(Stream: TStream);
 begin
   inherited;
-  Stream.WriteBuffer(FDimCount, 1);
-  Stream.WriteBuffer(FDimensions[0], FDimCount*SizeOf(TDimInfo));
+
+  OwningUnit.WriteRef(Stream, FIndexType);
+  Stream.WriteBuffer(FLowerBound, 4);
+  Stream.WriteBuffer(FHigherBound, 4);
+
   OwningUnit.WriteRef(Stream, FElementType);
 end;
 

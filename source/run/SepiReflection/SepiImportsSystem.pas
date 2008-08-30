@@ -827,14 +827,14 @@ begin
   { Types declared in System.pas }
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(HRESULT));
   TSepiPointerType.Create(Result, 'PGUID', 'TGUID', True);
-  TSepiArrayType.Create(Result, '$1',
-    [0, 7], TypeInfo(Byte), True);
+  TSepiArrayType.Create(Result, '$1', TypeInfo(Integer),
+    0, 7, TypeInfo(Byte), True);
   SepiImportTGUID(Result);
   TSepiPointerType.Create(Result, 'PInterfaceEntry', 'TInterfaceEntry', True);
   SepiImportTInterfaceEntry(Result);
   TSepiPointerType.Create(Result, 'PInterfaceTable', 'TInterfaceTable', True);
-  TSepiArrayType.Create(Result, '$2',
-    [0, 9999], 'TInterfaceEntry', True);
+  TSepiArrayType.Create(Result, '$2', 'Integer',
+    0, 9999, 'TInterfaceEntry', True);
   SepiImportTInterfaceTable(Result);
   SepiImportTMethod(Result);
   SepiImportTDispatchMessage(Result);
@@ -872,21 +872,21 @@ begin
   TSepiTypeAlias.Create(Result, 'PUCS2Char', 'PWideChar');
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(UCS4Char));
   TSepiPointerType.Create(Result, 'PUCS4Char', TypeInfo(UCS4Char), True);
-  TSepiArrayType.Create(Result, 'TUCS4CharArray',
-    [0, $effffff], TypeInfo(UCS4Char), True);
+  TSepiArrayType.Create(Result, 'TUCS4CharArray', TypeInfo(Integer),
+    0, $effffff, TypeInfo(UCS4Char), True);
   TSepiPointerType.Create(Result, 'PUCS4CharArray', 'TUCS4CharArray', True);
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(UCS4String));
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(UTF8String));
   TSepiPointerType.Create(Result, 'PUTF8String', TypeInfo(UTF8String), True);
-  TSepiArrayType.Create(Result, 'IntegerArray',
-    [0, $effffff], TypeInfo(Integer), True);
+  TSepiArrayType.Create(Result, 'IntegerArray', TypeInfo(Integer),
+    0, $effffff, TypeInfo(Integer), True);
   TSepiPointerType.Create(Result, 'PIntegerArray', 'IntegerArray', True);
-  TSepiArrayType.Create(Result, 'PointerArray',
-    [0, 512*1024*1024 - 2], 'Pointer', True);
+  TSepiArrayType.Create(Result, 'PointerArray', 'Integer',
+    0, 512*1024*1024 - 2, 'Pointer', True);
   TSepiPointerType.Create(Result, 'PPointerArray', 'PointerArray', True);
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(TBoundArray));
-  TSepiArrayType.Create(Result, 'TPCharArray',
-    [0, (MaxLongint div SizeOf(PChar))-1], 'PChar', True);
+  TSepiArrayType.Create(Result, 'TPCharArray', 'Integer',
+    0, (MaxLongint div SizeOf(PChar))-1, 'PChar', True);
   TSepiPointerType.Create(Result, 'PPCharArray', 'TPCharArray', True);
   TSepiPointerType.Create(Result, 'PLongint', TypeInfo(Longint), True);
   TSepiPointerType.Create(Result, 'PInteger', TypeInfo(Integer), True);
@@ -920,26 +920,26 @@ begin
   TSepiPointerType.Create(Result, 'PDateTime', TypeInfo(TDateTime), True);
   TSepiTypeAlias.Create(Result, 'THandle', TypeInfo(LongWord));
   SepiImportTVarArrayBound(Result);
-  TSepiArrayType.Create(Result, 'TVarArrayBoundArray',
-    [0, 0], 'TVarArrayBound', True);
+  TSepiArrayType.Create(Result, 'TVarArrayBoundArray', 'Integer',
+    0, 0, 'TVarArrayBound', True);
   TSepiPointerType.Create(Result, 'PVarArrayBoundArray',
     'TVarArrayBoundArray', True);
-  TSepiArrayType.Create(Result, 'TVarArrayCoorArray',
-    [0, 0], TypeInfo(Integer), True);
+  TSepiArrayType.Create(Result, 'TVarArrayCoorArray', TypeInfo(Integer),
+    0, 0, TypeInfo(Integer), True);
   TSepiPointerType.Create(Result, 'PVarArrayCoorArray',
     'TVarArrayCoorArray', True);
   TSepiPointerType.Create(Result, 'PVarArray', 'TVarArray', True);
   SepiImportTVarArray(Result);
   TSepiTypeAlias.Create(Result, 'TVarType', TypeInfo(Word));
   TSepiPointerType.Create(Result, 'PVarData', 'TVarData', True);
-  TSepiArrayType.Create(Result, '$3',
-    [0, 2], TypeInfo(Longint), True);
-  TSepiArrayType.Create(Result, '$4',
-    [0, 6], TypeInfo(Word), True);
-  TSepiArrayType.Create(Result, '$5',
-    [0, 13], TypeInfo(Byte), True);
-  TSepiArrayType.Create(Result, '$6',
-    [0, 3], TypeInfo(Longint), True);
+  TSepiArrayType.Create(Result, '$3', TypeInfo(Integer),
+    0, 2, TypeInfo(Longint), True);
+  TSepiArrayType.Create(Result, '$4', TypeInfo(Integer),
+    0, 6, TypeInfo(Word), True);
+  TSepiArrayType.Create(Result, '$5', TypeInfo(Integer),
+    0, 13, TypeInfo(Byte), True);
+  TSepiArrayType.Create(Result, '$6', TypeInfo(Integer),
+    0, 3, TypeInfo(Longint), True);
   SepiImportTVarData(Result);
   TSepiTypeAlias.Create(Result, 'TVarOp', TypeInfo(Integer));
 
@@ -967,8 +967,8 @@ begin
 
   // Types
   TSepiPointerType.Create(Result, 'PCallDesc', 'TCallDesc', True);
-  TSepiArrayType.Create(Result, '$7',
-    [0, 255], TypeInfo(Byte), True);
+  TSepiArrayType.Create(Result, '$7', TypeInfo(Integer),
+    0, 255, TypeInfo(Byte), True);
   SepiImportTCallDesc(Result);
   TSepiPointerType.Create(Result, 'PDispDesc', 'TDispDesc', True);
   SepiImportTDispDesc(Result);
@@ -1007,18 +1007,18 @@ begin
   TSepiConstant.Create(Result, 'fmInOut', fmInOut);
 
   // Types
-  TSepiArrayType.Create(Result, '$8',
-    [1, 32], TypeInfo(Byte), True);
-  TSepiArrayType.Create(Result, '$9',
-    [0, 259], TypeInfo(Char), True);
+  TSepiArrayType.Create(Result, '$8', TypeInfo(Integer),
+    1, 32, TypeInfo(Byte), True);
+  TSepiArrayType.Create(Result, '$9', TypeInfo(Integer),
+    0, 259, TypeInfo(Char), True);
   SepiImportTFileRec(Result);
   TSepiPointerType.Create(Result, 'PTextBuf', 'TTextBuf', True);
-  TSepiArrayType.Create(Result, 'TTextBuf',
-    [0, 127], TypeInfo(Char), True);
-  TSepiArrayType.Create(Result, '$10',
-    [1, 32], TypeInfo(Byte), True);
-  TSepiArrayType.Create(Result, '$11',
-    [0, 259], TypeInfo(Char), True);
+  TSepiArrayType.Create(Result, 'TTextBuf', TypeInfo(Integer),
+    0, 127, TypeInfo(Char), True);
+  TSepiArrayType.Create(Result, '$10', TypeInfo(Integer),
+    1, 32, TypeInfo(Byte), True);
+  TSepiArrayType.Create(Result, '$11', TypeInfo(Integer),
+    0, 259, TypeInfo(Char), True);
   SepiImportTTextRec(Result);
   TSepiMethodRefType.Create(Result, 'TTextIOFunc',
     'function(var F: TTextRec): Integer');

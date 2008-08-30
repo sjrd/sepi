@@ -1321,8 +1321,8 @@ begin
   TSepiConstant.Create(Result, 'MinValueEver', MinValueEver);
 
   // Global variables
-  TSepiArrayType.Create(Result, '$1',
-    [0, VarsListsCount-1], TypeInfo(TPolynomList), True);
+  TSepiArrayType.Create(Result, '$1', TypeInfo(Integer),
+    0, VarsListsCount-1, TypeInfo(TPolynomList), True);
   TSepiVariable.Create(Result, 'VarsLists',
     VarsLists, '$1');
   TSepiVariable.Create(Result, 'ScalarProdFunc',
