@@ -62,14 +62,25 @@ const
 
 type
   {*
+    Valeur
+    @author sjrd
+    @version 1.0
+  *}
+  ISepiValue = interface(ISepiExpressionPart)
+    ['{20D185F7-7022-4B7F-9F94-2EDEBF2EFB1E}']
+
+    function GetValueType: TSepiType;
+
+    property ValueType: TSepiType read GetValueType;
+  end;
+
+  {*
     Valeur qui peut être lue à l'exécution
     @author sjrd
     @version 1.0
   *}
-  ISepiReadableValue = interface(ISepiExpressionPart)
+  ISepiReadableValue = interface(ISepiValue)
     ['{D7207F63-22F1-41C7-8366-2D4A87DD5200}']
-
-    function GetValueType: TSepiType;
 
     function GetIsConstant: Boolean;
     function GetConstValuePtr: Pointer;
@@ -77,8 +88,6 @@ type
     procedure CompileRead(Compiler: TSepiMethodCompiler;
       Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
       TempVars: TSepiTempVarsLifeManager);
-
-    property ValueType: TSepiType read GetValueType;
 
     property IsConstant: Boolean read GetIsConstant;
     property ConstValuePtr: Pointer read GetConstValuePtr;
@@ -89,15 +98,11 @@ type
     @author sjrd
     @version 1.0
   *}
-  ISepiWritableValue = interface(ISepiExpressionPart)
+  ISepiWritableValue = interface(ISepiValue)
     ['{E5E9C42F-E9A2-4B13-AE79-E1229013007D}']
-
-    function GetValueType: TSepiType;
 
     procedure CompileWrite(Compiler: TSepiMethodCompiler;
       Instructions: TSepiInstructionList; Source: ISepiReadableValue);
-
-    property ValueType: TSepiType read GetValueType;
   end;
 
   {*
@@ -105,7 +110,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  ISepiAddressableValue = interface(ISepiExpressionPart)
+  ISepiAddressableValue = interface(ISepiValue)
     ['{096E1AD8-04D6-4DA1-9426-A307C7965F73}']
 
     function GetAddressType: TSepiType;
@@ -122,12 +127,8 @@ type
     @author sjrd
     @version 1.0
   *}
-  ISepiDirectValue = interface(ISepiExpressionPart)
+  ISepiDirectValue = interface(ISepiValue)
     ['{12678933-C5A4-4BBA-9BBF-3E3BF30B4AD5}']
-
-    function GetValueType: TSepiType;
-
-    property ValueType: TSepiType read GetValueType;
   end;
 
   {*
@@ -162,7 +163,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  ISepiProperty = interface(ISepiExpressionPart)
+  ISepiProperty = interface(ISepiValue)
     ['{9C5A0B51-BDB2-45FA-B2D4-179763CB7F16}']
 
     function GetParamCount: Integer;
@@ -172,14 +173,10 @@ type
 
     procedure CompleteParams;
 
-    function GetValueType: TSepiType;
-
     property ParamCount: Integer read GetParamCount;
     property Params[Index: Integer]: ISepiExpression
       read GetParams write SetParams;
     property ParamsCompleted: Boolean read GetParamsCompleted;
-
-    property ValueType: TSepiType read GetValueType;
   end;
 
   {*
@@ -187,7 +184,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  ISepiNilValue = interface(ISepiExpressionPart)
+  ISepiNilValue = interface(ISepiValue)
     ['{2574C3DC-87FE-426C-931D-5230267A1573}']
   end;
 
@@ -259,8 +256,9 @@ type
     @author sjrd
     @version 1.0
   *}
-  TSepiCustomDirectValue = class(TSepiCustomExpressionPart, ISepiDirectValue,
-    ISepiReadableValue, ISepiWritableValue, ISepiAddressableValue)
+  TSepiCustomDirectValue = class(TSepiCustomExpressionPart, ISepiValue,
+    ISepiDirectValue, ISepiReadableValue, ISepiWritableValue,
+    ISepiAddressableValue)
   private
     FValueType: TSepiType; /// Type de la valeur
 
@@ -314,7 +312,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TSepiCustomComputedValue = class(TSepiCustomExpressionPart,
+  TSepiCustomComputedValue = class(TSepiCustomExpressionPart, ISepiValue,
     ISepiReadableValue)
   private
     FValueType: TSepiType; /// Type de valeur
@@ -422,8 +420,8 @@ type
   *}
   TSepiCastOperator = class(TSepiCustomDirectValue)
   private
-    FOperand: ISepiExpression; /// Expression source
-    FForceCast: Boolean;       /// True force même avec des tailles différentes
+    FOperand: ISepiValue; /// Valeur source
+    FForceCast: Boolean;  /// True force même avec des tailles différentes
 
     procedure CollapseConsts;
   protected
@@ -443,15 +441,14 @@ type
       TempVars: TSepiTempVarsLifeManager); override;
   public
     constructor Create(DestType: TSepiType;
-      const AOperand: ISepiExpression = nil);
+      const AOperand: ISepiValue = nil);
 
     procedure Complete;
 
-    class function CastExpression(DestType: TSepiType;
-      const Expression: ISepiExpression;
-      ForceCast: Boolean = False): ISepiExpression;
+    class function CastValue(DestType: TSepiType;
+      const Value: ISepiValue; ForceCast: Boolean = False): ISepiValue;
 
-    property Operand: ISepiExpression read FOperand write FOperand;
+    property Operand: ISepiValue read FOperand write FOperand;
     property ForceCast: Boolean read FForceCast write FForceCast;
   end;
 
@@ -609,6 +606,47 @@ type
   end;
 
   {*
+    Valeur champ de record
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiRecordFieldValue = class(TSepiCustomDirectValue)
+  private
+    FRecordValue: ISepiValue; /// Valeur record
+    FField: TSepiField;       /// Champ
+  protected
+    function CompileAsMemoryRef(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList;
+      TempVars: TSepiTempVarsLifeManager): TSepiMemoryReference; override;
+  public
+    constructor Create(const ARecordValue: ISepiValue; AField: TSepiField);
+
+    property RecordValue: ISepiValue read FRecordValue;
+    property Field: TSepiField read FField;
+  end;
+
+  {*
+    Valeur champ d'un objet
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiObjectFieldValue = class(TSepiCustomDirectValue)
+  private
+    FObjectValue: ISepiReadableValue; /// Valeur objet
+    FField: TSepiField;               /// Champ
+  protected
+    function CompileAsMemoryRef(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList;
+      TempVars: TSepiTempVarsLifeManager): TSepiMemoryReference; override;
+  public
+    constructor Create(const AObjectValue: ISepiReadableValue;
+      AField: TSepiField);
+
+    property ObjectValue: ISepiReadableValue read FObjectValue;
+    property Field: TSepiField read FField;
+  end;
+
+  {*
     Opération sur un type
     @author sjrd
     @version 1.0
@@ -645,9 +683,11 @@ type
     @author sjrd
     @version 1.0
   *}
-  TSepiNilValue = class(TSepiCustomExpressionPart, ISepiNilValue)
+  TSepiNilValue = class(TSepiCustomExpressionPart, ISepiValue, ISepiNilValue)
   protected
     procedure AttachToExpression(const Expression: ISepiExpression); override;
+
+    function GetValueType: TSepiType;
   end;
 
   {*
@@ -950,6 +990,8 @@ var
 begin
   AsExpressionPart := Self;
 
+  Expression.Attach(ISepiValue, AsExpressionPart);
+
   if IsReadable then
     Expression.Attach(ISepiReadableValue, AsExpressionPart);
   if IsWritable then
@@ -980,7 +1022,7 @@ end;
 *}
 function TSepiCustomDirectValue.GetAddressType: TSepiType;
 begin
-  Result := SepiRoot.FindType('System.Pointer');
+  Result := UnitCompiler.GetPointerType(ValueType);
 end;
 
 {*
@@ -1114,6 +1156,7 @@ var
   AsExpressionPart: ISepiExpressionPart;
 begin
   AsExpressionPart := Self;
+  Expression.Attach(ISepiValue, AsExpressionPart);
   Expression.Attach(ISepiReadableValue, AsExpressionPart);
 end;
 
@@ -1453,7 +1496,7 @@ end;
 {-------------------------}
 
 constructor TSepiCastOperator.Create(DestType: TSepiType;
-  const AOperand: ISepiExpression = nil);
+  const AOperand: ISepiValue = nil);
 begin
   inherited Create;
 
@@ -1548,39 +1591,28 @@ var
 begin
   Assert(Operand <> nil);
 
-  OpType := nil;
+  OpType := Operand.ValueType;
 
   if Supports(Operand, ISepiNilValue) then
-    IsReadable := True;
-
-  if Supports(Operand, ISepiReadableValue) then
+    IsReadable := True
+  else
   begin
-    IsReadable := True;
-    OpType := (Operand as ISepiReadableValue).ValueType;
-  end;
+    IsReadable := Supports(Operand, ISepiReadableValue);
+    IsWritable := Supports(Operand, ISepiWritableValue);
+    IsAddressable := Supports(Operand, ISepiAddressableValue);
 
-  if Supports(Operand, ISepiWritableValue) then
-  begin
-    IsWritable := (OpType = nil) or
-      ((Operand as ISepiReadableValue).ValueType = OpType);
-    if OpType = nil then
-      OpType := (Operand as ISepiReadableValue).ValueType;
-  end;
-
-  if Supports(Operand, ISepiAddressableValue) then
-    IsAddressable := True;
-
-  if (OpType <> nil) and (OpType.Size <> ValueType.Size) then
-  begin
-    if (OpType.Size < ValueType.Size) or (not ForceCast) then
+    if (OpType <> nil) and (OpType.Size <> ValueType.Size) then
     begin
-      MakeError(Format(SInvalidCast, [OpType.Name, ValueType.Name]));
+      if (OpType.Size < ValueType.Size) or (not ForceCast) then
+      begin
+        MakeError(Format(SInvalidCast, [OpType.Name, ValueType.Name]));
 
-      IsReadable := False;
-      IsWritable := False;
-      IsAddressable := False;
+        IsReadable := False;
+        IsWritable := False;
+        IsAddressable := False;
 
-      Exit;
+        Exit;
+      end;
     end;
   end;
 
@@ -1588,31 +1620,23 @@ begin
 end;
 
 {*
-  Transtype une expression
-  @param DestType     Type de destination
-  @param Expression   Expression à transtyper
-  @return Expression transtypée
+  Transtype une valeur
+  @param DestType   Type de destination
+  @param Value      Valeur à transtyper
+  @return Valeur transtypée
 *}
-class function TSepiCastOperator.CastExpression(DestType: TSepiType;
-  const Expression: ISepiExpression;
-  ForceCast: Boolean = False): ISepiExpression;
+class function TSepiCastOperator.CastValue(DestType: TSepiType;
+  const Value: ISepiValue; ForceCast: Boolean = False): ISepiValue;
 var
   CastOp: TSepiCastOperator;
-  CastOpIntf: ISepiExpressionPart;
 begin
-  CastOp := TSepiCastOperator.Create(DestType, Expression);
-  CastOpIntf := CastOp;
+  CastOp := TSepiCastOperator.Create(DestType, Value);
+  Result := CastOp;
   CastOp.ForceCast := ForceCast;
   CastOp.Complete;
 
-  Result := TSepiExpression.Create(Expression);
-
-  if CastOp.IsReadable then
-    Result.Attach(ISepiReadableValue, CastOpIntf);
-  if CastOp.IsWritable then
-    Result.Attach(ISepiWritableValue, CastOpIntf);
-  if CastOp.IsAddressable then
-    Result.Attach(ISepiAddressableValue, CastOpIntf);
+  Result.AttachToExpression(
+    TSepiExpression.Create(Value as ISepiExpression));
 end;
 
 {-----------------------------}
@@ -2179,10 +2203,10 @@ begin
     RightBaseType := LeftBaseType;
     CommonType := DefaultSepiTypeFor(LeftBaseType);
 
-    LeftOperand := TSepiCastOperator.CastExpression(CommonType,
-      LeftOperand as ISepiExpression) as ISepiReadableValue;
-    RightOperand := TSepiCastOperator.CastExpression(CommonType,
-      RightOperand as ISepiExpression) as ISepiReadableValue;
+    LeftOperand := TSepiCastOperator.CastValue(CommonType,
+      LeftOperand) as ISepiReadableValue;
+    RightOperand := TSepiCastOperator.CastValue(CommonType,
+      RightOperand) as ISepiReadableValue;
   end;
 
   // Check base types compatibility
@@ -2505,6 +2529,135 @@ begin
     MakeError(SNeedPointerType);
 end;
 
+{-----------------------------}
+{ TSepiRecordFieldValue class }
+{-----------------------------}
+
+{*
+  Crée une valeur champ
+  @param ARecordValue   Conteneur du champ
+  @param AField         Champ
+*}
+constructor TSepiRecordFieldValue.Create(const ARecordValue: ISepiValue;
+  AField: TSepiField);
+begin
+  inherited Create;
+
+  FRecordValue := ARecordValue;
+  FField := AField;
+
+  Assert(Field.Owner = RecordValue.ValueType);
+  Assert(Field.Owner is TSepiRecordType);
+
+  SetValueType(Field.FieldType);
+
+  IsReadable := Supports(RecordValue, ISepiReadableValue);
+  IsAddressable := Supports(RecordValue, ISepiAddressableValue);
+  IsWritable := IsAddressable and Supports(RecordValue, ISepiWritableValue);
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiRecordFieldValue.CompileAsMemoryRef(Compiler: TSepiMethodCompiler;
+  Instructions: TSepiInstructionList;
+  TempVars: TSepiTempVarsLifeManager): TSepiMemoryReference;
+var
+  SourceMemory: TSepiMemoryReference;
+begin
+  SourceMemory := nil;
+  try
+    { While accessing a record field, we should always privilege *reading* the
+      record, then adding the field offset, even when the eventual purpose is
+      to write it.  Indeed, we know a record field can be written only if the
+      underlying record can be written (for allowance) *and* addressed (for
+      faisability).  And since addressing a value that can be read is always
+      reading + LoadAddress instruction, it is more effective to only read the
+      record. }
+
+    if IsReadable then
+    begin
+      (RecordValue as ISepiReadableValue).CompileRead(Compiler, Instructions,
+        SourceMemory, TempVars);
+    end else
+    begin
+      (RecordValue as ISepiAddressableValue).CompileLoadAddress(Compiler,
+        Instructions, SourceMemory, TempVars);
+    end;
+
+    Result := TSepiMemoryReference.Clone(SourceMemory);
+    try
+      if not IsReadable then
+        Result.AddOperation(adSimple);
+      Result.AddOperation(aoPlusConstShortint, Field.Offset);
+      Result.Seal;
+    except
+      Result.Free;
+      raise;
+    end;
+  finally
+    SourceMemory.Free;
+  end;
+end;
+
+{-----------------------------}
+{ TSepiObjectFieldValue class }
+{-----------------------------}
+
+{*
+  Crée une valeur champ d'objet
+  @param AObjectValue   Valeur objet
+  @param AField         Champ
+*}
+constructor TSepiObjectFieldValue.Create(const AObjectValue: ISepiReadableValue;
+  AField: TSepiField);
+begin
+  inherited Create;
+
+  FObjectValue := AObjectValue;
+  FField := AField;
+
+  Assert(ObjectValue.ValueType = Field.Owner);
+  Assert(Field.Owner is TSepiClass);
+
+  SetValueType(Field.FieldType);
+
+  IsReadable := True;
+  IsWritable := True;
+  IsAddressable := True;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiObjectFieldValue.CompileAsMemoryRef(Compiler: TSepiMethodCompiler;
+  Instructions: TSepiInstructionList;
+  TempVars: TSepiTempVarsLifeManager): TSepiMemoryReference;
+var
+  SourceMemory: TSepiMemoryReference;
+begin
+  SourceMemory := nil;
+  try
+    { To access a class field, we must read the object value, then
+      dereference it and add the field offset. }
+
+    SourceMemory := nil;
+    ObjectValue.CompileRead(Compiler, Instructions,
+      SourceMemory, TempVars);
+
+    Result := TSepiMemoryReference.Clone(SourceMemory);
+    try
+      Result.AddOperation(adSimple, aoPlusConstShortint, Field.Offset);
+      Result.Seal;
+    except
+      Result.Free;
+      raise;
+    end;
+  finally
+    SourceMemory.Free;
+  end;
+end;
+
 {-------------------------------}
 { TSepiTypeOperationValue class }
 {-------------------------------}
@@ -2695,6 +2848,14 @@ var
 begin
   AsExpressionPart := Self;
   Expression.Attach(ISepiNilValue, AsExpressionPart);
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiNilValue.GetValueType: TSepiType;
+begin
+  Result := nil;
 end;
 
 {---------------------------}
