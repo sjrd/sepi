@@ -48,6 +48,10 @@ resourcestring
   SInvalidCast = 'Transtypage invalide de %s en %s';
   SOperationNotApplicableToType =
     'Opération non applicable à ce type d''opérande';
+  SNeedPointerType = 'Type pointeur requis';
+  STypeHasNoTypeInfo = 'Ce type n''a pas d''informations de type';
+  SOrdinalOrArrayTypeRequired = 'Type ordinal ou tableau requis';
+  SArrayTypeRequired = 'Type tableau requis';
 
   // Erreurs de compilateur
   SLabelAlreadyExists = 'Le label ''%s'' existe déjà';

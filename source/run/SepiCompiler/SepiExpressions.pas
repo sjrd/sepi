@@ -28,12 +28,24 @@ interface
 
 uses
   SysUtils, TypInfo, ScUtils, ScInterfaces, SepiReflectionCore, SepiOrdTypes,
-  SepiStrTypes, SepiMembers, SepiOpCodes, SepiRuntimeOperations, SepiCompiler,
-  SepiCompilerErrors, SepiCompilerConsts, SepiAsmInstructions;
+  SepiStrTypes, SepiArrayTypes, SepiMembers, SepiOpCodes, SepiRuntimeOperations,
+  SepiCompiler, SepiCompilerErrors, SepiCompilerConsts, SepiAsmInstructions;
 
 type
   /// Opération Sepi
   TSepiOperation = opAdd..opCmpGE;
+
+  {*
+    Opération Sepi sur un type
+    - toSizeOf : SizeOf(TypeName)
+    - toTypeInfo : TypeInfo(TypeName)
+    - toLowerBound : Low(TypeName)
+    - toHigherBound : High(TypeName)
+    - toLength : Length(TypeName)
+  *}
+  TSepiTypeOperation = (
+    toSizeOf, toTypeInfo, toLowerBound, toHigherBound, toLength
+  );
 
 const
   /// Toutes les opérations valides
@@ -558,6 +570,74 @@ type
       read FRightOperand write FRightOperand;
 
     property AutoConvert: Boolean read FAutoConvert write FAutoConvert;
+  end;
+
+  {*
+    Opérateur d'adressage
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiAddressOfValue = class(TSepiCustomComputedValue)
+  private
+    FOperand: ISepiAddressableValue; /// Opérande
+  protected
+    procedure CompileCompute(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
+      TempVars: TSepiTempVarsLifeManager); override;
+  public
+    procedure Complete;
+
+    property Operand: ISepiAddressableValue read FOperand write FOperand;
+  end;
+
+  {*
+    Opérateur de déréférencement
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiDereferenceValue = class(TSepiCustomDirectValue)
+  private
+    FOperand: ISepiReadableValue; /// Opérande
+  protected
+    function CompileAsMemoryRef(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList;
+      TempVars: TSepiTempVarsLifeManager): TSepiMemoryReference; override;
+  public
+    procedure Complete;
+
+    property Operand: ISepiReadableValue read FOperand write FOperand;
+  end;
+
+  {*
+    Opération sur un type
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiTypeOperationValue = class(TSepiCustomComputedValue)
+  private
+    FOperation: TSepiTypeOperation; /// Opération
+    FOperand: ISepiTypeExpression;  /// Opérande
+    FNilIfNoTypeInfo: Boolean;      /// Si True, TypeInfo peut renvoyer nil
+
+    procedure CheckOperand;
+    procedure CompleteSizeOf;
+    procedure CompleteTypeInfo;
+    procedure CompleteArrayBound;
+    procedure CompleteOrdinalBound;
+  protected
+    procedure CompileCompute(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
+      TempVars: TSepiTempVarsLifeManager); override;
+  public
+    constructor Create(AOperation: TSepiTypeOperation;
+      ANilIfNoTypeInfo: Boolean = False);
+
+    procedure Complete;
+
+    property Operation: TSepiTypeOperation read FOperation;
+    property Operand: ISepiTypeExpression read FOperand write FOperand;
+    property NilIfNoTypeInfo: Boolean
+      read FNilIfNoTypeInfo write FNilIfNoTypeInfo;
   end;
 
   {*
@@ -2354,6 +2434,252 @@ begin
   end;
 
   Result := True;
+end;
+
+{---------------------------}
+{ TSepiAddressOfValue class }
+{---------------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiAddressOfValue.CompileCompute(Compiler: TSepiMethodCompiler;
+  Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
+  TempVars: TSepiTempVarsLifeManager);
+begin
+   Operand.CompileLoadAddress(Compiler, Instructions, Destination, TempVars);
+end;
+
+{*
+  Complète l'opérateur d'adressage
+*}
+procedure TSepiAddressOfValue.Complete;
+begin
+  Assert(Operand <> nil);
+
+  SetValueType(Operand.AddressType);
+end;
+
+{-----------------------------}
+{ TSepiDereferenceValue class }
+{-----------------------------}
+
+{*
+  [@inheritDoc]
+*}
+function TSepiDereferenceValue.CompileAsMemoryRef(Compiler: TSepiMethodCompiler;
+  Instructions: TSepiInstructionList;
+  TempVars: TSepiTempVarsLifeManager): TSepiMemoryReference;
+var
+  OperandMemory: TSepiMemoryReference;
+begin
+  OperandMemory := nil;
+  try
+    Operand.CompileRead(Compiler, Instructions, OperandMemory, TempVars);
+    Result := TSepiMemoryReference.Clone(OperandMemory);
+    try
+      Result.AddOperation(adSimple);
+      Result.Seal;
+    except
+      Result.Free;
+      raise;
+    end;
+  finally
+    OperandMemory.Free;
+  end;
+end;
+
+{*
+  Complète l'opérateur de déréférencement
+*}
+procedure TSepiDereferenceValue.Complete;
+var
+  OpType: TSepiType;
+begin
+  Assert(Operand <> nil);
+
+  OpType := Operand.ValueType;
+  if OpType is TSepiPointerType then
+    SetValueType(TSepiPointerType(OpType).PointTo)
+  else
+    MakeError(SNeedPointerType);
+end;
+
+{-------------------------------}
+{ TSepiTypeOperationValue class }
+{-------------------------------}
+
+{*
+  Crée l'opération
+  @param AOperation         Opération
+  @param ANilIfNoTypeInfo   Si True, TypeInfo peut renvoyer nil
+*}
+constructor TSepiTypeOperationValue.Create(AOperation: TSepiTypeOperation;
+  ANilIfNoTypeInfo: Boolean);
+begin
+  inherited Create;
+
+  FOperation := AOperation;
+  FNilIfNoTypeInfo := ANilIfNoTypeInfo;
+end;
+
+{*
+  Vérifie si l'opérande est valide
+*}
+procedure TSepiTypeOperationValue.CheckOperand;
+var
+  OpType: TSepiType;
+begin
+  OpType := Operand.ExprType;
+
+  case Operation of
+    toTypeInfo:
+    begin
+      if (not NilIfNoTypeInfo) and (OpType.TypeInfo = nil) then
+        MakeError(STypeHasNoTypeInfo);
+    end;
+    toLowerBound, toHigherBound:
+    begin
+      if not ((OpType is TSepiOrdType) or (OpType is TSepiInt64Type) or
+        (OpType is TSepiArrayType)) then
+        MakeError(SOrdinalOrArrayTypeRequired);
+    end;
+    toLength:
+    begin
+      if not (OpType is TSepiArrayType) then
+        MakeError(SArrayTypeRequired);
+    end;
+  else
+    Assert(False);
+  end;
+end;
+
+{*
+  Complète un SizeOf
+*}
+procedure TSepiTypeOperationValue.CompleteSizeOf;
+begin
+  SetValueType(SepiRoot.FindType(TypeInfo(Integer)));
+  AllocateConstant;
+
+  Integer(ConstValuePtr^) := Operand.ExprType.Size;
+end;
+
+{*
+  Complète un TypeInfo
+*}
+procedure TSepiTypeOperationValue.CompleteTypeInfo;
+begin
+  SetValueType(SepiRoot.FindType('System.Pointer'));
+
+  if Operand.ExprType.TypeInfo = nil then
+    AllocateConstant; // zero-initialized
+end;
+
+{*
+  Complète une borne de tableau
+*}
+procedure TSepiTypeOperationValue.CompleteArrayBound;
+var
+  ArrayType: TSepiArrayType;
+  Bound: Integer;
+begin
+  ArrayType := Operand.ExprType as TSepiArrayType;
+
+  SetValueType(ArrayType.IndexType);
+  AllocateConstant;
+
+  case Operation of
+    toLowerBound:  Bound := ArrayType.LowerBound;
+    toHigherBound: Bound := ArrayType.HigherBound;
+    toLength:      Bound := ArrayType.ArrayLength;
+  else
+    Assert(False);
+    Exit;
+  end;
+
+  Move(Bound, ConstValuePtr^, ValueType.Size);
+end;
+
+{*
+  Complète une borne d'ordinal
+*}
+procedure TSepiTypeOperationValue.CompleteOrdinalBound;
+var
+  Int64Type: TSepiInt64Type;
+  OrdType: TSepiOrdType;
+  OrdBound: Integer;
+begin
+  SetValueType(Operand.ExprType);
+  AllocateConstant;
+
+  if Operand.ExprType is TSepiInt64Type then
+  begin
+    Int64Type := TSepiInt64Type(Operand.ExprType);
+
+    if Operation = toLowerBound then
+      Int64(ConstValuePtr^) := Int64Type.MinValue
+    else
+      Int64(ConstValuePtr^) := Int64Type.MaxValue;
+  end else
+  begin
+    OrdType := Operand.ExprType as TSepiOrdType;
+
+    if Operation = toLowerBound then
+      OrdBound := OrdType.MinValue
+    else
+      OrdBound := OrdType.MaxValue;
+
+    Move(OrdBound, ConstValuePtr^, OrdType.Size);
+  end;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiTypeOperationValue.CompileCompute(Compiler: TSepiMethodCompiler;
+  Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
+  TempVars: TSepiTempVarsLifeManager);
+var
+  OpType: TSepiType;
+  GetTypeInfoInstr: TSepiAsmGetRunInfo;
+begin
+  OpType := Operand.ExprType;
+
+  Assert((Operation = toTypeInfo) and (OpType.TypeInfo <> nil));
+
+  GetTypeInfoInstr := TSepiAsmGetRunInfo.Create(Compiler, ocGetTypeInfo);
+  GetTypeInfoInstr.SourcePos := Expression.SourcePos;
+
+  NeedDestination(Destination, ValueType, Compiler, TempVars,
+    Instructions.GetCurrentEndRef);
+
+  GetTypeInfoInstr.Destination.Assign(Destination);
+  GetTypeInfoInstr.SetReference(OpType);
+  Instructions.Add(GetTypeInfoInstr);
+end;
+
+{*
+  Complète l'opération
+  L'opération doit avoir été attachée à une expression auparavant, pour pouvoir
+  bénéficier du contexte de celle-ci.
+*}
+procedure TSepiTypeOperationValue.Complete;
+begin
+  Assert(Operand <> nil);
+
+  CheckOperand;
+
+  case Operation of
+    toSizeOf: CompleteSizeOf;
+    toTypeInfo: CompleteTypeInfo;
+    toLength: CompleteArrayBound;
+  else
+    if Operand.ExprType is TSepiArrayType then
+      CompleteArrayBound
+    else
+      CompleteOrdinalBound;
+  end;
 end;
 
 {---------------------}
