@@ -705,6 +705,7 @@ type
 
     function CompatibleWith(AType: TSepiType): Boolean; override;
     function ClassInheritsFrom(AParent: TSepiClass): Boolean;
+    function ClassImplementsInterface(AInterface: TSepiInterface): Boolean;
 
     function LookForMember(const MemberName: string; FromUnit: TSepiUnit;
       FromClass: TSepiClass = nil): TSepiMeta;
@@ -4099,6 +4100,17 @@ function TSepiClass.ClassInheritsFrom(AParent: TSepiClass): Boolean;
 begin
   Result := (AParent = Self) or
     (Assigned(FParent) and FParent.ClassInheritsFrom(AParent));
+end;
+
+{*
+  Détermine si la classe implémente une interface donnée
+  @param AInterface   Interface à tester
+  @return True si la classe implémente AInterface, False sinon
+*}
+function TSepiClass.ClassImplementsInterface(
+  AInterface: TSepiInterface): Boolean;
+begin
+  Result := DelphiClass.GetInterfaceEntry(AInterface.GUID) <> nil;
 end;
 
 {*
