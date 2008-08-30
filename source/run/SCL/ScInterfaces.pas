@@ -3,7 +3,7 @@ unit ScInterfaces;
 interface
 
 uses
-  SysUtils, ScUtils, ScConsts;
+  SysUtils, ScUtils, ScSyncObjs, ScConsts;
 
 type
   {*
@@ -56,7 +56,8 @@ type
   TDynamicallyLinkedObject = class(TInterfacedObject, IInterface,
     IDynamicallyLinkable)
   private
-    FController: Pointer; /// Référence faible au contrôleur
+    FController: Pointer;   /// Référence faible au contrôleur
+    FControlCount: Integer; /// Nombre de fois qu'il est attaché au contrôleur
 
     function GetController: IInterface;
   protected
@@ -169,10 +170,11 @@ procedure TDynamicallyLinkedObject.AttachTo(const Controller: IInterface);
 var
   I: Integer;
 begin
-  if FController <> nil then
+  if (FController <> nil) and (Pointer(Controller) <> FController) then
     raise EDynamicIntfError.Create(SAlreadyHasController);
 
   FController := Pointer(Controller);
+  InterlockedIncrement(FControlCount);
 
   for I := RefCount-1 downto 0 do
     Controller._AddRef;
@@ -188,10 +190,13 @@ begin
   if FController = nil then
     raise EDynamicIntfError.Create(SHasNoController);
 
-  for I := RefCount-1 downto 0 do
-    IInterface(FController)._Release;
+  if InterlockedDecrement(FControlCount) = 0 then
+  begin
+    for I := RefCount-1 downto 0 do
+      IInterface(FController)._Release;
 
-  FController := nil;
+    FController := nil;
+  end;
 end;
 
 {------------------------------}
@@ -209,8 +214,11 @@ begin
   Result := 0;
 
   while Result < Length(FInterfaces) do
+  begin
     if SameGUID(IID, FInterfaces[Result].IID) then
       Exit;
+    Inc(Result);
+  end;
 
   Result := -1;
 end;
