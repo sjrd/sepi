@@ -46,7 +46,8 @@ resourcestring
   STypeIsNotBaseType =
     'Le type %s n''est pas un type de base pour l''interpréteur Sepi';
   SInvalidCast = 'Transtypage invalide de %s en %s';
-  STypeNotApplicableToOp = 'Type non applicable à cette opération';
+  SOperationNotApplicableToType =
+    'Opération non applicable à ce type d''opérande';
 
   // Erreurs de compilateur
   SLabelAlreadyExists = 'Le label ''%s'' existe déjà';

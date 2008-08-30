@@ -27,9 +27,9 @@ unit SepiExpressions;
 interface
 
 uses
-  SysUtils, ScUtils, ScInterfaces, SepiReflectionCore, SepiMembers,
-  SepiOpCodes, SepiCompiler, SepiCompilerErrors, SepiCompilerConsts,
-  SepiAsmInstructions;
+  SysUtils, TypInfo, ScUtils, ScInterfaces, SepiReflectionCore, SepiOrdTypes,
+  SepiStrTypes, SepiMembers, SepiOpCodes, SepiRuntimeOperations, SepiCompiler,
+  SepiCompilerErrors, SepiCompilerConsts, SepiAsmInstructions;
 
 type
   /// Opération Sepi
@@ -59,11 +59,17 @@ type
 
     function GetValueType: TSepiType;
 
+    function GetIsConstant: Boolean;
+    function GetConstValuePtr: Pointer;
+
     procedure CompileRead(Compiler: TSepiMethodCompiler;
       Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
       TempVars: TSepiTempVarsLifeManager);
 
     property ValueType: TSepiType read GetValueType;
+
+    property IsConstant: Boolean read GetIsConstant;
+    property ConstValuePtr: Pointer read GetConstValuePtr;
   end;
 
   {*
@@ -97,21 +103,6 @@ type
       TempVars: TSepiTempVarsLifeManager);
 
     property AddressType: TSepiType read GetAddressType;
-  end;
-
-  {*
-    Valeur constante à la compilation
-    @author sjrd
-    @version 1.0
-  *}
-  ISepiConstantValue = interface(ISepiExpressionPart)
-    ['{78955B99-2FAA-487D-B295-2986E8C720DF}']
-
-    function GetValueType: TSepiType;
-    function GetValuePtr: Pointer;
-
-    property ValueType: TSepiType read GetValueType;
-    property ValuePtr: Pointer read GetValuePtr;
   end;
 
   {*
@@ -235,6 +226,9 @@ type
     procedure AttachTo(const Controller: IInterface); override;
     procedure DetachFromController; override;
 
+    procedure AttachToExpression(
+      const Expression: ISepiExpression); virtual; abstract;
+
     procedure MakeError(const Msg: string; Kind: TSepiErrorKind = ekError);
 
     property Expression: ISepiExpression read GetExpression;
@@ -250,14 +244,11 @@ type
     ISepiReadableValue, ISepiWritableValue et ISepiAddressableValue, les
     classes descendantes peuvent activer et désactiver celles-ci à volonté au
     moyen des propriétés IsReadable, IsWritable et IsAddressable respectivement.
-    De même, l'implémentation de l'interface ISepiConstantValue n'est effective
-    que si ConstValuePtr <> nil.
     @author sjrd
     @version 1.0
   *}
   TSepiCustomDirectValue = class(TSepiCustomExpressionPart, ISepiDirectValue,
-    ISepiReadableValue, ISepiWritableValue, ISepiAddressableValue,
-    ISepiConstantValue)
+    ISepiReadableValue, ISepiWritableValue, ISepiAddressableValue)
   private
     FValueType: TSepiType; /// Type de la valeur
 
@@ -270,11 +261,14 @@ type
     function QueryInterface(const IID: TGUID;
       out Obj): HResult; override; stdcall;
 
+    procedure AttachToExpression(const Expression: ISepiExpression); override;
+
     function GetValueType: TSepiType;
     procedure SetValueType(AType: TSepiType);
     function GetAddressType: TSepiType;
 
-    function GetValuePtr: Pointer;
+    function GetIsConstant: Boolean;
+    function GetConstValuePtr: Pointer;
 
     function CompileAsMemoryRef(Compiler: TSepiMethodCompiler;
       Instructions: TSepiInstructionList;
@@ -296,6 +290,7 @@ type
     property IsWritable: Boolean read FIsWritable write FIsWritable;
     property IsAddressable: Boolean read FIsAddressable write FIsAddressable;
 
+    property IsConstant: Boolean read GetIsConstant;
     property ConstValuePtr: Pointer read FConstValuePtr write FConstValuePtr;
   public
     property ValueType: TSepiType read FValueType;
@@ -304,26 +299,23 @@ type
 
   {*
     Classe de base pour des valeurs à calculer
-    Bien que, syntaxiquement, cette classe implémente l'interface
-    ISepiConstantValue, celle-ci est désactivée jusqu'à ce qu'un appel à
-    AllocateConstant ait été fait.
     @author sjrd
     @version 1.0
   *}
   TSepiCustomComputedValue = class(TSepiCustomExpressionPart,
-    ISepiReadableValue, ISepiConstantValue)
+    ISepiReadableValue)
   private
     FValueType: TSepiType; /// Type de valeur
 
     FConstValuePtr: Pointer; /// Pointeur sur la valeur constante
   protected
-    function QueryInterface(const IID: TGUID;
-      out Obj): HResult; override; stdcall;
+    procedure AttachToExpression(const Expression: ISepiExpression); override;
 
     function GetValueType: TSepiType;
     procedure SetValueType(AType: TSepiType);
 
-    function GetValuePtr: Pointer;
+    function GetIsConstant: Boolean;
+    function GetConstValuePtr: Pointer;
 
     procedure AllocateConstant;
 
@@ -335,6 +327,7 @@ type
       Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
       TempVars: TSepiTempVarsLifeManager);
 
+    property IsConstant: Boolean read GetIsConstant;
     property ConstValuePtr: Pointer read FConstValuePtr;
   public
     destructor Destroy; override;
@@ -375,6 +368,42 @@ type
   end;
 
   {*
+    Valeur variable globale
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiVariableValue = class(TSepiCustomDirectValue)
+  private
+    FVariable: TSepiVariable;
+  protected
+    function CompileAsMemoryRef(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList;
+      TempVars: TSepiTempVarsLifeManager): TSepiMemoryReference; override;
+  public
+    constructor Create(AVariable: TSepiVariable);
+
+    property Variable: TSepiVariable read FVariable;
+  end;
+
+  {*
+    Valeur variable locale
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiLocalVarValue = class(TSepiCustomDirectValue)
+  private
+    FLocalVar: TSepiLocalVar;
+  protected
+    function CompileAsMemoryRef(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList;
+      TempVars: TSepiTempVarsLifeManager): TSepiMemoryReference; override;
+  public
+    constructor Create(ALocalVar: TSepiLocalVar);
+
+    property LocalVar: TSepiLocalVar read FLocalVar;
+  end;
+
+  {*
     Opérateur de transtypage
     @author sjrd
     @version 1.0
@@ -382,10 +411,14 @@ type
   TSepiCastOperator = class(TSepiCustomDirectValue)
   private
     FOperand: ISepiExpression; /// Expression source
-    FForceCast: Boolean;      /// True force même avec des tailles différentes
+    FForceCast: Boolean;       /// True force même avec des tailles différentes
 
     procedure CollapseConsts;
   protected
+    function CompileAsMemoryRef(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList;
+      TempVars: TSepiTempVarsLifeManager): TSepiMemoryReference; override;
+
     procedure CompileRead(Compiler: TSepiMethodCompiler;
       Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
       TempVars: TSepiTempVarsLifeManager); override;
@@ -402,8 +435,129 @@ type
 
     procedure Complete;
 
+    class function CastExpression(DestType: TSepiType;
+      const Expression: ISepiExpression;
+      ForceCast: Boolean = False): ISepiExpression;
+
     property Operand: ISepiExpression read FOperand write FOperand;
     property ForceCast: Boolean read FForceCast write FForceCast;
+  end;
+
+  {*
+    Opération de conversion
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiConvertOperation = class(TSepiCustomComputedValue)
+  private
+    FSource: ISepiReadableValue; /// Expression source
+
+    procedure CollapseConsts;
+  protected
+    procedure CompileCompute(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
+      TempVars: TSepiTempVarsLifeManager); override;
+  public
+    constructor Create(DestType: TSepiType;
+      const ASource: ISepiReadableValue = nil);
+
+    procedure Complete;
+
+    class function ConvertionExists(DestType, SrcType: TSepiType): Boolean;
+    class function ConvertValue(DestType: TSepiType;
+      const Value: ISepiReadableValue): ISepiReadableValue;
+
+    property Source: ISepiReadableValue read FSource write FSource;
+  end;
+
+  {*
+    Opération arithmétique ou logique
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiArithmeticLogicOperation = class(TSepiCustomComputedValue)
+  private
+    FOperation: TSepiOperation;
+  protected
+    procedure ErrorTypeNotApplicable;
+
+    function GetOpCode(SelfOp: Boolean): TSepiOpCode;
+  public
+    constructor Create(AOperation: TSepiOperation);
+
+    property Operation: TSepiOperation read FOperation;
+  end;
+
+  {*
+    Opération unaire
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiUnaryOperation = class(TSepiArithmeticLogicOperation)
+  private
+    FOperand: ISepiReadableValue; /// Opérande
+
+    procedure CheckType;
+    procedure CollapseConsts;
+  protected
+    procedure CompileCompute(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
+      TempVars: TSepiTempVarsLifeManager); override;
+  public
+    procedure Complete;
+
+    property Operand: ISepiReadableValue read FOperand write FOperand;
+  end;
+
+  {*
+    Opération binaire (dont comparaisons)
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiBinaryOperation = class(TSepiArithmeticLogicOperation)
+  private
+    FLeftOperand: ISepiReadableValue;  /// Opérande de gauche
+    FRightOperand: ISepiReadableValue; /// Opérande de droite
+
+    /// Si True, les opérandes sont convertis automatiquement
+    FAutoConvert: Boolean;
+
+    function CheckNonBaseTypes(LeftType, RightType: TSepiType): TSepiBaseType;
+    procedure CheckTypesShift(LeftBaseType, RightBaseType: TSepiBaseType;
+      BaseTypes: TSepiBaseTypes);
+    procedure CheckTypesComparison(LeftBaseType, RightBaseType: TSepiBaseType;
+      BaseTypes: TSepiBaseTypes);
+    procedure CheckTypesArithmetic(LeftBaseType, RightBaseType: TSepiBaseType;
+      BaseTypes: TSepiBaseTypes);
+    procedure CheckTypes;
+
+    procedure CollapseConsts;
+  protected
+    procedure ErrorTypeMismatch;
+
+    function DefaultSepiTypeFor(BaseType: TSepiBaseType): TSepiType;
+
+    function ConvertLeftOperand(NewType: TSepiBaseType): TSepiType;
+    function ConvertRightOperand(NewType: TSepiBaseType): TSepiType;
+
+    procedure CompileCompute(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
+      TempVars: TSepiTempVarsLifeManager); override;
+  public
+    constructor Create(AOperation: TSepiOperation;
+      AAutoConvert: Boolean = True);
+
+    procedure Complete;
+
+    class function SmallestCommonType(LeftType, RightType: TSepiBaseType;
+      out CommonType: TSepiBaseType): Boolean;
+
+    property LeftOperand: ISepiReadableValue
+      read FLeftOperand write FLeftOperand;
+    property RightOperand: ISepiReadableValue
+      read FRightOperand write FRightOperand;
+
+    property AutoConvert: Boolean read FAutoConvert write FAutoConvert;
   end;
 
   {*
@@ -412,6 +566,8 @@ type
     @version 1.0
   *}
   TSepiNilValue = class(TSepiCustomExpressionPart, ISepiNilValue)
+  protected
+    procedure AttachToExpression(const Expression: ISepiExpression); override;
   end;
 
   {*
@@ -423,6 +579,8 @@ type
   private
     FMeta: TSepiMeta; /// Meta
   protected
+    procedure AttachToExpression(const Expression: ISepiExpression); override;
+
     function GetMeta: TSepiMeta;
   public
     constructor Create(AMeta: TSepiMeta);
@@ -439,6 +597,8 @@ type
   private
     FType: TSepiType; /// Type
   protected
+    procedure AttachToExpression(const Expression: ISepiExpression); override;
+
     function GetType: TSepiType;
   public
     constructor Create(AType: TSepiType);
@@ -452,6 +612,13 @@ procedure NeedDestination(var Destination: TSepiMemoryReference;
 
 function IsZeroMemory(Address: Pointer; Size: Integer): Boolean;
 
+function SepiTypeToBaseType(SepiType: TSepiType;
+  out BaseType: TSepiBaseType): Boolean; overload;
+function SepiTypeToBaseType(SepiType: TSepiType): TSepiBaseType; overload;
+
+function DefaultSepiTypeFor(BaseType: TSepiBaseType;
+  SepiRoot: TSepiRoot): TSepiType;
+
 implementation
 
 const
@@ -459,6 +626,17 @@ const
   ZeroMemory: array[0..SizeOf(Variant)-1] of Byte = (
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
   );
+
+  /// Table de conversion d'opération en son OpCode
+  OperationToOpCode: array[TSepiOperation] of TSepiOpCode = (
+    ocOtherAdd, ocOtherSubtract, ocOtherMultiply, ocOtherDivide, ocOtherIntDiv,
+    ocOtherModulus, ocOtherShl, ocOtherShr, ocOtherAnd, ocOtherOr, ocOtherXor,
+    ocNope, ocOtherNeg, ocOtherNot, ocCompEquals, ocCompNotEquals, ocCompLower,
+    ocCompLowerEq, ocCompGreater, ocCompGreaterEq
+  );
+
+var
+  BaseTypeToDefaultTypeInfo: array[TSepiBaseType] of PTypeInfo;
 
 {-----------------}
 { Global routines }
@@ -521,6 +699,90 @@ begin
   end;
 end;
 
+{*
+  Récupère le type de base correspondant à un type Sepi
+  @param SepiType   Type Sepi
+  @param BaseType   En sortie : type de base correspondant, si existe
+  @return False si le type Sepi n'admet pas de type de base, True sinon
+*}
+function SepiTypeToBaseType(SepiType: TSepiType;
+  out BaseType: TSepiBaseType): Boolean;
+const
+  OrdTypeToBaseType: array[TOrdType] of TSepiBaseType = (
+    btShortint, btByte, btSmallint, btWord, btLongint, btDWord
+  );
+  FloatTypeToBaseType: array[TFloatType] of TSepiBaseType = (
+    btSingle, btDouble, btExtended, btComp, btCurrency
+  );
+  IsUnicodeToBaseType: array[Boolean] of TSepiBaseType = (
+    btAnsiStr, btWideStr
+  );
+begin
+  Result := True;
+
+  if (SepiType is TSepiIntegerType) or (SepiType is TSepiCharType) then
+    BaseType := OrdTypeToBaseType[GetTypeData(SepiType.TypeInfo).OrdType]
+  else if SepiType is TSepiInt64Type then
+    BaseType := btInt64
+  else if SepiType is TSepiFloatType then
+    BaseType := FloatTypeToBaseType[TSepiFloatType(SepiType).FloatType]
+  else if (SepiType is TSepiBooleanType) and
+    (TSepiBooleanType(SepiType).BooleanKind = bkBoolean) then
+    BaseType := btBoolean
+  else if SepiType is TSepiStringType then
+    BaseType := IsUnicodeToBaseType[TSepiStringType(SepiType).IsUnicode]
+  else if SepiType is TSepiVariantType then
+    BaseType := btVariant
+  else
+    Result := False;
+end;
+
+{*
+  Récupère le type de base correspondant à un type Sepi
+  @param SepiType   Type Sepi
+  @return Type de base correspondant
+*}
+function SepiTypeToBaseType(SepiType: TSepiType): TSepiBaseType;
+begin
+  if not SepiTypeToBaseType(SepiType, Result) then
+    raise ESepiCompilerError.CreateFmt(STypeIsNotBaseType, [SepiType.Name]);
+end;
+
+{*
+  Initialise le tableau BaseTypeToDefaultTypeInfo
+*}
+procedure InitBaseTypeToDefaultTypeInfo;
+begin
+  BaseTypeToDefaultTypeInfo[btBoolean ] := TypeInfo(Boolean);
+  BaseTypeToDefaultTypeInfo[btByte    ] := TypeInfo(Byte);
+  BaseTypeToDefaultTypeInfo[btWord    ] := TypeInfo(Word);
+  BaseTypeToDefaultTypeInfo[btDWord   ] := TypeInfo(LongWord);
+  BaseTypeToDefaultTypeInfo[btShortint] := TypeInfo(Shortint);
+  BaseTypeToDefaultTypeInfo[btSmallint] := TypeInfo(Smallint);
+  BaseTypeToDefaultTypeInfo[btLongint ] := TypeInfo(Longint);
+  BaseTypeToDefaultTypeInfo[btInt64   ] := TypeInfo(Int64);
+  BaseTypeToDefaultTypeInfo[btSingle  ] := TypeInfo(Single);
+  BaseTypeToDefaultTypeInfo[btDouble  ] := TypeInfo(Double);
+  BaseTypeToDefaultTypeInfo[btExtended] := TypeInfo(Extended);
+  BaseTypeToDefaultTypeInfo[btComp    ] := TypeInfo(Comp);
+  BaseTypeToDefaultTypeInfo[btCurrency] := TypeInfo(Currency);
+  BaseTypeToDefaultTypeInfo[btAnsiStr ] := TypeInfo(AnsiString);
+  BaseTypeToDefaultTypeInfo[btWideStr ] := TypeInfo(WideString);
+  BaseTypeToDefaultTypeInfo[btVariant ] := TypeInfo(Variant);
+end;
+
+{*
+  Trouve le type Sepi par défaut correspondant à un type de base
+  @param BaseType   Type de base
+  @param SepiRoot   Racine Sepi
+  @return Type Sepi correspondant
+*}
+function DefaultSepiTypeFor(BaseType: TSepiBaseType;
+  SepiRoot: TSepiRoot): TSepiType;
+begin
+  Result := SepiRoot.FindType(BaseTypeToDefaultTypeInfo[BaseType]);
+end;
+
 {---------------------------------}
 { TSepiCustomExpressionPart class }
 {---------------------------------}
@@ -543,7 +805,12 @@ begin
   inherited;
 
   if Controller.QueryInterface(ISepiExpression, ExprController) = 0 then
+  begin
     FExpression := Pointer(ExprController);
+    FSepiRoot := ExprController.SepiRoot;
+    FUnitCompiler := ExprController.UnitCompiler;
+    FMethodCompiler := ExprController.MethodCompiler;
+  end;
 end;
 
 {*
@@ -553,7 +820,13 @@ procedure TSepiCustomExpressionPart.DetachFromController;
 begin
   inherited;
 
-  FExpression := nil;
+  if Controller = nil then
+  begin
+    FExpression := nil;
+    FSepiRoot := nil;
+    FUnitCompiler := nil;
+    FMethodCompiler := nil;
+  end;
 end;
 
 {*
@@ -583,10 +856,26 @@ begin
     Result := E_NOINTERFACE
   else if SameGUID(IID, ISepiAddressableValue) and (not IsAddressable) then
     Result := E_NOINTERFACE
-  else if SameGUID(IID, ISepiConstantValue) and (ConstValuePtr = nil) then
-    Result := E_NOINTERFACE
   else
     Result := inherited QueryInterface(IID, Obj);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiCustomDirectValue.AttachToExpression(
+  const Expression: ISepiExpression);
+var
+  AsExpressionPart: ISepiExpressionPart;
+begin
+  AsExpressionPart := Self;
+
+  if IsReadable then
+    Expression.Attach(ISepiReadableValue, AsExpressionPart);
+  if IsWritable then
+    Expression.Attach(ISepiWritableValue, AsExpressionPart);
+  if IsAddressable then
+    Expression.Attach(ISepiAddressableValue, AsExpressionPart);
 end;
 
 {*
@@ -617,7 +906,15 @@ end;
 {*
   [@inheritDoc]
 *}
-function TSepiCustomDirectValue.GetValuePtr: Pointer;
+function TSepiCustomDirectValue.GetIsConstant: Boolean;
+begin
+  Result := FConstValuePtr <> nil;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiCustomDirectValue.GetConstValuePtr: Pointer;
 begin
   Result := FConstValuePtr;
 end;
@@ -731,13 +1028,13 @@ end;
 {*
   [@inheritDoc]
 *}
-function TSepiCustomComputedValue.QueryInterface(const IID: TGUID;
-  out Obj): HResult;
+procedure TSepiCustomComputedValue.AttachToExpression(
+  const Expression: ISepiExpression);
+var
+  AsExpressionPart: ISepiExpressionPart;
 begin
-  if SameGUID(IID, ISepiConstantValue) and (ConstValuePtr = nil) then
-    Result := E_NOINTERFACE
-  else
-    Result := inherited QueryInterface(IID, Obj);
+  AsExpressionPart := Self;
+  Expression.Attach(ISepiReadableValue, AsExpressionPart);
 end;
 
 {*
@@ -761,7 +1058,15 @@ end;
 {*
   [@inheritDoc]
 *}
-function TSepiCustomComputedValue.GetValuePtr: Pointer;
+function TSepiCustomComputedValue.GetIsConstant: Boolean;
+begin
+  Result := FConstValuePtr <> nil;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiCustomComputedValue.GetConstValuePtr: Pointer;
 begin
   Result := FConstValuePtr;
 end;
@@ -849,8 +1154,34 @@ end;
 *}
 constructor TSepiTrueConstValue.Create(SepiRoot: TSepiRoot;
   Value: Int64);
+var
+  ATypeInfo: PTypeInfo;
 begin
-  Create(SepiRoot.FindType(TypeInfo(Int64)));
+  if (Value < Int64(-MaxInt-1)) or (Value > Int64(MaxInt)) then
+    ATypeInfo := TypeInfo(Int64)
+  else if Value < 0 then
+  begin
+    case IntegerSize(Value) of
+      1: ATypeInfo := TypeInfo(Shortint);
+      2: ATypeInfo := TypeInfo(Smallint);
+      4: ATypeInfo := TypeInfo(Longint);
+    else
+      Assert(False);
+      ATypeInfo := TypeInfo(Int64);
+    end;
+  end else
+  begin
+    case CardinalSize(Value) of
+      1: ATypeInfo := TypeInfo(Byte);
+      2: ATypeInfo := TypeInfo(Word);
+      4: ATypeInfo := TypeInfo(LongWord);
+    else
+      Assert(False);
+      ATypeInfo := TypeInfo(Int64);
+    end;
+  end;
+
+  Create(SepiRoot.FindType(ATypeInfo));
 
   Int64(ConstValuePtr^) := Value;
 end;
@@ -963,6 +1294,80 @@ begin
   end;
 end;
 
+{--------------------------}
+{ TSepiVariableValue class }
+{--------------------------}
+
+{*
+  Crée une valeur variable globale
+  @param AVariable   Variable
+*}
+constructor TSepiVariableValue.Create(AVariable: TSepiVariable);
+begin
+  inherited Create;
+
+  FVariable := AVariable;
+  SetValueType(Variable.VarType);
+
+  IsReadable := True;
+  IsWritable := not Variable.IsConst;
+  IsAddressable := True;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiVariableValue.CompileAsMemoryRef(Compiler: TSepiMethodCompiler;
+  Instructions: TSepiInstructionList;
+  TempVars: TSepiTempVarsLifeManager): TSepiMemoryReference;
+begin
+  Result := TSepiMemoryReference.Create(Compiler, [aoAcceptAddressedConst]);
+  try
+    Result.SetSpace(Variable);
+    Result.Seal;
+  except
+    Result.Free;
+    raise;
+  end;
+end;
+
+{--------------------------}
+{ TSepiLocalVarValue class }
+{--------------------------}
+
+{*
+  Crée une valeur variable locale
+  @param ALocalVar   LocalVar
+*}
+constructor TSepiLocalVarValue.Create(ALocalVar: TSepiLocalVar);
+begin
+  inherited Create;
+
+  FLocalVar := ALocalVar;
+  SetValueType(LocalVar.VarType);
+
+  IsReadable := ValueType <> nil;
+  IsWritable := (ValueType <> nil) and (not LocalVar.IsConstant);
+  IsAddressable := True;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiLocalVarValue.CompileAsMemoryRef(Compiler: TSepiMethodCompiler;
+  Instructions: TSepiInstructionList;
+  TempVars: TSepiTempVarsLifeManager): TSepiMemoryReference;
+begin
+  Result := TSepiMemoryReference.Create(Compiler, [aoAcceptAddressedConst]);
+  try
+    Result.SetSpace(LocalVar);
+    Result.Seal;
+  except
+    Result.Free;
+    raise;
+  end;
+end;
+
 {-------------------------}
 { TSepiCastOperator class }
 {-------------------------}
@@ -981,7 +1386,7 @@ end;
 *}
 procedure TSepiCastOperator.CollapseConsts;
 var
-  ConstOp: ISepiConstantValue;
+  ConstOp: ISepiReadableValue;
   OpType: TSepiType;
 begin
   // Handle nil constant
@@ -992,7 +1397,9 @@ begin
   end;
 
   // If operand is not a constant value, exit
-  if Operand.QueryInterface(ISepiConstantValue, ConstOp) <> 0 then
+  if Operand.QueryInterface(ISepiReadableValue, ConstOp) <> 0 then
+    Exit;
+  if not ConstOp.IsConstant then
     Exit;
 
   // Can't collapse a cast if operand type is unknown
@@ -1002,11 +1409,22 @@ begin
 
   // Can't collapse a cast on a need-init-type (unless operand is zero-memory)
   if (OpType.NeedInit or ValueType.NeedInit) and
-    (not IsZeroMemory(ConstOp.ValuePtr, OpType.Size)) then
+    (not IsZeroMemory(ConstOp.ConstValuePtr, OpType.Size)) then
     Exit;
 
   // Do the job
-  ConstValuePtr := ConstOp.ValuePtr;
+  ConstValuePtr := ConstOp.ConstValuePtr;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiCastOperator.CompileAsMemoryRef(Compiler: TSepiMethodCompiler;
+  Instructions: TSepiInstructionList;
+  TempVars: TSepiTempVarsLifeManager): TSepiMemoryReference;
+begin
+  Assert(False);
+  Result := nil;
 end;
 
 {*
@@ -1089,6 +1507,870 @@ begin
   CollapseConsts;
 end;
 
+{*
+  Transtype une expression
+  @param DestType     Type de destination
+  @param Expression   Expression à transtyper
+  @return Expression transtypée
+*}
+class function TSepiCastOperator.CastExpression(DestType: TSepiType;
+  const Expression: ISepiExpression;
+  ForceCast: Boolean = False): ISepiExpression;
+var
+  CastOp: TSepiCastOperator;
+  CastOpIntf: ISepiExpressionPart;
+begin
+  CastOp := TSepiCastOperator.Create(DestType, Expression);
+  CastOpIntf := CastOp;
+  CastOp.ForceCast := ForceCast;
+  CastOp.Complete;
+
+  Result := TSepiExpression.Create(Expression);
+
+  if CastOp.IsReadable then
+    Result.Attach(ISepiReadableValue, CastOpIntf);
+  if CastOp.IsWritable then
+    Result.Attach(ISepiWritableValue, CastOpIntf);
+  if CastOp.IsAddressable then
+    Result.Attach(ISepiAddressableValue, CastOpIntf);
+end;
+
+{-----------------------------}
+{ TSepiConvertOperation class }
+{-----------------------------}
+
+{*
+  Crée une opération de conversion
+  @param DestType   Type de destination
+  @param ASource    Expression source
+*}
+constructor TSepiConvertOperation.Create(DestType: TSepiType;
+  const ASource: ISepiReadableValue = nil);
+begin
+  inherited Create;
+
+  SetValueType(DestType);
+  FSource := ASource;
+end;
+
+{*
+  Pliage des constantes
+*}
+procedure TSepiConvertOperation.CollapseConsts;
+var
+  SrcType: TSepiType;
+  DestBase, SrcBase: TSepiBaseType;
+begin
+  if not Source.IsConstant then
+    Exit;
+
+  SrcType := Source.ValueType;
+
+  // Only CVRT convertions can be collapsed
+  if (not SepiTypeToBaseType(ValueType, DestBase)) or
+    (not SepiTypeToBaseType(SrcType, SrcBase)) then
+    Exit;
+
+  AllocateConstant;
+  Convert(DestBase, SrcBase, ConstValuePtr^, Source.ConstValuePtr^);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiConvertOperation.CompileCompute(Compiler: TSepiMethodCompiler;
+  Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
+  TempVars: TSepiTempVarsLifeManager);
+var
+  SrcType: TSepiType;
+  DestBase, SrcBase: TSepiBaseType;
+  SourceDestination: TSepiMemoryReference;
+  SrcTempVars: TSepiTempVarsLifeManager;
+  ConvertInstr: TSepiAsmConvert;
+begin
+  SrcType := Source.ValueType;
+
+  if SrcType is TSepiClass then
+  begin
+    if ValueType is TSepiClass then
+    begin
+      // This is a pure assignment
+      Source.CompileRead(Compiler, Instructions, Destination, TempVars);
+    end else
+    begin
+      // Here we must take into account the offset of the interface hidden field
+      Assert(ValueType is TSepiInterface);
+
+      // TODO Convertir une classe en interface
+      raise EAssertionFailed.Create('Can''t convert class to interface');
+    end;
+  end else if SrcType is TSepiInterface then
+  begin
+    Assert(ValueType is TSepiInterface);
+
+    // Pure assignment
+    Source.CompileRead(Compiler, Instructions, Destination, TempVars);
+  end else
+  begin
+    DestBase := SepiTypeToBaseType(ValueType);
+    SrcBase := SepiTypeToBaseType(SrcType);
+
+    if DestBase = SrcBase then
+    begin
+      // Pure assignment
+      Source.CompileRead(Compiler, Instructions, Destination, TempVars);
+    end else
+    begin
+      // CVRT convertion
+
+      SourceDestination := nil;
+      try
+        // Read source
+        SrcTempVars := TSepiTempVarsLifeManager.Create;
+        try
+          Source.CompileRead(Compiler, Instructions, SourceDestination,
+            SrcTempVars);
+        finally
+          SrcTempVars.EndAllLifes(Instructions.GetCurrentEndRef);
+          SrcTempVars.Free;
+        end;
+
+        // Make CVRT instruction
+        ConvertInstr := TSepiAsmConvert.Create(Compiler, DestBase, SrcBase);
+        ConvertInstr.SourcePos := Expression.SourcePos;
+
+        NeedDestination(Destination, ValueType, Compiler, TempVars,
+          ConvertInstr.AfterRef);
+
+        ConvertInstr.Destination.Assign(Destination);
+        ConvertInstr.Source.Assign(SourceDestination);
+        Instructions.Add(ConvertInstr);
+      finally
+        SourceDestination.Free;
+      end;
+    end;
+  end;
+end;
+
+{*
+  Complète l'opération
+*}
+procedure TSepiConvertOperation.Complete;
+begin
+  Assert(FSource <> nil);
+
+  if not ConvertionExists(ValueType, Source.ValueType) then
+  begin
+    MakeError(Format(STypeMismatch, [ValueType, Source.ValueType]));
+    Exit;
+  end;
+
+  CollapseConsts;
+end;
+
+{*
+  Teste si une conversion existe et est possible depuis un type vers un autre
+  @param DestType   Type de destination
+  @param SrcType    Type source
+  @return True si une conversion est possible, False sinon
+*}
+class function TSepiConvertOperation.ConvertionExists(
+  DestType, SrcType: TSepiType): Boolean;
+var
+  DestBase, SrcBase: TSepiBaseType;
+begin
+  // Trivial case: types are equal
+  if DestType = SrcType then
+  begin
+    Result := True;
+    Exit;
+  end;
+
+  // Convertions between classes and/or interfaces
+  if SrcType is TSepiClass then
+  begin
+    if DestType is TSepiClass then
+      Result := TSepiClass(SrcType).ClassInheritsFrom(TSepiClass(DestType))
+    else if DestType is TSepiInterface then
+      Result := TSepiClass(SrcType).ClassImplementsInterface(
+        TSepiInterface(DestType))
+    else
+      Result := False;
+
+    Exit;
+  end else if SrcType is TSepiInterface then
+  begin
+    if DestType is TSepiInterface then
+      Result := TSepiInterface(SrcType).IntfInheritsFrom(
+        TSepiInterface(DestType))
+    else
+      Result := False;
+
+    Exit;
+  end;
+
+  // Convertions via the CVRT instruction
+  if SepiTypeToBaseType(DestType, DestBase) and
+    SepiTypeToBaseType(SrcType, SrcBase) and
+    SepiRuntimeOperations.ConversionExists(SrcBase, DestBase) then
+  begin
+    Result := True;
+    Exit;
+  end;
+
+  // Nothing found
+  Result := False;
+end;
+
+{*
+  Convertit une valeur
+  @param DestType   Type de destination
+  @param Value      Valeur à convertir
+  @return Valeur convertie
+*}
+class function TSepiConvertOperation.ConvertValue(DestType: TSepiType;
+  const Value: ISepiReadableValue): ISepiReadableValue;
+var
+  ConvertOp: TSepiConvertOperation;
+  NewExpr: ISepiExpression;
+begin
+  ConvertOp := TSepiConvertOperation.Create(DestType, Value);
+  ConvertOp.Complete;
+  Result := ConvertOp;
+
+  NewExpr := TSepiExpression.Create(Value as ISepiExpression);
+  NewExpr.Attach(ISepiReadableValue, Result);
+end;
+
+{-------------------------------------}
+{ TSepiArithmeticLogicOperation class }
+{-------------------------------------}
+
+{*
+  Crée l'opération
+  @param AOperation    Opération
+*}
+constructor TSepiArithmeticLogicOperation.Create(AOperation: TSepiOperation);
+begin
+  inherited Create;
+  FOperation := AOperation;
+end;
+
+{*
+  Produit une erreur Opération non applicable à ce type d'opérande
+*}
+procedure TSepiArithmeticLogicOperation.ErrorTypeNotApplicable;
+begin
+  MakeError(SOperationNotApplicableToType);
+end;
+
+{*
+  Obtient l'OpCode correspondant à cette opération
+  @param SelfOp   Si True, utilise une instruction réflexive
+  @return OpCode de l'opération
+*}
+function TSepiArithmeticLogicOperation.GetOpCode(SelfOp: Boolean): TSepiOpCode;
+const
+  OperationToOpCode: array[TSepiOperation] of TSepiOpCode = (
+    ocOtherAdd, ocOtherSubtract, ocOtherMultiply, ocOtherDivide, ocOtherIntDiv,
+    ocOtherModulus, ocOtherShl, ocOtherShr, ocOtherAnd, ocOtherOr, ocOtherXor,
+    ocNope, ocOtherNeg, ocOtherNot, ocCompEquals, ocCompNotEquals, ocCompLower,
+    ocCompLowerEq, ocCompGreater, ocCompGreaterEq
+  );
+begin
+  Result := OperationToOpCode[Operation];
+  if SelfOp and (not Operation in opComparisonOps) then
+    Dec(Result, ocOtherAdd-ocSelfAdd);
+end;
+
+{---------------------------}
+{ TSepiUnaryOperation class }
+{---------------------------}
+
+{*
+  Vérification de type
+*}
+procedure TSepiUnaryOperation.CheckType;
+begin
+  if Operation = opNot then
+  begin
+    if not ((ValueType is TSepiIntegerType) or
+      (ValueType is TSepiBooleanType)) then
+      ErrorTypeNotApplicable;
+  end else
+  begin
+    if not (ValueType.Kind in [tkInteger, tkFloat, tkVariant, tkInt64]) then
+      ErrorTypeNotApplicable;
+  end;
+end;
+
+{*
+  Pliage des constantes
+*}
+procedure TSepiUnaryOperation.CollapseConsts;
+begin
+  if not Operand.IsConstant then
+    Exit;
+
+  AllocateConstant;
+  UnaryOp(GetOpCode(False), SepiTypeToBaseType(ValueType),
+    ConstValuePtr^, Operand.ConstValuePtr^);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiUnaryOperation.CompileCompute(Compiler: TSepiMethodCompiler;
+  Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
+  TempVars: TSepiTempVarsLifeManager);
+var
+  TempDest: TSepiMemoryReference;
+  SrcTempVars: TSepiTempVarsLifeManager;
+  SrcTempVar: TSepiLocalVar;
+  OpInstr: TSepiAsmOperation;
+begin
+  TempDest := Destination;
+  try
+    SrcTempVars := TSepiTempVarsLifeManager.Create;
+    try
+      // Read operand into destination or temporary destination
+      Operand.CompileRead(Compiler, Instructions, TempDest, SrcTempVars);
+
+      // Complicated trick to optimize instruction count and size
+      if Destination = nil then
+      begin
+        SrcTempVar := SrcTempVars.FindVarFromMemoryRef(TempDest);
+
+        if SrcTempVar = nil then
+        begin
+          NeedDestination(Destination, ValueType, Compiler, TempVars,
+            Instructions.GetCurrentEndRef);
+        end else
+        begin
+          TempVars.Acquire(SrcTempVars.Extract(SrcTempVar));
+          Destination := TempDest;
+        end;
+      end;
+    finally
+      SrcTempVars.EndAllLifes(Instructions.GetCurrentEndRef);
+      SrcTempVars.Free;
+    end;
+
+    // Create operation instruction
+    OpInstr := TSepiAsmOperation.Create(Compiler,
+      GetOpCode(TempDest = Destination), SepiTypeToBaseType(ValueType));
+    OpInstr.SourcePos := Expression.SourcePos;
+
+    OpInstr.Destination.Assign(Destination);
+    if TempDest <> Destination then
+      OpInstr.Left.Assign(TempDest);
+
+    Instructions.Add(OpInstr);
+  finally
+    if TempDest <> Destination then
+      TempDest.Free;
+  end;
+end;
+
+{*
+  Complète l'opération
+  L'opération doit avoir été attachée à une expression auparavant, pour pouvoir
+  bénéficier du contexte de celle-ci.
+*}
+procedure TSepiUnaryOperation.Complete;
+begin
+  Assert(Expression <> nil);
+  Assert(Operand <> nil);
+
+  SetValueType(Operand.ValueType);
+  CheckType;
+  CollapseConsts;
+end;
+
+{----------------------------}
+{ TSepiBinaryOperation class }
+{----------------------------}
+
+{*
+  Crée l'opération
+  @param AOperation     Opération
+  @param AAutoConvert   Valeur initiale de AutoConvert (défaut = True)
+*}
+constructor TSepiBinaryOperation.Create(AOperation: TSepiOperation;
+  AAutoConvert: Boolean = True);
+begin
+  inherited Create(AOperation);
+
+  FAutoConvert := AAutoConvert;
+end;
+
+{*
+  Vérification de types pour des types non de base
+  @param LeftType    Type de gauche
+  @param RightType   Type de droite
+  @return Type commun
+*}
+function TSepiBinaryOperation.CheckNonBaseTypes(
+  LeftType, RightType: TSepiType): TSepiBaseType;
+begin
+  { The only valid operation on non-base types is equal/not-equal, if and
+    only if operands are compatible with each other. }
+
+  // Only equal/not-equal comparisons
+  if not (Operation in [opCmpEQ, opCmpNE]) then
+    ErrorTypeNotApplicable;
+
+  // Only same type class
+  if LeftType.ClassType <> RightType.ClassType then
+    ErrorTypeMismatch;
+
+  { Pointers/classes/interfaces/meta-classes are always compatible for
+    equality test. }
+  if (LeftType is TSepiPointerType) or (LeftType is TSepiClass) or
+    (LeftType is TSepiInterface) or (LeftType is TSepiMetaClass) then
+    // OK
+  else if LeftType is TSepiEnumType then
+  begin
+    // Enum types must have the same base type
+    if TSepiEnumType(LeftType).BaseType <>
+      TSepiEnumType(RightType).BaseType then
+      ErrorTypeMismatch;
+    // OK
+  end else if LeftType is TSepiSetType then
+  begin
+    // Set types must have the same component type
+    if TSepiSetType(LeftType).CompType <> TSepiSetType(RightType).CompType then
+      ErrorTypeMismatch;
+    // OK
+  end else if LeftType is TSepiMethodRefType then
+  begin
+    // Method-ref types must have equal signatures
+    if not TSepiMethodRefType(LeftType).Signature.Equals(
+      TSepiMethodRefType(RightType).Signature) then
+      ErrorTypeMismatch;
+    // OK
+  end else
+    ErrorTypeNotApplicable;
+
+  // Find correct base type
+  case LeftType.Size of
+    1: Result := btByte;
+    2: Result := btWord;
+    4: Result := btDWord;
+    8: Result := btInt64;
+  else
+    ErrorTypeNotApplicable;
+    Result := btByte;
+  end;
+end;
+
+{*
+  Vérification de types pour une opération shift
+  @param LeftType    Type de gauche
+  @param RightType   Type de droites
+  @param BaseTypes   Types de gauche et droite
+*}
+procedure TSepiBinaryOperation.CheckTypesShift(
+  LeftBaseType, RightBaseType: TSepiBaseType; BaseTypes: TSepiBaseTypes);
+begin
+  { Shift operations must have either 2 Variant operands, or 2 integer
+    operands. In this case, the right operand must be converted to a Byte. }
+
+  if btVariant in BaseTypes then
+  begin
+    { There is at least one Variant operand: convert the other one to Variant
+      as well. }
+    if LeftBaseType <> btVariant then
+      ConvertLeftOperand(btVariant)
+    else if RightBaseType <> btVariant then
+      ConvertRightOperand(btVariant);
+
+    SetValueType(LeftOperand.ValueType);
+  end else
+  begin
+    { There is no Variant operand: both must be integer. }
+    if not (BaseTypes <= btIntegers) then
+      ErrorTypeNotApplicable;
+
+    if RightBaseType <> btByte then
+      ConvertRightOperand(btByte);
+
+    SetValueType(LeftOperand.ValueType);
+  end;
+end;
+
+{*
+  Vérification de types pour une opération arithmétique
+  @param LeftType    Type de gauche
+  @param RightType   Type de droites
+  @param BaseTypes   Types de gauche et droite
+*}
+procedure TSepiBinaryOperation.CheckTypesArithmetic(
+  LeftBaseType, RightBaseType: TSepiBaseType; BaseTypes: TSepiBaseTypes);
+var
+  CommonType: TSepiBaseType;
+begin
+  { Arithmetic operations must have equal-type operands, maybe via conversion,
+    and the result type is the common type. }
+
+  if not SmallestCommonType(LeftBaseType, RightBaseType, CommonType) then
+    ErrorTypeMismatch;
+
+  // Some operations are not applicable to some types
+  if CommonType = btBoolean then
+  begin
+    if not (Operation in [opAnd, opOr, opXor]) then
+      ErrorTypeNotApplicable;
+  end else if CommonType in btIntegers then
+  begin
+    if Operation = opDivide then
+      ErrorTypeNotApplicable;
+  end else if CommonType in btFloats then
+  begin
+    if Operation in [opIntDivide, opModulus] then
+      ErrorTypeNotApplicable;
+  end else if CommonType in btStrings then
+  begin
+    if Operation <> opAdd then
+      ErrorTypeNotApplicable;
+  end;
+
+  // Cast operands
+  if LeftBaseType <> CommonType then
+    ConvertLeftOperand(CommonType);
+  if RightBaseType <> CommonType then
+    ConvertRightOperand(CommonType);
+
+  // Set expression type
+  if LeftBaseType = CommonType then
+    SetValueType(LeftOperand.ValueType)
+  else if RightBaseType = CommonType then
+    SetValueType(RightOperand.ValueType)
+  else
+    SetValueType(DefaultSepiTypeFor(CommonType));
+end;
+
+{*
+  Vérification de types pour une opération de comparaison
+  @param LeftType    Type de gauche
+  @param RightType   Type de droites
+  @param BaseTypes   Types de gauche et droite
+*}
+procedure TSepiBinaryOperation.CheckTypesComparison(
+  LeftBaseType, RightBaseType: TSepiBaseType; BaseTypes: TSepiBaseTypes);
+var
+  CommonType: TSepiBaseType;
+begin
+  { Comparison operations must have equal-type operands, maybe via conversion,
+    and the result type is always Boolean. }
+
+  if not SmallestCommonType(LeftBaseType, RightBaseType, CommonType) then
+    ErrorTypeMismatch;
+
+  if LeftBaseType <> CommonType then
+    ConvertLeftOperand(CommonType);
+  if RightBaseType <> CommonType then
+    ConvertRightOperand(CommonType);
+
+  SetValueType(DefaultSepiTypeFor(btBoolean));
+end;
+
+{*
+  Vérification de types
+*}
+procedure TSepiBinaryOperation.CheckTypes;
+var
+  LeftType, RightType, CommonType: TSepiType;
+  LeftBaseType, RightBaseType: TSepiBaseType;
+  BaseTypes: TSepiBaseTypes;
+begin
+  LeftType := LeftOperand.ValueType;
+  RightType := RightOperand.ValueType;
+
+  // If no auto-convertion, types must be strictly equal
+  if (not AutoConvert) and (LeftType <> RightType) then
+    ErrorTypeMismatch;
+
+  // Non-base types must be checked first, and then cast to a base type
+  if not (SepiTypeToBaseType(LeftType, LeftBaseType) and
+    SepiTypeToBaseType(RightType, RightBaseType)) then
+  begin
+    LeftBaseType := CheckNonBaseTypes(LeftType, RightType);
+    RightBaseType := LeftBaseType;
+    CommonType := DefaultSepiTypeFor(LeftBaseType);
+
+    LeftOperand := TSepiCastOperator.CastExpression(CommonType,
+      LeftOperand as ISepiExpression) as ISepiReadableValue;
+    RightOperand := TSepiCastOperator.CastExpression(CommonType,
+      RightOperand as ISepiExpression) as ISepiReadableValue;
+  end;
+
+  // Check base types compatibility
+  BaseTypes := [];
+  Include(BaseTypes, LeftBaseType);
+  Include(BaseTypes, RightBaseType);
+
+  if Operation in [opShiftLeft, opShiftRight] then
+    CheckTypesShift(LeftBaseType, RightBaseType, BaseTypes)
+  else if Operation in opComparisonOps then
+    CheckTypesComparison(LeftBaseType, RightBaseType, BaseTypes)
+  else
+    CheckTypesArithmetic(LeftBaseType, RightBaseType, BaseTypes);
+end;
+
+{*
+  Pliage des constantes
+*}
+procedure TSepiBinaryOperation.CollapseConsts;
+var
+  OpCode: TSepiOpCode;
+  VarType: TSepiBaseType;
+begin
+  if (not LeftOperand.IsConstant) or (not RightOperand.IsConstant) then
+    Exit;
+
+  AllocateConstant;
+
+  OpCode := OperationToOpCode[Operation];
+  VarType := SepiTypeToBaseType(LeftOperand.ValueType);
+
+  if Operation in opComparisonOps then
+  begin
+    Compare(OpCode, VarType, ConstValuePtr^,
+      LeftOperand.ConstValuePtr^, RightOperand.ConstValuePtr^)
+  end else
+  begin
+    BinaryOp(OpCode, VarType, ConstValuePtr^,
+      LeftOperand.ConstValuePtr^, RightOperand.ConstValuePtr^);
+  end;
+end;
+
+{*
+  Produit une erreur Types incompatibles
+*}
+procedure TSepiBinaryOperation.ErrorTypeMismatch;
+begin
+  MakeError(Format(STypeMismatch,
+    [LeftOperand.ValueType.Name, RightOperand.ValueType.Name]));
+end;
+
+{*
+  Type Sepi par défaut pour un type de base
+  @param BaseType   Type de base
+  @return Type Sepi par défaut correspondant
+*}
+function TSepiBinaryOperation.DefaultSepiTypeFor(
+  BaseType: TSepiBaseType): TSepiType;
+begin
+  Result := SepiExpressions.DefaultSepiTypeFor(BaseType, SepiRoot);
+end;
+
+{*
+  Convertit l'opérande de gauche
+  @param NewType   Type de base en lequel convertir l'opérande
+  @return Nouveau type Sepi de l'opérande
+*}
+function TSepiBinaryOperation.ConvertLeftOperand(
+  NewType: TSepiBaseType): TSepiType;
+begin
+  Result := DefaultSepiTypeFor(NewType);
+  LeftOperand := TSepiConvertOperation.ConvertValue(Result, LeftOperand);
+end;
+
+{*
+  Convertit l'opérande de droite
+  @param NewType   Type de base en lequel convertir l'opérande
+  @return Nouveau type Sepi de l'opérande
+*}
+function TSepiBinaryOperation.ConvertRightOperand(
+  NewType: TSepiBaseType): TSepiType;
+begin
+  Result := DefaultSepiTypeFor(NewType);
+  RightOperand := TSepiConvertOperation.ConvertValue(Result, RightOperand);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiBinaryOperation.CompileCompute(Compiler: TSepiMethodCompiler;
+  Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
+  TempVars: TSepiTempVarsLifeManager);
+var
+  LeftMemory, RightMemory: TSepiMemoryReference;
+  SrcTempVars: TSepiTempVarsLifeManager;
+  OpInstr: TSepiAsmOperation;
+  CmpInstr: TSepiAsmCompare;
+begin
+  LeftMemory := nil;
+  RightMemory := nil;
+  try
+    // Read operands
+    SrcTempVars := TSepiTempVarsLifeManager.Create;
+    try
+      LeftOperand.CompileRead(Compiler, Instructions, LeftMemory, SrcTempVars);
+      RightOperand.CompileRead(Compiler, Instructions, RightMemory,
+        SrcTempVars);
+    finally
+      SrcTempVars.EndAllLifes(Instructions.GetCurrentEndRef);
+      SrcTempVars.Free;
+    end;
+
+    // Make instruction
+    if Operation in opComparisonOps then
+    begin
+      CmpInstr := TSepiAsmCompare.Create(Compiler, GetOpCode(False),
+        SepiTypeToBaseType(LeftOperand.ValueType));
+      CmpInstr.SourcePos := Expression.SourcePos;
+
+      NeedDestination(Destination, ValueType, Compiler, TempVars,
+        CmpInstr.AfterRef);
+
+      CmpInstr.Destination.Assign(Destination);
+      CmpInstr.Left.Assign(LeftMemory);
+      CmpInstr.Right.Assign(RightMemory);
+
+      Instructions.Add(CmpInstr);
+    end else
+    begin
+      OpInstr := TSepiAsmOperation.Create(Compiler, GetOpCode(False),
+        SepiTypeToBaseType(ValueType));
+      OpInstr.SourcePos := Expression.SourcePos;
+
+      NeedDestination(Destination, ValueType, Compiler, TempVars,
+        OpInstr.AfterRef);
+
+      OpInstr.Destination.Assign(Destination);
+      OpInstr.Left.Assign(LeftMemory);
+      OpInstr.Right.Assign(RightMemory);
+
+      Instructions.Add(OpInstr);
+    end;
+  finally
+    LeftMemory.Free;
+    RightMemory.Free;
+  end;
+end;
+
+{*
+  Complète l'opération
+  L'opération doit avoir été attachée à une expression auparavant, pour pouvoir
+  bénéficier du contexte de celle-ci.
+*}
+procedure TSepiBinaryOperation.Complete;
+begin
+  Assert(Expression <> nil);
+  Assert((LeftOperand <> nil) and (RightOperand <> nil));
+
+  CheckTypes;
+  CollapseConsts;
+end;
+
+{*
+  Trouve le plus petit type commun à deux types de base
+  @param LeftType     Type de gauche
+  @param RightType    Type de droite
+  @param CommonType   En sortie : Type commun
+  @return True si un type commun a pu être trouvé, False sinon
+*}
+class function TSepiBinaryOperation.SmallestCommonType(
+  LeftType, RightType: TSepiBaseType; out CommonType: TSepiBaseType): Boolean;
+const
+  NumResults: array[btByte..btCurrency, btByte..btCurrency] of TSepiBaseType = (
+    { btByte, btWord, btDWord, btShortint, btSmallint, btLongint,
+        btInt64, btSingle, btDouble, btExtended, btComp, btCurrency }
+// btByte
+    (btByte, btWord, btDWord, btSmallint, btSmallint, btLongint,
+      btInt64, btSingle, btDouble, btExtended, btComp, btCurrency),
+// btWord
+    (btWord, btWord, btDWord, btLongint, btLongint, btLongint,
+      btInt64, btSingle, btDouble, btExtended, btComp, btCurrency),
+// btDWord
+    (btDWord, btDWord, btDWord, btInt64, btInt64, btInt64,
+      btInt64, btSingle, btDouble, btExtended, btComp, btCurrency),
+// btShortint
+    (btSmallint, btLongint, btInt64, btShortint, btSmallint, btLongint,
+      btInt64, btSingle, btDouble, btExtended, btComp, btCurrency),
+// btSmallint
+    (btSmallint, btLongint, btInt64, btSmallint, btSmallint, btLongint,
+      btInt64, btSingle, btDouble, btExtended, btComp, btCurrency),
+// btLongint
+    (btLongint, btLongint, btInt64, btLongint, btLongint, btLongint,
+      btInt64, btSingle, btDouble, btExtended, btComp, btCurrency),
+// btInt64
+    (btInt64, btInt64, btInt64, btInt64, btInt64, btInt64,
+      btInt64, btSingle, btDouble, btExtended, btComp, btDouble),
+// btSingle
+    (btSingle, btSingle, btSingle, btSingle, btSingle, btSingle,
+      btSingle, btSingle, btDouble, btExtended, btDouble, btDouble),
+// btDouble
+    (btDouble, btDouble, btDouble, btDouble, btDouble, btDouble,
+      btDouble, btDouble, btDouble, btExtended, btDouble, btDouble),
+// btExtended
+    (btExtended, btExtended, btExtended, btExtended, btExtended, btExtended,
+      btExtended, btExtended, btExtended, btExtended, btExtended, btExtended),
+// btComp
+    (btComp, btComp, btComp, btComp, btComp, btComp,
+      btDouble, btDouble, btDouble, btExtended, btComp, btDouble),
+// btCurrency
+    (btCurrency, btCurrency, btCurrency, btCurrency, btCurrency, btCurrency,
+      btDouble, btDouble, btDouble, btExtended, btDouble, btCurrency)
+  );
+var
+  Types: TSepiBaseTypes;
+begin
+  Types := [LeftType, RightType];
+
+  if btVariant in Types then
+  begin
+    // Variant + anything = Variant
+    CommonType := btVariant;
+  end else if btBoolean in Types then
+  begin
+    // Boolean only matches with Boolean
+    if Types <> [btBoolean] then
+    begin
+      Result := False;
+      Exit;
+    end;
+
+    CommonType := btBoolean;
+  end else if Types * [btAnsiStr, btWideStr] <> [] then
+  begin
+    // Strings only matches with themselves - prefer wide string
+    if not (Types <= [btAnsiStr, btWideStr]) then
+    begin
+      Result := False;
+      Exit;
+    end;
+
+    if btWideStr in Types then
+      CommonType := btWideStr
+    else
+      CommonType := btAnsiStr;
+  end else
+  begin
+    // For numbers, use the table
+    CommonType := NumResults[LeftType, RightType];
+  end;
+
+  Result := True;
+end;
+
+{---------------------}
+{ TSepiNilValue class }
+{---------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiNilValue.AttachToExpression(const Expression: ISepiExpression);
+var
+  AsExpressionPart: ISepiExpressionPart;
+begin
+  AsExpressionPart := Self;
+  Expression.Attach(ISepiNilValue, AsExpressionPart);
+end;
+
 {---------------------------}
 { TSepiMetaExpression class }
 {---------------------------}
@@ -1102,6 +2384,18 @@ begin
   inherited Create;
 
   FMeta := AMeta;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiMetaExpression.AttachToExpression(
+  const Expression: ISepiExpression);
+var
+  AsExpressionPart: ISepiExpressionPart;
+begin
+  AsExpressionPart := Self;
+  Expression.Attach(ISepiMetaExpression, AsExpressionPart);
 end;
 
 {*
@@ -1129,6 +2423,18 @@ begin
 end;
 
 {*
+  [@inheritDoc]
+*}
+procedure TSepiTypeExpression.AttachToExpression(
+  const Expression: ISepiExpression);
+var
+  AsExpressionPart: ISepiExpressionPart;
+begin
+  AsExpressionPart := Self;
+  Expression.Attach(ISepiTypeExpression, AsExpressionPart);
+end;
+
+{*
   Type
   @return Type
 *}
@@ -1137,5 +2443,7 @@ begin
   Result := FType;
 end;
 
+initialization
+  InitBaseTypeToDefaultTypeInfo;
 end.
 

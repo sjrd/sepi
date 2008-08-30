@@ -34,6 +34,7 @@ uses
 type
   TSepiAsmInstrList = class;
   TSepiInstructionList = class;
+  ISepiExpression = interface;
   TSepiMethodCompiler = class;
   TSepiUnitCompiler = class;
   TSepiMemoryReference = class;
@@ -395,6 +396,12 @@ type
     procedure EndLife(TempVar: TSepiLocalVar; At: TSepiInstructionRef);
 
     procedure EndAllLifes(At: TSepiInstructionRef);
+
+    function Extract(TempVar: TSepiLocalVar): TSepiLocalVar;
+    procedure Acquire(TempVar: TSepiLocalVar);
+
+    function FindVarFromMemoryRef(
+      MemoryRef: TSepiMemoryReference): TSepiLocalVar;
   end;
 
   {*
@@ -402,6 +409,8 @@ type
   *}
   ISepiExpressionPart = interface(IDynamicallyLinkable)
     ['{2BBD5F29-1EDF-4C3F-A114-3820BAFB355A}']
+
+    procedure AttachToExpression(const Expression: ISepiExpression);
   end;
 
   {*
@@ -497,6 +506,7 @@ type
   public
     constructor Create(AUnitCompiler: TSepiUnitCompiler); overload;
     constructor Create(AMethodCompiler: TSepiMethodCompiler); overload;
+    constructor Create(const Context: ISepiExpression); overload;
 
     procedure Attach(const IID: TGUID; const Intf: ISepiExpressionPart);
     procedure Detach(const IID: TGUID);
@@ -1887,6 +1897,51 @@ begin
   FTempVars.Clear;
 end;
 
+{*
+  Extrait une variable temporaire de ce gestionnaire, sans terminer sa vie
+  @param TempVar   Variable temporaire à extraire
+  @return TempVar si elle faisait bien partie de ce gestionnaire, nil sinon
+*}
+function TSepiTempVarsLifeManager.Extract(
+  TempVar: TSepiLocalVar): TSepiLocalVar;
+begin
+  Result := TSepiLocalVar(FTempVars.Extract(TempVar));
+end;
+
+{*
+  Acquiert la gestion d'une variable temporaire
+  La vie de cette variable doit avoir un intervalle en cours
+  @param TempVar   Variable à acquérir
+*}
+procedure TSepiTempVarsLifeManager.Acquire(TempVar: TSepiLocalVar);
+begin
+  Assert(TempVar.IsLifeHandled and (TempVar.Life.FBegunAt <> nil));
+
+  if FTempVars.IndexOf(TempVar) < 0 then
+    FTempVars.Add(TempVar);
+end;
+
+{*
+  Cherche une variable temporaire pointée par une référence mémoire
+  @param MemoryRef   Référence mémoire
+  @return Variable temporaire pointée, ou nil si non trouvée
+*}
+function TSepiTempVarsLifeManager.FindVarFromMemoryRef(
+  MemoryRef: TSepiMemoryReference): TSepiLocalVar;
+var
+  I: Integer;
+begin
+  for I := 0 to FTempVars.Count-1 do
+  begin
+    Result := TSepiLocalVar(FTempVars[I]);
+
+    if MemoryRef.FUnresolvedLocalVar = Result then
+      Exit;
+  end;
+
+  Result := nil;
+end;
+
 {-----------------------}
 { TSepiExpression class }
 {-----------------------}
@@ -1914,6 +1969,19 @@ begin
   FMethodCompiler := AMethodCompiler;
   FUnitCompiler := MethodCompiler.UnitCompiler;
   FSepiRoot := UnitCompiler.SepiUnit.Root;
+end;
+
+{*
+  Crée une expression dans le même contexte qu'une autre expression
+  @param Context   Expression qui fournit le contexte
+*}
+constructor TSepiExpression.Create(const Context: ISepiExpression);
+begin
+  inherited Create;
+
+  FMethodCompiler := Context.MethodCompiler;
+  FUnitCompiler := Context.UnitCompiler;
+  FSepiRoot := Context.SepiRoot;
 end;
 
 {*
@@ -2773,7 +2841,9 @@ begin
   SetSpace(Source.Space, Source.SpaceArgument);
 
   if Space = msConstant then
-    Source.GetConstant(FConstant^);
+    Source.GetConstant(FConstant^)
+  else if Space = msUnresolvedLocalVar then
+    FUnresolvedLocalVar := Source.FUnresolvedLocalVar;
 
   for I := 0 to Source.OperationCount-1 do
     with Source.Operations[I] do
