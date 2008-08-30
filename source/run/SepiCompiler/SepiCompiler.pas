@@ -28,8 +28,8 @@ interface
 
 uses
   Windows, SysUtils, Classes, Contnrs, TypInfo, ScUtils, ScTypInfo,
-  ScIntegerSets, ScInterfaces, SepiReflectionCore, SepiMembers, SepiOpCodes,
-  SepiReflectionConsts, SepiCompilerErrors, SepiCompilerConsts;
+  ScIntegerSets, ScInterfaces, SepiReflectionCore, SepiMembers, SepiOrdTypes,
+  SepiOpCodes, SepiReflectionConsts, SepiCompilerErrors, SepiCompilerConsts;
 
 type
   TSepiAsmInstrList = class;
@@ -588,7 +588,11 @@ type
     FSepiUnit: TSepiUnit;  /// Unité Sepi
     FMethods: TObjectList; /// Compilateurs de méthodes
 
+    FCompileTimeTypes: TSepiMeta; /// Types durant le temps de la compilation
+
     FReferences: TObjectList; /// Références
+
+    procedure NeedCompileTimeTypes;
 
     function GetMethodCount: Integer;
     function GetMethods(Index: Integer): TSepiMethodCompiler;
@@ -596,6 +600,9 @@ type
     constructor Create(AErrors: TSepiCompilerErrorList;
       ASepiUnit: TSepiUnit);
     destructor Destroy; override;
+
+    function GetPointerType(PointTo: TSepiType): TSepiPointerType;
+    function GetMetaClass(SepiClass: TSepiClass): TSepiMetaClass;
 
     function MakeReference(Meta: TSepiMeta): Integer;
 
@@ -2298,6 +2305,17 @@ begin
 end;
 
 {*
+  S'assure que le conteneur de types de compilation est créé
+*}
+procedure TSepiUnitCompiler.NeedCompileTimeTypes;
+const
+  CompileTimeTypesName = '$CompileTimeTypes';
+begin
+  if FCompileTimeTypes = nil then
+    FCompileTimeTypes := TSepiMeta.Create(SepiUnit, CompileTimeTypesName);
+end;
+
+{*
   Nombre de compilateurs de méthode
   @return Nombre de compilateurs de méthode
 *}
@@ -2314,6 +2332,56 @@ end;
 function TSepiUnitCompiler.GetMethods(Index: Integer): TSepiMethodCompiler;
 begin
   Result := TSepiMethodCompiler(FMethods[Index]);
+end;
+
+{*
+  Obtient un type pointeur qui ne durera que la compilation
+  @param PointTo   Type de données pointées par le pointeur
+  @return Type pointeur
+*}
+function TSepiUnitCompiler.GetPointerType(PointTo: TSepiType): TSepiPointerType;
+var
+  PointerTypeName: string;
+  I: Integer;
+begin
+  if PointTo = nil then
+  begin
+    Result := SepiUnit.Root.FindType('System.Pointer') as TSepiPointerType;
+    Exit;
+  end;
+
+  PointerTypeName := '^' + PointTo.GetFullName;
+  for I := 1 to Length(PointerTypeName) do
+    if PointerTypeName[I] = '.' then
+      PointerTypeName[I] := '$';
+
+  NeedCompileTimeTypes;
+  Result := FCompileTimeTypes.GetMeta(PointerTypeName) as TSepiPointerType;
+  if Result = nil then
+    Result := TSepiPointerType.Create(FCompileTimeTypes,
+      PointerTypeName, PointTo);
+end;
+
+{*
+  Obtient un type meta-classe qui ne durera que la compilation
+  @param SepiClass   Classe dont obtenir une meta-classe
+  @return Meta-classe de la classe
+*}
+function TSepiUnitCompiler.GetMetaClass(SepiClass: TSepiClass): TSepiMetaClass;
+var
+  MetaClassName: string;
+  I: Integer;
+begin
+  MetaClassName := 'class$' + SepiClass.GetFullName;
+  for I := 1 to Length(MetaClassName) do
+    if MetaClassName[I] = '.' then
+      MetaClassName[I] := '$';
+
+  NeedCompileTimeTypes;
+  Result := FCompileTimeTypes.GetMeta(MetaClassName) as TSepiMetaClass;
+  if Result = nil then
+    Result := TSepiMetaClass.Create(FCompileTimeTypes,
+      MetaClassName, SepiClass);
 end;
 
 {*
@@ -2339,6 +2407,9 @@ begin
   // Compile methods
   for I := 0 to MethodCount-1 do
     Methods[I].Compile;
+
+  // Delete compile-time types
+  FreeAndNil(FCompileTimeTypes);
 
   // Write methods
   Count := MethodCount;
