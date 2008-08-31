@@ -52,6 +52,8 @@ resourcestring
   STypeHasNoTypeInfo = 'Ce type n''a pas d''informations de type';
   SOrdinalOrArrayTypeRequired = 'Type ordinal ou tableau requis';
   SArrayTypeRequired = 'Type tableau requis';
+  STestValueIsAlways = 'La condition est toujours évaluée à %s';
+  SOrdinalTypeRequired = 'Type ordinal requis';
 
   // Erreurs de compilateur
   SLabelAlreadyExists = 'Le label ''%s'' existe déjà';
