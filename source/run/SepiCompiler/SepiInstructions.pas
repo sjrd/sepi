@@ -179,6 +179,20 @@ type
     property AutoConvert: Boolean read FAutoConvert write FAutoConvert;
   end;
 
+  {*
+    Instruction d'appel de méthode (sans résultat)
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiCall = class(TSepiInstruction)
+  private
+    FCallable: ISepiCallable; /// Invocable
+  protected
+    procedure CustomCompile; override;
+  public
+    property Callable: ISepiCallable read FCallable write FCallable;
+  end;
+
 procedure CompileTestValue(Compiler: TSepiMethodCompiler;
   TestValue: ISepiReadableValue; var Destination: TSepiMemoryReference;
   out TestIsConst, TestConstValue: Boolean);
@@ -692,6 +706,22 @@ begin
 
   Instructions := TSepiInstructionList.Create(MethodCompiler);
   Destination.CompileWrite(MethodCompiler, Instructions, Source);
+  Instructions.Compile;
+end;
+
+{-----------------}
+{ TSepiCall class }
+{-----------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiCall.CustomCompile;
+var
+  Instructions: TSepiInstructionList;
+begin
+  Instructions := TSepiInstructionList.Create(MethodCompiler);
+  Callable.CompileNoResult(MethodCompiler, Instructions);
   Instructions.Compile;
 end;
 

@@ -27,9 +27,10 @@ unit SepiExpressions;
 interface
 
 uses
-  SysUtils, TypInfo, ScUtils, ScInterfaces, SepiReflectionCore, SepiOrdTypes,
-  SepiStrTypes, SepiArrayTypes, SepiMembers, SepiOpCodes, SepiRuntimeOperations,
-  SepiCompiler, SepiCompilerErrors, SepiCompilerConsts, SepiAsmInstructions;
+  SysUtils, Classes, TypInfo, ScUtils, ScInterfaces, SepiReflectionCore,
+  SepiOrdTypes, SepiStrTypes, SepiArrayTypes, SepiMembers, SepiOpCodes,
+  SepiRuntimeOperations, SepiCompiler, SepiCompilerErrors, SepiCompilerConsts,
+  SepiAsmInstructions;
 
 type
   /// Opération Sepi
@@ -140,10 +141,10 @@ type
     ['{CD26F811-9B78-4F42-ACD7-82B1FB93EA3F}']
 
     function GetParamCount: Integer;
-    function GetParams(Index: Integer): ISepiExpression;
+    function GetParams(Index: Integer): ISepiValue;
     function GetParamsCompleted: Boolean;
 
-    procedure AddParam(Param: ISepiExpression);
+    procedure AddParam(const Value: ISepiValue);
     procedure CompleteParams;
 
     function GetReturnType: TSepiType;
@@ -152,7 +153,7 @@ type
       Instructions: TSepiInstructionList);
 
     property ParamCount: Integer read GetParamCount;
-    property Params[Index: Integer]: ISepiExpression read GetParams;
+    property Params[Index: Integer]: ISepiValue read GetParams;
     property ParamsCompleted: Boolean read GetParamsCompleted;
 
     property ReturnType: TSepiType read GetReturnType;
@@ -167,14 +168,14 @@ type
     ['{9C5A0B51-BDB2-45FA-B2D4-179763CB7F16}']
 
     function GetParamCount: Integer;
-    function GetParams(Index: Integer): ISepiExpression;
-    procedure SetParams(Index: Integer; Value: ISepiExpression);
+    function GetParams(Index: Integer): ISepiValue;
+    procedure SetParams(Index: Integer; const Value: ISepiValue);
     function GetParamsCompleted: Boolean;
 
     procedure CompleteParams;
 
     property ParamCount: Integer read GetParamCount;
-    property Params[Index: Integer]: ISepiExpression
+    property Params[Index: Integer]: ISepiValue
       read GetParams write SetParams;
     property ParamsCompleted: Boolean read GetParamsCompleted;
   end;
@@ -409,6 +410,29 @@ type
 
     property Constant: TSepiConstant read FConstant;
     property ConstValuePtr;
+  end;
+
+  {*
+    Valeur meta-classe
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiMetaClassValue = class(TSepiCustomComputedValue)
+  private
+    FSepiClass: TSepiClass; /// Classe Sepi
+  protected
+    procedure CompileCompute(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
+      TempVars: TSepiTempVarsLifeManager); override;
+  public
+    constructor Create(ASepiClass: TSepiClass = nil);
+
+    procedure Complete;
+
+    class function MakeValue(Compiler: TSepiMethodCompiler;
+      SepiClass: TSepiClass): ISepiReadableValue;
+
+    property SepiClass: TSepiClass read FSepiClass write FSepiClass;
   end;
 
   {*
@@ -701,6 +725,114 @@ type
 
     property ObjectValue: ISepiReadableValue read FObjectValue;
     property Field: TSepiField read FField;
+  end;
+
+  {*
+    Classe de base pour les expressions qui ont des paramètres
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiCustomWithParams = class(TSepiCustomExpressionPart)
+  private
+    FParams: IInterfaceList; /// Liste des paramètres
+
+    FParamsCompleted: Boolean; /// True si les paramètres sont clôturés
+  protected
+    function GetParamCount: Integer;
+    procedure SetParamCount(Value: Integer);
+    function GetParams(Index: Integer): ISepiValue;
+    procedure SetParams(Index: Integer; const Value: ISepiValue); virtual;
+    procedure AddParam(const Value: ISepiValue); virtual;
+
+    function GetParamsCompleted: Boolean;
+
+    procedure CompleteParams; virtual;
+
+    property ParamCount: Integer read GetParamCount;
+    property Params[Index: Integer]: ISepiValue read GetParams write SetParams;
+    property ParamsCompleted: Boolean read FParamsCompleted;
+  public
+    constructor Create(AInitParamCount: Integer = 0);
+  end;
+
+  {*
+    Classe de base pour les expressions qui peuvent être invoquées
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiCustomCallable = class(TSepiCustomWithParams, ISepiCallable, ISepiValue,
+    ISepiReadableValue)
+  private
+    FSignature: TSepiSignature; /// Signature de l'appel
+
+    procedure CompileParam(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList; SignatureParam: TSepiParam;
+      ParamValue: ISepiValue; InstrParamMemory: TSepiMemoryReference;
+      TempVars: TSepiTempVarsLifeManager; FreeParamValue: Boolean = False);
+  protected
+    function QueryInterface(const IID: TGUID;
+      out Obj): HResult; override; stdcall;
+
+    procedure AttachToExpression(const Expression: ISepiExpression); override;
+
+    procedure SetSignature(ASignature: TSepiSignature;
+      APrepareParams: Boolean = False);
+
+    function GetReturnType: TSepiType; virtual;
+    function GetValueType: TSepiType;
+
+    function GetIsConstant: Boolean;
+    function GetConstValuePtr: Pointer;
+
+    procedure CompileParams(CallInstr: TSepiAsmCall;
+      Compiler: TSepiMethodCompiler; Instructions: TSepiInstructionList;
+      Destination: TSepiMemoryReference;
+      const SelfValue: ISepiReadableValue = nil;
+      SelfMem: TSepiMemoryReference = nil; FreeParamValue: Boolean = False);
+
+    procedure CompileCall(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList;
+      Destination: TSepiMemoryReference); virtual; abstract;
+
+    procedure CompileNoResult(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList);
+    procedure CompileRead(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
+      TempVars: TSepiTempVarsLifeManager);
+
+    property Signature: TSepiSignature read FSignature;
+    property ReturnType: TSepiType read GetReturnType;
+  public
+    constructor Create(ASignature: TSepiSignature = nil;
+      APrepareParams: Boolean = False);
+  end;
+
+  {*
+    Appel de méthode
+  *}
+  TSepiMethodCall = class(TSepiCustomCallable)
+  private
+    FMethod: TSepiMethod;           /// Méthode à appeler
+    FSelfValue: ISepiReadableValue; /// Valeur Self
+    FForceStaticCall: Boolean;      /// Force un appel statique
+
+    FFreeParamValue: Boolean; /// Valeur de l'éventuel paramètre $Free
+  protected
+    function GetReturnType: TSepiType; override;
+
+    procedure CompileCall(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList;
+      Destination: TSepiMemoryReference); override;
+  public
+    constructor Create(AMethod: TSepiMethod;
+      const ASelfValue: ISepiReadableValue = nil;
+      AForceStaticCall: Boolean = False);
+
+    property Method: TSepiMethod read FMethod;
+    property SelfValue: ISepiReadableValue read FSelfValue write FSelfValue;
+    property ForceStaticCall: Boolean
+      read FForceStaticCall write FForceStaticCall;
+    property FreeParamValue: Boolean read FFreeParamValue write FFreeParamValue;
   end;
 
   {*
@@ -1654,6 +1786,67 @@ class function TSepiTrueConstValue.MakeStringLiteral(
 begin
   Result := TSepiTrueConstValue.Create(Compiler.SepiMethod.Root, Value);
   Result.AttachToExpression(TSepiExpression.Create(Compiler));
+end;
+
+{---------------------------}
+{ TSepiMetaClassValue class }
+{---------------------------}
+
+{*
+  Crée une valeur meta-classe
+  @param ASepiClass   Classe Sepi
+*}
+constructor TSepiMetaClassValue.Create(ASepiClass: TSepiClass = nil);
+begin
+  inherited Create;
+
+  FSepiClass := ASepiClass;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiMetaClassValue.CompileCompute(Compiler: TSepiMethodCompiler;
+  Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
+  TempVars: TSepiTempVarsLifeManager);
+var
+  Instruction: TSepiAsmGetRunInfo;
+begin
+  NeedDestination(Destination, ValueType, Compiler, TempVars,
+    Instructions.GetCurrentEndRef);
+
+  Instruction := TSepiAsmGetRunInfo.Create(Compiler, ocGetDelphiClass);
+  Instructions.Add(Instruction);
+  Instruction.SourcePos := Expression.SourcePos;
+  Instruction.Destination.Assign(Destination);
+  Instruction.SetReference(SepiClass);
+end;
+
+{*
+  Complète la valeur
+  La valeur doit auparavant avoir été liée à une expression, pour bénéficier de
+  son contexte.
+*}
+procedure TSepiMetaClassValue.Complete;
+begin
+  Assert(SepiClass <> nil);
+
+  SetValueType(UnitCompiler.GetMetaClass(SepiClass));
+end;
+
+{*
+  Construit une valeur meta-classe
+  @param SepiClass   Classe Sepi
+*}
+class function TSepiMetaClassValue.MakeValue(Compiler: TSepiMethodCompiler;
+  SepiClass: TSepiClass): ISepiReadableValue;
+var
+  MetaClassValue: TSepiMetaClassValue;
+begin
+  MetaClassValue := TSepiMetaClassValue.Create(SepiClass);
+  Result := MetaClassValue;
+  Result.AttachToExpression(TSepiExpression.Create(Compiler));
+  MetaClassValue.Complete;
 end;
 
 {--------------------------}
@@ -3021,6 +3214,482 @@ begin
   finally
     SourceMemory.Free;
   end;
+end;
+
+{-----------------------------}
+{ TSepiCustomWithParams class }
+{-----------------------------}
+
+{*
+  Crée une expression à paramètres
+  @param AInitParamCount   Nombre initial de paramètres (défaut = 0)
+*}
+constructor TSepiCustomWithParams.Create(AInitParamCount: Integer = 0);
+begin
+  inherited Create;
+
+  FParams := TInterfaceList.Create;
+  FParams.Count := AInitParamCount;
+end;
+
+{*
+  Nombre de paramètres
+  @return Nombre de paramètres
+*}
+function TSepiCustomWithParams.GetParamCount: Integer;
+begin
+  Result := FParams.Count;
+end;
+
+{*
+  Modifie le nombre de paramètres
+  @param Value   Nouveau nombre de paramètres
+*}
+procedure TSepiCustomWithParams.SetParamCount(Value: Integer);
+begin
+  FParams.Count := Value;
+end;
+
+{*
+  Tableau zero-based des paramètres
+  @param Index   Index dans le tableau des paramètres
+  @return Paramètre à l'index spécifié
+*}
+function TSepiCustomWithParams.GetParams(Index: Integer): ISepiValue;
+begin
+  Result := FParams[Index] as ISepiValue;
+end;
+
+{*
+  Modifie un paramètre
+  @param Index   Index du paramètre à modifié
+  @param Value   Nouvelle valeur du paramètre
+*}
+procedure TSepiCustomWithParams.SetParams(Index: Integer;
+  const Value: ISepiValue);
+begin
+  if ParamsCompleted then
+    raise ESepiCompilerError.Create(SParamsAlreadyCompleted);
+
+  FParams[Index] := Value;
+end;
+
+{*
+  Ajoute un paramètre
+  @param Value   Paramètre à ajouter
+*}
+procedure TSepiCustomWithParams.AddParam(const Value: ISepiValue);
+begin
+  if ParamsCompleted then
+    raise ESepiCompilerError.Create(SParamsAlreadyCompleted);
+
+  FParams.Add(Value);
+end;
+
+{*
+  Complète les paramètres
+  Une fois complétés, il n'est plus possible de modifier ou d'ajouter de
+  paramètre.
+*}
+procedure TSepiCustomWithParams.CompleteParams;
+begin
+  FParamsCompleted := True;
+end;
+
+{*
+  Indique si les paramètres sont complétés
+  @return True si les paramètres sont complétés, False sinon
+*}
+function TSepiCustomWithParams.GetParamsCompleted: Boolean;
+begin
+  Result := FParamsCompleted;
+end;
+
+{---------------------------}
+{ TSepiCustomCallable class }
+{---------------------------}
+
+{*
+  Crée une expression qui peut être invoquée
+  @param ASignature       Signature (défaut = nil)
+  @param APrepareParams   Si True, les paramètres sont préparés
+*}
+constructor TSepiCustomCallable.Create(ASignature: TSepiSignature = nil;
+  APrepareParams: Boolean = False);
+begin
+  if APrepareParams and (ASignature <> nil) then
+    inherited Create(ASignature.ParamCount)
+  else
+    inherited Create;
+
+  FSignature := ASignature;
+end;
+
+{*
+  Compile un paramètre
+  @param Compiler           Compilateur de méthode
+  @param Instructions       Liste d'instructions
+  @param SignatureParam     Paramètre de la signature
+  @param ParamValue         Valeur du paramètre
+  @param Destination        Référence mémoire à la variable résultat
+  @param InstrParamMemory   Référence mémoire au paramètre dans l'instruction
+  @param TempVars           Gestionnaire de vie des variables temporaires
+  @param FreeParamValue     Valeur à donner au paramètre $Free (défaut = False)
+*}
+procedure TSepiCustomCallable.CompileParam(Compiler: TSepiMethodCompiler;
+  Instructions: TSepiInstructionList; SignatureParam: TSepiParam;
+  ParamValue: ISepiValue; InstrParamMemory: TSepiMemoryReference;
+  TempVars: TSepiTempVarsLifeManager; FreeParamValue: Boolean = False);
+var
+  ParamMemory: TSepiMemoryReference;
+  AllocParamValue: Boolean;
+  ReadableParam: ISepiReadableValue;
+begin
+  ParamMemory := nil;
+  try
+    case SignatureParam.HiddenKind of
+      hpSelf:
+      begin
+        Assert(ParamValue <> nil);
+
+        (ParamValue as ISepiReadableValue).CompileRead(Compiler, Instructions,
+          ParamMemory, TempVars);
+        InstrParamMemory.Assign(ParamMemory);
+      end;
+
+      hpResult:
+      begin
+      end;
+
+      hpAlloc:
+      begin
+        Assert(ParamValue <> nil);
+
+        AllocParamValue := ParamValue.ValueType is TSepiMetaClass;
+
+        InstrParamMemory.SetSpace(msConstant);
+        InstrParamMemory.SetConstant(AllocParamValue);
+      end;
+
+      hpFree:
+      begin
+        InstrParamMemory.SetSpace(msConstant);
+        InstrParamMemory.SetConstant(FreeParamValue);
+      end;
+
+      hpOpenArrayHighValue:
+      begin
+        raise EAssertionFailed.Create(
+          'Open array parameters not supported');
+      end;
+    else
+      if SignatureParam.OpenArray then
+        raise EAssertionFailed.Create(
+          'Open array parameters not supported');
+
+      if SignatureParam.ByRef then
+      begin
+        if not Supports(ParamValue, ISepiAddressableValue) then
+          (ParamValue as ISepiExpression).MakeError(SAddressableValueRequired)
+        else if (ParamValue.ValueType <> SignatureParam.ParamType) then
+          (ParamValue as ISepiExpression).MakeError(
+            SVarParamTypeMustBeStrictlyEqual);
+      end else
+      begin
+        if not Supports(ParamValue, ISepiReadableValue) then
+          (ParamValue as ISepiExpression).MakeError(SValueCantBeRead)
+        else if (ParamValue.ValueType <> SignatureParam.ParamType) then
+          ParamValue := TSepiConvertOperation.ConvertValue(
+            SignatureParam.ParamType, ParamValue as ISepiReadableValue);
+      end;
+
+      if Supports(ParamValue, ISepiReadableValue, ReadableParam) then
+      begin
+        ReadableParam.CompileRead(Compiler, Instructions, ParamMemory,
+          TempVars);
+      end else
+      begin
+        (ParamValue as ISepiAddressableValue).CompileLoadAddress(
+          Compiler, Instructions, ParamMemory, TempVars);
+        ParamMemory := TSepiMemoryReference.Clone(ParamMemory);
+        ParamMemory.AddOperation(adSimple);
+        ParamMemory.Seal;
+      end;
+
+      InstrParamMemory.Assign(ParamMemory);
+    end;
+  finally
+    ParamMemory.Free;
+  end;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiCustomCallable.QueryInterface(const IID: TGUID;
+  out Obj): HResult;
+begin
+  if (SameGUID(IID, ISepiValue) or SameGUID(IID, ISepiReadableValue)) and
+    (ReturnType = nil) then
+    Result := E_NOINTERFACE
+  else
+    Result := inherited QueryInterface(IID, Obj);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiCustomCallable.AttachToExpression(
+  const Expression: ISepiExpression);
+var
+  AsExpressionPart: ISepiExpressionPart;
+begin
+  AsExpressionPart := Self;
+
+  Expression.Attach(ISepiCallable, AsExpressionPart);
+
+  if ReturnType <> nil then
+  begin
+    Expression.Attach(ISepiValue, AsExpressionPart);
+    Expression.Attach(ISepiReadableValue, AsExpressionPart);
+  end;
+end;
+
+{*
+  Renseigne la signature
+  @param ASignature   Signature
+*}
+procedure TSepiCustomCallable.SetSignature(ASignature: TSepiSignature;
+  APrepareParams: Boolean = False);
+begin
+  if FSignature <> nil then
+    raise ESepiCompilerError.Create(SSignatureAlreadyKnown);
+
+  FSignature := ASignature;
+  if APrepareParams then
+    SetParamCount(ASignature.ParamCount);
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiCustomCallable.GetReturnType: TSepiType;
+begin
+  if Signature = nil then
+    Result := nil
+  else
+    Result := Signature.ReturnType;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiCustomCallable.GetValueType: TSepiType;
+begin
+  Result := ReturnType;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiCustomCallable.GetIsConstant: Boolean;
+begin
+  Result := False;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiCustomCallable.GetConstValuePtr: Pointer;
+begin
+  Result := nil;
+end;
+
+{*
+  Compile les paramètres dans une instruction assembleur CALL
+  @param CallInstr        Instruction CALL
+  @param Compiler         Compilateur de méthode
+  @param Instructions     Liste d'instructions
+  @param Destination      Référence mémoire à la variable résultat
+  @param SelfValue        Valeur pour le paramètre caché Self
+  @param SelfMem          En sortie : référence mémoire au paramètre Self
+  @param FreeParamValue   Valeur à donner au paramètre $Free (défaut = False)
+*}
+procedure TSepiCustomCallable.CompileParams(CallInstr: TSepiAsmCall;
+  Compiler: TSepiMethodCompiler; Instructions: TSepiInstructionList;
+  Destination: TSepiMemoryReference; const SelfValue: ISepiReadableValue = nil;
+  SelfMem: TSepiMemoryReference = nil; FreeParamValue: Boolean = False);
+var
+  Parameters: TSepiAsmCallParams;
+  TempVars: TSepiTempVarsLifeManager;
+  I, RealParamIndex: Integer;
+  SignatureParam: TSepiParam;
+  ParamValue: ISepiValue;
+  InstrParamMemory: TSepiMemoryReference;
+begin
+  CallInstr.Prepare(Signature);
+  Parameters := CallInstr.Parameters;
+
+  if Parameters.Result <> nil then
+  begin
+    if Destination = nil then
+      Parameters.Result.SetSpace(msNoResult)
+    else
+      Parameters.Result.Assign(Destination);
+  end;
+
+  TempVars := TSepiTempVarsLifeManager.Create;
+  try
+    RealParamIndex := -1;
+
+    for I := 0 to Signature.ActualParamCount-1 do
+    begin
+      SignatureParam := Signature.ActualParams[I];
+
+      if SignatureParam.HiddenKind = hpNormal then
+      begin
+        Inc(RealParamIndex);
+        if RealParamIndex >= ParamCount then
+        begin
+          MakeError(SNotEnoughActualParameters);
+          Break;
+        end;
+      end;
+
+      if SignatureParam.HiddenKind in [hpNormal, hpOpenArrayHighValue] then
+        ParamValue := Params[RealParamIndex]
+      else if SignatureParam.HiddenKind in [hpSelf, hpAlloc] then
+        ParamValue := SelfValue
+      else
+        ParamValue := nil;
+
+      InstrParamMemory := Parameters.Parameters[I].MemoryRef;
+
+      CompileParam(Compiler, Instructions, SignatureParam, ParamValue,
+        InstrParamMemory, TempVars, FreeParamValue);
+
+      if (SignatureParam.HiddenKind = hpSelf) and (SelfMem <> nil) then
+        SelfMem.Assign(InstrParamMemory);
+    end;
+
+    if ParamCount > Signature.ParamCount then
+      MakeError(STooManyActualParameters);
+  finally
+    TempVars.EndAllLifes(Instructions.GetCurrentEndRef);
+    TempVars.Free;
+  end;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiCustomCallable.CompileNoResult(Compiler: TSepiMethodCompiler;
+  Instructions: TSepiInstructionList);
+var
+  DestTempVar: TSepiLocalVar;
+  Destination: TSepiMemoryReference;
+begin
+  DestTempVar := nil;
+  Destination := nil;
+  try
+    if ReturnType.SafeResultBehavior = rbParameter then
+    begin
+      DestTempVar := Compiler.Locals.AddTempVar(ReturnType);
+      DestTempVar.HandleLife;
+      DestTempVar.Life.BeginInstrInterval(Instructions.GetCurrentEndRef);
+
+      Destination := TSepiMemoryReference.Create(Compiler);
+      Destination.SetSpace(DestTempVar);
+      Destination.Seal;
+    end;
+
+    CompileCall(Compiler, Instructions, Destination);
+
+    if DestTempVar <> nil then
+      DestTempVar.Life.EndInstrInterval(Instructions.GetCurrentEndRef);
+  finally
+    Destination.Free;
+  end;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiCustomCallable.CompileRead(Compiler: TSepiMethodCompiler;
+  Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
+  TempVars: TSepiTempVarsLifeManager);
+begin
+  NeedDestination(Destination, ReturnType, Compiler, TempVars,
+    Instructions.GetCurrentEndRef);
+
+  CompileCall(Compiler, Instructions, Destination);
+end;
+
+{-----------------------}
+{ TSepiMethodCall class }
+{-----------------------}
+
+{*
+  Crée une expression d'invocation de méthode
+  @param AMethod            Méthode à appeler
+  @param ASelfValue         Valeur Self (défaut = nil)
+  @param AForceStaticCall   Force un appel statique (défaut = False)
+*}
+constructor TSepiMethodCall.Create(AMethod: TSepiMethod;
+  const ASelfValue: ISepiReadableValue = nil;
+  AForceStaticCall: Boolean = False);
+begin
+  inherited Create(AMethod.Signature);
+
+  FMethod := AMethod;
+  FSelfValue := ASelfValue;
+  FForceStaticCall := AForceStaticCall;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiMethodCall.GetReturnType: TSepiType;
+begin
+  if Signature = nil then
+    Result := nil
+  else if (Signature.Kind = mkConstructor) and (SelfValue <> nil) and
+    (SelfValue.ValueType is TSepiMetaClass) then
+    Result := TSepiMetaClass(SelfValue.ValueType).SepiClass
+  else
+    Result := Signature.ReturnType;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiMethodCall.CompileCall(Compiler: TSepiMethodCompiler;
+  Instructions: TSepiInstructionList; Destination: TSepiMemoryReference);
+var
+  IsStaticCall: Boolean;
+  CallInstr: TSepiAsmRefCall;
+  SelfMem: TSepiMemoryReference;
+begin
+  IsStaticCall := (Method.LinkKind = mlkStatic) or
+    (ForceStaticCall and (Method.LinkKind <> mlkInterface));
+
+  if IsStaticCall then
+  begin
+    CallInstr := TSepiAsmStaticCall.Create(Compiler);
+    SelfMem := nil;
+  end else
+  begin
+    CallInstr := TSepiAsmDynamicCall.Create(Compiler);
+    SelfMem := TSepiAsmDynamicCall(CallInstr).SelfMem;
+  end;
+
+  CallInstr.SourcePos := Expression.SourcePos;
+  CallInstr.SetMethod(Method, False);
+
+  CompileParams(CallInstr, Compiler, Instructions, Destination,
+    SelfValue, SelfMem, FreeParamValue);
+
+  Instructions.Add(CallInstr);
 end;
 
 {-------------------------------}

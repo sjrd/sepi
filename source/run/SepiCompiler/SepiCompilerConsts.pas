@@ -55,6 +55,12 @@ resourcestring
   STestValueIsAlways = 'La condition est toujours évaluée à %s';
   SOrdinalTypeRequired = 'Type ordinal requis';
   SClassTypeRequired = 'Type classe requis';
+  SAddressableValueRequired = 'Valeur adressable requise';
+  SValueCantBeRead = 'La valeur ne peut être lue';
+  SVarParamTypeMustBeStrictlyEqual =
+    'Les paramètres var originaux et formels doivent avoir le même type';
+  SNotEnoughActualParameters = 'Pas assez de paramètres réels';
+  STooManyActualParameters = 'Trop de paramètres réels';
 
   // Erreurs de compilateur
   SLabelAlreadyExists = 'Le label ''%s'' existe déjà';
@@ -74,6 +80,8 @@ resourcestring
   SConstArgMustBeShort =
     'L''argument constant doit être contenu dans un Shortint';
   SCantRemoveDereference = 'Ne peut retirer de déréférencement';
+  SParamsAlreadyCompleted = 'Les paramètres ont déjà été complétés';
+  SSignatureAlreadyKnown = 'La signature est déjà connue';
 
   // Erreurs d'instructions assembleur
   SMultipleParamsWithSameSepiStackOffset =
