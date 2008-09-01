@@ -27,7 +27,7 @@ unit SepiInstructions;
 interface
 
 uses
-  SysUtils, TypInfo, SepiOrdTypes, SepiOpCodes, SepiCompiler,
+  SysUtils, TypInfo, SepiOrdTypes, SepiMembers, SepiOpCodes, SepiCompiler,
   SepiAsmInstructions, SepiExpressions, SepiCompilerErrors, SepiCompilerConsts;
 
 type
@@ -121,11 +121,10 @@ type
   *}
   TSepiTryExcept = class(TSepiInstruction)
   private
-    FAsmInstruction: TSepiAsmTryExcept;        /// Instruction TRYE
     FTryInstructions: TSepiInstructionList;    /// Instructions dans le try
     FExceptInstructions: TSepiInstructionList; /// Instructions dans le except
 
-    function GetExceptObject: TSepiMemoryReference;
+    FExceptObjectVar: TSepiLocalVar; /// Variable qui stockera l'objet exception
   protected
     procedure CustomCompile; override;
   public
@@ -133,7 +132,8 @@ type
 
     property TryInstructions: TSepiInstructionList read FTryInstructions;
     property ExceptInstructions: TSepiInstructionList read FExceptInstructions;
-    property ExceptObject: TSepiMemoryReference read GetExceptObject;
+    property ExceptObjectVar: TSepiLocalVar
+      read FExceptObjectVar write FExceptObjectVar;
   end;
 
   {*
@@ -143,7 +143,6 @@ type
   *}
   TSepiTryFinally = class(TSepiInstruction)
   private
-    FAsmInstruction: TSepiAsmTryFinally;        /// Instruction TRYF
     FTryInstructions: TSepiInstructionList;     /// Instructions dans le try
     FFinallyInstructions: TSepiInstructionList; /// Instructions dans le finally
   protected
@@ -154,6 +153,30 @@ type
     property TryInstructions: TSepiInstructionList read FTryInstructions;
     property FinallyInstructions: TSepiInstructionList
       read FFinallyInstructions;
+  end;
+
+  {*
+    Instruction d'assignation :=
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiAssignment = class(TSepiInstruction)
+  private
+    FDestination: ISepiWritableValue; /// Destination de l'assignation
+    FSource: ISepiReadableValue;      /// Source de l'assignation
+
+    FAutoConvert: Boolean; /// Autorise les conversions automatiques
+  protected
+    procedure CustomCompile; override;
+  public
+    constructor Create(AMethodCompiler: TSepiMethodCompiler;
+      AAutoConvert: Boolean = True);
+
+    property Destination: ISepiWritableValue
+      read FDestination write FDestination;
+    property Source: ISepiReadableValue read FSource write FSource;
+
+    property AutoConvert: Boolean read FAutoConvert write FAutoConvert;
   end;
 
 procedure CompileTestValue(Compiler: TSepiMethodCompiler;
@@ -400,6 +423,7 @@ end;
 {*
   Crée une instruction for..do
   @param AMethodCompiler   Compilateur de méthode
+  @param AAutoConvert      Autorise les conversions automatiques (défaut = True)
 *}
 constructor TSepiFor.Create(AMethodCompiler: TSepiMethodCompiler;
   AAutoConvert: Boolean = True);
@@ -568,31 +592,34 @@ constructor TSepiTryExcept.Create(AMethodCompiler: TSepiMethodCompiler);
 begin
   inherited Create(AMethodCompiler);
 
-  FAsmInstruction := TSepiAsmTryExcept.Create(MethodCompiler);
   FTryInstructions := TSepiInstructionList.Create(MethodCompiler);
   FExceptInstructions := TSepiInstructionList.Create(MethodCompiler);
-
-  FAsmInstruction.EndOfTry.InstructionRef := TryInstructions.AfterRef;
-  FAsmInstruction.EndOfExcept.InstructionRef := ExceptInstructions.AfterRef;
-end;
-
-{*
-  Objet exception
-  @return Référence mémoire où stocker l'objet exception
-*}
-function TSepiTryExcept.GetExceptObject: TSepiMemoryReference;
-begin
-  Result := FAsmInstruction.ExceptObject;
 end;
 
 {*
   [@inheritDoc]
 *}
 procedure TSepiTryExcept.CustomCompile;
+var
+  TryExceptInstr: TSepiAsmTryExcept;
 begin
-  FAsmInstruction.Compile;
-  FTryInstructions.Compile;
-  FExceptInstructions.Compile;
+  if (ExceptObjectVar <> nil) and
+    (not (ExceptObjectVar.VarType is TSepiClass)) then
+  begin
+    MakeError(SClassTypeRequired);
+    ExceptObjectVar := nil;
+  end;
+
+  TryExceptInstr := TSepiAsmTryExcept.Create(MethodCompiler);
+  TryExceptInstr.EndOfTry.InstructionRef := TryInstructions.AfterRef;
+  TryExceptInstr.EndOfExcept.InstructionRef := ExceptInstructions.AfterRef;
+
+  if ExceptObjectVar <> nil then
+    TryExceptInstr.ExceptObject.SetSpace(ExceptObjectVar);
+
+  TryExceptInstr.Compile;
+  TryInstructions.Compile;
+  ExceptInstructions.Compile;
 end;
 
 {-----------------------}
@@ -607,22 +634,65 @@ constructor TSepiTryFinally.Create(AMethodCompiler: TSepiMethodCompiler);
 begin
   inherited Create(AMethodCompiler);
 
-  FAsmInstruction := TSepiAsmTryFinally.Create(MethodCompiler);
   FTryInstructions := TSepiInstructionList.Create(MethodCompiler);
   FFinallyInstructions := TSepiInstructionList.Create(MethodCompiler);
-
-  FAsmInstruction.EndOfTry.InstructionRef := TryInstructions.AfterRef;
-  FAsmInstruction.EndOfFinally.InstructionRef := FinallyInstructions.AfterRef;
 end;
 
 {*
   [@inheritDoc]
 *}
 procedure TSepiTryFinally.CustomCompile;
+var
+  TryFinallyInstr: TSepiAsmTryFinally;
 begin
-  FAsmInstruction.Compile;
-  FTryInstructions.Compile;
-  FFinallyInstructions.Compile;
+  TryFinallyInstr := TSepiAsmTryFinally.Create(MethodCompiler);
+  TryFinallyInstr.EndOfTry.InstructionRef := TryInstructions.AfterRef;
+  TryFinallyInstr.EndOfFinally.InstructionRef := FinallyInstructions.AfterRef;
+
+  TryFinallyInstr.Compile;
+  TryInstructions.Compile;
+  FinallyInstructions.Compile;
+end;
+
+{-----------------------}
+{ TSepiAssignment class }
+{-----------------------}
+
+{*
+  Crée une instruction d'assignation :=
+  @param AMethodCompiler   Compilateur de méthode
+  @param AAutoConvert      Autorise les conversions automatiques (défaut = True)
+*}
+constructor TSepiAssignment.Create(AMethodCompiler: TSepiMethodCompiler;
+  AAutoConvert: Boolean = True);
+begin
+  inherited Create(AMethodCompiler);
+
+  FAutoConvert := AAutoConvert;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiAssignment.CustomCompile;
+var
+  Instructions: TSepiInstructionList;
+begin
+  if AutoConvert then
+  begin
+    if Source.ValueType <> Destination.ValueType then
+      Source := TSepiConvertOperation.ConvertValue(
+        Destination.ValueType, Source);
+  end else if Source.ValueType <> Destination.ValueType then
+  begin
+    (Source as ISepiExpression).MakeError(Format(STypeMismatch,
+      [Destination.ValueType.Name, Source.ValueType.Name]));
+    Exit;
+  end;
+
+  Instructions := TSepiInstructionList.Create(MethodCompiler);
+  Destination.CompileWrite(MethodCompiler, Instructions, Source);
+  Instructions.Compile;
 end;
 
 end.

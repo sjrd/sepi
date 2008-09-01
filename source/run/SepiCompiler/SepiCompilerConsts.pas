@@ -54,6 +54,7 @@ resourcestring
   SArrayTypeRequired = 'Type tableau requis';
   STestValueIsAlways = 'La condition est toujours évaluée à %s';
   SOrdinalTypeRequired = 'Type ordinal requis';
+  SClassTypeRequired = 'Type classe requis';
 
   // Erreurs de compilateur
   SLabelAlreadyExists = 'Le label ''%s'' existe déjà';
