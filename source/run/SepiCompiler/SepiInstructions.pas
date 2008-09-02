@@ -27,8 +27,9 @@ unit SepiInstructions;
 interface
 
 uses
-  SysUtils, TypInfo, SepiOrdTypes, SepiMembers, SepiOpCodes, SepiCompiler,
-  SepiAsmInstructions, SepiExpressions, SepiCompilerErrors, SepiCompilerConsts;
+  SysUtils, Contnrs, TypInfo, SepiOrdTypes, SepiMembers, SepiOpCodes,
+  SepiCompiler, SepiAsmInstructions, SepiExpressions, SepiCompilerErrors,
+  SepiCompilerConsts;
 
 type
   {*
@@ -105,6 +106,8 @@ type
     constructor Create(AMethodCompiler: TSepiMethodCompiler;
       AAutoConvert: Boolean = True);
 
+    function UseTempVar(AType: TSepiOrdType): TSepiLocalVar;
+
     property ControlVar: TSepiLocalVar read FControlVar write FControlVar;
     property StartValue: ISepiReadableValue read FStartValue write FStartValue;
     property EndValue: ISepiReadableValue read FEndValue write FEndValue;
@@ -129,6 +132,8 @@ type
     procedure CustomCompile; override;
   public
     constructor Create(AMethodCompiler: TSepiMethodCompiler);
+
+    function UseTempVar: TSepiLocalVar;
 
     property TryInstructions: TSepiInstructionList read FTryInstructions;
     property ExceptInstructions: TSepiInstructionList read FExceptInstructions;
@@ -191,6 +196,54 @@ type
     procedure CustomCompile; override;
   public
     property Callable: ISepiCallable read FCallable write FCallable;
+  end;
+
+  {*
+    Instruction raise
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiRaise = class(TSepiInstruction)
+  private
+    FExceptionValue: ISepiReadableValue; /// Valeur exception
+  protected
+    procedure CustomCompile; override;
+  public
+    property ExceptionValue: ISepiReadableValue
+      read FExceptionValue write FExceptionValue;
+  end;
+
+  {*
+    Instruction reraise
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiReraise = class(TSepiInstruction)
+  protected
+    procedure CustomCompile; override;
+  end;
+
+  {*
+    Instruction multi-on
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiMultiOn = class(TSepiInstruction)
+  private
+    FExceptObjectVar: TSepiLocalVar;         /// Variable de l'objet exception
+    FOnClauses: TObjectList;                 /// Clauses on
+    FElseInstructions: TSepiInstructionList; /// Instructions dans le else
+  protected
+    procedure CustomCompile; override;
+  public
+    constructor Create(AMethodCompiler: TSepiMethodCompiler);
+    destructor Destroy; override;
+
+    function AddOnClause(AExceptionClass: TSepiClass): TSepiInstructionList;
+
+    property ExceptObjectVar: TSepiLocalVar
+      read FExceptObjectVar write FExceptObjectVar;
+    property ElseInstructions: TSepiInstructionList read FElseInstructions;
   end;
 
 procedure CompileTestValue(Compiler: TSepiMethodCompiler;
@@ -594,6 +647,20 @@ begin
   JumpInstr.Compile;
 end;
 
+{*
+  Utilise une variable temporaire comme variable de contrôle
+  @param AType   Type de la variable temporaire de contrôle
+  @return Variable temporaire créée (= ControlVar)
+*}
+function TSepiFor.UseTempVar(AType: TSepiOrdType): TSepiLocalVar;
+begin
+  Result := MethodCompiler.Locals.AddTempVar(AType);
+  Result.HandleLife;
+  Result.Life.AddInstrInterval(BeforeRef, AfterRef);
+
+  ControlVar := Result;
+end;
+
 {----------------------}
 { TSepiTryExcept class }
 {----------------------}
@@ -634,6 +701,21 @@ begin
   TryExceptInstr.Compile;
   TryInstructions.Compile;
   ExceptInstructions.Compile;
+end;
+
+{*
+  Utilise une variable temporaire comme variable pour l'objet exception
+  @return Variable temporaire créée (= ExceptObjectVar)
+*}
+function TSepiTryExcept.UseTempVar: TSepiLocalVar;
+begin
+  Result := MethodCompiler.Locals.AddTempVar(
+    MethodCompiler.SepiMethod.Root.FindType(TypeInfo(TObject)));
+  Result.HandleLife;
+  Result.Life.AddInstrInterval(ExceptInstructions.BeforeRef,
+    ExceptInstructions.AfterRef);
+
+  ExceptObjectVar := Result;
 end;
 
 {-----------------------}
@@ -723,6 +805,155 @@ begin
   Instructions := TSepiInstructionList.Create(MethodCompiler);
   Callable.CompileNoResult(MethodCompiler, Instructions);
   Instructions.Compile;
+end;
+
+{------------------}
+{ TSepiRaise class }
+{------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiRaise.CustomCompile;
+var
+  Instructions: TSepiInstructionList;
+  ExceptionMemory: TSepiMemoryReference;
+  RaiseInstr: TSepiAsmRaise;
+  TempVars: TSepiTempVarsLifeManager;
+begin
+  Instructions := TSepiInstructionList.Create(MethodCompiler);
+
+  RaiseInstr := TSepiAsmRaise.Create(MethodCompiler);
+
+  ExceptionMemory := nil;
+  TempVars := TSepiTempVarsLifeManager.Create;
+  try
+    ExceptionValue.CompileRead(MethodCompiler, Instructions, ExceptionMemory,
+      TempVars);
+
+    RaiseInstr.ExceptObject.Assign(ExceptionMemory);
+  finally
+    TempVars.EndAllLifes(Instructions.AfterRef);
+    TempVars.Free;
+
+    ExceptionMemory.Free;
+  end;
+
+  Instructions.Compile;
+  RaiseInstr.Compile;
+end;
+
+{--------------------}
+{ TSepiReraise class }
+{--------------------}
+
+{*
+  @author sjrd
+  @version 1.0
+*}
+procedure TSepiReraise.CustomCompile;
+begin
+  TSepiAsmReraise.Create(MethodCompiler).Compile;
+end;
+
+{--------------------}
+{ TSepiMultiOn class }
+{--------------------}
+
+{*
+  Crée une instruction multi-on
+  @param AMethodCompiler   Compilateur de méthode
+*}
+constructor TSepiMultiOn.Create(AMethodCompiler: TSepiMethodCompiler);
+begin
+  inherited Create(AMethodCompiler);
+
+  FOnClauses := TObjectList.Create(False);
+  FElseInstructions := TSepiInstructionList.Create(MethodCompiler);
+end;
+
+{*
+  [@inheritDoc]
+*}
+destructor TSepiMultiOn.Destroy;
+begin
+  FOnClauses.Free;
+
+  inherited;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiMultiOn.CustomCompile;
+var
+  MultiOnInstr: TSepiAsmMultiOn;
+  I, LastNonEmptyOne: Integer;
+  ExceptionClass: TSepiClass;
+  Instructions: TSepiInstructionList;
+begin
+  MultiOnInstr := TSepiAsmMultiOn.Create(MethodCompiler);
+  MultiOnInstr.SourcePos := SourcePos;
+  MultiOnInstr.ExceptObject.SetSpace(ExceptObjectVar);
+
+  LastNonEmptyOne := -1;
+
+  for I := 0 to FOnClauses.Count div 2 - 1 do
+  begin
+    ExceptionClass := TSepiClass(FOnClauses[2*I]);
+    Instructions := TSepiInstructionList(FOnClauses[2*I+1]);
+
+    if Instructions.Count > 0 then
+      LastNonEmptyOne := I;
+
+    with MultiOnInstr.AddOnClause(ExceptionClass) do
+    begin
+      if Instructions.Count = 0 then
+        InstructionRef := AfterRef
+      else
+        InstructionRef := Instructions.BeforeRef;
+    end;
+  end;
+
+  MultiOnInstr.Compile;
+
+  ElseInstructions.Compile;
+  if LastNonEmptyOne >= 0 then
+  begin
+    with TSepiAsmJump.Create(MethodCompiler) do
+    begin
+      Destination.InstructionRef := Self.AfterRef;
+      Compile;
+    end;
+  end;
+
+  for I := 0 to FOnClauses.Count div 2 - 1 do
+  begin
+    Instructions := TSepiInstructionList(FOnClauses[2*I+1]);
+    Instructions.Compile;
+
+    if (Instructions.Count > 0) and (I < LastNonEmptyOne) then
+    begin
+      with TSepiAsmJump.Create(MethodCompiler) do
+      begin
+        Destination.InstructionRef := Self.AfterRef;
+        Compile;
+      end;
+    end;
+  end;
+end;
+
+{*
+  Ajoute une clause on
+  @param AExceptionClass   Classe d'exception à tester
+  @return Liste d'instructions pour cette classe d'exception
+*}
+function TSepiMultiOn.AddOnClause(
+  AExceptionClass: TSepiClass): TSepiInstructionList;
+begin
+  Result := TSepiInstructionList.Create(MethodCompiler);
+  FOnClauses.Add(AExceptionClass);
+  FOnClauses.Add(Result);
 end;
 
 end.

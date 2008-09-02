@@ -2289,7 +2289,8 @@ begin
     with FOnClauses[I] do
     begin
       Stream.WriteBuffer(ClassRef, SizeOf(Integer));
-      Destination.WriteToStream(Stream);
+      Destination.WriteToStream(Stream,
+        EndPosition - (Count-I-1) * (SizeOf(Integer) + SizeOf(Smallint)));
     end;
   end;
 end;

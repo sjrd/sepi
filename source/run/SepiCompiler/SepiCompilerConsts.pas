@@ -55,12 +55,14 @@ resourcestring
   STestValueIsAlways = 'La condition est toujours évaluée à %s';
   SOrdinalTypeRequired = 'Type ordinal requis';
   SClassTypeRequired = 'Type classe requis';
-  SAddressableValueRequired = 'Valeur adressable requise';
+  SVarValueRequired = 'Variable requise';
   SValueCantBeRead = 'La valeur ne peut être lue';
   SVarParamTypeMustBeStrictlyEqual =
     'Les paramètres var originaux et formels doivent avoir le même type';
   SNotEnoughActualParameters = 'Pas assez de paramètres réels';
   STooManyActualParameters = 'Trop de paramètres réels';
+  SNoMatchingOverloadedMethod =
+    'Aucune méthode surchargée ne peut être invoquée avec ces paramètres';
 
   // Erreurs de compilateur
   SLabelAlreadyExists = 'Le label ''%s'' existe déjà';

@@ -733,8 +733,7 @@ type
 
     function MakeOffset(FromPos: Integer): Integer;
 
-    procedure WriteToStream(Stream: TStream; FromPos: Integer); overload;
-    procedure WriteToStream(Stream: TStream); overload;
+    procedure WriteToStream(Stream: TStream; FromPos: Integer);
 
     property MethodCompiler: TSepiMethodCompiler read FMethodCompiler;
 
@@ -3110,15 +3109,6 @@ var
 begin
   Offset := MakeOffset(FromPos);
   Stream.WriteBuffer(Offset, SizeOf(Smallint));
-end;
-
-{*
-  Ecrit la destination de JUMP dans un flux
-  @param Stream   Flux de destination
-*}
-procedure TSepiJumpDest.WriteToStream(Stream: TStream);
-begin
-  WriteToStream(Stream, Stream.Position + SizeOf(Smallint));
 end;
 
 end.
