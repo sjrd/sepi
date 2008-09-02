@@ -589,6 +589,7 @@ type
     FMethods: TObjectList; /// Compilateurs de méthodes
 
     FCompileTimeTypes: TSepiMeta; /// Types durant le temps de la compilation
+    FErroneousType: TSepiType;    /// Type erroné
 
     FReferences: TObjectList; /// Références
 
@@ -603,6 +604,9 @@ type
 
     function GetPointerType(PointTo: TSepiType): TSepiPointerType;
     function GetMetaClass(SepiClass: TSepiClass): TSepiMetaClass;
+
+    function GetErroneousType: TSepiType;
+    function MakeErroneousTypeAlias(const AliasName: string): TSepiType;
 
     function MakeReference(Meta: TSepiMeta): Integer;
 
@@ -2381,6 +2385,32 @@ begin
   if Result = nil then
     Result := TSepiMetaClass.Create(FCompileTimeTypes,
       MetaClassName, SepiClass);
+end;
+
+{*
+  Récupère le type erroné s'il existe déjà, sinon le crée
+  @return Type erroné
+*}
+function TSepiUnitCompiler.GetErroneousType: TSepiType;
+begin
+  if FErroneousType = nil then
+    FErroneousType := TSepiIntegerType.Create(SepiUnit,
+      SSepiErroneousTypeName);
+
+  Result := FErroneousType;
+end;
+
+{*
+  Crée un alias du type erroné
+  @param TypeName   Nom de l'alias (une chaîne vide ne crée pas d'alias)
+  @return Type erroné
+*}
+function TSepiUnitCompiler.MakeErroneousTypeAlias(
+  const AliasName: string): TSepiType;
+begin
+  Result := GetErroneousType;
+  if AliasName <> '' then
+    TSepiTypeAlias.Create(SepiUnit, AliasName, Result);
 end;
 
 {*

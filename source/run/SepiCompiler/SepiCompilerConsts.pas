@@ -43,6 +43,7 @@ resourcestring
   SNeedConstExpression = 'Expression constante attendue';
 
   // Erreurs de compilation sur les expressions
+  SSepiErroneousTypeName = 'type erroné';
   STypeIsNotBaseType =
     'Le type %s n''est pas un type de base pour l''interpréteur Sepi';
   SInvalidCast = 'Transtypage invalide de %s en %s';
