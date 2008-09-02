@@ -258,11 +258,9 @@ end;
 constructor TSepiArrayType.Create(AOwner: TSepiMeta; const AName: string;
   const ADimensions: array of Integer; AElementType: TSepiType;
   AIsNative: Boolean = False; ATypeInfo: PTypeInfo = nil);
-const
-  UnnamedPrefix = '$Array$';
 var
   IntegerType: TSepiOrdType;
-  DimCount, UnnamedIndex, CurDim: Integer;
+  DimCount, CurDim: Integer;
 begin
   IntegerType := AOwner.Root.FindType(System.TypeInfo(Integer)) as TSepiOrdType;
 
@@ -270,17 +268,11 @@ begin
 
   if DimCount > 1 then
   begin
-    UnnamedIndex := 1;
-    while AOwner.GetMeta(UnnamedPrefix + IntToStr(UnnamedIndex)) <> nil do
-      Inc(UnnamedIndex);
-
     for CurDim := DimCount-1 downto 1 do
     begin
-      AElementType := TSepiArrayType.Create(AOwner,
-        UnnamedPrefix + IntToStr(UnnamedIndex), IntegerType,
+      AElementType := TSepiArrayType.Create(AOwner, '', IntegerType,
         ADimensions[2*CurDim], ADimensions[2*CurDim+1], AElementType,
         AIsNative);
-      Inc(UnnamedIndex);
     end;
   end;
 

@@ -1466,9 +1466,9 @@ begin
     with (Source as TSepiPointerType).FForwardInfo^ do
     begin
       if PointToTypeInfo <> nil then
-        Create(Owner, Name, PointToTypeInfo)
+        Create(Owner, AName, PointToTypeInfo)
       else
-        Create(Owner, Name, PointToName);
+        Create(Owner, AName, PointToName);
     end;
   end;
 end;

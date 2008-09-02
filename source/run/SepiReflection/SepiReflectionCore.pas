@@ -156,6 +156,7 @@ type
     FTag: Integer;                  /// Tag
     FForwards: TStrings;            /// Liste des enfants forwards
     FChildren: TSepiMetaList;       /// Liste des enfants
+    FUnnamedChildCount: Integer;    /// Nombre d'enfants créés anonymes
     FObjResources: TObjectList;     /// Liste des ressources objet
     FPtrResources: TList;           /// Liste des ressources pointeur
 
@@ -207,6 +208,8 @@ type
     function LookFor(const Name: string; FromUnit: TSepiUnit;
       FromClass: TSepiMeta = nil): TSepiMeta; overload;
     function LookFor(const Name: string): TSepiMeta; overload;
+
+    function MakeUnnamedChildName: string;
 
     procedure AddObjResource(Obj: TObject);
     procedure AddPtrResource(Ptr: Pointer);
@@ -849,10 +852,15 @@ begin
     raise ESepiMetaAlreadyCreated.CreateFmt(SSepiMetaAlreadyCreated, [Name]);
 
   inherited Create;
+
   FIsForward := False;
   FState := msConstructing;
   FOwner := AOwner;
-  FName := AName;
+
+  if (AName = '') and (Owner <> nil) then
+    FName := Owner.MakeUnnamedChildName
+  else
+    FName := AName;
 
   if Owner = nil then
     FVisibility := mvPublic
@@ -1331,6 +1339,16 @@ begin
     FromClass := FromClass.Owner;
 
   Result := LookFor(Name, OwningUnit, FromClass);
+end;
+
+{*
+  Construit un nom pour un enfant créé anonyme
+  @return Nom pour l'enfant
+*}
+function TSepiMeta.MakeUnnamedChildName: string;
+begin
+  Inc(FUnnamedChildCount);
+  Result := '$' + IntToStr(FUnnamedChildCount);
 end;
 
 {*
