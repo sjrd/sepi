@@ -830,6 +830,8 @@ type
     FForceStaticCall: Boolean;                /// Force un appel statique
 
     FFreeParamValue: Boolean; /// Valeur de l'éventuel paramètre $Free
+
+    procedure CheckSelfValueType;
   protected
     function GetReturnType: TSepiType; override;
 
@@ -2584,9 +2586,22 @@ end;
   bénéficier du contexte de celle-ci.
 *}
 procedure TSepiUnaryOperation.Complete;
+var
+  BaseType: TSepiBaseType;
+  NewOpType: TSepiType;
 begin
   Assert(Expression <> nil);
   Assert(Operand <> nil);
+
+  if (Operation = opNegate) and (Operand.ValueType is TSepiIntegerType) and
+    (not TSepiIntegerType(Operand.ValueType).Signed) then
+  begin
+    BaseType := SepiTypeToBaseType(Operand.ValueType);
+    TSepiBinaryOperation.SmallestCommonType(BaseType, btShortint, BaseType);
+
+    NewOpType := DefaultSepiTypeFor(BaseType, Operand.ValueType.Root);
+    Operand := TSepiConvertOperation.ConvertValue(NewOpType, Operand);
+  end;
 
   SetValueType(Operand.ValueType);
   CheckType;
@@ -3197,6 +3212,8 @@ begin
   OpType := Operand.ValueType;
   if OpType is TSepiPointerType then
     SetValueType(TSepiPointerType(OpType).PointTo)
+  else if OpType is TSepiClass then
+    SetValueType(UnitCompiler.GetMetaClass(TSepiClass(OpType)))
   else
     MakeError(SNeedPointerType);
 end;
@@ -3922,6 +3939,37 @@ end;
 {*
   [@inheritDoc]
 *}
+procedure TSepiMethodCall.CheckSelfValueType;
+const
+  mkValidOnClass = [mkConstructor, mkClassProcedure, mkClassFunction];
+begin
+  if SelfValue = nil then
+    Exit;
+
+  // Can''t call an object method on a class value
+  if SelfValue.ValueType is TSepiMetaClass then
+  begin
+    if not (Signature.Kind in mkValidOnClass) then
+    begin
+      MakeError(SCallPatternOnlyOnClassMethod);
+      Exit;
+    end;
+  end;
+
+  // Call a class method on an object: auto-dereference
+  if SelfValue.ValueType is TSepiClass then
+  begin
+    if Signature.Kind in [mkClassProcedure, mkClassFunction] then
+    begin
+      SelfValue := TSepiDereferenceValue.MakeDereference(
+        SelfValue) as ISepiReadableValue;
+    end;
+  end;
+end;
+
+{*
+  [@inheritDoc]
+*}
 function TSepiMethodCall.GetReturnType: TSepiType;
 begin
   if Signature = nil then
@@ -3961,6 +4009,8 @@ begin
 
     MakeError(SNoMatchingOverloadedMethod);
   end;
+
+  CheckSelfValueType;
 end;
 
 {*

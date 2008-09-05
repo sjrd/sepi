@@ -27,9 +27,14 @@ unit SepiLL1ParserUtils;
 interface
 
 uses
-  Contnrs, SepiParseTrees;
+  SysUtils, Contnrs, SepiParseTrees, SepiCompilerConsts;
 
 type
+  {*
+    Erreur de parser LL(1) Sepi
+  *}
+  ESepiLL1ParserError = class(Exception);
+
   {*
     Identificateur de règle (contenu des tables d'analyse)
   *}
@@ -42,9 +47,11 @@ type
   *}
   TSepiLL1ParsingStack = class(TObject)
   private
-    FStack: TStack; /// Pile interne
+    FStack: TStack;     /// Pile interne
+    FTryCount: Integer; /// Indique le nombre d'imbrication de try
 
     function GetEmpty: Boolean;
+    function GetIsInTry: Boolean;
   public
     constructor Create(StartSymbol: TSepiSymbolClass);
     destructor Destroy; override;
@@ -52,24 +59,48 @@ type
     procedure Push(Symbol: TSepiSymbolClass);
     function Pop: TSepiSymbolClass;
 
+    procedure PushTry(Tag: TObject);
+    procedure PopTry;
+    function UnwindTry: TObject;
+
     property Empty: Boolean read GetEmpty;
+    property IsInTry: Boolean read GetIsInTry;
   end;
 
   {*
     Faux non-terminal
-    Un faux non-terminal, lorsque son analyse est terminée, transfère tous ses
-    enfants à son parent, avant de se libérer lui-même.
-    C'est un moyen particulièrement simple d'implémenter des grammaires EBNF
-    avec un analyseur BNF.
+    Un faux non-terminal ne s'attache pas à son parent, et se libère
+    automatiquement dès que son analyse est terminée.
     @author sjrd
     @version 1.0
   *}
-  TSepiFakeNonTerminal = class(TSepiNonTerminal)
+  TSepiFakeNonTerminal = class(TSepiHiddenNonTerminal)
+  public
+    procedure EndParsing; override;
+  end;
+
+  {*
+    Non-terminal "child-through"
+    Un non-terminal "child-through" redirige tous les enfants qui lui sont
+    attachés vers son parent, à la position qu'il occupe - ou plutôt, qu'il
+    devrait occuper, lui-même étant invisible.
+    L'utilisation de non-terminaux "child-through" est un moyen particulièrement
+    simple d'implémenter des grammaires EBNF avec un analyseur BNF.
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiChildThroughNonTerminal = class(TSepiHiddenNonTerminal)
+  protected
+    procedure AddChild(Index: Integer; Child: TSepiParseTreeNode); override;
   public
     procedure EndParsing; override;
   end;
 
 implementation
+
+const
+  /// Sentinelle pour un try dans un pile de parser LL(1)
+  scTrySentinel = Pointer($FFFFFFFF);
 
 {----------------------------}
 { TSepiLL1ParsingStack class }
@@ -105,6 +136,15 @@ begin
 end;
 
 {*
+  Indique si la pile est dans un try
+  @return True si la pile est dans un try, False sinon
+*}
+function TSepiLL1ParsingStack.GetIsInTry: Boolean;
+begin
+  Result := FTryCount > 0;
+end;
+
+{*
   Push un symbole sur la pile
   @param Symbol   Symbole à pusher sur la pile
 *}
@@ -119,7 +159,47 @@ end;
 *}
 function TSepiLL1ParsingStack.Pop: TSepiSymbolClass;
 begin
+  if FStack.Peek = scTrySentinel then
+    raise ESepiLL1ParserError.Create(STopOfStackIsNotASymbol);
+
   Result := TSepiSymbolClass(FStack.Pop);
+end;
+
+{*
+  Push un try sur la pile
+  @param Tag   Tag à apposer au try
+*}
+procedure TSepiLL1ParsingStack.PushTry(Tag: TObject);
+begin
+  FStack.Push(Pointer(Tag));
+  FStack.Push(scTrySentinel);
+  Inc(FTryCount);
+end;
+
+{*
+  Pop un try du sommet de la pile et libère son tag
+*}
+procedure TSepiLL1ParsingStack.PopTry;
+begin
+  if FStack.Peek <> scTrySentinel then
+    raise ESepiLL1ParserError.Create(STopOfStackIsNotATry);
+  FStack.Pop; // try sentinel
+  TObject(FStack.Pop).Free; // alternative rule
+  Dec(FTryCount);
+end;
+
+{*
+  Déroule la pile jusqu'à trouver un try, le retire et récupère le tag
+  @return Tag apposé au try
+*}
+function TSepiLL1ParsingStack.UnwindTry: TObject;
+begin
+  if not IsInTry then
+    raise ESepiLL1ParserError.Create(SNotInTry);
+
+  while FStack.Pop <> scTrySentinel do;
+  Result := TObject(FStack.Pop);
+  Dec(FTryCount);
 end;
 
 {----------------------------}
@@ -130,9 +210,38 @@ end;
   [@inheritDoc]
 *}
 procedure TSepiFakeNonTerminal.EndParsing;
+begin
+  inherited;
+  Free;
+end;
+
+{------------------------------------}
+{ TSepiChildThroughNonTerminal class }
+{------------------------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiChildThroughNonTerminal.AddChild(Index: Integer;
+  Child: TSepiParseTreeNode);
+begin
+  inherited;
+
+  Child.Move(Parent, IndexAsChild);
+
+  if not (Parent is TSepiChildThroughNonTerminal) then
+    SetIndexAsChild(IndexAsChild + 1);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiChildThroughNonTerminal.EndParsing;
 var
   Index, I: Integer;
 begin
+  inherited;
+
   Index := IndexAsChild;
   for I := ChildCount-1 downto 0 do
     Children[I].Move(Parent, Index);

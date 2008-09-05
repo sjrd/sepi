@@ -55,7 +55,8 @@ type
     FClass: TSepiSymbolClass;        /// Classe de symbole
     FSourcePos: TSepiSourcePosition; /// Position dans le source
 
-    FRootNode: TSepiParseTreeRootNode; /// Noeud racine de l'arbre syntaxique
+    FRootNode: TSepiParseTreeRootNode;  /// Noeud racine de l'arbre syntaxique
+    FSyntacticParent: TSepiNonTerminal; /// Parent syntaxique
 
     procedure DoAncestorChanged;
 
@@ -65,8 +66,14 @@ type
     function GetSepiRoot: TSepiRoot;
     function GetSepiUnit: TSepiUnit;
   protected
+    procedure SetSymbolClass(Value: TSepiSymbolClass);
+    procedure SetSyntacticParent(Value: TSepiNonTerminal);
+
     function GetChildCount: Integer; virtual;
     function GetChildren(Index: Integer): TSepiParseTreeNode; virtual;
+
+    procedure AddToParent(Index: Integer); virtual;
+    procedure RemoveFromParent; virtual;
 
     procedure AncestorChanged; virtual;
 
@@ -93,9 +100,14 @@ type
     procedure MakeError(const ErrorMsg: string;
       Kind: TSepiErrorKind = ekError);
 
+    procedure BeginParsing; virtual;
+    procedure EndParsing; virtual;
+
     property Parent: TSepiNonTerminal read FParent;
     property SymbolClass: TSepiSymbolClass read FClass;
     property RootNode: TSepiParseTreeRootNode read FRootNode;
+
+    property SyntacticParent: TSepiNonTerminal read FSyntacticParent;
 
     property SourcePos: TSepiSourcePosition read FSourcePos;
     property FileName: TFileName read FSourcePos.FileName;
@@ -132,6 +144,8 @@ type
       const ASourcePos: TSepiSourcePosition;
       const ARepresentation: string); overload;
 
+    procedure Parse;
+
     property Representation: string read FRepresentation;
   end;
 
@@ -147,13 +161,16 @@ type
   private
     FChildren: TObjectList; /// Liste des enfants
   protected
-    procedure AddChild(Child: TSepiParseTreeNode); virtual;
+    procedure AddChild(Index: Integer; Child: TSepiParseTreeNode); virtual;
     procedure RemoveChild(Child: TSepiParseTreeNode); virtual;
 
     function GetChildCount: Integer; override;
     function GetChildren(Index: Integer): TSepiParseTreeNode; override;
 
     function GetAsText: string; override;
+
+    procedure ChildBeginParsing(Child: TSepiParseTreeNode); virtual;
+    procedure ChildEndParsing(Child: TSepiParseTreeNode); virtual;
   public
     constructor Create(AParent: TSepiNonTerminal; AClass: TSepiSymbolClass;
       const ASourcePos: TSepiSourcePosition); overload; virtual;
@@ -161,9 +178,7 @@ type
       const ASourcePos: TSepiSourcePosition); overload;
     destructor Destroy; override;
 
-    procedure RemoveLastChild;
-    procedure BeginParsing; virtual;
-    procedure EndParsing; virtual;
+    function IndexOf(Child: TSepiParseTreeNode): Integer;
   end;
 
   /// Classe de TSepiNonTerminal
@@ -193,6 +208,32 @@ type
     property SepiUnit: TSepiUnit read FSepiUnit;
 
     property Errors: TSepiCompilerErrorList read FErrors;
+  end;
+
+  {*
+    Non-terminal caché, que le parent ne connaît pas
+    Attention ! Puisque le parent ne connaît pas un non-terminal caché, il n'est
+    pas en mesure de le libérer non plus. Tout non-terminal caché doit assurer
+    sa propre destruction, par exemple dans EndParsing.
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiHiddenNonTerminal = class(TSepiNonTerminal)
+  private
+    FIndexAsChild: Integer; /// Index parmi ses frères (guess only)
+  protected
+    procedure AddToParent(Index: Integer); override;
+    procedure RemoveFromParent; override;
+
+    procedure SetIndexAsChild(Value: Integer);
+  public
+    constructor Create(AParent: TSepiNonTerminal; AClass: TSepiSymbolClass;
+      const ASourcePos: TSepiSourcePosition); override;
+
+    procedure BeginParsing; override;
+    procedure EndParsing; override;
+
+    property IndexAsChild: Integer read FIndexAsChild;
   end;
 
 implementation
@@ -255,7 +296,7 @@ end;
 function TSepiParseTreeNode.GetIndexAsChild: Integer;
 begin
   if Parent <> nil then
-    Result := Parent.FChildren.IndexOf(Self)
+    Result := Parent.IndexOf(Self)
   else
     Result := -1;
 end;
@@ -297,6 +338,24 @@ begin
 end;
 
 {*
+  Modifie la classe de symbole
+  @param Value   Nouvelle classe de symbole
+*}
+procedure TSepiParseTreeNode.SetSymbolClass(Value: TSepiSymbolClass);
+begin
+  FClass := Value;
+end;
+
+{*
+  Modifie le parent syntaxique
+  @param Value   Nouveau parent syntaxique
+*}
+procedure TSepiParseTreeNode.SetSyntacticParent(Value: TSepiNonTerminal);
+begin
+  FSyntacticParent := Value;
+end;
+
+{*
   Nombre d'enfants
   @return Nombre d'enfants
 *}
@@ -313,6 +372,26 @@ end;
 function TSepiParseTreeNode.GetChildren(Index: Integer): TSepiParseTreeNode;
 begin
   raise EListError.CreateFmt(SListIndexError, [Index]);
+end;
+
+{*
+  Ajoute le noeud à son parent
+  @param Index   Index où l'ajouter (-1 pour l'ajouter à la fin)
+*}
+procedure TSepiParseTreeNode.AddToParent(Index: Integer);
+begin
+  if SyntacticParent = nil then
+    SetSyntacticParent(Parent);
+
+  Parent.AddChild(Index, Self);
+end;
+
+{*
+  Retire le noeud de son parent
+*}
+procedure TSepiParseTreeNode.RemoveFromParent;
+begin
+  Parent.RemoveChild(Self);
 end;
 
 {*
@@ -347,7 +426,7 @@ begin
   inherited;
 
   if Parent <> nil then
-    Parent.AddChild(Self);
+    AddToParent(-1);
 
   DoAncestorChanged;
 end;
@@ -360,7 +439,7 @@ begin
   inherited;
 
   if Parent <> nil then
-    Parent.RemoveChild(Self);
+    RemoveFromParent;
 end;
 
 {*
@@ -379,17 +458,13 @@ begin
   else
   begin
     if Parent <> nil then
-      Parent.FChildren.Remove(Self);
-
-    if NewParent <> nil then
-    begin
-      if Index < 0 then
-        NewParent.FChildren.Add(Self)
-      else
-        NewParent.FChildren.Insert(Index, Self);
-    end;
+      RemoveFromParent;
 
     FParent := NewParent;
+
+    if Parent <> nil then
+      AddToParent(Index);
+
     DoAncestorChanged;
   end;
 end;
@@ -419,6 +494,24 @@ procedure TSepiParseTreeNode.MakeError(const ErrorMsg: string;
   Kind: TSepiErrorKind = ekError);
 begin
   RootNode.Errors.MakeError(ErrorMsg, Kind, SourcePos);
+end;
+
+{*
+  Commence l'analyse du noeud
+*}
+procedure TSepiParseTreeNode.BeginParsing;
+begin
+  if Parent <> nil then
+    Parent.ChildBeginParsing(Self);
+end;
+
+{*
+  Termine l'analyse du noeud
+*}
+procedure TSepiParseTreeNode.EndParsing;
+begin
+  if Parent <> nil then
+    Parent.ChildEndParsing(Self);
 end;
 
 {---------------------}
@@ -459,6 +552,15 @@ end;
 function TSepiTerminal.GetAsText: string;
 begin
   Result := Representation;
+end;
+
+{*
+  Raccourci pour appeler BeginParsing puis EndParsing
+*}
+procedure TSepiTerminal.Parse;
+begin
+  BeginParsing;
+  EndParsing;
 end;
 
 {------------------------}
@@ -506,9 +608,12 @@ end;
   Ajoute un enfant
   @param Child   Enfant à ajouter
 *}
-procedure TSepiNonTerminal.AddChild(Child: TSepiParseTreeNode);
+procedure TSepiNonTerminal.AddChild(Index: Integer; Child: TSepiParseTreeNode);
 begin
-  FChildren.Add(Child);
+  if Index < 0 then
+    FChildren.Add(Child)
+  else
+    FChildren.Insert(Index, Child);
 end;
 
 {*
@@ -554,26 +659,29 @@ begin
 end;
 
 {*
-  Retire (et libère) le dernier enfant ajouté
+  Méthode de notification appelée lorsqu'un enfant commence son analyse
+  @param Child   Enfant qui commence son analyse
 *}
-procedure TSepiNonTerminal.RemoveLastChild;
-begin
-  if FChildren.Count > 0 then
-    FChildren[FChildren.Count-1].Free;
-end;
-
-{*
-  Commence l'analyse du non-terminal
-*}
-procedure TSepiNonTerminal.BeginParsing;
+procedure TSepiNonTerminal.ChildBeginParsing(Child: TSepiParseTreeNode);
 begin
 end;
 
 {*
-  Termine l'analyse du non-terminal
+  Méthode de notification appelée lorsqu'un enfant termine son analyse
+  @param Child   Enfant qui termine son analyse
 *}
-procedure TSepiNonTerminal.EndParsing;
+procedure TSepiNonTerminal.ChildEndParsing(Child: TSepiParseTreeNode);
 begin
+end;
+
+{*
+  Cherche la position d'un enfant
+  @param Child   Enfant recherché
+  @return Index de l'enfant parmi ses frères, ou -1 si non trouvé
+*}
+function TSepiNonTerminal.IndexOf(Child: TSepiParseTreeNode): Integer;
+begin
+  Result := FChildren.IndexOf(Child);
 end;
 
 {------------------------------}
@@ -614,6 +722,66 @@ procedure TSepiParseTreeRootNode.SetSepiUnit(ASepiUnit: TSepiUnit);
 begin
   FUnitCompiler := TSepiUnitCompiler.Create(Errors, ASepiUnit);
   FSepiUnit := ASepiUnit;
+end;
+
+{------------------------------}
+{ TSepiHiddenNonTerminal class }
+{------------------------------}
+
+{*
+  Crée le non-terminal
+*}
+constructor TSepiHiddenNonTerminal.Create(AParent: TSepiNonTerminal;
+  AClass: TSepiSymbolClass; const ASourcePos: TSepiSourcePosition);
+begin
+  inherited;
+
+  FIndexAsChild := -1;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiHiddenNonTerminal.AddToParent(Index: Integer);
+begin
+  if SyntacticParent = nil then
+    SetSyntacticParent(Parent);
+
+  if Index < 0 then
+    FIndexAsChild := Parent.ChildCount
+  else
+    FIndexAsChild := Index;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiHiddenNonTerminal.RemoveFromParent;
+begin
+  FIndexAsChild := -1;
+end;
+
+{*
+  Modifie la valeur de la propriété IndexAsChild
+  @param Value   Nouvelle valeur
+*}
+procedure TSepiHiddenNonTerminal.SetIndexAsChild(Value: Integer);
+begin
+  FIndexAsChild := Value;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiHiddenNonTerminal.BeginParsing;
+begin
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiHiddenNonTerminal.EndParsing;
+begin
 end;
 
 end.

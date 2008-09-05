@@ -32,7 +32,7 @@ resourcestring
   SSepiWarningName = 'Avertissement';
   SSepiErrorName = 'Erreur';
   SSepiFatalErrorName = 'Erreur fatale';
-  SSepiCompilerErrorFormat = '[%s] %s(%d) : %4:s';
+  SSepiCompilerErrorFormat = '[%s] %s(%d, %d) : %s';
 
   // Erreurs de compilation génériques
   SSepiThereWereErrors = 'Il y a eu des erreurs à la compilation';
@@ -49,21 +49,33 @@ resourcestring
   SInvalidCast = 'Transtypage invalide de %s en %s';
   SOperationNotApplicableToType =
     'Opération non applicable à ce type d''opérande';
-  SNeedPointerType = 'Type pointeur requis';
   STypeHasNoTypeInfo = 'Ce type n''a pas d''informations de type';
+  STestValueIsAlways = 'La condition est toujours évaluée à %s';
+  SConstExpressionRequired = 'Expression constante attendue';
+
+  // Sorte particulière de type requise
+  SNeedPointerType = 'Type pointeur requis';
   SOrdinalOrArrayTypeRequired = 'Type ordinal ou tableau requis';
   SArrayTypeRequired = 'Type tableau requis';
-  STestValueIsAlways = 'La condition est toujours évaluée à %s';
   SOrdinalTypeRequired = 'Type ordinal requis';
   SClassTypeRequired = 'Type classe requis';
+  SInterfaceTypeRequired = 'Type interface requis';
+
+  // Erreurs sur les valeurs
+  SValueRequired = 'Valeur requise';
   SVarValueRequired = 'Variable requise';
   SValueCantBeRead = 'La valeur ne peut être lue';
+  SReadableValueRequired = 'Valeur requise';
+
+  // Erreurs sur les paramètres
   SVarParamTypeMustBeStrictlyEqual =
     'Les paramètres var originaux et formels doivent avoir le même type';
   SNotEnoughActualParameters = 'Pas assez de paramètres réels';
   STooManyActualParameters = 'Trop de paramètres réels';
   SNoMatchingOverloadedMethod =
     'Aucune méthode surchargée ne peut être invoquée avec ces paramètres';
+  SCallPatternOnlyOnClassMethod =
+    'Forme d''appel autorisée uniquement sur les méthodes de classe';
 
   // Erreurs de compilateur
   SLabelAlreadyExists = 'Le label ''%s'' existe déjà';
@@ -93,6 +105,11 @@ resourcestring
     'Les SepiStackOffset des paramètres ne se suivent pas';
   SInvalidDataSize = 'Taille de données invalide';
   SObjectMustHaveASignature = 'L''objet %s n''a pas de signature';
+
+  // Erreurs de parser LL1
+  STopOfStackIsNotASymbol = 'Le sommet de la pile n''est pas un symbole';
+  STopOfStackIsNotATry = 'Le sommet de la pile n''est pas un try';
+  SNotInTry = 'La pile n''est pas dans un try';
 
 implementation
 
