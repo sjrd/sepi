@@ -26,6 +26,8 @@ unit SepiParseTrees;
 
 interface
 
+{$ASSERTIONS ON}
+
 uses
   Windows, SysUtils, Classes, Contnrs, RTLConsts, SepiReflectionCore,
   SepiCompiler, SepiCompilerErrors;
@@ -143,6 +145,7 @@ type
     constructor Create(AClass: TSepiSymbolClass;
       const ASourcePos: TSepiSourcePosition;
       const ARepresentation: string); overload;
+    constructor Clone(Source: TSepiTerminal; AParent: TSepiNonTerminal = nil);
 
     procedure Parse;
 
@@ -544,6 +547,17 @@ constructor TSepiTerminal.Create(AClass: TSepiSymbolClass;
   const ASourcePos: TSepiSourcePosition; const ARepresentation: string);
 begin
   Create(nil, AClass, ASourcePos, ARepresentation);
+end;
+
+{*
+  Clône un terminal
+  @param Source    Terminal à recopier
+  @param AParent   Parent du nouveau terminal
+*}
+constructor TSepiTerminal.Clone(Source: TSepiTerminal;
+  AParent: TSepiNonTerminal = nil);
+begin
+  Create(AParent, Source.SymbolClass, Source.SourcePos, Source.Representation);
 end;
 
 {*
