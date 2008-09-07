@@ -451,6 +451,12 @@ type
     function GetSourcePos: TSepiSourcePosition;
 
     {*
+      Position dans le source
+      @return Position dans le source
+    *}
+    procedure SetSourcePos(const Value: TSepiSourcePosition);
+
+    {*
       Attache une interface dynamique
       @param IID    ID de l'interface à attacher
       @param Intf   Interface à lier
@@ -474,7 +480,8 @@ type
     property UnitCompiler: TSepiUnitCompiler read GetUnitCompiler;
     property MethodCompiler: TSepiMethodCompiler read GetMethodCompiler;
 
-    property SourcePos: TSepiSourcePosition read GetSourcePos;
+    property SourcePos: TSepiSourcePosition
+      read GetSourcePos write SetSourcePos;
   end;
 
   {*
@@ -503,6 +510,7 @@ type
     function GetMethodCompiler: TSepiMethodCompiler;
 
     function GetSourcePos: TSepiSourcePosition;
+    procedure SetSourcePos(const Value: TSepiSourcePosition);
   public
     constructor Create(AUnitCompiler: TSepiUnitCompiler); overload;
     constructor Create(AMethodCompiler: TSepiMethodCompiler); overload;
@@ -1992,6 +2000,8 @@ begin
   FMethodCompiler := Context.MethodCompiler;
   FUnitCompiler := Context.UnitCompiler;
   FSepiRoot := Context.SepiRoot;
+
+  FSourcePos := Context.SourcePos;
 end;
 
 {*
@@ -2028,6 +2038,14 @@ end;
 function TSepiExpression.GetSourcePos: TSepiSourcePosition;
 begin
   Result := FSourcePos;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiExpression.SetSourcePos(const Value: TSepiSourcePosition);
+begin
+  FSourcePos := Value;
 end;
 
 {*
