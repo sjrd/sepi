@@ -111,6 +111,8 @@ type
     FOnAddError: TSepiAddErrorEvent; /// Déclenché à l'ajout d'une erreur
 
     function GetErrors(Index: Integer): TSepiCompilerError;
+
+    function GetErrorCount: Integer;
   protected
     procedure Notify(Ptr: Pointer; Action: TListNotification); override;
   public
@@ -137,12 +139,17 @@ type
     property Errors[Index: Integer]: TSepiCompilerError
       read GetErrors; default;
 
+    property ErrorCount: Integer read GetErrorCount;
+
     property OnAddError: TSepiAddErrorEvent read FOnAddError write FOnAddError;
   end;
 
 const
   /// Position non renseignée
   SepiNoPosition: TSepiSourcePosition = (FileName: ''; Line: 0; Col: 0);
+
+  /// Nombre maximum d'erreurs avant d'abandonner la compilation
+  MaxErrors = 100;
 
 var
   /// Nom des types d'erreur de compilation Sepi
@@ -240,6 +247,21 @@ begin
 end;
 
 {*
+  Nombre d'erreurs de type ekError dans la liste d'erreurs
+  @return Nombre d'erreurs
+*}
+function TSepiCompilerErrorList.GetErrorCount: Integer;
+var
+  I: Integer;
+begin
+  Result := 0;
+
+  for I := 0 to Count-1 do
+    if Errors[I].Kind = ekError then
+      Inc(Result);
+end;
+
+{*
   [@inheritDoc]
 *}
 procedure TSepiCompilerErrorList.Notify(Ptr: Pointer;
@@ -269,7 +291,9 @@ begin
   Add(Result);
 
   if Result.Kind = ekFatalError then
-    raise ESepiCompilerFatalError.Create(Result.AsText);
+    raise ESepiCompilerFatalError.Create(Result.AsText)
+  else if ErrorCount > MaxErrors then
+    MakeError(STooManyErrors, ekFatalError);
 end;
 
 {*
@@ -302,7 +326,9 @@ begin
   Add(Result);
 
   if Result.Kind = ekFatalError then
-    raise ESepiCompilerFatalError.Create(Result.AsText);
+    raise ESepiCompilerFatalError.Create(Result.AsText)
+  else if ErrorCount > MaxErrors then
+    MakeError(STooManyErrors, ekFatalError);
 end;
 
 {*

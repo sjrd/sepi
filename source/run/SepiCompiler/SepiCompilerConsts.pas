@@ -36,6 +36,7 @@ resourcestring
 
   // Erreurs de compilation génériques
   SSepiThereWereErrors = 'Il y a eu des erreurs à la compilation';
+  STooManyErrors = 'Trop d''erreurs';
   SIdentifier = 'Identificateur';
   SRedeclaredIdentifier = 'Identificateur redéclaré';
   SIdentifierNotFound = 'Identificateur %s non déclaré';
@@ -52,9 +53,10 @@ resourcestring
   STypeHasNoTypeInfo = 'Ce type n''a pas d''informations de type';
   STestValueIsAlways = 'La condition est toujours évaluée à %s';
   SConstExpressionRequired = 'Expression constante attendue';
+  SCallableRequired = 'Expression invocable requise';
 
   // Sorte particulière de type requise
-  SNeedPointerType = 'Type pointeur requis';
+  SPointerTypeRequired = 'Type pointeur requis';
   SOrdinalOrArrayTypeRequired = 'Type ordinal ou tableau requis';
   SArrayTypeRequired = 'Type tableau requis';
   SOrdinalTypeRequired = 'Type ordinal requis';
@@ -66,6 +68,8 @@ resourcestring
   SVarValueRequired = 'Variable requise';
   SValueCantBeRead = 'La valeur ne peut être lue';
   SReadableValueRequired = 'Valeur requise';
+  SWritableValueRequired = 'La valeur ne peut être écrite';
+  SAddressableValueRequired = 'Valeur adressable requise';
 
   // Erreurs sur les paramètres
   SVarParamTypeMustBeStrictlyEqual =
