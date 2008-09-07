@@ -27,11 +27,85 @@ unit SepiDelphiLikeCompilerUtils;
 interface
 
 uses
-  SysUtils, TypInfo, SepiReflectionCore, SepiMembers, SepiCompiler,
-  SepiExpressions;
+  Windows, SysUtils, StrUtils, TypInfo, SepiReflectionCore, SepiMembers,
+  SepiCompiler, SepiExpressions;
+
+type
+  {*
+    Pseudo-routine d'opération sur un type
+    @author sjrd
+    @version 1.0
+  *}
+  ISepiTypeOperationPseudoRoutine = interface(ISepiReadableValue)
+    ['{B2E927FC-5C5D-4E60-8A73-A5B5FF1FCBB3}']
+
+    function GetOperand: ISepiTypeExpression;
+    procedure SetOperand(const Value: ISepiTypeExpression);
+
+    procedure Complete;
+
+    property Operand: ISepiTypeExpression read GetOperand write SetOperand;
+  end;
+
+  {*
+    Pseudo-routine de transtypage
+    @author sjrd
+    @version 1.0
+  *}
+  ISepiCastPseudoRoutine = interface(ISepiValue)
+    ['{48556A76-A490-4F37-98C5-0930D931D4E1}']
+
+    function GetOperand: ISepiValue;
+    procedure SetOperand(const Value: ISepiValue);
+
+    procedure Complete;
+
+    property Operand: ISepiValue read GetOperand write SetOperand;
+  end;
+
+  {*
+    Pseudo-routine d'opération sur un type
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiTypeOperationPseudoRoutine = class(TSepiTypeOperationValue,
+    ISepiTypeOperationPseudoRoutine)
+  protected
+    procedure AttachToExpression(const Expression: ISepiExpression); override;
+
+    function GetOperand: ISepiTypeExpression;
+    procedure SetOperand(const Value: ISepiTypeExpression);
+  end;
+
+  {*
+    Pseudo-routine de transtypage
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiCastPseudoRoutine = class(TSepiCastOperator, ISepiCastPseudoRoutine)
+  protected
+    procedure AttachToExpression(const Expression: ISepiExpression); override;
+
+    function GetOperand: ISepiValue;
+    procedure SetOperand(const Value: ISepiValue);
+  end;
+
+const
+  /// Noms des opérations sur des types
+  TypeOperationNames: array[TSepiTypeOperation] of string = (
+    'SizeOf', 'TypeInfo', 'Low', 'High', 'Length'
+  );
+
+  /// Nom de la pseudo-routine Ord
+  OrdName = 'Ord';
+
+  /// Nom de la pseudo-routine Chr
+  ChrName = 'Chr';
 
 procedure AddMetaToExpression(const Expression: ISepiExpression;
   Meta: TSepiMeta);
+function AddPseudoRoutineToExpression(const Expression: ISepiExpression;
+  const Identifier: string): Boolean;
 
 function UnitResolveIdent(UnitCompiler: TSepiUnitCompiler;
   const Identifier: string): ISepiExpression;
@@ -86,6 +160,47 @@ begin
 end;
 
 {*
+  Ajoute une pseudo-routine à une expression
+  @param Expression   Expression
+  @param Identifier   Identificateur de la pseudo-routine
+  @return True si une pseudo-routine a été trouvée, False sinon
+*}
+function AddPseudoRoutineToExpression(const Expression: ISepiExpression;
+  const Identifier: string): Boolean;
+var
+  TypeOpIndex: Integer;
+begin
+  Result := True;
+
+  // Type operation pseudo-routine
+  TypeOpIndex := AnsiIndexText(Identifier, TypeOperationNames);
+  if TypeOpIndex >= 0 then
+  begin
+    ISepiExpressionPart(TSepiTypeOperationPseudoRoutine.Create(
+      TSepiTypeOperation(TypeOpIndex))).AttachToExpression(Expression);
+    Exit;
+  end;
+
+  // Ord pseudo-routine
+  if AnsiSameText(Identifier, OrdName) then
+  begin
+    ISepiExpressionPart(TSepiCastPseudoRoutine.CreateOrd).AttachToExpression(
+      Expression);
+    Exit;
+  end;
+
+  // Chr pseudo-routine
+  if AnsiSameText(Identifier, ChrName) then
+  begin
+    ISepiExpressionPart(TSepiCastPseudoRoutine.CreateChr).AttachToExpression(
+      Expression);
+    Exit;
+  end;
+
+  Result := False;
+end;
+
+{*
   Résoud un identificateur dans le contexte d'une unité
   @param UnitCompiler   Compilateur d'unité
   @param Identifier     Identificateur recherché
@@ -105,6 +220,10 @@ begin
     AddMetaToExpression(Result, Meta);
     Exit;
   end;
+
+  // Pseudo-routine
+  if AddPseudoRoutineToExpression(Result, Identifier) then
+    Exit;
 
   Result := nil;
 end;
@@ -139,6 +258,10 @@ begin
     AddMetaToExpression(Result, Meta);
     Exit;
   end;
+
+  // Pseudo-routine
+  if AddPseudoRoutineToExpression(Result, Identifier) then
+    Exit;
 
   Result := nil;
 end;
@@ -264,6 +387,77 @@ begin
 
   if CancelResult then
     Result := nil;
+end;
+
+{---------------------------------------}
+{ TSepiTypeOperationPseudoRoutine class }
+{---------------------------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiTypeOperationPseudoRoutine.AttachToExpression(
+  const Expression: ISepiExpression);
+var
+  AsExpressionPart: ISepiExpressionPart;
+begin
+  AsExpressionPart := Self;
+  Expression.Attach(ISepiTypeOperationPseudoRoutine, AsExpressionPart);
+
+  if Operand <> nil then
+    inherited;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiTypeOperationPseudoRoutine.GetOperand: ISepiTypeExpression;
+begin
+  Result := Operand;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiTypeOperationPseudoRoutine.SetOperand(
+  const Value: ISepiTypeExpression);
+begin
+  Operand := Value;
+end;
+
+{------------------------------}
+{ TSepiCastPseudoRoutine class }
+{------------------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiCastPseudoRoutine.AttachToExpression(
+  const Expression: ISepiExpression);
+var
+  AsExpressionPart: ISepiExpressionPart;
+begin
+  AsExpressionPart := Self;
+  Expression.Attach(ISepiCastPseudoRoutine, AsExpressionPart);
+
+  if Operand <> nil then
+    inherited;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiCastPseudoRoutine.GetOperand: ISepiValue;
+begin
+  Result := Operand;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiCastPseudoRoutine.SetOperand(const Value: ISepiValue);
+begin
+  Operand := Value;
 end;
 
 end.
