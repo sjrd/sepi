@@ -131,12 +131,12 @@ var
   I, ElSize: Integer;
 begin
   TypeData := PArrayTypeData(GetTypeData(TypeInfo));
-  ElSize := TypeSize(TypeData.ElType^);
+  ElSize := TypeData.Size div TypeData.Count;
 
   for I := 0 to TypeData.Count-1 do
   begin
     WriteDataToStream(Stream,
-      Pointer(Cardinal(Data) + I*ElSize)^, TypeData.ElType^);
+      Pointer(Cardinal(@Data) + I*ElSize)^, TypeData.ElType^);
   end;
 end;
 
@@ -153,12 +153,12 @@ var
   I, ElSize: Integer;
 begin
   TypeData := PArrayTypeData(GetTypeData(TypeInfo));
-  ElSize := TypeSize(TypeData.ElType^);
+  ElSize := TypeData.Size div TypeData.Count;
 
   for I := 0 to TypeData.Count-1 do
   begin
     ReadDataFromStream(Stream,
-      Pointer(Cardinal(Data) + I*ElSize)^, TypeData.ElType^);
+      Pointer(Cardinal(@Data) + I*ElSize)^, TypeData.ElType^);
   end;
 end;
 
