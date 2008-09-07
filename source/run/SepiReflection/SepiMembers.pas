@@ -1261,9 +1261,9 @@ begin
     Result := FType.CompatibleWith(AType);
 end;
 
-{-----------------------------}
+{-----------------------}
 { Classe TSepiSignature }
-{-----------------------------}
+{-----------------------}
 
 {*
   Constructeur de base

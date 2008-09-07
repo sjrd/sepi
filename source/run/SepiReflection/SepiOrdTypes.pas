@@ -459,7 +459,7 @@ begin
   end else
   begin
     // Unsigned
-    if AMaxValue >= 65536 then
+    if Cardinal(AMaxValue) >= 65536 then
       TypeData.OrdType := otULong
     else if AMaxValue >= 256 then
       TypeData.OrdType := otUWord
@@ -1488,6 +1488,8 @@ begin
         Create(Owner, Name, PointToName, IsNative);
       Dispose(FForwardInfo);
     end;
+
+    TSepiPointerType(Owner).ReAddChild(Self);
   end;
 
   inherited;

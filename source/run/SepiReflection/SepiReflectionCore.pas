@@ -1084,6 +1084,7 @@ end;
 procedure TSepiMeta.AddForward(const ChildName: string; Child: TObject);
 begin
   FForwards.AddObject(ChildName, Child);
+  (Child as TSepiMeta).Visibility := CurrentVisibility;
 end;
 
 {*
@@ -2389,7 +2390,7 @@ begin
   OwningUnit.ReadRef(Stream, FType);
   FValuePtr := ConstType.NewValue;
 
-  ReadDataFromStream(Stream, FValuePtr^, ConstType.TypeInfo);
+  ReadDataFromStream(Stream, FValuePtr^, ConstType.Size, ConstType.TypeInfo);
 end;
 
 {*
