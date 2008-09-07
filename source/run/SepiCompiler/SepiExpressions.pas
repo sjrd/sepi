@@ -493,10 +493,15 @@ type
   *}
   TSepiCastOperator = class(TSepiCustomDirectValue)
   private
+    FIsOrd: Boolean;      /// Indique si c'est un cast de type Ord
+    FIsChr: Boolean;      /// Indique si c'est un cast de type Chr
     FOperand: ISepiValue; /// Valeur source
     FForceCast: Boolean;  /// True force même avec des tailles différentes
 
+    procedure HandleOrdChr;
     procedure CollapseConsts;
+
+    function InternalCastValue: ISepiValue;
   protected
     function CompileAsMemoryRef(Compiler: TSepiMethodCompiler;
       Instructions: TSepiInstructionList;
@@ -515,12 +520,18 @@ type
   public
     constructor Create(DestType: TSepiType;
       const AOperand: ISepiValue = nil);
+    constructor CreateOrd(const AOperand: ISepiValue = nil);
+    constructor CreateChr(const AOperand: ISepiValue = nil);
 
     procedure Complete;
 
     class function CastValue(DestType: TSepiType;
       const Value: ISepiValue; ForceCast: Boolean = False): ISepiValue;
+    class function CastValueOrd(const Value: ISepiValue): ISepiValue;
+    class function CastValueChr(const Value: ISepiValue): ISepiValue;
 
+    property IsOrd: Boolean read FIsOrd;
+    property IsChr: Boolean read FIsChr;
     property Operand: ISepiValue read FOperand write FOperand;
     property ForceCast: Boolean read FForceCast write FForceCast;
   end;
@@ -2109,6 +2120,75 @@ begin
 end;
 
 {*
+  Crée une opération de conversion Ord
+  @param ASource   Expression source
+*}
+constructor TSepiCastOperator.CreateOrd(const AOperand: ISepiValue = nil);
+begin
+  inherited Create;
+
+  FIsOrd := True;
+  FOperand := AOperand;
+end;
+
+{*
+  Crée une opération de conversion Chr
+  @param ASource   Expression source
+*}
+constructor TSepiCastOperator.CreateChr(const AOperand: ISepiValue = nil);
+begin
+  inherited Create;
+
+  FIsChr := True;
+  FOperand := AOperand;
+end;
+
+{*
+  Gère le cas Ord et le cas Chr
+*}
+procedure TSepiCastOperator.HandleOrdChr;
+var
+  OpType: TSepiType;
+  DestTypeInfo: PTypeInfo;
+begin
+  if not (IsOrd or IsChr) then
+    Exit;
+
+  OpType := Operand.ValueType;
+
+  if not (OpType is TSepiOrdType) then
+  begin
+    MakeError(SOrdinalTypeRequired);
+    Exit;
+  end;
+
+  if IsChr then
+  begin
+    FForceCast := True;
+
+    if OpType.Size = 1 then
+      DestTypeInfo := TypeInfo(AnsiChar)
+    else
+      DestTypeInfo := TypeInfo(WideChar);
+  end else
+  begin
+    case TSepiOrdType(OpType).TypeData.OrdType of
+      otSByte: DestTypeInfo := TypeInfo(Shortint);
+      otUByte: DestTypeInfo := TypeInfo(Byte);
+      otSWord: DestTypeInfo := TypeInfo(Smallint);
+      otUWord: DestTypeInfo := TypeInfo(Word);
+      otSLong: DestTypeInfo := TypeInfo(Longint);
+      otULong: DestTypeInfo := TypeInfo(LongWord);
+    else
+      Assert(False);
+      DestTypeInfo := nil;
+    end;
+  end;
+
+  SetValueType(SepiRoot.FindType(DestTypeInfo));
+end;
+
+{*
   Pliage des constantes
 *}
 procedure TSepiCastOperator.CollapseConsts;
@@ -2141,6 +2221,19 @@ begin
 
   // Do the job
   ConstValuePtr := ConstOp.ConstValuePtr;
+end;
+
+{*
+  Tronc commun des fonctions de classe CastValue, CastValueOrd et CastValueChr
+  @return Valeur transtypée
+*}
+function TSepiCastOperator.InternalCastValue: ISepiValue;
+begin
+  Result := Self;
+  Result.AttachToExpression(
+    TSepiExpression.Create(Operand as ISepiExpression));
+  Complete;
+  Result.AttachToExpression(Expression);
 end;
 
 {*
@@ -2197,6 +2290,10 @@ begin
 
   OpType := Operand.ValueType;
 
+  HandleOrdChr;
+  if ValueType = nil then
+    Exit;
+
   if Supports(Operand, ISepiNilValue) then
     IsReadable := True
   else
@@ -2210,11 +2307,6 @@ begin
       if (OpType.Size < ValueType.Size) or (not ForceCast) then
       begin
         MakeError(Format(SInvalidCast, [OpType.Name, ValueType.Name]));
-
-        IsReadable := False;
-        IsWritable := False;
-        IsAddressable := False;
-
         Exit;
       end;
     end;
@@ -2235,12 +2327,30 @@ var
   CastOp: TSepiCastOperator;
 begin
   CastOp := TSepiCastOperator.Create(DestType, Value);
-  Result := CastOp;
   CastOp.ForceCast := ForceCast;
-  CastOp.Complete;
+  Result := CastOp.InternalCastValue;
+end;
 
-  Result.AttachToExpression(
-    TSepiExpression.Create(Value as ISepiExpression));
+{*
+  Transtype une valeur comme Ord
+  @param Value   Valeur à transtyper
+  @return Valeur transtypée
+*}
+class function TSepiCastOperator.CastValueOrd(
+  const Value: ISepiValue): ISepiValue;
+begin
+  Result := TSepiCastOperator.CreateOrd(Value).InternalCastValue;
+end;
+
+{*
+  Transtype une valeur comme Chr
+  @param Value   Valeur à transtyper
+  @return Valeur transtypée
+*}
+class function TSepiCastOperator.CastValueChr(
+  const Value: ISepiValue): ISepiValue;
+begin
+  Result := TSepiCastOperator.CreateChr(Value).InternalCastValue;
 end;
 
 {-----------------------------}
@@ -2440,14 +2550,12 @@ class function TSepiConvertOperation.ConvertValue(DestType: TSepiType;
   const Value: ISepiReadableValue): ISepiReadableValue;
 var
   ConvertOp: TSepiConvertOperation;
-  NewExpr: ISepiExpression;
 begin
   ConvertOp := TSepiConvertOperation.Create(DestType, Value);
   ConvertOp.Complete;
   Result := ConvertOp;
 
-  NewExpr := TSepiExpression.Create(Value as ISepiExpression);
-  NewExpr.Attach(ISepiReadableValue, Result);
+  Result.AttachToExpression(TSepiExpression.Create(Value as ISepiExpression));
 end;
 
 {-------------------------------------}
@@ -3215,7 +3323,7 @@ begin
   else if OpType is TSepiClass then
     SetValueType(UnitCompiler.GetMetaClass(TSepiClass(OpType)))
   else
-    MakeError(SNeedPointerType);
+    MakeError(SPointerTypeRequired);
 end;
 
 {*
@@ -4338,6 +4446,10 @@ begin
   OpType := Operand.ExprType;
 
   case Operation of
+    toSizeOf:
+    begin
+      // Always valid
+    end;
     toTypeInfo:
     begin
       if (not NilIfNoTypeInfo) and (OpType.TypeInfo = nil) then
