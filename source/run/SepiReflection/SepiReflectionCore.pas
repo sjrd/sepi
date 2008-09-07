@@ -2081,9 +2081,44 @@ end;
   [@inheritDoc]
 *}
 procedure TSepiUnit.Save(Stream: TStream);
+var
+  UsesCount, RefCount, I, J: Integer;
+  RefList: TStrings;
 begin
-  inherited;
-  SaveChildren(Stream);
+  UsesCount := FUsesList.Count;
+  SetLength(FReferences, UsesCount+1);
+  FillChar(FReferences[0], 4*(UsesCount+1), 0);
+  try
+    // Listing the references
+    for I := 0 to UsesCount do
+      FReferences[I] := TStringList.Create;
+    ListReferences;
+
+    // Writing the references lists to stream
+    UsesCount := FUsesList.Count; // this could have changed meanwhile
+    Stream.WriteBuffer(UsesCount, 4);
+    for I := 0 to UsesCount do
+    begin
+      if I > 0 then
+        WriteStrToStream(Stream, FUsesList[I-1]);
+
+      RefList := FReferences[I];
+      RefCount := RefList.Count;
+      Stream.WriteBuffer(RefCount, 4);
+
+      for J := 0 to RefCount-1 do
+        WriteStrToStream(Stream, RefList[J]);
+    end;
+
+    // Actually saving the unit
+    inherited;
+    SaveChildren(Stream);
+  finally
+    for I := 0 to UsesCount do
+      if Assigned(FReferences[I]) then
+        FReferences[I].Free;
+    SetLength(FReferences, 0);
+  end;
 end;
 
 {*
@@ -2157,43 +2192,8 @@ end;
   Enregistre l'unité dans un flux
 *}
 procedure TSepiUnit.SaveToStream(Stream: TStream);
-var
-  UsesCount, RefCount, I, J: Integer;
-  RefList: TStrings;
 begin
-  UsesCount := FUsesList.Count;
-  SetLength(FReferences, UsesCount+1);
-  FillChar(FReferences[0], 4*(UsesCount+1), 0);
-  try
-    // Listing the references
-    for I := 0 to UsesCount do
-      FReferences[I] := TStringList.Create;
-    ListReferences;
-
-    // Writing the references lists to stream
-    UsesCount := FUsesList.Count; // this could have changed meanwhile
-    Stream.WriteBuffer(UsesCount, 4);
-    for I := 0 to UsesCount do
-    begin
-      if I > 0 then
-        WriteStrToStream(Stream, FUsesList[I-1]);
-
-      RefList := FReferences[I];
-      RefCount := RefList.Count;
-      Stream.WriteBuffer(RefCount, 4);
-
-      for J := 0 to RefCount-1 do
-        WriteStrToStream(Stream, RefList[J]);
-    end;
-
-    // Actually saving the unit
-    Save(Stream);
-  finally
-    for I := 0 to UsesCount do
-      if Assigned(FReferences[I]) then
-        FReferences[I].Free;
-    SetLength(FReferences, 0);
-  end;
+  Save(Stream);
 end;
 
 {*
