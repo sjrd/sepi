@@ -172,8 +172,13 @@ type
   protected
     procedure ReAddChild(Child: TSepiMeta);
 
-    procedure LoadChildren(Stream: TStream);
-    procedure SaveChildren(Stream: TStream);
+    procedure LoadForwards(Stream: TStream); virtual;
+    function LoadChild(Stream: TStream): TSepiMeta; virtual;
+    procedure SaveForwards(Stream: TStream); virtual;
+    procedure SaveChild(Stream: TStream; Child: TSepiMeta); virtual;
+
+    procedure LoadChildren(Stream: TStream); virtual;
+    procedure SaveChildren(Stream: TStream); virtual;
 
     procedure AddForward(const ChildName: string; Child: TObject);
     procedure ChildAdded(Child: TSepiMeta); virtual;
@@ -185,6 +190,8 @@ type
     procedure Save(Stream: TStream); virtual;
 
     procedure Destroying; virtual;
+
+    function InternalGetMeta(const Name: string): TSepiMeta; virtual;
 
     function InternalLookFor(const Name: string; FromUnit: TSepiUnit;
       FromClass: TSepiMeta = nil): TSepiMeta; virtual;
@@ -392,14 +399,25 @@ type
 
     FReferences: array of TStrings; /// Références en chargement/sauvegarde
 
+    FLazyLoad: Boolean;           /// True si mode lazy-load
+    FStream: TStream;             /// Flux où charger les enfants
+    FChildrenPositions: TStrings; /// Positions des enfants dans le flux
+
     function AddUses(AUnit: TSepiUnit): Integer;
+
+    function LazyLoadChild(const Name: string): TSepiMeta;
 
     procedure SetCurrentVisibility(Value: TMemberVisibility);
 
     function GetUsedUnitCount: Integer;
     function GetUsedUnits(Index: Integer): TSepiUnit;
   protected
+    procedure LoadChildren(Stream: TStream); override;
+    procedure SaveChildren(Stream: TStream); override;
+
     procedure Save(Stream: TStream); override;
+
+    function InternalGetMeta(const Name: string): TSepiMeta; override;
 
     function InternalLookFor(const Name: string; FromUnit: TSepiUnit;
       FromClass: TSepiMeta = nil): TSepiMeta; override;
@@ -415,6 +433,7 @@ type
 
     procedure SaveToStream(Stream: TStream);
     class function LoadFromStream(AOwner: TSepiMeta; Stream: TStream;
+      ALazyLoad: Boolean = False;
       const AOnGetMethodCode: TGetMethodCodeEvent = nil;
       const AOnGetTypeInfo: TGetTypeInfoEvent = nil): TSepiUnit;
 
@@ -427,6 +446,8 @@ type
 
     property UsedUnitCount: Integer read GetUsedUnitCount;
     property UsedUnits[Index: Integer]: TSepiUnit read GetUsedUnits;
+
+    property LazyLoad: Boolean read FLazyLoad;
 
     property OnGetMethodCode: TGetMethodCodeEvent read FOnGetMethodCode;
     property OnGetTypeInfo: TGetTypeInfoEvent read FOnGetTypeInfo;
@@ -1007,35 +1028,98 @@ begin
 end;
 
 {*
-  Charge les enfants depuis un flux
-  @param Stream   Flux depuis lequel charger les enfants
+  Charge les forwards depuis un flux
+  @param Stream   Flux source
 *}
-procedure TSepiMeta.LoadChildren(Stream: TStream);
+procedure TSepiMeta.LoadForwards(Stream: TStream);
 var
   Count, I: Integer;
   ForwardChild: TObject;
-  IsForward: Boolean;
-  Str: string;
 begin
-  // Forwards
   Stream.ReadBuffer(Count, 4);
   for I := 0 to Count-1 do
   begin
     ForwardChild := SepiFindMetaClass(ReadStrFromStream(Stream)).NewInstance;
     AddForward(ReadStrFromStream(Stream), ForwardChild);
   end;
+end;
 
-  // Actual loading
-  Stream.ReadBuffer(Count, 4);
+{*
+  Charge un enfant depuis un flux
+  @param Stream   Flux source
+  @return Enfant chargé
+*}
+function TSepiMeta.LoadChild(Stream: TStream): TSepiMeta;
+var
+  IsForward: Boolean;
+  Name, ClassName: string;
+begin
+  Stream.ReadBuffer(IsForward, 1);
+
+  if IsForward then
+  begin
+    Name := ReadStrFromStream(Stream);
+    Result := GetMeta(Name);
+  end else
+    Result := nil;
+
+  ClassName := ReadStrFromStream(Stream);
+
+  if Result <> nil then
+    Result.Load(Self, Stream)
+  else
+    Result := SepiFindMetaClass(ClassName).Load(Self, Stream);
+end;
+
+{*
+  Enregistre les forwards dans un flux
+  @param Stream   Flux destination
+*}
+procedure TSepiMeta.SaveForwards(Stream: TStream);
+var
+  Count, I: Integer;
+begin
+  Count := FForwards.Count;
+  Stream.WriteBuffer(Count, 4);
   for I := 0 to Count-1 do
   begin
-    Stream.ReadBuffer(IsForward, 1);
-    Str := ReadStrFromStream(Stream);
-    if IsForward then
-      FindMeta(Str).Load(Self, Stream)
-    else
-      SepiFindMetaClass(Str).Load(Self, Stream);
+    WriteStrToStream(Stream, FForwards.Objects[I].ClassName);
+    WriteStrToStream(Stream, FForwards[I]);
   end;
+end;
+
+{*
+  Enregistre un enfant dans un flux
+  @param Stream   Flux destination
+  @param Child    Enfant à enregistrer
+*}
+procedure TSepiMeta.SaveChild(Stream: TStream; Child: TSepiMeta);
+var
+  IsForward: Boolean;
+begin
+  IsForward := FForwards.IndexOfObject(Child) >= 0;
+  Stream.WriteBuffer(IsForward, 1);
+
+  if IsForward then
+    WriteStrToStream(Stream, Child.Name);
+
+  WriteStrToStream(Stream, Child.ClassName);
+  Child.Save(Stream);
+end;
+
+{*
+  Charge les enfants depuis un flux
+  @param Stream   Flux depuis lequel charger les enfants
+*}
+procedure TSepiMeta.LoadChildren(Stream: TStream);
+var
+  Count, I: Integer;
+begin
+  LoadForwards(Stream);
+
+  Stream.ReadBuffer(Count, 4);
+  for I := 0 to Count-1 do
+    LoadChild(Stream);
 end;
 
 {*
@@ -1045,35 +1129,13 @@ end;
 procedure TSepiMeta.SaveChildren(Stream: TStream);
 var
   Count, I: Integer;
-  Child: TSepiMeta;
-  IsForward: Boolean;
 begin
-  // Forwards
-  Count := FForwards.Count;
-  Stream.WriteBuffer(Count, 4);
-  for I := 0 to Count-1 do
-  begin
-    WriteStrToStream(Stream, FForwards.Objects[I].ClassName);
-    WriteStrToStream(Stream, FForwards[I]);
-  end;
+  SaveForwards(Stream);
 
-  // Actual saving
   Count := FChildren.Count;
   Stream.WriteBuffer(Count, 4);
   for I := 0 to Count-1 do
-  begin
-    Child := FChildren[I];
-
-    IsForward := FForwards.IndexOfObject(Child) >= 0;
-    Stream.WriteBuffer(IsForward, 1);
-
-    if IsForward then
-      WriteStrToStream(Stream, Child.Name)
-    else
-      WriteStrToStream(Stream, Child.ClassName);
-
-    Child.Save(Stream);
-  end;
+    SaveChild(Stream, FChildren[I]);
 end;
 
 {*
@@ -1185,6 +1247,29 @@ begin
 end;
 
 {*
+  Cherche un meta enfant
+  InternalGetMeta ne doit pas être appelée directement : passez par GetMeta.
+  GetMeta n'appelle InternalGetMeta qu'avec un nom non-composé (sans .). De
+  plus, si InternalGetMeta renvoie un TSepiTypeAlias, GetMeta se chargera de le
+  "déréférencer".
+  @param Name   Nom du meta à trouver
+  @return Le meta correspondant, ou nil s'il n'a pas été trouvé
+*}
+function TSepiMeta.InternalGetMeta(const Name: string): TSepiMeta;
+var
+  Index: Integer;
+begin
+  Result := FChildren.MetaFromName[Name];
+
+  if Result = nil then
+  begin
+    Index := FForwards.IndexOf(Name);
+    if Index >= 0 then
+      Result := TSepiMeta(FForwards.Objects[Index]);
+  end;
+end;
+
+{*
   Recherche un meta à partir de son nom
   InternalLookFor ne doit pas être appelée directement : passez par LookFor.
   LookFor n'appelle InternalLookFor qu'avec un nom non-composé (sans .), et un
@@ -1238,19 +1323,12 @@ end;
 *}
 function TSepiMeta.GetMeta(const Name: string): TSepiMeta;
 var
-  I: Integer;
   MetaName, Field: string;
 begin
   if not SplitToken(Name, '.', MetaName, Field) then
     Field := '';
-  Result := FChildren.MetaFromName[MetaName];
 
-  if (Result = nil) and (Field = '') then
-  begin
-    I := FForwards.IndexOf(MetaName);
-    if I >= 0 then
-      Result := TSepiMeta(FForwards.Objects[I]);
-  end;
+  Result := InternalGetMeta(MetaName);
 
   if not Assigned(Result) then
     Exit;
@@ -1941,12 +2019,18 @@ var
   UsesCount, RefCount, I, J: Integer;
   Str: string;
 begin
+  if LazyLoad then
+  begin
+    FStream := Stream;
+    FChildrenPositions := THashedStringList.Create;
+  end;
+
   Stream.ReadBuffer(UsesCount, 4);
   SetLength(FReferences, UsesCount+1);
   FillChar(FReferences[0], 4*(UsesCount+1), 0);
 
   try
-    // Loading uses and setting up the references lists
+    // Load uses and set up the references lists
     FUsesList := TStringList.Create;
     for I := 0 to UsesCount do
     begin
@@ -1972,10 +2056,12 @@ begin
 
     Loaded;
   finally
-    for I := 0 to UsesCount do
-      if Assigned(FReferences[I]) then
+    if not LazyLoad then
+    begin
+      for I := 0 to UsesCount do
         FReferences[I].Free;
-    SetLength(FReferences, 0);
+      SetLength(FReferences, 0);
+    end;
   end;
 end;
 
@@ -2010,6 +2096,15 @@ destructor TSepiUnit.Destroy;
 var
   I: Integer;
 begin
+  if LazyLoad then
+  begin
+    FChildrenPositions.Free;
+    FStream.Free;
+
+    for I := 0 to Length(FReferences)-1 do
+      FReferences[I].Free;
+  end;
+
   inherited;
 
   if Assigned(FUsesList) and Assigned(Root) then
@@ -2047,6 +2142,55 @@ begin
 end;
 
 {*
+  Charge un enfant, s'il existe
+  @param Name   Nom de l'enfant
+  @return Enfant chargé, ou nil si n'existe pas
+*}
+function TSepiUnit.LazyLoadChild(const Name: string): TSepiMeta;
+var
+  Index: Integer;
+  OldPosition: Int64;
+  IsForward: Boolean;
+  Str: string;
+begin
+  Assert(LazyLoad);
+  Index := FChildrenPositions.IndexOf(Name);
+
+  if Index < 0 then
+  begin
+    Result := nil;
+    Exit;
+  end;
+
+  OldPosition := FStream.Position;
+  try
+    FStream.Position := Integer(FChildrenPositions.Objects[Index]);
+
+    // Ignore forward information
+    FStream.ReadBuffer(IsForward, 1);
+    if IsForward then
+      ReadStrFromStream(FStream);
+
+    // Load child
+    Str := ReadStrFromStream(FStream);
+    Result := SepiFindMetaClass(Str).Load(Self, FStream);
+  finally
+    FStream.Position := OldPosition;
+  end;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiUnit.InternalGetMeta(const Name: string): TSepiMeta;
+begin
+  Result := inherited InternalGetMeta(Name);
+
+  if LazyLoad and (Result = nil) then
+    Result := LazyLoadChild(Name);
+end;
+
+{*
   Change la visibilité courante
   @param Value   Nouvelle visibilité
 *}
@@ -2075,6 +2219,83 @@ end;
 function TSepiUnit.GetUsedUnits(Index: Integer): TSepiUnit;
 begin
   Result := TSepiUnit(FUsesList.Objects[Index]);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiUnit.LoadChildren(Stream: TStream);
+var
+  Count, I: Integer;
+  ChildName: string;
+  Position: Int64;
+begin
+  Stream.ReadBuffer(Count, SizeOf(Integer));
+
+  for I := 0 to Count-1 do
+  begin
+    ChildName := ReadStrFromStream(Stream);
+    Stream.ReadBuffer(Position, SizeOf(Int64));
+
+    if LazyLoad then
+    begin
+      Assert(Position <= MaxInt);
+      FChildrenPositions.AddObject(ChildName, TObject(Position));
+    end;
+  end;
+
+  if not LazyLoad then
+    inherited;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiUnit.SaveChildren(Stream: TStream);
+var
+  Count, I: Integer;
+  Position: Int64;
+  Positions: array of record
+    PositionPos: Int64;
+    ChildPos: Int64;
+  end;
+begin
+  Count := ChildCount;
+  Stream.WriteBuffer(Count, SizeOf(Integer));
+  SetLength(Positions, Count);
+
+  // Write position table (positions to 0 for now)
+
+  Position := 0;
+  for I := 0 to Count-1 do
+  begin
+    WriteStrToStream(Stream, Children[I].Name);
+    Positions[I].PositionPos := Stream.Position;
+    Stream.WriteBuffer(Position, SizeOf(Int64));
+  end;
+
+  // Save children (and store positions)
+
+  SaveForwards(Stream);
+
+  Stream.WriteBuffer(Count, SizeOf(Integer));
+  for I := 0 to Count-1 do
+  begin
+    Positions[I].ChildPos := Stream.Position;
+    SaveChild(Stream, Children[I]);
+  end;
+
+  // Write positions
+
+  Position := Stream.Position;
+
+  for I := 0 to Count-1 do
+  begin
+    Stream.Position := Positions[I].PositionPos;
+    Stream.WriteBuffer(Positions[I].ChildPos, SizeOf(Int64));
+  end;
+
+  Stream.Position := Position;
 end;
 
 {*
@@ -2193,6 +2414,9 @@ end;
 *}
 procedure TSepiUnit.SaveToStream(Stream: TStream);
 begin
+  if LazyLoad then
+    raise ESepiError.Create(SSepiCantSaveLazyLoadUnit);
+
   Save(Stream);
 end;
 
@@ -2206,10 +2430,12 @@ end;
                             type
 *}
 class function TSepiUnit.LoadFromStream(AOwner: TSepiMeta; Stream: TStream;
+  ALazyLoad: Boolean = False;
   const AOnGetMethodCode: TGetMethodCodeEvent = nil;
   const AOnGetTypeInfo: TGetTypeInfoEvent = nil): TSepiUnit;
 begin
   Result := TSepiUnit(NewInstance);
+  Result.FLazyLoad := ALazyLoad;
   Result.FOnGetMethodCode := AOnGetMethodCode;
   Result.FOnGetTypeInfo := AOnGetTypeInfo;
   Result.Load(AOwner, Stream);

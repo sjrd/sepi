@@ -387,7 +387,7 @@ begin
     FMethods.Add(TSepiRuntimeMethod.Create(Self, Stream));
 
   // Load Sepi unit
-  FSepiUnit := TSepiUnit.LoadFromStream(SepiRoot, Stream, GetMethodCode);
+  FSepiUnit := TSepiUnit.LoadFromStream(SepiRoot, Stream, False, GetMethodCode);
 
   // Read references
   Stream.ReadBuffer(Count, SizeOf(Integer));

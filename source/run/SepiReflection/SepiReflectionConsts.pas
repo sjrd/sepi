@@ -32,6 +32,8 @@ resourcestring
   SSepiMetaAlreadyAssigned = 'L''objet meta à la position %d est déjà assigné';
   SSepiObjectNotFound = 'Objet %s non trouvé';
   SSepiUnitNotFound = 'Impossible de trouver l''unité %s';
+  SSepiCantSaveLazyLoadUnit =
+    'Impossible d''enregistrer une unité en mode lazy-load';
   SSepiNoRegisterTypeInfo = 'Ce type n''implémente pas RegisterTypeInfo';
   SCantCloneType = 'Ne peut cloner le type %s';
   SSepiBadConstType = 'Impossible de créer une constante de type variant %d';
