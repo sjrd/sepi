@@ -151,8 +151,8 @@ type
   *}
   TSepiBaseType = (
     btBoolean, btByte, btWord, btDWord, btShortint, btSmallint, btLongint,
-    btInt64, btSingle, btDouble, btExtended, btComp, btCurrency, btAnsiStr,
-    btWideStr, btVariant
+    btInt64, btSingle, btDouble, btExtended, btComp, btCurrency, btAnsiChar,
+    btWideChar, btAnsiStr, btWideStr, btVariant
   );
 
   {*
@@ -164,6 +164,7 @@ const
   btIntegers =
     [btByte, btWord, btDWord, btShortint, btSmallint, btLongint, btInt64];
   btFloats = [btSingle, btDouble, btExtended, btComp, btCurrency];
+  btChars = [btAnsiChar, btWideChar];
   btStrings = [btAnsiStr, btWideStr];
 
 type
@@ -206,7 +207,7 @@ const
 
   /// Taille des constantes en fonction des types de base
   BaseTypeConstSizes: array[TSepiBaseType] of Integer = (
-    1, 1, 2, 4, 1, 2, 4, 8, 4, 8, 10, 8, 8, 0, 0, 0
+    1, 1, 2, 4, 1, 2, 4, 8, 4, 8, 10, 8, 8, 1, 2, 0, 0, 0
   );
 
   /// Le paramètre est passé par adresse

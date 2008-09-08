@@ -165,8 +165,8 @@ const
   /// Nom des types de données de base de Sepi
   BaseTypeNames: array[TSepiBaseType] of string = (
     'Boolean', 'Byte', 'Word', 'DWord', 'Shortint', 'Smallint', 'Longint',
-    'Int64', 'Single', 'Double', 'Extended', 'Comp', 'Currency', 'AnsiStr',
-    'WideStr', 'Variant'
+    'Int64', 'Single', 'Double', 'Extended', 'Comp', 'Currency', 'AnsiChar',
+    'WideChar', 'AnsiStr', 'WideStr', 'Variant'
   );
 
 {*

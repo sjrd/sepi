@@ -63,10 +63,10 @@ begin
     ocSelfInc, ocOtherInc:
     begin
       case VarType of
-        btByte, btShortint: Shortint(Dest) := Shortint(Source)+1;
-        btWord, btSmallint: Smallint(Dest) := Smallint(Source)+1;
-        btDWord, btLongint: Longint (Dest) := Longint (Source)+1;
-        btComp:             Comp    (Dest) := Comp    (Source)+1;
+        btByte, btShortint, btAnsiChar: Shortint(Dest) := Shortint(Source)+1;
+        btWord, btSmallint, btWideChar: Smallint(Dest) := Smallint(Source)+1;
+        btDWord, btLongint:             Longint (Dest) := Longint (Source)+1;
+        btComp:                         Comp    (Dest) := Comp    (Source)+1;
       else
         RaiseInvalidOpCode;
       end;
@@ -74,10 +74,10 @@ begin
     ocSelfDec, ocOtherDec:
     begin
       case VarType of
-        btByte, btShortint: Shortint(Dest) := Shortint(Source)-1;
-        btWord, btSmallint: Smallint(Dest) := Smallint(Source)-1;
-        btDWord, btLongint: Longint (Dest) := Longint (Source)-1;
-        btComp:             Comp    (Dest) := Comp    (Source)-1;
+        btByte, btShortint, btAnsiChar: Shortint(Dest) := Shortint(Source)-1;
+        btWord, btSmallint, btWideChar: Smallint(Dest) := Smallint(Source)-1;
+        btDWord, btLongint:             Longint (Dest) := Longint (Source)-1;
+        btComp:                         Comp    (Dest) := Comp    (Source)-1;
       else
         RaiseInvalidOpCode;
       end;
@@ -85,10 +85,10 @@ begin
     ocSelfNot, ocOtherNot:
     begin
       case VarType of
-        btBoolean:          Boolean (Dest) := not Boolean (Source);
-        btByte, btShortint: Shortint(Dest) := not Shortint(Source);
-        btWord, btSmallint: Smallint(Dest) := not Smallint(Source);
-        btDWord, btLongint: Longint (Dest) := not Longint (Source);
+        btBoolean:                      Boolean (Dest) := not Boolean (Source);
+        btByte, btShortint, btAnsiChar: Shortint(Dest) := not Shortint(Source);
+        btWord, btSmallint, btWideChar: Smallint(Dest) := not Smallint(Source);
+        btDWord, btLongint:             Longint (Dest) := not Longint (Source);
       else
         RaiseInvalidOpCode;
       end;
@@ -140,9 +140,11 @@ begin
         btExtended: Extended  (Dest) := Extended  (Left) + Extended  (Right);
         btComp:     Comp      (Dest) := Comp      (Left) + Comp      (Right);
         btCurrency: Currency  (Dest) := Currency  (Left) + Currency  (Right);
+
         btAnsiStr:  AnsiString(Dest) := AnsiString(Left) + AnsiString(Right);
         btWideStr:  WideString(Dest) := WideString(Left) + WideString(Right);
-        btVariant:  Variant   (Dest) := Variant   (Left) + Variant   (Right);
+
+        btVariant:  Variant(Dest) := Variant(Left) + Variant(Right);
       else
         RaiseInvalidOpCode;
       end;
@@ -160,7 +162,8 @@ begin
         btExtended: Extended(Dest) := Extended(Left) - Extended(Right);
         btComp:     Comp    (Dest) := Comp    (Left) - Comp    (Right);
         btCurrency: Currency(Dest) := Currency(Left) - Currency(Right);
-        btVariant:  Variant (Dest) := Variant (Left) - Variant (Right);
+
+        btVariant:  Variant(Dest) := Variant(Left) - Variant(Right);
       else
         RaiseInvalidOpCode;
       end;
@@ -181,7 +184,8 @@ begin
         btExtended: Extended(Dest) := Extended(Left) * Extended(Right);
         btComp:     Comp    (Dest) := Comp    (Left) * Comp    (Right);
         btCurrency: Currency(Dest) := Currency(Left) * Currency(Right);
-        btVariant:  Variant (Dest) := Variant (Left) * Variant (Right);
+
+        btVariant:  Variant(Dest) := Variant(Left) * Variant(Right);
       else
         RaiseInvalidOpCode;
       end;
@@ -194,7 +198,8 @@ begin
         btExtended: Extended(Dest) := Extended(Left) / Extended(Right);
         btComp:     Comp    (Dest) := Comp    (Left) / Comp    (Right);
         btCurrency: Currency(Dest) := Currency(Left) / Currency(Right);
-        btVariant:  Variant (Dest) := Variant (Left) / Variant (Right);
+
+        btVariant:  Variant(Dest) := Variant(Left) / Variant(Right);
       else
         RaiseInvalidOpCode;
       end;
@@ -209,7 +214,8 @@ begin
         btDWord:    LongWord(Dest) := LongWord(Left) div LongWord(Right);
         btLongint:  Longint (Dest) := Longint (Left) div Longint (Right);
         btInt64:    Int64   (Dest) := Int64   (Left) div Int64   (Right);
-        btVariant:  Variant (Dest) := Variant (Left) div Variant (Right);
+
+        btVariant:  Variant(Dest) := Variant(Left) div Variant(Right);
       else
         RaiseInvalidOpCode;
       end;
@@ -224,7 +230,8 @@ begin
         btDWord:    LongWord(Dest) := LongWord(Left) mod LongWord(Right);
         btLongint:  Longint (Dest) := Longint (Left) mod Longint (Right);
         btInt64:    Int64   (Dest) := Int64   (Left) mod Int64   (Right);
-        btVariant:  Variant (Dest) := Variant (Left) mod Variant (Right);
+
+        btVariant:  Variant(Dest) := Variant(Left) mod Variant(Right);
       else
         RaiseInvalidOpCode;
       end;
@@ -342,9 +349,12 @@ begin
         btComp:     Boolean(Dest) := Comp    (Left) = Comp    (Right);
         btCurrency: Boolean(Dest) := Currency(Left) = Currency(Right);
 
-        btAnsiStr: Boolean(Dest) := AnsiString(Left) = AnsiString(Right);
-        btWideStr: Boolean(Dest) := WideString(Left) = WideString(Right);
-        btVariant: Boolean(Dest) := Variant   (Left) = Variant   (Right);
+        btAnsiChar: Boolean(Dest) := AnsiChar  (Left) = AnsiChar  (Right);
+        btWideChar: Boolean(Dest) := WideChar  (Left) = WideChar  (Right);
+        btAnsiStr:  Boolean(Dest) := AnsiString(Left) = AnsiString(Right);
+        btWideStr:  Boolean(Dest) := WideString(Left) = WideString(Right);
+
+        btVariant: Boolean(Dest) := Variant(Left) = Variant(Right);
       else
         RaiseInvalidOpCode;
       end;
@@ -365,9 +375,12 @@ begin
         btComp:     Boolean(Dest) := Comp    (Left) <> Comp    (Right);
         btCurrency: Boolean(Dest) := Currency(Left) <> Currency(Right);
 
-        btAnsiStr: Boolean(Dest) := AnsiString(Left) <> AnsiString(Right);
-        btWideStr: Boolean(Dest) := WideString(Left) <> WideString(Right);
-        btVariant: Boolean(Dest) := Variant   (Left) <> Variant   (Right);
+        btAnsiChar: Boolean(Dest) := AnsiChar  (Left) <> AnsiChar  (Right);
+        btWideChar: Boolean(Dest) := WideChar  (Left) <> WideChar  (Right);
+        btAnsiStr:  Boolean(Dest) := AnsiString(Left) <> AnsiString(Right);
+        btWideStr:  Boolean(Dest) := WideString(Left) <> WideString(Right);
+
+        btVariant: Boolean(Dest) := Variant(Left) <> Variant(Right);
       else
         RaiseInvalidOpCode;
       end;
@@ -391,9 +404,12 @@ begin
         btComp:     Boolean(Dest) := Comp    (Left) < Comp    (Right);
         btCurrency: Boolean(Dest) := Currency(Left) < Currency(Right);
 
-        btAnsiStr: Boolean(Dest) := AnsiString(Left) < AnsiString(Right);
-        btWideStr: Boolean(Dest) := WideString(Left) < WideString(Right);
-        btVariant: Boolean(Dest) := Variant   (Left) < Variant   (Right);
+        btAnsiChar: Boolean(Dest) := AnsiChar  (Left) < AnsiChar  (Right);
+        btWideChar: Boolean(Dest) := WideChar  (Left) < WideChar  (Right);
+        btAnsiStr:  Boolean(Dest) := AnsiString(Left) < AnsiString(Right);
+        btWideStr:  Boolean(Dest) := WideString(Left) < WideString(Right);
+
+        btVariant: Boolean(Dest) := Variant(Left) < Variant(Right);
       else
         RaiseInvalidOpCode;
       end;
@@ -417,9 +433,12 @@ begin
         btComp:     Boolean(Dest) := Comp    (Left) > Comp    (Right);
         btCurrency: Boolean(Dest) := Currency(Left) > Currency(Right);
 
-        btAnsiStr: Boolean(Dest) := AnsiString(Left) > AnsiString(Right);
-        btWideStr: Boolean(Dest) := WideString(Left) > WideString(Right);
-        btVariant: Boolean(Dest) := Variant   (Left) > Variant   (Right);
+        btAnsiChar: Boolean(Dest) := AnsiChar  (Left) > AnsiChar  (Right);
+        btWideChar: Boolean(Dest) := WideChar  (Left) > WideChar  (Right);
+        btAnsiStr:  Boolean(Dest) := AnsiString(Left) > AnsiString(Right);
+        btWideStr:  Boolean(Dest) := WideString(Left) > WideString(Right);
+
+        btVariant: Boolean(Dest) := Variant(Left) > Variant(Right);
       else
         RaiseInvalidOpCode;
       end;
@@ -443,9 +462,12 @@ begin
         btComp:     Boolean(Dest) := Comp    (Left) <= Comp    (Right);
         btCurrency: Boolean(Dest) := Currency(Left) <= Currency(Right);
 
-        btAnsiStr: Boolean(Dest) := AnsiString(Left) <= AnsiString(Right);
-        btWideStr: Boolean(Dest) := WideString(Left) <= WideString(Right);
-        btVariant: Boolean(Dest) := Variant   (Left) <= Variant   (Right);
+        btAnsiChar: Boolean(Dest) := AnsiChar  (Left) <= AnsiChar  (Right);
+        btWideChar: Boolean(Dest) := WideChar  (Left) <= WideChar  (Right);
+        btAnsiStr:  Boolean(Dest) := AnsiString(Left) <= AnsiString(Right);
+        btWideStr:  Boolean(Dest) := WideString(Left) <= WideString(Right);
+
+        btVariant: Boolean(Dest) := Variant(Left) <= Variant(Right);
       else
         RaiseInvalidOpCode;
       end;
@@ -469,9 +491,12 @@ begin
         btComp:     Boolean(Dest) := Comp    (Left) >= Comp    (Right);
         btCurrency: Boolean(Dest) := Currency(Left) >= Currency(Right);
 
-        btAnsiStr: Boolean(Dest) := AnsiString(Left) >= AnsiString(Right);
-        btWideStr: Boolean(Dest) := WideString(Left) >= WideString(Right);
-        btVariant: Boolean(Dest) := Variant   (Left) >= Variant   (Right);
+        btAnsiChar: Boolean(Dest) := AnsiChar  (Left) >= AnsiChar  (Right);
+        btWideChar: Boolean(Dest) := WideChar  (Left) >= WideChar  (Right);
+        btAnsiStr:  Boolean(Dest) := AnsiString(Left) >= AnsiString(Right);
+        btWideStr:  Boolean(Dest) := WideString(Left) >= WideString(Right);
+
+        btVariant: Boolean(Dest) := Variant(Left) >= Variant(Right);
       else
         RaiseInvalidOpCode;
       end;
@@ -861,6 +886,48 @@ begin
 end;
 
 {*
+  Conversion standard depuis une AnsiChar
+  @param DestType   Type de destination
+  @param Dest       Destination
+  @param Source     Source
+*}
+procedure ConvertFromAnsiChar(DestType: TSepiBaseType; var Dest;
+  var Source: AnsiChar);
+begin
+  case DestType of
+    btAnsiChar: AnsiChar  (Dest) := Source;
+    btWideChar: WideChar  (Dest) := WideChar(Source);
+    btAnsiStr:  AnsiString(Dest) := Source;
+    btWideStr:  WideString(Dest) := Source;
+
+    btVariant: Variant(Dest) := Source;
+  else
+    RaiseInvalidOpCode;
+  end;
+end;
+
+{*
+  Conversion standard depuis une WideChar
+  @param DestType   Type de destination
+  @param Dest       Destination
+  @param Source     Source
+*}
+procedure ConvertFromWideChar(DestType: TSepiBaseType; var Dest;
+  var Source: WideChar);
+begin
+  case DestType of
+    btAnsiChar: AnsiChar  (Dest) := AnsiChar(Source);
+    btWideChar: WideChar  (Dest) := Source;
+    btAnsiStr:  AnsiString(Dest) := Source;
+    btWideStr:  WideString(Dest) := Source;
+
+    btVariant: Variant(Dest) := Source;
+  else
+    RaiseInvalidOpCode;
+  end;
+end;
+
+{*
   Conversion standard depuis une AnsiString
   @param DestType   Type de destination
   @param Dest       Destination
@@ -872,7 +939,8 @@ begin
   case DestType of
     btAnsiStr:  AnsiString(Dest) := AnsiString(Source);
     btWideStr:  WideString(Dest) := WideString(Source);
-    btVariant:  Variant   (Dest) := Source;
+
+    btVariant: Variant(Dest) := Source;
   else
     RaiseInvalidOpCode;
   end;
@@ -890,7 +958,8 @@ begin
   case DestType of
     btAnsiStr:  AnsiString(Dest) := AnsiString(Source);
     btWideStr:  WideString(Dest) := WideString(Source);
-    btVariant:  Variant   (Dest) := Source;
+
+    btVariant: Variant(Dest) := Source;
   else
     RaiseInvalidOpCode;
   end;
@@ -950,6 +1019,20 @@ begin
   Include(BaseTypes, SrcBaseType);
   Include(BaseTypes, DestBaseType);
 
+  // Char types convert to Char types or string types
+  if SrcBaseType in btChars then
+  begin
+    Result := DestBaseType in (btChars + btStrings);
+    Exit;
+  end;
+
+  // Except for the previous case, converting to a char type is unsupported
+  if DestBaseType in btChars then
+  begin
+    Result := False;
+    Exit;
+  end;
+
   // String types convert between each other, but not with anything else
   if BaseTypes = [btAnsiStr, btWideStr] then
     Exit;
@@ -987,6 +1070,8 @@ begin
   @ConvertProcs[btExtended] := @ConvertFromExtended;
   @ConvertProcs[btComp]     := @ConvertFromComp;
   @ConvertProcs[btCurrency] := @ConvertFromCurrency;
+  @ConvertProcs[btAnsiChar] := @ConvertFromAnsiChar;
+  @ConvertProcs[btWideChar] := @ConvertFromWideChar;
   @ConvertProcs[btAnsiStr]  := @ConvertFromAnsiString;
   @ConvertProcs[btWideStr]  := @ConvertFromWideString;
   @ConvertProcs[btVariant]  := @ConvertFromVariant;

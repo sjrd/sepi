@@ -1124,13 +1124,16 @@ const
   FloatTypeToBaseType: array[TFloatType] of TSepiBaseType = (
     btSingle, btDouble, btExtended, btComp, btCurrency
   );
-  IsUnicodeToBaseType: array[Boolean] of TSepiBaseType = (
+  CharIsUnicodeToBaseType: array[Boolean] of TSepiBaseType = (
+    btAnsiChar, btWideChar
+  );
+  StrIsUnicodeToBaseType: array[Boolean] of TSepiBaseType = (
     btAnsiStr, btWideStr
   );
 begin
   Result := True;
 
-  if (SepiType is TSepiIntegerType) or (SepiType is TSepiCharType) then
+  if SepiType is TSepiIntegerType then
     BaseType := OrdTypeToBaseType[GetTypeData(SepiType.TypeInfo).OrdType]
   else if SepiType is TSepiInt64Type then
     BaseType := btInt64
@@ -1139,8 +1142,10 @@ begin
   else if (SepiType is TSepiBooleanType) and
     (TSepiBooleanType(SepiType).BooleanKind = bkBoolean) then
     BaseType := btBoolean
+  else if SepiType is TSepiCharType then
+    BaseType := CharIsUnicodeToBaseType[TSepiCharType(SepiType).IsUnicode]
   else if SepiType is TSepiStringType then
-    BaseType := IsUnicodeToBaseType[TSepiStringType(SepiType).IsUnicode]
+    BaseType := StrIsUnicodeToBaseType[TSepiStringType(SepiType).IsUnicode]
   else if SepiType is TSepiVariantType then
     BaseType := btVariant
   else
@@ -4611,6 +4616,7 @@ var
   AsExpressionPart: ISepiExpressionPart;
 begin
   AsExpressionPart := Self;
+  Expression.Attach(ISepiValue, AsExpressionPart);
   Expression.Attach(ISepiNilValue, AsExpressionPart);
 end;
 
