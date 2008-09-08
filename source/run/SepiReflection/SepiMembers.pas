@@ -596,6 +596,14 @@ type
   end;
 
   {*
+    Redirecteur de méthode d'interface pour une classe Sepi
+  *}
+  TSepiIntfMethodRedirector = record
+    IntfMethod: TSepiMethod; /// Méthode de l'interface
+    RedirectorName: string;  /// Nom de la méthode de redirection
+  end;
+
+  {*
     Classe (type objet)
     @author sjrd
     @version 1.0
@@ -608,6 +616,9 @@ type
 
     /// Interfaces supportées par la classe
     FInterfaces: array of TSepiInterfaceEntry;
+
+    /// Redirecteurs de méthodes d'interface
+    FIntfMethodRedirectors: array of TSepiIntfMethodRedirector;
 
     FInstSize: Integer;     /// Taille d'une instance de la classe
     FVMTSize: Integer;      /// Taille de la VMT dans les index positifs
@@ -637,6 +648,9 @@ type
 
     function InternalLookFor(const Name: string; FromUnit: TSepiUnit;
       FromClass: TSepiMeta = nil): TSepiMeta; override;
+
+    function FindIntfMethodImpl(IntfMethod: TSepiMethod;
+      FromClass: TSepiClass): TSepiMethod;
 
     property VMTEntries[Index: Integer]: Pointer
       read GetVMTEntries write SetVMTEntries;
@@ -698,6 +712,9 @@ type
     function RedefineProperty(
       const AName, AReadAccess, AWriteAccess: string; ADefaultValue: Integer;
       const AStorage: string = ''): TSepiProperty; overload;
+
+    procedure AddIntfMethodRedirector(IntfMethod: TSepiMethod;
+      const RedirectorName: string);
 
     procedure Complete;
 
@@ -3288,8 +3305,7 @@ begin
       end;
 
       // JumpInstruction
-      RealMethod :=
-        LookforMember(Method.Name, OwningUnit, Self) as TSepiMethod;
+      RealMethod := FindIntfMethodImpl(Method, Self);
 
       // jmp Method.Code   E9 xx xx xx xx
       PByte(RelocEntry)^ := $E9;
@@ -3794,6 +3810,33 @@ begin
 end;
 
 {*
+  Trouve la méthode qui implémente une méthode d'interface
+  @param IntfMethod   Méthode d'interface dont on cherche l'implémentation
+  @param FromClass    Classe depuis laquelle on cherche
+  @return Méthode qui implémente, ou nil si non trouvée
+*}
+function TSepiClass.FindIntfMethodImpl(IntfMethod: TSepiMethod;
+  FromClass: TSepiClass): TSepiMethod;
+var
+  I: Integer;
+begin
+  for I := 0 to Length(FIntfMethodRedirectors)-1 do
+  begin
+    if FIntfMethodRedirectors[I].IntfMethod = IntfMethod then
+    begin
+      Result := FromClass.LookForMember(
+        FIntfMethodRedirectors[I].RedirectorName) as TSepiMethod;
+      Exit;
+    end;
+  end;
+
+  if Parent <> nil then
+    Result := Parent.FindIntfMethodImpl(IntfMethod, FromClass)
+  else
+    Result := FromClass.LookForMember(IntfMethod.Name) as TSepiMethod;
+end;
+
+{*
   Crée une nouvelle instance de TSepiClass
   @return Instance créée
 *}
@@ -4050,6 +4093,23 @@ function TSepiClass.RedefineProperty(
 begin
   Result := TSepiProperty.Redefine(Self, AName,
     AReadAccess, AWriteAccess, ADefaultValue, AStorage);
+end;
+
+{*
+  Ajoute un redirecteur de méthode d'interface
+  @param IntfMethod       Méthode d'interface à rediriger
+  @param RedirectorName   Nom du redirecteur
+*}
+procedure TSepiClass.AddIntfMethodRedirector(IntfMethod: TSepiMethod;
+  const RedirectorName: string);
+var
+  Index: Integer;
+begin
+  Index := Length(FIntfMethodRedirectors);
+  SetLength(FIntfMethodRedirectors, Index+1);
+
+  FIntfMethodRedirectors[Index].IntfMethod := IntfMethod;
+  FIntfMethodRedirectors[Index].RedirectorName := RedirectorName;
 end;
 
 {*
