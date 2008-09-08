@@ -4156,8 +4156,18 @@ end;
 *}
 function TSepiClass.ClassImplementsInterface(
   AInterface: TSepiInterface): Boolean;
+var
+  I: Integer;
 begin
-  Result := DelphiClass.GetInterfaceEntry(AInterface.GUID) <> nil;
+  Result := True;
+  for I := 0 to InterfaceCount-1 do
+    if Interfaces[I] = AInterface then
+      Exit;
+
+  if Parent = nil then
+    Result := False
+  else
+    Result := Parent.ClassImplementsInterface(AInterface);
 end;
 
 {*
