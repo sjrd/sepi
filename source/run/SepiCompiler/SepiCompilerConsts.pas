@@ -81,6 +81,9 @@ resourcestring
   SCallPatternOnlyOnClassMethod =
     'Forme d''appel autorisée uniquement sur les méthodes de classe';
 
+  // Erreurs sur des classes ou interfaces
+  SClassDoesNotImplementIntf = 'La classe %s n''implémente pas l''interface %s';
+
   // Erreurs de compilateur
   SLabelAlreadyExists = 'Le label ''%s'' existe déjà';
   SLabelNotFound = 'Label ''%s'' non trouvé';

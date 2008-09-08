@@ -2617,11 +2617,19 @@ begin
   begin
     if not ((ValueType is TSepiIntegerType) or
       (ValueType is TSepiBooleanType)) then
+    begin
       ErrorTypeNotApplicable;
+      Operand := TSepiTrueConstValue.MakeIntegerLiteral(UnitCompiler, 0);
+      SetValueType(Operand.ValueType);
+    end;
   end else
   begin
     if not (ValueType.Kind in [tkInteger, tkFloat, tkVariant, tkInt64]) then
+    begin
       ErrorTypeNotApplicable;
+      Operand := TSepiTrueConstValue.MakeIntegerLiteral(UnitCompiler, 0);
+      SetValueType(Operand.ValueType);
+    end;
   end;
 end;
 
@@ -2975,6 +2983,8 @@ end;
 *}
 procedure TSepiBinaryOperation.CollapseConsts;
 var
+  FloatType: TSepiFloatType;
+  LeftExtValue: Extended;
   OpCode: TSepiOpCode;
   VarType: TSepiBaseType;
 begin
@@ -2982,6 +2992,27 @@ begin
     Exit;
 
   AllocateConstant;
+
+  { Special handling of x / 0.0, because compiler accept this but at runtime,
+    this raises an exception. }
+  if (Operation = opDivide) and (ValueType is TSepiFloatType) then
+  begin
+    FloatType := TSepiFloatType(ValueType);
+
+    if FloatType.ValueAsExtended(RightOperand.ConstValuePtr^) = 0.0 then
+    begin
+      LeftExtValue := FloatType.ValueAsExtended(LeftOperand.ConstValuePtr^);
+
+      if LeftExtValue > 0.0 then
+        FloatType.SetValueAsExtended(ConstValuePtr^, 1.0 / 0.0)
+      else if LeftExtValue < 0.0 then
+        FloatType.SetValueAsExtended(ConstValuePtr^, -1.0 / 0.0)
+      else
+        FloatType.SetValueAsExtended(ConstValuePtr^, 0.0 / 0.0);
+
+      Exit;
+    end;
+  end;
 
   OpCode := OperationToOpCode[Operation];
   VarType := SepiTypeToBaseType(LeftOperand.ValueType);
@@ -3167,6 +3198,14 @@ const
     (btCurrency, btCurrency, btCurrency, btCurrency, btCurrency, btCurrency,
       btDouble, btDouble, btDouble, btExtended, btDouble, btCurrency)
   );
+
+  StrResults: array[btAnsiChar..btWideStr, btAnsiChar..btWideStr] of
+      TSepiBaseType = (
+    (btAnsiChar, btWideChar, btAnsiStr, btWideStr),
+    (btWideChar, btWideChar, btWideStr, btWideStr),
+    (btAnsiStr , btWideStr , btAnsiStr, btWideStr),
+    (btWideStr , btWideStr , btWideStr, btWideStr)
+  );
 var
   Types: TSepiBaseTypes;
 begin
@@ -3186,19 +3225,16 @@ begin
     end;
 
     CommonType := btBoolean;
-  end else if Types * [btAnsiStr, btWideStr] <> [] then
+  end else if Types * [btAnsiChar..btWideStr] <> [] then
   begin
-    // Strings only matches with themselves - prefer wide string
-    if not (Types <= [btAnsiStr, btWideStr]) then
+    // Strings only matches with themselves - prefer wide and prefer string
+    if not (Types <= [btAnsiChar..btWideStr]) then
     begin
       Result := False;
       Exit;
     end;
 
-    if btWideStr in Types then
-      CommonType := btWideStr
-    else
-      CommonType := btAnsiStr;
+    CommonType := StrResults[LeftType, RightType];
   end else
   begin
     // For numbers, use the table
