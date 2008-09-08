@@ -501,6 +501,7 @@ function StrRepresToStr(Str: string): string;
 var
   CharStr: string;
   I, IntChar: Integer;
+  NumChars: TSysCharSet;
 begin
   Result := '';
   Str := Trim(Str);
@@ -539,7 +540,14 @@ begin
         if I > Length(Str) then
           raise EConvertError.CreateFmt(sScWrongString, [Str]);
         CharStr := '';
-        while (I <= Length(Str)) and (Str[I] in ['0'..'9']) do
+        if Str[I] = '$' then
+        begin
+          CharStr := '$';
+          Inc(I);
+          NumChars := ['0'..'9', 'A'..'F', 'a'..'f'];
+        end else
+          NumChars := ['0'..'9'];
+        while (I <= Length(Str)) and (Str[I] in NumChars) do
         begin
           CharStr := CharStr+Str[I];
           Inc(I);
