@@ -2747,15 +2747,20 @@ end;
   Charge une variable ou une constante typée depuis un flux
 *}
 constructor TSepiVariable.Load(AOwner: TSepiMeta; Stream: TStream);
+var
+  DataStored: Boolean;
 begin
   inherited;
 
   OwningUnit.ReadRef(Stream, FType);
 
-  FValue := FType.NewValue;
+  GetMem(FValue, FType.Size);
+  FillChar(FValue^, FType.Size, 0);
   FOwnValue := True;
 
-  ReadDataFromStream(Stream, FValue^, FType.Size, FType.TypeInfo);
+  Stream.ReadBuffer(DataStored, 1);
+  if DataStored then
+    ReadDataFromStream(Stream, FValue^, FType.Size, FType.TypeInfo);
 end;
 
 {*
@@ -2875,11 +2880,27 @@ end;
   [@inheritDoc]
 *}
 procedure TSepiVariable.Save(Stream: TStream);
+var
+  DataStored: Boolean;
+  I: Integer;
 begin
   inherited;
 
   OwningUnit.WriteRef(Stream, FType);
-  WriteDataToStream(Stream, FValue^, FType.Size, FType.TypeInfo);
+
+  DataStored := False;
+  for I := 0 to FType.Size-1 do
+  begin
+    if PByte(Cardinal(FValue) + I)^ <> 0 then
+    begin
+      DataStored := True;
+      Break;
+    end;
+  end;
+
+  Stream.WriteBuffer(DataStored, 1);
+  if DataStored then
+    WriteDataToStream(Stream, FValue^, FType.Size, FType.TypeInfo);
 end;
 
 {*
