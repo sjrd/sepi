@@ -183,6 +183,9 @@ type
     constructor Clone(AOwner: TSepiMeta; const AName: string;
       Source: TSepiType); override;
 
+    function ValueAsExtended(const Value): Extended;
+    procedure SetValueAsExtended(var Dest; Source: Extended);
+
     property FloatType: TFloatType read FFloatType;
   end;
 
@@ -846,6 +849,40 @@ begin
     Result := 8
   else
     Result := Size;
+end;
+
+{*
+  Lit une valeur de ce type comme valeur Extended
+  @param Value   Valeur à lire
+  @return Valeur comme Extended
+*}
+function TSepiFloatType.ValueAsExtended(const Value): Extended;
+begin
+  case FloatType of
+    ftSingle: Result := Single  (Value);
+    ftDouble: Result := Double  (Value);
+    ftCurr:   Result := Currency(Value);
+    ftComp:   Result := Comp    (Value);
+  else
+    Result := Extended(Value);
+  end;
+end;
+
+{*
+  Enregistre une valeur de ce type comme Extended
+  @param Dest     Valeur destination
+  @param Source   Source
+*}
+procedure TSepiFloatType.SetValueAsExtended(var Dest; Source: Extended);
+begin
+  case FloatType of
+    ftSingle: Single  (Dest) := Source;
+    ftDouble: Double  (Dest) := Source;
+    ftCurr:   Currency(Dest) := Source;
+    ftComp:   Comp    (Dest) := Source;
+  else
+    Extended(Dest) := Source;
+  end;
 end;
 
 {-------------------------}
