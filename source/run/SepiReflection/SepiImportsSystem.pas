@@ -759,6 +759,8 @@ begin
   {$IFEND}
   TSepiConstant.Create(Result, 'True', True);
   TSepiConstant.Create(Result, 'False', False);
+  TSepiConstant.Create(Result, 'MaxInt', MaxInt);
+  TSepiConstant.Create(Result, 'MaxLongint', MaxLongint);
   { The pseudo-constant nil isn't declared here, for it has many different
     types, depending on the situation. Each compiler should understand the nil
     value for what it is: a special value, not a simple constant. }

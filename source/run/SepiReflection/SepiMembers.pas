@@ -706,7 +706,8 @@ type
     function ClassImplementsInterface(AInterface: TSepiInterface): Boolean;
 
     function LookForMember(const MemberName: string; FromUnit: TSepiUnit;
-      FromClass: TSepiClass = nil): TSepiMeta;
+      FromClass: TSepiClass = nil): TSepiMeta; overload;
+    function LookForMember(const MemberName: string): TSepiMeta; overload;
 
     property DelphiClass: TClass read FDelphiClass;
     property Parent: TSepiClass read FParent;
@@ -4122,6 +4123,16 @@ begin
 
   if (Result = nil) and (Parent <> nil) then
     Result := Parent.LookForMember(MemberName, FromUnit, FromClass);
+end;
+
+{*
+  Recherche un membre dans la classe depuis cette classe
+  @param MemberName   Nom du membre recherché
+  @return Le membre correspondant, ou nil si non trouvé
+*}
+function TSepiClass.LookForMember(const MemberName: string): TSepiMeta;
+begin
+  Result := LookForMember(MemberName, OwningUnit, Self);
 end;
 
 {-----------------------}
