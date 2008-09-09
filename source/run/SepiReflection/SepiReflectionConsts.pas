@@ -37,6 +37,7 @@ resourcestring
   SSepiNoRegisterTypeInfo = 'Ce type n''implémente pas RegisterTypeInfo';
   SCantCloneType = 'Ne peut cloner le type %s';
   SSepiBadConstType = 'Impossible de créer une constante de type variant %d';
+  SSignatureAlreadyCompleted = 'La signature est déjà complétée';
 
   SSepiUnsupportedIntfCallConvention =
     'La convention d''appel %s n''est pas encore supportée pour les interfaces';

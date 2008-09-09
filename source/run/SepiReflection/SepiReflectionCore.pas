@@ -108,6 +108,13 @@ type
   ESepiBadConstTypeError = class(ESepiError);
 
   {*
+    Déclenchée lorsqu'on tente de modifier un élément déjà complété
+    @author sjrd
+    @version 1.0
+  *}
+  ESepiAlreadyCompleted = class(ESepiError);
+
+  {*
     Liste de meta
     @author sjrd
     @version 1.0
