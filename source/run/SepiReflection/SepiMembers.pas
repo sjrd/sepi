@@ -838,7 +838,6 @@ type
   TSepiMethodRefType = class(TSepiType)
   private
     FSignature: TSepiSignature; /// Signature
-    FOwnsSignature: Boolean;    /// True si possède la signature
   protected
     procedure ListReferences; override;
     procedure Save(Stream: TStream); override;
@@ -848,7 +847,9 @@ type
     constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
     constructor Create(AOwner: TSepiMeta; const AName, ASignature: string;
       AOfObject: Boolean = False;
-      ACallingConvention: TCallingConvention = ccRegister);
+      ACallingConvention: TCallingConvention = ccRegister); overload;
+    constructor Create(AOwner: TSepiMeta; const AName: string;
+      ASignature: TSepiSignature); overload;
     constructor Clone(AOwner: TSepiMeta; const AName: string;
       Source: TSepiType); override;
     destructor Destroy; override;
@@ -1079,9 +1080,8 @@ begin
   case HiddenKind of
     hpSelf:
     begin
-      // Signature.Method.Class
-      if Owner.Owner.Owner is TSepiClass then
-        FType := TSepiClass(Owner.Owner.Owner)
+      if Owner.Context is TSepiClass then
+        FType := TSepiClass(Owner.Context)
       else
         FType := Owner.Root.FindType(TypeInfo(TObject));
     end;
@@ -4747,7 +4747,6 @@ constructor TSepiMethodRefType.RegisterTypeInfo(AOwner: TSepiMeta;
 begin
   inherited;
   FSignature := TSepiSignature.RegisterTypeData(Self, TypeData);
-  FOwnsSignature := True;
 
   if Signature.Kind in mkOfObject then
   begin
@@ -4765,7 +4764,6 @@ constructor TSepiMethodRefType.Load(AOwner: TSepiMeta; Stream: TStream);
 begin
   inherited;
   FSignature := TSepiSignature.Load(Self, Stream);
-  FOwnsSignature := True;
 
   if Signature.Kind in mkOfObject then
   begin
@@ -4778,10 +4776,10 @@ end;
 
 {*
   Crée un nouveau type référence de méthode
-  @param AOwner            Propriétaire du type
-  @param AName             Nom du type
-  @param ASignature        Signature
-  @param AOfObject         Indique s'il s'agit d'une méthode
+  @param AOwner               Propriétaire du type
+  @param AName                Nom du type
+  @param ASignature           Signature
+  @param AOfObject            Indique s'il s'agit d'une méthode
   @param ACallingConvention   Convention d'appel
 *}
 constructor TSepiMethodRefType.Create(AOwner: TSepiMeta;
@@ -4798,7 +4796,28 @@ begin
     Prefix := 'unit ';
   FSignature := TSepiSignature.Create(Self,
     Prefix + ASignature, ACallingConvention);
-  FOwnsSignature := True;
+
+  if Signature.Kind in mkOfObject then
+  begin
+    FSize := 8;
+    FParamBehavior.AlwaysByStack := True;
+    FResultBehavior := rbParameter;
+  end else
+    FSize := 4;
+end;
+
+{*
+  Crée un nouveau type référence de méthode
+  @param AOwner       Propriétaire du type
+  @param AName        Nom du type
+  @param ASignature   Signature
+*}
+constructor TSepiMethodRefType.Create(AOwner: TSepiMeta;
+  const AName: string; ASignature: TSepiSignature);
+begin
+  inherited Create(AOwner, AName, tkMethod);
+
+  FSignature := TSepiSignature.Clone(Self, ASignature);
 
   if Signature.Kind in mkOfObject then
   begin
@@ -4817,8 +4836,8 @@ constructor TSepiMethodRefType.Clone(AOwner: TSepiMeta; const AName: string;
 begin
   inherited Create(AOwner, AName, tkMethod);
 
-  FSignature := (Source as TSepiMethodRefType).Signature;
-  FOwnsSignature := False;
+  FSignature := TSepiSignature.Clone(Self,
+    (Source as TSepiMethodRefType).Signature);
 
   if Signature.Kind in mkOfObject then
   begin
@@ -4834,8 +4853,8 @@ end;
 *}
 destructor TSepiMethodRefType.Destroy;
 begin
-  if FOwnsSignature then
-    FSignature.Free;
+  FSignature.Free;
+
   inherited Destroy;
 end;
 
