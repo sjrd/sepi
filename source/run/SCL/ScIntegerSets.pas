@@ -1,3 +1,42 @@
+{-------------------------------------------------------------------------------
+Sepi - Object-oriented script engine for Delphi
+Copyright (C) 2006-2007  Sébastien Doeraene
+All Rights Reserved
+
+This file is part of the SCL (Sepi Code Library), which is part of Sepi.
+
+Sepi is free software: you can redistribute it and/or modify it under the terms
+of the GNU General Public License as published by the Free Software Foundation,
+either version 3 of the License, or (at your option) any later version.
+
+Sepi is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with
+Sepi.  If not, see <http://www.gnu.org/licenses/>.
+
+Linking this library -the SCL- statically or dynamically with other modules is
+making a combined work based on this library.  Thus, the terms and conditions
+of the GNU General Public License cover the whole combination.
+
+As a special exception, the copyright holders of this library give you
+permission to link this library with independent modules to produce an
+executable, regardless of the license terms of these independent modules, and
+to copy and distribute the resulting executable under terms of your choice,
+provided that you also meet, for each linked independent module, the terms and
+conditions of the license of that module.  An independent module is a module
+which is not derived from or based on this library.  If you modify this
+library, you may extend this exception to your version of the library, but you
+are not obligated to do so.  If you do not wish to do so, delete this exception
+statement from your version.
+-------------------------------------------------------------------------------}
+
+{*
+  Ensemble d'entiers
+  @author sjrd
+  @version 1.0
+*}
 unit ScIntegerSets;
 
 interface
@@ -6,6 +45,8 @@ uses
   Types, SysUtils, Classes;
 
 type
+  TScIntegerSet = class;
+
   {*
     Intervalle fermé d'entiers
     @author sjrd
@@ -22,6 +63,25 @@ type
   TIntegerIntervalDynArray = array of TIntegerInterval;
 
   {*
+    Énumérateur des valeurs contenues dans un ensemble d'entiers
+    @author sjrd
+    @version 1.0
+  *}
+  TScIntegerSetEnumerator = class(TObject)
+  private
+    FIntegerSet: TScIntegerSet; /// Ensemble d'entiers à énumérer
+    FCurrentInterval: Integer;  /// Intervalle courante
+    FCurrent: Integer;          /// Valeur courante
+  public
+    constructor Create(AIntegerSet: TScIntegerSet);
+
+    function MoveNext: Boolean;
+    function GetCurrent: Integer;
+
+    property Current: Integer read FCurrent;
+  end;
+
+  {*
     Ensemble d'entiers
     L'implémentation favorise des intervalles de valeurs, plutôt que des valeurs
     isolées. Mais celles-ci ne sont que faiblement pénalisées.
@@ -32,6 +92,8 @@ type
   private
     FIntervals: TIntegerIntervalDynArray; /// Intervalles de valeurs contenues
     FIntervalCount: Integer;              /// Nombre d'intervalles
+
+    FModified: Boolean; /// Indique si a été modifié
 
     function GetCapacity: Integer;
     procedure SetCapacity(Value: Integer);
@@ -61,6 +123,7 @@ type
     procedure Exclude(Value: Integer);
 
     function Exists(Value: Integer): Boolean;
+    function GetEnumerator: TScIntegerSetEnumerator;
 
     procedure Union(Values: TScIntegerSet);
     procedure Subtract(Values: TScIntegerSet);
@@ -71,6 +134,8 @@ type
     property Capacity: Integer read GetCapacity write SetCapacity;
     property IntervalCount: Integer read FIntervalCount;
     property Intervals[Index: Integer]: TIntegerInterval read GetIntervals;
+
+    property Modified: Boolean read FModified write FModified;
   end;
 
 function IntInInterval(Value: Integer;
@@ -88,9 +153,61 @@ begin
   Result := (Value >= Interval.Lower) and (Value <= Interval.Higher);
 end;
 
-{-------------------}
+{-------------------------------}
+{ TScIntegerSetEnumerator class }
+{-------------------------------}
+
+{*
+  Crée l'énumérateur
+  @param AIntegerSet   Ensemble d'entiers à énumérer
+*}
+constructor TScIntegerSetEnumerator.Create(AIntegerSet: TScIntegerSet);
+begin
+  inherited Create;
+
+  FIntegerSet := AIntegerSet;
+  FCurrentInterval := -1;
+end;
+
+{*
+  Avance vers la valeur suivante
+  @return True s'il y a une nouvelle valeur, False si l'énumération est terminée
+*}
+function TScIntegerSetEnumerator.MoveNext: Boolean;
+begin
+  if FCurrentInterval >= FIntegerSet.FIntervalCount then
+    Result := False
+  else
+  begin
+    Inc(FCurrent);
+
+    if (FCurrentInterval < 0) or
+      (FCurrent > FIntegerSet.FIntervals[FCurrentInterval].Higher) then
+    begin
+      Inc(FCurrentInterval);
+      Result := FCurrentInterval < FIntegerSet.FIntervalCount;
+
+      if Result then
+        FCurrent := FIntegerSet.FIntervals[FCurrentInterval].Lower;
+    end else
+    begin
+      Result := True;
+    end;
+  end;
+end;
+
+{*
+  Valeur courante
+  @return Valeur courante
+*}
+function TScIntegerSetEnumerator.GetCurrent: Integer;
+begin
+  Result := FCurrent;
+end;
+
+{---------------------}
 { TScIntegerSet class }
-{-------------------}
+{---------------------}
 
 {*
   Crée un nouvel ensemble d'entiers vide
@@ -117,6 +234,7 @@ begin
   SetLength(FIntervals, Length(Values));
   for I := Low(Values) to High(Values) do
     Include(Values[I]);
+  Modified := False;
 end;
 
 {*
@@ -128,6 +246,7 @@ begin
   Create;
 
   Assign(Source);
+  Modified := False;
 end;
 
 {*
@@ -139,6 +258,7 @@ begin
   inherited Create;
 
   LoadFromStream(Stream);
+  Modified := False;
 end;
 
 {*
@@ -275,6 +395,8 @@ begin
   FIntervalCount := Source.IntervalCount;
   Move(Source.FIntervals[0], FIntervals[0],
     IntervalCount * SizeOf(TIntegerInterval));
+
+  Modified := True;
 end;
 
 {*
@@ -285,6 +407,8 @@ procedure TScIntegerSet.LoadFromStream(Stream: TStream);
 begin
   Stream.WriteBuffer(FIntervalCount, 4);
   Stream.WriteBuffer(FIntervals[0], IntervalCount * SizeOf(TIntegerInterval));
+
+  Modified := True;
 end;
 
 {*
@@ -303,8 +427,12 @@ end;
 *}
 procedure TScIntegerSet.Clear;
 begin
-  SetLength(FIntervals, 0);
-  FIntervalCount := 0;
+  if FIntervalCount > 0 then
+  begin
+    SetLength(FIntervals, 0);
+    FIntervalCount := 0;
+    Modified := True;
+  end;
 end;
 
 {*
@@ -345,6 +473,11 @@ begin
     UpperIndex := HigherIndex;
     if HigherFound then
       Inc(UpperIndex);
+
+    { If new interval is contained in a single existing interval, there is no
+      change to be made. }
+    if LowerFound and HigherFound and (LowerIndex = HigherIndex) then
+      Exit;
   end;
 
   // If new interval hardly touches an adjacent one, merge them anyway
@@ -376,6 +509,8 @@ begin
     // If LowerIndex = UpperIndex, it will insert an interval at UpperIndex
   FIntervals[LowerIndex].Lower := Lower;
   FIntervals[LowerIndex].Higher := Higher;
+
+  Modified := True;
 end;
 
 {*
@@ -404,7 +539,15 @@ begin
     HigherFound := True;
     HigherIndex := LowerIndex;
   end else
+  begin
     HigherFound := FindInterval(Higher, HigherIndex);
+
+    { If the interval to be removed should be placed between two existing
+      intervals, there is no change to be made. }
+    if (not LowerFound) and (not HigherFound) and
+      (LowerIndex = HigherIndex) then
+      Exit;
+  end;
 
   // If Lower equals (lower interval).Lower, treat it as not found
   // (same thing for Higher)
@@ -437,6 +580,8 @@ begin
   begin
     DeleteIntervals(LowerIndex, HigherIndex);
   end;
+
+  Modified := True;
 end;
 
 {*
@@ -470,6 +615,15 @@ begin
 end;
 
 {*
+  Crée un énumérateur pour les valeurs contenues dans cet ensemble
+  @return Énumérateur des valeurs contenues dans cet ensemble
+*}
+function TScIntegerSet.GetEnumerator: TScIntegerSetEnumerator;
+begin
+  Result := TScIntegerSetEnumerator.Create(Self);
+end;
+
+{*
   Opérateur + Calcule l'union de deux ensemble
   @param Left    Opérande de gauche
   @param Right   Opérande de droite
@@ -477,61 +631,10 @@ end;
 *}
 procedure TScIntegerSet.Union(Values: TScIntegerSet);
 var
-  Sources: array[0..1] of TIntegerIntervalDynArray;
-  Counts, Indices: array[0..1] of Integer;
-  Lower, Higher, Cur, Amount: Integer;
+  I: Integer;
 begin
-  Sources[0] := FIntervals;
-  Counts[0] := IntervalCount;
-  Sources[1] := Values.FIntervals;
-  Counts[1] := Values.IntervalCount;
-
-  FIntervals := nil;
-  SetLength(FIntervals, Counts[0] + Counts[1]);
-  FIntervalCount := 0;
-
-  Indices[0] := 0;
-  Indices[1] := 0;
-
-  { Main loop. It runs while there are intervals left in the two sources.
-    At each iteration, it constructs a new interval to be stored in the
-    internal array.  To do this, it runs frow the lowest of the lower bounds,
-    and then from an interval from left to another from right, until it can't
-    go further without going through a "no values land". }
-
-  while (Indices[0] < Counts[0]) and (Indices[1] < Counts[1]) do
-  begin
-    if Sources[0][Indices[0]].Lower < Sources[1][Indices[1]].Lower then
-      Cur := 0
-    else
-      Cur := 1;
-
-    Lower := Sources[Cur][Indices[Cur]].Lower;
-
-    repeat
-      Higher := Sources[Cur][Indices[Cur]].Higher;
-      Inc(Indices[Cur]);
-      Cur := Cur xor 1; // 0 to 1 and 1 to 0
-    until (Indices[Cur] >= Counts[Cur]) or
-      (not IntInInterval(Higher+1, Sources[Cur][Indices[Cur]]));
-
-    FIntervals[FIntervalCount].Lower := Lower;
-    FIntervals[FIntervalCount].Higher := Higher;
-    Inc(FIntervalCount);
-  end;
-
-  { After that, there may be intervals left in the left xor right sources.
-    Just copy them. }
-
-  if Indices[0] < Counts[0] then
-    Cur := 0
-  else
-    Cur := 1;
-
-  Amount := Counts[Cur] - Indices[Cur];
-  Move(Sources[Cur][Indices[Cur]], FIntervals[FIntervalCount],
-    Amount * SizeOf(TIntegerInterval));
-  Inc(FIntervalCount, Amount);
+  for I := 0 to Values.IntervalCount-1 do
+    AddInterval(Values.FIntervals[I].Lower, Values.FIntervals[I].Higher);
 end;
 
 {*

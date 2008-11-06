@@ -122,6 +122,22 @@ resourcestring
   sScErrorBrackets = 'Erreur de parenthèses';
   sScErrorTooManyBrackets = '%d parenthèses %s en trop';
 
+  // Command line errors
+  SDuplicateLongOption = 'Nom d''option %s dupliqué';
+  SDuplicateShortOption = 'Version courte d''option %s dupliquée';
+  SUnknownLongOption = 'Option longue %s inconnue';
+  SUnknownShortOption = 'Option courte %s inconnue';
+  SInvalidTypeInfo = 'RTTI invalides';
+  SArgumentRequired = 'L''option %s requiert un paramètre';
+  SArgumentForbidden = 'L''option %s ne prend pas de paramètre';
+  SNonOptionParamForbidden = 'Tous les paramètres doivent être des options';
+  SSingleOptionFoundMultipleTimes =
+    'L''option unique %s a été trouvée plusieurs fois';
+  SRequiredOptionNotFound = 'L''option requise %s n''a pas été fournie';
+  SOptionValueOutOfRange =
+    'La valeur de l''option %s doit être comprise dans les bornes %d à %d';
+  SInvalidValue = 'Valeur ''%s'' invalide pour l''option %s';
+
 implementation
 
 end.
