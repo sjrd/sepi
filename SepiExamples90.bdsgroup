@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<PersonalityInfo>
+		<Option>
+			<Option Name="Personality">Default.Personality</Option>
+			<Option Name="ProjectType"></Option>
+			<Option Name="Version">1.0</Option>
+			<Option Name="GUID">{24428D96-31A2-41A2-9022-B4AE430B1FE1}</Option>
+		</Option>
+	</PersonalityInfo>
+	<Default.Personality>  
+    <Projects>
+      <Projects Name="SepiDelphiCompiler.exe">programs\SepiDelphiCompiler\SepiDelphiCompiler.bdsproj</Projects>
+      <Projects Name="Sepi.exe">programs\SepiRun\Sepi.bdsproj</Projects>
+      <Projects Name="Targets">SepiDelphiCompiler.exe Sepi.exe</Projects>
+    </Projects>
+    <Dependencies/>
+  </Default.Personality>
+</BorlandProject>
