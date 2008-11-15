@@ -348,20 +348,12 @@ procedure ImportArrayType(PSCompiler: TPSPascalCompiler;
   ArrayType: TSepiStaticArrayType);
 var
   Str: string;
-  I: Integer;
 begin
   with ArrayType do
   begin
-    Str := 'array';
-    for I := 0 to DimCount-1 do
-    begin
-      if I = 0 then
-        Str := Str + '['
-      else
-        Str := Str + ', ';
-      Str := Str + IntToStr(MinValues[I]);
-      Str := Str + '..' + IntToStr(MaxValues[I]);
-    end;
+    Str := 'array[';
+    Str := Str + IntToStr(LowerBound);
+    Str := Str + '..' + IntToStr(HigherBound);
     Str := Str + '] of ' + ElementType.Name;
 
     PSCompiler.AddTypeS(Name, Str);
