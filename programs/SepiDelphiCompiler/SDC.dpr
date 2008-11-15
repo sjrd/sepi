@@ -1,3 +1,14 @@
+{-------------------------------------------------------------------------------
+SepiDelphiCompiler - Example program for Sepi
+As an example program, SepiDelphiCompiler is free of any usage. It is released
+in the public domain.
+-------------------------------------------------------------------------------}
+
+{*
+  Programme exemple de Sepi qui compile une unité Delphi via Sepi
+  @author sjrd
+  @version 1.0
+*}
 program SDC;
 
 {$APPTYPE CONSOLE}

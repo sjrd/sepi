@@ -1,3 +1,14 @@
+{-------------------------------------------------------------------------------
+SepiRun - Example program for Sepi
+As an example program, SepiRun is free of any usage. It is released in the
+public domain.
+-------------------------------------------------------------------------------}
+
+{*
+  Programme exemple de Sepi qui exécute la routine Main d'une unité Sepi
+  @author sjrd
+  @version 1.0
+*}
 program Sepi;
 
 {$APPTYPE CONSOLE}

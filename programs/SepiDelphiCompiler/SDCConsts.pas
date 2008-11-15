@@ -1,3 +1,15 @@
+{-------------------------------------------------------------------------------
+SepiDelphiCompiler - Example program for Sepi
+As an example program, SepiDelphiCompiler is free of any usage. It is released
+in the public domain.
+-------------------------------------------------------------------------------}
+
+
+{*
+  Constantes du projet SepiDelphiCompiler
+  @author sjrd
+  @version 1.0
+*}
 unit SDCConsts;
 
 interface
