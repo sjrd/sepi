@@ -46,7 +46,15 @@ contains
   SepiImportsScDelphiLanguage in '..\..\source\run\SepiSCLImport\SepiImportsScDelphiLanguage.pas',
   SepiImportsScSyncObjs in '..\..\source\run\SepiSCLImport\SepiImportsScSyncObjs.pas',
   SepiImportsScCompilerMagic in '..\..\source\run\SepiSCLImport\SepiImportsScCompilerMagic.pas',
-  SepiImportsScTypInfo in '..\..\source\run\SepiSCLImport\SepiImportsScTypInfo.pas';
+  SepiImportsScTypInfo in '..\..\source\run\SepiSCLImport\SepiImportsScTypInfo.pas',
+  SepiImportsScClasses in '..\..\source\run\SepiSCLImport\SepiImportsScClasses.pas',
+  SepiImportsScConsoleUtils in '..\..\source\run\SepiSCLImport\SepiImportsScConsoleUtils.pas',
+  SepiImportsScCoroutines in '..\..\source\run\SepiSCLImport\SepiImportsScCoroutines.pas',
+  SepiImportsScEnumerators in '..\..\source\run\SepiSCLImport\SepiImportsScEnumerators.pas',
+  SepiImportsScIntegerSets in '..\..\source\run\SepiSCLImport\SepiImportsScIntegerSets.pas',
+  SepiImportsScInterfaces in '..\..\source\run\SepiSCLImport\SepiImportsScInterfaces.pas',
+  SepiImportsScPipes in '..\..\source\run\SepiSCLImport\SepiImportsScPipes.pas',
+  SepiImportsScSerializer in '..\..\source\run\SepiSCLImport\SepiImportsScSerializer.pas';
 
 end.
 

@@ -3,7 +3,9 @@ unit SepiImportsSVCL;
 interface
 
 uses
-  SepiImportsSvEdits, SepiImportsSvLabels, SepiImportsSvImages;
+  SepiImportsSvEdits,
+  SepiImportsSvImages,
+  SepiImportsSvLabels;
 
 implementation
 

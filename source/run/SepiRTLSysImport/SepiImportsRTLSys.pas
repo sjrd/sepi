@@ -3,8 +3,12 @@ unit SepiImportsRTLSys;
 interface
 
 uses
-  SepiImportsTypes, SepiImportsSysConst, SepiImportsWindows,
-  SepiImportsSysUtils;
+  SepiImportsSysConst,
+  SepiImportsSysUtils,
+  SepiImportsTypes,
+  SepiImportsWindows,
+  SepiImportsVariants,
+  SepiImportsVarUtils;
 
 implementation
 

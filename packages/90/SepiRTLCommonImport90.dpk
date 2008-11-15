@@ -42,7 +42,6 @@ contains
   SepiImportsMasks in '..\..\source\run\SepiRTLCommonImport\SepiImportsMasks.pas',
   SepiImportsMaskUtils in '..\..\source\run\SepiRTLCommonImport\SepiImportsMaskUtils.pas',
   SepiImportsMath in '..\..\source\run\SepiRTLCommonImport\SepiImportsMath.pas',
-  SepiImportsMessages in '..\..\source\run\SepiRTLCommonImport\SepiImportsMessages.pas',
   SepiImportsObjAuto in '..\..\source\run\SepiRTLCommonImport\SepiImportsObjAuto.pas',
   SepiImportsRegistry in '..\..\source\run\SepiRTLCommonImport\SepiImportsRegistry.pas',
   SepiImportsRTLConsts in '..\..\source\run\SepiRTLCommonImport\SepiImportsRTLConsts.pas',
@@ -58,7 +57,9 @@ contains
   SepiImportsWideStrUtils in '..\..\source\run\SepiRTLCommonImport\SepiImportsWideStrUtils.pas',
   SepiImportsZLib in '..\..\source\run\SepiRTLCommonImport\SepiImportsZLib.pas',
   SepiImportsZLibConst in '..\..\source\run\SepiRTLCommonImport\SepiImportsZLibConst.pas',
-  SepiImportsRTLCommon in '..\..\source\run\SepiRTLCommonImport\SepiImportsRTLCommon.pas';
+  SepiImportsRTLCommon in '..\..\source\run\SepiRTLCommonImport\SepiImportsRTLCommon.pas',
+  SepiImportsMtsobj in '..\..\source\run\SepiRTLCommonImport\SepiImportsMtsobj.pas',
+  SepiImportsStdVCL in '..\..\source\run\SepiRTLCommonImport\SepiImportsStdVCL.pas';
 
 end.
 

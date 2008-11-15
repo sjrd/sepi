@@ -35,7 +35,9 @@ contains
   SepiImportsSysUtils in '..\..\source\run\SepiRTLSysImport\SepiImportsSysUtils.pas',
   SepiImportsTypes in '..\..\source\run\SepiRTLSysImport\SepiImportsTypes.pas',
   SepiImportsWindows in '..\..\source\run\SepiRTLSysImport\SepiImportsWindows.pas',
-  SepiImportsRTLSys in '..\..\source\run\SepiRTLSysImport\SepiImportsRTLSys.pas';
+  SepiImportsRTLSys in '..\..\source\run\SepiRTLSysImport\SepiImportsRTLSys.pas',
+  SepiImportsVariants in '..\..\source\run\SepiRTLSysImport\SepiImportsVariants.pas',
+  SepiImportsVarUtils in '..\..\source\run\SepiRTLSysImport\SepiImportsVarUtils.pas';
 
 end.
 

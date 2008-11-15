@@ -3,7 +3,10 @@ unit SepiImportsSDL;
 interface
 
 uses
-  SepiImportsSdDialogs;
+  SepiImportsSdAbout,
+  SepiImportsSdDialogs,
+  SepiImportsSdNumber,
+  SepiImportsSdPassword;
 
 implementation
 

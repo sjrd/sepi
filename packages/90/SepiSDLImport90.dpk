@@ -34,7 +34,10 @@ requires
 
 contains
   SepiImportsSdDialogs in '..\..\source\run\SepiSDLImport\SepiImportsSdDialogs.pas',
-  SepiImportsSDL in '..\..\source\run\SepiSDLImport\SepiImportsSDL.pas';
+  SepiImportsSDL in '..\..\source\run\SepiSDLImport\SepiImportsSDL.pas',
+  SepiImportsSdAbout in '..\..\source\run\SepiSDLImport\SepiImportsSdAbout.pas',
+  SepiImportsSdNumber in '..\..\source\run\SepiSDLImport\SepiImportsSdNumber.pas',
+  SepiImportsSdPassword in '..\..\source\run\SepiSDLImport\SepiImportsSdPassword.pas';
 
 end.
 
