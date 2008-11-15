@@ -22,7 +22,7 @@ Sepi.  If not, see <http://www.gnu.org/licenses/>.
   @author sjrd
   @version 1.0
 *}
-unit SdAbout platform;
+unit SdAbout;
 
 interface
 

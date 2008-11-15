@@ -37,7 +37,7 @@ statement from your version.
   @author sjrd
   @version 1.0
 *}
-unit ScWindows platform;
+unit ScWindows;
 
 interface
 
