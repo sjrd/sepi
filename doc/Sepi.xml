@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 <DelphiCodeToDoc_Project>
-  <TechnicalLevel>4</TechnicalLevel>
+  <TechnicalLevel>5</TechnicalLevel>
   <ClassName>TDOCOptions</ClassName>
   <TDOCOptions>
     <BoolsAsChecks>TRUE</BoolsAsChecks>
@@ -14,7 +14,7 @@
     </Description>
     <Author>S&#xE9;bastien Doeraene</Author>
     <HTMLlink>http://dephicodetodoc.sf.net (Replace by your webpage for example)</HTMLlink>
-    <Copyright>TridenT - 2006 - Under GNU GPL Licence</Copyright>
+    <Copyright>S&#xE9;bastien Doeraene - 2006-2008 - Under GNU GPLv3 License</Copyright>
     <RecurseDirectory>TRUE</RecurseDirectory>
     <ConditionalDefines>
       <Count>4</Count>
@@ -57,6 +57,7 @@
       <ocProperties>TRUE</ocProperties>
       <ocEvents>TRUE</ocEvents>
       <ocRecords>TRUE</ocRecords>
+      <ocUnits>TRUE</ocUnits>
     </OutputFilteringCategory>
     <SkipFirstTAGLine>TRUE</SkipFirstTAGLine>
     <SkipLastTAGLine>TRUE</SkipLastTAGLine>
@@ -68,8 +69,9 @@
       <Item0>.\..\</Item0>
     </FilesIncludeList>
     <FilesExcludeList>
-      <Count>1</Count>
-      <Item0>*\SepiImport*.pas</Item0>
+      <Count>2</Count>
+      <Item0>*\SepiImports*.pas</Item0>
+      <Item1>*\bin\*</Item1>
     </FilesExcludeList>
     <AllowHtmlInDescription>FALSE</AllowHtmlInDescription>
     <PropertyCommentFromAssessors>TRUE</PropertyCommentFromAssessors>
