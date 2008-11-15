@@ -121,18 +121,22 @@ type
     - aoPlusMemShortint : ajoute un Shortint mémoire
     - aoPlusMemSmallint : ajoute un Smallint mémoire
     - aoPlusMemLongint : ajoute un Longint mémoire
-    - aoPlusConstTimesMemShortint : ajoute un Shortint constant multiplié par
-      un Shortint mémoire
-    - aoPlusConstTimesMemSmallint : ajoute un Shortint constant multiplié par
-      un Smallint mémoire
-    - aoPlusConstTimesMemLongint : ajoute un Shortint constant multiplié par
-      un Longint mémoire
+    - aoPlusConstTimesMemShortint : ajoute un Byte constant multiplié par un
+      Shortint mémoire
+    - aoPlusConstTimesMemSmallint : ajoute un Byte constant multiplié par un
+      Smallint mémoire
+    - aoPlusConstTimesMemLongint : ajoute un Byte constant multiplié par un
+      Longint mémoire
   *}
   TSepiAddressOperation = (
     aoNone, aoPlusConstShortint, aoPlusConstSmallint, aoPlusConstLongint,
     aoPlusMemShortint, aoPlusMemSmallint, aoPlusMemLongint,
     aoPlusConstTimesMemShortint, aoPlusConstTimesMemSmallint,
-    aoPlusConstTimesMemLongint
+    aoPlusConstTimesMemLongint, aoPlusConstTimesMemByte,
+    aoPlusConstTimesMemWord, aoPlusConstTimesMemLongWord,
+    aoPlusLongConstTimesMemShortint, aoPlusLongConstTimesMemSmallint,
+    aoPlusLongConstTimesMemLongint, aoPlusLongConstTimesMemByte,
+    aoPlusLongConstTimesMemWord, aoPlusLongConstTimesMemLongWord
   );
 
   {*

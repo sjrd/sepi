@@ -28,6 +28,8 @@ interface
 
 {$ASSERTIONS ON}
 
+{$D-,L-}
+
 uses
   Windows, SysUtils, Classes, Contnrs, RTLConsts, SepiReflectionCore,
   SepiCompiler, SepiCompilerErrors;
@@ -71,6 +73,8 @@ type
     procedure SetSymbolClass(Value: TSepiSymbolClass);
     procedure SetSyntacticParent(Value: TSepiNonTerminal);
 
+    function MakeExpression: ISepiExpression;
+
     function GetChildCount: Integer; virtual;
     function GetChildren(Index: Integer): TSepiParseTreeNode; virtual;
 
@@ -80,6 +84,7 @@ type
     procedure AncestorChanged; virtual;
 
     function GetMethodCompiler: TSepiMethodCompiler; virtual;
+    function GetSepiContext: TSepiMeta; virtual;
 
     {*
       Version texte du contenu du symbole grammatical
@@ -124,6 +129,7 @@ type
     property MethodCompiler: TSepiMethodCompiler read GetMethodCompiler;
     property SepiRoot: TSepiRoot read GetSepiRoot;
     property SepiUnit: TSepiUnit read GetSepiUnit;
+    property SepiContext: TSepiMeta read GetSepiContext;
 
     property AsText: string read GetAsText;
   end;
@@ -359,6 +365,22 @@ begin
 end;
 
 {*
+  Construit une expression, vide, dans le contexte de ce noeud
+  @return Expression construite
+*}
+function TSepiParseTreeNode.MakeExpression: ISepiExpression;
+var
+  MethodComp: TSepiMethodCompiler;
+begin
+  MethodComp := MethodCompiler;
+
+  if MethodComp = nil then
+    Result := TSepiExpression.Create(UnitCompiler)
+  else
+    Result := TSepiExpression.Create(MethodComp);
+end;
+
+{*
   Nombre d'enfants
   @return Nombre d'enfants
 *}
@@ -419,6 +441,20 @@ begin
     Result := Parent.MethodCompiler
   else
     Result := nil;
+end;
+
+{*
+  Contexte Sepi
+  L'implémentation par défaut, dans TSepiParseTreeNode, transfère la requête au
+  noeud parent.
+  @return Contexte Sepi
+*}
+function TSepiParseTreeNode.GetSepiContext: TSepiMeta;
+begin
+  if Parent <> nil then
+    Result := Parent.SepiContext
+  else
+    Result := SepiUnit;
 end;
 
 {*

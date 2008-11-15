@@ -1534,7 +1534,8 @@ var
   SmallOffset: Smallint;
   LongOffset: Longint;
   OffsetPtr: Pointer;
-  ShortFactor: Shortint;
+  ByteFactor: Byte;
+  LongFactor: Longint;
 begin
   // Read deref and op
   Instructions.ReadBuffer(AddrDerefAndOp, SizeOf(TSepiAddressDerefAndOp));
@@ -1590,27 +1591,99 @@ begin
     end;
     aoPlusConstTimesMemShortint:
     begin
-      { Read a Shortint from code and a Shortint from memory. Then, multiply
+      { Read a Byte from code and a Shortint from memory. Then, multiply
         them and add the result to the address. }
-      Instructions.ReadBuffer(ShortFactor, 1);
+      Instructions.ReadBuffer(ByteFactor, 1);
       OffsetPtr := ReadAddress(aoAcceptAllConsts, SizeOf(Shortint));
-      Inc(IntAddress, ShortFactor * PShortint(OffsetPtr)^);
+      Inc(IntAddress, ByteFactor * PShortint(OffsetPtr)^);
     end;
     aoPlusConstTimesMemSmallint:
     begin
-      { Read a Shortint from code and a Smallint from memory. Then, multiply
+      { Read a Byte from code and a Smallint from memory. Then, multiply
         them and add the result to the address. }
-      Instructions.ReadBuffer(ShortFactor, 1);
+      Instructions.ReadBuffer(ByteFactor, 1);
       OffsetPtr := ReadAddress(aoAcceptAllConsts, SizeOf(Smallint));
-      Inc(IntAddress, ShortFactor * PSmallint(OffsetPtr)^);
+      Inc(IntAddress, ByteFactor * PSmallint(OffsetPtr)^);
     end;
     aoPlusConstTimesMemLongint:
     begin
-      { Read a Shortint from code and a Longint from memory. Then, multiply
+      { Read a Byte from code and a Longint from memory. Then, multiply
         them and add the result to the address. }
-      Instructions.ReadBuffer(ShortFactor, 1);
+      Instructions.ReadBuffer(ByteFactor, 1);
       OffsetPtr := ReadAddress(aoAcceptAllConsts, SizeOf(Longint));
-      Inc(IntAddress, ShortFactor * PLongint(OffsetPtr)^);
+      Inc(IntAddress, ByteFactor * PLongint(OffsetPtr)^);
+    end;
+    aoPlusConstTimesMemByte:
+    begin
+      { Read a Byte from code and a Byte from memory. Then, multiply
+        them and add the result to the address. }
+      Instructions.ReadBuffer(ByteFactor, 1);
+      OffsetPtr := ReadAddress(aoAcceptAllConsts, SizeOf(Byte));
+      Inc(IntAddress, ByteFactor * PByte(OffsetPtr)^);
+    end;
+    aoPlusConstTimesMemWord:
+    begin
+      { Read a Byte from code and a Word from memory. Then, multiply
+        them and add the result to the address. }
+      Instructions.ReadBuffer(ByteFactor, 1);
+      OffsetPtr := ReadAddress(aoAcceptAllConsts, SizeOf(Word));
+      Inc(IntAddress, ByteFactor * PWord(OffsetPtr)^);
+    end;
+    aoPlusConstTimesMemLongWord:
+    begin
+      { Read a Byte from code and a LongWord from memory. Then, multiply
+        them and add the result to the address. }
+      Instructions.ReadBuffer(ByteFactor, 1);
+      OffsetPtr := ReadAddress(aoAcceptAllConsts, SizeOf(LongWord));
+      Inc(IntAddress, ByteFactor * PLongWord(OffsetPtr)^);
+    end;
+    aoPlusLongConstTimesMemShortint:
+    begin
+      { Read a Longint from code and a Shortint from memory. Then, multiply
+        them and add the result to the address. }
+      Instructions.ReadBuffer(LongFactor, SizeOf(Longint));
+      OffsetPtr := ReadAddress(aoAcceptAllConsts, SizeOf(Shortint));
+      Inc(IntAddress, LongFactor * PShortint(OffsetPtr)^);
+    end;
+    aoPlusLongConstTimesMemSmallint:
+    begin
+      { Read a Longint from code and a Smallint from memory. Then, multiply
+        them and add the result to the address. }
+      Instructions.ReadBuffer(LongFactor, SizeOf(Longint));
+      OffsetPtr := ReadAddress(aoAcceptAllConsts, SizeOf(Smallint));
+      Inc(IntAddress, LongFactor * PSmallint(OffsetPtr)^);
+    end;
+    aoPlusLongConstTimesMemLongint:
+    begin
+      { Read a Longint from code and a Longint from memory. Then, multiply
+        them and add the result to the address. }
+      Instructions.ReadBuffer(LongFactor, SizeOf(Longint));
+      OffsetPtr := ReadAddress(aoAcceptAllConsts, SizeOf(Longint));
+      Inc(IntAddress, LongFactor * PLongint(OffsetPtr)^);
+    end;
+    aoPlusLongConstTimesMemByte:
+    begin
+      { Read a Longint from code and a Byte from memory. Then, multiply
+        them and add the result to the address. }
+      Instructions.ReadBuffer(LongFactor, SizeOf(Longint));
+      OffsetPtr := ReadAddress(aoAcceptAllConsts, SizeOf(Byte));
+      Inc(IntAddress, LongFactor * PByte(OffsetPtr)^);
+    end;
+    aoPlusLongConstTimesMemWord:
+    begin
+      { Read a Longint from code and a Word from memory. Then, multiply
+        them and add the result to the address. }
+      Instructions.ReadBuffer(LongFactor, SizeOf(Longint));
+      OffsetPtr := ReadAddress(aoAcceptAllConsts, SizeOf(Word));
+      Inc(IntAddress, LongFactor * PWord(OffsetPtr)^);
+    end;
+    aoPlusLongConstTimesMemLongWord:
+    begin
+      { Read a Longint from code and a LongWord from memory. Then, multiply
+        them and add the result to the address. }
+      Instructions.ReadBuffer(LongFactor, SizeOf(Longint));
+      OffsetPtr := ReadAddress(aoAcceptAllConsts, SizeOf(LongWord));
+      Inc(IntAddress, LongFactor * PLongWord(OffsetPtr)^);
     end;
   else
     RaiseInvalidOpCode;

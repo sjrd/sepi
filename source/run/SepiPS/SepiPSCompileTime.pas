@@ -345,7 +345,7 @@ end;
   @param ArrayType    Type à importer
 *}
 procedure ImportArrayType(PSCompiler: TPSPascalCompiler;
-  ArrayType: TSepiArrayType);
+  ArrayType: TSepiStaticArrayType);
 var
   Str: string;
   I: Integer;
@@ -486,8 +486,8 @@ begin
   else if SepiType is TSepiStringType then
     ImportStringType(PSCompiler, TSepiStringType(SepiType))
 
-  else if SepiType is TSepiArrayType then
-    ImportArrayType(PSCompiler, TSepiArrayType(SepiType))
+  else if SepiType is TSepiStaticArrayType then
+    ImportArrayType(PSCompiler, TSepiStaticArrayType(SepiType))
   else if SepiType is TSepiDynArrayType then
     ImportDynArrayType(PSCompiler, TSepiDynArrayType(SepiType))
 

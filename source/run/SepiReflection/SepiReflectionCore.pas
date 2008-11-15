@@ -27,9 +27,9 @@ unit SepiReflectionCore;
 interface
 
 uses
-  Windows, SysUtils, Classes, Contnrs, RTLConsts, IniFiles, TypInfo, Variants,
-  StrUtils, ScUtils, ScStrUtils, ScSyncObjs, ScCompilerMagic, ScSerializer,
-  ScTypInfo, SepiCore, SepiReflectionConsts;
+  Types, Windows, SysUtils, Classes, Contnrs, RTLConsts, IniFiles, TypInfo,
+  Variants, StrUtils, ScUtils, ScStrUtils, ScSyncObjs, ScCompilerMagic,
+  ScSerializer, ScTypInfo, SepiCore, SepiReflectionConsts;
 
 type
   TSepiMeta = class;
@@ -167,9 +167,6 @@ type
     FObjResources: TObjectList;     /// Liste des ressources objet
     FPtrResources: TList;           /// Liste des ressources pointeur
 
-    procedure AddChild(Child: TSepiMeta);
-    procedure RemoveChild(Child: TSepiMeta);
-
     function GetWasForward: Boolean;
 
     function GetChildCount: Integer;
@@ -177,7 +174,9 @@ type
 
     function GetChildByName(const ChildName: string): TSepiMeta;
   protected
-    procedure ReAddChild(Child: TSepiMeta);
+    procedure AddChild(Child: TSepiMeta); virtual;
+    procedure RemoveChild(Child: TSepiMeta); virtual;
+    procedure ReAddChild(Child: TSepiMeta); virtual;
 
     procedure LoadForwards(Stream: TStream); virtual;
     function LoadChild(Stream: TStream): TSepiMeta; virtual;
@@ -214,6 +213,7 @@ type
     class function NewInstance: TObject; override;
 
     function GetFullName: string;
+    function GetShorterNameFrom(From: TSepiMeta): string;
     function GetMeta(const Name: string): TSepiMeta;
     function FindMeta(const Name: string): TSepiMeta;
 
@@ -364,7 +364,8 @@ type
     function GetUnitCount: Integer;
     function GetUnits(Index: Integer): TSepiUnit;
   protected
-    procedure ChildAdded(Child: TSepiMeta); override;
+    procedure AddChild(Child: TSepiMeta); override;
+    procedure RemoveChild(Child: TSepiMeta); override;
 
     function InternalLookFor(const Name: string; FromUnit: TSepiUnit;
       FromClass: TSepiMeta = nil): TSepiMeta; override;
@@ -389,6 +390,64 @@ type
   end;
 
   {*
+    Type d'enfant pour le lazy-load
+    - ckOther : autre
+    - ckClass : classe
+    - ckInterface : interface
+  *}
+  TSepiLazyLoadChildKind = (ckOther, ckClass, ckInterface);
+
+  {*
+    Données de lazy-load pour un enfant
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiLazyLoadChildData = record
+    Name: string;                 /// Nom de l'enfant
+    Position: Int64;              /// Position dans le flux
+    Kind: TSepiLazyLoadChildKind; /// Type d'enfant
+    Inheritance: TStringDynArray; /// Héritage d'une classe/interface
+  end;
+
+  /// Tableau de données lazy-load pour les enfants
+  TSepiLazyLoadChildrenData = array of TSepiLazyLoadChildData;
+
+  {*
+    Données de lazy-load
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiLazyLoadData = class(TObject)
+  private
+    FOwner: TSepiMeta; /// Propriétaire des enfants chargés
+    FStream: TStream;  /// Flux où charger les enfants
+
+    FChildrenNames: TStrings;                       /// Noms des enfants
+    FChildrenData: array of TSepiLazyLoadChildData; /// Données sur les enfants
+
+    FLoadingClassIntfChildren: TStrings; /// Classes et interfaces en chargement
+    FForwardClassIntfChildren: TObjectList; /// Classes et interfaces forward
+
+    function GetChildData(const Name: string): TSepiLazyLoadChildData;
+    function CanLoad(const Data: TSepiLazyLoadChildData): Boolean;
+    procedure InternalLoadChild(const Data: TSepiLazyLoadChildData;
+      var Child: TSepiMeta);
+    procedure RetryForwards;
+  public
+    constructor Create(AOwner: TSepiMeta; AStream: TStream);
+    destructor Destroy; override;
+
+    procedure LoadFromStream(SkipChildrenInfo: Boolean);
+    function ChildExists(const Name: string): Boolean;
+    function LoadChild(const Name: string): TSepiMeta;
+
+    class procedure SaveToStream(Owner: TSepiMeta; Stream: TStream);
+
+    property Owner: TSepiMeta read FOwner;
+    property Stream: TStream read FStream;
+  end;
+
+  {*
     Unité
     @author sjrd
     @version 1.0
@@ -406,9 +465,8 @@ type
 
     FReferences: array of TStrings; /// Références en chargement/sauvegarde
 
-    FLazyLoad: Boolean;           /// True si mode lazy-load
-    FStream: TStream;             /// Flux où charger les enfants
-    FChildrenPositions: TStrings; /// Positions des enfants dans le flux
+    FLazyLoad: Boolean;               /// True si mode lazy-load
+    FLazyLoadData: TSepiLazyLoadData; /// Données de lazy-load
 
     function AddUses(AUnit: TSepiUnit): Integer;
 
@@ -946,37 +1004,6 @@ begin
 end;
 
 {*
-  Ajoute un enfant
-  AddChild est appelée dans le constructeur du meta enfant, et ne doit pas être
-  appelée ailleurs.
-  @param Child   Enfant à ajouter
-*}
-procedure TSepiMeta.AddChild(Child: TSepiMeta);
-begin
-  FChildren.AddMeta(Child);
-end;
-
-{*
-  Supprime un enfant
-  RemoveChild est appelée dans le destructeur du meta enfant, et ne doit pas
-  être appelée ailleurs.
-  @param Child   Enfant à supprimer
-*}
-procedure TSepiMeta.RemoveChild(Child: TSepiMeta);
-var
-  Index: Integer;
-begin
-  if State <> msDestroying then
-  begin
-    FChildren.Remove(Child);
-
-    Index := FForwards.IndexOfObject(Child);
-    if Index >= 0 then
-      FForwards.Delete(Index);
-  end;
-end;
-
-{*
   True si le meta a été créé forward, False sinon
   @return True si le meta a été créé forward, False sinon
 *}
@@ -1016,6 +1043,37 @@ begin
   Result := FChildren.MetaFromName[ChildName];
   if Result = nil then
     raise ESepiMetaNotFoundError.CreateFmt(SSepiObjectNotFound, [ChildName]);
+end;
+
+{*
+  Ajoute un enfant
+  AddChild est appelée dans le constructeur du meta enfant, et ne doit pas être
+  appelée ailleurs.
+  @param Child   Enfant à ajouter
+*}
+procedure TSepiMeta.AddChild(Child: TSepiMeta);
+begin
+  FChildren.AddMeta(Child);
+end;
+
+{*
+  Supprime un enfant
+  RemoveChild est appelée dans le destructeur du meta enfant, et ne doit pas
+  être appelée ailleurs.
+  @param Child   Enfant à supprimer
+*}
+procedure TSepiMeta.RemoveChild(Child: TSepiMeta);
+var
+  Index: Integer;
+begin
+  if State <> msDestroying then
+  begin
+    FChildren.Remove(Child);
+
+    Index := FForwards.IndexOfObject(Child);
+    if Index >= 0 then
+      FForwards.Delete(Index);
+  end;
 end;
 
 {*
@@ -1152,8 +1210,9 @@ end;
 *}
 procedure TSepiMeta.AddForward(const ChildName: string; Child: TObject);
 begin
-  FForwards.AddObject(ChildName, Child);
   (Child as TSepiMeta).Visibility := CurrentVisibility;
+  TSepiMeta(Child).FName := ChildName;
+  FForwards.AddObject(ChildName, Child);
 end;
 
 {*
@@ -1321,6 +1380,36 @@ begin
     Result := FOwner.GetFullName+'.'+Name
   else
     Result := Name;
+end;
+
+{*
+  Obtient le nom le plus court possible pour être référencé depuis un autre meta
+  @param From   Meta depuis lequel être référencé
+  @return Nom le plus court possible, ou une chaîne vide si aucun n'est possible
+*}
+function TSepiMeta.GetShorterNameFrom(From: TSepiMeta): string;
+var
+  Current: TSepiMeta;
+begin
+  Current := Self;
+  Result := Name;
+
+  if Result = '' then
+    Exit;
+
+  while From.LookFor(Result) <> Self do
+  begin
+    Current := Current.Owner;
+
+    if (Current = nil) or (Current.Name = '') then
+    begin
+      // No possible answer
+      Result := '';
+      Exit;
+    end;
+
+    Result := Current.Name + '.' + Result;
+  end;
 end;
 
 {*
@@ -1805,7 +1894,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiRoot.ChildAdded(Child: TSepiMeta);
+procedure TSepiRoot.AddChild(Child: TSepiMeta);
 var
   CurrentUnit: TSepiUnit;
   I: Integer;
@@ -1822,6 +1911,15 @@ begin
   for I := 0 to ChildCount-1 do
     if FSearchOrder.IndexOf(Children[I]) < 0 then
       FSearchOrder.Add(Children[I]);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiRoot.RemoveChild(Child: TSepiMeta);
+begin
+  FSearchOrder.Remove(Child);
+  inherited;
 end;
 
 {*
@@ -2014,6 +2112,364 @@ begin
   end;
 end;
 
+{-------------------------}
+{ TSepiLazyLoadData class }
+{-------------------------}
+
+{*
+  Crée les données de lazy-load
+  @param AOwner    Propriétaire des enfants à charger
+  @param AStream   Flux depuis lequel charger les enfants
+*}
+constructor TSepiLazyLoadData.Create(AOwner: TSepiMeta; AStream: TStream);
+begin
+  inherited Create;
+
+  FOwner := AOwner;
+  FStream := AStream;
+
+  FChildrenNames := THashedStringList.Create;
+  FLoadingClassIntfChildren := TStringList.Create;
+  FForwardClassIntfChildren := TObjectList.Create(False);
+end;
+
+{*
+  [@inheritDoc]
+*}
+destructor TSepiLazyLoadData.Destroy;
+begin
+  FForwardClassIntfChildren.Free;
+  FLoadingClassIntfChildren.Free;
+  FChildrenNames.Free;
+
+  inherited;
+end;
+
+{*
+  Récupère les informations de lazy-load pour un enfant
+  @param Name   Nom de l'enfant à charger
+  @param Data   En sortie : données sur cet enfant
+  @raise ESepiMetaNotFoundError Aucun enfant de ce nom trouvé
+*}
+function TSepiLazyLoadData.GetChildData(
+  const Name: string): TSepiLazyLoadChildData;
+var
+  Index: Integer;
+begin
+  Index := FChildrenNames.IndexOf(Name);
+  if Index < 0 then
+    raise ESepiMetaNotFoundError.CreateFmt(SSepiObjectNotFound, [Name]);
+
+  Result := FChildrenData[Index];
+end;
+
+{*
+  Teste si un enfant peut être chargé maintenant
+  @param Data   Données de chargement d'un enfant
+  @return True si l'enfant décrit par ces données peut être chargé, False sinon
+*}
+function TSepiLazyLoadData.CanLoad(const Data: TSepiLazyLoadChildData): Boolean;
+var
+  I: Integer;
+begin
+  { A class or interface child whom an ancestor is being loaded can't be
+    loaded now. }
+  if Data.Kind in [ckClass, ckInterface] then
+  begin
+    for I := 0 to Length(Data.Inheritance)-1 do
+    begin
+      if FLoadingClassIntfChildren.IndexOf(Data.Inheritance[I]) >= 0 then
+      begin
+        Result := False;
+        Exit;
+      end;
+    end;
+  end;
+
+  Result := True;
+end;
+
+{*
+  Charge un enfant depuis le flux
+  @param Data    Données sur l'enfant à charger
+  @param Child   En entrée et/ou en sortie : l'enfant à charger
+*}
+procedure TSepiLazyLoadData.InternalLoadChild(
+  const Data: TSepiLazyLoadChildData; var Child: TSepiMeta);
+var
+  ClassOrIntf: Boolean;
+  OldPosition: Int64;
+  IsForward: Boolean;
+  MetaClassName: string;
+begin
+  ClassOrIntf := Data.Kind in [ckClass, ckInterface];
+  if ClassOrIntf then
+    FLoadingClassIntfChildren.Add(Data.Name);
+  try
+    OldPosition := Stream.Position;
+    try
+      Stream.Position := Data.Position;
+
+      // Ignore forward information
+      Stream.ReadBuffer(IsForward, 1);
+      if IsForward then
+        ReadStrFromStream(Stream);
+
+      // Load child
+      MetaClassName := ReadStrFromStream(Stream);
+      if Child = nil then
+      begin
+        Child := SepiFindMetaClass(MetaClassName).Load(Owner, Stream);
+      end else
+      begin
+        FForwardClassIntfChildren.Remove(Child);
+        Child.Load(Owner, Stream);
+      end;
+    finally
+      Stream.Position := OldPosition;
+    end;
+  finally
+    if ClassOrIntf then
+      FLoadingClassIntfChildren.Delete(
+        FLoadingClassIntfChildren.IndexOf(Data.Name));
+  end;
+
+  // Retry forwards if Child is a class or an interface
+  if ClassOrIntf then
+    RetryForwards;
+end;
+
+{*
+  Réessaye de charger les enfants qui sont forwards
+*}
+procedure TSepiLazyLoadData.RetryForwards;
+var
+  I: Integer;
+  Child: TSepiMeta;
+  Data: TSepiLazyLoadChildData;
+begin
+  { Looking downwards is more efficient, because we expect recent demands to
+    be easier to satisfy. }
+  for I := FForwardClassIntfChildren.Count-1 downto 0 do
+  begin
+    Child := TSepiMeta(FForwardClassIntfChildren[I]);
+    Data := GetChildData(Child.Name);
+
+    if CanLoad(Data) then
+    begin
+      InternalLoadChild(Data, Child); // Will call RetryForwards recursively
+      Exit;
+    end;
+  end;
+end;
+
+{*
+  Charge les données depuis le flux
+  @param SkipChildrenInfo   Si True, saute les définitions des enfants
+*}
+procedure TSepiLazyLoadData.LoadFromStream(SkipChildrenInfo: Boolean);
+var
+  I: Integer;
+  BasePosition, DataLength: Int64;
+begin
+  // Read data
+  FChildrenNames.Clear;
+  ReadDataFromStream(Stream, FChildrenData,
+    TypeInfo(TSepiLazyLoadChildrenData));
+  Stream.ReadBuffer(DataLength, SizeOf(Int64));
+
+  // Make positions absolute and make name hash table
+  BasePosition := Stream.Position;
+  for I := 0 to Length(FChildrenData)-1 do
+  begin
+    FChildrenNames.Add(FChildrenData[I].Name);
+    Inc(FChildrenData[I].Position, BasePosition);
+  end;
+
+  // Skip actual definition of children
+  if SkipChildrenInfo then
+    Stream.Seek(DataLength, soFromCurrent);
+end;
+
+{*
+  Test si un enfant existe
+  @param Name   Nom de l'enfant recherché
+  @return True si un enfant de ce nom existe, False sinon
+*}
+function TSepiLazyLoadData.ChildExists(const Name: string): Boolean;
+begin
+  Result := FChildrenNames.IndexOf(Name) >= 0;
+end;
+
+{*
+  Charge un enfant depuis son nom
+  @param Name   Nom de l'enfant à charger
+  @return Enfant chargé
+*}
+function TSepiLazyLoadData.LoadChild(const Name: string): TSepiMeta;
+var
+  Data: TSepiLazyLoadChildData;
+begin
+  Data := GetChildData(Name);
+
+  // Avoid loading a class or interface whose ancestor is being loaded
+  if not CanLoad(Data) then
+  begin
+    case Data.Kind of
+      ckClass:
+        Result := TSepiClass.ForwardDecl(Owner, Data.Name);
+      ckInterface:
+        Result := TSepiInterface.ForwardDecl(Owner, Data.Name);
+    else
+      Assert(False);
+      Result := nil;
+    end;
+
+    if Result <> nil then
+      FForwardClassIntfChildren.Add(Result);
+    Exit;
+  end;
+
+  // Now do the job
+  Result := nil;
+  InternalLoadChild(Data, Result);
+end;
+
+{*
+  Construit l'héritage (dans la même unité) d'une classe
+  @param SepiClass       Classe dont construire l'héritage
+  @param AncestorClass   Liste des noms des ancêtres
+*}
+procedure MakeClassInheritance(SepiClass: TSepiClass;
+  AncestorList: TStrings);
+var
+  AncestorClass: TSepiClass;
+begin
+  AncestorClass := SepiClass.Parent;
+  while (AncestorClass <> nil) and (AncestorClass.Owner = SepiClass.Owner) do
+  begin
+    AncestorList.Add(AncestorClass.Name);
+    AncestorClass := AncestorClass.Parent;
+  end;
+end;
+
+{*
+  Construit l'héritage (dans la même unité) d'une interface
+  @param SepiIntf        Interface dont construire l'héritage
+  @param AncestorClass   Liste des noms des ancêtres
+*}
+procedure MakeIntfInheritance(SepiIntf: TSepiInterface;
+  AncestorList: TStrings);
+var
+  AncestorIntf: TSepiInterface;
+begin
+  AncestorIntf := SepiIntf.Parent;
+  while (AncestorIntf <> nil) and (AncestorIntf.Owner = SepiIntf.Owner) do
+  begin
+    AncestorList.Add(AncestorIntf.Name);
+    AncestorIntf := AncestorIntf.Parent;
+  end;
+end;
+
+{*
+  Construit l'héritage d'une classe ou interface (dans la même unité)
+  @param ClassIntf     Classe ou interface
+  @param Inheritance   En sortie : héritage de la classe ou interface
+*}
+procedure MakeClassIntfInheritance(ClassIntf: TSepiType;
+  out Inheritance: TStringDynArray);
+var
+  AncestorList: TStrings;
+  I: Integer;
+begin
+  AncestorList := TStringList.Create;
+  try
+    if ClassIntf is TSepiClass then
+      MakeClassInheritance(TSepiClass(ClassIntf), AncestorList)
+    else
+      MakeIntfInheritance(ClassIntf as TSepiInterface, AncestorList);
+
+    // Fill in the Inheritance param
+    SetLength(Inheritance, AncestorList.Count);
+    for I := 0 to AncestorList.Count-1 do
+      Inheritance[I] := AncestorList[I];
+  finally
+    AncestorList.Free;
+  end;
+end;
+
+{*
+  Produit les données de lazy-load pour un enfant
+  @param Child      Enfant concerné
+  @param Position   Position dans le flux
+  @param Data       En sortie : données pour cet enfant
+*}
+procedure MakeLazyLoadChildData(Child: TSepiMeta; Position: Int64;
+  out Data: TSepiLazyLoadChildData);
+begin
+  Data.Name := Child.Name;
+  Data.Position := Position;
+
+  if Child is TSepiClass then
+  begin
+    Data.Kind := ckClass;
+    MakeClassIntfInheritance(TSepiClass(Child), Data.Inheritance);
+  end else if Child is TSepiInterface then
+  begin
+    Data.Kind := ckInterface;
+    MakeClassIntfInheritance(TSepiInterface(Child), Data.Inheritance);
+  end else
+  begin
+    Data.Kind := ckOther;
+  end;
+end;
+
+{*
+  Enregistre les données d'un meta dans un flux
+  @param Owner    Meta propriétaire
+  @param Stream   Flux de destination
+*}
+class procedure TSepiLazyLoadData.SaveToStream(Owner: TSepiMeta;
+  Stream: TStream);
+var
+  Count, I: Integer;
+  TempStream: TMemoryStream;
+  ChildrenData: TSepiLazyLoadChildrenData;
+  Child: TSepiMeta;
+  ChildrenDataLength: Int64;
+begin
+  Count := Owner.ChildCount;
+  SetLength(ChildrenData, Count);
+
+  TempStream := TMemoryStream.Create;
+  try
+    // Save forwards to temp stream
+    Owner.SaveForwards(TempStream);
+
+    // Save children to temp stream - meanwhile, make children data table
+    TempStream.WriteBuffer(Count, 4);
+    for I := 0 to Count-1 do
+    begin
+      Child := Owner.Children[I];
+      MakeLazyLoadChildData(Child, TempStream.Position, ChildrenData[I]);
+      Owner.SaveChild(TempStream, Child);
+    end;
+
+    // Write lazy-load data table
+    WriteDataToStream(Stream, ChildrenData,
+      TypeInfo(TSepiLazyLoadChildrenData));
+
+    // Write children data length
+    ChildrenDataLength := TempStream.Size;
+    Stream.WriteBuffer(ChildrenDataLength, SizeOf(Int64));
+
+    // Copy temp stream (forwards and children) into dest stream
+    Stream.CopyFrom(TempStream, 0);
+  finally
+    TempStream.Free;
+  end;
+end;
+
 {------------------}
 { Classe TSepiUnit }
 {------------------}
@@ -2027,10 +2483,7 @@ var
   Str: string;
 begin
   if LazyLoad then
-  begin
-    FStream := Stream;
-    FChildrenPositions := THashedStringList.Create;
-  end;
+    FLazyLoadData := TSepiLazyLoadData.Create(Self, Stream);
 
   Stream.ReadBuffer(UsesCount, 4);
   SetLength(FReferences, UsesCount+1);
@@ -2105,11 +2558,10 @@ var
 begin
   if LazyLoad then
   begin
-    FChildrenPositions.Free;
-    FStream.Free;
-
     for I := 0 to Length(FReferences)-1 do
       FReferences[I].Free;
+
+    FLazyLoadData.Free;
   end;
 
   inherited;
@@ -2154,36 +2606,12 @@ end;
   @return Enfant chargé, ou nil si n'existe pas
 *}
 function TSepiUnit.LazyLoadChild(const Name: string): TSepiMeta;
-var
-  Index: Integer;
-  OldPosition: Int64;
-  IsForward: Boolean;
-  Str: string;
 begin
   Assert(LazyLoad);
-  Index := FChildrenPositions.IndexOf(Name);
-
-  if Index < 0 then
-  begin
+  if FLazyLoadData.ChildExists(Name) then
+    Result := FLazyLoadData.LoadChild(Name)
+  else
     Result := nil;
-    Exit;
-  end;
-
-  OldPosition := FStream.Position;
-  try
-    FStream.Position := Integer(FChildrenPositions.Objects[Index]);
-
-    // Ignore forward information
-    FStream.ReadBuffer(IsForward, 1);
-    if IsForward then
-      ReadStrFromStream(FStream);
-
-    // Load child
-    Str := ReadStrFromStream(FStream);
-    Result := SepiFindMetaClass(Str).Load(Self, FStream);
-  finally
-    FStream.Position := OldPosition;
-  end;
 end;
 
 {*
@@ -2233,22 +2661,18 @@ end;
 *}
 procedure TSepiUnit.LoadChildren(Stream: TStream);
 var
-  Count, I: Integer;
-  ChildName: string;
-  Position: Int64;
+  LazyLoadData: TSepiLazyLoadData;
 begin
-  Stream.ReadBuffer(Count, SizeOf(Integer));
+  if LazyLoad then
+    LazyLoadData := FLazyLoadData
+  else
+    LazyLoadData := TSepiLazyLoadData.Create(Self, Stream);
 
-  for I := 0 to Count-1 do
-  begin
-    ChildName := ReadStrFromStream(Stream);
-    Stream.ReadBuffer(Position, SizeOf(Int64));
-
-    if LazyLoad then
-    begin
-      Assert(Position <= MaxInt);
-      FChildrenPositions.AddObject(ChildName, TObject(Position));
-    end;
+  try
+    LazyLoadData.LoadFromStream(LazyLoad);
+  finally
+    if not LazyLoad then
+      LazyLoadData.Free;
   end;
 
   if not LazyLoad then
@@ -2259,50 +2683,8 @@ end;
   [@inheritDoc]
 *}
 procedure TSepiUnit.SaveChildren(Stream: TStream);
-var
-  Count, I: Integer;
-  Position: Int64;
-  Positions: array of record
-    PositionPos: Int64;
-    ChildPos: Int64;
-  end;
 begin
-  Count := ChildCount;
-  Stream.WriteBuffer(Count, SizeOf(Integer));
-  SetLength(Positions, Count);
-
-  // Write position table (positions to 0 for now)
-
-  Position := 0;
-  for I := 0 to Count-1 do
-  begin
-    WriteStrToStream(Stream, Children[I].Name);
-    Positions[I].PositionPos := Stream.Position;
-    Stream.WriteBuffer(Position, SizeOf(Int64));
-  end;
-
-  // Save children (and store positions)
-
-  SaveForwards(Stream);
-
-  Stream.WriteBuffer(Count, SizeOf(Integer));
-  for I := 0 to Count-1 do
-  begin
-    Positions[I].ChildPos := Stream.Position;
-    SaveChild(Stream, Children[I]);
-  end;
-
-  // Write positions
-
-  Position := Stream.Position;
-
-  for I := 0 to Count-1 do
-  begin
-    Stream.Position := Positions[I].PositionPos;
-    Stream.WriteBuffer(Positions[I].ChildPos, SizeOf(Int64));
-  end;
-
-  Stream.Position := Position;
+  TSepiLazyLoadData.SaveToStream(Self, Stream);
 end;
 
 {*

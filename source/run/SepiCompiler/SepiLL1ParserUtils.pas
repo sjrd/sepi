@@ -26,6 +26,8 @@ unit SepiLL1ParserUtils;
 
 interface
 
+{$D-,L-}
+
 uses
   SysUtils, Contnrs, SepiParseTrees, SepiCompilerConsts;
 

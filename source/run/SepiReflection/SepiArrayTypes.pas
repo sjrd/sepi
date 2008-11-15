@@ -32,17 +32,41 @@ uses
 
 type
   {*
-    Type tableau statique (à N dimensions)
+    Type tableau
     @author sjrd
     @version 1.0
   *}
   TSepiArrayType = class(TSepiType)
   private
+    FElementType: TSepiType; /// Type des éléments
+  protected
+    procedure ListReferences; override;
+    procedure Save(Stream: TStream); override;
+
+    {*
+      Type de l'index
+      @return Type de l'index
+    *}
+    function GetIndexType: TSepiOrdType; virtual; abstract;
+  public
+    constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
+    constructor Create(AOwner: TSepiMeta; const AName: string;
+      AKind: TTypeKind; AElementType: TSepiType);
+
+    property IndexType: TSepiOrdType read GetIndexType;
+    property ElementType: TSepiType read FElementType;
+  end;
+
+  {*
+    Type tableau statique
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiStaticArrayType = class(TSepiArrayType)
+  private
     FIndexType: TSepiOrdType; /// Type de l'index
     FLowerBound: Integer;     /// Borne inférieure
     FHigherBound: Integer;    /// Borne supérieure
-
-    FElementType: TSepiType; /// Type des éléments
 
     procedure MakeSize;
     procedure MakeTypeInfo;
@@ -53,6 +77,7 @@ type
     procedure Save(Stream: TStream); override;
 
     function GetAlignment: Integer; override;
+    function GetIndexType: TSepiOrdType; override;
   public
     constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
 
@@ -87,29 +112,23 @@ type
 
     function CompatibleWith(AType: TSepiType): Boolean; override;
 
-    property IndexType: TSepiOrdType read FIndexType;
     property LowerBound: Integer read FLowerBound;
     property HigherBound: Integer read FHigherBound;
     property ArrayLength: Integer read GetLength;
-
-    property ElementType: TSepiType read FElementType;
   end;
 
   {*
-    Type tableau dynamique (à une dimension)
+    Type tableau dynamique
     @author sjrd
     @version 1.0
   *}
-  TSepiDynArrayType = class(TSepiType)
+  TSepiDynArrayType = class(TSepiArrayType)
   private
-    FElementType: TSepiType; /// Type des éléments
-
     procedure MakeTypeInfo;
   protected
-    procedure ListReferences; override;
-    procedure Save(Stream: TStream); override;
-
     procedure ExtractTypeData; override;
+
+    function GetIndexType: TSepiOrdType; override;
   public
     constructor RegisterTypeInfo(AOwner: TSepiMeta;
       ATypeInfo: PTypeInfo); override;
@@ -123,8 +142,6 @@ type
     procedure SetElementType(const AElementTypeName: string); overload;
 
     function CompatibleWith(AType: TSepiType): Boolean; override;
-
-    property ElementType: TSepiType read FElementType;
   end;
 
 implementation
@@ -144,22 +161,69 @@ const
   DynArrayTypeDataLengthBase =
     SizeOf(Longint) + 2*SizeOf(Pointer) + SizeOf(Integer);
 
-{-----------------------}
-{ Classe TSepiArrayType }
-{-----------------------}
+{----------------------}
+{ TSepiArrayType class }
+{----------------------}
 
 {*
-  Charge un type entier depuis un flux
+  Charge un type tableau depuis un flux
 *}
 constructor TSepiArrayType.Load(AOwner: TSepiMeta; Stream: TStream);
+begin
+  inherited;
+
+  OwningUnit.ReadRef(Stream, FElementType);
+end;
+
+{*
+  Crée un nouveau type tableau
+  @param AOwner        Propriétaire du type
+  @param AElemenType   Type des éléments
+  @param AIsNative     Indique si le type tableau est natif
+  @param ATypeInfo     RTTI du type tableau natif
+*}
+constructor TSepiArrayType.Create(AOwner: TSepiMeta; const AName: string;
+  AKind: TTypeKind; AElementType: TSepiType);
+begin
+  inherited Create(AOwner, AName, AKind);
+
+  FElementType := AElementType;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiArrayType.ListReferences;
+begin
+  inherited;
+
+  OwningUnit.AddRef(FElementType);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiArrayType.Save(Stream: TStream);
+begin
+  inherited;
+
+  OwningUnit.WriteRef(Stream, FElementType);
+end;
+
+{-----------------------------}
+{ Classe TSepiStaticArrayType }
+{-----------------------------}
+
+{*
+  Charge un type tableau statique depuis un flux
+*}
+constructor TSepiStaticArrayType.Load(AOwner: TSepiMeta; Stream: TStream);
 begin
   inherited;
 
   OwningUnit.ReadRef(Stream, FIndexType);
   Stream.ReadBuffer(FLowerBound, 4);
   Stream.ReadBuffer(FHigherBound, 4);
-
-  OwningUnit.ReadRef(Stream, FElementType);
 
   MakeSize;
   FNeedInit := FElementType.NeedInit;
@@ -181,12 +245,12 @@ end;
   @param AIsNative      Indique si le type tableau est natif
   @param ATypeInfo      RTTI du type tableau natif
 *}
-constructor TSepiArrayType.Create(AOwner: TSepiMeta; const AName: string;
+constructor TSepiStaticArrayType.Create(AOwner: TSepiMeta; const AName: string;
   AIndexType: TSepiOrdType; ALowerBound, AHigherBound: Integer;
   AElementType: TSepiType; AIsNative: Boolean = False;
   ATypeInfo: PTypeInfo = nil);
 begin
-  inherited Create(AOwner, AName, tkArray);
+  inherited Create(AOwner, AName, tkArray, AElementType);
 
   FIndexType := AIndexType;
   FLowerBound := ALowerBound;
@@ -216,7 +280,7 @@ end;
   @param AIsNative         Indique si le type tableau est natif
   @param ATypeInfo         RTTI du type tableau natif
 *}
-constructor TSepiArrayType.Create(AOwner: TSepiMeta; const AName: string;
+constructor TSepiStaticArrayType.Create(AOwner: TSepiMeta; const AName: string;
   AIndexTypeInfo: PTypeInfo; ALowerBound, AHigherBound: Integer;
   AElementTypeInfo: PTypeInfo; AIsNative: Boolean = False;
   ATypeInfo: PTypeInfo = nil);
@@ -236,7 +300,7 @@ end;
   @param AIsNative         Indique si le type tableau est natif
   @param ATypeInfo         RTTI du type tableau natif
 *}
-constructor TSepiArrayType.Create(AOwner: TSepiMeta; const AName: string;
+constructor TSepiStaticArrayType.Create(AOwner: TSepiMeta; const AName: string;
   const AIndexTypeName: string; ALowerBound, AHigherBound: Integer;
   const AElementTypeName: string; AIsNative: Boolean = False;
   ATypeInfo: PTypeInfo = nil);
@@ -255,7 +319,7 @@ end;
   @param AIsNative      Indique si le type tableau est natif
   @param ATypeInfo      RTTI du type tableau natif
 *}
-constructor TSepiArrayType.Create(AOwner: TSepiMeta; const AName: string;
+constructor TSepiStaticArrayType.Create(AOwner: TSepiMeta; const AName: string;
   const ADimensions: array of Integer; AElementType: TSepiType;
   AIsNative: Boolean = False; ATypeInfo: PTypeInfo = nil);
 var
@@ -270,7 +334,7 @@ begin
   begin
     for CurDim := DimCount-1 downto 1 do
     begin
-      AElementType := TSepiArrayType.Create(AOwner, '', IntegerType,
+      AElementType := TSepiStaticArrayType.Create(AOwner, '', IntegerType,
         ADimensions[2*CurDim], ADimensions[2*CurDim+1], AElementType,
         AIsNative);
     end;
@@ -291,7 +355,7 @@ end;
   @param AIsNative          Indique si le type tableau est natif
   @param ATypeInfo          RTTI du type tableau natif
 *}
-constructor TSepiArrayType.Create(AOwner: TSepiMeta; const AName: string;
+constructor TSepiStaticArrayType.Create(AOwner: TSepiMeta; const AName: string;
   const ADimensions: array of Integer; AElementTypeInfo: PTypeInfo;
   AIsNative: Boolean = False; ATypeInfo: PTypeInfo = nil);
 begin
@@ -308,7 +372,7 @@ end;
   @param AIsNative          Indique si le type tableau est natif
   @param ATypeInfo          RTTI du type tableau natif
 *}
-constructor TSepiArrayType.Create(AOwner: TSepiMeta; const AName: string;
+constructor TSepiStaticArrayType.Create(AOwner: TSepiMeta; const AName: string;
   const ADimensions: array of Integer; const AElementTypeName: string;
   AIsNative: Boolean = False; ATypeInfo: PTypeInfo = nil);
 begin
@@ -321,17 +385,17 @@ end;
 {*
   [@inheritDoc]
 *}
-constructor TSepiArrayType.Clone(AOwner: TSepiMeta; const AName: string;
+constructor TSepiStaticArrayType.Clone(AOwner: TSepiMeta; const AName: string;
   Source: TSepiType);
 begin
-  with Source as TSepiArrayType do
+  with Source as TSepiStaticArrayType do
     Create(AOwner, AName, IndexType, LowerBound, HigherBound, ElementType);
 end;
 
 {*
   Calcule la taille du tableau et la range dans FSize
 *}
-procedure TSepiArrayType.MakeSize;
+procedure TSepiStaticArrayType.MakeSize;
 begin
   FSize := ArrayLength * FElementType.Size;
 end;
@@ -339,7 +403,7 @@ end;
 {*
   Construit les RTTI (si besoin)
 *}
-procedure TSepiArrayType.MakeTypeInfo;
+procedure TSepiStaticArrayType.MakeTypeInfo;
 var
   AElementType: TSepiType;
 begin
@@ -347,15 +411,15 @@ begin
     Exit;
 
   AElementType := ElementType;
-  while AElementType is TSepiArrayType do
-    AElementType := TSepiArrayType(AElementType).ElementType;
+  while AElementType is TSepiStaticArrayType do
+    AElementType := TSepiStaticArrayType(AElementType).ElementType;
 
   AllocateTypeInfo(ArrayTypeDataLength);
   with PArrayTypeData(TypeData)^ do
   begin
     Size := FSize;
     Count := FSize div AElementType.Size;
-    ElemType := TSepiArrayType(AElementType).TypeInfoRef;
+    ElemType := TSepiStaticArrayType(AElementType).TypeInfoRef;
     ElemOffset := 0;
   end;
 end;
@@ -364,7 +428,7 @@ end;
   Longueur du tableau
   @return Longueur du tableau
 *}
-function TSepiArrayType.GetLength: Integer;
+function TSepiStaticArrayType.GetLength: Integer;
 begin
   Result := HigherBound - LowerBound + 1;
 end;
@@ -372,31 +436,28 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiArrayType.ListReferences;
+procedure TSepiStaticArrayType.ListReferences;
 begin
   inherited;
   OwningUnit.AddRef(FIndexType);
-  OwningUnit.AddRef(FElementType);
 end;
 
 {*
   [@inheritDoc]
 *}
-procedure TSepiArrayType.Save(Stream: TStream);
+procedure TSepiStaticArrayType.Save(Stream: TStream);
 begin
   inherited;
 
   OwningUnit.WriteRef(Stream, FIndexType);
   Stream.WriteBuffer(FLowerBound, 4);
   Stream.WriteBuffer(FHigherBound, 4);
-
-  OwningUnit.WriteRef(Stream, FElementType);
 end;
 
 {*
   [@inheritDoc]
 *}
-function TSepiArrayType.GetAlignment: Integer;
+function TSepiStaticArrayType.GetAlignment: Integer;
 begin
   Result := ElementType.Alignment;
 end;
@@ -404,7 +465,15 @@ end;
 {*
   [@inheritDoc]
 *}
-function TSepiArrayType.CompatibleWith(AType: TSepiType): Boolean;
+function TSepiStaticArrayType.GetIndexType: TSepiOrdType;
+begin
+  Result := FIndexType;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiStaticArrayType.CompatibleWith(AType: TSepiType): Boolean;
 begin
   Result := False;
 end;
@@ -430,8 +499,6 @@ constructor TSepiDynArrayType.Load(AOwner: TSepiMeta; Stream: TStream);
 begin
   inherited;
 
-  OwningUnit.ReadRef(Stream, FElementType);
-
   if not Native then
     MakeTypeInfo;
 end;
@@ -445,9 +512,8 @@ end;
 constructor TSepiDynArrayType.Create(AOwner: TSepiMeta; const AName: string;
   AElementType: TSepiType);
 begin
-  inherited Create(AOwner, AName, tkDynArray);
+  inherited Create(AOwner, AName, tkDynArray, AElementType);
 
-  FElementType := AElementType;
   MakeTypeInfo;
 end;
 
@@ -477,12 +543,12 @@ begin
   FResultBehavior := rbParameter;
 
   // Element size
-  TypeData.elSize := FElementType.Size;
+  TypeData.elSize := ElementType.Size;
 
   // Element RTTI, if need initialization
   // Types which need initialization always have got RTTI
-  if FElementType.NeedInit then
-    TypeData.elType := TSepiDynArrayType(FElementType).TypeInfoRef
+  if ElementType.NeedInit then
+    TypeData.elType := TSepiDynArrayType(ElementType).TypeInfoRef
   else
     TypeData.elType := nil;
 
@@ -492,31 +558,13 @@ begin
 
   // Element RTTI, independant of cleanup
   // Whe have to check for nul-RTTI, because of records and static arrays
-  if Assigned(FElementType.TypeInfo) then
-    TypeData.elType2 := TSepiDynArrayType(FElementType).TypeInfoRef
+  if Assigned(ElementType.TypeInfo) then
+    TypeData.elType2 := TSepiDynArrayType(ElementType).TypeInfoRef
   else
     TypeData.elType2 := nil;
 
   // Unit name
   Move(UnitName[0], TypeData.DynUnitName[0], Length(UnitName)+1);
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TSepiDynArrayType.ListReferences;
-begin
-  inherited;
-  OwningUnit.AddRef(FElementType);
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TSepiDynArrayType.Save(Stream: TStream);
-begin
-  inherited;
-  OwningUnit.WriteRef(Stream, FElementType);
 end;
 
 {*
@@ -533,6 +581,14 @@ begin
   if Assigned(TypeData.elType2) then
     FElementType := Root.FindType(TypeData.elType2^);
   // Otherwise, the element type should be set with SetElementType
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiDynArrayType.GetIndexType: TSepiOrdType;
+begin
+  Result := Root.FindType(System.TypeInfo(Integer)) as TSepiOrdType;
 end;
 
 {*
@@ -570,7 +626,7 @@ end;
 
 initialization
   SepiRegisterMetaClasses([
-    TSepiArrayType, TSepiDynArrayType
+    TSepiStaticArrayType, TSepiDynArrayType
   ]);
 end.
 

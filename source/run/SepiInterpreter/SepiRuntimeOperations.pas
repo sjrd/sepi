@@ -66,6 +66,7 @@ begin
         btByte, btShortint, btAnsiChar: Shortint(Dest) := Shortint(Source)+1;
         btWord, btSmallint, btWideChar: Smallint(Dest) := Smallint(Source)+1;
         btDWord, btLongint:             Longint (Dest) := Longint (Source)+1;
+        btInt64:                        Int64   (Dest) := Int64   (Source)+1;
         btComp:                         Comp    (Dest) := Comp    (Source)+1;
       else
         RaiseInvalidOpCode;
@@ -77,6 +78,7 @@ begin
         btByte, btShortint, btAnsiChar: Shortint(Dest) := Shortint(Source)-1;
         btWord, btSmallint, btWideChar: Smallint(Dest) := Smallint(Source)-1;
         btDWord, btLongint:             Longint (Dest) := Longint (Source)-1;
+        btInt64:                        Int64   (Dest) := Int64   (Source)-1;
         btComp:                         Comp    (Dest) := Comp    (Source)-1;
       else
         RaiseInvalidOpCode;
@@ -89,6 +91,7 @@ begin
         btByte, btShortint, btAnsiChar: Shortint(Dest) := not Shortint(Source);
         btWord, btSmallint, btWideChar: Smallint(Dest) := not Smallint(Source);
         btDWord, btLongint:             Longint (Dest) := not Longint (Source);
+        btInt64:                        Int64   (Dest) := not Int64   (Source);
       else
         RaiseInvalidOpCode;
       end;
@@ -99,6 +102,7 @@ begin
         btByte, btShortint: Shortint(Dest) := -Shortint(Source);
         btWord, btSmallint: Smallint(Dest) := -Smallint(Source);
         btDWord, btLongint: Longint (Dest) := -Longint (Source);
+        btInt64:            Int64   (Dest) := -Int64   (Source);
 
         btSingle:   Single  (Dest) := -Single  (Source);
         btDouble:   Double  (Dest) := -Double  (Source);

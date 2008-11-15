@@ -26,6 +26,8 @@ unit SepiMembers;
 
 interface
 
+{$ASSERTIONS ON}
+
 uses
   Windows, Classes, SysUtils, StrUtils, RTLConsts, Contnrs, TypInfo, ScUtils,
   ScStrUtils, ScDelphiLanguage, ScCompilerMagic, SepiReflectionCore,
@@ -39,8 +41,6 @@ const
   NoDefaultValue = Integer($80000000);
 
 type
-  TSepiSignature = class;
-
   {*
     Type de paramètre caché
     - hpNormal : paramètre normal
@@ -89,6 +89,54 @@ type
   TCallingConvention = (ccRegister, ccCDecl, ccPascal, ccStdCall, ccSafeCall);
 
   {*
+    Option de comparaison de signatures (et paramètres)
+    - scoKind : Compare les types de signature
+    - scoCallingConvention : Compare les conventions d'appel
+    - scoParams : Compare les paramètres
+    - scoReturnType : Compare les types de retour
+    - pcoHiddenKind : Compare les types de paramètre caché des paramètres
+    - pcoKind : Compare les types de paramètre (value/const/var/out)
+    - pcoName : Compare les noms des paramètres
+    - pcoType : Compare les types des paramètres
+    - pcoDefaultValue : Compare les valeurs par défaut (pour usage futur)
+  *}
+  TSepiSignatureCompareOption = (
+    scoKind, scoCallingConvention, scoParams, scoReturnType,
+    pcoHiddenKind, pcoKind, pcoName, pcoType, pcoDefaultValue
+  );
+
+  {*
+    Options de comparaison de signatures (et paramètres)
+  *}
+  TSepiSignatureCompareOptions = set of TSepiSignatureCompareOption;
+
+const
+  /// Comparaison stricte des signatures
+  scoAll = [scoKind..pcoDefaultValue];
+
+  /// Comparaison des signatures pour compatibilité d'assignation
+  scoCompatibility = scoAll - [pcoName, pcoDefaultValue];
+
+  /// Comparaison des signatures pour recherche de la méthode héritée
+  scoInheritance = scoCompatibility - [scoCallingConvention];
+
+  /// Comparaison des signatures pour recherche de la déclaration
+  scoDeclaration = scoAll - [scoCallingConvention];
+
+  /// Comparaison stricte des paramètres
+  pcoAll = [pcoHiddenKind..pcoDefaultValue];
+
+  /// Comparaison des paramètres pour compatibilité d'assignation
+  pcoCompatibility = pcoAll - [pcoName, pcoDefaultValue];
+
+  /// Comparaison des paramètres pour recherche de la méthode héritée
+  pcoInheritance = pcoCompatibility;
+
+  /// Comparaison des paramètres pour recherche de la déclaration
+  pcoDeclaration = pcoAll;
+
+type
+  {*
     Type d'accesseur d'une propriété
   *}
   TPropertyAccessKind = (pakNone, pakField, pakMethod);
@@ -98,6 +146,7 @@ type
   *}
   TPropertyStorageKind = (pskConstant, pskField, pskMethod);
 
+  TSepiSignature = class;
   TSepiOverloadedMethod = class;
 
   {*
@@ -177,7 +226,8 @@ type
 
     procedure AfterConstruction; override;
 
-    function Equals(AParam: TSepiParam): Boolean;
+    function Equals(AParam: TSepiParam;
+      Options: TSepiSignatureCompareOptions = pcoAll): Boolean;
     function CompatibleWith(AType: TSepiType): Boolean;
 
     property Owner: TSepiSignature read FOwner;
@@ -256,7 +306,8 @@ type
 
     function GetParam(const ParamName: string): TSepiParam;
 
-    function Equals(ASignature: TSepiSignature): Boolean;
+    function Equals(ASignature: TSepiSignature;
+      Options: TSepiSignatureCompareOptions = scoAll): Boolean;
     function CompatibleWith(const ATypes: array of TSepiType): Boolean;
 
     property Owner: TSepiMeta read FOwner;
@@ -396,8 +447,8 @@ type
     constructor Create(AOwner: TSepiMeta; const AName: string);
     destructor Destroy; override;
 
-    function FindMethod(
-      ASignature: TSepiSignature): TSepiMethod; overload;
+    function FindMethod(ASignature: TSepiSignature;
+      Options: TSepiSignatureCompareOptions = scoAll): TSepiMethod; overload;
     function FindMethod(
       const ATypes: array of TSepiType): TSepiMethod; overload;
 
@@ -1340,15 +1391,32 @@ end;
 
 {*
   Détermine si deux paramètres sont identiques
-  @param AParam   Paramètre à comparer
+  @param AParam    Paramètre à comparer
+  @param Options   Options de comparaison
   @return True si les paramètres sont identiques, False sinon
 *}
-function TSepiParam.Equals(AParam: TSepiParam): Boolean;
+function TSepiParam.Equals(AParam: TSepiParam;
+  Options: TSepiSignatureCompareOptions = pcoAll): Boolean;
 begin
-  Result := HiddenKind = AParam.HiddenKind;
-  if Result and (HiddenKind = hpNormal) then
-    Result := (Kind = AParam.Kind) and (OpenArray = AParam.OpenArray) and
-      (ParamType = AParam.ParamType);
+  Result := False;
+
+  if (pcoHiddenKind in Options) and (HiddenKind <> AParam.HiddenKind) then
+    Exit;
+
+  if HiddenKind = hpNormal then
+  begin
+    if (pcoKind in Options) and (Kind <> AParam.Kind) then
+      Exit;
+
+    if (pcoName in Options) and (not AnsiSameText(Name, AParam.Name)) then
+      Exit;
+
+    if (pcoType in Options) and
+      ((OpenArray <> AParam.OpenArray) or (ParamType <> AParam.ParamType)) then
+      Exit;
+  end;
+
+  Result := True;
 end;
 
 {*
@@ -1685,20 +1753,13 @@ end;
 *}
 function TSepiSignature.CheckInherited(
   ASignature: TSepiSignature): Boolean;
-var
-  OldCallingConv: TCallingConvention;
 begin
-  Result := False;
-  OldCallingConv := CallingConvention;
-  FCallingConvention := ASignature.CallingConvention;
+  Result := Equals(ASignature, scoInheritance);
 
-  try
-    Result := Equals(ASignature);
-  finally
-    if not Result then
-      FCallingConvention := OldCallingConv
-    else if FCallingConvention <> OldCallingConv then
-      MakeCallInfo;
+  if Result and (CallingConvention <> ASignature.CallingConvention) then
+  begin
+    FCallingConvention := ASignature.CallingConvention;
+    MakeCallInfo;
   end;
 end;
 
@@ -1889,26 +1950,32 @@ end;
 {*
   Détermine si deux signatures sont identiques
   @param ASignature   Signature à comparer
+  @param Options      Options de comparaison
   @return True si les signatures sont identiques, False sinon
 *}
-function TSepiSignature.Equals(
-  ASignature: TSepiSignature): Boolean;
+function TSepiSignature.Equals(ASignature: TSepiSignature;
+  Options: TSepiSignatureCompareOptions = scoAll): Boolean;
 var
   I: Integer;
 begin
   Result := False;
 
-  if Kind <> ASignature.Kind then
+  if (scoKind in Options) and (Kind <> ASignature.Kind) then
     Exit;
-  if CallingConvention <> ASignature.CallingConvention then
+  if (scoCallingConvention in Options) and
+    (CallingConvention <> ASignature.CallingConvention) then
     Exit;
 
-  if ParamCount <> ASignature.ParamCount then
-    Exit;
-  for I := 0 to ParamCount-1 do
-    if not Params[I].Equals(ASignature.Params[I]) then
+  if scoParams in Options then
+  begin
+    if ParamCount <> ASignature.ParamCount then
       Exit;
-  if ReturnType <> ASignature.ReturnType then
+    for I := 0 to ParamCount-1 do
+      if not Params[I].Equals(ASignature.Params[I], Options) then
+        Exit;
+  end;
+
+  if (scoReturnType in Options) and (ReturnType <> ASignature.ReturnType) then
     Exit;
 
   Result := True;
@@ -2430,17 +2497,18 @@ end;
 {*
   Trouve la méthode effective qui correspond à une signature donnée
   @param ASignature   Signature à rechercher
+  @param Options      Options de comparaison
   @return Méthode effective correspondante
 *}
-function TSepiOverloadedMethod.FindMethod(
-  ASignature: TSepiSignature): TSepiMethod;
+function TSepiOverloadedMethod.FindMethod(ASignature: TSepiSignature;
+  Options: TSepiSignatureCompareOptions = scoAll): TSepiMethod;
 var
   I: Integer;
 begin
   for I := 0 to MethodCount-1 do
   begin
     Result := Methods[I];
-    if Result.Signature.Equals(ASignature) then
+    if Result.Signature.Equals(ASignature, Options) then
       Exit;
   end;
   Result := nil;
@@ -2606,7 +2674,7 @@ begin
 
   inherited Create(AOwner, AName);
 
-  FSignature := Previous.Signature;
+  FSignature := TSepiSignature.Clone(Self, Previous.Signature);
 
   FReadAccess.Meta := AReadAccess;
   MakePropertyAccessKind(FReadAccess);
@@ -3126,6 +3194,7 @@ begin
   if Assigned(TypeData.IntfParent) then
   begin
     FParent := TSepiInterface(Root.FindType(TypeData.IntfParent^));
+    Assert(FParent.Completed);
     FIMTSize := Parent.IMTSize;
   end else
   begin
@@ -3158,6 +3227,7 @@ begin
   FResultBehavior := rbParameter;
 
   OwningUnit.ReadRef(Stream, FParent);
+  Assert(FParent.Completed);
   FCompleted := False;
 
   Stream.ReadBuffer(FHasGUID, 1);
@@ -3192,6 +3262,7 @@ begin
     FParent := AParent
   else
     FParent := TSepiInterface(Root.FindType(System.TypeInfo(IInterface)));
+  Assert(FParent.Completed);
   FCompleted := False;
 
   FHasGUID := not IsNoGUID(AGUID);
@@ -3460,6 +3531,7 @@ begin
   if Assigned(TypeData.ParentInfo) then
   begin
     FParent := TSepiClass(Root.FindType(TypeData.ParentInfo^));
+    Assert(FParent.Completed);
     FInstSize := Parent.InstSize;
     FVMTSize := Parent.VMTSize;
     FDMTNextIndex := Parent.FDMTNextIndex;
@@ -3489,6 +3561,7 @@ begin
   else
     FDelphiClass := nil;
   OwningUnit.ReadRef(Stream, FParent);
+  Assert(FParent.Completed);
   FCompleted := False;
 
   Stream.ReadBuffer(IntfCount, 4);
@@ -3523,6 +3596,7 @@ begin
     FParent := AParent
   else
     FParent := TSepiClass(Root.FindType(System.TypeInfo(TObject)));
+  Assert(FParent.Completed);
   FCompleted := False;
 
   FInstSize := Parent.InstSize;
@@ -4882,7 +4956,7 @@ end;
 function TSepiMethodRefType.CompatibleWith(AType: TSepiType): Boolean;
 begin
   Result := (AType.Kind = tkMethod) and
-    FSignature.Equals(TSepiMethodRefType(AType).FSignature);
+    FSignature.Equals(TSepiMethodRefType(AType).FSignature, scoCompatibility);
 end;
 
 {-------------------------}

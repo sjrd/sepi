@@ -148,7 +148,7 @@ begin
     end;
   end else if Meta is TSepiConstant then
   begin
-    // Constante
+    // Constant
     ISepiExpressionPart(TSepiTrueConstValue.Create(
       TSepiConstant(Meta))).AttachToExpression(Expression);
   end else if Meta is TSepiVariable then
@@ -156,6 +156,16 @@ begin
     // Variable
     ISepiExpressionPart(TSepiVariableValue.Create(
       TSepiVariable(Meta))).AttachToExpression(Expression);
+  end else if Meta is TSepiMethod then
+  begin
+    // Method
+    ISepiExpressionPart(TSepiMethodCall.Create(
+      TSepiMethod(Meta))).AttachToExpression(Expression);
+  end else if Meta is TSepiOverloadedMethod then
+  begin
+    // Method
+    ISepiExpressionPart(TSepiMethodCall.Create(
+      TSepiOverloadedMethod(Meta))).AttachToExpression(Expression);
   end;
 end;
 

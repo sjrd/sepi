@@ -616,6 +616,9 @@ type
     function GetErroneousType: TSepiType;
     function MakeErroneousTypeAlias(const AliasName: string): TSepiType;
 
+    function FindMethodCompiler(SepiMethod: TSepiMethod;
+      AllowCreate: Boolean = False): TSepiMethodCompiler;
+
     function MakeReference(Meta: TSepiMeta): Integer;
 
     procedure WriteToStream(Stream: TStream);
@@ -2432,6 +2435,30 @@ begin
 end;
 
 {*
+  Cherche le compilateur de méthode pour une méthode donnée
+  @param SepiMethod    Méthode dont on cherche le compilateur
+  @param AllowCreate   Si True, permet de créer le compilateur si inexistant
+  @return Compilateur pour la méthode donnée, ou nil si non trouvé
+*}
+function TSepiUnitCompiler.FindMethodCompiler(SepiMethod: TSepiMethod;
+  AllowCreate: Boolean = False): TSepiMethodCompiler;
+var
+  I: Integer;
+begin
+  for I := 0 to MethodCount-1 do
+  begin
+    Result := Methods[I];
+    if Result.SepiMethod = SepiMethod then
+      Exit;
+  end;
+
+  if AllowCreate then
+    Result := TSepiMethodCompiler.Create(Self, SepiMethod)
+  else
+    Result := nil;
+end;
+
+{*
   Construit un numéro de référence à un meta Sepi
   @param Meta   Meta pour lequel construire un numéro de référence
   @return Numéro de référence du meta
@@ -2538,6 +2565,8 @@ begin
   end;
 
   FSize := Source.Size;
+
+  Assign(Source, False);
 end;
 
 {*
@@ -2802,8 +2831,9 @@ const
     aoPlusConstShortint, aoPlusConstSmallint, aoPlusConstLongint,
     aoPlusConstLongint
   );
-  MemArgSizes: array[aoPlusMemShortint..aoPlusConstTimesMemLongint] of Integer
-    = (1, 2, 4, 1, 2, 4);
+  MemArgSizes:
+    array[aoPlusMemShortint..aoPlusLongConstTimesMemLongWord] of Integer
+    = (1, 2, 4, 1, 2, 4, 1, 2, 4, 1, 2, 4, 1, 2, 4);
 var
   Index: Integer;
 begin
@@ -2846,8 +2876,17 @@ begin
     ConstOperationArg := AConstOperationArg;
 
     // Adapt operation to const arg size
+
     if Operation in [aoPlusConstShortint..aoPlusConstLongint] then
-      Operation := ConstArgSizeToOp[IntegerSize(AConstOperationArg)];
+      Operation := ConstArgSizeToOp[IntegerSize(AConstOperationArg)]
+    else if (Operation in
+      [aoPlusConstTimesMemShortint..aoPlusConstTimesMemLongWord]) and
+      (CardinalSize(AConstOperationArg) > 1) then
+      Inc(Byte(Operation), 6)
+    else if (Operation in
+      [aoPlusLongConstTimesMemShortint..aoPlusLongConstTimesMemLongWord]) and
+      (CardinalSize(AConstOperationArg) = 1) then
+      Dec(Byte(Operation), 6);
 
     // Create memory reference
     if Operation in OpsWithMemArg then
@@ -2952,6 +2991,7 @@ procedure TSepiMemoryReference.Assign(Source: TSepiMemoryReference;
   SealAfter: Boolean = True);
 var
   I: Integer;
+  MemOpArg: TSepiMemoryReference;
 begin
   CheckUnsealed;
 
@@ -2964,8 +3004,14 @@ begin
     FUnresolvedLocalVar := Source.FUnresolvedLocalVar;
 
   for I := 0 to Source.OperationCount-1 do
+  begin
     with Source.Operations[I] do
-      AddOperation(Dereference, Operation, ConstOperationArg);
+    begin
+      MemOpArg := AddOperation(Dereference, Operation, ConstOperationArg);
+      if MemOpArg <> nil then
+        MemOpArg.Assign(MemOperationArg);
+    end;
+  end;
 end;
 
 {*
@@ -3020,13 +3066,15 @@ begin
 
       // Const argument
       case Operation of
-        aoPlusConstShortint, aoPlusConstTimesMemShortint,
-          aoPlusConstTimesMemSmallint, aoPlusConstTimesMemLongint:
+        aoPlusConstShortint:
           Inc(FSize, SizeOf(Shortint));
         aoPlusConstSmallint:
           Inc(FSize, SizeOf(Smallint));
         aoPlusConstLongint:
           Inc(FSize, SizeOf(Longint));
+        aoPlusConstTimesMemShortint, aoPlusConstTimesMemSmallint,
+          aoPlusConstTimesMemLongint:
+          Inc(FSize, SizeOf(Byte));
       end;
 
       // Memory argument

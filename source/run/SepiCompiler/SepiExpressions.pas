@@ -705,6 +705,35 @@ type
   end;
 
   {*
+    Valeur élément de de tableau
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiArrayItemValue = class(TSepiCustomDirectValue)
+  private
+    FArrayValue: ISepiValue;         /// Valeur tableau
+    FIndexValue: ISepiReadableValue; /// Valeur index
+
+    FArrayType: TSepiArrayType; /// Type du tableau
+    FIndexType: TSepiOrdType;   /// Type de l'index
+  protected
+    function CompileAsMemoryRef(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList;
+      TempVars: TSepiTempVarsLifeManager): TSepiMemoryReference; override;
+
+    property ArrayType: TSepiArrayType read FArrayType;
+    property IndexType: TSepiOrdType read FIndexType;
+  public
+    procedure Complete;
+
+    class function MakeArrayItemValue(const ArrayValue: ISepiValue;
+      const IndexValue: ISepiReadableValue): ISepiValue;
+
+    property ArrayValue: ISepiValue read FArrayValue write FArrayValue;
+    property IndexValue: ISepiReadableValue read FIndexValue write FIndexValue;
+  end;
+
+  {*
     Valeur champ de record
     @author sjrd
     @version 1.0
@@ -3351,6 +3380,8 @@ end;
 
 {*
   Complète l'opérateur de déréférencement
+  Doit avoir été attaché à une expression au préalable, pour bénéficier du
+  contexte.
 *}
 procedure TSepiDereferenceValue.Complete;
 var
@@ -3382,6 +3413,159 @@ begin
   Result.AttachToExpression(TSepiExpression.Create(Operand as ISepiExpression));
   Dereference.Operand := Operand;
   Dereference.Complete;
+end;
+
+{---------------------------}
+{ TSepiArrayItemValue class }
+{---------------------------}
+
+{*
+  [@inheritDoc]
+*}
+function TSepiArrayItemValue.CompileAsMemoryRef(Compiler: TSepiMethodCompiler;
+  Instructions: TSepiInstructionList;
+  TempVars: TSepiTempVarsLifeManager): TSepiMemoryReference;
+const
+  OrdTypeToOperation: array[TOrdType] of TSepiAddressOperation = (
+    aoPlusConstTimesMemShortint, aoPlusConstTimesMemByte,
+    aoPlusConstTimesMemSmallint, aoPlusConstTimesMemWord,
+    aoPlusConstTimesMemLongint, aoPlusConstTimesMemLongWord
+  );
+var
+  IndexValue: ISepiReadableValue;
+  IntIndexType: TSepiIntegerType;
+  IsDynamic: Boolean;
+  SourceMemory, IndexMemory: TSepiMemoryReference;
+  ConstIndex, ConstFactor: Integer;
+begin
+  IndexValue := Self.IndexValue;
+  IsDynamic := ArrayType is TSepiDynArrayType;
+
+  ConstFactor := ValueType.Size;
+
+  if not (IndexValue.ValueType is TSepiIntegerType) then
+    IndexValue := TSepiCastOperator.CastValueOrd(
+      IndexValue) as ISepiReadableValue;
+  IntIndexType := IndexValue.ValueType as TSepiIntegerType;
+
+  SourceMemory := nil;
+  IndexMemory := nil;
+  try
+    { Accessing items of static arrays or dynamic arrays are quite the same,
+      yet subtly different.  Not only must a dynamic array be dereferenced,
+      but writing an item of such an array requires *reading* the array value;
+      while writing an item of a static array requires *addressing* the array
+      value.  In both cases, the array value must be writable for allowance.
+      Comments about accessing a record field also apply to static arrays. }
+
+    // In both cases, first try and read the array value - otherwise address it
+    if IsReadable then
+    begin
+      (ArrayValue as ISepiReadableValue).CompileRead(Compiler, Instructions,
+        SourceMemory, TempVars);
+    end else
+    begin
+      { For a dynamic array, if you cannot read the array, you can't do
+        anything with its items.  Therefore, there is no way you could get
+        here. }
+      Assert(not IsDynamic);
+
+      (ArrayValue as ISepiAddressableValue).CompileLoadAddress(Compiler,
+        Instructions, SourceMemory, TempVars);
+    end;
+
+    // For static arrays, ConstIndex must counter the LowerBound effect
+    if IsDynamic then
+      ConstIndex := 0
+    else
+      ConstIndex := - TSepiStaticArrayType(ArrayType).LowerBound;
+
+    // If the index value is constant, use ConstIndex, otherwise read it
+    if IndexValue.IsConstant then
+      Inc(ConstIndex, IntIndexType.ValueAsInteger(IndexValue.ConstValuePtr^))
+    else
+      IndexValue.CompileRead(Compiler, Instructions, IndexMemory, TempVars);
+
+    // Finally, construct the memory reference for the item value
+    Result := TSepiMemoryReference.Clone(SourceMemory);
+    try
+      // Dereference dynamic arrays, and static arrays which must be addressed
+      if IsDynamic or (not IsReadable) then
+        Result.AddOperation(adSimple);
+
+      // Add the constant and variable offsets
+
+      if ConstIndex <> 0 then
+        Result.AddOperation(aoPlusConstShortint, ConstFactor * ConstIndex);
+
+      if IndexMemory <> nil then
+      begin
+        Result.AddOperation(OrdTypeToOperation[IntIndexType.TypeData.OrdType],
+          ConstFactor).Assign(IndexMemory);
+      end;
+
+      Result.Seal;
+    except
+      Result.Free;
+      raise;
+    end;
+  finally
+    IndexMemory.Free;
+    SourceMemory.Free;
+  end;
+end;
+
+{*
+  Complète la valeur
+  Doit avoir été attaché à une expression au préalable, pour bénéficier du
+  contexte.
+*}
+procedure TSepiArrayItemValue.Complete;
+begin
+  Assert(ArrayValue <> nil);
+  Assert(IndexValue <> nil);
+
+  // Fetch types
+  FArrayType := ArrayValue.ValueType as TSepiArrayType;
+  FIndexType := ArrayType.IndexType;
+  SetValueType(ArrayType.ElementType);
+
+  // Convert index
+  if IndexValue.ValueType <> IndexType then
+    IndexValue := TSepiConvertOperation.ConvertValue(IndexType, IndexValue);
+
+  // Set accesses
+  IsReadable := Supports(ArrayValue, ISepiReadableValue);
+  if ArrayType is TSepiStaticArrayType then
+  begin
+    IsAddressable := Supports(ArrayValue, ISepiAddressableValue);
+    IsWritable := IsAddressable and Supports(ArrayValue, ISepiWritableValue);
+  end else
+  begin
+    IsAddressable := IsReadable;
+    IsWritable := IsReadable and Supports(ArrayValue, ISepiWritableValue);
+  end;
+end;
+
+{*
+  Construit une valeur élément de tableau
+  @param ArrayValue   Valeur tableau
+  @param IndexValue   Valeur index
+*}
+class function TSepiArrayItemValue.MakeArrayItemValue(
+  const ArrayValue: ISepiValue;
+  const IndexValue: ISepiReadableValue): ISepiValue;
+var
+  ArrayItemValue: TSepiArrayItemValue;
+begin
+  ArrayItemValue := TSepiArrayItemValue.Create;
+  Result := ArrayItemValue;
+  Result.AttachToExpression(TSepiExpression.Create(
+    ArrayValue as ISepiExpression));
+  ArrayItemValue.ArrayValue := ArrayValue;
+  ArrayItemValue.IndexValue := IndexValue;
+  ArrayItemValue.Complete;
+  Result.AttachToExpression(Result as ISepiExpression);
 end;
 
 {-----------------------------}
@@ -3427,7 +3611,7 @@ begin
       to write it.  Indeed, we know a record field can be written only if the
       underlying record can be written (for allowance) *and* addressed (for
       faisability).  And since addressing a value that can be read is always
-      reading + LoadAddress instruction, it is more effective to only read the
+      reading + LoadAddress instruction, it is more efficient to only read the
       record. }
 
     if IsReadable then
@@ -4292,6 +4476,8 @@ begin
   FProperty := AProperty;
 
   SetParamCount(FProperty.Signature.ParamCount);
+  if FProperty.Signature.ParamCount = 0 then
+    CompleteParams;
 end;
 
 {*
@@ -4499,12 +4685,12 @@ begin
     toLowerBound, toHigherBound:
     begin
       if not ((OpType is TSepiOrdType) or (OpType is TSepiInt64Type) or
-        (OpType is TSepiArrayType)) then
+        (OpType is TSepiStaticArrayType)) then
         MakeError(SOrdinalOrArrayTypeRequired);
     end;
     toLength:
     begin
-      if not (OpType is TSepiArrayType) then
+      if not (OpType is TSepiStaticArrayType) then
         MakeError(SArrayTypeRequired);
     end;
   else
@@ -4539,10 +4725,10 @@ end;
 *}
 procedure TSepiTypeOperationValue.CompleteArrayBound;
 var
-  ArrayType: TSepiArrayType;
+  ArrayType: TSepiStaticArrayType;
   Bound: Integer;
 begin
-  ArrayType := Operand.ExprType as TSepiArrayType;
+  ArrayType := Operand.ExprType as TSepiStaticArrayType;
 
   SetValueType(ArrayType.IndexType);
   AllocateConstant;
@@ -4633,7 +4819,7 @@ begin
     toTypeInfo: CompleteTypeInfo;
     toLength: CompleteArrayBound;
   else
-    if Operand.ExprType is TSepiArrayType then
+    if Operand.ExprType is TSepiStaticArrayType then
       CompleteArrayBound
     else
       CompleteOrdinalBound;

@@ -630,6 +630,21 @@ end;
 { Unit import }
 {-------------}
 
+procedure Write(const S: string);
+begin
+  System.Write(S);
+end;
+
+procedure Writeln(const S: string);
+begin
+  System.Writeln(S);
+end;
+
+procedure Readln(var S: string);
+begin
+  System.Readln(S);
+end;
+
 procedure ChDir_0(const S: string);
 begin
   ChDir(S);
@@ -829,13 +844,13 @@ begin
   { Types declared in System.pas }
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(HRESULT));
   TSepiPointerType.Create(Result, 'PGUID', 'TGUID', True);
-  TSepiArrayType.Create(Result, '$1', TypeInfo(Integer),
+  TSepiStaticArrayType.Create(Result, '$1', TypeInfo(Integer),
     0, 7, TypeInfo(Byte), True);
   SepiImportTGUID(Result);
   TSepiPointerType.Create(Result, 'PInterfaceEntry', 'TInterfaceEntry', True);
   SepiImportTInterfaceEntry(Result);
   TSepiPointerType.Create(Result, 'PInterfaceTable', 'TInterfaceTable', True);
-  TSepiArrayType.Create(Result, '$2', 'Integer',
+  TSepiStaticArrayType.Create(Result, '$2', 'Integer',
     0, 9999, 'TInterfaceEntry', True);
   SepiImportTInterfaceTable(Result);
   SepiImportTMethod(Result);
@@ -852,6 +867,14 @@ begin
   TSepiConstant.Create(Result, 'E_UNEXPECTED', E_UNEXPECTED,
     TypeInfo(HRESULT));
   TSepiConstant.Create(Result, 'E_NOTIMPL', E_NOTIMPL, TypeInfo(HRESULT));
+
+  { Write, Writeln and Readln routines}
+  TSepiMethod.Create(Result, 'Write', @Write,
+    'procedure(const S: string)');
+  TSepiMethod.Create(Result, 'Writeln', @Writeln,
+    'procedure(const S: string)');
+  TSepiMethod.Create(Result, 'Readln', @Readln,
+    'procedure(var S: string)');
 
   { Classes and interfaces }
   SepiImportIInterface(Result);
@@ -874,20 +897,20 @@ begin
   TSepiTypeAlias.Create(Result, 'PUCS2Char', 'PWideChar');
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(UCS4Char));
   TSepiPointerType.Create(Result, 'PUCS4Char', TypeInfo(UCS4Char), True);
-  TSepiArrayType.Create(Result, 'TUCS4CharArray', TypeInfo(Integer),
+  TSepiStaticArrayType.Create(Result, 'TUCS4CharArray', TypeInfo(Integer),
     0, $effffff, TypeInfo(UCS4Char), True);
   TSepiPointerType.Create(Result, 'PUCS4CharArray', 'TUCS4CharArray', True);
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(UCS4String));
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(UTF8String));
   TSepiPointerType.Create(Result, 'PUTF8String', TypeInfo(UTF8String), True);
-  TSepiArrayType.Create(Result, 'IntegerArray', TypeInfo(Integer),
+  TSepiStaticArrayType.Create(Result, 'IntegerArray', TypeInfo(Integer),
     0, $effffff, TypeInfo(Integer), True);
   TSepiPointerType.Create(Result, 'PIntegerArray', 'IntegerArray', True);
-  TSepiArrayType.Create(Result, 'PointerArray', 'Integer',
+  TSepiStaticArrayType.Create(Result, 'PointerArray', 'Integer',
     0, 512*1024*1024 - 2, 'Pointer', True);
   TSepiPointerType.Create(Result, 'PPointerArray', 'PointerArray', True);
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(TBoundArray));
-  TSepiArrayType.Create(Result, 'TPCharArray', 'Integer',
+  TSepiStaticArrayType.Create(Result, 'TPCharArray', 'Integer',
     0, (MaxLongint div SizeOf(PChar))-1, 'PChar', True);
   TSepiPointerType.Create(Result, 'PPCharArray', 'TPCharArray', True);
   TSepiPointerType.Create(Result, 'PLongint', TypeInfo(Longint), True);
@@ -922,11 +945,11 @@ begin
   TSepiPointerType.Create(Result, 'PDateTime', TypeInfo(TDateTime), True);
   TSepiTypeAlias.Create(Result, 'THandle', TypeInfo(LongWord));
   SepiImportTVarArrayBound(Result);
-  TSepiArrayType.Create(Result, 'TVarArrayBoundArray', 'Integer',
+  TSepiStaticArrayType.Create(Result, 'TVarArrayBoundArray', 'Integer',
     0, 0, 'TVarArrayBound', True);
   TSepiPointerType.Create(Result, 'PVarArrayBoundArray',
     'TVarArrayBoundArray', True);
-  TSepiArrayType.Create(Result, 'TVarArrayCoorArray', TypeInfo(Integer),
+  TSepiStaticArrayType.Create(Result, 'TVarArrayCoorArray', TypeInfo(Integer),
     0, 0, TypeInfo(Integer), True);
   TSepiPointerType.Create(Result, 'PVarArrayCoorArray',
     'TVarArrayCoorArray', True);
@@ -934,13 +957,13 @@ begin
   SepiImportTVarArray(Result);
   TSepiTypeAlias.Create(Result, 'TVarType', TypeInfo(Word));
   TSepiPointerType.Create(Result, 'PVarData', 'TVarData', True);
-  TSepiArrayType.Create(Result, '$3', TypeInfo(Integer),
+  TSepiStaticArrayType.Create(Result, '$3', TypeInfo(Integer),
     0, 2, TypeInfo(Longint), True);
-  TSepiArrayType.Create(Result, '$4', TypeInfo(Integer),
+  TSepiStaticArrayType.Create(Result, '$4', TypeInfo(Integer),
     0, 6, TypeInfo(Word), True);
-  TSepiArrayType.Create(Result, '$5', TypeInfo(Integer),
+  TSepiStaticArrayType.Create(Result, '$5', TypeInfo(Integer),
     0, 13, TypeInfo(Byte), True);
-  TSepiArrayType.Create(Result, '$6', TypeInfo(Integer),
+  TSepiStaticArrayType.Create(Result, '$6', TypeInfo(Integer),
     0, 3, TypeInfo(Longint), True);
   SepiImportTVarData(Result);
   TSepiTypeAlias.Create(Result, 'TVarOp', TypeInfo(Integer));
@@ -969,7 +992,7 @@ begin
 
   // Types
   TSepiPointerType.Create(Result, 'PCallDesc', 'TCallDesc', True);
-  TSepiArrayType.Create(Result, '$7', TypeInfo(Integer),
+  TSepiStaticArrayType.Create(Result, '$7', TypeInfo(Integer),
     0, 255, TypeInfo(Byte), True);
   SepiImportTCallDesc(Result);
   TSepiPointerType.Create(Result, 'PDispDesc', 'TDispDesc', True);
@@ -1009,17 +1032,17 @@ begin
   TSepiConstant.Create(Result, 'fmInOut', fmInOut);
 
   // Types
-  TSepiArrayType.Create(Result, '$8', TypeInfo(Integer),
+  TSepiStaticArrayType.Create(Result, '$8', TypeInfo(Integer),
     1, 32, TypeInfo(Byte), True);
-  TSepiArrayType.Create(Result, '$9', TypeInfo(Integer),
+  TSepiStaticArrayType.Create(Result, '$9', TypeInfo(Integer),
     0, 259, TypeInfo(Char), True);
   SepiImportTFileRec(Result);
   TSepiPointerType.Create(Result, 'PTextBuf', 'TTextBuf', True);
-  TSepiArrayType.Create(Result, 'TTextBuf', TypeInfo(Integer),
+  TSepiStaticArrayType.Create(Result, 'TTextBuf', TypeInfo(Integer),
     0, 127, TypeInfo(Char), True);
-  TSepiArrayType.Create(Result, '$10', TypeInfo(Integer),
+  TSepiStaticArrayType.Create(Result, '$10', TypeInfo(Integer),
     1, 32, TypeInfo(Byte), True);
-  TSepiArrayType.Create(Result, '$11', TypeInfo(Integer),
+  TSepiStaticArrayType.Create(Result, '$11', TypeInfo(Integer),
     0, 259, TypeInfo(Char), True);
   SepiImportTTextRec(Result);
   TSepiMethodRefType.Create(Result, 'TTextIOFunc',
@@ -1028,17 +1051,15 @@ begin
     'function(var F: TFileRec): Integer');
 
   // Routines
-  TSepiOverloadedMethod.Create(Result, 'ChDir');
-  TSepiMethod.Create(Result, 'OL$ChDir$0', @ChDir_0,
+  TSepiMethod.CreateOverloaded(Result, 'ChDir', @ChDir_0,
     'procedure(const S: string)');
-  TSepiMethod.Create(Result, 'OL$ChDir$1', @ChDir_1,
+  TSepiMethod.CreateOverloaded(Result, 'ChDir', @ChDir_1,
     'procedure(P: PChar)');
   TSepiMethod.Create(Result, 'IOResult', @IOResult,
     'function: Integer');
-  TSepiOverloadedMethod.Create(Result, 'MkDir');
-  TSepiMethod.Create(Result, 'OL$MkDir$0', @MkDir_0,
+  TSepiMethod.CreateOverloaded(Result, 'MkDir', @MkDir_0,
     'procedure(const S: string)');
-  TSepiMethod.Create(Result, 'OL$MkDir$1', @MkDir_1,
+  TSepiMethod.CreateOverloaded(Result, 'MkDir', @MkDir_1,
     'procedure(P: PChar)');
   TSepiMethod.Create(Result, 'Move', @Move,
     'procedure(const Source; var Dest; Count: Integer)');
@@ -1046,19 +1067,17 @@ begin
     'function: Integer');
   TSepiMethod.Create(Result, 'ParamStr', @ParamStr,
     'function(Index: Integer): string');
-  TSepiOverloadedMethod.Create(Result, 'RmDir');
-  TSepiMethod.Create(Result, 'OL$RmDir$0', @RmDir_0,
+  TSepiMethod.CreateOverloaded(Result, 'RmDir', @RmDir_0,
     'procedure(const S: string)');
-  TSepiMethod.Create(Result, 'OL$RmDir$1', @RmDir_1,
+  TSepiMethod.CreateOverloaded(Result, 'RmDir', @RmDir_1,
     'procedure(P: PChar)');
   TSepiMethod.Create(Result, 'UpCase', @UpCase,
     'function(Ch: Char): Char');
   TSepiMethod.Create(Result, 'Randomize', @Randomize,
     'procedure');
-  TSepiOverloadedMethod.Create(Result, 'Random');
-  TSepiMethod.Create(Result, 'OL$Random$0', @Random_0,
+  TSepiMethod.CreateOverloaded(Result, 'Random', @Random_0,
     'function(const ARange: Integer): Integer');
-  TSepiMethod.Create(Result, 'OL$Random$1', @Random_1,
+  TSepiMethod.CreateOverloaded(Result, 'Random', @Random_1,
     'function: Extended');
   TSepiMethod.Create(Result, 'WideCharToString', @WideCharToString,
     'function(Source: PWideChar): string');
@@ -1076,11 +1095,9 @@ begin
     'function(const S: WideString): UCS4String');
   TSepiMethod.Create(Result, 'UCS4StringToWideString', @UCS4StringToWideString,
     'function(const S: UCS4String): WideString');
-  TSepiOverloadedMethod.Create(Result, 'UnicodeToUtf8');
-  TSepiMethod.Create(Result, 'OL$UnicodeToUtf8$0', @UnicodeToUtf8_0,
+  TSepiMethod.CreateOverloaded(Result, 'UnicodeToUtf8', @UnicodeToUtf8_0,
     'function(Dest: PChar; MaxDestBytes: Cardinal; Source: PWideChar; SourceChars: Cardinal): Cardinal');
-  TSepiOverloadedMethod.Create(Result, 'Utf8ToUnicode');
-  TSepiMethod.Create(Result, 'OL$Utf8ToUnicode$0', @Utf8ToUnicode_0,
+  TSepiMethod.CreateOverloaded(Result, 'Utf8ToUnicode', @Utf8ToUnicode_0,
     'function(Dest: PWideChar; MaxDestChars: Cardinal; Source: PChar; SourceBytes: Cardinal): Cardinal');
   TSepiMethod.Create(Result, 'UTF8Encode', @UTF8Encode,
     'function(const WS: WideString): UTF8String');
@@ -1121,15 +1138,13 @@ begin
     'function(const X: Extended): Extended');
   TSepiMethod.Create(Result, 'Sqrt', @Sqrt,
     'function(const X: Extended): Extended');
-  TSepiOverloadedMethod.Create(Result, 'Pos');
-  TSepiMethod.Create(Result, 'OL$Pos$0', @Pos_0,
+  TSepiMethod.CreateOverloaded(Result, 'Pos', @Pos_0,
     'function(const substr, str: AnsiString): Integer');
-  TSepiMethod.Create(Result, 'OL$Pos$1', @Pos_1,
+  TSepiMethod.CreateOverloaded(Result, 'Pos', @Pos_1,
     'function(const substr, str: WideString): Integer');
-  TSepiOverloadedMethod.Create(Result, 'StringOfChar');
-  TSepiMethod.Create(Result, 'OL$StringOfChar$0', @StringOfChar_0,
+  TSepiMethod.CreateOverloaded(Result, 'StringOfChar', @StringOfChar_0,
     'function(ch: AnsiChar; Count: Integer): AnsiString');
-  TSepiMethod.Create(Result, 'OL$StringOfChar$1', @StringOfChar_1,
+  TSepiMethod.CreateOverloaded(Result, 'StringOfChar', @StringOfChar_1,
     'function(ch: WideChar; Count: Integer): WideString');
 
   Result.Complete;

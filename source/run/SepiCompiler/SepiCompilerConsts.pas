@@ -56,6 +56,7 @@ resourcestring
   SCallableRequired = 'Expression invocable requise';
 
   // Sorte particulière de type requise
+  STypeIdentifierRequired = 'Identificateur de type requis';
   SPointerTypeRequired = 'Type pointeur requis';
   SOrdinalOrArrayTypeRequired = 'Type ordinal ou tableau requis';
   SArrayTypeRequired = 'Type tableau requis';
