@@ -51,7 +51,6 @@ contains
   SepiImportsTypInfo in '..\..\source\run\SepiRTLCommonImport\SepiImportsTypInfo.pas',
   SepiImportsVarCmplx in '..\..\source\run\SepiRTLCommonImport\SepiImportsVarCmplx.pas',
   SepiImportsVarConv in '..\..\source\run\SepiRTLCommonImport\SepiImportsVarConv.pas',
-  SepiImportsVariants in '..\..\source\run\SepiRTLCommonImport\SepiImportsVariants.pas',
   SepiImportsVCLCom in '..\..\source\run\SepiRTLCommonImport\SepiImportsVCLCom.pas',
   SepiImportsWideStrings in '..\..\source\run\SepiRTLCommonImport\SepiImportsWideStrings.pas',
   SepiImportsWideStrUtils in '..\..\source\run\SepiRTLCommonImport\SepiImportsWideStrUtils.pas',

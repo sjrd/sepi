@@ -25,7 +25,6 @@ uses
   SepiImportsTypInfo,
   SepiImportsVarCmplx,
   SepiImportsVarConv,
-  SepiImportsVariants,
   SepiImportsVCLCom,
   SepiImportsWideStrings,
   SepiImportsWideStrUtils,

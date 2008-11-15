@@ -167,9 +167,7 @@
 			<VersionInfoKeys Name="ProductName">Sepi</VersionInfoKeys>
 			<VersionInfoKeys Name="ProductVersion">1.0</VersionInfoKeys>
 			<VersionInfoKeys Name="LegalTrademarks"></VersionInfoKeys>
-		</VersionInfoKeys>  
-    
-    <Excluded_Packages>
+		</VersionInfoKeys>  <Excluded_Packages>
       <Excluded_Packages Name="C:\Documents and Settings\Sepi\Mes documents\Projets Borland Studio\Bpl\JvDBD9D.bpl">JVCL Database Components</Excluded_Packages>
       <Excluded_Packages Name="C:\DOCUME~1\Sepi\MESDOC~1\PROJET~1\Bpl\JclUsesExpert90.bpl">JCL Uses Wizard</Excluded_Packages>
     </Excluded_Packages>

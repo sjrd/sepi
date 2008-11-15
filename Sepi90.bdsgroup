@@ -20,7 +20,8 @@
       <Projects Name="SepiInterpreter90.bpl">packages\90\SepiInterpreter90.bdsproj</Projects>
       <Projects Name="SepiCompiler90.bpl">packages\90\SepiCompiler90.bdsproj</Projects>
       <Projects Name="SepiEditor90.bpl">packages\90\SepiEditor90.bdsproj</Projects>
-      <Projects Name="Targets">SCL90.bpl SVCL90.bpl DclSVCL90.bpl SDL90.bpl DclSDL90.bpl SepiCore90.bpl DclSepiCore90.bpl SepiReflection90.bpl SepiInterpreter90.bpl SepiCompiler90.bpl SepiEditor90.bpl</Projects>
+      <Projects Name="SepiDelphiCompiler90.bpl">packages\90\SepiDelphiCompiler90.bdsproj</Projects>
+      <Projects Name="Targets">SCL90.bpl SVCL90.bpl DclSVCL90.bpl SDL90.bpl DclSDL90.bpl SepiCore90.bpl DclSepiCore90.bpl SepiReflection90.bpl SepiInterpreter90.bpl SepiCompiler90.bpl SepiEditor90.bpl SepiDelphiCompiler90.bpl</Projects>
     </Projects>
     <Dependencies/>
   </Default.Personality>

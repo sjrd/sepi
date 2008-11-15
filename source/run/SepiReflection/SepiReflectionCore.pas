@@ -226,7 +226,9 @@ type
     function MakeUnnamedChildName: string;
 
     procedure AddObjResource(Obj: TObject);
+    procedure AcquireObjResource(var Obj);
     procedure AddPtrResource(Ptr: Pointer);
+    procedure AcquirePtrResource(var Ptr);
 
     property IsForward: Boolean read FIsForward;
     property WasForward: Boolean read GetWasForward;
@@ -1538,6 +1540,18 @@ begin
 end;
 
 {*
+  S'approprie une ressource objet
+  L'objet est ajouté aux ressources objet du meta, puis le paramètre Obj est
+  mis à nil, afin qu'un Free ultérieur sur celui-ci ne fasse plus rien.
+  @param Obj   Objet à ajouter aux ressources
+*}
+procedure TSepiMeta.AcquireObjResource(var Obj);
+begin
+  AddObjResource(TObject(Obj));
+  TObject(Obj) := nil;
+end;
+
+{*
   Ajoute un pointeur aux ressources du meta
   Tous les pointeurs ajoutés aux ressources du meta seront libérés lorsque le
   meta sera libéré lui-même.
@@ -1546,6 +1560,19 @@ end;
 procedure TSepiMeta.AddPtrResource(Ptr: Pointer);
 begin
   FPtrResources.Add(Ptr);
+end;
+
+{*
+  S'approprie une ressource pointeur
+  Le pointeur est ajouté aux ressources pointeur du meta, puis le paramètre
+  Ptr est mis à nil, afin que le code appelant puisse tester l'égalité à nil
+  avant de le libérer lui-même.
+  @param Ptr   Pointeur à ajouter aux ressources
+*}
+procedure TSepiMeta.AcquirePtrResource(var Ptr);
+begin
+  AddPtrResource(Pointer(Ptr));
+  Pointer(Ptr) := nil;
 end;
 
 {------------------}
