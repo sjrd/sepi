@@ -66,6 +66,11 @@ lexOr	or
 lexAnd	and
 lexXor	xor
 lexNot	not
+lexLowerThan	<
+lexLowerEq	<=
+lexGreaterThan	>
+lexGreaterEq	>=
+lexNotEqual	<>
 
 lexRegister	register
 lexCDecl	cdecl
@@ -263,6 +268,11 @@ ntBinaryOp	BinaryOp
 	'or'
 	'and'
 	'xor'
+	'<'
+	'<='
+	'>'
+	'>='
+	'<>'
 
 ntUnaryOp	UnaryOp
 	'@'

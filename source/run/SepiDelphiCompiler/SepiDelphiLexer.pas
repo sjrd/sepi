@@ -41,7 +41,7 @@ resourcestring
 
 const
   FirstTerminal = 0;
-  LastTerminal = 94;
+  LastTerminal = 99;
 
   lexEof = 0;        // End of file
   lexIdentifier = 1; // Identifier
@@ -95,58 +95,63 @@ const
   lexConstructor = 45; // constructor
   lexDestructor = 46;  // destructor
 
-  lexPlus = 47;   // +
-  lexMinus = 48;  // -
-  lexTimes = 49;  // *
-  lexDivide = 50; // /
-  lexDiv = 51;    // div
-  lexMod = 52;    // mod
-  lexShl = 53;    // shl
-  lexShr = 54;    // shr
-  lexOr = 55;     // or
-  lexAnd = 56;    // and
-  lexXor = 57;    // xor
-  lexNot = 58;    // not
+  lexPlus = 47;        // +
+  lexMinus = 48;       // -
+  lexTimes = 49;       // *
+  lexDivide = 50;      // /
+  lexDiv = 51;         // div
+  lexMod = 52;         // mod
+  lexShl = 53;         // shl
+  lexShr = 54;         // shr
+  lexOr = 55;          // or
+  lexAnd = 56;         // and
+  lexXor = 57;         // xor
+  lexNot = 58;         // not
+  lexLowerThan = 59;   // <
+  lexLowerEq = 60;     // <=
+  lexGreaterThan = 61; // >
+  lexGreaterEq = 62;   // >=
+  lexNotEqual = 63;    // <>
 
-  lexRegister = 59; // register
-  lexCDecl = 60;    // cdecl
-  lexPascal = 61;   // pascal
-  lexStdCall = 62;  // stdcall
-  lexSafeCall = 63; // safecall
+  lexRegister = 64; // register
+  lexCDecl = 65;    // cdecl
+  lexPascal = 66;   // pascal
+  lexStdCall = 67;  // stdcall
+  lexSafeCall = 68; // safecall
 
-  lexName = 64;      // name
-  lexIndex = 65;     // index
-  lexRead = 66;      // read
-  lexWrite = 67;     // write
-  lexDefault = 68;   // default
-  lexNoDefault = 69; // nodefault
-  lexStored = 70;    // stored
-  lexDispID = 71;    // dispid
-  lexReadOnly = 72;  // readonly
-  lexWriteOnly = 73; // writeonly
-  lexString = 74;    // string
+  lexName = 69;      // name
+  lexIndex = 70;     // index
+  lexRead = 71;      // read
+  lexWrite = 72;     // write
+  lexDefault = 73;   // default
+  lexNoDefault = 74; // nodefault
+  lexStored = 75;    // stored
+  lexDispID = 76;    // dispid
+  lexReadOnly = 77;  // readonly
+  lexWriteOnly = 78; // writeonly
+  lexString = 79;    // string
 
-  lexImplementation = 75; // implementation
-  lexForward = 76;        // forward
-  lexInitialization = 77; // initialization
-  lexFinalization = 78;   // finalization
+  lexImplementation = 80; // implementation
+  lexForward = 81;        // forward
+  lexInitialization = 82; // initialization
+  lexFinalization = 83;   // finalization
 
-  lexIf = 79;        // if
-  lexThen = 80;      // then
-  lexElse = 81;      // else
-  lexWhile = 82;     // while
-  lexDo = 83;        // do
-  lexRepeat = 84;    // repeat
-  lexUntil = 85;     // until
-  lexFor = 86;       // for
-  lexTo = 87;        // to
-  lexDownTo = 88;    // downto
-  lexTry = 89;       // try
-  lexExcept = 90;    // except
-  lexOn = 91;        // on
-  lexFinally = 92;   // finally
-  lexRaise = 93;     // raise
-  lexInherited = 94; // inherited
+  lexIf = 84;        // if
+  lexThen = 85;      // then
+  lexElse = 86;      // else
+  lexWhile = 87;     // while
+  lexDo = 88;        // do
+  lexRepeat = 89;    // repeat
+  lexUntil = 90;     // until
+  lexFor = 91;       // for
+  lexTo = 92;        // to
+  lexDownTo = 93;    // downto
+  lexTry = 94;       // try
+  lexExcept = 95;    // except
+  lexOn = 96;        // on
+  lexFinally = 97;   // finally
+  lexRaise = 98;     // raise
+  lexInherited = 99; // inherited
 
   lexPreProcessor = -1; // pre-processor instruction
 
@@ -433,7 +438,7 @@ begin
       #9, #10, #13, ' ':
         LexingFuncs[C] := ActionBlank;
       '(', ')', '[', ']', '=', ',', ':', ';', '.',
-        '^', '@', '+', '-', '*', '/':
+        '^', '@', '+', '-', '*', '/', '<', '>':
         LexingFuncs[C] := ActionSymbol;
       'a'..'z', 'A'..'Z', '_', '&':
         LexingFuncs[C] := ActionIdentifier;
@@ -665,6 +670,42 @@ begin
         Inc(Cursor);
         Repr := '/';
         SymbolClass := lexDivide;
+      end;
+    end;
+    '<':
+    begin
+      case Code[Cursor+1] of
+        '=':
+        begin
+          Inc(Cursor, 2);
+          Repr := '<=';
+          SymbolClass := lexLowerEq;
+        end;
+        '>':
+        begin
+          Inc(Cursor, 2);
+          Repr := '<>';
+          SymbolClass := lexNotEqual;
+        end;
+      else
+        Inc(Cursor);
+        Repr := '<';
+        SymbolClass := lexLowerThan;
+      end;
+    end;
+    '>':
+    begin
+      case Code[Cursor+1] of
+        '=':
+        begin
+          Inc(Cursor, 2);
+          Repr := '>=';
+          SymbolClass := lexGreaterEq;
+        end;
+      else
+        Inc(Cursor);
+        Repr := '>';
+        SymbolClass := lexGreaterThan;
       end;
     end;
   else

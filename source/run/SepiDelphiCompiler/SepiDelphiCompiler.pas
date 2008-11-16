@@ -2164,10 +2164,12 @@ end;
 function TBinaryOpNode.GetPriority: Integer;
 begin
   case Children[0].SymbolClass of
-    lexOr, lexAnd, lexXor: Result := 1;
-    lexPlus, lexMinus: Result := 2;
+    lexEquals, lexLowerThan, lexLowerEq,
+      lexGreaterThan, lexGreaterEq, lexNotEqual: Result := 1;
+    lexOr, lexAnd, lexXor: Result := 2;
+    lexPlus, lexMinus: Result := 3;
   else
-    Result := 3;
+    Result := 4;
   end;
 end;
 
@@ -2184,17 +2186,23 @@ var
   RecastTo: TSepiType;
 begin
   case Children[0].SymbolClass of
-    lexPlus:   Operation := opAdd;
-    lexMinus:  Operation := opSubtract;
-    lexTimes:  Operation := opMultiply;
-    lexDivide: Operation := opDivide;
-    lexDiv:    Operation := opIntDivide;
-    lexMod:    Operation := opModulus;
-    lexShl:    Operation := opShiftLeft;
-    lexShr:    Operation := opShiftRight;
-    lexOr:     Operation := opOr;
-    lexAnd:    Operation := opAnd;
-    lexXor:    Operation := opXor;
+    lexPlus:        Operation := opAdd;
+    lexMinus:       Operation := opSubtract;
+    lexTimes:       Operation := opMultiply;
+    lexDivide:      Operation := opDivide;
+    lexDiv:         Operation := opIntDivide;
+    lexMod:         Operation := opModulus;
+    lexShl:         Operation := opShiftLeft;
+    lexShr:         Operation := opShiftRight;
+    lexOr:          Operation := opOr;
+    lexAnd:         Operation := opAnd;
+    lexXor:         Operation := opXor;
+    lexEquals:      Operation := opCmpEQ;
+    lexLowerThan:   Operation := opCmpLT;
+    lexLowerEq:     Operation := opCmpLE;
+    lexGreaterThan: Operation := opCmpGT;
+    lexGreaterEq:   Operation := opCmpGE;
+    lexNotEqual:    Operation := opCmpNE;
   else
     Assert(False);
     Operation := 0;

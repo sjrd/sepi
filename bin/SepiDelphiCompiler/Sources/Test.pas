@@ -43,11 +43,14 @@ begin
     for I := 0 to 10 do
       Test(IntToStr(Tab[I]), Strings);
 
-    for I := Strings.Count-1 downto 0 do
-      WriteLn(Strings.Strings[I]);
-
     try
-      raise Exception.Create('Exception now!');
+      for I := Strings.Count-1 downto 0 do
+      begin
+        WriteLn(Strings.Strings[I]);
+
+        if I < 5 then
+          raise Exception.Create('Exception now!');
+      end;
     
       WriteLn('Will not appear');
     except
