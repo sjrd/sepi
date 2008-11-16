@@ -69,6 +69,10 @@ resourcestring
     'La déclaration de %s diffère de la déclaration précédente';
   SMethodAlreadyImplemented = 'La méthode %s a déjà été implémentée';
   SLocalVarNameRequired = 'Variable locale requise';
+  SMethodRequired = 'Identificateur de méthode requis';
+  SInheritNeedClassOrObjectMethod =
+    'Le mot-clef inherited n''est valide que dans l''implémentation d''une '+
+    'méthode d''objet ou de classe';
 
 const
   /// Nom des types de liaison de méthodes

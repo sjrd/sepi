@@ -112,7 +112,8 @@ function UnitResolveIdent(UnitCompiler: TSepiUnitCompiler;
 function MethodResolveIdent(Compiler: TSepiMethodCompiler;
   const Identifier: string): ISepiExpression;
 
-function FieldSelection(const BaseExpression: ISepiExpression;
+function FieldSelection(SepiContext: TSepiMeta;
+  const BaseExpression: ISepiExpression;
   const FieldName: string): ISepiExpression;
 
 implementation
@@ -278,19 +279,22 @@ end;
 
 {*
   Sélection de champ d'une valeur classe, meta-classe ou interface
-  @param BaseValue    Valeur de base
-  @param FieldName    Nom du champ
-  @param Expression   Expression destination
+  @param SepiContext   Contexte Sepi depuis lequel chercher
+  @param BaseValue     Valeur de base
+  @param FieldName     Nom du champ
+  @param Expression    Expression destination
   @return True si réussi, False sinon
 *}
-function ClassIntfMemberSelection(const BaseValue: ISepiReadableValue;
-  const FieldName: string; const Expression: ISepiExpression): Boolean;
+function ClassIntfMemberSelection(SepiContext: TSepiMeta;
+  const BaseValue: ISepiReadableValue; const FieldName: string;
+  const Expression: ISepiExpression): Boolean;
 const
   mkClassMethods = [mkClassProcedure, mkClassFunction];
   mkConstrClassMethods = [mkConstructor] + mkClassMethods;
 var
   Value: ISepiReadableValue;
   ContainerType: TSepiType;
+  FromClass: TSepiMeta;
   Member: TSepiMeta;
 begin
   Result := False;
@@ -301,8 +305,26 @@ begin
   if ContainerType is TSepiMetaClass then
     ContainerType := TSepiMetaClass(ContainerType).SepiClass;
 
-  // Fetch member - exit if none or not a member
-  Member := ContainerType.GetMeta(FieldName);
+  // Fetch member
+  if ContainerType is TSepiClass then
+  begin
+    // Set FromClass
+    FromClass := SepiContext;
+    while (FromClass <> nil) and (not (FromClass is TSepiClass)) do
+      FromClass := FromClass.Owner;
+
+    Member := TSepiClass(ContainerType).LookForMember(
+      FieldName, SepiContext.OwningUnit, TSepiClass(FromClass));
+  end else if ContainerType is TSepiInterface then
+  begin
+    Member := TSepiInterface(ContainerType).LookForMember(FieldName);
+  end else
+  begin
+    Assert(False);
+    Member := nil;
+  end;
+
+  // Exit if no member found, or if it is not a member
   if Member = nil then
     Exit;
   if (not (Member is TSepiField)) and (not (Member is TSepiMethod)) and
@@ -339,11 +361,13 @@ end;
 
 {*
   Sélection de champ d'une expression selon les règles du Delphi
+  @param SepiContext      Contexte Sepi depuis lequel chercher
   @param BaseExpression   Expression de base
   @param FieldName        Nom du champ
   @return Expression représentant le champ sélectionné
 *}
-function FieldSelection(const BaseExpression: ISepiExpression;
+function FieldSelection(SepiContext: TSepiMeta;
+  const BaseExpression: ISepiExpression;
   const FieldName: string): ISepiExpression;
 var
   CancelResult: Boolean;
@@ -390,7 +414,8 @@ begin
       (ReadableValue.ValueType is TSepiMetaClass) or
       (ReadableValue.ValueType is TSepiInterface) then
     begin
-      if ClassIntfMemberSelection(ReadableValue, FieldName, Result) then
+      if ClassIntfMemberSelection(SepiContext, ReadableValue,
+        FieldName, Result) then
         CancelResult := False;
     end;
   end;

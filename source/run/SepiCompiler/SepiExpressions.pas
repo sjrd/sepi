@@ -4527,6 +4527,7 @@ var
 begin
   AsExpressionPart := Self;
 
+  Expression.Attach(ISepiProperty, AsExpressionPart);
   Expression.Attach(ISepiValue, AsExpressionPart);
 
   if FProperty.ReadAccess.Kind <> pakNone then

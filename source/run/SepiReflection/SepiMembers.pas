@@ -2039,8 +2039,11 @@ begin
 
   if not IsAbstract then
   begin
-    if Assigned(OwningUnit.OnGetMethodCode) then
+    if (Owner is TSepiClass) and TSepiClass(Owner).Native then
+      FindNativeCode
+    else if Assigned(OwningUnit.OnGetMethodCode) then
       OwningUnit.OnGetMethodCode(Self, FCode, FCodeHandler);
+
     if not Assigned(FCode) then
       FCode := @FCodeJumper;
   end;

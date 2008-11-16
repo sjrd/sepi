@@ -338,6 +338,8 @@ type
       const Value: AnsiString): ISepiReadableValue; overload;
     function MakeStringLiteral(
       const Value: WideString): ISepiReadableValue; overload;
+
+    procedure HandleInherited(Child: TSepiParseTreeNode);
   public
     procedure EndParsing; override;
   end;
@@ -2357,6 +2359,74 @@ begin
 end;
 
 {*
+  Gère un appel inherited
+  @param Child   Enfant qui porte le nom à appeler
+*}
+procedure TSingleValueNode.HandleInherited(Child: TSepiParseTreeNode);
+const
+  ForceStaticCall = True;
+  FreeParamIsAlwaysFalse = False;
+var
+  Name: string;
+  Method: TSepiMethod;
+  SepiClass, ParentClass: TSepiClass;
+  Member: TSepiMeta;
+  SelfParam: ISepiValue;
+  Callable: ISepiCallable;
+begin
+  Name := Child.AsText;
+
+  // Fetch method
+  if not (SepiContext is TSepiMethod) then
+  begin
+    Child.MakeError(SInheritNeedClassOrObjectMethod);
+    Exit;
+  end;
+  Method := TSepiMethod(SepiContext);
+
+  // Fetch class
+  if not (Method.Owner is TSepiClass) then
+  begin
+    Child.MakeError(SInheritNeedClassOrObjectMethod);
+    Exit;
+  end;
+  SepiClass := TSepiClass(Method.Owner);
+
+  // Fetch parent class
+  ParentClass := SepiClass.Parent;
+  Assert(ParentClass <> nil); // Sepi never compiles TObject implementation
+
+  // Look for the member in the parent class
+  Member := ParentClass.LookForMember(Name, Method.OwningUnit, SepiClass);
+  if not CheckIdentFound(Member, Name, Child) then
+    Exit;
+
+  // Fetch Self param
+  SelfParam := TSepiLocalVarValue.MakeValue(MethodCompiler,
+    MethodCompiler.Locals.GetVarByName(HiddenParamNames[hpSelf]));
+
+  // Make sure the member is a method - or an overloaded method
+  if Member is TSepiMethod then
+  begin
+    Callable := TSepiMethodCall.Create(TSepiMethod(Member),
+      SelfParam as ISepiReadableValue,
+      ForceStaticCall, FreeParamIsAlwaysFalse);
+  end else if Member is TSepiOverloadedMethod then
+  begin
+    Callable := TSepiMethodCall.Create(TSepiOverloadedMethod(Member),
+      SelfParam as ISepiReadableValue,
+      ForceStaticCall, FreeParamIsAlwaysFalse);
+  end else
+  begin
+    Child.MakeError(SMethodRequired);
+    Exit;
+  end;
+
+  Expression := MakeExpression;
+  Callable.AttachToExpression(Expression);
+end;
+
+{*
   [@inheritDoc]
 *}
 procedure TSingleValueNode.EndParsing;
@@ -2423,9 +2493,7 @@ begin
     // Inherited call
     lexInherited:
     begin
-      Child := Children[1];
-      Text := Child.AsText;
-      Child.MakeError('No support for inherited construct at the moment');
+      HandleInherited(Children[1]);
     end;
 
     // nil
@@ -2723,7 +2791,7 @@ end;
 *}
 procedure TFieldSelectionNode.EndParsing;
 begin
-  Expression := FieldSelection(Base, Children[0].AsText);
+  Expression := FieldSelection(SepiContext, Base, Children[0].AsText);
   if Expression = nil then
     Children[0].MakeError(SIdentifierNotFound);
 
