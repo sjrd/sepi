@@ -33,18 +33,31 @@ var
   I: Integer;
   Tab: array[0..10] of Integer;
 begin
+  Randomize;
+
   Strings := TPrintOnAddStrings.Create;
+  try
+    for I := 0 to 10 do
+      Tab[I] := I*I;
 
-  for I := 0 to 10 do
-    Tab[I] := I*I;
+    for I := 0 to 10 do
+      Test(IntToStr(Tab[I]), Strings);
 
-  for I := 0 to 10 do
-    Test(IntToStr(Tab[I]), Strings);
+    for I := Strings.Count-1 downto 0 do
+      WriteLn(Strings.Strings[I]);
+
+    try
+      raise Exception.Create('Exception now!');
     
-  for I := Strings.Count-1 downto 0 do
-    WriteLn(Strings.Strings[I]);
-    
-  Strings.Free;
+      WriteLn('Will not appear');
+    except
+      WriteLn('Will appear because there was an exception');
+      raise;
+    end;
+  finally
+    Strings.Free;
+    WriteLn('Will appear anyway');
+  end;
 end;
 
 end.

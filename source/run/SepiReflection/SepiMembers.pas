@@ -2040,8 +2040,9 @@ begin
   if not IsAbstract then
   begin
     if (Owner is TSepiClass) and TSepiClass(Owner).Native then
-      FindNativeCode
-    else if Assigned(OwningUnit.OnGetMethodCode) then
+      FindNativeCode;
+
+    if (not Assigned(FCode)) and Assigned(OwningUnit.OnGetMethodCode) then
       OwningUnit.OnGetMethodCode(Self, FCode, FCodeHandler);
 
     if not Assigned(FCode) then

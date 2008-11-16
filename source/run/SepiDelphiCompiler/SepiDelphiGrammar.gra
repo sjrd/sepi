@@ -1,0 +1,654 @@
+Ce fichier décrit la grammaire du langage Delphi.
+
+#####
+
+lexEof	Fin de fichier
+lexIdentifier	Identificateur
+lexInteger	Nombre entier
+lexFloat	Nombre en virgule flottante
+lexStringCst	Chaine
+
+lexOpenBracket	(
+lexCloseBracket	)
+lexOpenSqBracket	[
+lexCloseSqBracket	]
+lexEquals	=
+lexComma	,
+lexColon	:
+lexSemiColon	;
+lexDot	.
+lexRange	..
+lexHat	^
+lexAt	@
+lexAssign	:=
+
+lexUnit	unit
+lexUses	uses
+lexType	type
+lexConst	const
+lexResourceString	resourcestring
+lexVar	var
+lexOut	out
+
+lexArray	array
+lexSet	set
+lexOf	of
+lexObject	object
+lexPacked	packed
+lexRecord	record
+lexCase	case
+lexInterface	interface
+lexDispInterface	dispinterface
+lexClass	class
+lexPrivate	private
+lexProtected	protected
+lexPublic	public
+lexPublished	published
+lexBegin	begin
+lexEnd	end
+lexNil	nil
+
+lexProcedure	procedure
+lexFunction	function
+lexProperty	property
+lexConstructor	constructor
+lexDestructor	destructor
+
+lexPlus	+
+lexMinus	-
+lexTimes	*
+lexDivide	/
+lexDiv	div
+lexMod	mod
+lexShl	shl
+lexShr	shr
+lexOr	or
+lexAnd	and
+lexXor	xor
+lexNot	not
+
+lexRegister	register
+lexCDecl	cdecl
+lexPascal	pascal
+lexStdCall	stdcall
+lexSafeCall	safecall
+
+lexName	name
+lexIndex	index
+lexRead	read
+lexWrite	write
+lexDefault	default
+lexNoDefault	nodefault
+lexStored	stored
+lexDispID	dispid
+lexReadOnly	readonly
+lexWriteOnly	writeonly
+lexString	string
+
+lexImplementation	implementation
+lexForward	forward
+lexInitialization	initialization
+lexFinalization	finalization
+
+lexIf	if
+lexThen	then
+lexElse	else
+lexWhile	while
+lexDo	do
+lexRepeat	repeat
+lexUntil	until
+lexFor	for
+lexTo	to
+lexDownTo	downto
+lexTry	try
+lexExcept	except
+lexOn	on
+lexFinally	finally
+lexRaise	raise
+lexInherited	inherited
+
+#####
+
+ntSource	Source
+	'unit'* Identifier ';'* Interface (Implementation 'end'* '.'*)? lexEof*
+
+ntInterface	Interface
+	'interface'* UsesSection (IntfSection)*
+
+ntImplementation	Implementation
+	'implementation'* (ImplSection)* InitFinit
+
+ntIntfSection	IntfSection	Simplify
+	TypeSection
+	ConstSection
+	VarSection
+	RoutineDecl
+
+ntImplSection	ImplSection	Simplify
+	TypeSection
+	ConstSection
+	VarSection
+	MethodImpl
+
+ntInitFinit	InitFinit	Simplify
+	UnitInitialization (UnitFinalization)?
+	@
+
+ntIdentifier	Identifier
+	lexIdentifier
+	CallingConvention
+	'name'
+	'index'
+	'read'
+	'write'
+	'default'
+	'nodefault'
+	'stored'
+	'dispid'
+	'readonly'
+	'writeonly'
+	'string'
+
+ntCallingConvention	CallingConvention
+	'register'
+	'cdecl'
+	'pascal'
+	'stdcall'
+	'safecall'
+
+ntUsesSection	UsesSection
+	'uses'* CommaIdentList ';'*
+	@
+
+ntCommaIdentList	CommaIdentList	Simplify
+	Identifier (','* Identifier)*
+
+ntQualifiedIdent	QualifiedIdent	AsText
+	Identifier ('.'* Identifier)*
+
+ntInitializationExpression	InitializationExpression
+	0 ArrayInitializationExpression
+	1 RecordInitializationExpression
+	2 GUIDInitializationExpression
+	3 OtherInitializationExpression
+
+ntArrayInitializationExpression	ArrayInitializationExpression
+	ArrayInitialization
+
+ntArrayInitialization	ArrayInitialization
+	'('* InitializationExpression (','* InitializationExpression)* ')'*
+
+ntRecordInitializationExpression	RecordInitializationExpression
+	RecordInitialization
+
+ntRecordInitialization	RecordInitialization
+	'('* Identifier ':'* InitializationExpression (';'* Identifier ':'* InitializationExpression)* ')'*
+
+ntGUIDInitializationExpression	GUIDInitializationExpression
+	GUIDInitialization
+
+ntGUIDInitialization	GUIDInitialization
+	RecordInitialization
+	lexStringCst
+
+ntOtherInitializationExpression	OtherInitializationExpression
+	OtherInitialization
+
+ntOtherInitialization	OtherInitialization
+	ConstExpression
+
+ntExpression	Expression
+	SingleExpr (BinaryOp SingleExpr)*
+
+ntConstExpression	ConstExpression
+	Expression
+
+ntConstOrType	ConstOrType
+	Expression
+
+ntSingleExpr	SingleExpr
+	ParenthesizedExpr (NextExpr)*
+	SingleValue (NextExpr)*
+	UnaryOp SingleExpr
+
+ntParenthesizedExpr	ParenthesizedExpr
+	'('* Expression ')'*
+
+ntNextExpr	NextExpr	Simplify
+	Parameters
+	ArrayIndices
+	FieldSelection
+	Dereference
+
+ntParameters	Parameters
+	'('* ExprList ')'*
+
+ntArrayIndices	ArrayIndices
+	'['* ExprList ']'*
+
+ntExprList	ExprList	Simplify
+	Expression (','* Expression)*
+
+ntFieldSelection	FieldSelection
+	'.'* Identifier
+
+ntDereference	Dereference
+	'^'
+
+ntSingleValue	SingleValue
+	lexInteger
+	lexFloat
+	lexStringCst
+	Identifier
+	'inherited' Identifier
+	'nil'
+	'['* SetValue ']'*
+
+ntSetValue	SetValue
+	SetRange (','* SetRange)*
+	@
+
+ntSetRange	SetRange
+	Expression ('..'* Expression)?
+
+ntBinaryOp	BinaryOp
+	'+'
+	'-'
+	'*'
+	'/'
+	'div'
+	'mod'
+	'shl'
+	'shr'
+	'or'
+	'and'
+	'xor'
+
+ntUnaryOp	UnaryOp
+	'@'
+	'+'
+	'-'
+	'not'
+
+ntConstSection	ConstSection
+	ConstKeyWord* (ConstDecl)+
+
+ntConstKeyWord	ConstKeyWord
+	'const'
+	'resourcestring'
+
+ntConstDecl	ConstDecl
+	Identifier InnerConstDecl TypeModifiers ';'*
+
+ntInnerConstDecl	InnerConstDecl	Simplify
+	':'* TypeDesc '='* InitializationExpression
+	'='* ConstExpression
+
+ntVarSection	VarSection
+	'var'* (GlobalVar)+
+
+ntGlobalVar	GlobalVar
+	Identifier InnerGlobalVar TypeModifiers ';'*
+
+ntInnerGlobalVar	InnerGlobalVar	Simplify
+	':'* TypeDesc ('='* InitializationExpression)?
+	(','* Identifier)+ ':'* TypeDesc
+
+ntTypeSection	TypeSection
+	'type'* (TypeDecl)+
+
+ntTypeDecl	TypeDecl
+	Identifier '='* TypeDesc TypeModifiers ';'*
+
+ntTypeDesc	TypeDesc
+	CloneDesc
+	RangeOrEnumDesc
+	SetDesc
+	1 StringDesc
+	PointerDesc
+	PackedDesc
+	'packed' PackedDesc
+	ClassDesc
+	InterfaceDesc
+	DispInterfaceDesc
+	EventDesc
+
+ntPackedDesc	PackedDesc	Simplify
+	ArrayDesc
+	RecordDesc
+
+ntArrayDesc	ArrayDesc
+	'array'* ArrayDims 'of'* TypeDesc
+
+ntArrayDims	ArrayDims
+	'['* ArrayRange (','* ArrayRange)* ']'*
+	@
+
+ntArrayRange	ArrayRange
+	ConstOrType ('..'* ConstExpression)?
+
+ntTypeModifiers	TypeModifiers
+	(Identifier)*
+
+ntCloneDesc	CloneDesc
+	'type'* QualifiedIdent
+
+ntRangeOrEnumDesc	RangeOrEnumDesc	SuccessiveTries
+	EnumDesc
+	RangeDesc
+
+ntRangeDesc	RangeDesc
+	ConstOrType ('..'* ConstExpression)?
+
+ntEnumDesc	EnumDesc
+	'('* CommaIdentList ')'*
+
+ntSetDesc	SetDesc
+	'set'* 'of'* TypeDesc
+
+ntStringDesc	StringDesc
+	'string' ('['* ConstExpression ']'*)?
+
+ntPointerDesc	PointerDesc
+	'^'* QualifiedIdent
+
+ntRecordDesc	RecordDesc
+	'record'* RecordContents 'end'*
+
+ntRecordContents	RecordContents
+	(Field)* RecordCaseBlock
+
+ntRecordCaseBlock	RecordCaseBlock
+	'case'* Identifier* (':'* Identifier*)? 'of'* (RecordCase)*
+	@
+
+ntRecordCase	RecordCase	Simplify
+	CaseLabels* ':'* '('* RecordCaseContents ')'* (';'*)?
+
+ntCaseLabels	CaseLabels	AsText
+	ConstExpression (',' ConstExpression)*
+
+ntRecordCaseContents	RecordCaseContents
+	NextRecordCaseContentsEx
+
+ntNextRecordCaseContents	NextRecordCaseContents	Simplify
+	';'* NextRecordCaseContentsEx
+	RecordCaseBlock
+
+ntNextRecordCaseContentsEx	NextRecordCaseContentsEx	Simplify
+	RecordCaseField NextRecordCaseContents
+	RecordCaseBlock
+
+ntRecordCaseField	RecordCaseField
+	CommaIdentList ':'* TypeDesc TypeModifiers
+
+ntField	Field
+	CommaIdentList ':'* TypeDesc TypeModifiers ';'*
+
+ntClassDesc	ClassDesc
+	'class'* ClassExDesc
+
+ntClassExDesc	ClassExDesc	Simplify
+	ClassHeritage ClassContents
+	1 'of' QualifiedIdent
+
+ntClassContents	ClassContents	Simplify
+	1 ClassMemberLists 'end'*
+	@
+
+ntClassHeritage	ClassHeritage
+	'('* QualifiedIdent (','* QualifiedIdent)* ')'*
+	@
+
+ntClassMemberLists	ClassMemberLists
+	ClassMemberList (Visibility ClassMemberList)*
+
+ntVisibility	Visibility
+	'private'
+	'protected'
+	'public'
+	'published'
+
+ntClassMemberList	ClassMemberList	Simplify
+	(Field)* (MethodProp)*
+
+ntInterfaceDesc	InterfaceDesc
+	'interface'* (InterfaceHeritage InterfaceGUID InterfaceMemberList 'end'*)?
+
+ntInterfaceHeritage	InterfaceHeritage
+	'('* QualifiedIdent ')'*
+	@
+
+ntDispInterfaceDesc	DispInterfaceDesc
+	'dispinterface'* (DispInterfaceHeritage InterfaceGUID InterfaceMemberList 'end'*)?
+
+ntDispInterfaceHeritage	DispInterfaceHeritage
+	@
+
+ntInterfaceGUID	InterfaceGUID	AsText
+	'['* ConstExpression ']'*
+	@
+
+ntInterfaceMemberList	InterfaceMemberList
+	(MethodProp)*
+
+ntMethodProp	MethodProp	Simplify
+	MethodDecl
+	PropertyDecl
+
+ntMethodDecl	MethodDecl
+	MethodKind Identifier NextMethodDecl
+
+ntMethodKind	MethodKind	AsText
+	'class' MethodKindEx
+	MethodKindEx
+	'constructor'
+	'destructor'
+
+ntMethodKindEx	MethodKindEx	Simplify
+	'procedure'
+	'function'
+
+ntNextMethodDecl	NextMethodDecl	Simplify
+	MethodSignature ';'* (MethodModifier ';'*)*
+	IntfMethodRedirector ';'*
+
+ntIntfMethodRedirector	IntfMethodRedirector
+	'.'* Identifier '='* Identifier
+
+ntMethodModifier	MethodModifier
+	Identifier (ConstExpression)?
+
+ntPropertyDecl	PropertyDecl
+	PropertyKind* Identifier PropertyNextDecl (PropInfo)* ';'* (PropertyModifier ';'*)*
+
+ntPropertyKind	PropertyKind	AsText
+	'property'
+
+ntPropertyNextDecl	PropertyNextDecl	Simplify
+	PropertySignature
+	RedefineMarker
+
+ntRedefineMarker	RedefineMarker
+	@
+
+ntPropInfo	PropInfo
+	'read' QualifiedIdent
+	'write' QualifiedIdent
+	'index' ConstExpression
+	'default' ConstExpression
+	'nodefault'
+	'stored' Expression
+	'readonly'
+	'writeonly'
+	'dispid' ConstExpression
+
+ntPropertyModifier	PropertyModifier	AsText
+	Identifier
+
+ntEventDesc	EventDesc	AsText
+	RoutineKind MethodSignature EventModifiers
+
+ntEventModifiers	EventModifiers	SuccessiveTries
+	CallingConvention EventModifiers
+	EventIsOfObject EventModifiers
+	';'* CallingConvention EventModifiers
+	@
+
+ntEventIsOfObject	EventIsOfObject	AsText
+	'of' 'object'
+
+ntRoutineDecl	RoutineDecl
+	RoutineKind Identifier MethodSignature (RoutineModifier)* ';'* (RoutineModifier ';'*)*
+
+ntRoutineKind	RoutineKind	AsText
+	'procedure'
+	'function'
+
+ntRoutineModifier	RoutineModifier
+	Identifier
+
+ntMethodSignature	MethodSignature
+	('('* MethodParamList ')'*)? ReturnType
+
+ntPropertySignature	PropertySignature
+	('['* ParamList ']'*)? PropType
+
+ntMethodParamList	MethodParamList	Simplify
+	ParamList
+	@
+
+ntParamList	ParamList	Simplify
+	Param (';'* Param)*
+
+ntReturnType	ReturnType
+	':'* QualifiedIdent
+	@
+
+ntPropType	PropType
+	':'* QualifiedIdent
+
+ntParam	Param
+	ParamKind ParamNameList ParamTypeAndDefault
+
+ntParamKind	ParamKind
+	'const'
+	'var'
+	'out'
+	@
+
+ntParamNameList	ParamNameList
+	Identifier (','* Identifier)*
+
+ntParamTypeAndDefault	ParamTypeAndDefault	Simplify
+	':'* ComplexParamType (ParamDefault)?
+	@
+
+ntComplexParamType	ComplexParamType	Simplify
+	ParamIsArray ParamArrayType
+	ParamType
+
+ntParamIsArray	ParamIsArray	AsText
+	'array' 'of'
+
+ntParamArrayType	ParamArrayType
+	QualifiedIdent
+	'const'
+
+ntParamType	ParamType
+	QualifiedIdent
+
+ntParamDefault	ParamDefault	Simplify
+	'='* InitializationExpression
+
+ntMethodImpl	MethodImpl
+	MethodImplDecl MethodImplementation
+
+ntMethodImplDecl	MethodImplDecl
+	MethodKind QualifiedIdent MethodSignature (RoutineModifier)* ';'* (RoutineModifier ';'*)*
+
+ntMethodImplementation	MethodImplementation	Simplify
+	ForwardMarker
+	MethodBody
+
+ntMethodBody	MethodBody
+	(InMethodSection)* BeginEndBlock ';'*
+
+ntInMethodSection	InMethodSection	Simplify
+	TypeSection
+	ConstSection
+	LocalVarSection
+
+ntForwardMarker	ForwardMarker
+	'forward' ';'*
+
+ntUnitInitialization	UnitInitialization
+	'initialization'* InstructionList
+
+ntUnitFinalization	UnitFinalization
+	'finalization'* InstructionList
+
+ntLocalVarSection	LocalVarSection
+	'var'* (LocalVar)+
+
+ntLocalVar	LocalVar
+	Identifier (','* Identifier)* ':'* TypeDesc ';'*
+
+ntInstructionList	InstructionList
+	(Instruction ';'*)*
+
+ntInstruction	Instruction	Simplify
+	NoInstruction
+	BeginEndBlock
+	IfThenElseInstruction
+	WhileInstruction
+	RepeatInstruction
+	ForInstruction
+	TryInstruction
+	RaiseInstruction
+	ExpressionInstruction
+
+ntNoInstruction	NoInstruction
+	@
+
+ntBeginEndBlock	BeginEndBlock
+	'begin'* InstructionList 'end'*
+
+ntIfThenElseInstruction	IfThenElseInstruction
+	'if'* Expression 'then'* Instruction ElseBranch
+
+ntElseBranch	ElseBranch	Simplify
+	1 'else'* Instruction
+	NoInstruction
+
+ntWhileInstruction	WhileInstruction
+	'while'* Expression 'do'* Instruction
+
+ntRepeatInstruction	RepeatInstruction
+	'repeat'* InstructionList 'until'* Expression
+
+ntForInstruction	ForInstruction
+	'for'* Identifier ':='* Expression ToDownTo Expression 'do'* Instruction
+
+ntToDownTo	ToDownTo	Simplify
+	'to'
+	'downto'
+
+ntTryInstruction	TryInstruction
+	'try'* InstructionList NextTryInstruction 'end'*
+
+ntNextTryInstruction	NextTryInstruction	Simplify
+	ExceptClause
+	FinallyClause
+
+ntExceptClause	ExceptClause
+	'except'* InstructionList
+
+ntFinallyClause	FinallyClause
+	'finally'* InstructionList
+
+ntRaiseInstruction	RaiseInstruction
+	'raise'* (Expression)?
+
+ntExpressionInstruction	ExpressionInstruction
+	Expression (':='* Expression)?

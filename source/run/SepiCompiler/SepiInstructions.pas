@@ -821,6 +821,12 @@ var
   RaiseInstr: TSepiAsmRaise;
   TempVars: TSepiTempVarsLifeManager;
 begin
+  if not (ExceptionValue.ValueType is TSepiClass) then
+  begin
+    (ExceptionValue as ISepiExpression).MakeError(SClassTypeRequired);
+    Exit;
+  end;
+
   Instructions := TSepiInstructionList.Create(MethodCompiler);
 
   RaiseInstr := TSepiAsmRaise.Create(MethodCompiler);

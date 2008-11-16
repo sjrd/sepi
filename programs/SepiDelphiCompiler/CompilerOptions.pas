@@ -92,6 +92,8 @@ begin
 
   if FileNames.Count = 0 then
     raise ECommandLineParsingException.Create(SOneOrMoreFileNamesRequired);
+
+  FOutputDir := IncludeTrailingPathDelimiter(FOutputDir);
 end;
 
 end.

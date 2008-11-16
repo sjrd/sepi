@@ -1143,6 +1143,82 @@ type
   end;
 
   {*
+    Instruction try..except..end ou try..finally..end
+    @author sjrd
+    @version 1.0
+  *}
+  TTryInstructionNode = class(TInstructionNode)
+  private
+    FTryInstructions: TSepiInstructionList; /// Instructions dans le try
+  protected
+    procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
+  public
+    procedure BeginParsing; override;
+
+    property TryInstructions: TSepiInstructionList read FTryInstructions;
+  end;
+
+  {*
+    Suite d'une instruction try..except..end ou try..finally..end
+    @author sjrd
+    @version 1.0
+  *}
+  TNextTryInstructionNode = class(TInstructionNode)
+  private
+    FTryInstructions: TSepiInstructionList; /// Instructions dans le try
+  public
+    property TryInstructions: TSepiInstructionList
+      read FTryInstructions write FTryInstructions;
+  end;
+
+  {*
+    Clause except d'un try..except.end
+    @author sjrd
+    @version 1.0
+  *}
+  TExceptClauseNode = class(TNextTryInstructionNode)
+  private
+    FInstruction: TSepiTryExcept; /// Instruction
+  protected
+    procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
+  public
+    procedure BeginParsing; override;
+    procedure EndParsing; override;
+
+    property Instruction: TSepiTryExcept read FInstruction;
+  end;
+
+  {*
+    Clause finally d'un try..except.end
+    @author sjrd
+    @version 1.0
+  *}
+  TFinallyClauseNode = class(TNextTryInstructionNode)
+  private
+    FInstruction: TSepiTryFinally; /// Instruction
+  protected
+    procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
+  public
+    procedure BeginParsing; override;
+    procedure EndParsing; override;
+
+    property Instruction: TSepiTryFinally read FInstruction;
+  end;
+
+  {*
+    Instruction raise
+    @author sjrd
+    @version 1.0
+  *}
+  TRaiseInstructionNode = class(TInstructionNode)
+  private
+    procedure MakeRaiseInstruction;
+    procedure MakeReraiseInstruction;
+  public
+    procedure EndParsing; override;
+  end;
+
+  {*
     Instruction Expression ou Expression := Expression
     @author sjrd
     @version 1.0
@@ -1247,6 +1323,10 @@ begin
   NonTerminalClasses[ntWhileInstruction]      := TWhileInstructionNode;
   NonTerminalClasses[ntRepeatInstruction]     := TWhileInstructionNode;
   NonTerminalClasses[ntForInstruction]        := TForInstructionNode;
+  NonTerminalClasses[ntTryInstruction]        := TTryInstructionNode;
+  NonTerminalClasses[ntExceptClause]          := TExceptClauseNode;
+  NonTerminalClasses[ntFinallyClause]         := TFinallyClauseNode;
+  NonTerminalClasses[ntRaiseInstruction]      := TRaiseInstructionNode;
   NonTerminalClasses[ntExpressionInstruction] := TExpressionInstructionNode;
 end;
 
@@ -5382,6 +5462,169 @@ begin
     CompileCall
   else
     CompileAssignment;
+
+  inherited;
+end;
+
+{---------------------------}
+{ TTryInstructionNode class }
+{---------------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TTryInstructionNode.BeginParsing;
+begin
+  inherited;
+
+  FTryInstructions := TSepiInstructionList.Create(MethodCompiler);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TTryInstructionNode.ChildBeginParsing(Child: TSepiParseTreeNode);
+begin
+  inherited;
+
+  if Child is TNextTryInstructionNode then
+  begin
+    TNextTryInstructionNode(Child).TryInstructions := TryInstructions;
+    TNextTryInstructionNode(Child).InstructionList := InstructionList;
+  end else
+    (Child as TInstructionNode).InstructionList := TryInstructions;
+end;
+
+{-------------------------}
+{ TExceptClauseNode class }
+{-------------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TExceptClauseNode.BeginParsing;
+var
+  I: Integer;
+begin
+  inherited;
+
+  FInstruction := TSepiTryExcept.Create(MethodCompiler);
+
+  for I := 0 to TryInstructions.Count-1 do
+    Instruction.TryInstructions.Add(TryInstructions[I]);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TExceptClauseNode.ChildBeginParsing(Child: TSepiParseTreeNode);
+begin
+  inherited;
+
+  (Child as TInstructionNode).InstructionList :=
+    Instruction.ExceptInstructions;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TExceptClauseNode.EndParsing;
+begin
+  InstructionList.Add(Instruction);
+
+  inherited;
+end;
+
+{--------------------------}
+{ TFinallyClauseNode class }
+{--------------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TFinallyClauseNode.BeginParsing;
+var
+  I: Integer;
+begin
+  inherited;
+
+  FInstruction := TSepiTryFinally.Create(MethodCompiler);
+
+  for I := 0 to TryInstructions.Count-1 do
+    Instruction.TryInstructions.Add(TryInstructions[I]);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TFinallyClauseNode.ChildBeginParsing(Child: TSepiParseTreeNode);
+begin
+  inherited;
+
+  (Child as TInstructionNode).InstructionList :=
+    Instruction.FinallyInstructions;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TFinallyClauseNode.EndParsing;
+begin
+  InstructionList.Add(Instruction);
+
+  inherited;
+end;
+
+{-----------------------------}
+{ TRaiseInstructionNode class }
+{-----------------------------}
+
+{*
+  Construit l'instruction raise avec un objet
+*}
+procedure TRaiseInstructionNode.MakeRaiseInstruction;
+var
+  Instruction: TSepiRaise;
+  ExceptionValue: ISepiValue;
+  ReadableValue: ISepiReadableValue;
+begin
+  // Get exception value
+  ExceptionValue := (Children[0] as TExpressionNode).AsValue(
+    SepiRoot.FindType(TypeInfo(TObject)));
+
+  // As readable value
+  if not Supports(ExceptionValue, ISepiReadableValue, ReadableValue) then
+  begin
+    (ExceptionValue as ISepiExpression).MakeError(SClassTypeRequired);
+    Exit;
+  end;
+
+  // Make instruction
+  Instruction := TSepiRaise.Create(MethodCompiler);
+  Instruction.ExceptionValue := ReadableValue;
+  InstructionList.Add(Instruction);
+end;
+
+{*
+  Construit l'instruction raise sans objet (reraise)
+*}
+procedure TRaiseInstructionNode.MakeReraiseInstruction;
+var
+  Instruction: TSepiReraise;
+begin
+  Instruction := TSepiReraise.Create(MethodCompiler);
+  InstructionList.Add(Instruction);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TRaiseInstructionNode.EndParsing;
+begin
+  if ChildCount > 0 then
+    MakeRaiseInstruction
+  else
+    MakeReraiseInstruction;
 
   inherited;
 end;
