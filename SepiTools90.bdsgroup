@@ -1,19 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <BorlandProject>
-  <PersonalityInfo>
-    <Option>
-      <Option Name="Personality">Default.Personality</Option>
-      <Option Name="ProjectType"></Option>
-      <Option Name="Version">1.0</Option>
-      <Option Name="GUID">{388FE8F7-3125-42E3-8E13-0DB9CEB7541A}</Option>
-    </Option>
-  </PersonalityInfo>
-  <Default.Personality>
-    
-    
-    <Projects>
+	<PersonalityInfo>
+		<Option>
+			<Option Name="Personality">Default.Personality</Option>
+			<Option Name="ProjectType"></Option>
+			<Option Name="Version">1.0</Option>
+			<Option Name="GUID">{388FE8F7-3125-42E3-8E13-0DB9CEB7541A}</Option>
+		</Option>
+	</PersonalityInfo>
+	<Default.Personality>  <Projects>
       <Projects Name="SepiDelphiUnitImporter.exe">programs\SepiDelphiUnitImporter\SepiDelphiUnitImporter.bdsproj</Projects>
-      <Projects Name="Targets">SepiDelphiUnitImporter.exe</Projects>
+      <Projects Name="SepiParserGenerator.exe">programs\SepiParserGenerator\SepiParserGenerator.bdsproj</Projects>
+      <Projects Name="Targets">SepiDelphiUnitImporter.exe SepiParserGenerator.exe</Projects>
     </Projects>
     <Dependencies/>
   </Default.Personality>
