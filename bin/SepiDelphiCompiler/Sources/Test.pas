@@ -19,24 +19,32 @@ begin
   WriteLn(Str);
 end;
 
-procedure Test(const Str: string);
+procedure Test(const Str: string; Strings: TStrings);
 var
-  SomeLocal: Integer;
+  Line: string;
 begin
-  SomeLocal := Random(5);
-  WriteLn(Str + ' ' + IntToStr(SomeLocal));
+  Line := Str + ' ' + IntToStr(Random(5));
+  Strings.Add(Line);
 end;
 
 procedure Main;
 var
+  Strings: TStrings;
   I: Integer;
   Tab: array[0..10] of Integer;
 begin
+  Strings := TPrintOnAddStrings.Create;
+
   for I := 0 to 10 do
     Tab[I] := I*I;
 
   for I := 0 to 10 do
-    Test(IntToStr(Tab[I]));
+    Test(IntToStr(Tab[I]), Strings);
+    
+  for I := Strings.Count-1 downto 0 do
+    WriteLn(Strings.Strings[I]);
+    
+  Strings.Free;
 end;
 
 end.
