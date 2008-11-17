@@ -130,13 +130,13 @@ const
     // Self dest unary operations
     'INC', 'DEC', 'NOT', 'NEG',
     // Self dest binary operations
-    'ADD', 'SUB', 'MUL', 'DIV', 'IDV', 'MOD', 'SHL', 'SHR', 'SAR',
-    'AND', 'OR', 'XOR',
+    'ADD', 'SUB', 'MUL', 'DIV', 'IDV', 'MOD', 'SHL', 'SHR',
+    'AND', 'OR', 'XOR', '',
     // Other dest unary operations
     'INC', 'DEC', 'NOT', 'NEG',
     // Other dest binary operations
-    'ADD', 'SUB', 'MUL', 'DIV', 'IDV', 'MOD', 'SHL', 'SHR', 'SAR',
-    'AND', 'OR', 'XOR',
+    'ADD', 'SUB', 'MUL', 'DIV', 'IDV', 'MOD', 'SHL', 'SHR',
+    'AND', 'OR', 'XOR', '',
     // Comparisons
     'EQ', 'NEQ', 'LT', 'GT', 'LE', 'GE',
     '', '', '', '', '', '', '', '', '', '',
