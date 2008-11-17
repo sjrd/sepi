@@ -205,11 +205,20 @@ ntOtherInitialization	OtherInitialization
 ntExpression	Expression
 	SingleExpr (BinaryOp SingleExpr)*
 
+ntExpressionNoEquals	ExpressionNoEquals
+	SingleExpr (BinaryOpNoEquals SingleExpr)*
+
 ntConstExpression	ConstExpression
 	Expression
 
+ntConstExpressionNoEquals	ConstExpressionNoEquals
+	ExpressionNoEquals
+
 ntConstOrType	ConstOrType
 	Expression
+
+ntConstOrTypeNoEquals	ConstOrTypeNoEquals
+	ExpressionNoEquals
 
 ntSingleExpr	SingleExpr
 	ParenthesizedExpr (NextExpr)*
@@ -257,6 +266,25 @@ ntSetRange	SetRange
 	Expression ('..'* Expression)?
 
 ntBinaryOp	BinaryOp
+	'+'
+	'-'
+	'*'
+	'/'
+	'div'
+	'mod'
+	'shl'
+	'shr'
+	'or'
+	'and'
+	'xor'
+	'='
+	'<'
+	'<='
+	'>'
+	'>='
+	'<>'
+
+ntBinaryOpNoEquals	BinaryOpNoEquals
 	'+'
 	'-'
 	'*'
@@ -348,7 +376,7 @@ ntRangeOrEnumDesc	RangeOrEnumDesc	SuccessiveTries
 	RangeDesc
 
 ntRangeDesc	RangeDesc
-	ConstOrType ('..'* ConstExpression)?
+	ConstOrTypeNoEquals ('..'* ConstExpressionNoEquals)?
 
 ntEnumDesc	EnumDesc
 	'('* CommaIdentList ')'*

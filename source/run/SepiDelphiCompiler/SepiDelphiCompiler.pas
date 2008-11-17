@@ -1262,9 +1262,12 @@ begin
   NonTerminalClasses[ntGUIDInitialization]   := TGUIDInitializationNode;
   NonTerminalClasses[ntOtherInitialization]  := TOtherInitializationNode;
 
-  NonTerminalClasses[ntExpression]      := TExpressionNode;
-  NonTerminalClasses[ntConstExpression] := TConstExpressionNode;
-  NonTerminalClasses[ntConstOrType]     := TConstOrTypeNode;
+  NonTerminalClasses[ntExpression]              := TExpressionNode;
+  NonTerminalClasses[ntExpressionNoEquals]      := TExpressionNode;
+  NonTerminalClasses[ntConstExpression]         := TConstExpressionNode;
+  NonTerminalClasses[ntConstExpressionNoEquals] := TConstExpressionNode;
+  NonTerminalClasses[ntConstOrType]             := TConstOrTypeNode;
+  NonTerminalClasses[ntConstOrTypeNoEquals]     := TConstOrTypeNode;
 
   NonTerminalClasses[ntBinaryOp] := TBinaryOpNode;
   NonTerminalClasses[ntUnaryOp]  := TUnaryOpNode;

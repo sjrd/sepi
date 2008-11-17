@@ -46,7 +46,7 @@ begin
     try
       for I := Strings.Count-1 downto 0 do
       begin
-        if (I > 6) and (I < 8) then
+        if I = 7 then
           Continue;
 
         WriteLn(Strings.Strings[I]);
