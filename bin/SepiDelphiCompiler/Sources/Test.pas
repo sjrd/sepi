@@ -46,21 +46,31 @@ begin
     try
       for I := Strings.Count-1 downto 0 do
       begin
+        if (I > 6) and (I < 8) then
+          Continue;
+
         WriteLn(Strings.Strings[I]);
 
         if I < 5 then
-          raise Exception.Create('Exception now!');
+          Break;
       end;
-    
+
+      if Random(2) > 0 then
+        raise Exception.Create('Exception now!')
+      else
+        Exit;
+
       WriteLn('Will not appear');
     except
-      WriteLn('Will appear because there was an exception');
+      WriteLn('Will appear if there was an exception');
       raise;
     end;
   finally
     Strings.Free;
     WriteLn('Will appear anyway');
   end;
+  
+  WriteLn('Again, will not appear');
 end;
 
 end.

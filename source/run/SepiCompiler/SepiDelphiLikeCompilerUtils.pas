@@ -28,9 +28,14 @@ interface
 
 uses
   Windows, SysUtils, StrUtils, TypInfo, SepiReflectionCore, SepiMembers,
-  SepiCompiler, SepiExpressions;
+  SepiCompiler, SepiExpressions, SepiInstructions, SepiCompilerConsts;
 
 type
+  {*
+    Type de saut spécial existant en Delphi
+  *}
+  TSepiSpecialJumpKind = (sjkContinue, sjkBreak, sjkExit);
+
   {*
     Pseudo-routine d'opération sur un type
     @author sjrd
@@ -90,6 +95,35 @@ type
     procedure SetOperand(const Value: ISepiValue);
   end;
 
+  {*
+    Pseudo-routine de jump spécial (Continue, Break ou Exit)
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiSpecialJumpPseudoRoutine = class(TSepiCustomExpressionPart,
+    ISepiCallable)
+  private
+    FKind: TSepiSpecialJumpKind; /// Type de saut spécial
+  protected
+    procedure AttachToExpression(const Expression: ISepiExpression); override;
+
+    function GetParamCount: Integer;
+    function GetParams(Index: Integer): ISepiValue;
+    function GetParamsCompleted: Boolean;
+
+    procedure AddParam(const Value: ISepiValue);
+    procedure CompleteParams;
+
+    function GetReturnType: TSepiType;
+
+    procedure CompileNoResult(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList);
+  public
+    constructor Create(AKind: TSepiSpecialJumpKind);
+
+    property Kind: TSepiSpecialJumpKind read FKind;
+  end;
+
 const
   /// Noms des opérations sur des types
   TypeOperationNames: array[TSepiTypeOperation] of string = (
@@ -101,6 +135,10 @@ const
 
   /// Nom de la pseudo-routine Chr
   ChrName = 'Chr';
+
+  SpecialJumpNames: array[TSepiSpecialJumpKind] of string = (
+    'Continue', 'Break', 'Exit'
+  );
 
 procedure AddMetaToExpression(const Expression: ISepiExpression;
   Meta: TSepiMeta);
@@ -179,7 +217,7 @@ end;
 function AddPseudoRoutineToExpression(const Expression: ISepiExpression;
   const Identifier: string): Boolean;
 var
-  TypeOpIndex: Integer;
+  TypeOpIndex, SpecialJumpIndex: Integer;
 begin
   Result := True;
 
@@ -205,6 +243,15 @@ begin
   begin
     ISepiExpressionPart(TSepiCastPseudoRoutine.CreateChr).AttachToExpression(
       Expression);
+    Exit;
+  end;
+
+  // Special jump pseudo-routine
+  SpecialJumpIndex := AnsiIndexText(Identifier, SpecialJumpNames);
+  if SpecialJumpIndex >= 0 then
+  begin
+    ISepiExpressionPart(TSepiSpecialJumpPseudoRoutine.Create(
+      TSepiSpecialJumpKind(SpecialJumpIndex))).AttachToExpression(Expression);
     Exit;
   end;
 
@@ -493,6 +540,94 @@ end;
 procedure TSepiCastPseudoRoutine.SetOperand(const Value: ISepiValue);
 begin
   Operand := Value;
+end;
+
+{-------------------------------------}
+{ TSepiSpecialJumpPseudoRoutine class }
+{-------------------------------------}
+
+{*
+  Crée la pseudo-routine de jump spécial
+  @param AKind   Type de saut spécial
+*}
+constructor TSepiSpecialJumpPseudoRoutine.Create(AKind: TSepiSpecialJumpKind);
+begin
+  inherited Create;
+  FKind := AKind;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiSpecialJumpPseudoRoutine.AttachToExpression(
+  const Expression: ISepiExpression);
+var
+  AsExpressionPart: ISepiExpressionPart;
+begin
+  AsExpressionPart := Self;
+
+  Expression.Attach(ISepiCallable, AsExpressionPart);
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiSpecialJumpPseudoRoutine.GetParamCount: Integer;
+begin
+  Result := 0;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiSpecialJumpPseudoRoutine.GetParams(Index: Integer): ISepiValue;
+begin
+  Result := nil;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiSpecialJumpPseudoRoutine.GetParamsCompleted: Boolean;
+begin
+  Result := True;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiSpecialJumpPseudoRoutine.AddParam(const Value: ISepiValue);
+begin
+  raise ESepiCompilerError.Create(SParamsAlreadyCompleted);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiSpecialJumpPseudoRoutine.CompleteParams;
+begin
+  // Nothing to do
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiSpecialJumpPseudoRoutine.GetReturnType: TSepiType;
+begin
+  Result := nil;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiSpecialJumpPseudoRoutine.CompileNoResult(
+  Compiler: TSepiMethodCompiler; Instructions: TSepiInstructionList);
+begin
+  case Kind of
+    sjkContinue: Instructions.Add(TSepiContinue.Create(Compiler));
+    sjkBreak:    Instructions.Add(TSepiBreak.Create(Compiler));
+    sjkExit:     Instructions.Add(TSepiExit.Create(Compiler));
+  end;
 end;
 
 end.

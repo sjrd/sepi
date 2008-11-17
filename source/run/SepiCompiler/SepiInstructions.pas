@@ -246,6 +246,46 @@ type
     property ElseInstructions: TSepiInstructionList read FElseInstructions;
   end;
 
+  {*
+    Classe de base pour les instructions de jump spécial
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiSpecialJump = class(TSepiInstruction)
+  protected
+    procedure CompileJump(Destination: TSepiInstructionRef);
+  end;
+
+  {*
+    Instruction continue
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiContinue = class(TSepiSpecialJump)
+  protected
+    procedure CustomCompile; override;
+  end;
+
+  {*
+    Instruction break
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiBreak = class(TSepiSpecialJump)
+  protected
+    procedure CustomCompile; override;
+  end;
+
+  {*
+    Instruction exit
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiExit = class(TSepiSpecialJump)
+  protected
+    procedure CustomCompile; override;
+  end;
+
 procedure CompileTestValue(Compiler: TSepiMethodCompiler;
   TestValue: ISepiReadableValue; var Destination: TSepiMemoryReference;
   out TestIsConst, TestConstValue: Boolean);
@@ -423,6 +463,9 @@ var
 begin
   TestMemory := nil;
   try
+    // First create the test-jump instr: we will need a reference to it
+    TestJumpInstr := TSepiAsmCondJump.Create(MethodCompiler, TestAtEnd);
+
     // If test is at beginning, that's now
     if not TestAtEnd then
     begin
@@ -434,7 +477,6 @@ begin
 
       if not TestIsConst then
       begin
-        TestJumpInstr := TSepiAsmCondJump.Create(MethodCompiler, False);
         TestJumpInstr.SourcePos := SourcePos;
         TestJumpInstr.Destination.InstructionRef := AfterRef;
         TestJumpInstr.Test.Assign(TestMemory);
@@ -443,7 +485,12 @@ begin
     end;
 
     // Compile loop instructions
-    LoopInstructions.Compile;
+    MethodCompiler.EnterLoop(TestJumpInstr.BeforeRef, Self.AfterRef);
+    try
+      LoopInstructions.Compile;
+    finally
+      MethodCompiler.LeaveLoop;
+    end;
 
     // If test was at beginning, go back
     if not TestAtEnd then
@@ -471,7 +518,6 @@ begin
       end else
       begin
         // Go back to beginning if value is True
-        TestJumpInstr := TSepiAsmCondJump.Create(MethodCompiler, True);
         TestJumpInstr.SourcePos := SourcePos;
         TestJumpInstr.Destination.InstructionRef := BeforeRef;
         TestJumpInstr.Test.Assign(TestMemory);
@@ -638,7 +684,12 @@ begin
   TestJumpInstr.Test.SetSpace(TestResultVar);
   TestJumpInstr.Compile;
 
-  LoopInstructions.Compile;
+  MethodCompiler.EnterLoop(IncDecInstr.BeforeRef, Self.AfterRef);
+  try
+    LoopInstructions.Compile;
+  finally
+    MethodCompiler.LeaveLoop;
+  end;
 
   IncDecInstr.Destination.SetSpace(ControlVar);
   IncDecInstr.Compile;
@@ -960,6 +1011,65 @@ begin
   Result := TSepiInstructionList.Create(MethodCompiler);
   FOnClauses.Add(AExceptionClass);
   FOnClauses.Add(Result);
+end;
+
+{------------------------}
+{ TSepiSpecialJump class }
+{------------------------}
+
+{*
+  Compile l'instruction jump
+  @param Destination   Destination du jump
+*}
+procedure TSepiSpecialJump.CompileJump(Destination: TSepiInstructionRef);
+var
+  Instruction: TSepiAsmJump;
+begin
+  Instruction := TSepiAsmJump.Create(MethodCompiler);
+  Instruction.Destination.InstructionRef := Destination;
+  Instruction.Compile;
+end;
+
+{---------------------}
+{ TSepiContinue class }
+{---------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiContinue.CustomCompile;
+begin
+  if MethodCompiler.BreakRef = nil then
+    MakeError(SContinueAllowedOnlyInLoop)
+  else
+    CompileJump(MethodCompiler.ContinueRef);
+end;
+
+{------------------}
+{ TSepiBreak class }
+{------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiBreak.CustomCompile;
+begin
+  if MethodCompiler.BreakRef = nil then
+    MakeError(SBreakAllowedOnlyInLoop)
+  else
+    CompileJump(MethodCompiler.BreakRef);
+end;
+
+{-----------------}
+{ TSepiExit class }
+{-----------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiExit.CustomCompile;
+begin
+  CompileJump(MethodCompiler.Instructions.AfterRef);
 end;
 
 end.

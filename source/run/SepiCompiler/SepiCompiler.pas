@@ -550,7 +550,13 @@ type
 
     FNamedLabels: TStrings; /// Labels nommés (paire nom/instruction)
 
+    FContinueReferences: TObjectStack; /// Références pour continue
+    FBreakReferences: TObjectStack;    /// Références pour break
+
     procedure SetLabel(NamedLabel: TSepiNamedLabel);
+
+    function GetContinueRef: TSepiInstructionRef;
+    function GetBreakRef: TSepiInstructionRef;
   protected
     property AsmInstructions: TSepiAsmInstrList read FAsmInstructions;
   public
@@ -569,6 +575,9 @@ type
     function FindLabel(const LabelName: string;
       Create: Boolean = False): TSepiNamedLabel;
 
+    procedure EnterLoop(ContinueRef, BreakRef: TSepiInstructionRef);
+    procedure LeaveLoop;
+
     function MakeUnnamedTrueConst(AType: TSepiType;
       const AValue): TSepiConstant;
 
@@ -579,6 +588,9 @@ type
     property UnitCompiler: TSepiUnitCompiler read FUnitCompiler;
     property SepiMethod: TSepiMethod read FSepiMethod;
     property Locals: TSepiLocalVariables read FLocals;
+
+    property ContinueRef: TSepiInstructionRef read GetContinueRef;
+    property BreakRef: TSepiInstructionRef read GetBreakRef;
 
     property Instructions: TSepiInstructionList read FInstructions;
     property Size: Integer read FSize;
@@ -2106,6 +2118,9 @@ begin
 
   FNamedLabels := TStringList.Create;
   TStringList(FNamedLabels).CaseSensitive := False;
+
+  FContinueReferences := TObjectStack.Create;
+  FBreakReferences := TObjectStack.Create;
 end;
 
 {*
@@ -2113,6 +2128,9 @@ end;
 *}
 destructor TSepiMethodCompiler.Destroy;
 begin
+  FBreakReferences.Free;
+  FContinueReferences.Free;
+
   FNamedLabels.Free;
   FAsmInstructions.Free;
 
@@ -2137,6 +2155,32 @@ begin
     FNamedLabels.AddObject(NamedLabel.Name, NamedLabel)
   else
     raise ESepiLabelError.CreateResFmt(@SLabelAlreadyExists, [NamedLabel.Name]);
+end;
+
+{*
+  Référence à l'instruction de destination d'un continue courante
+  Renvoie nil si on n'est pas actuellement dans une boucle
+  @return Référence à l'instruction de destination d'un continue courante
+*}
+function TSepiMethodCompiler.GetContinueRef: TSepiInstructionRef;
+begin
+  if FContinueReferences.Count = 0 then
+    Result := nil
+  else
+    Result := TSepiInstructionRef(FContinueReferences.Peek);
+end;
+
+{*
+  Référence à l'instruction de destination d'un break courante
+  Renvoie nil si on n'est pas actuellement dans une boucle
+  @return Référence à l'instruction de destination d'un break courante
+*}
+function TSepiMethodCompiler.GetBreakRef: TSepiInstructionRef;
+begin
+  if FBreakReferences.Count = 0 then
+    Result := nil
+  else
+    Result := TSepiInstructionRef(FBreakReferences.Peek);
 end;
 
 {*
@@ -2223,6 +2267,27 @@ begin
     Result := TSepiNamedLabel.Create(Self, LabelName)
   else
     raise ESepiLabelError.CreateResFmt(@SLabelNotFound, [LabelName]);
+end;
+
+{*
+  Entre dans une boucle, et met à jour ContinueRef et BreakRef
+  @param ContinueRef   Référence à l'instruction de destination d'un continue
+  @param BreakRef      Référence à l'instruction de destination d'un break
+*}
+procedure TSepiMethodCompiler.EnterLoop(
+  ContinueRef, BreakRef: TSepiInstructionRef);
+begin
+  FContinueReferences.Push(ContinueRef);
+  FBreakReferences.Push(BreakRef);
+end;
+
+{*
+  Quitte la boucle courante, et récupère les anciens ContinueRef et BreakRef
+*}
+procedure TSepiMethodCompiler.LeaveLoop;
+begin
+  FContinueReferences.Pop;
+  FBreakReferences.Pop;
 end;
 
 {*

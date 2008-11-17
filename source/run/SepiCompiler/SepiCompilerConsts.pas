@@ -35,6 +35,7 @@ resourcestring
   SSepiCompilerErrorFormat = '[%s] %s(%d, %d) : %s';
 
   // Erreurs de compilation génériques
+  SSepiInternalError = 'Erreur interne : %s';
   SSepiThereWereErrors = 'Il y a eu des erreurs à la compilation';
   STooManyErrors = 'Trop d''erreurs';
   SIdentifier = 'Identificateur';
@@ -84,6 +85,12 @@ resourcestring
 
   // Erreurs sur des classes ou interfaces
   SClassDoesNotImplementIntf = 'La classe %s n''implémente pas l''interface %s';
+
+  // Erreurs sur les jump spéciaux
+  SContinueAllowedOnlyInLoop =
+    'L''instruction Continue n''est autorisée que dans une boucle';
+  SBreakAllowedOnlyInLoop =
+    'L''instruction Break n''est autorisée que dans une boucle';
 
   // Erreurs de compilateur
   SLabelAlreadyExists = 'Le label ''%s'' existe déjà';
