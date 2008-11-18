@@ -27,12 +27,12 @@ unit SepiDelphiCompiler;
 interface
 
 uses
-  SysUtils, Classes, StrUtils, TypInfo, SysConst, ScUtils, ScDelphiLanguage,
-  SepiReflectionCore, SepiMembers, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
-  SepiDelphiLexer, SepiDelphiParser, SepiCompilerErrors, SepiParseTrees,
-  SepiCompiler, SepiCore, SepiCompilerConsts, SepiExpressions,
-  SepiDelphiCompilerConsts, SepiOpCodes, SepiDelphiLikeCompilerUtils,
-  SepiLL1ParserUtils, Types, Windows, SepiInstructions;
+  Windows, Types, SysUtils, Classes, StrUtils, TypInfo, SysConst, ScUtils,
+  ScStrUtils, ScDelphiLanguage, SepiReflectionCore, SepiMembers, SepiOrdTypes,
+  SepiStrTypes, SepiArrayTypes, SepiDelphiLexer, SepiDelphiParser,
+  SepiCompilerErrors, SepiParseTrees, SepiCompiler, SepiCore,
+  SepiCompilerConsts, SepiExpressions, SepiDelphiCompilerConsts, SepiOpCodes,
+  SepiDelphiLikeCompilerUtils, SepiLL1ParserUtils, SepiInstructions;
 
 type
   TRootNode = class;
@@ -1189,6 +1189,63 @@ type
   end;
 
   {*
+    Instruction multi-on (valide uniquement dans un except)
+    @author sjrd
+    @version 1.0
+  *}
+  TMultiOnNode = class(TInstructionNode)
+  private
+    FInstruction: TSepiMultiOn; /// Instruction
+  protected
+    procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
+  public
+    procedure BeginParsing; override;
+    procedure EndParsing; override;
+
+    property Instruction: TSepiMultiOn read FInstruction;
+  end;
+
+  {*
+    Clause on d'un multi-on
+    @author sjrd
+    @version 1.0
+  *}
+  TOnClauseNode = class(TInstructionNode)
+  private
+    FInstruction: TSepiMultiOn; /// Instruction multi-on contenante
+
+    FExceptObjectVarName: string;   /// Nom de la variable objet exception
+    FExceptObjectClass: TSepiClass; /// Classe d'exception capturée
+    FExceptObjectVar: TSepiLocalVar; /// Variable objet exception du bon type
+
+    procedure ParseExceptObjectClass(Node: TSepiParseTreeNode);
+  protected
+    procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
+    procedure ChildEndParsing(Child: TSepiParseTreeNode); override;
+  public
+    procedure BeginParsing; override;
+    procedure EndParsing; override;
+
+    function ResolveIdent(const Identifier: string): ISepiExpression; override;
+
+    property Instruction: TSepiMultiOn read FInstruction;
+
+    property ExceptObjectVarName: string read FExceptObjectVarName;
+    property ExceptObjectClass: TSepiClass read FExceptObjectClass;
+    property ExceptObjectVar: TSepiLocalVar read FExceptObjectVar;
+  end;
+
+  {*
+    Clause else d'un multi-on
+    @author sjrd
+    @version 1.0
+  *}
+  TMultiOnElseClauseNode = class(TInstructionListNode)
+  public
+    procedure EndParsing; override;
+  end;
+
+  {*
     Clause finally d'un try..except.end
     @author sjrd
     @version 1.0
@@ -1328,6 +1385,9 @@ begin
   NonTerminalClasses[ntForInstruction]        := TForInstructionNode;
   NonTerminalClasses[ntTryInstruction]        := TTryInstructionNode;
   NonTerminalClasses[ntExceptClause]          := TExceptClauseNode;
+  NonTerminalClasses[ntMultiOn]               := TMultiOnNode;
+  NonTerminalClasses[ntOnClause]              := TOnClauseNode;
+  NonTerminalClasses[ntMultiOnElseClause]     := TMultiOnElseClauseNode;
   NonTerminalClasses[ntFinallyClause]         := TFinallyClauseNode;
   NonTerminalClasses[ntRaiseInstruction]      := TRaiseInstructionNode;
   NonTerminalClasses[ntExpressionInstruction] := TExpressionInstructionNode;
@@ -5542,6 +5602,173 @@ end;
 procedure TExceptClauseNode.EndParsing;
 begin
   InstructionList.Add(Instruction);
+
+  inherited;
+end;
+
+{--------------------}
+{ TMultiOnNode class }
+{--------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TMultiOnNode.BeginParsing;
+begin
+  inherited;
+
+  FInstruction := TSepiMultiOn.Create(MethodCompiler);
+  FInstruction.ExceptObjectVar :=
+    (Parent as TExceptClauseNode).Instruction.UseTempVar;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TMultiOnNode.ChildBeginParsing(Child: TSepiParseTreeNode);
+begin
+  inherited;
+
+  if Child is TMultiOnElseClauseNode then
+    TMultiOnElseClauseNode(Child).InstructionList :=
+      Instruction.ElseInstructions;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TMultiOnNode.EndParsing;
+begin
+  InstructionList.Add(Instruction);
+
+  inherited;
+end;
+
+{---------------------}
+{ TOnClauseNode class }
+{---------------------}
+
+{*
+  Analyse la classe d'exception gérée par cette clause
+  @param Node   Noeud qui contient le nom de la classe
+*}
+procedure TOnClauseNode.ParseExceptObjectClass(Node: TSepiParseTreeNode);
+begin
+  // Class handled in this on clause
+  FExceptObjectClass := TSepiClass(LookFor(Node, TSepiClass,
+    SClassTypeRequired));
+
+  // Recover from error
+  if FExceptObjectClass = nil then
+    FExceptObjectClass := SepiRoot.FindType(
+      TypeInfo(TObject)) as TSepiClass;
+
+  // Create clause
+  InstructionList := Instruction.AddOnClause(ExceptObjectClass);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TOnClauseNode.BeginParsing;
+begin
+  inherited;
+
+  FInstruction := (Parent as TMultiOnNode).Instruction;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TOnClauseNode.ChildBeginParsing(Child: TSepiParseTreeNode);
+begin
+  inherited;
+
+  if Child is TInstructionNode then
+  begin
+    if ExceptObjectClass = nil then
+    begin
+      // There was no variable name
+      ParseExceptObjectClass(Children[0]);
+    end;
+
+    TInstructionNode(Child).InstructionList := InstructionList;
+  end;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TOnClauseNode.ChildEndParsing(Child: TSepiParseTreeNode);
+const
+  VarNameNode = 0;
+  ExceptClassNode = 1;
+begin
+  if Child.SymbolClass = ntQualifiedIdent then
+  begin
+    case Child.IndexAsChild of
+      VarNameNode:
+      begin
+        // Exception object variable name
+        FExceptObjectVarName := Child.AsText;
+      end;
+
+      ExceptClassNode:
+      begin
+        ParseExceptObjectClass(Child);
+
+        if Pos('.', ExceptObjectVarName) > 0 then
+        begin
+          Children[0].MakeError(SIdentifierRequired);
+          FExceptObjectVarName := GetFirstToken(ExceptObjectVarName, '.');
+        end;
+
+        // Create exception object variable, with the good type
+        FExceptObjectVar := MethodCompiler.Locals.AddAbsolute(
+          ExceptObjectVarName, ExceptObjectClass, Instruction.ExceptObjectVar);
+      end;
+    end;
+  end;
+
+  inherited;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TOnClauseNode.EndParsing;
+begin
+  inherited;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TOnClauseNode.ResolveIdent(const Identifier: string): ISepiExpression;
+begin
+  if AnsiSameText(Identifier, ExceptObjectVarName) then
+  begin
+    // This is the except object variable
+    Result := TSepiLocalVarValue.MakeValue(MethodCompiler,
+      ExceptObjectVar) as ISepiExpression;
+  end else
+  begin
+    // Inherited behavior
+    Result := inherited ResolveIdent(Identifier);
+  end;
+end;
+
+{------------------------------}
+{ TMultiOnElseClauseNode class }
+{------------------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TMultiOnElseClauseNode.EndParsing;
+begin
+  if ChildCount = 0 then
+    InstructionList.Add(TSepiReraise.Create(MethodCompiler));
 
   inherited;
 end;

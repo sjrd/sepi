@@ -55,22 +55,28 @@ begin
           Break;
       end;
 
-      if Random(2) > 0 then
+      I := Random(3);
+      if I = 0 then
         raise Exception.Create('Exception now!')
+      else if I = 1 then
+        StrToInt('I am not an Integer!')
       else
         Exit;
 
       WriteLn('Will not appear');
     except
-      WriteLn('Will appear if there was an exception');
-      raise;
+      on Error: EConvertError do
+        WriteLn('Hey, I catched a EConvertError: ' + Error.Message);
+      {else
+        WriteLn('Unknown exception: I reraise it');
+        raise;}
     end;
   finally
     Strings.Free;
     WriteLn('Will appear anyway');
   end;
   
-  WriteLn('Again, will not appear');
+  WriteLn('Will appear only if that was a EConvertError, which was catched');
 end;
 
 end.
