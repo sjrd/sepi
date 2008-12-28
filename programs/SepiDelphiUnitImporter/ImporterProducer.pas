@@ -606,7 +606,7 @@ begin
       begin
         Statement := Statement + '[';
         for I := 0 to Prop.Signature.ParamCount-1 do
-          Statement := Statement + Prop.Signature.Params[I].Name + ', ';
+          Statement := Statement + Signature.Params[I].Name + ', ';
         SetLength(Statement, Length(Statement)-1);
         Statement[Length(Statement)] := ']';
       end;

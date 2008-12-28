@@ -61,11 +61,7 @@ contains
   SepiImportsNs35Fix in '..\..\source\run\SepiWinTypesImport\SepiImportsNs35Fix.pas',
   SepiImportsNs36Fix in '..\..\source\run\SepiWinTypesImport\SepiImportsNs36Fix.pas',
   SepiImportsNsapi in '..\..\source\run\SepiWinTypesImport\SepiImportsNsapi.pas',
-  SepiImportsOle2 in '..\..\source\run\SepiWinTypesImport\SepiImportsOle2.pas',
-  SepiImportsOleCtl in '..\..\source\run\SepiWinTypesImport\SepiImportsOleCtl.pas',
-  SepiImportsOleDlg in '..\..\source\run\SepiWinTypesImport\SepiImportsOleDlg.pas',
   SepiImportsOpenGL in '..\..\source\run\SepiWinTypesImport\SepiImportsOpenGL.pas',
-  SepiImportsPenWin in '..\..\source\run\SepiWinTypesImport\SepiImportsPenWin.pas',
   SepiImportsPsAPI in '..\..\source\run\SepiWinTypesImport\SepiImportsPsAPI.pas',
   SepiImportsRegStr in '..\..\source\run\SepiWinTypesImport\SepiImportsRegStr.pas',
   SepiImportsRichEdit in '..\..\source\run\SepiWinTypesImport\SepiImportsRichEdit.pas',
@@ -78,7 +74,8 @@ contains
   SepiImportsWinInet in '..\..\source\run\SepiWinTypesImport\SepiImportsWinInet.pas',
   SepiImportsWinSock in '..\..\source\run\SepiWinTypesImport\SepiImportsWinSock.pas',
   SepiImportsWinSpool in '..\..\source\run\SepiWinTypesImport\SepiImportsWinSpool.pas',
-  SepiImportsWinSvc in '..\..\source\run\SepiWinTypesImport\SepiImportsWinSvc.pas';
+  SepiImportsWinSvc in '..\..\source\run\SepiWinTypesImport\SepiImportsWinSvc.pas',
+  SepiImportsPenWin in '..\..\source\run\SepiWinTypesImport\SepiImportsPenWin.pas';
 
 end.
 

@@ -8,7 +8,6 @@ MaskUtils.pas
 Math.pas
 ConvUtils.pas
 DateUtils.pas
-Mtsobj.pas
 ObjAuto.pas
 Registry.pas
 RTLConsts.pas

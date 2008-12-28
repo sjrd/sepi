@@ -14,7 +14,6 @@ uses
   SepiImportsMasks,
   SepiImportsMaskUtils,
   SepiImportsMath,
-  SepiImportsMtsobj,
   SepiImportsObjAuto,
   SepiImportsRegistry,
   SepiImportsRTLConsts,

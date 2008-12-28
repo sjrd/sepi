@@ -27,9 +27,6 @@ Nsapi.pas
 Ns30Fix.pas
 Ns35Fix.pas
 Ns36Fix.pas
-Ole2.pas
-OleCtl.pas
-OleDlg.pas
 OpenGL.pas
 PenWin.pas
 PsAPI.pas
