@@ -73,6 +73,12 @@ resourcestring
   SWritableValueRequired = 'La valeur ne peut être écrite';
   SAddressableValueRequired = 'Valeur adressable requise';
 
+  // Erreurs sur les ensembles
+  SEmptySetNotSupported = 'Ensemble vide non supporté';
+  SSetRangeTooWide = 'L''ensemble des valeurs est trop étendu';
+  SConstValueOutOfBounds =
+    'La valeur constante dépasse les limites de sous-étendue';
+
   // Erreurs sur les paramètres
   SVarParamTypeMustBeStrictlyEqual =
     'Les paramètres var originaux et formels doivent avoir le même type';

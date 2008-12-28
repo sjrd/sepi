@@ -2,6 +2,8 @@ unit SepiDelphiParser;
 
 interface
 
+{$D-}
+
 uses
   SysUtils, Contnrs, SepiCompilerErrors, SepiParseTrees, SepiLL1ParserUtils,
   SepiDelphiLexer;

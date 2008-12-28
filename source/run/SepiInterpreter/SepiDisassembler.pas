@@ -77,6 +77,15 @@ type
     function OpCodeTryFinally(OpCode: TSepiOpCode): string;
     function OpCodeMultiOn(OpCode: TSepiOpCode): string;
 
+    function OpCodeSetIncludeExclude(OpCode: TSepiOpCode): string;
+    function OpCodeSetIn(OpCode: TSepiOpCode): string;
+    function OpCodeSetElem(OpCode: TSepiOpCode): string;
+    function OpCodeSetRange(OpCode: TSepiOpCode): string;
+    function OpCodeSetCmpOp(OpCode: TSepiOpCode): string;
+    function OpCodeSetSelfOp(OpCode: TSepiOpCode): string;
+    function OpCodeSetOtherOp(OpCode: TSepiOpCode): string;
+    function OpCodeSetExpand(OpCode: TSepiOpCode): string;
+
     // Other methods
 
     function ReadRef: string;
@@ -113,7 +122,7 @@ var
   OpCodeArgsFuncs: array[TSepiOpCode] of TOpCodeArgsFunc;
 
 const
-  MaxKnownOpCode = ocMultiOn; /// Plus grand OpCode connu
+  MaxKnownOpCode = ocSetExpand; /// Plus grand OpCode connu
 
   /// Nom des OpCodes
   { Don't localize any of these strings! }
@@ -145,7 +154,11 @@ const
     // is and as operators
     'IS', 'AS', '', '', '', '', '', '', '', '', '', '', '',
     // Exception handling
-    'RAISE', 'RERS', 'TRYE', 'TRYF', 'ON'
+    'RAISE', 'RERS', 'TRYE', 'TRYF', 'ON',
+    '', '', '', '', '', '', '', '', '', '', '',
+    // Set operations
+    'SINC', 'SEXC', 'SIN', 'SELE', 'SRNG', 'SUR', 'SEQ', 'SNE', 'SLE',
+    'SINT', 'SADD', 'SSUB', 'SINT', 'SADD', 'SSUB', 'SEXP'
   );
 
   /// Virgule
@@ -237,6 +250,24 @@ begin
   @OpCodeArgsFuncs[ocTryExcept]  := @TSepiDisassembler.OpCodeTryExcept;
   @OpCodeArgsFuncs[ocTryFinally] := @TSepiDisassembler.OpCodeTryFinally;
   @OpCodeArgsFuncs[ocMultiOn]    := @TSepiDisassembler.OpCodeMultiOn;
+
+  // Set operations
+  @OpCodeArgsFuncs[ocSetInclude] := @TSepiDisassembler.OpCodeSetIncludeExclude;
+  @OpCodeArgsFuncs[ocSetExclude] := @TSepiDisassembler.OpCodeSetIncludeExclude;
+  @OpCodeArgsFuncs[ocSetIn]             := @TSepiDisassembler.OpCodeSetIn;
+  @OpCodeArgsFuncs[ocSetElem]           := @TSepiDisassembler.OpCodeSetElem;
+  @OpCodeArgsFuncs[ocSetRange]          := @TSepiDisassembler.OpCodeSetRange;
+  @OpCodeArgsFuncs[ocSetUnionRange]     := @TSepiDisassembler.OpCodeSetRange;
+  @OpCodeArgsFuncs[ocSetEquals]         := @TSepiDisassembler.OpCodeSetCmpOp;
+  @OpCodeArgsFuncs[ocSetNotEquals]      := @TSepiDisassembler.OpCodeSetCmpOp;
+  @OpCodeArgsFuncs[ocSetContained]      := @TSepiDisassembler.OpCodeSetCmpOp;
+  @OpCodeArgsFuncs[ocSetSelfIntersect]  := @TSepiDisassembler.OpCodeSetSelfOp;
+  @OpCodeArgsFuncs[ocSetSelfUnion]      := @TSepiDisassembler.OpCodeSetSelfOp;
+  @OpCodeArgsFuncs[ocSetSelfSubtract]   := @TSepiDisassembler.OpCodeSetSelfOp;
+  @OpCodeArgsFuncs[ocSetOtherIntersect] := @TSepiDisassembler.OpCodeSetOtherOp;
+  @OpCodeArgsFuncs[ocSetOtherUnion]     := @TSepiDisassembler.OpCodeSetOtherOp;
+  @OpCodeArgsFuncs[ocSetOtherSubtract]  := @TSepiDisassembler.OpCodeSetOtherOp;
+  @OpCodeArgsFuncs[ocSetExpand]         := @TSepiDisassembler.OpCodeSetExpand;
 end;
 
 {-------------------------}
@@ -702,6 +733,151 @@ begin
 end;
 
 {*
+  OpCode SetInclude ou SetExclude
+  @param OpCode   OpCode
+*}
+function TSepiDisassembler.OpCodeSetIncludeExclude(OpCode: TSepiOpCode): string;
+var
+  SetPtr, ElemPtr: string;
+begin
+  // Read arguments
+  SetPtr := ReadAddress;
+  ElemPtr := ReadAddress(aoAcceptAllConsts, SizeOf(Byte));
+
+  // Make Result
+  Result := Format('%s, %s', [SetPtr, ElemPtr]);
+end;
+
+{*
+  OpCode SetIn
+  @param OpCode   OpCode
+*}
+function TSepiDisassembler.OpCodeSetIn(OpCode: TSepiOpCode): string;
+var
+  DestPtr, SetPtr, ElemPtr: string;
+begin
+  // Read arguments
+  DestPtr := ReadAddress;
+  SetPtr := ReadAddress(aoAcceptNonCodeConsts);
+  ElemPtr := ReadAddress(aoAcceptAllConsts, SizeOf(Byte));
+
+  // Make Result
+  Result := Format('%s, %s, %s', [DestPtr, SetPtr, ElemPtr]);
+end;
+
+{*
+  OpCode SetElem
+  @param OpCode   OpCode
+*}
+function TSepiDisassembler.OpCodeSetElem(OpCode: TSepiOpCode): string;
+var
+  SetSize: Byte;
+  SetPtr, ElemPtr: string;
+begin
+  // Read arguments
+  Instructions.ReadBuffer(SetSize, SizeOf(Byte));
+  SetPtr := ReadAddress;
+  ElemPtr := ReadAddress(aoAcceptAllConsts, SizeOf(Byte));
+
+  // Make Result
+  Result := Format('%d, %s, %s', [SetSize, SetPtr, ElemPtr]);
+end;
+
+{*
+  OpCode SetRange
+  @param OpCode   OpCode
+*}
+function TSepiDisassembler.OpCodeSetRange(OpCode: TSepiOpCode): string;
+var
+  SetSize: Byte;
+  SetPtr, LoPtr, HiPtr: string;
+begin
+  // Read arguments
+  Instructions.ReadBuffer(SetSize, SizeOf(Byte));
+  SetPtr := ReadAddress;
+  LoPtr := ReadAddress(aoAcceptAllConsts, SizeOf(Byte));
+  HiPtr := ReadAddress(aoAcceptAllConsts, SizeOf(Byte));
+
+  // Make Result
+  Result := Format('%d, %s, %s, %s', [SetSize, SetPtr, LoPtr, HiPtr]);
+end;
+
+{*
+  OpCode SetEquals, SetNotEquals ou SetContained
+  @param OpCode   OpCode
+*}
+function TSepiDisassembler.OpCodeSetCmpOp(OpCode: TSepiOpCode): string;
+var
+  SetSize: Byte;
+  DestPtr, LeftSetPtr, RightSetPtr: string;
+begin
+  // Read arguments
+  Instructions.ReadBuffer(SetSize, SizeOf(Byte));
+  DestPtr := ReadAddress;
+  LeftSetPtr := ReadAddress(aoAcceptAllConsts, SetSize);
+  RightSetPtr := ReadAddress(aoAcceptAllConsts, SetSize);
+
+  // Make Result
+  Result := Format('%d, %s, %s, %s', [DestPtr, LeftSetPtr, RightSetPtr]);
+end;
+
+{*
+  OpCode SetSelfIntersect, SetSelfUnion ou SetSelfSubtract
+  @param OpCode   OpCode
+*}
+function TSepiDisassembler.OpCodeSetSelfOp(OpCode: TSepiOpCode): string;
+var
+  SetSize: Byte;
+  DestPtr, SourcePtr: string;
+begin
+  // Read arguments
+  Instructions.ReadBuffer(SetSize, SizeOf(Byte));
+  DestPtr := ReadAddress;
+  SourcePtr := ReadAddress(aoAcceptAllConsts, SetSize);
+
+  // Make Result
+  Result := Format('%d, %s, %s', [SetSize, DestPtr, SourcePtr]);
+end;
+
+{*
+  OpCode SetOtherIntersect, SetOtherUnion, SetOtherSubract
+  @param OpCode   OpCode
+*}
+function TSepiDisassembler.OpCodeSetOtherOp(OpCode: TSepiOpCode): string;
+var
+  SetSize: Byte;
+  DestPtr, LeftPtr, RightPtr: string;
+begin
+  // Read arguments
+  Instructions.ReadBuffer(SetSize, SizeOf(Byte));
+  DestPtr := ReadAddress;
+  LeftPtr := ReadAddress(aoAcceptAllConsts, SetSize);
+  RightPtr := ReadAddress(aoAcceptAllConsts, SetSize);
+
+  // Make Result
+  Result := Format('%d, %s, %s, %s', [SetSize, DestPtr, LeftPtr, RightPtr]);
+end;
+
+{*
+  OpCode SetExpand
+  @param OpCode   OpCode
+*}
+function TSepiDisassembler.OpCodeSetExpand(OpCode: TSepiOpCode): string;
+var
+  DestPtr, SourcePtr: string;
+  Lo, Hi: Byte;
+begin
+  // Read arguments
+  DestPtr := ReadAddress;
+  SourcePtr := ReadAddress(aoAcceptNonCodeConsts);
+  Instructions.ReadBuffer(Lo, SizeOf(Byte));
+  Instructions.ReadBuffer(Hi, SizeOf(Byte));
+
+  // Make Result
+  Result := Format('%s, %s, %d, %d', [DestPtr, SourcePtr, Lo, Hi]);
+end;
+
+{*
   Lit une référence depuis les instructions
 *}
 function TSepiDisassembler.ReadRef: string;
@@ -1007,7 +1183,7 @@ begin
       Params := Params + Comma;
 
     if ParamSize = psByAddress then
-      Params := Params + '@' + ReadAddress {don't localize}
+      Params := Params + '@' + ReadAddress(aoAcceptNonCodeConsts)
     else
       Params := Params + ReadAddress(aoAcceptAllConsts, ParamSize);
   end;

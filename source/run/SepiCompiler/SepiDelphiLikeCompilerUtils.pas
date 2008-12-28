@@ -310,7 +310,11 @@ begin
   end;
 
   // Meta
-  Meta := Compiler.SepiMethod.LookFor(Identifier);
+  if Compiler.HasLocalNamespace then
+    Meta := Compiler.LocalNamespace.LookFor(Identifier)
+  else
+    Meta := Compiler.SepiMethod.LookFor(Identifier);
+
   if Meta <> nil then
   begin
     AddMetaToExpression(Result, Meta);

@@ -348,6 +348,24 @@ const
   /// ON ExceptObject, Byte-Count, (Class-Ref, Dest){Count}
   ocMultiOn    = TSepiOpCode($64);
 
+  // Set operations
+  ocSetInclude        = TSepiOpCode($70); /// SINC Dest, Elem
+  ocSetExclude        = TSepiOpCode($71); /// SEXC Dest, Elem
+  ocSetIn             = TSepiOpCode($72); /// SIN  Dest, Set, Elem
+  ocSetElem           = TSepiOpCode($73); /// SELE SetSize, Dest, Elem
+  ocSetRange          = TSepiOpCode($74); /// SRNG SetSize, Dest, Lo, Hi
+  ocSetUnionRange     = TSepiOpCode($75); /// SUR  SetSize, Dest, Lo, Hi
+  ocSetEquals         = TSepiOpCode($76); /// SEQ  SetSize, Dest, Set1, Set2
+  ocSetNotEquals      = TSepiOpCode($77); /// SNE  SetSize, Dest, Set1, Set2
+  ocSetContained      = TSepiOpCode($78); /// SLE  SetSize, Dest, Set1, Set2
+  ocSetSelfIntersect  = TSepiOpCode($79); /// SINT SetSize, Dest, Src
+  ocSetSelfUnion      = TSepiOpCode($7A); /// SADD SetSize, Dest, Src
+  ocSetSelfSubtract   = TSepiOpCode($7B); /// SSUB SetSize, Dest, Src
+  ocSetOtherIntersect = TSepiOpCode($7C); /// SINT SetSize, Dest, Left, Right
+  ocSetOtherUnion     = TSepiOpCode($7D); /// SADD SetSize, Dest, Left, Right
+  ocSetOtherSubtract  = TSepiOpCode($7E); /// SSUB SetSize, Dest, Left, Right
+  ocSetExpand         = TSepiOpCode($7F); /// SEXP Dest, Src, Lo, Hi
+
 function MemoryRefEncode(MemorySpace: TSepiMemorySpace;
   OpCount: Integer): TSepiMemoryRef;
 procedure MemoryRefDecode(MemoryRef: TSepiMemoryRef;

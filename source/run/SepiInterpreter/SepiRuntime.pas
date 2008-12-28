@@ -199,6 +199,15 @@ type
     procedure OpCodeTryFinally(OpCode: TSepiOpCode);
     procedure OpCodeMultiOn(OpCode: TSepiOpCode);
 
+    procedure OpCodeSetIncludeExclude(OpCode: TSepiOpCode);
+    procedure OpCodeSetIn(OpCode: TSepiOpCode);
+    procedure OpCodeSetElem(OpCode: TSepiOpCode);
+    procedure OpCodeSetRange(OpCode: TSepiOpCode);
+    procedure OpCodeSetCmpOp(OpCode: TSepiOpCode);
+    procedure OpCodeSetSelfOp(OpCode: TSepiOpCode);
+    procedure OpCodeSetOtherOp(OpCode: TSepiOpCode);
+    procedure OpCodeSetExpand(OpCode: TSepiOpCode);
+
     // Other methods
 
     function ReadBaseAddress(Options: TSepiAddressOptions; ConstSize: Integer;
@@ -243,6 +252,9 @@ uses
 type
   /// Méthode de traitement d'un OpCode
   TOpCodeProc = procedure(Self: TSepiRuntimeContext; OpCode: TSepiOpCode);
+
+  /// Set le plus grand possible
+  TSet = set of Byte;
 
 var
   /// Tableau des méthodes de traitement des OpCodes
@@ -328,6 +340,24 @@ begin
   @OpCodeProcs[ocTryExcept]  := @TSepiRuntimeContext.OpCodeTryExcept;
   @OpCodeProcs[ocTryFinally] := @TSepiRuntimeContext.OpCodeTryFinally;
   @OpCodeProcs[ocMultiOn]    := @TSepiRuntimeContext.OpCodeMultiOn;
+
+  // Set operations
+  @OpCodeProcs[ocSetInclude] := @TSepiRuntimeContext.OpCodeSetIncludeExclude;
+  @OpCodeProcs[ocSetExclude] := @TSepiRuntimeContext.OpCodeSetIncludeExclude;
+  @OpCodeProcs[ocSetIn]             := @TSepiRuntimeContext.OpCodeSetIn;
+  @OpCodeProcs[ocSetElem]           := @TSepiRuntimeContext.OpCodeSetElem;
+  @OpCodeProcs[ocSetRange]          := @TSepiRuntimeContext.OpCodeSetRange;
+  @OpCodeProcs[ocSetUnionRange]     := @TSepiRuntimeContext.OpCodeSetRange;
+  @OpCodeProcs[ocSetEquals]         := @TSepiRuntimeContext.OpCodeSetCmpOp;
+  @OpCodeProcs[ocSetNotEquals]      := @TSepiRuntimeContext.OpCodeSetCmpOp;
+  @OpCodeProcs[ocSetContained]      := @TSepiRuntimeContext.OpCodeSetCmpOp;
+  @OpCodeProcs[ocSetSelfIntersect]  := @TSepiRuntimeContext.OpCodeSetSelfOp;
+  @OpCodeProcs[ocSetSelfUnion]      := @TSepiRuntimeContext.OpCodeSetSelfOp;
+  @OpCodeProcs[ocSetSelfSubtract]   := @TSepiRuntimeContext.OpCodeSetSelfOp;
+  @OpCodeProcs[ocSetOtherIntersect] := @TSepiRuntimeContext.OpCodeSetOtherOp;
+  @OpCodeProcs[ocSetOtherUnion]     := @TSepiRuntimeContext.OpCodeSetOtherOp;
+  @OpCodeProcs[ocSetOtherSubtract]  := @TSepiRuntimeContext.OpCodeSetOtherOp;
+  @OpCodeProcs[ocSetExpand]         := @TSepiRuntimeContext.OpCodeSetExpand;
 end;
 
 {*
@@ -1423,6 +1453,200 @@ begin
 end;
 
 {*
+  OpCode SetInclude ou SetExclude
+  @param OpCode   OpCode
+*}
+procedure TSepiRuntimeContext.OpCodeSetIncludeExclude(OpCode: TSepiOpCode);
+var
+  SetPtr: ^TSet;
+  ElemPtr: PByte;
+begin
+  // Read arguments
+  SetPtr := ReadAddress;
+  ElemPtr := ReadAddress(aoAcceptAllConsts, SizeOf(Byte));
+
+  // Execute the instruction
+  if OpCode = ocSetInclude then
+    Include(SetPtr^, ElemPtr^)
+  else
+    Exclude(SetPtr^, ElemPtr^);
+end;
+
+{*
+  OpCode SetIn
+  @param OpCode   OpCode
+*}
+procedure TSepiRuntimeContext.OpCodeSetIn(OpCode: TSepiOpCode);
+var
+  DestPtr: PBoolean;
+  SetPtr: ^TSet;
+  ElemPtr: PByte;
+begin
+  // Read arguments
+  DestPtr := ReadAddress;
+  SetPtr := ReadAddress(aoAcceptNonCodeConsts);
+  ElemPtr := ReadAddress(aoAcceptAllConsts, SizeOf(Byte));
+
+  // Execute the instruction
+  DestPtr^ := ElemPtr^ in SetPtr^;
+end;
+
+{*
+  OpCode SetElem
+  @param OpCode   OpCode
+*}
+procedure TSepiRuntimeContext.OpCodeSetElem(OpCode: TSepiOpCode);
+var
+  SetSize: Byte;
+  SetPtr: Pointer;
+  ElemPtr: PByte;
+begin
+  // Read arguments
+  Instructions.ReadBuffer(SetSize, SizeOf(Byte));
+  SetPtr := ReadAddress;
+  ElemPtr := ReadAddress(aoAcceptAllConsts, SizeOf(Byte));
+
+  // Execute instruction
+  SetElem(SetPtr^, ElemPtr^, SetSize);
+end;
+
+{*
+  OpCode SetRange
+  @param OpCode   OpCode
+*}
+procedure TSepiRuntimeContext.OpCodeSetRange(OpCode: TSepiOpCode);
+var
+  SetSize: Byte;
+  SetPtr: Pointer;
+  LoPtr, HiPtr: PByte;
+  TempSet: TSet;
+begin
+  // Read arguments
+  Instructions.ReadBuffer(SetSize, SizeOf(Byte));
+  SetPtr := ReadAddress;
+  LoPtr := ReadAddress(aoAcceptAllConsts, SizeOf(Byte));
+  HiPtr := ReadAddress(aoAcceptAllConsts, SizeOf(Byte));
+
+  // Execute instruction
+  if OpCode = ocSetRange then
+    SetRange(SetPtr^, LoPtr^, HiPtr^, SetSize)
+  else
+  begin
+    SetRange(TempSet, LoPtr^, HiPtr^, SetSize);
+    SetUnion(SetPtr^, TempSet, SetSize);
+  end;
+end;
+
+{*
+  OpCode SetEquals, SetNotEquals ou SetContained
+  @param OpCode   OpCode
+*}
+procedure TSepiRuntimeContext.OpCodeSetCmpOp(OpCode: TSepiOpCode);
+var
+  SetSize: Byte;
+  DestPtr: PBoolean;
+  LeftSetPtr, RightSetPtr: Pointer;
+begin
+  // Read arguments
+  Instructions.ReadBuffer(SetSize, SizeOf(Byte));
+  DestPtr := ReadAddress;
+  LeftSetPtr := ReadAddress(aoAcceptAllConsts, SetSize);
+  RightSetPtr := ReadAddress(aoAcceptAllConsts, SetSize);
+
+  // Execute instruction
+  case OpCode of
+    ocSetEquals:
+      DestPtr^ := SetEquals(LeftSetPtr^, RightSetPtr^, SetSize);
+    ocSetNotEquals:
+      DestPtr^ := not SetEquals(LeftSetPtr^, RightSetPtr^, SetSize);
+    ocSetContained:
+      DestPtr^ := SetContained(LeftSetPtr^, RightSetPtr^, SetSize);
+  else
+    Assert(False);
+  end;
+end;
+
+{*
+  OpCode SetSelfIntersect, SetSelfUnion ou SetSelfSubtract
+  @param OpCode   OpCode
+*}
+procedure TSepiRuntimeContext.OpCodeSetSelfOp(OpCode: TSepiOpCode);
+var
+  SetSize: Byte;
+  DestPtr, SourcePtr: Pointer;
+begin
+  // Read arguments
+  Instructions.ReadBuffer(SetSize, SizeOf(Byte));
+  DestPtr := ReadAddress;
+  SourcePtr := ReadAddress(aoAcceptAllConsts, SetSize);
+
+  // Execute instruction
+  case OpCode of
+    ocSetSelfIntersect:
+      SetIntersect(DestPtr^, SourcePtr^, SetSize);
+    ocSetSelfUnion:
+      SetUnion(DestPtr^, SourcePtr^, SetSize);
+    ocSetSelfSubtract:
+      SetSub(DestPtr^, SourcePtr^, SetSize);
+  else
+    Assert(False);
+  end;
+end;
+
+{*
+  OpCode SetOtherIntersect, SetOtherUnion, SetOtherSubract
+  @param OpCode   OpCode
+*}
+procedure TSepiRuntimeContext.OpCodeSetOtherOp(OpCode: TSepiOpCode);
+var
+  SetSize: Byte;
+  DestPtr, LeftPtr, RightPtr: Pointer;
+  TempSet: TSet;
+begin
+  // Read arguments
+  Instructions.ReadBuffer(SetSize, SizeOf(Byte));
+  DestPtr := ReadAddress;
+  LeftPtr := ReadAddress(aoAcceptAllConsts, SetSize);
+  RightPtr := ReadAddress(aoAcceptAllConsts, SetSize);
+
+  // Execute instruction
+
+  Move(LeftPtr^, TempSet, SetSize);
+
+  case OpCode of
+    ocSetOtherIntersect:
+      SetIntersect(TempSet, RightPtr^, SetSize);
+    ocSetOtherUnion:
+      SetUnion(TempSet, RightPtr^, SetSize);
+    ocSetOtherSubtract:
+      SetSub(TempSet, RightPtr^, SetSize);
+  else
+    Assert(False);
+  end;
+
+  Move(TempSet, DestPtr^, SetSize);
+end;
+
+{*
+  OpCode SetExpand
+  @param OpCode   OpCode
+*}
+procedure TSepiRuntimeContext.OpCodeSetExpand(OpCode: TSepiOpCode);
+var
+  DestPtr, SourcePtr: Pointer;
+  Lo, Hi: Byte;
+begin
+  // Read arguments
+  DestPtr := ReadAddress;
+  SourcePtr := ReadAddress(aoAcceptNonCodeConsts);
+  Instructions.ReadBuffer(Lo, SizeOf(Byte));
+  Instructions.ReadBuffer(Hi, SizeOf(Byte));
+
+  // Execute instruction
+  SetExpand(SourcePtr^, DestPtr^, Lo, Hi);
+end;
+
+{*
   Lit une adresse de base depuis les instructions
   @param Options       Options de lecture d'addresse
   @param ConstSize     Taille d'une constante dans le code
@@ -1809,7 +2033,8 @@ begin
     // Read parameter
     if ParamSize = psByAddress then
     begin
-      PPointer(Integer(Parameters)+ParamPos)^ := ReadAddress;
+      PPointer(Integer(Parameters)+ParamPos)^ :=
+        ReadAddress(aoAcceptNonCodeConsts);
       Inc(ParamPos, SizeOf(Pointer));
     end else
     begin

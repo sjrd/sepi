@@ -616,6 +616,33 @@ type
   end;
 
   {*
+    Espace de noms (d'étendue plus petite qu'une unité)
+    Un espace de noms peut avoir un propriétaire virtuel. S'il en a, la méthode
+    LookFor continue sa recherche d'un identificateur via le propriétaire
+    virtuel, plutôt que le propriétaire réel.
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiNamespace = class(TSepiMeta)
+  private
+    FVirtualOwner: TSepiMeta; /// Propriétaire virtuel
+  protected
+    procedure ListReferences; override;
+    procedure Save(Stream: TStream); override;
+
+    function InternalLookFor(const Name: string; FromUnit: TSepiUnit;
+      FromClass: TSepiMeta = nil): TSepiMeta; override;
+  public
+    constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
+    constructor Create(AOwner: TSepiMeta; const AName: string;
+      AVirtualOwner: TSepiMeta = nil);
+
+    procedure Complete;
+
+    property VirtualOwner: TSepiMeta read FVirtualOwner;
+  end;
+
+  {*
     Tâche de chargement/déchargement d'une unité Sepi
     @author sjrd
     @version 1.0
@@ -3330,6 +3357,87 @@ begin
     FType.FinalizeValue(FValue^);
 end;
 
+{----------------------}
+{ TSepiNamespace class }
+{----------------------}
+
+{*
+  [@inheritDoc]
+*}
+constructor TSepiNamespace.Load(AOwner: TSepiMeta; Stream: TStream);
+begin
+  inherited;
+
+  OwningUnit.ReadRef(Stream, FVirtualOwner);
+  LoadChildren(Stream);
+end;
+
+{*
+  Crée un espace de noms
+  @param AOwner          Propriétaire de l'espace de noms
+  @param AName           Nom de l'espace de noms
+  @param AVirtualOwner   Propriétaire virtuel (défaut = nil, utilise Owner)
+*}
+constructor TSepiNamespace.Create(AOwner: TSepiMeta; const AName: string;
+  AVirtualOwner: TSepiMeta);
+begin
+  inherited Create(AOwner, AName);
+
+  FVirtualOwner := AVirtualOwner;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiNamespace.ListReferences;
+begin
+  inherited;
+
+  OwningUnit.AddRef(FVirtualOwner);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiNamespace.Save(Stream: TStream);
+begin
+  inherited;
+
+  OwningUnit.WriteRef(Stream, FVirtualOwner);
+  SaveChildren(Stream);
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiNamespace.InternalLookFor(const Name: string; FromUnit: TSepiUnit;
+  FromClass: TSepiMeta): TSepiMeta;
+begin
+  if VirtualOwner = nil then
+    Result := inherited InternalLookFor(Name, FromUnit, FromClass)
+  else
+  begin
+    // Basic search
+    Result := GetMeta(Name);
+
+    // Check for visibility
+    if (Result <> nil) and (not Result.IsVisibleFrom(FromUnit, FromClass)) then
+      Result := nil;
+
+    // If not found, continue search in the virtual owner
+    if Result = nil then
+      Result := VirtualOwner.InternalLookFor(Name, FromUnit, FromClass);
+  end;
+end;
+
+{*
+  Complète l'espace de noms
+*}
+procedure TSepiNamespace.Complete;
+begin
+  Owner.ReAddChild(Self);
+end;
+
 {--------------------------}
 { Classe TSepiUnitLoadTask }
 {--------------------------}
@@ -3429,9 +3537,8 @@ end;
 
 initialization
   SepiRegisterMetaClasses([
-    TSepiUnit, TSepiTypeAlias, TSepiConstant, TSepiVariable
-    ]);
-
+    TSepiUnit, TSepiTypeAlias, TSepiConstant, TSepiVariable, TSepiNamespace
+  ]);
 finalization
   SepiMetaClasses.Free;
   SepiImportedUnits.Free;

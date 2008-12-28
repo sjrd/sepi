@@ -539,8 +539,9 @@ type
 
     FObjFreeList: TObjectList; /// Liste des objets à libérer en fin de vie
 
-    FSepiMethod: TSepiMethod;     /// Méthode Sepi correspondante
-    FLocals: TSepiLocalVariables; /// Variables locales
+    FSepiMethod: TSepiMethod;        /// Méthode Sepi correspondante
+    FLocalNamespace: TSepiNamespace; /// Espace de noms local
+    FLocals: TSepiLocalVariables;    /// Variables locales
 
     FInstructions: TSepiInstructionList; /// Instructions
     FAsmInstructions: TSepiAsmInstrList; /// Instructions assembleur
@@ -554,6 +555,9 @@ type
     FBreakReferences: TObjectStack;    /// Références pour break
 
     procedure SetLabel(NamedLabel: TSepiNamedLabel);
+
+    function GetHasLocalNamespace: Boolean;
+    function GetLocalNamespace: TSepiNamespace;
 
     function GetContinueRef: TSepiInstructionRef;
     function GetBreakRef: TSepiInstructionRef;
@@ -581,12 +585,16 @@ type
     function MakeUnnamedTrueConst(AType: TSepiType;
       const AValue): TSepiConstant;
 
+    procedure Complete;
+
     procedure Compile;
     procedure WriteToStream(Stream: TStream);
     procedure WriteLocalsInfo(Stream: TStream);
 
     property UnitCompiler: TSepiUnitCompiler read FUnitCompiler;
     property SepiMethod: TSepiMethod read FSepiMethod;
+    property HasLocalNamespace: Boolean read GetHasLocalNamespace;
+    property LocalNamespace: TSepiNamespace read GetLocalNamespace;
     property Locals: TSepiLocalVariables read FLocals;
 
     property ContinueRef: TSepiInstructionRef read GetContinueRef;
@@ -624,6 +632,8 @@ type
 
     function GetPointerType(PointTo: TSepiType): TSepiPointerType;
     function GetMetaClass(SepiClass: TSepiClass): TSepiMetaClass;
+    
+    function MakeSetType(CompType: TSepiOrdType): TSepiSetType;
 
     function GetErroneousType: TSepiType;
     function MakeErroneousTypeAlias(const AliasName: string): TSepiType;
@@ -2150,11 +2160,44 @@ var
   Index: Integer;
 begin
   Index := FNamedLabels.IndexOf(NamedLabel.Name);
-  
+
   if Index < 0 then
     FNamedLabels.AddObject(NamedLabel.Name, NamedLabel)
   else
     raise ESepiLabelError.CreateResFmt(@SLabelAlreadyExists, [NamedLabel.Name]);
+end;
+
+{*
+  Indique si la méthode a un espace de noms local
+  @return True si la méthode a un espace de noms local, False sinon
+*}
+function TSepiMethodCompiler.GetHasLocalNamespace: Boolean;
+begin
+  Result := FLocalNamespace <> nil;
+end;
+
+{*
+  Espace de noms local
+  @return Espace de noms local
+*}
+function TSepiMethodCompiler.GetLocalNamespace: TSepiNamespace;
+var
+  SepiUnit: TSepiUnit;
+  OldVisibility: TMemberVisibility;
+begin
+  if FLocalNamespace = nil then
+  begin
+    SepiUnit := UnitCompiler.SepiUnit;
+    OldVisibility := SepiUnit.CurrentVisibility;
+    try
+      SepiUnit.CurrentVisibility := mvPrivate;
+      FLocalNamespace := TSepiNamespace.Create(SepiUnit, '', SepiMethod);
+    finally
+      SepiUnit.CurrentVisibility := OldVisibility;
+    end;
+  end;
+
+  Result := FLocalNamespace;
 end;
 
 {*
@@ -2234,7 +2277,10 @@ begin
   if Result <> nil then
     Exit;
 
-  Result := SepiMethod.LookFor(Name);
+  if FLocalNamespace = nil then
+    Result := SepiMethod.LookFor(Name)
+  else
+    Result := FLocalNamespace.LookFor(Name);
 end;
 
 {*
@@ -2298,16 +2344,17 @@ end;
 *}
 function TSepiMethodCompiler.MakeUnnamedTrueConst(AType: TSepiType;
   const AValue): TSepiConstant;
-var
-  UnnamedIndex: Integer;
 begin
-  UnnamedIndex := 1;
+  Result := TSepiConstant.Create(LocalNamespace, '', AType, AValue);
+end;
 
-  while SepiMethod.GetMeta('$' + IntToStr(UnnamedIndex)) <> nil do
-    Inc(UnnamedIndex);
-
-  Result := TSepiConstant.Create(SepiMethod, '$' + IntToStr(UnnamedIndex),
-    AType, AValue);
+{*
+  Complète le corps de la méthode
+*}
+procedure TSepiMethodCompiler.Complete;
+begin
+  if FLocalNamespace <> nil then
+    FLocalNamespace.Complete;
 end;
 
 {*
@@ -2471,6 +2518,26 @@ begin
   if Result = nil then
     Result := TSepiMetaClass.Create(FCompileTimeTypes,
       MetaClassName, SepiClass);
+end;
+
+{*
+  Construit un type ensemble pour un type d'élément donné (passe la compilation)
+  @param CompType   Type d'élément de l'ensemble
+  @return Type ensemble dont les éléments sont de type CompType
+*}
+function TSepiUnitCompiler.MakeSetType(CompType: TSepiOrdType): TSepiSetType;
+var
+  I: Integer;
+  Child: TSepiMeta absolute Result;
+begin
+  for I := 0 to SepiUnit.ChildCount-1 do
+  begin
+    Child := SepiUnit.Children[I];
+    if (Child is TSepiSetType) and (Result.CompType = CompType) then
+      Exit;
+  end;
+
+  Result := TSepiSetType.Create(SepiUnit, '', CompType);
 end;
 
 {*

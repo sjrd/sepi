@@ -583,6 +583,181 @@ type
     property OnClauses[Index: Integer]: TSepiAsmOnClause read GetOnClauses;
   end;
 
+  {*
+    Instruction SINC ou SEXC
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiAsmSetIncludeExclude = class(TSepiAsmInstr)
+  private
+    FDestination: TSepiMemoryReference; /// Destination
+    FElement: TSepiMemoryReference;     /// Élément
+  public
+    constructor Create(AMethodCompiler: TSepiMethodCompiler;
+      AInclude: Boolean);
+    destructor Destroy; override;
+
+    procedure Make; override;
+    procedure WriteToStream(Stream: TStream); override;
+
+    property Destination: TSepiMemoryReference read FDestination;
+    property Element: TSepiMemoryReference read FElement;
+  end;
+
+  {*
+    Instruction SIN
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiAsmSetIn = class(TSepiAsmInstr)
+  private
+    FDestination: TSepiMemoryReference; /// Destination
+    FSetValue: TSepiMemoryReference;    /// Ensemble
+    FElement: TSepiMemoryReference;     /// Élément
+  public
+    constructor Create(AMethodCompiler: TSepiMethodCompiler);
+    destructor Destroy; override;
+
+    procedure Make; override;
+    procedure WriteToStream(Stream: TStream); override;
+
+    property Destination: TSepiMemoryReference read FDestination;
+    property SetValue: TSepiMemoryReference read FSetValue;
+    property Element: TSepiMemoryReference read FElement;
+  end;
+
+  {*
+    Instruction SELE
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiAsmSetElem = class(TSepiAsmInstr)
+  private
+    FSetSize: Byte;                     /// Taille du set
+    FUnion: Boolean;                    /// Indique si c'est un Union-Elem (Inc)
+    FDestination: TSepiMemoryReference; /// Destination
+    FElement: TSepiMemoryReference;     /// Élément
+  public
+    constructor Create(AMethodCompiler: TSepiMethodCompiler;
+      ASetSize: Byte; AUnion: Boolean = False);
+    destructor Destroy; override;
+
+    procedure Make; override;
+    procedure WriteToStream(Stream: TStream); override;
+
+    property SetSize: Byte read FSetSize;
+    property Union: Boolean read FUnion;
+    property Destination: TSepiMemoryReference read FDestination;
+    property Element: TSepiMemoryReference read FElement;
+  end;
+
+  {*
+    Instruction SRNG ou SUR
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiAsmSetRange = class(TSepiAsmInstr)
+  private
+    FSetSize: Byte;                     /// Taille du set
+    FUnion: Boolean;                    /// Indique si c'est un Union-Range
+    FDestination: TSepiMemoryReference; /// Destination
+    FLowerBound: TSepiMemoryReference;  /// Borne inférieure
+    FHigherBound: TSepiMemoryReference; /// Borne supérieure
+  public
+    constructor Create(AMethodCompiler: TSepiMethodCompiler;
+      ASetSize: Byte; AUnion: Boolean = False);
+    destructor Destroy; override;
+
+    procedure Make; override;
+    procedure WriteToStream(Stream: TStream); override;
+
+    property SetSize: Byte read FSetSize;
+    property Union: Boolean read FUnion;
+    property Destination: TSepiMemoryReference read FDestination;
+    property LowerBound: TSepiMemoryReference read FLowerBound;
+    property HigherBound: TSepiMemoryReference read FHigherBound;
+  end;
+
+  {*
+    Instruction de comparaison de sets
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiAsmSetCompare = class(TSepiAsmInstr)
+  private
+    FSetSize: Byte; /// Taille des sets
+
+    FDestination: TSepiMemoryReference; /// Destination
+    FLeft: TSepiMemoryReference;        /// Opérande gauche
+    FRight: TSepiMemoryReference;       /// Opérande droit
+  public
+    constructor Create(AMethodCompiler: TSepiMethodCompiler;
+      AOpCode: TSepiOpCode; ASetSize: Byte);
+    destructor Destroy; override;
+
+    procedure Make; override;
+    procedure WriteToStream(Stream: TStream); override;
+
+    property SetSize: Byte read FSetSize;
+
+    property Destination: TSepiMemoryReference read FDestination;
+    property Left: TSepiMemoryReference read FLeft;
+    property Right: TSepiMemoryReference read FRight;
+  end;
+
+  {*
+    Instruction opération sur des sets
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiAsmSetOperation = class(TSepiAsmInstr)
+  private
+    FSetSize: Byte;    /// Taille des sets
+    FUseLeft: Boolean; /// Utilise un opérande gauche
+
+    FDestination: TSepiMemoryReference; /// Destination
+    FLeft: TSepiMemoryReference;        /// Opérande gauche
+    FRight: TSepiMemoryReference;       /// Opérande droit
+  public
+    constructor Create(AMethodCompiler: TSepiMethodCompiler;
+      AOpCode: TSepiOpCode; ASetSize: Byte);
+    destructor Destroy; override;
+
+    procedure Make; override;
+    procedure WriteToStream(Stream: TStream); override;
+
+    property SetSize: Byte read FSetSize;
+    property UseLeft: Boolean read FUseLeft;
+
+    property Destination: TSepiMemoryReference read FDestination;
+    property Left: TSepiMemoryReference read FLeft;
+    property Right: TSepiMemoryReference read FRight;
+  end;
+
+  {*
+    Instruction SEXP
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiAsmSetExpand = class(TSepiAsmInstr)
+  private
+    FDestination: TSepiMemoryReference; /// Destination
+    FSource: TSepiMemoryReference;      /// Source
+    FLowerByte: TSepiMemoryReference;   /// Octet inférieur dans le packed
+    FHigherByte: TSepiMemoryReference;  /// Octet supérieur dans le packed
+  public
+    constructor Create(AMethodCompiler: TSepiMethodCompiler);
+    destructor Destroy; override;
+
+    procedure Make; override;
+    procedure WriteToStream(Stream: TStream); override;
+
+    property Destination: TSepiMemoryReference read FDestination;
+    property Source: TSepiMemoryReference read FSource;
+    property LowerBound: TSepiMemoryReference read FLowerByte;
+    property HigherBound: TSepiMemoryReference read FHigherByte;
+  end;
+
 implementation
 
 const
@@ -604,6 +779,18 @@ const
   /// OpCodes d'opérations
   OperationsOpCodes =
     SelfUnaryOps + SelfBinaryOps + OtherUnaryOps + OtherBinaryOps;
+
+  /// OpCodes de comparaison de sets
+  SetComparisonOpCodes = [ocSetEquals..ocSetContained];
+
+  /// OpCodes d'opérations sur des sets sur soi-même
+  SetSelfOps = [ocSetSelfIntersect..ocSetSelfSubtract];
+
+  /// OpCodes d'opérations sur des sets sur un autre
+  SetOtherOps = [ocSetOtherIntersect..ocSetOtherSubtract];
+
+  /// OpCodes d'opérations sur des sets
+  SetOperationsOpCodes = SetSelfOps + SetOtherOps;
 
 {--------------------}
 { TSepiAsmJump class }
@@ -2293,6 +2480,494 @@ begin
         EndPosition - (Count-I-1) * (SizeOf(Integer) + SizeOf(Smallint)));
     end;
   end;
+end;
+
+{---------------------------------}
+{ TSepiAsmSetIncludeExclude class }
+{---------------------------------}
+
+{*
+  Crée une instruction set-include ou set-exclude
+  @param AMethodCompiler   Compilateur de méthode
+  @param AInclude          True pour Include, False pour Exclude
+*}
+constructor TSepiAsmSetIncludeExclude.Create(
+  AMethodCompiler: TSepiMethodCompiler; AInclude: Boolean);
+begin
+  inherited Create(AMethodCompiler);
+
+  if AInclude then
+    FOpCode := ocSetInclude
+  else
+    FOpCode := ocSetExclude;
+
+  FDestination := TSepiMemoryReference.Create(MethodCompiler);
+  FElement := TSepiMemoryReference.Create(MethodCompiler,
+    aoAcceptAllConsts, SizeOf(Byte));
+end;
+
+{*
+  [@inheritDoc]
+*}
+destructor TSepiAsmSetIncludeExclude.Destroy;
+begin
+  FElement.Free;
+  FDestination.Free;
+
+  inherited;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiAsmSetIncludeExclude.Make;
+begin
+  inherited;
+
+  Destination.Make;
+  Inc(FSize, Destination.Size);
+
+  Element.Make;
+  Inc(FSize, Element.Size);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiAsmSetIncludeExclude.WriteToStream(Stream: TStream);
+begin
+  inherited;
+
+  Destination.WriteToStream(Stream);
+  Element.WriteToStream(Stream);
+end;
+
+{---------------------}
+{ TSepiAsmSetIn class }
+{---------------------}
+
+{*
+  Crée une instruction set-in
+  @param AMethodCompiler   Compilateur de méthode
+*}
+constructor TSepiAsmSetIn.Create(AMethodCompiler: TSepiMethodCompiler);
+begin
+  inherited Create(AMethodCompiler);
+
+  FOpCode := ocSetIn;
+
+  FDestination := TSepiMemoryReference.Create(MethodCompiler);
+  FSetValue := TSepiMemoryReference.Create(MethodCompiler,
+    aoAcceptNonCodeConsts);
+  FElement := TSepiMemoryReference.Create(MethodCompiler,
+    aoAcceptAllConsts, SizeOf(Byte));
+end;
+
+{*
+  [@inheritDoc]
+*}
+destructor TSepiAsmSetIn.Destroy;
+begin
+  FElement.Free;
+  FSetValue.Free;
+  FDestination.Free;
+
+  inherited;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiAsmSetIn.Make;
+begin
+  inherited;
+
+  Destination.Make;
+  Inc(FSize, Destination.Size);
+
+  SetValue.Make;
+  Inc(FSize, SetValue.Size);
+
+  Element.Make;
+  Inc(FSize, Element.Size);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiAsmSetIn.WriteToStream(Stream: TStream);
+begin
+  inherited;
+
+  Destination.WriteToStream(Stream);
+  SetValue.WriteToStream(Stream);
+  Element.WriteToStream(Stream);
+end;
+
+{-----------------------}
+{ TSepiAsmSetElem class }
+{-----------------------}
+
+{*
+  Crée une instruction set-elem
+  @param AMethodCompiler   Compilateur de méthode
+  @param ASetSize          Taille du set
+  @param AUnion            True pour faire un Union-Elem (équivalent à Inc)
+*}
+constructor TSepiAsmSetElem.Create(AMethodCompiler: TSepiMethodCompiler;
+  ASetSize: Byte; AUnion: Boolean = False);
+begin
+  inherited Create(AMethodCompiler);
+
+  if AUnion then
+    FOpCode := ocSetInclude
+  else
+    FOpCode := ocSetElem;
+
+  FSetSize := ASetSize;
+  FUnion := AUnion;
+  FDestination := TSepiMemoryReference.Create(MethodCompiler);
+  FElement := TSepiMemoryReference.Create(MethodCompiler,
+    aoAcceptAllConsts, SizeOf(Byte));
+end;
+
+{*
+  [@inheritDoc]
+*}
+destructor TSepiAsmSetElem.Destroy;
+begin
+  FElement.Free;
+  FDestination.Free;
+
+  inherited;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiAsmSetElem.Make;
+begin
+  inherited;
+
+  if not Union then
+    Inc(FSize, SizeOf(Byte));
+
+  Destination.Make;
+  Inc(FSize, Destination.Size);
+
+  Element.Make;
+  Inc(FSize, Element.Size);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiAsmSetElem.WriteToStream(Stream: TStream);
+begin
+  inherited;
+
+  if not Union then
+    Stream.WriteBuffer(FSetSize, SizeOf(Byte));
+
+  Destination.WriteToStream(Stream);
+  Element.WriteToStream(Stream);
+end;
+
+{------------------------}
+{ TSepiAsmSetRange class }
+{------------------------}
+
+{*
+  Crée une instruction set-range
+  @param AMethodCompiler   Compilateur de méthode
+  @param ASetSize          Taille du set
+  @param AUnion            True pour faire un Union-Range
+*}
+constructor TSepiAsmSetRange.Create(AMethodCompiler: TSepiMethodCompiler;
+  ASetSize: Byte; AUnion: Boolean = False);
+begin
+  inherited Create(AMethodCompiler);
+
+  if AUnion then
+    FOpCode := ocSetUnionRange
+  else
+    FOpCode := ocSetRange;
+
+  FSetSize := ASetSize;
+  FUnion := AUnion;
+  FDestination := TSepiMemoryReference.Create(MethodCompiler);
+  FLowerBound := TSepiMemoryReference.Create(MethodCompiler,
+    aoAcceptAllConsts, SizeOf(Byte));
+  FHigherBound := TSepiMemoryReference.Create(MethodCompiler,
+    aoAcceptAllConsts, SizeOf(Byte));
+end;
+
+{*
+  [@inheritDoc]
+*}
+destructor TSepiAsmSetRange.Destroy;
+begin
+  FLowerBound.Free;
+  FHigherBound.Free;
+  FDestination.Free;
+
+  inherited;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiAsmSetRange.Make;
+begin
+  inherited;
+
+  Inc(FSize, SizeOf(Byte));
+
+  Destination.Make;
+  Inc(FSize, Destination.Size);
+
+  LowerBound.Make;
+  Inc(FSize, LowerBound.Size);
+  HigherBound.Make;
+  Inc(FSize, HigherBound.Size);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiAsmSetRange.WriteToStream(Stream: TStream);
+begin
+  inherited;
+
+  Stream.WriteBuffer(FSetSize, SizeOf(Byte));
+
+  Destination.WriteToStream(Stream);
+  LowerBound.WriteToStream(Stream);
+  HigherBound.WriteToStream(Stream);
+end;
+
+{--------------------------}
+{ TSepiAsmSetCompare class }
+{--------------------------}
+
+{*
+  Crée une instruction de comparaison
+  @param AMethodCompiler   Compilateur de méthode
+  @param AOpCode           OpCode de l'instruction (de type comparaison de sets)
+*}
+constructor TSepiAsmSetCompare.Create(AMethodCompiler: TSepiMethodCompiler;
+  AOpCode: TSepiOpCode; ASetSize: Byte);
+begin
+  if not (AOpCode in SetComparisonOpCodes) then
+    RaiseInvalidOpCode;
+
+  inherited Create(AMethodCompiler);
+
+  FOpCode := AOpCode;
+
+  FSetSize := ASetSize;
+
+  FDestination := TSepiMemoryReference.Create(MethodCompiler);
+  FLeft := TSepiMemoryReference.Create(MethodCompiler,
+    aoAcceptAllConsts, SetSize);
+  FRight := TSepiMemoryReference.Create(MethodCompiler,
+    aoAcceptAllConsts, SetSize);
+end;
+
+{*
+  [@inheritDoc]
+*}
+destructor TSepiAsmSetCompare.Destroy;
+begin
+  FDestination.Free;
+  FLeft.Free;
+  FRight.Free;
+
+  inherited;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiAsmSetCompare.Make;
+begin
+  inherited;
+
+  Inc(FSize, SizeOf(Byte));
+
+  Destination.Make;
+  Left.Make;
+  Right.Make;
+
+  Inc(FSize, Destination.Size);
+  Inc(FSize, Left.Size);
+  Inc(FSize, Right.Size);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiAsmSetCompare.WriteToStream(Stream: TStream);
+begin
+  inherited;
+
+  Stream.WriteBuffer(FSetSize, SizeOf(Byte));
+
+  Destination.WriteToStream(Stream);
+  Left.WriteToStream(Stream);
+  Right.WriteToStream(Stream);
+end;
+
+{----------------------------}
+{ TSepiAsmSetOperation class }
+{----------------------------}
+
+{*
+  Crée une instruction opération
+  @param AMethodCompiler   Compilateur de méthode
+  @param AOpCode           OpCode de l'instruction (de type opération)
+  @param ASetSize          Taille des sets
+*}
+constructor TSepiAsmSetOperation.Create(AMethodCompiler: TSepiMethodCompiler;
+  AOpCode: TSepiOpCode; ASetSize: Byte);
+begin
+  if not (AOpCode in SetOperationsOpCodes) then
+    RaiseInvalidOpCode;
+
+  inherited Create(AMethodCompiler);
+
+  FOpCode := AOpCode;
+
+  FSetSize := ASetSize;
+  FUseLeft := OpCode in SetOtherOps;
+
+  FDestination := TSepiMemoryReference.Create(MethodCompiler);
+
+  if UseLeft then
+    FLeft := TSepiMemoryReference.Create(MethodCompiler,
+      aoAcceptAllConsts, SetSize)
+  else
+    FLeft := FDestination;
+
+  FRight := TSepiMemoryReference.Create(MethodCompiler,
+    aoAcceptAllConsts, SetSize);
+end;
+
+{*
+  [@inheritDoc]
+*}
+destructor TSepiAsmSetOperation.Destroy;
+begin
+  FDestination.Free;
+  if FUseLeft then
+    FLeft.Free;
+  FRight.Free;
+
+  inherited;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiAsmSetOperation.Make;
+begin
+  inherited;
+
+  Inc(FSize, SizeOf(Byte));
+
+  Destination.Make;
+  Inc(FSize, Destination.Size);
+
+  if UseLeft then
+  begin
+    Left.Make;
+    Inc(FSize, Left.Size);
+  end;
+
+  Right.Make;
+  Inc(FSize, Right.Size);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiAsmSetOperation.WriteToStream(Stream: TStream);
+begin
+  inherited;
+
+  Stream.WriteBuffer(FSetSize, SizeOf(Byte));
+
+  Destination.WriteToStream(Stream);
+  if UseLeft then
+    Left.WriteToStream(Stream);
+  Right.WriteToStream(Stream);
+end;
+
+{-------------------------}
+{ TSepiAsmSetExpand class }
+{-------------------------}
+
+{*
+  Crée une instruction set-expand
+  @param AMethodCompiler   Compilateur de méthode
+*}
+constructor TSepiAsmSetExpand.Create(AMethodCompiler: TSepiMethodCompiler);
+begin
+  inherited Create(AMethodCompiler);
+
+  FOpCode := ocSetRange;
+
+  FDestination := TSepiMemoryReference.Create(MethodCompiler);
+  FSource := TSepiMemoryReference.Create(MethodCompiler,
+    aoAcceptNonCodeConsts);
+  FLowerByte := TSepiMemoryReference.Create(MethodCompiler,
+    aoAcceptAllConsts, SizeOf(Byte));
+  FHigherByte := TSepiMemoryReference.Create(MethodCompiler,
+    aoAcceptAllConsts, SizeOf(Byte));
+end;
+
+{*
+  [@inheritDoc]
+*}
+destructor TSepiAsmSetExpand.Destroy;
+begin
+  FLowerByte.Free;
+  FHigherByte.Free;
+  FSource.Free;
+  FDestination.Free;
+
+  inherited;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiAsmSetExpand.Make;
+begin
+  inherited;
+
+  Destination.Make;
+  Inc(FSize, Destination.Size);
+  Source.Make;
+  Inc(FSize, Source.Size);
+
+  LowerBound.Make;
+  Inc(FSize, LowerBound.Size);
+  HigherBound.Make;
+  Inc(FSize, HigherBound.Size);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiAsmSetExpand.WriteToStream(Stream: TStream);
+begin
+  inherited;
+
+  Destination.WriteToStream(Stream);
+  Source.WriteToStream(Stream);
+  LowerBound.WriteToStream(Stream);
+  HigherBound.WriteToStream(Stream);
 end;
 
 end.

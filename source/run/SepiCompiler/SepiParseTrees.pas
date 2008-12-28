@@ -378,6 +378,8 @@ begin
     Result := TSepiExpression.Create(UnitCompiler)
   else
     Result := TSepiExpression.Create(MethodComp);
+
+  Result.SourcePos := SourcePos;
 end;
 
 {*

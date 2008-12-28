@@ -83,8 +83,7 @@ type
       ATypeInfo: PTypeInfo); override;
     constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
     constructor Create(AOwner: TSepiMeta; const AName: string;
-      AMinValue: Longint = -MaxInt-1; AMaxValue: Longint = MaxInt;
-      ASigned: Boolean = True);
+      AMinValue: Longint = -MaxInt-1; AMaxValue: Longint = MaxInt);
     constructor Clone(AOwner: TSepiMeta; const AName: string;
       Source: TSepiType); override;
 
@@ -443,8 +442,7 @@ end;
   @param ASigned     Indique si l'entier est signé ou non
 *}
 constructor TSepiIntegerType.Create(AOwner: TSepiMeta; const AName: string;
-  AMinValue: Longint = -MaxInt-1; AMaxValue: Longint = MaxInt;
-  ASigned: Boolean = True);
+  AMinValue: Longint = -MaxInt-1; AMaxValue: Longint = MaxInt);
 begin
   inherited Create(AOwner, AName, tkInteger);
 
@@ -483,7 +481,7 @@ constructor TSepiIntegerType.Clone(AOwner: TSepiMeta; const AName: string;
   Source: TSepiType);
 begin
   with Source as TSepiIntegerType do
-    Self.Create(AOwner, AName, MinValue, MaxValue, Signed);
+    Self.Create(AOwner, AName, MinValue, MaxValue);
 end;
 
 {*

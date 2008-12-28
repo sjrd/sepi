@@ -3,7 +3,7 @@ unit Test;
 interface
 
 uses
-  SysUtils, Classes;
+  SysUtils, Classes, ScDelphiLanguage;
 
 type
   TPrintOnAddStrings = class(TStringList)
@@ -27,13 +27,27 @@ begin
   Strings.Add(Line);
 end;
 
+type
+  TShorterInt = 0..15;
+
 procedure Main;
+const
+  ShorterConst: TShorterInt = 5;
 var
   Strings: TStrings;
   I: Integer;
   Tab: array[0..10] of Integer;
+  C, D: Char;
+  ShorterVar: TShorterInt;
 begin
   Randomize;
+
+  ShorterVar := 10;
+
+  C := '0';
+  D := 'D';
+  WriteLn(CharSetToStr(SwitchChars + [C, 'A'..D] - ['B', 'Q'] * ['B'..'E'] +
+    [Chr(ShorterConst)..Chr(ShorterVar)]));
 
   Strings := TPrintOnAddStrings.Create;
   try

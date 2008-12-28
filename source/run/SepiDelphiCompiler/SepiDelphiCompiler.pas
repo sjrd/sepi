@@ -50,7 +50,7 @@ type
     procedure TryAndConvertValues(
       var LowerValue, HigherValue: ISepiReadableValue);
   public
-    function LookFor(const Name: string): TSepiMeta; overload; virtual;
+    function LookFor(const Name: string): TSepiMeta; overload;
     function LookFor(Node: TSepiParseTreeNode;
       RequiredClass: SepiReflectionCore.TSepiMetaClass;
       const ErrorMsg: string): TSepiMeta; overload;
@@ -346,9 +346,16 @@ type
 
   {*
     Noeud valeur ensemble
+    @author sjrd
+    @version 1.0
   *}
   TSetValueNode = class(TExprNode)
+  private
+    FSetBuilder: TSepiSetBuilder; /// Constructeur d'ensemble
+  protected
+    procedure ChildEndParsing(Child: TSepiParseTreeNode); override;
   public
+    procedure BeginParsing; override;
     procedure EndParsing; override;
   end;
 
@@ -1021,6 +1028,7 @@ type
     function ResolveIdent(const Identifier: string): ISepiExpression; override;
 
     procedure BeginParsing; override;
+    procedure EndParsing; override;
 
     property SepiMethod: TSepiMethod read FSepiMethod write FSepiMethod;
   end;
@@ -1326,8 +1334,9 @@ begin
   NonTerminalClasses[ntConstOrType]             := TConstOrTypeNode;
   NonTerminalClasses[ntConstOrTypeNoEquals]     := TConstOrTypeNode;
 
-  NonTerminalClasses[ntBinaryOp] := TBinaryOpNode;
-  NonTerminalClasses[ntUnaryOp]  := TUnaryOpNode;
+  NonTerminalClasses[ntBinaryOp]         := TBinaryOpNode;
+  NonTerminalClasses[ntBinaryOpNoEquals] := TBinaryOpNode;
+  NonTerminalClasses[ntUnaryOp]          := TUnaryOpNode;
 
   NonTerminalClasses[ntSingleExpr]        := TSingleExprNode;
   NonTerminalClasses[ntParenthesizedExpr] := TParenthesizedExprNode;
@@ -1998,7 +2007,7 @@ end;
 {-----------------------}
 
 {*
-  EndParsing un sous-arbre de l'expression
+  Compile un sous-arbre de l'expression
   @param Lower    Index bas des symboles du sous-arbre
   @param Higher   Index haut des symboles du sous-arbre
   @return Expression représentant le sous-arbre
@@ -2167,7 +2176,7 @@ begin
       Exit;
     end;
 
-    Value := TSepiUnaryOperation.MakeOperation(Operation, OpValue);
+    Value := TSepiOperator.MakeUnaryOperation(Operation, OpValue);
     Result := Value as ISepiExpression;
   end;
 
@@ -2307,7 +2316,7 @@ begin
     end;
 
     // Make operation
-    Value := TSepiBinaryOperation.MakeOperation(Operation,
+    Value := TSepiOperator.MakeBinaryOperation(Operation,
       LeftValue, RightValue);
   end else
   begin
@@ -2528,12 +2537,12 @@ begin
   Name := Child.AsText;
 
   // Fetch method
-  if not (SepiContext is TSepiMethod) then
+  if MethodCompiler = nil then
   begin
     Child.MakeError(SInheritNeedClassOrObjectMethod);
     Exit;
   end;
-  Method := TSepiMethod(SepiContext);
+  Method := MethodCompiler.SepiMethod;
 
   // Fetch class
   if not (Method.Owner is TSepiClass) then
@@ -2669,11 +2678,60 @@ end;
 {*
   [@inheritDoc]
 *}
+procedure TSetValueNode.BeginParsing;
+var
+  ExpressionPart: ISepiExpressionPart;
+begin
+  inherited;
+
+  Expression := MakeExpression;
+  FSetBuilder := TSepiSetBuilder.Create;
+  ExpressionPart := FSetBuilder;
+  ExpressionPart.AttachToExpression(Expression);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSetValueNode.ChildEndParsing(Child: TSepiParseTreeNode);
+var
+  Single, Lower, Higher: ISepiExpression;
+  SingleValue, LowerValue, HigherValue: ISepiReadableValue;
+begin
+  if Child.ChildCount = 1 then
+  begin
+    // Single value
+
+    Single := (Child.Children[0] as TExpressionNode).Expression;
+
+    if not Supports(Single, ISepiReadableValue, SingleValue) then
+      Single.MakeError(SReadableValueRequired)
+    else
+      FSetBuilder.AddSingle(SingleValue);
+  end else
+  begin
+    // Range
+
+    Lower := (Child.Children[0] as TExpressionNode).Expression;
+    Higher := (Child.Children[1] as TExpressionNode).Expression;
+
+    if not Supports(Lower, ISepiReadableValue, LowerValue) then
+      Lower.MakeError(SReadableValueRequired)
+    else if not Supports(Higher, ISepiReadableValue, HigherValue) then
+      Higher.MakeError(SReadableValueRequired)
+    else
+      FSetBuilder.AddRange(LowerValue, HigherValue);
+  end;
+
+  inherited;
+end;
+
+{*
+  [@inheritDoc]
+*}
 procedure TSetValueNode.EndParsing;
 begin
-  MakeError('Can''t compile set values yet!');
-  Expression := TSepiTrueConstValue.MakeIntegerLiteral(
-    UnitCompiler, 0) as ISepiExpression;
+  FSetBuilder.Complete;
 
   inherited;
 end;
@@ -3337,8 +3395,7 @@ begin
   if BaseType is TSepiIntegerType then
   begin
     Result := TSepiIntegerType.Create(SepiContext, TypeName,
-      Integer(LowerValue), Integer(HigherValue),
-      TSepiIntegerType(BaseType).Signed);
+      Integer(LowerValue), Integer(HigherValue));
   end else if BaseType is TSepiInt64Type then
   begin
     Result := TSepiInt64Type.Create(SepiContext, TypeName,
@@ -4489,7 +4546,8 @@ begin
     // Check parameters
     for I := 0 to Signature.ParamCount-1 do
     begin
-      if not Method.Signature.Params[I].Equals(Signature.Params[I]) then
+      if not Method.Signature.Params[I].Equals(Signature.Params[I],
+        pcoCompatibility) then
       begin
         Result := False;
         Break;
@@ -5147,8 +5205,8 @@ end;
 *}
 function TMethodBodyNode.GetSepiContext: TSepiMeta;
 begin
-  if SepiMethod <> nil then
-    Result := SepiMethod
+  if FCompiler <> nil then
+    Result := FCompiler.LocalNamespace
   else
     Result := inherited GetSepiContext;
 end;
@@ -5181,6 +5239,16 @@ begin
 
   if Child is TInstructionNode then
     TInstructionNode(Child).InstructionList := MethodCompiler.Instructions;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TMethodBodyNode.EndParsing;
+begin
+  FCompiler.Complete;
+
+  inherited;
 end;
 
 {---------------------}
