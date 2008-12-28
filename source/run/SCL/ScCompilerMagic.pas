@@ -58,6 +58,15 @@ procedure DynArrayCopy(Source: Pointer; TypeInfo: Pointer;
 procedure DynArrayCopyRange(Source: Pointer; TypeInfo: Pointer;
   Index, Count: Integer; var Dest: Pointer);
 
+procedure SetElem(var Dest; Elem, Size: Byte);
+procedure SetRange(var Dest; Lo, Hi, Size: Byte);
+function SetEquals(const Set1, Set2; Size: Byte): Boolean;
+function SetContained(const SubSet, ContainingSet; Size: Byte): Boolean;
+procedure SetIntersect(var Dest; const Source; Size: Byte);
+procedure SetUnion(var Dest; const Source; Size: Byte);
+procedure SetSub(var Dest; const Source; Size: Byte);
+procedure SetExpand(const PackedSet; var ExpandedSet; Lo, Hi: Byte);
+
 function CompilerMagicRoutineAddress(
   CompilerMagicRoutineAlias: Pointer): Pointer;
 
@@ -154,9 +163,118 @@ asm
 end;
 
 {*
+  Construit un set singleton
+  @param Dest   Set destination
+  @param Elem   Valeur ordinale (normalisée sur la MinValue) de l'élément
+  @param Size   Taille en octets du set destination
+*}
+procedure SetElem(var Dest; Elem, Size: Byte);
+asm
+        JMP     System.@SetElem
+end;
+
+{*
+  Construit un set intervalle
+  Cette routine n'est pas valide pour l'appel à CompilerMagicRoutineAddress.
+  @param Dest   Set destination
+  @param Lo     Valeur ordinale (normalisée sur la MinValue) de la borne basse
+  @param Hi     Valeur ordinale (normalisée sur la MinValue) de la borne haute
+  @param Size   Taille en octets du set destination
+*}
+procedure SetRange(var Dest; Lo, Hi, Size: Byte);
+asm
+        MOV     DH,Size
+        XCHG    EAX,EDX
+        XCHG    EDX,ECX
+        CALL    System.@SetRange
+end;
+
+{*
+  Teste si deux sets sont égaux
+  Cette routine n'est pas valide pour l'appel à CompilerMagicRoutineAddress.
+  @param Set1   Premier opérande
+  @param Set2   Second opérande
+  @param Size   Taille en octets des sets
+  @return True si les sets sont égaux, False sinon
+*}
+function SetEquals(const Set1, Set2; Size: Byte): Boolean;
+asm
+        CALL    System.@SetEq
+        XOR     EAX,EAX
+        JNZ     @@notEqual
+        INC     EAX
+@@notEqual:
+end;
+
+{*
+  Teste si un set est contenu dans un autre
+  Cette routine n'est pas valide pour l'appel à CompilerMagicRoutineAddress.
+  @param SubSet          Sous-set
+  @param ContainingSet   Set contenant
+  @param Size            Taille en octets des sets
+  @return True si SubSet est contenu dans ContainingSet, False sinon
+*}
+function SetContained(const SubSet, ContainingSet; Size: Byte): Boolean;
+asm
+        CALL    System.@SetLe
+        XOR     EAX,EAX
+        JNZ     @@notEqual
+        INC     EAX
+@@notEqual:
+end;
+
+{*
+  Calcule l'intersection de deux sets
+  @param Dest     Set destination et opérande de gauche
+  @param Source   Set opérande de droite
+  @param Size     Taille en octets des sets
+*}
+procedure SetIntersect(var Dest; const Source; Size: Byte);
+asm
+        JMP     System.@SetIntersect
+end;
+
+{*
+  Calcule l'union de deux sets
+  @param Dest     Set destination et opérande de gauche
+  @param Source   Set opérande de droite
+  @param Size     Taille en octets des sets
+*}
+procedure SetUnion(var Dest; const Source; Size: Byte);
+asm
+        JMP     System.@SetUnion
+end;
+
+{*
+  Calcule la soustraction de deux sets
+  @param Dest     Set destination et opérande de gauche
+  @param Source   Set opérande de droite
+  @param Size     Taille en octets des sets
+*}
+procedure SetSub(var Dest; const Source; Size: Byte);
+asm
+        JMP     System.@SetSub
+end;
+
+{*
+  Étend un set "packed" en set étendu sur 32 octets
+  Cette routine n'est pas valide pour l'appel à CompilerMagicRoutineAddress.
+  @param PackedSet     Set source "packed"
+  @param ExpandedSet   Set destination "étandu", sur 32 octets
+  @param Lo            Byte bas du packed set
+  @param Hi            Byte haut du packed set
+*}
+procedure SetExpand(const PackedSet; var ExpandedSet; Lo, Hi: Byte);
+asm
+        MOV     CH,Hi
+        CALL    System.@SetExpand
+end;
+
+{*
   Détermine l'adresse réelle d'une routine de "compiler magic"
-  Cette routine n'est valide qu'avec les alias de l'unité ScCompilerMagic, ou à
-  défaut avec d'autres alias se contentant d'un JMP sur la véritable routine.
+  Cette routine n'est valide qu'avec les alias de l'unité ScCompilerMagic (sauf
+  mention contraire dans la description de ceux-ci), ou à défaut avec d'autres
+  alias se contentant d'un JMP sur la véritable routine.
   @param CompilerMagicRoutineAlias   Pointeur sur le code d'un alias de routine
   @return Pointeur sur le code de la routine réelle
 *}

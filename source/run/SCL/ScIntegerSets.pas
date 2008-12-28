@@ -98,6 +98,7 @@ type
     function GetCapacity: Integer;
     procedure SetCapacity(Value: Integer);
     function GetIntervals(Index: Integer): TIntegerInterval;
+    function GetIsEmpty: Boolean;
   protected
     procedure Grow(MinCount: Integer = 0);
     function FindInterval(Value: Integer; out Index: Integer;
@@ -134,6 +135,7 @@ type
     property Capacity: Integer read GetCapacity write SetCapacity;
     property IntervalCount: Integer read FIntervalCount;
     property Intervals[Index: Integer]: TIntegerInterval read GetIntervals;
+    property IsEmpty: Boolean read GetIsEmpty;
 
     property Modified: Boolean read FModified write FModified;
   end;
@@ -289,6 +291,15 @@ end;
 function TScIntegerSet.GetIntervals(Index: Integer): TIntegerInterval;
 begin
   Result := FIntervals[Index];
+end;
+
+{*
+  Indique si l'ensemble est vide
+  @return True si l'ensemble est vide, False sinon
+*}
+function TScIntegerSet.GetIsEmpty: Boolean;
+begin
+  Result := FIntervalCount = 0;
 end;
 
 {*
