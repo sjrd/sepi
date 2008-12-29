@@ -330,12 +330,23 @@ const
   CantFindTypeInfo = -2;
   SetTypeInfoStatement =
     '  TypeInfoArray[%d] := TypeInfo(%s);'+CRLF;
+var
+  SetType: TSepiSetType;
 begin
+  if SepiType is TSepiSetType then
+    SetType := TSepiSetType(SepiType)
+  else
+    SetType := nil;
+
   with SepiType do
   begin
     if TypeInfo = nil then
       Tag := NoTypeInfo
     else if Name[1] = '$' then
+      Tag := CantFindTypeInfo
+    else if (SetType <> nil) and (SetType.CompType.Name[1] = '$') and
+      ((not (SetType.CompType is TSepiEnumType)) or
+      (TSepiEnumType(SetType.CompType).BaseType <> SetType.CompType)) then
       Tag := CantFindTypeInfo
     else
     begin
