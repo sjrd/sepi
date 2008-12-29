@@ -51,6 +51,7 @@ type
     MethodCount: Integer; /// Nombre de méthodes avec adresse
     LazyLoad: Boolean;    /// Indique si l'unité devrait être chargée en lazy
 
+    function ProduceUsesList: string;
     function Produce: string;
 
     procedure RequireUnit(const UnitName: string);
@@ -159,7 +160,12 @@ begin
     ProducedUnitName := AProducedUnitName;
 
   UsesList := TStringList.Create;
-  TStringList(UsesList).CaseSensitive := False;
+  with TStringList(UsesList) do
+  begin
+    CaseSensitive := False;
+    Sorted := True;
+    Duplicates := dupIgnore;
+  end;
 
   TypeCount := 0;
   MethodCount := 0;
@@ -176,6 +182,54 @@ begin
 end;
 
 {*
+  Produit la liste des uses
+  @return Liste des uses
+*}
+function TSepiImporterProducer.ProduceUsesList: string;
+const
+  InitUses: array[0..5] of string = (
+    'Windows', 'SysUtils', 'Classes', 'TypInfo', 'SepiReflectionCore',
+    'SepiMembers'
+  );
+var
+  List: TStrings;
+  I: Integer;
+  UnitName: string;
+begin
+  List := TStringList.Create;
+  try
+    TStringList(List).CaseSensitive := False;
+
+    // Make list - in reverse order
+
+    List.Add(SepiUnit.Name);
+
+    for I := SepiUnit.UsedUnitCount-1 downto 0 do
+    begin
+      UnitName := SepiUnit.UsedUnits[I].Name;
+
+      if UsesList.IndexOf(UnitName) >= 0 then
+        List.Add(UnitName);
+    end;
+
+    for I := High(InitUses) downto Low(InitUses) do
+      if List.IndexOf(InitUses[I]) < 0 then
+        List.Add(InitUses[I]);
+
+    // Convert the list to a string
+
+    Result := '';
+    for I := List.Count-1 downto 0 do
+      Result := Result + ', ' + List[I];
+    Result[1] := ' ';
+    Result := Result + ';';
+    Result := WrapText(Result, CRLF+'  ', [' '], 80);
+  finally
+    List.Free;
+  end;
+end;
+
+{*
   Méthode de production principale
   @return Code de l'importeur
 *}
@@ -184,7 +238,6 @@ var
   Template: TTemplate;
   I: Integer;
   Meta: TSepiMeta;
-  StrUsesList: string;
 begin
   Template := TTemplate.Create(TemplateDir+MainTemplateFileName);
   try
@@ -203,12 +256,6 @@ begin
 
     // Initialize uses list
     UsesList.Clear;
-    UsesList.Add('Windows');
-    UsesList.Add('SysUtils');
-    UsesList.Add('Classes');
-    UsesList.Add('TypInfo');
-    UsesList.Add('SepiReflectionCore');
-    UsesList.Add('SepiMembers');
 
     // Iterate through each unit member
     for I := 0 to SepiUnit.ChildCount-1 do
@@ -222,19 +269,10 @@ begin
         HandleRoutine(Template, TSepiMethod(Meta));
     end;
 
-    // Make uses list as string
-    RequireUnit(SepiUnit.Name);
-    StrUsesList := '';
-    for I := 0 to UsesList.Count-1 do
-      StrUsesList := StrUsesList + ', ' + UsesList[I];
-    StrUsesList[1] := ' ';
-    StrUsesList := StrUsesList + ';';
-    StrUsesList := WrapText(StrUsesList, CRLF+'  ', [' '], 80);
-
     // Finalize template
     with Template do
     begin
-      SetParam(UsesListParam, StrUsesList);
+      SetParam(UsesListParam, ProduceUsesList);
 
       if TypeCount = 0 then
         SetParam(TypeCountParam, 1)
@@ -261,17 +299,9 @@ end;
   @param UnitName   Nom de l'unité à mettre dans les uses
 *}
 procedure TSepiImporterProducer.RequireUnit(const UnitName: string);
-var
-  Index: Integer;
 begin
-  if AnsiSameText(UnitName, SystemUnitName) then
-    Exit;
-
-  Index := UsesList.IndexOf(UnitName);
-  if Index >= 0 then
-    UsesList.Delete(Index);
-
-  UsesList.Add(UnitName);
+  if not AnsiSameText(UnitName, SystemUnitName) then
+    UsesList.Add(UnitName);
 end;
 
 {*
