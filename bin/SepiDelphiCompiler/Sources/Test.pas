@@ -33,6 +33,7 @@ type
 procedure Main;
 const
   ShorterConst: TShorterInt = 5;
+  EmptySet: TSysCharSet = [];
 var
   Strings: TStrings;
   I: Integer;
@@ -47,7 +48,7 @@ begin
   C := '0';
   D := 'D';
   WriteLn(CharSetToStr(SwitchChars + [C, 'A'..D] - ['B', 'Q'] * ['B'..'E'] +
-    [Chr(ShorterConst)..Chr(ShorterVar)]));
+    [Chr(ShorterConst)..Chr(ShorterVar)] + EmptySet + (['Z']-[])));
 
   Strings := TPrintOnAddStrings.Create;
   try

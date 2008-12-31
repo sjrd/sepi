@@ -208,6 +208,8 @@ type
     @version 1.0
   *}
   TOtherInitializationNode = class(TInitializationExprSubNode)
+  protected
+    procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
   public
     procedure EndParsing; override;
   end;
@@ -250,6 +252,8 @@ type
   TConstExpressionNode = class(TExprNode)
   private
     FAcceptType: Boolean; /// Indique si peut accepter un identificateur de type
+
+    FValueType: TSepiType; /// Type de valeur censée être contenue dans ce noeud
   public
     procedure EndParsing; override;
 
@@ -259,6 +263,8 @@ type
       ValueTypeInfo: PTypeInfo): Boolean; overload;
 
     property AcceptType: Boolean read FAcceptType write FAcceptType;
+
+    property ValueType: TSepiType read FValueType write FValueType;
   end;
 
   {*
@@ -351,7 +357,7 @@ type
   *}
   TSetValueNode = class(TExprNode)
   private
-    FSetBuilder: TSepiSetBuilder; /// Constructeur d'ensemble
+    FSetBuilder: ISepiSetBuilder; /// Constructeur d'ensemble
   protected
     procedure ChildEndParsing(Child: TSepiParseTreeNode); override;
   public
@@ -960,6 +966,16 @@ type
   end;
 
   {*
+    Noeud d'une information de propriété
+    @author sjrd
+    @version 1.0
+  *}
+  TPropInfoNode = class(TDelphiSourceNode)
+  protected
+    procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
+  end;
+
+  {*
     Noeud méthode dans l'implémentation
     @author sjrd
     @version 1.0
@@ -1379,6 +1395,7 @@ begin
   NonTerminalClasses[ntParam]             := TParamNode;
   NonTerminalClasses[ntReturnType]        := TReturnTypeNode;
   NonTerminalClasses[ntPropType]          := TReturnTypeNode;
+  NonTerminalClasses[ntPropInfo]          := TPropInfoNode;
 
   NonTerminalClasses[ntMethodImpl]     := TMethodImplNode;
   NonTerminalClasses[ntMethodImplDecl] := TMethodImplDeclNode;
@@ -1900,6 +1917,16 @@ end;
 {*
   [@inheritDoc]
 *}
+procedure TOtherInitializationNode.ChildBeginParsing(Child: TSepiParseTreeNode);
+begin
+  inherited;
+
+  (Child as TConstExpressionNode).ValueType := ValueType;
+end;
+
+{*
+  [@inheritDoc]
+*}
 procedure TOtherInitializationNode.EndParsing;
 var
   ReadableValue: ISepiReadableValue;
@@ -1948,6 +1975,7 @@ end;
 function TExprNode.AsValue(ValueType: TSepiType = nil;
   AllowConvertion: Boolean = True): ISepiValue;
 var
+  TypeForceableValue: ISepiTypeForceableValue;
   ReadableValue: ISepiReadableValue;
 begin
   if not Supports(Expression, ISepiValue, Result) then
@@ -1956,6 +1984,13 @@ begin
     Result := nil;
   end else if (ValueType <> nil) and (Result.ValueType <> ValueType) then
   begin
+    if Supports(Result, ISepiTypeForceableValue, TypeForceableValue) and
+      TypeForceableValue.CanForceType(ValueType) then
+    begin
+      TypeForceableValue.ForceType(ValueType);
+      Exit;
+    end;
+
     if Supports(Result, ISepiNilValue) then
     begin
       if (ValueType is TSepiPointerType) or (ValueType is TSepiClass) or
@@ -2064,18 +2099,34 @@ end;
 *}
 procedure TConstExpressionNode.EndParsing;
 var
+  TypeForceableValue: ISepiTypeForceableValue;
   Value: ISepiReadableValue;
 begin
   Expression := (Children[0] as TExpressionNode).Expression;
 
-  if ((not AcceptType) or (not Supports(Expression, ISepiTypeExpression))) and
-    ((not Supports(Expression, ISepiReadableValue, Value)) or
-    (not Value.IsConstant)) and
-    (not Supports(Expression, ISepiNilValue)) then
+  if (not AcceptType) or (not Supports(Expression, ISepiTypeExpression)) then
   begin
-    MakeError(SConstExpressionRequired);
-    Value := TSepiTrueConstValue.MakeIntegerLiteral(UnitCompiler, 0);
-    Expression := Value as ISepiExpression;
+    if not Supports(Expression, ISepiReadableValue, Value) then
+      Value := nil;
+
+    if (FValueType <> nil) and (Value <> nil) and
+      (Value.ValueType <> FValueType) and
+      Supports(Value, ISepiTypeForceableValue, TypeForceableValue) then
+    begin
+      if TypeForceableValue.CanForceType(FValueType) then
+        TypeForceableValue.ForceType(FValueType);
+    end;
+
+    if Value <> nil then
+      Value.Finalize;
+
+    if ((Value = nil) or (not Value.IsConstant)) and
+      (not Supports(Expression, ISepiNilValue)) then
+    begin
+      MakeError(SConstExpressionRequired);
+      Value := TSepiTrueConstValue.MakeIntegerLiteral(UnitCompiler, 0);
+      Expression := Value as ISepiExpression;
+    end;
   end;
 
   inherited;
@@ -2679,15 +2730,12 @@ end;
   [@inheritDoc]
 *}
 procedure TSetValueNode.BeginParsing;
-var
-  ExpressionPart: ISepiExpressionPart;
 begin
   inherited;
 
   Expression := MakeExpression;
   FSetBuilder := TSepiSetBuilder.Create;
-  ExpressionPart := FSetBuilder;
-  ExpressionPart.AttachToExpression(Expression);
+  FSetBuilder.AttachToExpression(Expression);
 end;
 
 {*
@@ -4975,6 +5023,26 @@ begin
   end;
 
   inherited;
+end;
+
+{---------------------}
+{ TPropInfoNode class }
+{---------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TPropInfoNode.ChildBeginParsing(Child: TSepiParseTreeNode);
+var
+  PropertyType: TSepiType;
+begin
+  inherited;
+
+  if (ChildCount = 2) and (Children[0].SymbolClass = lexDefault) then
+  begin
+    PropertyType := (Parent as TPropertyNode).Signature.ReturnType;
+    (Children[1] as TConstExpressionNode).ValueType := PropertyType;
+  end;
 end;
 
 {-----------------------}

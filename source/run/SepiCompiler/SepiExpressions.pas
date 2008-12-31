@@ -27,7 +27,7 @@ unit SepiExpressions;
 interface
 
 uses
-  SysUtils, Classes, TypInfo, ScUtils, ScInterfaces, ScCompilerMagic,
+  SysUtils, Classes, Math, TypInfo, ScUtils, ScInterfaces, ScCompilerMagic,
   ScDelphiLanguage, ScIntegerSets, SepiReflectionCore, SepiOrdTypes,
   SepiStrTypes, SepiArrayTypes, SepiMembers, SepiOpCodes, SepiRuntimeOperations,
   SepiCompiler, SepiCompilerErrors, SepiCompilerConsts, SepiAsmInstructions;
@@ -70,9 +70,52 @@ type
   ISepiValue = interface(ISepiExpressionPart)
     ['{20D185F7-7022-4B7F-9F94-2EDEBF2EFB1E}']
 
+    procedure Finalize;
+
     function GetValueType: TSepiType;
 
     property ValueType: TSepiType read GetValueType;
+  end;
+
+  {*
+    Valeur dont le type peut être forcé
+    @author sjrd
+    @version 1.0
+  *}
+  ISepiTypeForceableValue = interface(ISepiValue)
+    ['{661E099B-4CAE-4F34-B29B-B2A91CE4CAC1}']
+
+    function CanForceType(AValueType: TSepiType;
+      Explicit: Boolean = False): Boolean;
+    procedure ForceType(AValueType: TSepiType);
+  end;
+
+  {*
+    Valeur ensemble dont le type d'ensemble ou d'élément peut être forcé
+    @author sjrd
+    @version 1.0
+  *}
+  ISepiTypeForceableSetValue = interface(ISepiTypeForceableValue)
+    ['{27DD7646-15E4-41E9-8E82-681D533A419E}']
+
+    function GetIsEmpty: Boolean;
+    function GetCompKind: TTypeKind;
+    function GetCompType: TSepiOrdType;
+    function GetSetType: TSepiSetType;
+
+    function GetLowerBound: Integer;
+    function GetHigherBound: Integer;
+
+    function CanForceCompType(ACompType: TSepiOrdType): Boolean;
+    procedure ForceCompType(ACompType: TSepiOrdType);
+
+    property IsEmpty: Boolean read GetIsEmpty;
+    property CompKind: TTypeKind read GetCompKind;
+    property CompType: TSepiOrdType read GetCompType;
+    property SetType: TSepiSetType read GetSetType;
+
+    property LowerBound: Integer read GetLowerBound;
+    property HigherBound: Integer read GetHigherBound;
   end;
 
   {*
@@ -181,6 +224,20 @@ type
   end;
 
   {*
+    Constructeur d'ensemble
+    @author sjrd
+    @version 1.0
+  *}
+  ISepiSetBuilder = interface(ISepiTypeForceableSetValue)
+    ['{335E8CD4-677F-41EA-8567-3CDD2CB2B651}']
+
+    procedure AddSingle(const Value: ISepiReadableValue);
+    procedure AddRange(const Lower, Higher: ISepiReadableValue);
+
+    procedure Complete;
+  end;
+
+  {*
     Expression nil
     @author sjrd
     @version 1.0
@@ -274,6 +331,8 @@ type
 
     procedure AttachToExpression(const Expression: ISepiExpression); override;
 
+    procedure Finalize; virtual;
+
     function GetValueType: TSepiType;
     procedure SetValueType(AType: TSepiType);
     function GetAddressType: TSepiType;
@@ -321,6 +380,8 @@ type
     FConstValuePtr: Pointer; /// Pointeur sur la valeur constante
   protected
     procedure AttachToExpression(const Expression: ISepiExpression); override;
+
+    procedure Finalize; virtual;
 
     function GetValueType: TSepiType;
     procedure SetValueType(AType: TSepiType);
@@ -557,7 +618,10 @@ type
 
     procedure Complete;
 
-    class function ConvertionExists(DestType, SrcType: TSepiType): Boolean;
+    class function ConvertionExists(
+      DestType, SrcType: TSepiType): Boolean; overload;
+    class function ConvertionExists(DestType: TSepiType;
+      const Source: ISepiReadableValue): Boolean; overload;
     class function ConvertValue(DestType: TSepiType;
       const Value: ISepiReadableValue): ISepiReadableValue;
 
@@ -661,25 +725,62 @@ type
 
   {*
     Opération sur des ensembles
+    Bien que syntaxiquement, cette classe implémente les interfaces
+    ISepiTypeForceableValue et ISepiTypeForceableSetValue, ces deux interfaces
+    ne sont effectivement supportées à l'exécution que si les deux opérandes
+    implémentent l'interface ISepiTypeForceableSetValue.
     @author sjrd
     @version 1.0
   *}
-  TSepiSetOperation = class(TSepiCustomComputedValue)
+  TSepiSetOperation = class(TSepiCustomComputedValue,
+    ISepiTypeForceableValue, ISepiTypeForceableSetValue)
   private
     FOperation: TSepiOperation;        /// Opération
     FLeftOperand: ISepiReadableValue;  /// Opérande de gauche
     FRightOperand: ISepiReadableValue; /// Opérande de droite
 
+    FLeftForceable: ISepiTypeForceableSetValue;  /// Opérande gauche forçable
+    FRightForceable: ISepiTypeForceableSetValue; /// Opérande droite forçable
+
+    function IsTypeForceable: Boolean;
+
+    procedure ForceTypesTogether;
+
     procedure CheckTypes;
     procedure CollapseConsts;
+
+    function GetIsEmpty: Boolean;
+    function GetCompKind: TTypeKind;
+    function GetCompType: TSepiOrdType;
+    function GetSetType: TSepiSetType;
+
+    function GetLowerBound: Integer;
+    function GetHigherBound: Integer;
+
+    procedure SetLeftOperand(const Value: ISepiReadableValue);
+    procedure SetRightOperand(const Value: ISepiReadableValue);
   protected
+    function QueryInterface(const IID: TGUID;
+      out Obj): HResult; override; stdcall;
+
+    procedure Finalize; override;
+
     procedure ErrorTypeMismatch;
 
     function GetOpCode(SelfOp: Boolean): TSepiOpCode;
 
+    function CanForceCompType(ACompType: TSepiOrdType): Boolean;
+    function CanForceType(AValueType: TSepiType;
+      Explicit: Boolean = False): Boolean;
+    procedure ForceCompType(ACompType: TSepiOrdType);
+    procedure ForceType(AValueType: TSepiType);
+
     procedure CompileCompute(Compiler: TSepiMethodCompiler;
       Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
       TempVars: TSepiTempVarsLifeManager); override;
+
+    property LeftForceable: ISepiTypeForceableSetValue read FLeftForceable;
+    property RightForceable: ISepiTypeForceableSetValue read FRightForceable;
   public
     constructor Create(AOperation: TSepiOperation);
 
@@ -691,9 +792,9 @@ type
     property Operation: TSepiOperation read FOperation;
 
     property LeftOperand: ISepiReadableValue
-      read FLeftOperand write FLeftOperand;
+      read FLeftOperand write SetLeftOperand;
     property RightOperand: ISepiReadableValue
-      read FRightOperand write FRightOperand;
+      read FRightOperand write SetRightOperand;
   end;
 
   {*
@@ -711,10 +812,12 @@ type
     @author sjrd
     @version 1.0
   *}
-  TSepiSetBuilder = class(TSepiCustomComputedValue)
+  TSepiSetBuilder = class(TSepiCustomComputedValue, ISepiSetBuilder,
+    ISepiTypeForceableValue, ISepiTypeForceableSetValue)
   private
     FCompKind: TTypeKind;    /// Sorte de type des éléments
     FCompType: TSepiOrdType; /// Type d'élément
+    FSetType: TSepiSetType;  /// Type de l'ensemble
 
     FConstantValues: TScIntegerSet;         /// Valeurs constantes
     FSingles: array of ISepiReadableValue;  /// Valeurs simples
@@ -726,10 +829,39 @@ type
     procedure ExportConstantValues(var ConstSet);
 
     procedure CollapseConsts;
+
+    function GetIsEmpty: Boolean;
+    function GetCompKind: TTypeKind;
+    function GetCompType: TSepiOrdType;
+    function GetSetType: TSepiSetType;
+
+    function GetLowerBound: Integer;
+    function GetHigherBound: Integer;
   protected
+    procedure AttachToExpression(const Expression: ISepiExpression); override;
+
+    procedure Finalize; override;
+
+    procedure SetValueType(AType: TSepiType); reintroduce;
+
     function AddType(ACompType: TSepiOrdType): Boolean;
 
     procedure AddConstInterval(const Lower, Higher: ISepiReadableValue);
+
+    procedure AddSingle(const Value: ISepiReadableValue);
+    procedure AddRange(const Lower, Higher: ISepiReadableValue);
+
+    procedure SetCompType(ACompType: TSepiOrdType); overload;
+    procedure SetCompType(ACompTypeInfo: PTypeInfo); overload;
+    procedure SetSetType(ASetType: TSepiSetType);
+
+    function CanForceCompType(ACompType: TSepiOrdType): Boolean;
+    function CanForceType(AValueType: TSepiType;
+      Explicit: Boolean = False): Boolean;
+    procedure ForceCompType(ACompType: TSepiOrdType);
+    procedure ForceType(AValueType: TSepiType);
+
+    procedure Complete;
 
     procedure CompileCompute(Compiler: TSepiMethodCompiler;
       Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
@@ -738,14 +870,13 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    procedure SetCompType(ACompType: TSepiOrdType); overload;
-    procedure SetCompType(ACompTypeInfo: PTypeInfo); overload;
-
-    procedure AddSingle(const Value: ISepiReadableValue);
-    procedure AddRange(const Lower, Higher: ISepiReadableValue);
-    procedure Complete;
-
+    property IsEmpty: Boolean read GetIsEmpty;
+    property CompKind: TTypeKind read FCompKind;
     property CompType: TSepiOrdType read FCompType;
+    property SetType: TSepiSetType read FSetType;
+
+    property LowerBound: Integer read FLowerBound;
+    property HigherBound: Integer read FHigherBound;
   end;
 
   {*
@@ -755,6 +886,11 @@ type
   *}
   TSepiOperator = class(TObject)
   public
+    class function ForceOneToAnother(const Left: ISepiTypeForceableValue;
+      const Right: ISepiReadableValue): Boolean; overload;
+    class function ForceOneToAnother(
+      const Left, Right: ISepiReadableValue): Boolean; overload;
+
     class function MakeUnaryOperation(Operation: TSepiOperation;
       const Operand: ISepiReadableValue): ISepiReadableValue;
 
@@ -931,6 +1067,8 @@ type
     procedure SetSignature(ASignature: TSepiSignature;
       APrepareParams: Boolean = False);
 
+    procedure Finalize; virtual;
+
     function GetReturnType: TSepiType; virtual;
     function GetValueType: TSepiType;
 
@@ -1046,6 +1184,8 @@ type
 
     procedure AttachToExpression(const Expression: ISepiExpression); override;
 
+    procedure Finalize; virtual;
+
     function GetValueType: TSepiType;
 
     function GetIsConstant: Boolean;
@@ -1108,6 +1248,8 @@ type
   TSepiNilValue = class(TSepiCustomExpressionPart, ISepiValue, ISepiNilValue)
   protected
     procedure AttachToExpression(const Expression: ISepiExpression); override;
+
+    procedure Finalize;
 
     function GetValueType: TSepiType;
   end;
@@ -1430,6 +1572,13 @@ end;
 {*
   [@inheritDoc]
 *}
+procedure TSepiCustomDirectValue.Finalize;
+begin
+end;
+
+{*
+  [@inheritDoc]
+*}
 function TSepiCustomDirectValue.GetValueType: TSepiType;
 begin
   Result := FValueType;
@@ -1585,6 +1734,13 @@ begin
   AsExpressionPart := Self;
   Expression.Attach(ISepiValue, AsExpressionPart);
   Expression.Attach(ISepiReadableValue, AsExpressionPart);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiCustomComputedValue.Finalize;
+begin
 end;
 
 {*
@@ -2354,6 +2510,13 @@ begin
   if not ConstOp.IsConstant then
     Exit;
 
+  // If the operand is already of the good type, collapsing const is OK
+  if ConstOp.ValueType = ValueType then
+  begin
+    ConstValuePtr := ConstOp.ConstValuePtr;
+    Exit;
+  end;
+
   // Can't collapse a cast if operand type is unknown
   OpType := ConstOp.ValueType;
   if OpType = nil then
@@ -2429,16 +2592,29 @@ end;
 *}
 procedure TSepiCastOperator.Complete;
 var
+  TypeForceableOp: ISepiTypeForceableValue;
   OpType: TSepiType;
 begin
   Assert(Operand <> nil);
 
+  // If the operand may be forced (explicitly) to be a ValueType, just do that
+  if (Operand.ValueType <> ValueType) and (ValueType <> nil) and
+    Supports(Operand, ISepiTypeForceableValue, TypeForceableOp) then
+  begin
+    if TypeForceableOp.CanForceType(ValueType, True) then
+      TypeForceableOp.ForceType(ValueType);
+  end;
+
+  // Finalize operand
+  Operand.Finalize;
   OpType := Operand.ValueType;
 
+  // Handle Ord or Chr cast - exit if failed
   HandleOrdChr;
   if ValueType = nil then
     Exit;
 
+  // Update access flags and check types
   if Supports(Operand, ISepiNilValue) then
     IsReadable := True
   else
@@ -2457,6 +2633,7 @@ begin
     end;
   end;
 
+  // Collapse constants
   CollapseConsts;
 end;
 
@@ -2529,6 +2706,14 @@ begin
 
   SrcType := Source.ValueType;
 
+  // If the source is already of the good type, just copy the constant
+  if SrcType = ValueType then
+  begin
+    AllocateConstant;
+    ValueType.CopyData(Source.ConstValuePtr^, ConstValuePtr^);
+    Exit;
+  end;
+
   // Only CVRT convertions can be collapsed
   if (not SepiTypeToBaseType(ValueType, DestBase)) or
     (not SepiTypeToBaseType(SrcType, SrcBase)) then
@@ -2553,7 +2738,11 @@ var
 begin
   SrcType := Source.ValueType;
 
-  if SrcType is TSepiClass then
+  if SrcType = ValueType then
+  begin
+    // Pure assignment
+    Source.CompileRead(Compiler, Instructions, Destination, TempVars);
+  end else if SrcType is TSepiClass then
   begin
     if ValueType is TSepiClass then
     begin
@@ -2619,13 +2808,22 @@ end;
   Complète l'opération
 *}
 procedure TSepiConvertOperation.Complete;
+var
+  TypeForceableSrc: ISepiTypeForceableValue;
 begin
   Assert(FSource <> nil);
 
-  if not ConvertionExists(ValueType, Source.ValueType) then
+  if not ConvertionExists(ValueType, Source) then
   begin
     MakeError(Format(STypeMismatch, [ValueType, Source.ValueType]));
     Exit;
+  end;
+
+  if (Source.ValueType <> ValueType) and
+    Supports(Source, ISepiTypeForceableValue, TypeForceableSrc) and
+    TypeForceableSrc.CanForceType(ValueType) then
+  begin
+    TypeForceableSrc.ForceType(ValueType);
   end;
 
   CollapseConsts;
@@ -2683,6 +2881,29 @@ begin
 
   // Nothing found
   Result := False;
+end;
+
+{*
+  Teste si une conversion existe et est possible d'une valeur en un type donné
+  @param DestType   Type de destination
+  @param Source     Valeur source
+  @return True si une conversion est possible, False sinon
+*}
+class function TSepiConvertOperation.ConvertionExists(DestType: TSepiType;
+  const Source: ISepiReadableValue): Boolean;
+var
+  SrcType: TSepiType;
+  TypeForceableSrc: ISepiTypeForceableValue;
+begin
+  SrcType := Source.ValueType;
+
+  if SrcType = DestType then
+    Result := True
+  else if Supports(Source, ISepiTypeForceableValue, TypeForceableSrc) and
+    TypeForceableSrc.CanForceType(DestType) then
+    Result := True
+  else
+    Result := ConvertionExists(DestType, SrcType);
 end;
 
 {*
@@ -2845,6 +3066,8 @@ var
 begin
   Assert(Expression <> nil);
   Assert(Operand <> nil);
+
+  Operand.Finalize;
 
   if (Operation = opNegate) and (Operand.ValueType is TSepiIntegerType) and
     (not TSepiIntegerType(Operand.ValueType).Signed) then
@@ -3276,6 +3499,11 @@ begin
   Assert(Expression <> nil);
   Assert((LeftOperand <> nil) and (RightOperand <> nil));
 
+  TSepiOperator.ForceOneToAnother(LeftOperand, RightOperand);
+
+  LeftOperand.Finalize;
+  RightOperand.Finalize;
+
   CheckTypes;
   CollapseConsts;
 end;
@@ -3414,6 +3642,29 @@ begin
 end;
 
 {*
+  Teste si le type de cette opération peut être forcé
+*}
+function TSepiSetOperation.IsTypeForceable: Boolean;
+begin
+  Result := (not (Operation in opComparisonOps)) and
+    (LeftForceable <> nil) and (RightForceable <> nil);
+end;
+
+{*
+  Force les types des deux opérandes pour les mettre d'accord
+*}
+procedure TSepiSetOperation.ForceTypesTogether;
+begin
+  if TSepiOperator.ForceOneToAnother(LeftOperand, RightOperand) then
+    Exit;
+
+  if (LeftForceable = nil) or (RightForceable = nil) then
+    Exit;
+
+  // TODO
+end;
+
+{*
   [@inheritDoc]
 *}
 procedure TSepiSetOperation.CheckTypes;
@@ -3424,10 +3675,16 @@ begin
   RightType := LeftOperand.ValueType;
 
   if (not (LeftType is TSepiSetType)) or (not (RightType is TSepiSetType)) then
+  begin
     ErrorTypeNotApplicable;
+    Exit;
+  end;
 
   if TSepiSetType(LeftType).CompType <> TSepiSetType(RightType).CompType then
+  begin
     ErrorTypeMismatch;
+    Exit;
+  end;
 
   if Operation in opComparisonOps then
     SetValueType(SepiRoot.FindType(TypeInfo(Boolean)))
@@ -3479,6 +3736,115 @@ end;
 {*
   [@inheritDoc]
 *}
+function TSepiSetOperation.GetIsEmpty: Boolean;
+begin
+  Assert(IsTypeForceable);
+  Result := False;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiSetOperation.GetCompKind: TTypeKind;
+begin
+  Assert(IsTypeForceable);
+  Result := LeftForceable.CompKind;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiSetOperation.GetCompType: TSepiOrdType;
+begin
+  Assert(IsTypeForceable);
+  Result := LeftForceable.CompType;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiSetOperation.GetSetType: TSepiSetType;
+begin
+  Assert(IsTypeForceable);
+  Result := LeftForceable.SetType;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiSetOperation.GetLowerBound: Integer;
+begin
+  Assert(IsTypeForceable);
+  Result := Min(LeftForceable.LowerBound, RightForceable.LowerBound);
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiSetOperation.GetHigherBound: Integer;
+begin
+  Assert(IsTypeForceable);
+  Result := Max(LeftForceable.HigherBound, RightForceable.HigherBound);
+end;
+
+{*
+  Modifie l'opérande de gauche
+  @param Value   Nouvel opérande de gauche
+*}
+procedure TSepiSetOperation.SetLeftOperand(const Value: ISepiReadableValue);
+begin
+  FLeftOperand := Value;
+
+  if not Supports(Value, ISepiTypeForceableSetValue, FLeftForceable) then
+    FLeftForceable := nil;
+end;
+
+{*
+  Modifie l'opérande de droite
+  @param Value   Nouvel opérande de droite
+*}
+procedure TSepiSetOperation.SetRightOperand(const Value: ISepiReadableValue);
+begin
+  FRightOperand := Value;
+
+  if not Supports(Value, ISepiTypeForceableSetValue, FRightForceable) then
+    FRightForceable := nil;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiSetOperation.QueryInterface(const IID: TGUID;
+  out Obj): HResult;
+begin
+  if SameGUID(IID, ISepiTypeForceableValue) or
+    SameGUID(IID, ISepiTypeForceableSetValue) then
+  begin
+    if not IsTypeForceable then
+    begin
+      Result := E_NOINTERFACE;
+      Exit;
+    end;
+  end;
+
+  Result := inherited QueryInterface(IID, Obj);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiSetOperation.Finalize;
+begin
+  LeftOperand.Finalize;
+  RightOperand.Finalize;
+
+  if ConstValuePtr = nil then
+    CollapseConsts;
+end;
+
+{*
+  [@inheritDoc]
+*}
 procedure TSepiSetOperation.ErrorTypeMismatch;
 begin
   MakeError(Format(STypeMismatch,
@@ -3516,6 +3882,55 @@ begin
     Assert(False);
     Result := ocNope;
   end;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiSetOperation.CanForceCompType(ACompType: TSepiOrdType): Boolean;
+begin
+  Assert(IsTypeForceable);
+
+  Result := LeftForceable.CanForceCompType(ACompType) and
+    RightForceable.CanForceCompType(ACompType);
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiSetOperation.CanForceType(AValueType: TSepiType;
+  Explicit: Boolean = False): Boolean;
+begin
+  Assert(IsTypeForceable);
+
+  Result := LeftForceable.CanForceType(AValueType) and
+    RightForceable.CanForceType(AValueType);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiSetOperation.ForceCompType(ACompType: TSepiOrdType);
+begin
+  Assert(IsTypeForceable);
+
+  LeftForceable.ForceCompType(ACompType);
+  RightForceable.ForceCompType(ACompType);
+
+  SetValueType(LeftForceable.ValueType);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiSetOperation.ForceType(AValueType: TSepiType);
+begin
+  Assert(IsTypeForceable);
+
+  LeftForceable.ForceType(AValueType);
+  RightForceable.ForceType(AValueType);
+
+  SetValueType(LeftForceable.ValueType);
 end;
 
 {*
@@ -3588,8 +4003,8 @@ begin
   Assert(Expression <> nil);
   Assert((LeftOperand <> nil) and (RightOperand <> nil));
 
+  ForceTypesTogether;
   CheckTypes;
-  CollapseConsts;
 end;
 
 {*
@@ -3621,7 +4036,13 @@ begin
   inherited Create;
 
   FCompKind := tkUnknown;
+  FCompType := nil;
+  FSetType := nil;
+
   FConstantValues := TScIntegerSet.Create;
+
+  FLowerBound := MaxInt;
+  FHigherBound := -MaxInt-1;
 end;
 
 {*
@@ -3635,20 +4056,72 @@ begin
 end;
 
 {*
+  Indique si l'ensemble est vide
+  @return True si l'ensemble est vide, False sinon
+*}
+function TSepiSetBuilder.GetIsEmpty: Boolean;
+begin
+  Result := FConstantValues.IsEmpty and (Length(FSingles) = 0) and
+    (Length(FRanges) = 0);
+end;
+
+{*
+  Sorte de type des éléments
+  @return Sorte de type des éléments
+*}
+function TSepiSetBuilder.GetCompKind: TTypeKind;
+begin
+  Result := FCompKind;
+end;
+
+{*
+  Type des éléments
+  @return Type des éléments
+*}
+function TSepiSetBuilder.GetCompType: TSepiOrdType;
+begin
+  Result := FCompType;
+end;
+
+{*
+  Type de l'ensemble
+  @return Type de l'ensemble
+*}
+function TSepiSetBuilder.GetSetType: TSepiSetType;
+begin
+  Result := FSetType;
+end;
+
+{*
+  Borne inférieure courante
+  @return Borne inférieure courante
+*}
+function TSepiSetBuilder.GetLowerBound: Integer;
+begin
+  Result := FLowerBound;
+end;
+
+{*
+  Borne supérieure courante
+  @return Borne supérieure courante
+*}
+function TSepiSetBuilder.GetHigherBound: Integer;
+begin
+  Result := FHigherBound;
+end;
+
+{*
   Exporte les valeurs constantes dans un ensemble
-  @param ConstSet   Ensemble destination (de type ValueType)
+  @param ConstSet   Ensemble destination (de type SetType)
 *}
 procedure TSepiSetBuilder.ExportConstantValues(var ConstSet);
 var
-  SetType: TSepiSetType;
   Lo: Integer;
   Enum: TScIntegerSetEnumerator;
   Value: Integer;
 begin
-  SetType := ValueType as TSepiSetType;
-  Lo := SetType.CompType.MinValue;
-
   FillChar(ConstSet, SetType.Size, 0);
+  Lo := SetType.CompType.MinValue;
 
   Enum := FConstantValues.GetEnumerator;
   try
@@ -3672,6 +4145,42 @@ begin
 
   AllocateConstant;
   ExportConstantValues(ConstValuePtr^);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiSetBuilder.AttachToExpression(const Expression: ISepiExpression);
+begin
+  inherited;
+
+  Expression.Attach(ISepiSetBuilder, ISepiSetBuilder(Self));
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiSetBuilder.Finalize;
+begin
+  // Untyped empty set are not supported
+  if FCompKind = tkUnknown then
+  begin
+    MakeError(SUntypedEmptySetNotSupported);
+    SetCompType(TypeInfo(Byte));
+  end;
+
+  Complete;
+
+  if ConstValuePtr = nil then
+    CollapseConsts;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiSetBuilder.SetValueType(AType: TSepiType);
+begin
+  SetSetType(AType as TSepiSetType);
 end;
 
 {*
@@ -3701,10 +4210,11 @@ begin
   // Match added comp type with previously stored comp type
   if ACompType is TSepiEnumType then
   begin
-    // Enumeration comp types must be strictly equal
+    // Enumeration comp types must have equal base types
+    ACompType := TSepiEnumType(ACompType).BaseType;
     if CompType = nil then
       SetCompType(ACompType)
-    else if TSepiEnumType(ACompType).BaseType <> CompType then
+    else if ACompType <> CompType then
       Result := False;
   end else
   begin
@@ -3745,6 +4255,266 @@ begin
     if HigherValue > FHigherBound then
       FHigherBound := HigherValue;
   end;
+end;
+
+{*
+  Ajoute un élément dans l'ensemble en construction
+  @param Value   Valeur à ajouter
+*}
+procedure TSepiSetBuilder.AddSingle(const Value: ISepiReadableValue);
+var
+  ValueType: TSepiOrdType;
+  Index: Integer;
+begin
+  if not (Value.ValueType is TSepiOrdType) then
+    ErrorTypeNotApplicable
+  else
+  begin
+    ValueType := TSepiOrdType(Value.ValueType);
+
+    if AddType(ValueType) then
+    begin
+      if Value.IsConstant then
+      begin
+        // Add constant value
+        Self.AddConstInterval(Value, Value);
+      end else
+      begin
+        // Add variable value
+        Index := Length(FSingles);
+        SetLength(FSingles, Index+1);
+        FSingles[Index] := Value;
+
+        if ValueType.MinValue < FLowerBound then
+          FLowerBound := ValueType.MinValue;
+        if ValueType.MaxValue > FHigherBound then
+          FHigherBound := ValueType.MaxValue;
+      end;
+    end;
+  end;
+end;
+
+{*
+  Ajoute un intervalle de valeur à l'ensemble en construction
+  @param Lower    Borne inférieure de l'intervalle
+  @param Higher   Borne supérieure de l'intervalle
+*}
+procedure TSepiSetBuilder.AddRange(const Lower, Higher: ISepiReadableValue);
+var
+  LowerType, HigherType: TSepiOrdType;
+  Index: Integer;
+begin
+  if not ((Lower.ValueType is TSepiOrdType) and
+    (Higher.ValueType is TSepiOrdType)) then
+    ErrorTypeNotApplicable
+  else
+  begin
+    LowerType := TSepiOrdType(Lower.ValueType);
+    HigherType := TSepiOrdType(Higher.ValueType);
+
+    if AddType(LowerType) and AddType(HigherType) then
+    begin
+      if Lower.IsConstant and Higher.IsConstant then
+      begin
+        // Add constant interval
+        AddConstInterval(Lower, Higher);
+      end else
+      begin
+        // Add variable interval
+        Index := Length(FRanges);
+        SetLength(FRanges, Index+1);
+        FRanges[Index].LowerValue := Lower;
+        FRanges[Index].HigherValue := Higher;
+
+        if LowerType.MinValue < FLowerBound then
+          FLowerBound := HigherType.MinValue;
+        if HigherType.MaxValue > FHigherBound then
+          FHigherBound := HigherType.MaxValue;
+      end;
+    end;
+  end;
+end;
+
+{*
+  Définit le type des éléments
+  Cette méthode ne peut être appelée qu'une fois, avec un type d'éléments
+  compatible avec d'éventuelles valeurs déjà insérées.
+  @param ACompType   Type des éléments
+*}
+procedure TSepiSetBuilder.SetCompType(ACompType: TSepiOrdType);
+begin
+  Assert((FCompKind = tkUnknown) or (ACompType.Kind = FCompKind));
+
+  // The comp type must include every possible value in the set
+  if (ACompType.MinValue > LowerBound) or
+    (ACompType.MaxValue < HigherBound) then
+  begin
+    MakeError(Format(SCompTypeTooNarrow, [ACompType.Name]));
+  end else
+  begin
+    FCompKind := ACompType.Kind;
+    FCompType := ACompType;
+  end;
+end;
+
+{*
+  Définit le type des éléments
+  Cette méthode ne peut être appelée qu'une fois, avec un type d'éléments
+  compatible avec d'éventuelles valeurs déjà insérées.
+  @param ACompTypeInfo   RTTI du type des éléments
+*}
+procedure TSepiSetBuilder.SetCompType(ACompTypeInfo: PTypeInfo);
+begin
+  SetCompType(SepiRoot.FindType(ACompTypeInfo) as TSepiOrdType);
+end;
+
+{*
+  Définit le type de l'ensemble
+  Cette méthode ne peut être appelée qu'une fois, avec un type ensemble
+  compatible avec d'éventuelles valeurs déjà insérées.
+  @param ASetType   Type ensemble
+*}
+procedure TSepiSetBuilder.SetSetType(ASetType: TSepiSetType);
+begin
+  if ASetType.CompType <> CompType then
+    SetCompType(ASetType.CompType);
+
+  inherited SetValueType(ASetType);
+  FSetType := ASetType;
+end;
+
+{*
+  Teste si l'ensemble peut être forcé à un type d'élément donné
+  @param ACompType   Type d'élément à tester
+  @return True si le type est valide, False sinon
+*}
+function TSepiSetBuilder.CanForceCompType(ACompType: TSepiOrdType): Boolean;
+begin
+  Result := False;
+
+  // Check type kind
+  if (FCompKind <> tkUnknown) and (ACompType.Kind <> FCompKind) and
+    (not ((ACompType.Kind = tkWChar) and (FCompKind = tkChar))) then
+    Exit;
+
+  // Check enum base type
+  if (FCompKind = tkEnumeration) and
+    (TSepiEnumType(ACompType).BaseType <>
+    TSepiEnumType(FCompType).BaseType) then
+    Exit;
+
+  // Check range
+  if (ACompType.MinValue > LowerBound) or
+    (ACompType.MaxValue < HigherBound) then
+    Exit;
+
+  Result := True;
+end;
+
+{*
+  Teste si l'ensemble peut être forcé à un type donné
+  @param AValueType   Type à tester
+  @return True si le type est valide, False sinon
+*}
+function TSepiSetBuilder.CanForceType(AValueType: TSepiType;
+  Explicit: Boolean = False): Boolean;
+begin
+  Result := (AValueType is TSepiSetType) and
+    CanForceCompType(TSepiSetType(AValueType).CompType);
+end;
+
+{*
+  Force le type d'élément à un type donné
+  Cette méthode ne peut être appelée que si CanForceCompType renvoie True pour
+  le type ACompType.
+  @param ACompType   Type auquel forcer les éléments
+*}
+procedure TSepiSetBuilder.ForceCompType(ACompType: TSepiOrdType);
+begin
+  if CanForceCompType(ACompType) then
+    SetCompType(ACompType as TSepiOrdType)
+  else
+    Assert(False);
+end;
+
+{*
+  Force le type de l'ensemble à un type donné
+  Cette méthode ne peut être appelée que si CanForceType renvoie True pour le
+  type AValueType.
+  @param AValueType   Type auquel forcer l'ensemble
+*}
+procedure TSepiSetBuilder.ForceType(AValueType: TSepiType);
+begin
+  if CanForceType(AValueType) then
+    SetSetType(AValueType as TSepiSetType)
+  else
+    Assert(False);
+end;
+
+{*
+  Complète l'ensemble en construction
+*}
+procedure TSepiSetBuilder.Complete;
+begin
+  if FCompKind = tkUnknown then
+  begin
+    // Empty set - can't do anything
+    Exit;
+  end else if FHigherBound - FLowerBound >= 256 then
+  begin
+    // Range is too wide
+    MakeError(SSetRangeTooWide);
+    if FCompKind = tkChar then
+      SetCompType(TypeInfo(AnsiChar))
+    else
+      SetCompType(TypeInfo(Byte));
+  end else
+  begin
+    // OK, that's good
+    if FCompKind <> tkEnumeration then
+    begin
+      // We need find the most appropriate comp type
+      if (FCompType <> nil) and
+        (FCompType.MaxValue-FCompType.MinValue < 256) then
+      begin
+        // Nothing to do
+      end else if (FLowerBound >= 0) and (FHigherBound < 256) then
+      begin
+        // Canonical byte- or char-set
+        if FCompKind = tkChar then
+          SetCompType(TypeInfo(AnsiChar))
+        else
+          SetCompType(TypeInfo(Byte));
+      end else
+      begin
+        // Build a dedicated comp type
+        if FCompKind = tkChar then
+          SetCompType(TSepiCharType.Create(UnitCompiler.SepiUnit, '',
+            WideChar(FLowerBound), WideChar(FHigherBound)))
+        else
+          SetCompType(TSepiIntegerType.Create(UnitCompiler.SepiUnit, '',
+            FLowerBound, FHigherBound));
+      end;
+    end else
+    begin
+      // CompType is already set
+      Assert(FCompType is TSepiEnumType);
+
+      if FCompType.MaxValue >= 256 then
+      begin
+        // Canonical set is too wide, build a dedicated one
+        FCompType := TSepiEnumType.Create(UnitCompiler.SepiUnit, '',
+          TSepiEnumType(FCompType), LowerBound, HigherBound);
+      end;
+    end;
+  end;
+
+  // When I come here, CompType is always valid
+  Assert((CompType <> nil) and (CompType.MaxValue-CompType.MinValue < 256));
+
+  // Build the set type
+  if (FSetType = nil) or (FSetType.CompType <> CompType) then
+    SetSetType(UnitCompiler.MakeSetType(CompType));
 end;
 
 {*
@@ -3893,168 +4663,59 @@ begin
   Assert(not First);
 end;
 
-{*
-  Définit le type des éléments
-  Cette méthode ne peut être appelée qu'une fois, avec un type d'éléments
-  compatible avec d'éventuelles valeurs déjà insérées.
-  @param ACompType   Type des éléments
-*}
-procedure TSepiSetBuilder.SetCompType(ACompType: TSepiOrdType);
-begin
-  Assert(CompType = nil);
-  Assert((FCompKind = tkUnknown) or (ACompType.Kind = FCompKind));
-
-  if ACompType is TSepiEnumType then
-    ACompType := TSepiEnumType(ACompType).BaseType;
-  SetValueType(UnitCompiler.MakeSetType(ACompType));
-
-  FCompKind := ACompType.Kind;
-  FCompType := ACompType;
-end;
-
-{*
-  Définit le type des éléments
-  Cette méthode ne peut être appelée qu'une fois, avec un type d'éléments
-  compatible avec d'éventuelles valeurs déjà insérées.
-  @param ACompTypeInfo   RTTI du type des éléments
-*}
-procedure TSepiSetBuilder.SetCompType(ACompTypeInfo: PTypeInfo);
-begin
-  SetCompType(SepiRoot.FindType(ACompTypeInfo) as TSepiOrdType);
-end;
-
-{*
-  Ajoute un élément dans l'ensemble en construction
-  @param Value   Valeur à ajouter
-*}
-procedure TSepiSetBuilder.AddSingle(const Value: ISepiReadableValue);
-var
-  ValueType: TSepiOrdType;
-  Index: Integer;
-begin
-  if not (Value.ValueType is TSepiOrdType) then
-    ErrorTypeNotApplicable
-  else
-  begin
-    ValueType := TSepiOrdType(Value.ValueType);
-
-    if AddType(ValueType) then
-    begin
-      if Value.IsConstant then
-      begin
-        // Add constant value
-        Self.AddConstInterval(Value, Value);
-      end else
-      begin
-        // Add variable value
-        Index := Length(FSingles);
-        SetLength(FSingles, Index+1);
-        FSingles[Index] := Value;
-
-        if ValueType.MinValue < FLowerBound then
-          FLowerBound := ValueType.MinValue;
-        if ValueType.MaxValue > FHigherBound then
-          FHigherBound := ValueType.MaxValue;
-      end;
-    end;
-  end;
-end;
-
-{*
-  Ajoute un intervalle de valeur à l'ensemble en construction
-  @param Lower    Borne inférieure de l'intervalle
-  @param Higher   Borne supérieure de l'intervalle
-*}
-procedure TSepiSetBuilder.AddRange(const Lower, Higher: ISepiReadableValue);
-var
-  LowerType, HigherType: TSepiOrdType;
-  Index: Integer;
-begin
-  if not ((Lower.ValueType is TSepiOrdType) and
-    (Higher.ValueType is TSepiOrdType)) then
-    ErrorTypeNotApplicable
-  else
-  begin
-    LowerType := TSepiOrdType(Lower.ValueType);
-    HigherType := TSepiOrdType(Higher.ValueType);
-
-    if AddType(LowerType) and AddType(HigherType) then
-    begin
-      if Lower.IsConstant and Higher.IsConstant then
-      begin
-        // Add constant interval
-        AddConstInterval(Lower, Higher);
-      end else
-      begin
-        // Add variable interval
-        Index := Length(FRanges);
-        SetLength(FRanges, Index+1);
-        FRanges[Index].LowerValue := Lower;
-        FRanges[Index].HigherValue := Higher;
-
-        if LowerType.MinValue < FLowerBound then
-          FLowerBound := HigherType.MinValue;
-        if HigherType.MaxValue > FHigherBound then
-          FHigherBound := HigherType.MaxValue;
-      end;
-    end;
-  end;
-end;
-
-{*
-  Complète l'ensemble construit
-*}
-procedure TSepiSetBuilder.Complete;
-begin
-  if FCompKind = tkUnknown then
-  begin
-    // Empty set
-    MakeError(SEmptySetNotSupported);
-    SetCompType(TypeInfo(Byte));
-  end else if FHigherBound - FLowerBound >= 256 then
-  begin
-    // Range is too wide
-    MakeError(SSetRangeTooWide);
-    if FCompKind = tkChar then
-      SetCompType(TypeInfo(AnsiChar))
-    else
-      SetCompType(TypeInfo(Byte));
-  end else
-  begin
-    // OK, that's good
-    if FCompKind <> tkEnumeration then
-    begin
-      // We need find the most appropriate comp type
-      if (FLowerBound >= 0) and (FHigherBound < 256) then
-      begin
-        // Canonical byte- or char-set
-        if FCompKind = tkChar then
-          SetCompType(TypeInfo(AnsiChar))
-        else
-          SetCompType(TypeInfo(Byte));
-      end else
-      begin
-        // Build a dedicated comp type
-        if FCompKind = tkChar then
-          SetCompType(TSepiCharType.Create(UnitCompiler.SepiUnit, '',
-            WideChar(FLowerBound), WideChar(FHigherBound)))
-        else
-          SetCompType(TSepiIntegerType.Create(UnitCompiler.SepiUnit, '',
-            FLowerBound, FHigherBound));
-      end;
-    end else
-    begin
-      // CompType is already set
-      Assert(FCompType <> nil);
-    end;
-  end;
-
-  CollapseConsts;
-end;
-
 {---------------------}
 { TSepiOperator class }
 {---------------------}
+
+{*
+  Force (implicitement) un opérande à avoir le type du second
+  @param Left    Opérande dont forcer le type
+  @param Right   Opérande à imiter
+*}
+class function TSepiOperator.ForceOneToAnother(
+  const Left: ISepiTypeForceableValue;
+  const Right: ISepiReadableValue): Boolean;
+var
+  DestType: TSepiType;
+begin
+  DestType := Right.ValueType;
+
+  if DestType = nil then
+    Result := False
+  else if Left.ValueType = DestType then
+    Result := True
+  else
+  begin
+    Result := Left.CanForceType(DestType);
+    if Result then
+      Left.ForceType(DestType);
+  end;
+end;
+
+{*
+  Force (implicitement) un des opérandes à avoir le type de l'autre
+  Si les deux opérandes peuvent être forcés l'un à l'autre mutuellement, cette
+  méthode choisit de forcer le type l'opérande droit à celui de l'opérande
+  gauche.
+  @param Left    Opérande gauche
+  @param Right   Opérande droit
+*}
+class function TSepiOperator.ForceOneToAnother(
+  const Left, Right: ISepiReadableValue): Boolean;
+var
+  Forceable: ISepiTypeForceableValue;
+begin
+  if (Left.ValueType = Right.ValueType) and (Left.ValueType <> nil) then
+    Result := True
+  else if Supports(Right, ISepiTypeForceableValue, Forceable) and
+    ForceOneToAnother(Forceable, Left) then
+    Result := True
+  else if Supports(Left, ISepiTypeForceableValue, Forceable) and
+    ForceOneToAnother(Forceable, Right) then
+    Result := True
+  else
+    Result := False;
+end;
 
 {*
   Construit une opération unaire
@@ -4083,13 +4744,21 @@ const
   SetOperations = [opAdd, opSubtract, opMultiply, opCmpEQ, opCmpNE, opCmpLE];
 var
   LeftType, RightType: TSepiType;
+  LeftIsSet, RightIsSet: Boolean;
   Expression: ISepiExpression;
 begin
+  ForceOneToAnother(LeftOperand, RightOperand);
+
   LeftType := LeftOperand.ValueType;
   RightType := RightOperand.ValueType;
 
   // Make the appropriate operation
-  if (LeftType is TSepiSetType) and (RightType is TSepiSetType) then
+  LeftIsSet := (LeftType is TSepiSetType) or
+    Supports(LeftOperand, ISepiTypeForceableSetValue);
+  RightIsSet := (RightType is TSepiSetType) or
+    Supports(RightOperand, ISepiTypeForceableSetValue);
+
+  if LeftIsSet and RightIsSet then
   begin
     if Operation in SetOperations then
       Result := TSepiSetOperation.MakeOperation(Operation,
@@ -4135,6 +4804,8 @@ end;
 procedure TSepiAddressOfValue.Complete;
 begin
   Assert(Operand <> nil);
+
+  Operand.Finalize;
 
   SetValueType(Operand.AddressType);
 end;
@@ -4207,6 +4878,8 @@ var
   OpType: TSepiType;
 begin
   Assert(Operand <> nil);
+
+  Operand.Finalize;
 
   OpType := Operand.ValueType;
   if OpType is TSepiPointerType then
@@ -4344,6 +5017,9 @@ begin
   Assert(ArrayValue <> nil);
   Assert(IndexValue <> nil);
 
+  ArrayValue.Finalize;
+  IndexValue.Finalize;
+
   // Fetch types
   FArrayType := ArrayValue.ValueType as TSepiArrayType;
   FIndexType := ArrayType.IndexType;
@@ -4403,6 +5079,8 @@ begin
 
   FRecordValue := ARecordValue;
   FField := AField;
+
+  RecordValue.Finalize;
 
   Assert(Field.Owner = RecordValue.ValueType);
   Assert(Field.Owner is TSepiRecordType);
@@ -4474,6 +5152,8 @@ begin
 
   FObjectValue := AObjectValue;
   FField := AField;
+
+  ObjectValue.Finalize;
 
   Assert((Field.Owner is TSepiClass) and (ObjectValue.ValueType is TSepiClass));
   Assert(TSepiClass(ObjectValue.ValueType).ClassInheritsFrom(
@@ -4593,8 +5273,15 @@ end;
   paramètre.
 *}
 procedure TSepiCustomWithParams.CompleteParams;
+var
+  I: Integer;
 begin
+  if FParamsCompleted then
+    Exit;
+
   FParamsCompleted := True;
+  for I := 0 to ParamCount-1 do
+    Params[I].Finalize;
 end;
 
 {*
@@ -4885,6 +5572,13 @@ end;
 {*
   [@inheritDoc]
 *}
+procedure TSepiCustomCallable.Finalize;
+begin
+end;
+
+{*
+  [@inheritDoc]
+*}
 function TSepiCustomCallable.GetReturnType: TSepiType;
 begin
   if Signature = nil then
@@ -5162,6 +5856,8 @@ begin
     MakeError(SNoMatchingOverloadedMethod);
   end;
 
+  if SelfValue <> nil then
+    SelfValue.Finalize;
   CheckSelfValueType;
 end;
 
@@ -5223,6 +5919,7 @@ end;
 *}
 procedure TSepiMethodRefCall.Complete;
 begin
+  MethodRefValue.Finalize;
   SetSignature((MethodRefValue.ValueType as TSepiMethodRefType).Signature);
 end;
 
@@ -5294,6 +5991,8 @@ begin
   FObjectValue := AObjectValue;
   FProperty := AProperty;
 
+  ObjectValue.Finalize;
+
   SetParamCount(FProperty.Signature.ParamCount);
   if FProperty.Signature.ParamCount = 0 then
     CompleteParams;
@@ -5353,6 +6052,13 @@ begin
     Expression.Attach(ISepiReadableValue, AsExpressionPart);
   if FProperty.WriteAccess.Kind <> pakNone then
     Expression.Attach(ISepiWritableValue, AsExpressionPart);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiPropertyValue.Finalize;
+begin
 end;
 
 {*
@@ -5660,6 +6366,13 @@ begin
   AsExpressionPart := Self;
   Expression.Attach(ISepiValue, AsExpressionPart);
   Expression.Attach(ISepiNilValue, AsExpressionPart);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiNilValue.Finalize;
+begin
 end;
 
 {*

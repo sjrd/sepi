@@ -74,10 +74,13 @@ resourcestring
   SAddressableValueRequired = 'Valeur adressable requise';
 
   // Erreurs sur les ensembles
-  SEmptySetNotSupported = 'Ensemble vide non supporté';
+  SUntypedEmptySetNotSupported = 'Ensemble vide non typé non supporté';
   SSetRangeTooWide = 'L''ensemble des valeurs est trop étendu';
   SConstValueOutOfBounds =
     'La valeur constante dépasse les limites de sous-étendue';
+  SCompTypeTooNarrow =
+    'Le type d''élément %s est trop petit pour contenir toutes les valeurs '+
+    'possibles de cet ensemble';
 
   // Erreurs sur les paramètres
   SVarParamTypeMustBeStrictlyEqual =
