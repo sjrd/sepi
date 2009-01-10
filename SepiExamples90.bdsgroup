@@ -8,13 +8,11 @@
 			<Option Name="GUID">{24428D96-31A2-41A2-9022-B4AE430B1FE1}</Option>
 		</Option>
 	</PersonalityInfo>
-	<Default.Personality>  
-    
-    
-    <Projects>
+	<Default.Personality>  <Projects>
       <Projects Name="SDC.exe">programs\SepiDelphiCompiler\SDC.bdsproj</Projects>
       <Projects Name="Sepi.exe">programs\SepiRun\Sepi.bdsproj</Projects>
-      <Projects Name="Targets">SDC.exe Sepi.exe</Projects>
+      <Projects Name="SepiExplorer.exe">programs\SepiExplorer\SepiExplorer.bdsproj</Projects>
+      <Projects Name="Targets">SDC.exe Sepi.exe SepiExplorer.exe</Projects>
     </Projects>
     <Dependencies/>
   </Default.Personality>
