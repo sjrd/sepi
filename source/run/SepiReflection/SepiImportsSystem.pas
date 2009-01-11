@@ -28,7 +28,7 @@ interface
 
 uses
   TypInfo, SepiReflectionCore, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
-  SepiMembers;
+  SepiMembers, SepiSystemUnit;
 
 implementation
 
@@ -718,8 +718,11 @@ begin
 end;
 
 function ImportUnit(Root: TSepiRoot): TSepiUnit;
+var
+  SystemUnit: TSepiSystemUnit;
 begin
-  Result := TSepiUnit.Create(Root, SystemUnitName, []);
+  SystemUnit := TSepiSystemUnit.Create(Root);
+  Result := SystemUnit;
 
   // Integer types
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(Integer));
@@ -730,7 +733,7 @@ begin
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(Int64));
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(Byte));
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(Word));
-  TSepiTypeAlias.Create(Result, 'Longword', TypeInfo(LongWord));
+  TSepiTypeAlias.Create(Result, 'LongWord', TypeInfo(LongWord));
 
   // Character types
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(Char));
@@ -843,10 +846,10 @@ begin
 
   { Types declared in System.pas }
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(HRESULT));
-  TSepiPointerType.Create(Result, 'PGUID', 'TGUID', True);
-  TSepiStaticArrayType.Create(Result, '$1', TypeInfo(Integer),
-    0, 7, TypeInfo(Byte), True);
+  TSepiStaticArrayType.Create(Result, '$1', SystemUnit.Integer,
+    0, 7, SystemUnit.Byte, True);
   SepiImportTGUID(Result);
+  TSepiPointerType.Create(Result, 'PGUID', SystemUnit.TGUID, True);
   TSepiPointerType.Create(Result, 'PInterfaceEntry', 'TInterfaceEntry', True);
   SepiImportTInterfaceEntry(Result);
   TSepiPointerType.Create(Result, 'PInterfaceTable', 'TInterfaceTable', True);
@@ -868,7 +871,7 @@ begin
     TypeInfo(HRESULT));
   TSepiConstant.Create(Result, 'E_NOTIMPL', E_NOTIMPL, TypeInfo(HRESULT));
 
-  { Write, Writeln and Readln routines}
+  { Write, Writeln and Readln routines }
   TSepiMethod.Create(Result, 'Write', @Write,
     'procedure(const S: string)');
   TSepiMethod.Create(Result, 'Writeln', @Writeln,
@@ -878,7 +881,7 @@ begin
 
   { Classes and interfaces }
   SepiImportIInterface(Result);
-  TSepiTypeAlias.Create(Result, 'IUnknown', TypeInfo(IInterface));
+  TSepiTypeAlias.Create(Result, 'IUnknown', SystemUnit.IInterface);
   SepiImportIInvokable(Result);
   SepiImportIDispatch(Result);
   TSepiImportsTInterfacedObject.SepiImport(Result);

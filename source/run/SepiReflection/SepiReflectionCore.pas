@@ -387,6 +387,9 @@ type
     property UnitCount: Integer read GetUnitCount;
     property Units[Index: Integer]: TSepiUnit read GetUnits;
 
+    /// Unité System - devrait être du type SepiSystemUnit.TSepiSystemUnit
+    property SystemUnit: TSepiUnit index 0 read GetUnits;
+
     property OnLoadUnit: TSepiLoadUnitEvent
       read FOnLoadUnit write FOnLoadUnit;
   end;

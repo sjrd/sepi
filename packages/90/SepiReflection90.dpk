@@ -37,7 +37,8 @@ contains
   SepiImportsSystem in '..\..\source\run\SepiReflection\SepiImportsSystem.pas',
   SepiReflectionCore in '..\..\source\run\SepiReflection\SepiReflectionCore.pas',
   SepiOrdTypes in '..\..\source\run\SepiReflection\SepiOrdTypes.pas',
-  SepiStrTypes in '..\..\source\run\SepiReflection\SepiStrTypes.pas';
+  SepiStrTypes in '..\..\source\run\SepiReflection\SepiStrTypes.pas',
+  SepiSystemUnit in '..\..\source\run\SepiReflection\SepiSystemUnit.pas';
 
 end.
 

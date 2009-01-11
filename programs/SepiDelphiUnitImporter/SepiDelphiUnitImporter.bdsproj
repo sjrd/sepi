@@ -126,7 +126,7 @@
 			<Directories Name="UsePackages">True</Directories>
 		</Directories>
 		<Parameters>
-			<Parameters Name="RunParams">Windows.pas --lazy-load=true --exclude-routines -w</Parameters>
+			<Parameters Name="RunParams">SepiRTLSysImport.csv -w</Parameters>
 			<Parameters Name="HostApplication">C:\Documents and Settings\Sébastien\Mes documents\Projets Borland Studio\FunLabyrinthe\Labyrinthe.exe</Parameters>
 			<Parameters Name="Launcher"></Parameters>
 			<Parameters Name="UseLauncher">False</Parameters>
