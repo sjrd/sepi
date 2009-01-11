@@ -1,3 +1,14 @@
+{-------------------------------------------------------------------------------
+SepiExplorer - Example program for Sepi
+As an example program, SepiExplorer is free of any usage. It is released in the
+public domain.
+-------------------------------------------------------------------------------}
+
+{*
+  Cadre montrant les informations d'un meta
+  @author sjrd
+  @version 1.0
+*}
 unit MetaExplorer;
 
 interface

@@ -17,6 +17,7 @@ object FrameMetaExplorer: TFrameMetaExplorer
     Font.Name = 'Courier New'
     Font.Style = []
     ParentFont = False
+    ReadOnly = True
     ScrollBars = ssBoth
     TabOrder = 0
     WordWrap = False
