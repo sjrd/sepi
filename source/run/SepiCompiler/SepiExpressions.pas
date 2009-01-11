@@ -29,8 +29,9 @@ interface
 uses
   SysUtils, Classes, Math, TypInfo, ScUtils, ScInterfaces, ScCompilerMagic,
   ScDelphiLanguage, ScIntegerSets, SepiReflectionCore, SepiOrdTypes,
-  SepiStrTypes, SepiArrayTypes, SepiMembers, SepiOpCodes, SepiRuntimeOperations,
-  SepiCompiler, SepiCompilerErrors, SepiCompilerConsts, SepiAsmInstructions;
+  SepiStrTypes, SepiArrayTypes, SepiMembers, SepiSystemUnit, SepiOpCodes,
+  SepiRuntimeOperations, SepiCompiler, SepiCompilerErrors, SepiCompilerConsts,
+  SepiAsmInstructions;
 
 type
   /// Opération Sepi
@@ -1319,9 +1320,6 @@ const
     ocCompLowerEq, ocCompGreater, ocCompGreaterEq
   );
 
-var
-  BaseTypeToDefaultTypeInfo: array[TSepiBaseType] of PTypeInfo;
-
 {-----------------}
 { Global routines }
 {-----------------}
@@ -1438,29 +1436,6 @@ begin
 end;
 
 {*
-  Initialise le tableau BaseTypeToDefaultTypeInfo
-*}
-procedure InitBaseTypeToDefaultTypeInfo;
-begin
-  BaseTypeToDefaultTypeInfo[btBoolean ] := TypeInfo(Boolean);
-  BaseTypeToDefaultTypeInfo[btByte    ] := TypeInfo(Byte);
-  BaseTypeToDefaultTypeInfo[btWord    ] := TypeInfo(Word);
-  BaseTypeToDefaultTypeInfo[btDWord   ] := TypeInfo(LongWord);
-  BaseTypeToDefaultTypeInfo[btShortint] := TypeInfo(Shortint);
-  BaseTypeToDefaultTypeInfo[btSmallint] := TypeInfo(Smallint);
-  BaseTypeToDefaultTypeInfo[btLongint ] := TypeInfo(Longint);
-  BaseTypeToDefaultTypeInfo[btInt64   ] := TypeInfo(Int64);
-  BaseTypeToDefaultTypeInfo[btSingle  ] := TypeInfo(Single);
-  BaseTypeToDefaultTypeInfo[btDouble  ] := TypeInfo(Double);
-  BaseTypeToDefaultTypeInfo[btExtended] := TypeInfo(Extended);
-  BaseTypeToDefaultTypeInfo[btComp    ] := TypeInfo(Comp);
-  BaseTypeToDefaultTypeInfo[btCurrency] := TypeInfo(Currency);
-  BaseTypeToDefaultTypeInfo[btAnsiStr ] := TypeInfo(AnsiString);
-  BaseTypeToDefaultTypeInfo[btWideStr ] := TypeInfo(WideString);
-  BaseTypeToDefaultTypeInfo[btVariant ] := TypeInfo(Variant);
-end;
-
-{*
   Trouve le type Sepi par défaut correspondant à un type de base
   @param BaseType   Type de base
   @param SepiRoot   Racine Sepi
@@ -1468,8 +1443,32 @@ end;
 *}
 function DefaultSepiTypeFor(BaseType: TSepiBaseType;
   SepiRoot: TSepiRoot): TSepiType;
+var
+  SystemUnit: TSepiSystemUnit;
 begin
-  Result := SepiRoot.FindType(BaseTypeToDefaultTypeInfo[BaseType]);
+  SystemUnit := SepiRoot.SystemUnit as TSepiSystemUnit;
+
+  case BaseType of
+    btBoolean:  Result := SystemUnit.Boolean;
+    btByte:     Result := SystemUnit.Byte;
+    btWord:     Result := SystemUnit.Word;
+    btDWord:    Result := SystemUnit.LongWord;
+    btShortint: Result := SystemUnit.Shortint;
+    btSmallint: Result := SystemUnit.Smallint;
+    btLongint:  Result := SystemUnit.Longint;
+    btInt64:    Result := SystemUnit.Int64;
+    btSingle:   Result := SystemUnit.Single;
+    btDouble:   Result := SystemUnit.Double;
+    btExtended: Result := SystemUnit.Extended;
+    btComp:     Result := SystemUnit.Comp;
+    btCurrency: Result := SystemUnit.Currency;
+    btAnsiStr:  Result := SystemUnit.AnsiString;
+    btWideStr:  Result := SystemUnit.WideString;
+    btVariant:  Result := SystemUnit.Variant;
+  else
+    Assert(False);
+    Result := nil;
+  end;
 end;
 
 {---------------------------------}
@@ -6455,7 +6454,5 @@ begin
   Result := FType;
 end;
 
-initialization
-  InitBaseTypeToDefaultTypeInfo;
 end.
 

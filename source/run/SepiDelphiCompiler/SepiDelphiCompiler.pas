@@ -1539,12 +1539,12 @@ begin
 
       if (Integer(IntLowerValue) = IntLowerValue) and
         (Integer(IntHigherValue) = IntHigherValue) then
-        CommonType := SepiRoot.FindType(TypeInfo(Integer))
+        CommonType := SystemUnit.Integer
       else if (Cardinal(IntLowerValue) = IntLowerValue) and
         (Cardinal(IntHigherValue) = IntHigherValue) then
-        CommonType := SepiRoot.FindType(TypeInfo(Cardinal))
+        CommonType := SystemUnit.Cardinal
       else
-        CommonType := SepiRoot.FindType(TypeInfo(Int64));
+        CommonType := SystemUnit.Int64;
     end else if (LowerType is TSepiCharType) and
       (HigherType is TSepiCharType) then
     begin
@@ -1857,7 +1857,7 @@ begin
   Field := RecordType.GetMeta(FieldName) as TSepiField;
 
   if not CheckIdentFound(Field, FieldName, Children[ChildCount-2]) then
-    ValueChild.ValueType := SepiRoot.FindType(TypeInfo(Integer))
+    ValueChild.ValueType := SystemUnit.Integer
   else
   begin
     ValueChild.ValuePtr := Pointer(Cardinal(ValuePtr) + Field.Offset);
@@ -2033,7 +2033,7 @@ begin
   else
   begin
     MakeError(STypeIdentifierRequired);
-    Result := SepiRoot.FindType(TypeInfo(Integer));
+    Result := SystemUnit.Integer;
   end;
 end;
 
@@ -2269,8 +2269,7 @@ begin
       Result := PointerValue.ValueType;
 
       PointerValue := TSepiCastOperator.CastValue(
-        SepiRoot.FindType(TypeInfo(Integer)),
-        PointerValue) as ISepiReadableValue;
+        SystemUnit.Integer, PointerValue) as ISepiReadableValue;
 
       if IsLeft then
         LeftValue := PointerValue
@@ -2360,10 +2359,10 @@ begin
     begin
       if LeftValue.IsConstant then
         LeftValue := TSepiConvertOperation.ConvertValue(
-          SepiRoot.FindType(TypeInfo(Extended)), LeftValue);
+          SystemUnit.Extended, LeftValue);
       if RightValue.IsConstant then
         RightValue := TSepiConvertOperation.ConvertValue(
-          SepiRoot.FindType(TypeInfo(Extended)), RightValue);
+          SystemUnit.Extended, RightValue);
     end;
 
     // Make operation
@@ -2843,7 +2842,7 @@ begin
       (SourceType is TSepiIntegerType) and (ReadableSource <> nil) then
     begin
       Source := TSepiConvertOperation.ConvertValue(
-        SepiRoot.FindType(TypeInfo(Integer)), ReadableSource);
+        SystemUnit.Integer, ReadableSource);
     end;
 
     Expression := TSepiCastOperator.CastValue(
@@ -3574,7 +3573,7 @@ begin
     (OrdCompType.MaxValue - OrdCompType.MinValue >= 256) then
   begin
     Children[0].MakeError(SWrongSetCompType);
-    SepiType := TSepiSetType.Create(SepiContext, TypeName, TypeInfo(Byte));
+    SepiType := TSepiSetType.Create(SepiContext, TypeName, SystemUnit.Byte);
   end else
     SepiType := TSepiSetType.Create(SepiContext, TypeName, OrdCompType);
 
@@ -3595,13 +3594,13 @@ begin
   if ChildCount > 1 then
   begin
     if not (Children[1] as TConstExpressionNode).CompileConst(
-      MaxLength, TypeInfo(Integer)) then
+      MaxLength, SystemUnit.Integer) then
       MaxLength := 255;
 
     SepiType := TSepiShortStringType.Create(SepiContext, TypeName, MaxLength);
   end else
   begin
-    SepiType := SepiRoot.FindType(TypeInfo(string));
+    SepiType := SystemUnit.LongString;
 
     if TypeName <> '' then
       TSepiTypeAlias.Create(SepiContext, TypeName, SepiType);
@@ -3681,7 +3680,7 @@ begin
   if Result = nil then
   begin
     Result := TSepiStaticArrayType.Create(SepiContext, TypeName,
-      TSepiOrdType(SepiRoot.FindType(TypeInfo(Integer))), 0, 0, ElementType);
+      SystemUnit.Integer, 0, 0, ElementType);
   end;
 end;
 
@@ -3716,7 +3715,7 @@ begin
   if Result = nil then
   begin
     Result := TSepiStaticArrayType.Create(SepiContext, TypeName,
-      TSepiOrdType(SepiRoot.FindType(TypeInfo(Integer))), 0, 0, ElementType);
+      SystemUnit.Integer, 0, 0, ElementType);
   end;
 end;
 
@@ -3935,7 +3934,7 @@ begin
       TSepiClass, SClassTypeRequired));
 
     if ReferencedClass = nil then
-      ReferencedClass := TSepiClass(SepiRoot.FindType(TypeInfo(TObject)));
+      ReferencedClass := SystemUnit.TObject;
 
     FSepiMetaClass := TSepiMetaClass.Create(SepiContext, TypeName,
       ReferencedClass);
@@ -4067,7 +4066,7 @@ begin
     begin
       try
         if (Child.Children[0] as TConstExpressionNode).CompileConst(
-          GUIDStr, SepiRoot.FindType(TypeInfo(string))) then
+          GUIDStr, SystemUnit.LongString) then
         begin
           GUID := StringToGUID(GUIDStr);
         end;
@@ -4447,7 +4446,7 @@ begin
         // Store message ID
         if LinkKind = mlkMessage then
           (Child.Children[1] as TConstExpressionNode).CompileConst(
-            FMsgID, TypeInfo(Integer));
+            FMsgID, SystemUnit.Integer);
       end else
       begin
         Temp := AnsiIndexText(Str, CallingConventionNames);
@@ -4758,7 +4757,7 @@ begin
       if Previous = nil then
       begin
         Child.MakeError(SPropertyNotFoundInBaseClass);
-        Signature.ReturnType := SepiRoot.FindType(TypeInfo(Integer));
+        Signature.ReturnType := SystemUnit.Integer;
       end else
       begin
         for I := 0 to Previous.Signature.ParamCount-1 do
@@ -4768,8 +4767,7 @@ begin
         if Previous.Index <> NoIndex then
         begin
           FIndex := TSepiTrueConstValue.MakeOrdinalValue(UnitCompiler,
-            SepiRoot.FindType(TypeInfo(Integer)) as TSepiOrdType,
-            Previous.Index);
+            SystemUnit.Integer, Previous.Index);
         end;
 
         if Previous.DefaultValue <> NoDefaultValue then
@@ -4905,8 +4903,7 @@ begin
 
   if Child is TInitializationExpressionNode then
   begin
-    TInitializationExpressionNode(Child).ValueType :=
-      SepiRoot.FindType(TypeInfo(Integer));
+    TInitializationExpressionNode(Child).ValueType := SystemUnit.Integer;
 
     if OpenArray then
       Child.MakeError(SOpenArrayParamCantHaveDefaultValue)
@@ -4962,7 +4959,7 @@ begin
         FType := TSepiType(LookFor(Child.Children[0], TSepiType,
           STypeIdentifierRequired));
         if FType = nil then
-          FType := SepiRoot.FindType(TypeInfo(Integer));
+          FType := SystemUnit.Integer;
       end;
     end;
   end;
@@ -5012,7 +5009,7 @@ begin
     end;
 
     if ReturnType = nil then
-      Signature.ReturnType := SepiRoot.FindType(TypeInfo(Integer))
+      Signature.ReturnType := SystemUnit.Integer
     else
       Signature.ReturnType := ReturnType;
   end else
@@ -5424,8 +5421,7 @@ var
 begin
   if Child is TExpressionNode then
   begin
-    TestValue :=
-      TExpressionNode(Child).AsValue(SepiRoot.FindType(TypeInfo(Boolean)));
+    TestValue := TExpressionNode(Child).AsValue(SystemUnit.Boolean);
 
     if Supports(TestValue, ISepiReadableValue, ReadableValue) then
       Instruction.TestValue := ReadableValue
@@ -5493,8 +5489,7 @@ var
 begin
   if Child is TExpressionNode then
   begin
-    TestValue :=
-      TExpressionNode(Child).AsValue(SepiRoot.FindType(TypeInfo(Boolean)));
+    TestValue := TExpressionNode(Child).AsValue(SystemUnit.Boolean);
 
     if Supports(TestValue, ISepiReadableValue, ReadableValue) then
     begin
@@ -5568,8 +5563,7 @@ begin
       if ControlVar = nil then
       begin
         Child.MakeError(SLocalVarNameRequired);
-        ControlVar := MethodCompiler.Locals.AddTempVar(
-          SepiRoot.FindType(TypeInfo(Integer)));
+        ControlVar := MethodCompiler.Locals.AddTempVar(SystemUnit.Integer);
       end;
 
       Instruction.ControlVar := ControlVar;
@@ -5796,8 +5790,7 @@ begin
 
   // Recover from error
   if FExceptObjectClass = nil then
-    FExceptObjectClass := SepiRoot.FindType(
-      TypeInfo(TObject)) as TSepiClass;
+    FExceptObjectClass := SystemUnit.TObject;
 
   // Create clause
   InstructionList := Instruction.AddOnClause(ExceptObjectClass);
@@ -5964,7 +5957,7 @@ var
 begin
   // Get exception value
   ExceptionValue := (Children[0] as TExpressionNode).AsValue(
-    SepiRoot.FindType(TypeInfo(TObject)));
+    SystemUnit.TObject);
 
   // As readable value
   if not Supports(ExceptionValue, ISepiReadableValue, ReadableValue) then

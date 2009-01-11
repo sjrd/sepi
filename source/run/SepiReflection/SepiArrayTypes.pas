@@ -146,6 +146,9 @@ type
 
 implementation
 
+uses
+  SepiSystemUnit;
+
 type
   PArrayTypeData = ^TArrayTypeData;
   TArrayTypeData = packed record
@@ -326,7 +329,7 @@ var
   IntegerType: TSepiOrdType;
   DimCount, CurDim: Integer;
 begin
-  IntegerType := AOwner.Root.FindType(System.TypeInfo(Integer)) as TSepiOrdType;
+  IntegerType := (AOwner.Root.SystemUnit as TSepiSystemUnit).Integer;
 
   DimCount := Length(ADimensions) div 2;
 
@@ -588,7 +591,7 @@ end;
 *}
 function TSepiDynArrayType.GetIndexType: TSepiOrdType;
 begin
-  Result := Root.FindType(System.TypeInfo(Integer)) as TSepiOrdType;
+  Result := (Root.SystemUnit as TSepiSystemUnit).Integer;
 end;
 
 {*

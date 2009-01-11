@@ -29,7 +29,8 @@ interface
 uses
   Windows, SysUtils, Classes, Contnrs, TypInfo, ScUtils, ScTypInfo,
   ScIntegerSets, ScInterfaces, SepiReflectionCore, SepiMembers, SepiOrdTypes,
-  SepiOpCodes, SepiReflectionConsts, SepiCompilerErrors, SepiCompilerConsts;
+  SepiSystemUnit, SepiOpCodes, SepiReflectionConsts, SepiCompilerErrors,
+  SepiCompilerConsts;
 
 type
   TSepiAsmInstrList = class;
@@ -537,6 +538,8 @@ type
   private
     FUnitCompiler: TSepiUnitCompiler; /// Compilateur d'unité
 
+    FSystemUnit: TSepiSystemUnit; /// Unité System
+
     FObjFreeList: TObjectList; /// Liste des objets à libérer en fin de vie
 
     FSepiMethod: TSepiMethod;        /// Méthode Sepi correspondante
@@ -592,6 +595,7 @@ type
     procedure WriteLocalsInfo(Stream: TStream);
 
     property UnitCompiler: TSepiUnitCompiler read FUnitCompiler;
+    property SystemUnit: TSepiSystemUnit read FSystemUnit;
     property SepiMethod: TSepiMethod read FSepiMethod;
     property HasLocalNamespace: Boolean read GetHasLocalNamespace;
     property LocalNamespace: TSepiNamespace read GetLocalNamespace;
@@ -615,6 +619,8 @@ type
 
     FSepiUnit: TSepiUnit;  /// Unité Sepi
     FMethods: TObjectList; /// Compilateurs de méthodes
+
+    FSystemUnit: TSepiSystemUnit; /// Unité System
 
     FCompileTimeTypes: TSepiMeta; /// Types durant le temps de la compilation
     FErroneousType: TSepiType;    /// Type erroné
@@ -648,6 +654,8 @@ type
     property Errors: TSepiCompilerErrorList read FErrors;
 
     property SepiUnit: TSepiUnit read FSepiUnit;
+
+    property SystemUnit: TSepiSystemUnit read FSystemUnit;
 
     property MethodCount: Integer read GetMethodCount;
     property Methods[Index: Integer]: TSepiMethodCompiler read GetMethods;
@@ -2114,6 +2122,7 @@ begin
   inherited Create;
 
   FUnitCompiler := AUnitCompiler;
+  FSystemUnit := FUnitCompiler.SystemUnit;
   FSepiMethod := ASepiMethod;
 
   FObjFreeList := TObjectList.Create(False);
@@ -2425,6 +2434,7 @@ begin
   FErrors := AErrors;
 
   FSepiUnit := ASepiUnit;
+  FSystemUnit := FSepiUnit.Root.SystemUnit as TSepiSystemUnit;
   FMethods := TObjectList.Create;
   FReferences := TObjectList.Create(False);
 end;

@@ -960,6 +960,9 @@ const
 
 implementation
 
+uses
+  SepiSystemUnit;
+
 type
   TInitInfo = packed record
     TypeInfo: PPTypeInfo;
@@ -1134,7 +1137,7 @@ begin
       if Owner.Context is TSepiClass then
         FType := TSepiClass(Owner.Context)
       else
-        FType := Owner.Root.FindType(TypeInfo(TObject));
+        FType := (Owner.Root.SystemUnit as TSepiSystemUnit).TObject;
     end;
     hpResult:
     begin
@@ -1142,9 +1145,10 @@ begin
       FByRef := True;
       FType := AType;
     end;
-    hpOpenArrayHighValue: FType := Owner.Root.FindType(TypeInfo(Smallint));
+    hpOpenArrayHighValue: FType :=
+      (Owner.Root.SystemUnit as TSepiSystemUnit).Smallint;
   else
-    FType := Owner.Root.FindType(TypeInfo(Boolean));
+    FType := (Owner.Root.SystemUnit as TSepiSystemUnit).Boolean;
   end;
 
   MakeFlags;
@@ -3265,14 +3269,14 @@ begin
   if Assigned(AParent) then
     FParent := AParent
   else
-    FParent := TSepiInterface(Root.FindType(System.TypeInfo(IInterface)));
+    FParent := (Root.SystemUnit as TSepiSystemUnit).IInterface;
   Assert(FParent.Completed);
   FCompleted := False;
 
   FHasGUID := not IsNoGUID(AGUID);
   FIsDispInterface := AIsDispInterface;
   FIsDispatch := IntfInheritsFrom(
-    TSepiInterface(Root.FindType(System.TypeInfo(IDispatch))));
+    (Root.SystemUnit as TSepiSystemUnit).IDispatch);
   FGUID := AGUID;
 
   FIMTSize := Parent.IMTSize;
@@ -3599,7 +3603,7 @@ begin
   if Assigned(AParent) then
     FParent := AParent
   else
-    FParent := TSepiClass(Root.FindType(System.TypeInfo(TObject)));
+    FParent := (Root.SystemUnit as TSepiSystemUnit).TObject;
   Assert(FParent.Completed);
   FCompleted := False;
 

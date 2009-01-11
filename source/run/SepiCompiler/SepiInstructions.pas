@@ -660,7 +660,7 @@ begin
   CompileReadBounds(HigherBoundVar);
 
   TestResultVar := MethodCompiler.Locals.AddTempVar(
-    MethodCompiler.SepiMethod.Root.FindType(TypeInfo(Boolean)));
+    MethodCompiler.SystemUnit.Boolean);
   TestResultVar.HandleLife;
 
   // Create ASM instructions
@@ -768,7 +768,7 @@ end;
 function TSepiTryExcept.UseTempVar: TSepiLocalVar;
 begin
   Result := MethodCompiler.Locals.AddTempVar(
-    MethodCompiler.SepiMethod.Root.FindType(TypeInfo(TObject)));
+    MethodCompiler.SystemUnit.TObject);
   Result.HandleLife;
   Result.Life.AddInstrInterval(ExceptInstructions.BeforeRef,
     ExceptInstructions.AfterRef);

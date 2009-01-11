@@ -32,7 +32,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, Contnrs, RTLConsts, SepiReflectionCore,
-  SepiCompiler, SepiCompilerErrors;
+  SepiSystemUnit, SepiCompiler, SepiCompilerErrors;
 
 type
   TSepiNonTerminal = class;
@@ -69,6 +69,7 @@ type
     function GetUnitCompiler: TSepiUnitCompiler;
     function GetSepiRoot: TSepiRoot;
     function GetSepiUnit: TSepiUnit;
+    function GetSystemUnit: TSepiSystemUnit;
   protected
     procedure SetSymbolClass(Value: TSepiSymbolClass);
     procedure SetSyntacticParent(Value: TSepiNonTerminal);
@@ -130,6 +131,7 @@ type
     property SepiRoot: TSepiRoot read GetSepiRoot;
     property SepiUnit: TSepiUnit read GetSepiUnit;
     property SepiContext: TSepiMeta read GetSepiContext;
+    property SystemUnit: TSepiSystemUnit read GetSystemUnit;
 
     property AsText: string read GetAsText;
   end;
@@ -342,6 +344,18 @@ function TSepiParseTreeNode.GetSepiUnit: TSepiUnit;
 begin
   if RootNode <> nil then
     Result := RootNode.SepiUnit
+  else
+    Result := nil;
+end;
+
+{*
+  Unité System
+  @return Unité System, si rattaché à un noeud racine, nil sinon
+*}
+function TSepiParseTreeNode.GetSystemUnit: TSepiSystemUnit;
+begin
+  if RootNode <> nil then
+    Result := RootNode.UnitCompiler.SystemUnit
   else
     Result := nil;
 end;
