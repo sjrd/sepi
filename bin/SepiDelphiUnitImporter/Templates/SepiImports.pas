@@ -65,7 +65,7 @@ function ImportUnit(Root: TSepiRoot): TSepiUnit;
 var
   Stream: TStream;
 begin
-  Stream := TResourceStream.Create(GetModuleHandle(nil),
+  Stream := TResourceStream.Create(SysInit.HInstance,
     ResourceName, RT_RCDATA);
   try
     Result := TSepiUnit.LoadFromStream(Root, Stream,
