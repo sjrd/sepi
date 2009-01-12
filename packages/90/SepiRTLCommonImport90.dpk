@@ -33,7 +33,6 @@ requires
 contains
   SepiImportsClasses in '..\..\source\run\SepiRTLCommonImport\SepiImportsClasses.pas',
   SepiImportsComConst in '..\..\source\run\SepiRTLCommonImport\SepiImportsComConst.pas',
-  SepiImportsComObj in '..\..\source\run\SepiRTLCommonImport\SepiImportsComObj.pas',
   SepiImportsContnrs in '..\..\source\run\SepiRTLCommonImport\SepiImportsContnrs.pas',
   SepiImportsConvUtils in '..\..\source\run\SepiRTLCommonImport\SepiImportsConvUtils.pas',
   SepiImportsDateUtils in '..\..\source\run\SepiRTLCommonImport\SepiImportsDateUtils.pas',

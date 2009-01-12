@@ -5,7 +5,6 @@ interface
 uses
   SepiImportsClasses,
   SepiImportsComConst,
-  SepiImportsComObj,
   SepiImportsContnrs,
   SepiImportsConvUtils,
   SepiImportsDateUtils,
