@@ -5958,6 +5958,7 @@ begin
     begin
       SelfMemory := TSepiMemoryReference.Clone(MethodRefMemory);
       SelfMemory.AddOperation(aoPlusConstShortint, SizeOf(Pointer));
+      SelfMemory.Seal;
     end;
 
     CompileParams(CallInstr, Compiler, Instructions, Destination, nil,

@@ -255,6 +255,7 @@ type
     FOwningUnit: TSepiUnit; /// Unité contenante
     FContext: TSepiType;    /// Contexte
 
+    FLoadingCloning: Boolean;   /// True si en chargement ou en clônage
     FAutoCreateHidden: Boolean; /// True pour créer automatiquement les cachés
     FCompleted: Boolean;        /// True si la signature est complétée
 
@@ -1501,6 +1502,7 @@ var
 begin
   BaseCreate(AOwner);
 
+  FLoadingCloning := True;
   FAutoCreateHidden := False;
 
   Stream.ReadBuffer(FKind, 1);
@@ -1615,6 +1617,7 @@ var
 begin
   BaseCreate(AOwner);
 
+  FLoadingCloning := True;
   FAutoCreateHidden := False;
   FKind := Source.Kind;
   FReturnType := Source.ReturnType;
@@ -1654,18 +1657,26 @@ procedure TSepiSignature.AddParam(Param: TSepiParam);
 begin
   CheckNotCompleted;
 
-  if Param.HiddenKind in [hpAlloc, hpFree] then
-    FActualParams.Insert(0, Param)
-  else if (Param.HiddenKind = hpSelf) and (CallingConvention <> ccPascal) then
-    FActualParams.Insert(0, Param)
-  else
+  if FLoadingCloning then
   begin
     FActualParams.Add(Param);
     if Param.HiddenKind = hpNormal then
       FParams.Add(Param);
+  end else
+  begin
+    if Param.HiddenKind in [hpAlloc, hpFree] then
+      FActualParams.Insert(0, Param)
+    else if (Param.HiddenKind = hpSelf) and (CallingConvention <> ccPascal) then
+      FActualParams.Insert(0, Param)
+    else
+    begin
+      FActualParams.Add(Param);
+      if Param.HiddenKind = hpNormal then
+        FParams.Add(Param);
 
-    if Param.OpenArray and FAutoCreateHidden then
-      TSepiParam.CreateHidden(Self, hpOpenArrayHighValue);
+      if Param.OpenArray and FAutoCreateHidden then
+        TSepiParam.CreateHidden(Self, hpOpenArrayHighValue);
+    end;
   end;
 end;
 

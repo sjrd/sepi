@@ -16,8 +16,8 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ActnList, ImgList, Menus, VirtualTrees, SdDialogs,
-  SepiReflectionCore, SepiRuntime, ExplorerOptions, ExplorerConsts, ExtCtrls,
-  MetaExplorer;
+  SepiReflectionCore, SepiMembers, SepiRuntime, ExplorerOptions, ExplorerConsts,
+  ExtCtrls, MetaExplorer;
 
 type
   {*
@@ -56,11 +56,14 @@ type
   private
     FOptions: TExplorerOptions; /// Options de l'explorateur
     FSepiRoot: TSepiRoot;       /// Racine Sepi
+    FRuntimeUnits: TStrings;    /// Unités de type run-time
 
     function RootLoadUnit(Sender: TSepiRoot;
       const UnitName: string): TSepiUnit;
 
     function GetNodeMeta(Node: PVirtualNode): TSepiMeta;
+
+    function GetRuntimeMethod(SepiMethod: TSepiMethod): TSepiRuntimeMethod;
 
     procedure LoadUnit(const UnitName: string);
   public
@@ -96,6 +99,9 @@ begin
 
   FSepiRoot := TSepiRoot.Create;
   FSepiRoot.OnLoadUnit := RootLoadUnit;
+  FRuntimeUnits := TStringList.Create;
+
+  MetaExplorer.OnGetRuntimeMethod := GetRuntimeMethod;
 
   // Load all units passed on the command line
   for I := 1 to ParamCount do
@@ -116,6 +122,7 @@ end;
 *}
 procedure TExplorerForm.FormDestroy(Sender: TObject);
 begin
+  FRuntimeUnits.Free;
   FSepiRoot.Free;
 
   FOptions.Free;
@@ -133,6 +140,7 @@ var
   UnitFileName: string;
   Stream: TStream;
   LazyLoad: Boolean;
+  RuntimeUnit: TSepiRuntimeUnit;
 begin
   UnitFileName := Options.SearchFile(UnitName + CompiledIntfExt);
 
@@ -152,8 +160,11 @@ begin
     UnitFileName := Options.SearchFile(UnitName + CompiledUnitExt);
 
     if UnitFileName <> '' then
-      Result := TSepiRuntimeUnit.Create(SepiRoot, UnitFileName).SepiUnit
-    else
+    begin
+      RuntimeUnit := TSepiRuntimeUnit.Create(SepiRoot, UnitFileName);
+      FRuntimeUnits.AddObject(RuntimeUnit.SepiUnit.Name, RuntimeUnit);
+      Result := RuntimeUnit.SepiUnit;
+    end else
       Result := nil;
   end;
 end;
@@ -166,6 +177,35 @@ end;
 function TExplorerForm.GetNodeMeta(Node: PVirtualNode): TSepiMeta;
 begin
   Result := PNodeData(TreeView.GetNodeData(Node))^;
+end;
+
+{*
+  Trouve la méthode run-time correspondant à une méthode Sepi
+  @param SepiMethod   Méthode Sepi
+  @return Méthode run-time correspondante, ou nil si non trouvée
+*}
+function TExplorerForm.GetRuntimeMethod(
+  SepiMethod: TSepiMethod): TSepiRuntimeMethod;
+var
+  Index, I: Integer;
+  RuntimeUnit: TSepiRuntimeUnit;
+begin
+  Index := FRuntimeUnits.IndexOf(SepiMethod.OwningUnit.Name);
+  if Index < 0 then
+    Result := nil
+  else
+  begin
+    RuntimeUnit := TSepiRuntimeUnit(FRuntimeUnits.Objects[Index]);
+
+    for I := 0 to RuntimeUnit.MethodCount-1 do
+    begin
+      Result := RuntimeUnit.Methods[I];
+      if Result.SepiMethod = SepiMethod then
+        Exit;
+    end;
+
+    Result := nil;
+  end;
 end;
 
 {*

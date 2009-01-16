@@ -8,10 +8,16 @@ uses
 type
   TPrintOnAddStrings = class(TStringList)
   public
+    constructor Create;
     function Add(const Str: string): Integer; override;
   end;
 
 implementation
+
+constructor TPrintOnAddStrings.Create;
+begin
+  inherited Create;
+end;
 
 function TPrintOnAddStrings.Add(const Str: string): Integer;
 begin

@@ -296,7 +296,8 @@ function MethodResolveIdent(Compiler: TSepiMethodCompiler;
   const Identifier: string): ISepiExpression;
 var
   LocalVar: TSepiLocalVar;
-  Meta: TSepiMeta;
+  MetaOwner, Meta: TSepiMeta;
+  SelfExpression, FieldExpression: ISepiExpression;
 begin
   Result := TSepiExpression.Create(Compiler);
 
@@ -311,10 +312,36 @@ begin
 
   // Meta
   if Compiler.HasLocalNamespace then
-    Meta := Compiler.LocalNamespace.LookFor(Identifier)
+    MetaOwner := Compiler.LocalNamespace
   else
-    Meta := Compiler.SepiMethod.LookFor(Identifier);
+    MetaOwner := Compiler.SepiMethod;
+  Meta := MetaOwner.LookFor(Identifier);
 
+  // Meta in the method itself
+  if (Meta <> nil) and (Meta.Owner = MetaOwner) then
+  begin
+    AddMetaToExpression(Result, Meta);
+    Exit;
+  end;
+
+  // Field selection on Self
+  if Compiler.SepiMethod.Signature.SelfParam <> nil then
+  begin
+    LocalVar := Compiler.Locals.GetVarByName(HiddenParamNames[hpSelf]);
+    SelfExpression := TSepiExpression.Create(Result);
+    ISepiExpressionPart(
+      TSepiLocalVarValue.Create(LocalVar)).AttachToExpression(SelfExpression);
+    FieldExpression := FieldSelection(Compiler.SepiMethod,
+      SelfExpression, Identifier);
+
+    if FieldExpression <> nil then
+    begin
+      Result := FieldExpression;
+      Exit;
+    end;
+  end;
+
+  // Meta out of the method itself
   if Meta <> nil then
   begin
     AddMetaToExpression(Result, Meta);
@@ -415,7 +442,7 @@ end;
   @param SepiContext      Contexte Sepi depuis lequel chercher
   @param BaseExpression   Expression de base
   @param FieldName        Nom du champ
-  @return Expression représentant le champ sélectionné
+  @return Expression représentant le champ sélectionné (ou nil si inexistant)
 *}
 function FieldSelection(SepiContext: TSepiMeta;
   const BaseExpression: ISepiExpression;

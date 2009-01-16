@@ -393,6 +393,7 @@ type
       const TypeExpression: ISepiTypeExpression);
     procedure CompileCall(const Callable: ISepiCallable);
   public
+    procedure BeginParsing; override;
     procedure EndParsing; override;
   end;
 
@@ -2647,6 +2648,7 @@ var
   FloatValue: Extended;
   StrValue: string;
   Value: ISepiValue;
+  ReadableValue: ISepiReadableValue;
 begin
   Child := Children[0];
   Text := Child.AsText;
@@ -2698,6 +2700,16 @@ begin
       if not CheckIdentFound(Expression, Text, Child) then
         Expression := MakeIntegerLiteral(0) as ISepiExpression;
       Expression.SourcePos := Child.SourcePos;
+
+      if Supports(Expression, ISepiReadableValue, ReadableValue) then
+      begin
+        if ReadableValue.ValueType is TSepiMethodRefType then
+        begin
+          ISepiExpressionPart(TSepiMethodRefCall.Create(
+            ReadableValue, True)).AttachToExpression(Expression);
+          ReadableValue.AttachToExpression(Expression);
+        end;
+      end;
     end;
 
     // Inherited call
@@ -2791,10 +2803,22 @@ end;
   [@inheritDoc]
 *}
 procedure TNextExprNode.EndParsing;
+var
+  ReadableValue: ISepiReadableValue;
 begin
   if Expression = nil then
     Expression := TSepiTrueConstValue.MakeIntegerLiteral(
       UnitCompiler, 0) as ISepiExpression;
+
+  if Supports(Expression, ISepiReadableValue, ReadableValue) then
+  begin
+    if ReadableValue.ValueType is TSepiMethodRefType then
+    begin
+      ISepiExpressionPart(TSepiMethodRefCall.Create(
+        ReadableValue, True)).AttachToExpression(Expression);
+      ReadableValue.AttachToExpression(Expression);
+    end;
+  end;
 
   inherited;
 end;
@@ -2909,6 +2933,29 @@ begin
   Callable.CompleteParams;
   Callable.AttachToExpression(Base);
   Self.Expression := Base;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TParametersNode.BeginParsing;
+var
+  Callable: ISepiCallable;
+  ReadableValue: ISepiReadableValue;
+begin
+  inherited;
+
+  if Supports(Base, ISepiCallable, Callable) and
+    Supports(Base, ISepiReadableValue, ReadableValue) and
+    (ReadableValue.ValueType is TSepiMethodRefType) then
+  begin
+    Base.Detach(ISepiValue);
+    Base.Detach(ISepiReadableValue);
+    Base.Detach(ISepiWritableValue);
+    Base.Detach(ISepiAddressableValue);
+
+    Callable.AttachToExpression(Base);
+  end;
 end;
 
 {*
@@ -3049,7 +3096,7 @@ procedure TFieldSelectionNode.EndParsing;
 begin
   Expression := FieldSelection(SepiContext, Base, Children[0].AsText);
   if Expression = nil then
-    Children[0].MakeError(SIdentifierNotFound);
+    Children[0].MakeError(Format(SIdentifierNotFound, [Children[0].AsText]));
 
   inherited;
 end;
@@ -5129,7 +5176,7 @@ begin
     FIsOverloaded := TMethodImplDeclNode(Child).IsOverloaded;
 
     // Find method
-    TempMethod := LookFor(Name);
+    TempMethod := SepiUnit.GetMeta(Name);
 
     // Update signature kind for a method implementation
     if (TempMethod <> nil) and (TempMethod.Owner is TSepiClass) then
@@ -5215,13 +5262,20 @@ var
   Temp: Integer;
 begin
   case Child.SymbolClass of
-    // Type de routine
+    // Type de routine/méthode
     ntMethodKind:
     begin
-      if Child.Children[0].SymbolClass = lexProcedure then
-        Signature.Kind := mkUnitProcedure
+      case Child.Children[0].SymbolClass of
+        lexProcedure:   Signature.Kind := mkUnitProcedure;
+        lexFunction:    Signature.Kind := mkUnitFunction;
+        lexConstructor: Signature.Kind := mkConstructor;
+        lexDestructor:  Signature.Kind := mkDestructor;
       else
-        Signature.Kind := mkUnitFunction;
+        case Child.Children[1].SymbolClass of
+          lexProcedure: Signature.Kind := mkClassProcedure;
+          lexFunction:  Signature.Kind := mkClassFunction;
+        end;
+      end;
     end;
 
     // Nom de la routine
