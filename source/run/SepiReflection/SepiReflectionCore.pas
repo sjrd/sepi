@@ -375,8 +375,8 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    function LoadUnit(const UnitName: string): TSepiUnit;
-    procedure UnloadUnit(const UnitName: string);
+    function LoadUnit(const UnitName: string): TSepiUnit; virtual;
+    procedure UnloadUnit(const UnitName: string); virtual;
 
     function GetType(TypeInfo: PTypeInfo): TSepiType; overload;
     function GetType(const TypeName: string): TSepiType; overload;
@@ -698,6 +698,7 @@ procedure SepiRegisterMetaClasses(const MetaClasses: array of TSepiMetaClass);
 procedure SepiRegisterImportedUnit(const UnitName: string;
   ImportFunc: TSepiImportUnitFunc);
 procedure SepiUnregisterImportedUnit(const UnitName: string);
+function SepiImportedUnit(const UnitName: string): TSepiImportUnitFunc;
 
 const {don't localize}
   SystemUnitName = 'System'; /// Nom de l'unité System.pas

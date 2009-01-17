@@ -229,7 +229,7 @@ end;
 function TSepiCompilerError.GetAsText: string;
 begin
   Result := Format(SSepiCompilerErrorFormat,
-    [SepiErrorKindNames[Kind], FileName, Line, Col, ErrorMsg]);
+    [SepiErrorKindNames[Kind], ExtractFileName(FileName), Line, Col, ErrorMsg]);
 end;
 
 {------------------------------}
