@@ -265,7 +265,7 @@ const
   ocJumpIfFalse = TSepiOpCode($04); /// JIF  Dest, Test
 
   // Calls
-  ocAddressCall = TSepiOpCode($05); /// CALL CallSettings Address Params
+  ocAddressCall = TSepiOpCode($05); /// CALL CallSettings (ORS)? Address Params
   ocStaticCall  = TSepiOpCode($06); /// CALL Method-Ref Params
   ocDynamicCall = TSepiOpCode($07); /// CALL Method-Ref Self Params
 

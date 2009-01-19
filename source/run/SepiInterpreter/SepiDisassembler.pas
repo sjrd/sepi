@@ -351,6 +351,7 @@ var
   CallingConvention: TCallingConvention;
   RegUsage: Byte;
   ResultBehavior: TSepiTypeResultBehavior;
+  OrdResultSize: Byte;
   AddressPtr: string;
   Parameters: string;
 begin
@@ -358,13 +359,18 @@ begin
   Instructions.ReadBuffer(CallSettings, 1);
   CallSettingsDecode(CallSettings, CallingConvention,
     RegUsage, ResultBehavior);
+  if ResultBehavior = rbOrdinal then
+    Instructions.ReadBuffer(OrdResultSize, 1)
+  else
+    OrdResultSize := 0;
   AddressPtr := ReadAddress;
   Parameters := ReadParams;
 
   // Format arguments
-  Result := Format('(%s, %d, %s) %s%s', {don't localize}
+  Result := Format('(%s, %d, %s, %d) %s%s', {don't localize}
     [CallingConventionNames[CallingConvention], RegUsage,
-    ResultBehaviorNames[ResultBehavior], AddressPtr, Parameters]);
+    ResultBehaviorNames[ResultBehavior], OrdResultSize, AddressPtr,
+    Parameters]);
 end;
 
 {*

@@ -1525,6 +1525,7 @@ end;
 procedure TSepiCustomExpressionPart.MakeError(const Msg: string;
   Kind: TSepiErrorKind = ekError);
 begin
+  Assert(Expression <> nil);
   Expression.MakeError(Msg, Kind);
 end;
 
@@ -2952,7 +2953,7 @@ const
   );
 begin
   Result := OperationToOpCode[Operation];
-  if SelfOp and (not Operation in opComparisonOps) then
+  if SelfOp and (not (Operation in opComparisonOps)) then
     Dec(Result, ocOtherAdd-ocSelfAdd);
 end;
 
@@ -6145,16 +6146,17 @@ var
   I: Integer;
   IndexValue: ISepiReadableValue;
 begin
-  if FProperty.ReadAccess.Kind = pakField then
+  if FProperty.WriteAccess.Kind = pakField then
   begin
     LeftValue := TSepiObjectFieldValue.Create(ObjectValue,
-      FProperty.ReadAccess.Field);
+      FProperty.WriteAccess.Field);
     LeftValue.AttachToExpression(TSepiExpression.Create(Expression));
     LeftValue.CompileWrite(Compiler, Instructions, Source);
   end else
   begin
-    Method := FProperty.ReadAccess.Method;
+    Method := FProperty.WriteAccess.Method;
     Callable := TSepiMethodCall.Create(Method, ObjectValue);
+    Callable.AttachToExpression(TSepiExpression.Create(Expression));
 
     for I := 0 to ParamCount-1 do
       Callable.AddParam(Params[I]);
@@ -6166,7 +6168,7 @@ begin
     Callable.AddParam(Source);
 
     Callable.CompleteParams;
-    Callable.AttachToExpression(TSepiExpression.Create(Expression));
+    Callable.AttachToExpression(Callable as ISepiExpression);
     Callable.CompileNoResult(Compiler, Instructions);
   end;
 end;

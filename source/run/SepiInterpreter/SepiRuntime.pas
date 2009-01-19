@@ -218,7 +218,7 @@ type
     function ReadClassValue: TClass;
     procedure ReadParamsAndCall(Address: Pointer;
       CallingConvention: TCallingConvention; RegUsage: Byte;
-      ResultBehavior: TSepiTypeResultBehavior);
+      ResultBehavior: TSepiTypeResultBehavior; OrdResultSize: Byte);
 
     // Access methods
 
@@ -961,16 +961,22 @@ var
   CallingConvention: TCallingConvention;
   RegUsage: Byte;
   ResultBehavior: TSepiTypeResultBehavior;
+  OrdResultSize: Byte;
   AddressPtr: PPointer;
 begin
   // Read the instruction
   Instructions.ReadBuffer(CallSettings, 1);
   CallSettingsDecode(CallSettings, CallingConvention,
     RegUsage, ResultBehavior);
+  if ResultBehavior = rbOrdinal then
+    Instructions.ReadBuffer(OrdResultSize, 1)
+  else
+    OrdResultSize := 0;
   AddressPtr := ReadAddress; // it would be foolish to have a constant here
 
   // Read params and call
-  ReadParamsAndCall(AddressPtr^, CallingConvention, RegUsage, ResultBehavior);
+  ReadParamsAndCall(AddressPtr^, CallingConvention, RegUsage, ResultBehavior,
+    OrdResultSize);
 end;
 
 {*
@@ -980,6 +986,8 @@ end;
 procedure TSepiRuntimeContext.OpCodeStaticCall(OpCode: TSepiOpCode);
 var
   SepiMethod: TSepiMethod;
+  ResultBehavior: TSepiTypeResultBehavior;
+  OrdResultSize: Byte;
 begin
   // Read the instruction
   RuntimeUnit.ReadRef(Instructions, SepiMethod);
@@ -987,8 +995,14 @@ begin
   // Read params and call
   with SepiMethod, Signature do
   begin
+    ResultBehavior := ReturnType.SafeResultBehavior;
+    if ResultBehavior = rbOrdinal then
+      OrdResultSize := ReturnType.Size
+    else
+      OrdResultSize := 0;
+
     ReadParamsAndCall(Code, CallingConvention, RegUsage,
-      ReturnType.SafeResultBehavior);
+      ResultBehavior, OrdResultSize);
   end;
 end;
 
@@ -1002,6 +1016,8 @@ var
   SelfPtr: Pointer;
   SelfClass: TClass;
   Address: Pointer;
+  ResultBehavior: TSepiTypeResultBehavior;
+  OrdResultSize: Byte;
 begin
   // Read the instruction
   RuntimeUnit.ReadRef(Instructions, SepiMethod);
@@ -1043,8 +1059,14 @@ begin
   // Read params and call
   with SepiMethod.Signature do
   begin
+    ResultBehavior := ReturnType.SafeResultBehavior;
+    if ResultBehavior = rbOrdinal then
+      OrdResultSize := ReturnType.Size
+    else
+      OrdResultSize := 0;
+
     ReadParamsAndCall(Address, CallingConvention, RegUsage,
-      ReturnType.SafeResultBehavior);
+      ResultBehavior, OrdResultSize);
   end;
 end;
 
@@ -1973,10 +1995,11 @@ end;
   @param CallingConvention   Convention d'appel à utiliser
   @param RegUsage            Nombre de registres utilsés
   @param ResultBehavior      Comportement du résultat
+  @param OrdResultSize       Si résultat ordinal, taille en octets de celui-ci
 *}
 procedure TSepiRuntimeContext.ReadParamsAndCall(Address: Pointer;
   CallingConvention: TCallingConvention; RegUsage: Byte;
-  ResultBehavior: TSepiTypeResultBehavior);
+  ResultBehavior: TSepiTypeResultBehavior; OrdResultSize: Byte);
 
 type
   TOrdResult = packed record
@@ -2077,13 +2100,15 @@ begin
   begin
     // Get result
     case ResultBehavior of
-      rbNone, // if Result is specified, it must be a construtor, so ordinal
-      rbOrdinal:  Longint (Result^) := OrdResult.OrdinalRes;
+      // if rbNone and Result is specified, it must be a construtor, so TObject
+      rbNone:     Longint (Result^) := OrdResult.OrdinalRes;
       rbInt64:    Int64   (Result^) := OrdResult.Int64Res;
       rbSingle:   Single  (Result^) := GetSingleResult;
       rbDouble:   Double  (Result^) := GetDoubleResult;
       rbExtended: Extended(Result^) := GetExtendedResult;
       rbCurrency: Currency(Result^) := GetCurrencyResult;
+
+      rbOrdinal: Move(OrdResult.OrdinalRes, Result^, OrdResultSize);
     end;
   end else
   begin

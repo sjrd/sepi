@@ -196,6 +196,7 @@ type
     FCallingConvention: TCallingConvention;   /// Convention d'appel
     FRegUsage: Byte;                          /// Utilisation des registres
     FResultBehavior: TSepiTypeResultBehavior; /// Comportement du résultat
+    FOrdResultSize: Byte;                     /// Taille d'un résultat ordinal
 
     FAddress: TSepiMemoryReference; /// Adresse de la méthode à appeler
   public
@@ -212,6 +213,7 @@ type
     property RegUsage: Byte read FRegUsage write FRegUsage;
     property ResultBehavior: TSepiTypeResultBehavior
       read FResultBehavior write FResultBehavior;
+    property OrdResultSize: Byte read FOrdResultSize write FOrdResultSize;
 
     property Address: TSepiMemoryReference read FAddress;
   end;
@@ -1299,6 +1301,7 @@ begin
   FCallingConvention := ccRegister;
   FRegUsage := 0;
   FResultBehavior := rbNone;
+  FOrdResultSize := 0;
 
   FAddress := TSepiMemoryReference.Create(MethodCompiler);
 end;
@@ -1323,6 +1326,11 @@ begin
   CallingConvention := Signature.CallingConvention;
   RegUsage := Signature.RegUsage;
   ResultBehavior := Signature.ReturnType.SafeResultBehavior;
+
+  if ResultBehavior = rbOrdinal then
+    OrdResultSize := Signature.ReturnType.Size
+  else
+    OrdResultSize := 0;
 end;
 
 {*
@@ -1335,6 +1343,8 @@ begin
   Address.Make;
 
   Inc(FSize, SizeOf(TSepiCallSettings));
+  if ResultBehavior = rbOrdinal then
+    Inc(FSize, 1);
   Inc(FSize, Address.Size);
 end;
 
@@ -1350,6 +1360,9 @@ begin
   CallSettings := CallSettingsEncode(CallingConvention, RegUsage,
     ResultBehavior);
   Stream.WriteBuffer(CallSettings, SizeOf(TSepiCallSettings));
+
+  if ResultBehavior = rbOrdinal then
+    Stream.WriteBuffer(FOrdResultSize, 1);
 
   Address.WriteToStream(Stream);
   Parameters.WriteToStream(Stream);
