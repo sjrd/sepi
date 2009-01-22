@@ -5576,7 +5576,7 @@ constructor TWhileInstructionNode.Create(AParent: TSepiNonTerminal;
 begin
   inherited;
 
-  FIsRepeat := SymbolClass = ntWhileInstruction;
+  FIsRepeat := SymbolClass = ntRepeatInstruction;
 end;
 
 {*
