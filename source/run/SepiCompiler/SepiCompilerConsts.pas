@@ -35,6 +35,8 @@ resourcestring
   SSepiCompilerErrorFormat = '[%s] %s(%d, %d) : %s';
 
   // Erreurs de compilation génériques
+  SCantOpenSourceFile = 'Ne peut ouvrir le fichier source %s';
+  SCantOpenDestFile = 'Ne peut ouvrir le fichier de destination %s';
   SSepiInternalError = 'Erreur interne : %s';
   SSepiThereWereErrors = 'Il y a eu des erreurs à la compilation';
   STooManyErrors = 'Trop d''erreurs';

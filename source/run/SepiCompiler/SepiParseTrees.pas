@@ -102,6 +102,7 @@ type
     procedure BeforeDestruction; override;
 
     procedure Move(NewParent: TSepiNonTerminal; Index: Integer = -1);
+    function FindRightMost: TSepiParseTreeNode;
 
     function ResolveIdent(const Identifier: string): ISepiExpression; virtual;
 
@@ -521,6 +522,23 @@ begin
       AddToParent(Index);
 
     DoAncestorChanged;
+  end;
+end;
+
+{*
+  Trouve le noeud de la plus à droite de ce sous-arbre syntaxique
+  Dans la plupart des analyseurs, il s'agit du dernier noeud analysé.
+  @return Noeud le plus à droite de ce sous-arbre syntaxique
+*}
+function TSepiParseTreeNode.FindRightMost: TSepiParseTreeNode;
+begin
+  Result := Self;
+
+  while (Result is TSepiNonTerminal) and
+    (TSepiNonTerminal(Result).ChildCount > 0) do
+  begin
+    with TSepiNonTerminal(Result) do
+      Result := Children[ChildCount-1];
   end;
 end;
 

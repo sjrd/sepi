@@ -1313,11 +1313,79 @@ type
     procedure EndParsing; override;
   end;
 
+function CompileDelphiSource(SepiRoot: TSepiRoot;
+  Errors: TSepiCompilerErrorList; SourceFile: TStrings;
+  const DestFileName: TFileName): TSepiUnit;
+
 implementation
 
 {-----------------}
 { Global routines }
 {-----------------}
+
+{*
+  Compile un fichier source Delphi
+  @param SepiRoot       Racine Sepi
+  @param Errors         Gestionnaire d'erreurs
+  @param SourceFile     Source à compiler
+  @param DestFileName   Nom du fichier de sortie
+  @return Unité Sepi compilée (interface seulement, pas d'implémentation)
+*}
+function CompileDelphiSource(SepiRoot: TSepiRoot;
+  Errors: TSepiCompilerErrorList; SourceFile: TStrings;
+  const DestFileName: TFileName): TSepiUnit;
+var
+  DestFile: TStream;
+  RootNode: TRootNode;
+  Compiler: TSepiUnitCompiler;
+begin
+  // Silence the compiler warning
+  Result := nil;
+
+  DestFile := nil;
+  RootNode := nil;
+  try
+    // Actually compile the source file
+    RootNode := TRootNode.Create(ntSource, SepiRoot, Errors);
+    try
+      DecimalSeparator := '.';
+      TParser.Parse(RootNode, TLexer.Create(Errors, SourceFile.Text,
+        Errors.CurrentFileName));
+    except
+      on Error: ESepiCompilerFatalError do
+        raise;
+      on Error: Exception do
+      begin
+        Errors.MakeError(Error.Message, ekFatalError,
+          RootNode.FindRightMost.SourcePos);
+      end;
+    end;
+
+    // Check for errors
+    Errors.CheckForErrors;
+
+    // Fetch Sepi unit compiler and unit
+    Compiler := RootNode.UnitCompiler;
+    Result := Compiler.SepiUnit;
+
+    // Compile and write compiled unit to destination stream
+    try
+      DestFile := TFileStream.Create(DestFileName, fmCreate);
+      Compiler.WriteToStream(DestFile);
+    except
+      on EStreamError do
+        Errors.MakeError(Format(SCantOpenDestFile, [DestFileName]),
+          ekFatalError);
+      on Error: ESepiCompilerFatalError do
+        raise;
+      on Error: Exception do
+        Errors.MakeError(Error.Message, ekFatalError);
+    end;
+  finally
+    RootNode.Free;
+    DestFile.Free;
+  end;
+end;
 
 {*
   Initialise le tableau NonTerminalClasses
