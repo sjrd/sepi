@@ -2842,9 +2842,14 @@ procedure TSepiUnit.MoreUses(const AUses: array of string);
 var
   I: Integer;
 begin
+  // Add uses
   for I := Low(AUses) to High(AUses) do
     if FUsesList.IndexOf(AUses[I]) < 0 then
       AddUses(TSepiRoot(Owner).LoadUnit(AUses[I]));
+
+  // Re-add myself to the root
+  if Assigned(Owner) then // could not be if called from Create
+    Owner.ReAddChild(Self);
 end;
 
 {*
