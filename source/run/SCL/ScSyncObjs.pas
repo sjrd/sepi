@@ -171,6 +171,46 @@ type
   end;
 
   {*
+    Tâche d'exécution d'une méthode d'un objet
+    TScCustomMethodTask fournit une implémentation protégée d'une tâche
+    d'exécution d'une méthode d'un objet.
+    @author sjrd
+    @version 1.0
+  *}
+  TScCustomMethodTask = class(TScTask)
+  private
+    FMethod: TThreadMethod; /// Méthode à exécuter
+  protected
+    procedure Execute; override;
+
+    property Method: TThreadMethod read FMethod;
+  public
+    constructor Create(AOwner: TScCustomTaskQueue; AMethod: TThreadMethod;
+      AFreeOnFinished: Boolean); overload;
+    constructor Create(AOwner: TScCustomTaskQueue;
+      AMethod: TThreadMethod); overload;
+  end;
+
+  {*
+    Tâche d'exécution d'une méthode d'un objet
+    TScMethodTask est une version publique de TScCustomMethodTask.
+    @author sjrd
+    @version 1.0
+  *}
+  TScMethodTask = class(TScCustomMethodTask)
+  public
+    function Cancel(ForceFree: Boolean = False): Boolean;
+
+    property Owner;
+    property State;
+    property FreeOnFinished;
+
+    property Method;
+
+    property FatalException;
+  end;
+
+  {*
     Tâche de répartition de message
     TScCustomMessageTask fournit une implémentation protégée d'une tâche de
     dispatching de message.
@@ -535,6 +575,55 @@ begin
   if Suspended then
     Resume;
   WaitFor;
+end;
+
+{---------------------------}
+{ TScCustomMethodTask class }
+{---------------------------}
+
+{*
+  Crée une nouvelle tâche de méthode
+  @param AOwner            File de tâches propriétaire
+  @param AMethod           Méthode à exécuter
+  @param AFreeOnFinished   Valeur de la propriété FreeOnFinished
+*}
+constructor TScCustomMethodTask.Create(AOwner: TScCustomTaskQueue;
+  AMethod: TThreadMethod; AFreeOnFinished: Boolean);
+begin
+  inherited Create(AOwner, AFreeOnFinished);
+
+  FMethod := AMethod;
+end;
+
+{*
+  Crée une nouvelle tâche de méthode
+  @param AOwner    File de tâches propriétaire
+  @param AMethod   Méthode à exécuter
+*}
+constructor TScCustomMethodTask.Create(AOwner: TScCustomTaskQueue;
+  AMethod: TThreadMethod);
+begin
+  Create(AOwner, AMethod, AOwner.DefaultFreeOnFinished);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TScCustomMethodTask.Execute;
+begin
+  Method;
+end;
+
+{---------------------}
+{ TScMethodTask class }
+{---------------------}
+
+{*
+  [@inheritDoc]
+*}
+function TScMethodTask.Cancel(ForceFree: Boolean = False): Boolean;
+begin
+  Result := inherited Cancel(ForceFree);
 end;
 
 {----------------------------}
