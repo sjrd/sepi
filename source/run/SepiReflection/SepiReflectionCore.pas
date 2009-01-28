@@ -368,9 +368,13 @@ type
   protected
     procedure AddChild(Child: TSepiMeta); override;
     procedure RemoveChild(Child: TSepiMeta); override;
+    procedure ReAddChild(Child: TSepiMeta); override;
 
     function InternalLookFor(const Name: string; FromUnit: TSepiUnit;
       FromClass: TSepiMeta = nil): TSepiMeta; override;
+
+    function IncUnitRefCount(SepiUnit: TSepiUnit): Integer; virtual;
+    function DecUnitRefCount(SepiUnit: TSepiUnit): Integer; virtual;
   public
     constructor Create;
     destructor Destroy; override;
@@ -392,6 +396,34 @@ type
 
     property OnLoadUnit: TSepiLoadUnitEvent
       read FOnLoadUnit write FOnLoadUnit;
+  end;
+
+  {*
+    Fork d'une racine Sepi
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiRootFork = class(TSepiRoot)
+  private
+    FOriginalRoot: TSepiRoot;    /// Racine de base
+    FForeignRefCounts: TStrings; /// Ref-counts des unités étrangères
+    FDestroying: Boolean;        /// True lorsqu'en destruction
+  protected
+    procedure AddChild(Child: TSepiMeta); override;
+    procedure RemoveChild(Child: TSepiMeta); override;
+
+    function IncUnitRefCount(SepiUnit: TSepiUnit): Integer; override;
+    function DecUnitRefCount(SepiUnit: TSepiUnit): Integer; override;
+  public
+    constructor Create(AOriginalRoot: TSepiRoot);
+    destructor Destroy; override;
+
+    procedure BeforeDestruction; override;
+
+    function LoadUnit(const UnitName: string): TSepiUnit; override;
+    procedure UnloadUnit(const UnitName: string); override;
+
+    property OriginalRoot: TSepiRoot read FOriginalRoot;
   end;
 
   {*
@@ -1983,6 +2015,20 @@ end;
 {*
   [@inheritDoc]
 *}
+procedure TSepiRoot.ReAddChild(Child: TSepiMeta);
+var
+  Index: Integer;
+begin
+  inherited;
+
+  Index := FSearchOrder.IndexOf(Child);
+  if Index >= 0 then
+    FSearchOrder.Move(Index, FSearchOrder.Count-1);
+end;
+
+{*
+  [@inheritDoc]
+*}
 function TSepiRoot.InternalLookFor(const Name: string; FromUnit: TSepiUnit;
   FromClass: TSepiMeta = nil): TSepiMeta;
 var
@@ -2013,6 +2059,26 @@ begin
 end;
 
 {*
+  Incrémente le compteur de références d'une unité
+  @param SepiUnit   Unité dont incrémenter le compteur de références
+  @return Nouvelle valeur du compteur de références
+*}
+function TSepiRoot.IncUnitRefCount(SepiUnit: TSepiUnit): Integer;
+begin
+  Result := InterlockedIncrement(SepiUnit.FRefCount);
+end;
+
+{*
+  Décrémente le compteur de références d'une unité
+  @param SepiUnit   Unité dont décrémenter le compteur de références
+  @return Nouvelle valeur du compteur de références
+*}
+function TSepiRoot.DecUnitRefCount(SepiUnit: TSepiUnit): Integer;
+begin
+  Result := InterlockedDecrement(SepiUnit.FRefCount);
+end;
+
+{*
   Charge une unité
   @param UnitName   Nom de l'unité à charger
   @return Unité chargée
@@ -2036,7 +2102,7 @@ begin
   if Result = nil then
     raise ESepiUnitNotFoundError.CreateFmt(SSepiUnitNotFound, [UnitName]);
 
-  Inc(Result.FRefCount);
+  IncUnitRefCount(Result);
 end;
 
 {*
@@ -2045,20 +2111,19 @@ end;
 *}
 procedure TSepiRoot.UnloadUnit(const UnitName: string);
 var
-  MetaUnit: TSepiUnit;
+  SepiUnit: TSepiUnit;
 begin
   if State = msDestroying then
     Exit;
 
-  MetaUnit := TSepiUnit(GetMeta(UnitName));
-  if MetaUnit = nil then
+  SepiUnit := TSepiUnit(GetMeta(UnitName));
+  if SepiUnit = nil then
     raise ESepiUnitNotFoundError.CreateFmt(SSepiUnitNotFound, [UnitName]);
 
-  Dec(MetaUnit.FRefCount);
-  if MetaUnit.FRefCount = 0 then
+  if DecUnitRefCount(SepiUnit) = 0 then
   begin
-    Assert(FChildren.IndexOfObject(MetaUnit) = FChildren.Count-1);
-    MetaUnit.Free;
+    Assert(FChildren.IndexOfObject(SepiUnit) = FChildren.Count-1);
+    SepiUnit.Free;
   end;
 end;
 
@@ -2167,6 +2232,220 @@ begin
     Result := GetType(TypeName);
     if Result = nil then
       raise ESepiMetaNotFoundError.CreateFmt(SSepiObjectNotFound, [TypeName]);
+  end;
+end;
+
+{---------------------}
+{ TSepiRootFork class }
+{---------------------}
+
+{*
+  Crée un nouveau fork de racine Sepi
+  @param AOriginalRoot   Racine Sepi originale
+*}
+constructor TSepiRootFork.Create(AOriginalRoot: TSepiRoot);
+begin
+  FOriginalRoot := AOriginalRoot;
+  FForeignRefCounts := TStringList.Create;
+
+  inherited Create;
+end;
+
+{*
+  [@inheritDoc]
+*}
+destructor TSepiRootFork.Destroy;
+begin
+  inherited;
+
+  FForeignRefCounts.Free;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiRootFork.AddChild(Child: TSepiMeta);
+begin
+  inherited;
+
+  FForeignRefCounts.Add(Child.Name);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiRootFork.RemoveChild(Child: TSepiMeta);
+begin
+  FForeignRefCounts.Delete(FForeignRefCounts.IndexOf(Child.Name));
+
+  inherited;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiRootFork.IncUnitRefCount(SepiUnit: TSepiUnit): Integer;
+var
+  Index: Integer;
+begin
+  if SepiUnit.Owner = Self then
+  begin
+    // Own unit
+    Result := inherited IncUnitRefCount(SepiUnit);
+  end else
+  begin
+    // Foreign unit
+    with FForeignRefCounts do
+    begin
+      Index := IndexOf(SepiUnit.Name);
+      Assert(Index >= 0);
+      Result := Integer(Objects[Index]) + 1;
+      Objects[Index] := TObject(Result);
+    end;
+  end;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiRootFork.DecUnitRefCount(SepiUnit: TSepiUnit): Integer;
+var
+  Index: Integer;
+begin
+  if SepiUnit.Owner = Self then
+  begin
+    // Own unit
+    Result := inherited DecUnitRefCount(SepiUnit);
+  end else
+  begin
+    // Foreign unit
+    with FForeignRefCounts do
+    begin
+      Index := IndexOf(SepiUnit.Name);
+      Assert(Index >= 0);
+      Result := Integer(Objects[Index]) - 1;
+      Objects[Index] := TObject(Result);
+    end;
+  end;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiRootFork.BeforeDestruction;
+var
+  I: Integer;
+  SepiUnit: TSepiUnit;
+begin
+  FDestroying := True;
+
+  // Mark my own units as destructing
+  for I := UnitCount-1 downto 0 do
+    if Units[I].Owner = Self then
+      TSepiRootFork(Units[I]).Destroying;
+
+  // Free units the way I want to
+  for I := UnitCount-1 downto 0 do
+  begin
+    SepiUnit := Units[I];
+
+    if SepiUnit.Owner = Self then
+    begin
+      OutputDebugString(PChar('Freeing own unit: '+SepiUnit.Name));
+      SepiUnit.Free;
+    end else
+    begin
+      OutputDebugString(PChar('Unloading foreign unit: '+SepiUnit.Name));
+      ChildRemoving(SepiUnit);
+      RemoveChild(SepiUnit);
+
+      OriginalRoot.UnloadUnit(SepiUnit.Name);
+    end;
+  end;
+
+  inherited;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiRootFork.LoadUnit(const UnitName: string): TSepiUnit;
+var
+  ImportFunc: TSepiImportUnitFunc;
+begin
+  Result := TSepiUnit(GetMeta(UnitName));
+
+  if Result = nil then
+  begin
+    ImportFunc := SepiImportedUnit(UnitName);
+
+    // For imported units, check the original root directly
+    if Assigned(ImportFunc) then
+    begin
+      Result := (OriginalRoot.GetMeta(UnitName) as TSepiUnit);
+
+      if Result <> nil then
+      begin
+        OutputDebugString(PChar('Loading foreing unit: '+UnitName));
+        OriginalRoot.LoadUnit(UnitName);
+        AddChild(Result);
+        ChildAdded(Result);
+      end else
+        Result := ImportFunc(Self);
+    end;
+
+    // Otherwise, load the unit in this fork
+    if (Result = nil) and Assigned(OnLoadUnit) then
+      Result := OnLoadUnit(Self, UnitName);
+
+    // If we didn't find anything, check the original root
+    if Result = nil then
+    begin
+      Result := (OriginalRoot.GetMeta(UnitName) as TSepiUnit);
+
+      if Result <> nil then
+      begin
+        OutputDebugString(PChar('Loading foreign unit: '+UnitName));
+        OriginalRoot.LoadUnit(UnitName);
+        AddChild(Result);
+        ChildAdded(Result);
+      end;
+    end;
+  end;
+
+  // Unit not found
+  if Result = nil then
+    raise ESepiUnitNotFoundError.CreateFmt(SSepiUnitNotFound, [UnitName]);
+
+  // Increment ref-count
+  IncUnitRefCount(Result);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiRootFork.UnloadUnit(const UnitName: string);
+var
+  SepiUnit: TSepiUnit;
+begin
+  if FDestroying or (State = msDestroying) then
+    Exit;
+
+  SepiUnit := TSepiUnit(GetMeta(UnitName));
+  if SepiUnit = nil then
+    raise ESepiUnitNotFoundError.CreateFmt(SSepiUnitNotFound, [UnitName]);
+
+  if DecUnitRefCount(SepiUnit) = 0 then
+  begin
+    // Remove the unit
+    if SepiUnit.Owner = Self then
+      SepiUnit.Free
+    else
+    begin
+      ChildRemoving(SepiUnit);
+      RemoveChild(SepiUnit);
+      OriginalRoot.UnloadUnit(SepiUnit.Name);
+    end;
   end;
 end;
 
