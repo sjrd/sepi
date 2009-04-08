@@ -126,6 +126,15 @@ function IsNoGUID(const GUID: TGUID): Boolean;
 
 function Point3D(X, Y, Z: Integer): T3DPoint;
 
+function PointAdd(const Point1, Point2: TPoint): TPoint; overload;
+function PointAdd(const Point: TPoint; X, Y: Integer): TPoint; overload;
+
+function Point3DAdd(const Point1, Point2: T3DPoint): T3DPoint; overload;
+function Point3DAdd(const Point1: T3DPoint;
+  const Point2: TPoint): T3DPoint; overload;
+function Point3DAdd(const Point: T3DPoint; X, Y: Integer;
+  Z: Integer = 0): T3DPoint; overload;
+
 function Point3DToString(const Point3D: T3DPoint;
   const Delim: string = ' '): string;
 
@@ -622,6 +631,73 @@ begin
   Result.X := X;
   Result.Y := Y;
   Result.Z := Z;
+end;
+
+{*
+  Additionne deux points
+  @param Point1   Premier point
+  @param Point2   Second point
+  @return Somme des deux points
+*}
+function PointAdd(const Point1, Point2: TPoint): TPoint;
+begin
+  Result.X := Point1.X + Point2.X;
+  Result.Y := Point1.Y + Point2.Y;
+end;
+
+{*
+  Ajoute des coordonnées X et Y à un point
+  @param Point   Point auquel ajouter les coordonnées
+  @param X       Ajout en abscisses
+  @param Y       Ajout en ordonnées
+  @return Somme du point Point et du point Point(X, Y)
+*}
+function PointAdd(const Point: TPoint; X, Y: Integer): TPoint;
+begin
+  Result.X := Point.X + X;
+  Result.Y := Point.Y + Y;
+end;
+
+{*
+  Additionne deux points 3D
+  @param Point1   Premier point
+  @param Point2   Second point
+  @return Somme des deux points
+*}
+function Point3DAdd(const Point1, Point2: T3DPoint): T3DPoint;
+begin
+  Result.X := Point1.X + Point2.X;
+  Result.Y := Point1.Y + Point2.Y;
+  Result.Z := Point1.Z + Point2.Z;
+end;
+
+{*
+  Ajoute un point à un point 3D
+  @param Point1   Premier point
+  @param Point2   Second point
+  @return Somme des deux points
+*}
+function Point3DAdd(const Point1: T3DPoint; const Point2: TPoint): T3DPoint;
+begin
+  Result.X := Point1.X + Point2.X;
+  Result.Y := Point1.Y + Point2.Y;
+  Result.Z := Point1.Z;
+end;
+
+{*
+  Ajoute des coordonnées X, Y et Z à un point 3D
+  @param Point   Point auquel ajouter les coordonnées
+  @param X       Ajout en abscisses
+  @param Y       Ajout en ordonnées
+  @param Z       Ajout en hauteur (défaut = 0)
+  @return Somme du point Point et du point Point3D(X, Y, Z)
+*}
+function Point3DAdd(const Point: T3DPoint; X, Y: Integer;
+  Z: Integer = 0): T3DPoint;
+begin
+  Result.X := Point.X + X;
+  Result.Y := Point.Y + Y;
+  Result.Z := Point.Z + Z;
 end;
 
 {*
