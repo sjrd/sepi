@@ -57,6 +57,8 @@ resourcestring
   SPropertyNotFoundInBaseClass =
     'La propriété n''a pas été trouvée dans la classe de base';
   SFieldOrMethodRequired = 'Champ ou méthode requis';
+  SArrayPropertyRequired = 'Propriété tableau requise';
+  SDuplicateDefaultProperty = 'Ne peut avoir plusieurs propriétés par défaut';
   SParametersMismatch = 'Les paramètres ne correspondent pas';
   SArrayOrArrayPropRequired = 'Valeur tableau ou propriété tableau requise';
   STooManyArrayIndices = 'Trop d''index pour ce tableau';

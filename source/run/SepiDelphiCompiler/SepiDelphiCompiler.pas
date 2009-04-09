@@ -406,6 +406,7 @@ type
   private
     procedure CompileProperty(const Prop: ISepiProperty);
     procedure CompileArrayItem(const BaseValue: ISepiValue);
+    procedure CompileDefaultProperty(const ObjectValue: ISepiReadableValue);
   public
     procedure EndParsing; override;
   end;
@@ -3135,18 +3136,42 @@ begin
 end;
 
 {*
+  Compile les indices de la propriété par défaut d'un objet
+  @param ObjectValue   Valeur objet
+*}
+procedure TArrayIndicesNode.CompileDefaultProperty(
+  const ObjectValue: ISepiReadableValue);
+var
+  Prop: TSepiProperty;
+begin
+  Prop := TSepiClass(ObjectValue.ValueType).DefaultProperty;
+
+  Base := TSepiExpression.Create(Base);
+
+  ISepiExpressionPart(TSepiPropertyValue.Create(ObjectValue,
+    Prop)).AttachToExpression(Base);
+
+  CompileProperty(Base as ISepiProperty);
+end;
+
+{*
   [@inheritDoc]
 *}
 procedure TArrayIndicesNode.EndParsing;
 var
   Prop: ISepiProperty;
   BaseValue: ISepiValue;
+  ObjectValue: ISepiReadableValue;
 begin
   if Supports(Base, ISepiProperty, Prop) and (not Prop.ParamsCompleted) then
     CompileProperty(Prop)
   else if Supports(Base, ISepiValue, BaseValue) and
     (BaseValue.ValueType is TSepiArrayType) then
     CompileArrayItem(BaseValue)
+  else if Supports(Base, ISepiReadableValue, ObjectValue) and
+    (ObjectValue.ValueType is TSepiClass) and
+    (TSepiClass(ObjectValue.ValueType).DefaultProperty <> nil) then
+    CompileDefaultProperty(ObjectValue)
   else
     Base.MakeError(SArrayOrArrayPropRequired);
 
@@ -4918,7 +4943,13 @@ begin
         // default
         if IsDefault then
           Child.MakeError(Format(SDuplicateModifier, [Str]))
-        else // TODO Should check for multiple default properties
+        else if (Owner is TSepiClass) and
+          (TSepiClass(Owner).DefaultProperty <> nil) and
+          (TSepiClass(Owner).DefaultProperty.Owner <> Owner) then
+          Child.MakeError(SDuplicateDefaultProperty)
+        else if Signature.ParamCount = 0 then
+          Child.MakeError(SArrayPropertyRequired)
+        else
           FIsDefault := True;
       end else if AnsiIndexText(Str, IgnoredModifiers) = -1 then
       begin

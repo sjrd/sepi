@@ -75,7 +75,7 @@ begin
         if I = 7 then
           Continue;
 
-        WriteLn(Strings.Strings[I]);
+        WriteLn(Strings[I]);
 
         if I < 5 then
           Break;

@@ -728,6 +728,8 @@ type
     FVMTSize: Integer;      /// Taille de la VMT dans les index positifs
     FDMTNextIndex: Integer; /// Prochain index à utiliser dans la DMT
 
+    FDefaultProperty: TSepiProperty; /// Propriété tableau par défaut
+
     procedure MakeIMT(IntfEntry: PSepiInterfaceEntry);
     procedure MakeIMTs;
 
@@ -853,6 +855,8 @@ type
 
     property InstSize: Integer read FInstSize;
     property VMTSize: Integer read FVMTSize;
+
+    property DefaultProperty: TSepiProperty read FDefaultProperty;
   end;
 
   {*
@@ -3554,6 +3558,7 @@ begin
     FInstSize := Parent.InstSize;
     FVMTSize := Parent.VMTSize;
     FDMTNextIndex := Parent.FDMTNextIndex;
+    FDefaultProperty := Parent.DefaultProperty;
   end else
   begin
     // This is TObject
@@ -3593,6 +3598,8 @@ begin
   FVMTSize := Parent.VMTSize;
   FDMTNextIndex := Parent.FDMTNextIndex;
 
+  FDefaultProperty := Parent.DefaultProperty;
+
   LoadChildren(Stream);
 
   Complete;
@@ -3621,6 +3628,8 @@ begin
   FInstSize := Parent.InstSize;
   FVMTSize := Parent.VMTSize;
   FDMTNextIndex := Parent.FDMTNextIndex;
+
+  FDefaultProperty := Parent.DefaultProperty;
 end;
 
 {*
@@ -4220,8 +4229,14 @@ begin
   inherited;
 
   if Child is TSepiField then
+  begin
     with TSepiField(Child) do
       FInstSize := Offset + FieldType.Size;
+  end else if Child is TSepiProperty then
+  begin
+    if TSepiProperty(Child).IsDefault then
+      FDefaultProperty := TSepiProperty(Child);
+  end;
 end;
 
 {*
