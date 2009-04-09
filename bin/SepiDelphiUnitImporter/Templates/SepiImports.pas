@@ -22,10 +22,12 @@ const // don't localize
   ResourceName = 'SepiImports(#UnitName2#)';
   TypeCount = (#TypeCount#);
   MethodCount = (#MethodCount#);
+  VariableCount = (#VariableCount#);
 
 var
   TypeInfoArray: array[0..TypeCount-1] of PTypeInfo;
   MethodAddresses: array[0..MethodCount-1] of Pointer;
+  VarAddresses: array[0..VariableCount-1] of Pointer;
 (#TypeDecl#)(#ImportClassesDecls#)(#ImportClassesImpls#)
 {---------------------}
 { Overloaded routines }
@@ -57,9 +59,19 @@ begin
     TypeInfo := TypeInfoArray[Index];
 end;
 
+procedure GetVarAddress(Self, Sender: TObject; var VarAddress: Pointer);
+var
+  Index: Integer;
+begin
+  Index := (Sender as TSepiVariable).Tag;
+  if Index >= 0 then
+    VarAddress := VarAddresses[Index];
+end;
+
 const
   GetMethodCodeEvent: TMethod = (Code: @GetMethodCode; Data: nil);
   GetTypeInfoEvent: TMethod = (Code: @GetTypeInfo; Data: nil);
+  GetVarAddressEvent: TMethod = (Code: @GetVarAddress; Data: nil);
 
 function ImportUnit(Root: TSepiRoot): TSepiUnit;
 var
@@ -71,7 +83,8 @@ begin
     Result := TSepiUnit.LoadFromStream(Root, Stream,
       SepiImports(#UnitName2#)LazyLoad,
       TGetMethodCodeEvent(GetMethodCodeEvent),
-      TGetTypeInfoEvent(GetTypeInfoEvent));
+      TGetTypeInfoEvent(GetTypeInfoEvent),
+      TGetVarAddressEvent(GetVarAddressEvent));
 
     if SepiImports(#UnitName2#)LazyLoad then
       Result.AcquireObjResource(Stream);
@@ -90,11 +103,16 @@ procedure InitMethodAddresses;
 begin
 (#InitMethodAddresses#)end;
 
+procedure InitVarAddresses;
+begin
+(#InitVarAddresses#)end;
+
 {$WARN SYMBOL_DEPRECATED ON}
 
 initialization
   InitTypeInfoArray;
   InitMethodAddresses;
+  InitVarAddresses;
 
   SepiRegisterImportedUnit('(#UnitName2#)', ImportUnit);
 end.

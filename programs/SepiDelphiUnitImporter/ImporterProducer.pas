@@ -47,9 +47,10 @@ type
 
     UsesList: TStrings; /// Liste des uses dans l'importeur produit
 
-    TypeCount: Integer;   /// Nombre de types avec RTTI
-    MethodCount: Integer; /// Nombre de méthodes avec adresse
-    LazyLoad: Boolean;    /// Indique si l'unité devrait être chargée en lazy
+    TypeCount: Integer;     /// Nombre de types avec RTTI
+    MethodCount: Integer;   /// Nombre de méthodes avec adresse
+    VariableCount: Integer; /// Nombre de variables
+    LazyLoad: Boolean;      /// Indique si l'unité devrait être chargée en lazy
 
     function ProduceUsesList: string;
     function Produce: string;
@@ -59,6 +60,7 @@ type
 
     procedure HandleType(Template: TTemplate; SepiType: TSepiType);
     procedure HandleRoutine(Template: TTemplate; Routine: TSepiMethod);
+    procedure HandleVariable(Template: TTemplate; Variable: TSepiVariable);
     procedure HandleClassType(Template: TTemplate; SepiClass: TSepiClass);
 
     function PrepareClassMethodTags(SepiClass: TSepiClass): Boolean;
@@ -72,6 +74,7 @@ type
 
     function NextTypeID: Integer;
     function NextMethodID: Integer;
+    function NextVariableID: Integer;
 
     function MakeSignature(Signature: TSepiSignature; From: TSepiMeta;
       const MethodName: string = ''): string;
@@ -100,6 +103,7 @@ const // don't localize
   UsesListParam = 'UsesList';
   TypeCountParam = 'TypeCount';
   MethodCountParam = 'MethodCount';
+  VariableCountParam = 'VariableCount';
   LazyLoadParam = 'LazyLoad';
   TypeDeclParam = 'TypeDecl';
   ImportClassesDeclsParam = 'ImportClassesDecls';
@@ -107,6 +111,7 @@ const // don't localize
   OverloadedsParam = 'Overloadeds';
   InitTypeInfoArrayParam = 'InitTypeInfoArray';
   InitMethodAddressesParam = 'InitMethodAddresses';
+  InitVarAddressesParam = 'InitVarAddresses';
 
   ClassNameParam = 'ClassName';
   DashesParam = 'Dashes';
@@ -252,6 +257,7 @@ begin
       SetParam(OverloadedsParam, '');
       SetParam(InitTypeInfoArrayParam, '');
       SetParam(InitMethodAddressesParam, '');
+      SetParam(InitVarAddressesParam, '');
     end;
 
     // Initialize uses list
@@ -266,7 +272,9 @@ begin
       if Meta is TSepiType then
         HandleType(Template, TSepiType(Meta))
       else if Meta is TSepiMethod then
-        HandleRoutine(Template, TSepiMethod(Meta));
+        HandleRoutine(Template, TSepiMethod(Meta))
+      else if Meta is TSepiVariable then
+        HandleVariable(Template, TSepiVariable(Meta));
     end;
 
     // Finalize template
@@ -283,6 +291,11 @@ begin
         SetParam(MethodCountParam, 1)
       else
         SetParam(MethodCountParam, MethodCount);
+
+      if VariableCount = 0 then
+        SetParam(VariableCountParam, 1)
+      else
+        SetParam(VariableCountParam, VariableCount);
 
       SetParam(LazyLoadParam, LazyLoad);
     end;
@@ -388,6 +401,32 @@ begin
 
     Template.AddToParam(InitMethodAddressesParam,
       Format(SetMethodAddressStatement, [Tag, StrAddress]));
+  end;
+end;
+
+{*
+  Produit l'importation d'une routine
+  @param Template   Template de l'importeur d'unité
+  @param Variable   Variable à importer
+*}
+procedure TSepiImporterProducer.HandleVariable(Template: TTemplate;
+  Variable: TSepiVariable);
+const
+  SetVarAddressStatement =
+    '  VarAddresses[%d] := @%s;'+CRLF;
+var
+  StrAddress: string;
+begin
+  with Variable do
+  begin
+    Tag := NextVariableID;
+
+    StrAddress := Name;
+    if VarType is TSepiMethodRefType then
+      StrAddress := '@'+StrAddress;
+
+    Template.AddToParam(InitVarAddressesParam,
+      Format(SetVarAddressStatement, [Tag, StrAddress]));
   end;
 end;
 
@@ -754,6 +793,16 @@ function TSepiImporterProducer.NextMethodID: Integer;
 begin
   Result := MethodCount;
   Inc(MethodCount);
+end;
+
+{*
+  Détermine l'ID de variable suivant
+  @return Prochain ID de variable
+*}
+function TSepiImporterProducer.NextVariableID: Integer;
+begin
+  Result := VariableCount;
+  Inc(VariableCount);
 end;
 
 {*

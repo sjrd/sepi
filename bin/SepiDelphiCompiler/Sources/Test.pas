@@ -56,6 +56,11 @@ begin
   WriteLn(CharSetToStr(SwitchChars + [C, 'A'..D] - ['B', 'Q'] * ['B'..'E'] +
     [Chr(ShorterConst)..Chr(ShorterVar)] + EmptySet + (['Z']-[])));
 
+  DecimalSeparator := ',';
+  WriteLn(FloatToStr(3.1416));
+  DecimalSeparator := '.';
+  WriteLn(FloatToStr(2.1416));
+
   Strings := TPrintOnAddStrings.Create;
   try
     for I := 0 to 10 do

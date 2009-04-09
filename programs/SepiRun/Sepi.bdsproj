@@ -126,7 +126,7 @@
 			<Directories Name="UsePackages">False</Directories>
 		</Directories>
 		<Parameters>
-			<Parameters Name="RunParams">-p ..\SepiDelphiCompiler\Binaries\ Test -d -w</Parameters>
+			<Parameters Name="RunParams">-p ..\SepiDelphiCompiler\Binaries\ Test -w</Parameters>
 			<Parameters Name="HostApplication">C:\Documents and Settings\Sébastien\Mes documents\Projets Borland Studio\FunLabyrinthe\Labyrinthe.exe</Parameters>
 			<Parameters Name="Launcher"></Parameters>
 			<Parameters Name="UseLauncher">False</Parameters>

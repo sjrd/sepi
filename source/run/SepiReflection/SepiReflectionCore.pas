@@ -80,6 +80,16 @@ type
     var Found: Boolean) of object;
 
   {*
+    Type de l'événement OnGetVarAddress de TSepiUnit
+    Si VarAddress est laissée à nil, Sepi allouera lui-même un espace mémoire
+    pour la variable. Cela ne devrait toutefois normalement jamais arriver. 
+    @param Sender       Variable déclenchant l'événement (type TSepiVariable)
+    @param VarAddress   Adresse de la variable
+  *}
+  TGetVarAddressEvent = procedure(Sender: TObject;
+    var VarAddress: Pointer) of object;
+
+  {*
     Déclenchée si l'on tente de recréer un meta (second appel au constructeur)
     @author sjrd
     @version 1.0
@@ -495,6 +505,8 @@ type
     FOnGetMethodCode: TGetMethodCodeEvent;
     /// Déclenché pour chaque type au chargement, pour obtenir ses RTTI
     FOnGetTypeInfo: TGetTypeInfoEvent;
+    /// Déclenché pour chaque variable au chargement, pour obtenir son adresse
+    FOnGetVarAddress: TGetVarAddressEvent;
 
     FRefCount: Integer;                    /// Compteur de références
     FUsesList: TStrings;                   /// Liste des uses
@@ -537,7 +549,8 @@ type
     class function LoadFromStream(AOwner: TSepiMeta; Stream: TStream;
       ALazyLoad: Boolean = False;
       const AOnGetMethodCode: TGetMethodCodeEvent = nil;
-      const AOnGetTypeInfo: TGetTypeInfoEvent = nil): TSepiUnit;
+      const AOnGetTypeInfo: TGetTypeInfoEvent = nil;
+      const AOnGetVarAddress: TGetVarAddressEvent = nil): TSepiUnit;
 
     procedure ReadRef(Stream: TStream; out Ref);
     procedure AddRef(Ref: TSepiMeta);
@@ -553,6 +566,7 @@ type
 
     property OnGetMethodCode: TGetMethodCodeEvent read FOnGetMethodCode;
     property OnGetTypeInfo: TGetTypeInfoEvent read FOnGetTypeInfo;
+    property OnGetVarAddress: TGetVarAddressEvent read FOnGetVarAddress;
   end;
 
   {*
@@ -3163,15 +3177,21 @@ end;
 class function TSepiUnit.LoadFromStream(AOwner: TSepiMeta; Stream: TStream;
   ALazyLoad: Boolean = False;
   const AOnGetMethodCode: TGetMethodCodeEvent = nil;
-  const AOnGetTypeInfo: TGetTypeInfoEvent = nil): TSepiUnit;
+  const AOnGetTypeInfo: TGetTypeInfoEvent = nil;
+  const AOnGetVarAddress: TGetVarAddressEvent = nil): TSepiUnit;
 begin
   Result := TSepiUnit(NewInstance);
+
   Result.FLazyLoad := ALazyLoad;
   Result.FOnGetMethodCode := AOnGetMethodCode;
   Result.FOnGetTypeInfo := AOnGetTypeInfo;
+  Result.FOnGetVarAddress := AOnGetVarAddress;
+
   Result.Load(AOwner, Stream);
+
   Result.FOnGetMethodCode := nil;
   Result.FOnGetTypeInfo := nil;
+  Result.FOnGetVarAddress := nil;
 end;
 
 {*
@@ -3486,18 +3506,43 @@ end;
 constructor TSepiVariable.Load(AOwner: TSepiMeta; Stream: TStream);
 var
   DataStored: Boolean;
+  DummyValue: Pointer;
 begin
   inherited;
 
   OwningUnit.ReadRef(Stream, FType);
 
-  GetMem(FValue, FType.Size);
-  FillChar(FValue^, FType.Size, 0);
-  FOwnValue := True;
+  if Assigned(OwningUnit.OnGetVarAddress) then
+    OwningUnit.OnGetVarAddress(Self, FValue);
 
-  Stream.ReadBuffer(DataStored, 1);
-  if DataStored then
-    ReadDataFromStream(Stream, FValue^, FType.Size, FType.TypeInfo);
+  if FValue = nil then
+  begin
+    // Allocate value
+    GetMem(FValue, FType.Size);
+    FillChar(FValue^, FType.Size, 0);
+    FOwnValue := True;
+
+    // Load value contents from stream, if stored
+    Stream.ReadBuffer(DataStored, 1);
+    if DataStored then
+      ReadDataFromStream(Stream, FValue^, FType.Size, FType.TypeInfo);
+  end else
+  begin
+    Stream.ReadBuffer(DataStored, 1);
+
+    { If data are stored, we must skip it from the stream.  But since there is
+      no way of knowing the amount of bytes to skip, we must actually read the
+      data into dummy memory. }
+    if DataStored then
+    begin
+      DummyValue := FType.NewValue;
+      try
+        ReadDataFromStream(Stream, DummyValue^, FType.Size, FType.TypeInfo);
+      finally
+        FType.DisposeValue(DummyValue);
+      end;
+    end;
+  end;
 end;
 
 {*
