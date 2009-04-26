@@ -2,14 +2,9 @@ unit SepiDelphiParser;
 
 interface
 
-{$D-}
-
 uses
-  SysUtils, Contnrs, SepiCompilerErrors, SepiParseTrees, SepiLL1ParserUtils,
-  SepiDelphiLexer;
-
-resourcestring
-  SSyntaxError = '%s attendu mais %s trouvé';
+  SysUtils, Contnrs, SepiCompilerErrors, SepiParseTrees, SepiParserUtils,
+  SepiLL1ParserUtils, SepiDelphiLexer;
 
 const
   ChoiceCount = 334;
@@ -130,7 +125,7 @@ const
   ntParamKind = 211; // ParamKind
   ntParamNameList = 212; // ParamNameList
   ntParamTypeAndDefault = 213; // ParamTypeAndDefault
-  ntComplexParamType = 214; // ComplexParamType
+  ntComptkParamType = 214; // ComptkParamType
   ntParamIsArray = 215; // ParamIsArray
   ntParamArrayType = 216; // ParamArrayType
   ntParamType = 217; // ParamType
@@ -226,31 +221,12 @@ const
 
 type
   {*
-    Choice pushing function
-    Pushes a choice to the preditive stack
-  *}
-  TPushChoiceProc = procedure of object;
-
-  {*
-    Parser
+    Analyseur syntaxique
     @author sjrd
     @version 1.0
   *}
-  TParser = class
+  TSepiDelphiParser = class(TSepiCustomLL1Parser)
   private
-    Errors: TSepiCompilerErrorList; /// Errors
-    Lexer: TLexer;                  /// Lexer
-    CurTerminal: TSepiTerminal;     /// Current terminal
-    Current: TSepiNonTerminal;      /// Current non-terminal
-    Stack: TSepiLL1ParsingStack;    /// Parsing stack
-
-    /// Push choice functions
-    PushChoiceProcs: array[0..ChoiceCount-1] of TPushChoiceProc;
-
-    procedure PushTry(AltRule: TRuleID);
-    function SyntaxError(const Expected: string): TSepiNonTerminal;
-
-    procedure PushChoice0;
     procedure PushChoice1;
     procedure PushChoice2;
     procedure PushChoice3;
@@ -584,16 +560,22 @@ type
     procedure PushChoice331;
     procedure PushChoice332;
     procedure PushChoice333;
+  protected
+    function IsTerminal(Symbol: TSepiSymbolClass): Boolean; override;
+    function IsNonTerminal(
+      Symbol: TSepiSymbolClass): Boolean; override;
 
-    procedure InternalParse(RootNode: TSepiParseTreeRootNode);
-  public
-    constructor Create(ALexer: TLexer);
-    destructor Destroy; override;
+    function GetStartSymbol: TSepiSymbolClass; override;
+    procedure InitPushChoiceProcs; override;
 
-    class procedure Parse(RootNode: TSepiParseTreeRootNode;
-      Lexer: TLexer); overload;
-    class procedure Parse(RootNode: TSepiParseTreeRootNode;
-      const Code: string; const FileName: string = ''); overload;
+    function GetExpectedString(
+      ExpectedSymbol: TSepiSymbolClass): string; override;
+
+    function GetParsingTable(NonTerminalClass: TSepiSymbolClass;
+      TerminalClass: TSepiSymbolClass): TRuleID; override;
+
+    function GetNonTerminalClass(
+      Symbol: TSepiSymbolClass): TSepiNonTerminalClass; override;
   end;
 
 var
@@ -603,30 +585,10 @@ var
 implementation
 
 type
-  TExceptionClass = class of Exception;
   TParsingTable = array[FirstNonTerminal..LastNonTerminal,
     FirstTerminal..LastTerminal] of TRuleID;
 
-  TTryTag = class(TObject)
-  private
-    FBookmark: TLexerBookmark;
-    FAltRule: TRuleID;
-    FCurrent: TSepiNonTerminal;
-  public
-    constructor Create(ABookmark: TLexerBookmark; AAltRule: TRuleID;
-      ACurrent: TSepiNonTerminal);
-    destructor Destroy; override;
-
-    property Bookmark: TLexerBookmark read FBookmark;
-    property AltRule: TRuleID read FAltRule;
-    property Current: TSepiNonTerminal read FCurrent;
-  end;
-
 const
-  scNextChildIsFake = -2;
-  scBackToParent = -3;
-  scPopTry = -4;
-
   ParsingTable: TParsingTable = (
     ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
     ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   2,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
@@ -837,75 +799,2491 @@ const
     ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1, 333,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1)
   );
 
-function IntInArray(Value: Integer; const IntArray: array of Integer): Boolean;
-var
-  LowIndex, HighIndex, MidIndex: Integer;
+{ TSepiDelphiParser class }
+
+procedure TSepiDelphiParser.PushChoice1;
 begin
-  LowIndex := Low(IntArray);
-  HighIndex := High(IntArray);
-
-  while LowIndex <= HighIndex do
-  begin
-    MidIndex := (LowIndex+HighIndex) div 2;
-
-    if Value < IntArray[MidIndex] then
-      HighIndex := MidIndex-1
-    else if Value > IntArray[MidIndex] then
-      LowIndex := MidIndex+1
-    else
-    begin
-      Result := True;
-      Exit;
-    end;
-  end;
-
-  Result := False;
+  Stack.Push(scBackToParent);
+  Stack.Push(tkEof);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntPriv0);
+  Stack.Push(ntInterface);
+  Stack.Push(tkSemiColon);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntIdentifier);
+  Stack.Push(tkUnit);
+  Stack.Push(scNextChildIsFake);
 end;
 
-{---------------}
-{ TTryTag class }
-{---------------}
-
-{*
-  Create a try tag
-  @param ABookmark   Lexer bookmark
-  @param AAltRule    Alternative rule
-*}
-constructor TTryTag.Create(ABookmark: TLexerBookmark; AAltRule: TRuleID;
-  ACurrent: TSepiNonTerminal);
+procedure TSepiDelphiParser.PushChoice2;
 begin
-  inherited Create;
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv1);
+  Stack.Push(ntUsesSection);
+  Stack.Push(tkInterface);
+  Stack.Push(scNextChildIsFake);
+end;
 
-  FBookmark := ABookmark;
-  FAltRule := AAltRule;
-  FCurrent := ACurrent;
+procedure TSepiDelphiParser.PushChoice3;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntInitFinit);
+  Stack.Push(ntPriv2);
+  Stack.Push(tkImplementation);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice4;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntTypeSection);
+end;
+
+procedure TSepiDelphiParser.PushChoice5;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntConstSection);
+end;
+
+procedure TSepiDelphiParser.PushChoice6;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntVarSection);
+end;
+
+procedure TSepiDelphiParser.PushChoice7;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntRoutineDecl);
+end;
+
+procedure TSepiDelphiParser.PushChoice8;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntTypeSection);
+end;
+
+procedure TSepiDelphiParser.PushChoice9;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntConstSection);
+end;
+
+procedure TSepiDelphiParser.PushChoice10;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntVarSection);
+end;
+
+procedure TSepiDelphiParser.PushChoice11;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntMethodImpl);
+end;
+
+procedure TSepiDelphiParser.PushChoice12;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv3);
+  Stack.Push(ntUnitInitialization);
+end;
+
+procedure TSepiDelphiParser.PushChoice13;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkIdentifier);
+end;
+
+procedure TSepiDelphiParser.PushChoice14;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntCallingConvention);
+end;
+
+procedure TSepiDelphiParser.PushChoice15;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkName);
+end;
+
+procedure TSepiDelphiParser.PushChoice16;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkIndex);
+end;
+
+procedure TSepiDelphiParser.PushChoice17;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkRead);
+end;
+
+procedure TSepiDelphiParser.PushChoice18;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkWrite);
+end;
+
+procedure TSepiDelphiParser.PushChoice19;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkDefault);
+end;
+
+procedure TSepiDelphiParser.PushChoice20;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkNoDefault);
+end;
+
+procedure TSepiDelphiParser.PushChoice21;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkStored);
+end;
+
+procedure TSepiDelphiParser.PushChoice22;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkDispID);
+end;
+
+procedure TSepiDelphiParser.PushChoice23;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkReadOnly);
+end;
+
+procedure TSepiDelphiParser.PushChoice24;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkWriteOnly);
+end;
+
+procedure TSepiDelphiParser.PushChoice25;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkString);
+end;
+
+procedure TSepiDelphiParser.PushChoice26;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkRegister);
+end;
+
+procedure TSepiDelphiParser.PushChoice27;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkCDecl);
+end;
+
+procedure TSepiDelphiParser.PushChoice28;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkPascal);
+end;
+
+procedure TSepiDelphiParser.PushChoice29;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkStdCall);
+end;
+
+procedure TSepiDelphiParser.PushChoice30;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkSafeCall);
+end;
+
+procedure TSepiDelphiParser.PushChoice31;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkSemiColon);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntCommaIdentList);
+  Stack.Push(tkUses);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice32;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv4);
+  Stack.Push(ntIdentifier);
+end;
+
+procedure TSepiDelphiParser.PushChoice33;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv5);
+  Stack.Push(ntIdentifier);
+end;
+
+procedure TSepiDelphiParser.PushChoice34;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntArrayInitializationExpression);
+end;
+
+procedure TSepiDelphiParser.PushChoice35;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntRecordInitializationExpression);
+end;
+
+procedure TSepiDelphiParser.PushChoice36;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntGUIDInitializationExpression);
+end;
+
+procedure TSepiDelphiParser.PushChoice37;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntOtherInitializationExpression);
+end;
+
+procedure TSepiDelphiParser.PushChoice38;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntArrayInitialization);
+end;
+
+procedure TSepiDelphiParser.PushChoice39;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkCloseBracket);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntPriv6);
+  Stack.Push(ntInitializationExpression);
+  Stack.Push(tkOpenBracket);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice40;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntRecordInitialization);
+end;
+
+procedure TSepiDelphiParser.PushChoice41;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkCloseBracket);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntPriv7);
+  Stack.Push(ntInitializationExpression);
+  Stack.Push(tkColon);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntIdentifier);
+  Stack.Push(tkOpenBracket);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice42;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntGUIDInitialization);
+end;
+
+procedure TSepiDelphiParser.PushChoice43;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntRecordInitialization);
+end;
+
+procedure TSepiDelphiParser.PushChoice44;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkStringCst);
+end;
+
+procedure TSepiDelphiParser.PushChoice45;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntOtherInitialization);
+end;
+
+procedure TSepiDelphiParser.PushChoice46;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntConstExpression);
+end;
+
+procedure TSepiDelphiParser.PushChoice47;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv8);
+  Stack.Push(ntSingleExpr);
+end;
+
+procedure TSepiDelphiParser.PushChoice48;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv9);
+  Stack.Push(ntSingleExpr);
+end;
+
+procedure TSepiDelphiParser.PushChoice49;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntExpression);
+end;
+
+procedure TSepiDelphiParser.PushChoice50;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntExpressionNoEquals);
+end;
+
+procedure TSepiDelphiParser.PushChoice51;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntExpression);
+end;
+
+procedure TSepiDelphiParser.PushChoice52;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntExpressionNoEquals);
+end;
+
+procedure TSepiDelphiParser.PushChoice53;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv10);
+  Stack.Push(ntParenthesizedExpr);
+end;
+
+procedure TSepiDelphiParser.PushChoice54;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv11);
+  Stack.Push(ntSingleValue);
+end;
+
+procedure TSepiDelphiParser.PushChoice55;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntSingleExpr);
+  Stack.Push(ntUnaryOp);
+end;
+
+procedure TSepiDelphiParser.PushChoice56;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkCloseBracket);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntExpression);
+  Stack.Push(tkOpenBracket);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice57;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntParameters);
+end;
+
+procedure TSepiDelphiParser.PushChoice58;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntArrayIndices);
+end;
+
+procedure TSepiDelphiParser.PushChoice59;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntFieldSelection);
+end;
+
+procedure TSepiDelphiParser.PushChoice60;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntDereference);
+end;
+
+procedure TSepiDelphiParser.PushChoice61;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkCloseBracket);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntExprList);
+  Stack.Push(tkOpenBracket);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice62;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkCloseSqBracket);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntExprList);
+  Stack.Push(tkOpenSqBracket);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice63;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv12);
+  Stack.Push(ntExpression);
+end;
+
+procedure TSepiDelphiParser.PushChoice64;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntIdentifier);
+  Stack.Push(tkDot);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice65;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkHat);
+end;
+
+procedure TSepiDelphiParser.PushChoice66;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkInteger);
+end;
+
+procedure TSepiDelphiParser.PushChoice67;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkFloat);
+end;
+
+procedure TSepiDelphiParser.PushChoice68;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkStringCst);
+end;
+
+procedure TSepiDelphiParser.PushChoice69;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntIdentifier);
+end;
+
+procedure TSepiDelphiParser.PushChoice70;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntIdentifier);
+  Stack.Push(tkInherited);
+end;
+
+procedure TSepiDelphiParser.PushChoice71;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkNil);
+end;
+
+procedure TSepiDelphiParser.PushChoice72;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkCloseSqBracket);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntSetValue);
+  Stack.Push(tkOpenSqBracket);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice73;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv13);
+  Stack.Push(ntSetRange);
+end;
+
+procedure TSepiDelphiParser.PushChoice74;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv14);
+  Stack.Push(ntExpression);
+end;
+
+procedure TSepiDelphiParser.PushChoice75;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkPlus);
+end;
+
+procedure TSepiDelphiParser.PushChoice76;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkMinus);
+end;
+
+procedure TSepiDelphiParser.PushChoice77;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkTimes);
+end;
+
+procedure TSepiDelphiParser.PushChoice78;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkDivide);
+end;
+
+procedure TSepiDelphiParser.PushChoice79;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkDiv);
+end;
+
+procedure TSepiDelphiParser.PushChoice80;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkMod);
+end;
+
+procedure TSepiDelphiParser.PushChoice81;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkShl);
+end;
+
+procedure TSepiDelphiParser.PushChoice82;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkShr);
+end;
+
+procedure TSepiDelphiParser.PushChoice83;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkOr);
+end;
+
+procedure TSepiDelphiParser.PushChoice84;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkAnd);
+end;
+
+procedure TSepiDelphiParser.PushChoice85;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkXor);
+end;
+
+procedure TSepiDelphiParser.PushChoice86;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkEquals);
+end;
+
+procedure TSepiDelphiParser.PushChoice87;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkLowerThan);
+end;
+
+procedure TSepiDelphiParser.PushChoice88;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkLowerEq);
+end;
+
+procedure TSepiDelphiParser.PushChoice89;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkGreaterThan);
+end;
+
+procedure TSepiDelphiParser.PushChoice90;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkGreaterEq);
+end;
+
+procedure TSepiDelphiParser.PushChoice91;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkNotEqual);
+end;
+
+procedure TSepiDelphiParser.PushChoice92;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkPlus);
+end;
+
+procedure TSepiDelphiParser.PushChoice93;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkMinus);
+end;
+
+procedure TSepiDelphiParser.PushChoice94;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkTimes);
+end;
+
+procedure TSepiDelphiParser.PushChoice95;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkDivide);
+end;
+
+procedure TSepiDelphiParser.PushChoice96;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkDiv);
+end;
+
+procedure TSepiDelphiParser.PushChoice97;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkMod);
+end;
+
+procedure TSepiDelphiParser.PushChoice98;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkShl);
+end;
+
+procedure TSepiDelphiParser.PushChoice99;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkShr);
+end;
+
+procedure TSepiDelphiParser.PushChoice100;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkOr);
+end;
+
+procedure TSepiDelphiParser.PushChoice101;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkAnd);
+end;
+
+procedure TSepiDelphiParser.PushChoice102;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkXor);
+end;
+
+procedure TSepiDelphiParser.PushChoice103;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkLowerThan);
+end;
+
+procedure TSepiDelphiParser.PushChoice104;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkLowerEq);
+end;
+
+procedure TSepiDelphiParser.PushChoice105;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkGreaterThan);
+end;
+
+procedure TSepiDelphiParser.PushChoice106;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkGreaterEq);
+end;
+
+procedure TSepiDelphiParser.PushChoice107;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkNotEqual);
+end;
+
+procedure TSepiDelphiParser.PushChoice108;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkAt);
+end;
+
+procedure TSepiDelphiParser.PushChoice109;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkPlus);
+end;
+
+procedure TSepiDelphiParser.PushChoice110;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkMinus);
+end;
+
+procedure TSepiDelphiParser.PushChoice111;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkNot);
+end;
+
+procedure TSepiDelphiParser.PushChoice112;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv15);
+  Stack.Push(ntConstDecl);
+  Stack.Push(ntConstKeyWord);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice113;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkConst);
+end;
+
+procedure TSepiDelphiParser.PushChoice114;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkResourceString);
+end;
+
+procedure TSepiDelphiParser.PushChoice115;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkSemiColon);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntTypeModifiers);
+  Stack.Push(ntInnerConstDecl);
+  Stack.Push(ntIdentifier);
+end;
+
+procedure TSepiDelphiParser.PushChoice116;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntInitializationExpression);
+  Stack.Push(tkEquals);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntTypeDesc);
+  Stack.Push(tkColon);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice117;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntConstExpression);
+  Stack.Push(tkEquals);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice118;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv16);
+  Stack.Push(ntGlobalVar);
+  Stack.Push(tkVar);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice119;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkSemiColon);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntTypeModifiers);
+  Stack.Push(ntInnerGlobalVar);
+  Stack.Push(ntIdentifier);
+end;
+
+procedure TSepiDelphiParser.PushChoice120;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv17);
+  Stack.Push(ntTypeDesc);
+  Stack.Push(tkColon);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice121;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntTypeDesc);
+  Stack.Push(tkColon);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntPriv18);
+  Stack.Push(ntIdentifier);
+  Stack.Push(tkComma);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice122;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv19);
+  Stack.Push(ntTypeDecl);
+  Stack.Push(tkType);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice123;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkSemiColon);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntTypeModifiers);
+  Stack.Push(ntTypeDesc);
+  Stack.Push(tkEquals);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntIdentifier);
+end;
+
+procedure TSepiDelphiParser.PushChoice124;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntCloneDesc);
+end;
+
+procedure TSepiDelphiParser.PushChoice125;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntRangeOrEnumDesc);
+end;
+
+procedure TSepiDelphiParser.PushChoice126;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntSetDesc);
+end;
+
+procedure TSepiDelphiParser.PushChoice127;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntStringDesc);
+end;
+
+procedure TSepiDelphiParser.PushChoice128;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPointerDesc);
+end;
+
+procedure TSepiDelphiParser.PushChoice129;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPackedDesc);
+end;
+
+procedure TSepiDelphiParser.PushChoice130;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPackedDesc);
+  Stack.Push(tkPacked);
+end;
+
+procedure TSepiDelphiParser.PushChoice131;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntClassDesc);
+end;
+
+procedure TSepiDelphiParser.PushChoice132;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntInterfaceDesc);
+end;
+
+procedure TSepiDelphiParser.PushChoice133;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntDispInterfaceDesc);
+end;
+
+procedure TSepiDelphiParser.PushChoice134;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntEventDesc);
+end;
+
+procedure TSepiDelphiParser.PushChoice135;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntArrayDesc);
+end;
+
+procedure TSepiDelphiParser.PushChoice136;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntRecordDesc);
+end;
+
+procedure TSepiDelphiParser.PushChoice137;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntTypeDesc);
+  Stack.Push(tkOf);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntArrayDims);
+  Stack.Push(tkArray);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice138;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkCloseSqBracket);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntPriv20);
+  Stack.Push(ntArrayRange);
+  Stack.Push(tkOpenSqBracket);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice139;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv21);
+  Stack.Push(ntConstOrType);
+end;
+
+procedure TSepiDelphiParser.PushChoice140;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv22);
+end;
+
+procedure TSepiDelphiParser.PushChoice141;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntQualifiedIdent);
+  Stack.Push(tkType);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice142;
+begin
+  PushTry(143);
+  Stack.Push(scPopTry);
+  Stack.Push(scBackToParent);
+  Stack.Push(ntEnumDesc);
+end;
+
+procedure TSepiDelphiParser.PushChoice143;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntRangeDesc);
+end;
+
+procedure TSepiDelphiParser.PushChoice144;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv23);
+  Stack.Push(ntConstOrTypeNoEquals);
+end;
+
+procedure TSepiDelphiParser.PushChoice145;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkCloseBracket);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntCommaIdentList);
+  Stack.Push(tkOpenBracket);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice146;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntTypeDesc);
+  Stack.Push(tkOf);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(tkSet);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice147;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv24);
+  Stack.Push(tkString);
+end;
+
+procedure TSepiDelphiParser.PushChoice148;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntQualifiedIdent);
+  Stack.Push(tkHat);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice149;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkEnd);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntRecordContents);
+  Stack.Push(tkRecord);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice150;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntRecordCaseBlock);
+  Stack.Push(ntPriv25);
+end;
+
+procedure TSepiDelphiParser.PushChoice151;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv27);
+  Stack.Push(tkOf);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntPriv26);
+  Stack.Push(ntIdentifier);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(tkCase);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice152;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv28);
+  Stack.Push(tkCloseBracket);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntRecordCaseContents);
+  Stack.Push(tkOpenBracket);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(tkColon);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntCaseLabels);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice153;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv29);
+  Stack.Push(ntConstExpression);
+end;
+
+procedure TSepiDelphiParser.PushChoice154;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntNextRecordCaseContentsEx);
+end;
+
+procedure TSepiDelphiParser.PushChoice155;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntNextRecordCaseContentsEx);
+  Stack.Push(tkSemiColon);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice156;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntRecordCaseBlock);
+end;
+
+procedure TSepiDelphiParser.PushChoice157;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntNextRecordCaseContents);
+  Stack.Push(ntRecordCaseField);
+end;
+
+procedure TSepiDelphiParser.PushChoice158;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntRecordCaseBlock);
+end;
+
+procedure TSepiDelphiParser.PushChoice159;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntTypeModifiers);
+  Stack.Push(ntTypeDesc);
+  Stack.Push(tkColon);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntCommaIdentList);
+end;
+
+procedure TSepiDelphiParser.PushChoice160;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkSemiColon);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntTypeModifiers);
+  Stack.Push(ntTypeDesc);
+  Stack.Push(tkColon);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntCommaIdentList);
+end;
+
+procedure TSepiDelphiParser.PushChoice161;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntClassExDesc);
+  Stack.Push(tkClass);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice162;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntClassContents);
+  Stack.Push(ntClassHeritage);
+end;
+
+procedure TSepiDelphiParser.PushChoice163;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntQualifiedIdent);
+  Stack.Push(tkOf);
+end;
+
+procedure TSepiDelphiParser.PushChoice164;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkEnd);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntClassMemberLists);
+end;
+
+procedure TSepiDelphiParser.PushChoice165;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkCloseBracket);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntPriv30);
+  Stack.Push(ntQualifiedIdent);
+  Stack.Push(tkOpenBracket);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice166;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv31);
+  Stack.Push(ntClassMemberList);
+end;
+
+procedure TSepiDelphiParser.PushChoice167;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkPrivate);
+end;
+
+procedure TSepiDelphiParser.PushChoice168;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkProtected);
+end;
+
+procedure TSepiDelphiParser.PushChoice169;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkPublic);
+end;
+
+procedure TSepiDelphiParser.PushChoice170;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkPublished);
+end;
+
+procedure TSepiDelphiParser.PushChoice171;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv33);
+  Stack.Push(ntPriv32);
+end;
+
+procedure TSepiDelphiParser.PushChoice172;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv34);
+  Stack.Push(tkInterface);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice173;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkCloseBracket);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntQualifiedIdent);
+  Stack.Push(tkOpenBracket);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice174;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv35);
+  Stack.Push(tkDispInterface);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice175;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkCloseSqBracket);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntConstExpression);
+  Stack.Push(tkOpenSqBracket);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice176;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv36);
+end;
+
+procedure TSepiDelphiParser.PushChoice177;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntMethodDecl);
+end;
+
+procedure TSepiDelphiParser.PushChoice178;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPropertyDecl);
+end;
+
+procedure TSepiDelphiParser.PushChoice179;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntNextMethodDecl);
+  Stack.Push(ntIdentifier);
+  Stack.Push(ntMethodKind);
+end;
+
+procedure TSepiDelphiParser.PushChoice180;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntMethodKindEx);
+  Stack.Push(tkClass);
+end;
+
+procedure TSepiDelphiParser.PushChoice181;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntMethodKindEx);
+end;
+
+procedure TSepiDelphiParser.PushChoice182;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkConstructor);
+end;
+
+procedure TSepiDelphiParser.PushChoice183;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkDestructor);
+end;
+
+procedure TSepiDelphiParser.PushChoice184;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkProcedure);
+end;
+
+procedure TSepiDelphiParser.PushChoice185;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkFunction);
+end;
+
+procedure TSepiDelphiParser.PushChoice186;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv37);
+  Stack.Push(tkSemiColon);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntMethodSignature);
+end;
+
+procedure TSepiDelphiParser.PushChoice187;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkSemiColon);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntIntfMethodRedirector);
+end;
+
+procedure TSepiDelphiParser.PushChoice188;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntIdentifier);
+  Stack.Push(tkEquals);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntIdentifier);
+  Stack.Push(tkDot);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice189;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv38);
+  Stack.Push(ntIdentifier);
+end;
+
+procedure TSepiDelphiParser.PushChoice190;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv40);
+  Stack.Push(tkSemiColon);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntPriv39);
+  Stack.Push(ntPropertyNextDecl);
+  Stack.Push(ntIdentifier);
+  Stack.Push(ntPropertyKind);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice191;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkProperty);
+end;
+
+procedure TSepiDelphiParser.PushChoice192;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPropertySignature);
+end;
+
+procedure TSepiDelphiParser.PushChoice193;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntRedefineMarker);
+end;
+
+procedure TSepiDelphiParser.PushChoice194;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntQualifiedIdent);
+  Stack.Push(tkRead);
+end;
+
+procedure TSepiDelphiParser.PushChoice195;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntQualifiedIdent);
+  Stack.Push(tkWrite);
+end;
+
+procedure TSepiDelphiParser.PushChoice196;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntConstExpression);
+  Stack.Push(tkIndex);
+end;
+
+procedure TSepiDelphiParser.PushChoice197;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntConstExpression);
+  Stack.Push(tkDefault);
+end;
+
+procedure TSepiDelphiParser.PushChoice198;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkNoDefault);
+end;
+
+procedure TSepiDelphiParser.PushChoice199;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntExpression);
+  Stack.Push(tkStored);
+end;
+
+procedure TSepiDelphiParser.PushChoice200;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkReadOnly);
+end;
+
+procedure TSepiDelphiParser.PushChoice201;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkWriteOnly);
+end;
+
+procedure TSepiDelphiParser.PushChoice202;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntConstExpression);
+  Stack.Push(tkDispID);
+end;
+
+procedure TSepiDelphiParser.PushChoice203;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntIdentifier);
+end;
+
+procedure TSepiDelphiParser.PushChoice204;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntEventModifiers);
+  Stack.Push(ntMethodSignature);
+  Stack.Push(ntRoutineKind);
+end;
+
+procedure TSepiDelphiParser.PushChoice205;
+begin
+  PushTry(206);
+  Stack.Push(scPopTry);
+  Stack.Push(scBackToParent);
+  Stack.Push(ntEventModifiers);
+  Stack.Push(ntCallingConvention);
+end;
+
+procedure TSepiDelphiParser.PushChoice206;
+begin
+  PushTry(207);
+  Stack.Push(scPopTry);
+  Stack.Push(scBackToParent);
+  Stack.Push(ntEventModifiers);
+  Stack.Push(ntEventIsOfObject);
+end;
+
+procedure TSepiDelphiParser.PushChoice207;
+begin
+  PushTry(0);
+  Stack.Push(scPopTry);
+  Stack.Push(scBackToParent);
+  Stack.Push(ntEventModifiers);
+  Stack.Push(ntCallingConvention);
+  Stack.Push(tkSemiColon);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice208;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkObject);
+  Stack.Push(tkOf);
+end;
+
+procedure TSepiDelphiParser.PushChoice209;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv42);
+  Stack.Push(tkSemiColon);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntPriv41);
+  Stack.Push(ntMethodSignature);
+  Stack.Push(ntIdentifier);
+  Stack.Push(ntRoutineKind);
+end;
+
+procedure TSepiDelphiParser.PushChoice210;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkProcedure);
+end;
+
+procedure TSepiDelphiParser.PushChoice211;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkFunction);
+end;
+
+procedure TSepiDelphiParser.PushChoice212;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntIdentifier);
+end;
+
+procedure TSepiDelphiParser.PushChoice213;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntReturnType);
+  Stack.Push(ntPriv43);
+end;
+
+procedure TSepiDelphiParser.PushChoice214;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPropType);
+  Stack.Push(ntPriv44);
+end;
+
+procedure TSepiDelphiParser.PushChoice215;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntParamList);
+end;
+
+procedure TSepiDelphiParser.PushChoice216;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv45);
+  Stack.Push(ntParam);
+end;
+
+procedure TSepiDelphiParser.PushChoice217;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntQualifiedIdent);
+  Stack.Push(tkColon);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice218;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntQualifiedIdent);
+  Stack.Push(tkColon);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice219;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntParamTypeAndDefault);
+  Stack.Push(ntParamNameList);
+  Stack.Push(ntParamKind);
+end;
+
+procedure TSepiDelphiParser.PushChoice220;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkConst);
+end;
+
+procedure TSepiDelphiParser.PushChoice221;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkVar);
+end;
+
+procedure TSepiDelphiParser.PushChoice222;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkOut);
+end;
+
+procedure TSepiDelphiParser.PushChoice223;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv46);
+  Stack.Push(ntIdentifier);
+end;
+
+procedure TSepiDelphiParser.PushChoice224;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv47);
+  Stack.Push(ntComptkParamType);
+  Stack.Push(tkColon);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice225;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntParamArrayType);
+  Stack.Push(ntParamIsArray);
+end;
+
+procedure TSepiDelphiParser.PushChoice226;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntParamType);
+end;
+
+procedure TSepiDelphiParser.PushChoice227;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkOf);
+  Stack.Push(tkArray);
+end;
+
+procedure TSepiDelphiParser.PushChoice228;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntQualifiedIdent);
+end;
+
+procedure TSepiDelphiParser.PushChoice229;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkConst);
+end;
+
+procedure TSepiDelphiParser.PushChoice230;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntQualifiedIdent);
+end;
+
+procedure TSepiDelphiParser.PushChoice231;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntInitializationExpression);
+  Stack.Push(tkEquals);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice232;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntMethodImplementation);
+  Stack.Push(ntMethodImplDecl);
+end;
+
+procedure TSepiDelphiParser.PushChoice233;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv49);
+  Stack.Push(tkSemiColon);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntPriv48);
+  Stack.Push(ntMethodSignature);
+  Stack.Push(ntQualifiedIdent);
+  Stack.Push(ntMethodKind);
+end;
+
+procedure TSepiDelphiParser.PushChoice234;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntForwardMarker);
+end;
+
+procedure TSepiDelphiParser.PushChoice235;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntMethodBody);
+end;
+
+procedure TSepiDelphiParser.PushChoice236;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkSemiColon);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntBeginEndBlock);
+  Stack.Push(ntPriv50);
+end;
+
+procedure TSepiDelphiParser.PushChoice237;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntTypeSection);
+end;
+
+procedure TSepiDelphiParser.PushChoice238;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntConstSection);
+end;
+
+procedure TSepiDelphiParser.PushChoice239;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntLocalVarSection);
+end;
+
+procedure TSepiDelphiParser.PushChoice240;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkSemiColon);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(tkForward);
+end;
+
+procedure TSepiDelphiParser.PushChoice241;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntInstructionList);
+  Stack.Push(tkInitialization);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice242;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntInstructionList);
+  Stack.Push(tkFinalization);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice243;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv51);
+  Stack.Push(ntLocalVar);
+  Stack.Push(tkVar);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice244;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkSemiColon);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntTypeDesc);
+  Stack.Push(tkColon);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntPriv52);
+  Stack.Push(ntIdentifier);
+end;
+
+procedure TSepiDelphiParser.PushChoice245;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv53);
+end;
+
+procedure TSepiDelphiParser.PushChoice246;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntNoInstruction);
+end;
+
+procedure TSepiDelphiParser.PushChoice247;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntBeginEndBlock);
+end;
+
+procedure TSepiDelphiParser.PushChoice248;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntIfThenElseInstruction);
+end;
+
+procedure TSepiDelphiParser.PushChoice249;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntWhileInstruction);
+end;
+
+procedure TSepiDelphiParser.PushChoice250;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntRepeatInstruction);
+end;
+
+procedure TSepiDelphiParser.PushChoice251;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntForInstruction);
+end;
+
+procedure TSepiDelphiParser.PushChoice252;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntTryInstruction);
+end;
+
+procedure TSepiDelphiParser.PushChoice253;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntRaiseInstruction);
+end;
+
+procedure TSepiDelphiParser.PushChoice254;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntExpressionInstruction);
+end;
+
+procedure TSepiDelphiParser.PushChoice255;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkEnd);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntInstructionList);
+  Stack.Push(tkBegin);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice256;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntElseBranch);
+  Stack.Push(ntInstruction);
+  Stack.Push(tkThen);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntExpression);
+  Stack.Push(tkIf);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice257;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntInstruction);
+  Stack.Push(tkElse);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice258;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntNoInstruction);
+end;
+
+procedure TSepiDelphiParser.PushChoice259;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntInstruction);
+  Stack.Push(tkDo);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntExpression);
+  Stack.Push(tkWhile);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice260;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntExpression);
+  Stack.Push(tkUntil);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntInstructionList);
+  Stack.Push(tkRepeat);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice261;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntInstruction);
+  Stack.Push(tkDo);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntExpression);
+  Stack.Push(ntToDownTo);
+  Stack.Push(ntExpression);
+  Stack.Push(tkAssign);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntIdentifier);
+  Stack.Push(tkFor);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice262;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkTo);
+end;
+
+procedure TSepiDelphiParser.PushChoice263;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkDownTo);
+end;
+
+procedure TSepiDelphiParser.PushChoice264;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkEnd);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntNextTryInstruction);
+  Stack.Push(ntInstructionList);
+  Stack.Push(tkTry);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice265;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntExceptClause);
+end;
+
+procedure TSepiDelphiParser.PushChoice266;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntFinallyClause);
+end;
+
+procedure TSepiDelphiParser.PushChoice267;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntNextExceptClause);
+  Stack.Push(tkExcept);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice268;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntInstructionList);
+end;
+
+procedure TSepiDelphiParser.PushChoice269;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntMultiOn);
+end;
+
+procedure TSepiDelphiParser.PushChoice270;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntMultiOnElseClause);
+  Stack.Push(ntPriv54);
+  Stack.Push(ntOnClause);
+end;
+
+procedure TSepiDelphiParser.PushChoice271;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntInstructionList);
+  Stack.Push(tkDo);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntPriv55);
+  Stack.Push(ntQualifiedIdent);
+  Stack.Push(tkOn);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice272;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntInstructionList);
+  Stack.Push(tkElse);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice273;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntInstructionList);
+  Stack.Push(tkFinally);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice274;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv56);
+  Stack.Push(tkRaise);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice275;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv57);
+  Stack.Push(ntExpression);
+end;
+
+procedure TSepiDelphiParser.PushChoice276;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkDot);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(tkEnd);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntImplementation);
+end;
+
+procedure TSepiDelphiParser.PushChoice277;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv1);
+  Stack.Push(ntIntfSection);
+end;
+
+procedure TSepiDelphiParser.PushChoice278;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv2);
+  Stack.Push(ntImplSection);
+end;
+
+procedure TSepiDelphiParser.PushChoice279;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntUnitFinalization);
+end;
+
+procedure TSepiDelphiParser.PushChoice280;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv4);
+  Stack.Push(ntIdentifier);
+  Stack.Push(tkComma);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice281;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv5);
+  Stack.Push(ntIdentifier);
+  Stack.Push(tkDot);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice282;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv6);
+  Stack.Push(ntInitializationExpression);
+  Stack.Push(tkComma);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice283;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv7);
+  Stack.Push(ntInitializationExpression);
+  Stack.Push(tkColon);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntIdentifier);
+  Stack.Push(tkSemiColon);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice284;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv8);
+  Stack.Push(ntSingleExpr);
+  Stack.Push(ntBinaryOp);
+end;
+
+procedure TSepiDelphiParser.PushChoice285;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv9);
+  Stack.Push(ntSingleExpr);
+  Stack.Push(ntBinaryOpNoEquals);
+end;
+
+procedure TSepiDelphiParser.PushChoice286;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv10);
+  Stack.Push(ntNextExpr);
+end;
+
+procedure TSepiDelphiParser.PushChoice287;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv11);
+  Stack.Push(ntNextExpr);
+end;
+
+procedure TSepiDelphiParser.PushChoice288;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv12);
+  Stack.Push(ntExpression);
+  Stack.Push(tkComma);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice289;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv13);
+  Stack.Push(ntSetRange);
+  Stack.Push(tkComma);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice290;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntExpression);
+  Stack.Push(tkRange);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice291;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv15);
+  Stack.Push(ntConstDecl);
+end;
+
+procedure TSepiDelphiParser.PushChoice292;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv16);
+  Stack.Push(ntGlobalVar);
+end;
+
+procedure TSepiDelphiParser.PushChoice293;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntInitializationExpression);
+  Stack.Push(tkEquals);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice294;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv18);
+  Stack.Push(ntIdentifier);
+  Stack.Push(tkComma);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice295;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv19);
+  Stack.Push(ntTypeDecl);
+end;
+
+procedure TSepiDelphiParser.PushChoice296;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv20);
+  Stack.Push(ntArrayRange);
+  Stack.Push(tkComma);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice297;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntConstExpression);
+  Stack.Push(tkRange);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice298;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv22);
+  Stack.Push(ntIdentifier);
+end;
+
+procedure TSepiDelphiParser.PushChoice299;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntConstExpressionNoEquals);
+  Stack.Push(tkRange);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice300;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkCloseSqBracket);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntConstExpression);
+  Stack.Push(tkOpenSqBracket);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice301;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv25);
+  Stack.Push(ntField);
+end;
+
+procedure TSepiDelphiParser.PushChoice302;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntIdentifier);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(tkColon);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice303;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv27);
+  Stack.Push(ntRecordCase);
+end;
+
+procedure TSepiDelphiParser.PushChoice304;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkSemiColon);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice305;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv29);
+  Stack.Push(ntConstExpression);
+  Stack.Push(tkComma);
+end;
+
+procedure TSepiDelphiParser.PushChoice306;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv30);
+  Stack.Push(ntQualifiedIdent);
+  Stack.Push(tkComma);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice307;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv31);
+  Stack.Push(ntClassMemberList);
+  Stack.Push(ntVisibility);
+end;
+
+procedure TSepiDelphiParser.PushChoice308;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv32);
+  Stack.Push(ntField);
+end;
+
+procedure TSepiDelphiParser.PushChoice309;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv33);
+  Stack.Push(ntMethodProp);
+end;
+
+procedure TSepiDelphiParser.PushChoice310;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkEnd);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntInterfaceMemberList);
+  Stack.Push(ntInterfaceGUID);
+  Stack.Push(ntInterfaceHeritage);
+end;
+
+procedure TSepiDelphiParser.PushChoice311;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkEnd);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntInterfaceMemberList);
+  Stack.Push(ntInterfaceGUID);
+  Stack.Push(ntDispInterfaceHeritage);
+end;
+
+procedure TSepiDelphiParser.PushChoice312;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv36);
+  Stack.Push(ntMethodProp);
+end;
+
+procedure TSepiDelphiParser.PushChoice313;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv37);
+  Stack.Push(tkSemiColon);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntMethodModifier);
+end;
+
+procedure TSepiDelphiParser.PushChoice314;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntConstExpression);
+end;
+
+procedure TSepiDelphiParser.PushChoice315;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv39);
+  Stack.Push(ntPropInfo);
+end;
+
+procedure TSepiDelphiParser.PushChoice316;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv40);
+  Stack.Push(tkSemiColon);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntPropertyModifier);
+end;
+
+procedure TSepiDelphiParser.PushChoice317;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv41);
+  Stack.Push(ntRoutineModifier);
+end;
+
+procedure TSepiDelphiParser.PushChoice318;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv42);
+  Stack.Push(tkSemiColon);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntRoutineModifier);
+end;
+
+procedure TSepiDelphiParser.PushChoice319;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkCloseBracket);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntMethodParamList);
+  Stack.Push(tkOpenBracket);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice320;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(tkCloseSqBracket);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntParamList);
+  Stack.Push(tkOpenSqBracket);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice321;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv45);
+  Stack.Push(ntParam);
+  Stack.Push(tkSemiColon);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice322;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv46);
+  Stack.Push(ntIdentifier);
+  Stack.Push(tkComma);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice323;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntParamDefault);
+end;
+
+procedure TSepiDelphiParser.PushChoice324;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv48);
+  Stack.Push(ntRoutineModifier);
+end;
+
+procedure TSepiDelphiParser.PushChoice325;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv49);
+  Stack.Push(tkSemiColon);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntRoutineModifier);
+end;
+
+procedure TSepiDelphiParser.PushChoice326;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv50);
+  Stack.Push(ntInMethodSection);
+end;
+
+procedure TSepiDelphiParser.PushChoice327;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv51);
+  Stack.Push(ntLocalVar);
+end;
+
+procedure TSepiDelphiParser.PushChoice328;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv52);
+  Stack.Push(ntIdentifier);
+  Stack.Push(tkComma);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice329;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv53);
+  Stack.Push(tkSemiColon);
+  Stack.Push(scNextChildIsFake);
+  Stack.Push(ntInstruction);
+end;
+
+procedure TSepiDelphiParser.PushChoice330;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntPriv54);
+  Stack.Push(ntOnClause);
+end;
+
+procedure TSepiDelphiParser.PushChoice331;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntQualifiedIdent);
+  Stack.Push(tkColon);
+  Stack.Push(scNextChildIsFake);
+end;
+
+procedure TSepiDelphiParser.PushChoice332;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntExpression);
+end;
+
+procedure TSepiDelphiParser.PushChoice333;
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(ntExpression);
+  Stack.Push(tkAssign);
+  Stack.Push(scNextChildIsFake);
 end;
 
 {*
   [@inheritDoc]
 *}
-destructor TTryTag.Destroy;
+function TSepiDelphiParser.IsTerminal(Symbol: TSepiSymbolClass): Boolean;
 begin
-  FBookmark.Free;
-
-  inherited;
+  Result := (Symbol >= FirstTerminal) and (Symbol <= LastTerminal);
 end;
 
-{---------------}
-{ TParser class }
-{---------------}
+{*
+  [@inheritDoc]
+*}
+function TSepiDelphiParser.IsNonTerminal(Symbol: TSepiSymbolClass): Boolean;
+begin
+  Result := (Symbol >= FirstNonTerminal) and (Symbol <= LastNonTerminal);
+end;
 
 {*
-  Create a new parser
-  @param Lexer   Lexer
+  [@inheritDoc]
 *}
-constructor TParser.Create(ALexer: TLexer);
+function TSepiDelphiParser.GetStartSymbol: TSepiSymbolClass;
 begin
-  inherited Create;
-  Errors := ALexer.Errors;
-  Stack := TSepiLL1ParsingStack.Create(ntSource);
+  Result := ntSource;
+end;
 
-  PushChoiceProcs[0] := PushChoice0;
+{*
+  [@inheritDoc]
+*}
+procedure TSepiDelphiParser.InitPushChoiceProcs;
+begin
+  SetLength(PushChoiceProcs, ChoiceCount);
+
+  inherited;
+
   PushChoiceProcs[1] := PushChoice1;
   PushChoiceProcs[2] := PushChoice2;
   PushChoiceProcs[3] := PushChoice3;
@@ -1239,2612 +3617,33 @@ begin
   PushChoiceProcs[331] := PushChoice331;
   PushChoiceProcs[332] := PushChoice332;
   PushChoiceProcs[333] := PushChoice333;
-
-  Lexer := ALexer;
-  CurTerminal := Lexer.CurTerminal;
 end;
 
 {*
   [@inheritDoc]
 *}
-destructor TParser.Destroy;
+function TSepiDelphiParser.GetExpectedString(
+  ExpectedSymbol: TSepiSymbolClass): string;
 begin
-  Lexer.Free;
-  Stack.Free;
-  inherited Destroy;
+  Result := SymbolClassNames[ExpectedSymbol];
 end;
 
 {*
-  Push un try sur la pile
-  @param AltRule   Règle alternative
+  [@inheritDoc]
 *}
-procedure TParser.PushTry(AltRule: TRuleID);
+function TSepiDelphiParser.GetParsingTable(NonTerminalClass,
+  TerminalClass: TSepiSymbolClass): TRuleID;
 begin
-  Stack.PushTry(TTryTag.Create(
-    Lexer.MakeBookmark, AltRule, Current));
+  Result := ParsingTable[NonTerminalClass, TerminalClass];
 end;
 
 {*
-  Raises a syntax error
-  @param Expected   Expected terminal or non-terminal
+  [@inheritDoc]
 *}
-function TParser.SyntaxError(const Expected: string): TSepiNonTerminal;
-var
-  TryTag: TTryTag;
-  I: Integer;
+function TSepiDelphiParser.GetNonTerminalClass(
+  Symbol: TSepiSymbolClass): TSepiNonTerminalClass;
 begin
-  if Stack.IsInTry then
-  begin
-    TryTag := TTryTag(Stack.UnwindTry);
-    try
-      Lexer.ResetToBookmark(TryTag.Bookmark, False);
-      CurTerminal := Lexer.CurTerminal;
-      PushChoiceProcs[TryTag.AltRule];
-      Result := TryTag.Current;
-
-      for I := 0 to Result.ChildCount-1 do
-        Result.Children[I].Free;
-    finally
-      TryTag.Free;
-    end;
-  end else
-  begin
-    Errors.MakeError(Format(SSyntaxError,
-      [Expected, CurTerminal.Representation]), ekFatalError,
-      CurTerminal.SourcePos);
-    Result := nil;
-  end;
-end;
-
-procedure TParser.PushChoice0;
-begin
-  Stack.Push(scBackToParent);
-end;
-
-procedure TParser.PushChoice1;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexEof);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntPriv0);
-  Stack.Push(ntInterface);
-  Stack.Push(lexSemiColon);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntIdentifier);
-  Stack.Push(lexUnit);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice2;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv1);
-  Stack.Push(ntUsesSection);
-  Stack.Push(lexInterface);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice3;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntInitFinit);
-  Stack.Push(ntPriv2);
-  Stack.Push(lexImplementation);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice4;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntTypeSection);
-end;
-
-procedure TParser.PushChoice5;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntConstSection);
-end;
-
-procedure TParser.PushChoice6;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntVarSection);
-end;
-
-procedure TParser.PushChoice7;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntRoutineDecl);
-end;
-
-procedure TParser.PushChoice8;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntTypeSection);
-end;
-
-procedure TParser.PushChoice9;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntConstSection);
-end;
-
-procedure TParser.PushChoice10;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntVarSection);
-end;
-
-procedure TParser.PushChoice11;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntMethodImpl);
-end;
-
-procedure TParser.PushChoice12;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv3);
-  Stack.Push(ntUnitInitialization);
-end;
-
-procedure TParser.PushChoice13;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexIdentifier);
-end;
-
-procedure TParser.PushChoice14;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntCallingConvention);
-end;
-
-procedure TParser.PushChoice15;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexName);
-end;
-
-procedure TParser.PushChoice16;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexIndex);
-end;
-
-procedure TParser.PushChoice17;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexRead);
-end;
-
-procedure TParser.PushChoice18;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexWrite);
-end;
-
-procedure TParser.PushChoice19;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexDefault);
-end;
-
-procedure TParser.PushChoice20;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexNoDefault);
-end;
-
-procedure TParser.PushChoice21;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexStored);
-end;
-
-procedure TParser.PushChoice22;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexDispID);
-end;
-
-procedure TParser.PushChoice23;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexReadOnly);
-end;
-
-procedure TParser.PushChoice24;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexWriteOnly);
-end;
-
-procedure TParser.PushChoice25;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexString);
-end;
-
-procedure TParser.PushChoice26;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexRegister);
-end;
-
-procedure TParser.PushChoice27;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexCDecl);
-end;
-
-procedure TParser.PushChoice28;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexPascal);
-end;
-
-procedure TParser.PushChoice29;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexStdCall);
-end;
-
-procedure TParser.PushChoice30;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexSafeCall);
-end;
-
-procedure TParser.PushChoice31;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexSemiColon);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntCommaIdentList);
-  Stack.Push(lexUses);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice32;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv4);
-  Stack.Push(ntIdentifier);
-end;
-
-procedure TParser.PushChoice33;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv5);
-  Stack.Push(ntIdentifier);
-end;
-
-procedure TParser.PushChoice34;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntArrayInitializationExpression);
-end;
-
-procedure TParser.PushChoice35;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntRecordInitializationExpression);
-end;
-
-procedure TParser.PushChoice36;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntGUIDInitializationExpression);
-end;
-
-procedure TParser.PushChoice37;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntOtherInitializationExpression);
-end;
-
-procedure TParser.PushChoice38;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntArrayInitialization);
-end;
-
-procedure TParser.PushChoice39;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexCloseBracket);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntPriv6);
-  Stack.Push(ntInitializationExpression);
-  Stack.Push(lexOpenBracket);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice40;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntRecordInitialization);
-end;
-
-procedure TParser.PushChoice41;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexCloseBracket);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntPriv7);
-  Stack.Push(ntInitializationExpression);
-  Stack.Push(lexColon);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntIdentifier);
-  Stack.Push(lexOpenBracket);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice42;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntGUIDInitialization);
-end;
-
-procedure TParser.PushChoice43;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntRecordInitialization);
-end;
-
-procedure TParser.PushChoice44;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexStringCst);
-end;
-
-procedure TParser.PushChoice45;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntOtherInitialization);
-end;
-
-procedure TParser.PushChoice46;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntConstExpression);
-end;
-
-procedure TParser.PushChoice47;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv8);
-  Stack.Push(ntSingleExpr);
-end;
-
-procedure TParser.PushChoice48;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv9);
-  Stack.Push(ntSingleExpr);
-end;
-
-procedure TParser.PushChoice49;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntExpression);
-end;
-
-procedure TParser.PushChoice50;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntExpressionNoEquals);
-end;
-
-procedure TParser.PushChoice51;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntExpression);
-end;
-
-procedure TParser.PushChoice52;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntExpressionNoEquals);
-end;
-
-procedure TParser.PushChoice53;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv10);
-  Stack.Push(ntParenthesizedExpr);
-end;
-
-procedure TParser.PushChoice54;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv11);
-  Stack.Push(ntSingleValue);
-end;
-
-procedure TParser.PushChoice55;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntSingleExpr);
-  Stack.Push(ntUnaryOp);
-end;
-
-procedure TParser.PushChoice56;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexCloseBracket);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntExpression);
-  Stack.Push(lexOpenBracket);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice57;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntParameters);
-end;
-
-procedure TParser.PushChoice58;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntArrayIndices);
-end;
-
-procedure TParser.PushChoice59;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntFieldSelection);
-end;
-
-procedure TParser.PushChoice60;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntDereference);
-end;
-
-procedure TParser.PushChoice61;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexCloseBracket);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntExprList);
-  Stack.Push(lexOpenBracket);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice62;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexCloseSqBracket);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntExprList);
-  Stack.Push(lexOpenSqBracket);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice63;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv12);
-  Stack.Push(ntExpression);
-end;
-
-procedure TParser.PushChoice64;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntIdentifier);
-  Stack.Push(lexDot);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice65;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexHat);
-end;
-
-procedure TParser.PushChoice66;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexInteger);
-end;
-
-procedure TParser.PushChoice67;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexFloat);
-end;
-
-procedure TParser.PushChoice68;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexStringCst);
-end;
-
-procedure TParser.PushChoice69;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntIdentifier);
-end;
-
-procedure TParser.PushChoice70;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntIdentifier);
-  Stack.Push(lexInherited);
-end;
-
-procedure TParser.PushChoice71;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexNil);
-end;
-
-procedure TParser.PushChoice72;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexCloseSqBracket);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntSetValue);
-  Stack.Push(lexOpenSqBracket);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice73;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv13);
-  Stack.Push(ntSetRange);
-end;
-
-procedure TParser.PushChoice74;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv14);
-  Stack.Push(ntExpression);
-end;
-
-procedure TParser.PushChoice75;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexPlus);
-end;
-
-procedure TParser.PushChoice76;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexMinus);
-end;
-
-procedure TParser.PushChoice77;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexTimes);
-end;
-
-procedure TParser.PushChoice78;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexDivide);
-end;
-
-procedure TParser.PushChoice79;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexDiv);
-end;
-
-procedure TParser.PushChoice80;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexMod);
-end;
-
-procedure TParser.PushChoice81;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexShl);
-end;
-
-procedure TParser.PushChoice82;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexShr);
-end;
-
-procedure TParser.PushChoice83;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexOr);
-end;
-
-procedure TParser.PushChoice84;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexAnd);
-end;
-
-procedure TParser.PushChoice85;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexXor);
-end;
-
-procedure TParser.PushChoice86;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexEquals);
-end;
-
-procedure TParser.PushChoice87;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexLowerThan);
-end;
-
-procedure TParser.PushChoice88;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexLowerEq);
-end;
-
-procedure TParser.PushChoice89;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexGreaterThan);
-end;
-
-procedure TParser.PushChoice90;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexGreaterEq);
-end;
-
-procedure TParser.PushChoice91;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexNotEqual);
-end;
-
-procedure TParser.PushChoice92;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexPlus);
-end;
-
-procedure TParser.PushChoice93;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexMinus);
-end;
-
-procedure TParser.PushChoice94;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexTimes);
-end;
-
-procedure TParser.PushChoice95;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexDivide);
-end;
-
-procedure TParser.PushChoice96;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexDiv);
-end;
-
-procedure TParser.PushChoice97;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexMod);
-end;
-
-procedure TParser.PushChoice98;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexShl);
-end;
-
-procedure TParser.PushChoice99;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexShr);
-end;
-
-procedure TParser.PushChoice100;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexOr);
-end;
-
-procedure TParser.PushChoice101;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexAnd);
-end;
-
-procedure TParser.PushChoice102;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexXor);
-end;
-
-procedure TParser.PushChoice103;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexLowerThan);
-end;
-
-procedure TParser.PushChoice104;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexLowerEq);
-end;
-
-procedure TParser.PushChoice105;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexGreaterThan);
-end;
-
-procedure TParser.PushChoice106;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexGreaterEq);
-end;
-
-procedure TParser.PushChoice107;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexNotEqual);
-end;
-
-procedure TParser.PushChoice108;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexAt);
-end;
-
-procedure TParser.PushChoice109;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexPlus);
-end;
-
-procedure TParser.PushChoice110;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexMinus);
-end;
-
-procedure TParser.PushChoice111;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexNot);
-end;
-
-procedure TParser.PushChoice112;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv15);
-  Stack.Push(ntConstDecl);
-  Stack.Push(ntConstKeyWord);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice113;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexConst);
-end;
-
-procedure TParser.PushChoice114;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexResourceString);
-end;
-
-procedure TParser.PushChoice115;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexSemiColon);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntTypeModifiers);
-  Stack.Push(ntInnerConstDecl);
-  Stack.Push(ntIdentifier);
-end;
-
-procedure TParser.PushChoice116;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntInitializationExpression);
-  Stack.Push(lexEquals);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntTypeDesc);
-  Stack.Push(lexColon);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice117;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntConstExpression);
-  Stack.Push(lexEquals);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice118;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv16);
-  Stack.Push(ntGlobalVar);
-  Stack.Push(lexVar);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice119;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexSemiColon);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntTypeModifiers);
-  Stack.Push(ntInnerGlobalVar);
-  Stack.Push(ntIdentifier);
-end;
-
-procedure TParser.PushChoice120;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv17);
-  Stack.Push(ntTypeDesc);
-  Stack.Push(lexColon);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice121;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntTypeDesc);
-  Stack.Push(lexColon);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntPriv18);
-  Stack.Push(ntIdentifier);
-  Stack.Push(lexComma);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice122;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv19);
-  Stack.Push(ntTypeDecl);
-  Stack.Push(lexType);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice123;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexSemiColon);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntTypeModifiers);
-  Stack.Push(ntTypeDesc);
-  Stack.Push(lexEquals);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntIdentifier);
-end;
-
-procedure TParser.PushChoice124;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntCloneDesc);
-end;
-
-procedure TParser.PushChoice125;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntRangeOrEnumDesc);
-end;
-
-procedure TParser.PushChoice126;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntSetDesc);
-end;
-
-procedure TParser.PushChoice127;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntStringDesc);
-end;
-
-procedure TParser.PushChoice128;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPointerDesc);
-end;
-
-procedure TParser.PushChoice129;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPackedDesc);
-end;
-
-procedure TParser.PushChoice130;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPackedDesc);
-  Stack.Push(lexPacked);
-end;
-
-procedure TParser.PushChoice131;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntClassDesc);
-end;
-
-procedure TParser.PushChoice132;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntInterfaceDesc);
-end;
-
-procedure TParser.PushChoice133;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntDispInterfaceDesc);
-end;
-
-procedure TParser.PushChoice134;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntEventDesc);
-end;
-
-procedure TParser.PushChoice135;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntArrayDesc);
-end;
-
-procedure TParser.PushChoice136;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntRecordDesc);
-end;
-
-procedure TParser.PushChoice137;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntTypeDesc);
-  Stack.Push(lexOf);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntArrayDims);
-  Stack.Push(lexArray);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice138;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexCloseSqBracket);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntPriv20);
-  Stack.Push(ntArrayRange);
-  Stack.Push(lexOpenSqBracket);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice139;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv21);
-  Stack.Push(ntConstOrType);
-end;
-
-procedure TParser.PushChoice140;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv22);
-end;
-
-procedure TParser.PushChoice141;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntQualifiedIdent);
-  Stack.Push(lexType);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice142;
-begin
-  PushTry(143);
-  Stack.Push(scPopTry);
-  Stack.Push(scBackToParent);
-  Stack.Push(ntEnumDesc);
-end;
-
-procedure TParser.PushChoice143;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntRangeDesc);
-end;
-
-procedure TParser.PushChoice144;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv23);
-  Stack.Push(ntConstOrTypeNoEquals);
-end;
-
-procedure TParser.PushChoice145;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexCloseBracket);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntCommaIdentList);
-  Stack.Push(lexOpenBracket);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice146;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntTypeDesc);
-  Stack.Push(lexOf);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(lexSet);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice147;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv24);
-  Stack.Push(lexString);
-end;
-
-procedure TParser.PushChoice148;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntQualifiedIdent);
-  Stack.Push(lexHat);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice149;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexEnd);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntRecordContents);
-  Stack.Push(lexRecord);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice150;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntRecordCaseBlock);
-  Stack.Push(ntPriv25);
-end;
-
-procedure TParser.PushChoice151;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv27);
-  Stack.Push(lexOf);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntPriv26);
-  Stack.Push(ntIdentifier);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(lexCase);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice152;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv28);
-  Stack.Push(lexCloseBracket);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntRecordCaseContents);
-  Stack.Push(lexOpenBracket);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(lexColon);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntCaseLabels);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice153;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv29);
-  Stack.Push(ntConstExpression);
-end;
-
-procedure TParser.PushChoice154;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntNextRecordCaseContentsEx);
-end;
-
-procedure TParser.PushChoice155;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntNextRecordCaseContentsEx);
-  Stack.Push(lexSemiColon);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice156;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntRecordCaseBlock);
-end;
-
-procedure TParser.PushChoice157;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntNextRecordCaseContents);
-  Stack.Push(ntRecordCaseField);
-end;
-
-procedure TParser.PushChoice158;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntRecordCaseBlock);
-end;
-
-procedure TParser.PushChoice159;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntTypeModifiers);
-  Stack.Push(ntTypeDesc);
-  Stack.Push(lexColon);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntCommaIdentList);
-end;
-
-procedure TParser.PushChoice160;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexSemiColon);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntTypeModifiers);
-  Stack.Push(ntTypeDesc);
-  Stack.Push(lexColon);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntCommaIdentList);
-end;
-
-procedure TParser.PushChoice161;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntClassExDesc);
-  Stack.Push(lexClass);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice162;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntClassContents);
-  Stack.Push(ntClassHeritage);
-end;
-
-procedure TParser.PushChoice163;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntQualifiedIdent);
-  Stack.Push(lexOf);
-end;
-
-procedure TParser.PushChoice164;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexEnd);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntClassMemberLists);
-end;
-
-procedure TParser.PushChoice165;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexCloseBracket);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntPriv30);
-  Stack.Push(ntQualifiedIdent);
-  Stack.Push(lexOpenBracket);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice166;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv31);
-  Stack.Push(ntClassMemberList);
-end;
-
-procedure TParser.PushChoice167;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexPrivate);
-end;
-
-procedure TParser.PushChoice168;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexProtected);
-end;
-
-procedure TParser.PushChoice169;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexPublic);
-end;
-
-procedure TParser.PushChoice170;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexPublished);
-end;
-
-procedure TParser.PushChoice171;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv33);
-  Stack.Push(ntPriv32);
-end;
-
-procedure TParser.PushChoice172;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv34);
-  Stack.Push(lexInterface);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice173;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexCloseBracket);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntQualifiedIdent);
-  Stack.Push(lexOpenBracket);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice174;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv35);
-  Stack.Push(lexDispInterface);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice175;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexCloseSqBracket);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntConstExpression);
-  Stack.Push(lexOpenSqBracket);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice176;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv36);
-end;
-
-procedure TParser.PushChoice177;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntMethodDecl);
-end;
-
-procedure TParser.PushChoice178;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPropertyDecl);
-end;
-
-procedure TParser.PushChoice179;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntNextMethodDecl);
-  Stack.Push(ntIdentifier);
-  Stack.Push(ntMethodKind);
-end;
-
-procedure TParser.PushChoice180;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntMethodKindEx);
-  Stack.Push(lexClass);
-end;
-
-procedure TParser.PushChoice181;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntMethodKindEx);
-end;
-
-procedure TParser.PushChoice182;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexConstructor);
-end;
-
-procedure TParser.PushChoice183;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexDestructor);
-end;
-
-procedure TParser.PushChoice184;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexProcedure);
-end;
-
-procedure TParser.PushChoice185;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexFunction);
-end;
-
-procedure TParser.PushChoice186;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv37);
-  Stack.Push(lexSemiColon);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntMethodSignature);
-end;
-
-procedure TParser.PushChoice187;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexSemiColon);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntIntfMethodRedirector);
-end;
-
-procedure TParser.PushChoice188;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntIdentifier);
-  Stack.Push(lexEquals);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntIdentifier);
-  Stack.Push(lexDot);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice189;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv38);
-  Stack.Push(ntIdentifier);
-end;
-
-procedure TParser.PushChoice190;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv40);
-  Stack.Push(lexSemiColon);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntPriv39);
-  Stack.Push(ntPropertyNextDecl);
-  Stack.Push(ntIdentifier);
-  Stack.Push(ntPropertyKind);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice191;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexProperty);
-end;
-
-procedure TParser.PushChoice192;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPropertySignature);
-end;
-
-procedure TParser.PushChoice193;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntRedefineMarker);
-end;
-
-procedure TParser.PushChoice194;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntQualifiedIdent);
-  Stack.Push(lexRead);
-end;
-
-procedure TParser.PushChoice195;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntQualifiedIdent);
-  Stack.Push(lexWrite);
-end;
-
-procedure TParser.PushChoice196;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntConstExpression);
-  Stack.Push(lexIndex);
-end;
-
-procedure TParser.PushChoice197;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntConstExpression);
-  Stack.Push(lexDefault);
-end;
-
-procedure TParser.PushChoice198;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexNoDefault);
-end;
-
-procedure TParser.PushChoice199;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntExpression);
-  Stack.Push(lexStored);
-end;
-
-procedure TParser.PushChoice200;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexReadOnly);
-end;
-
-procedure TParser.PushChoice201;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexWriteOnly);
-end;
-
-procedure TParser.PushChoice202;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntConstExpression);
-  Stack.Push(lexDispID);
-end;
-
-procedure TParser.PushChoice203;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntIdentifier);
-end;
-
-procedure TParser.PushChoice204;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntEventModifiers);
-  Stack.Push(ntMethodSignature);
-  Stack.Push(ntRoutineKind);
-end;
-
-procedure TParser.PushChoice205;
-begin
-  PushTry(206);
-  Stack.Push(scPopTry);
-  Stack.Push(scBackToParent);
-  Stack.Push(ntEventModifiers);
-  Stack.Push(ntCallingConvention);
-end;
-
-procedure TParser.PushChoice206;
-begin
-  PushTry(207);
-  Stack.Push(scPopTry);
-  Stack.Push(scBackToParent);
-  Stack.Push(ntEventModifiers);
-  Stack.Push(ntEventIsOfObject);
-end;
-
-procedure TParser.PushChoice207;
-begin
-  PushTry(0);
-  Stack.Push(scPopTry);
-  Stack.Push(scBackToParent);
-  Stack.Push(ntEventModifiers);
-  Stack.Push(ntCallingConvention);
-  Stack.Push(lexSemiColon);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice208;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexObject);
-  Stack.Push(lexOf);
-end;
-
-procedure TParser.PushChoice209;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv42);
-  Stack.Push(lexSemiColon);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntPriv41);
-  Stack.Push(ntMethodSignature);
-  Stack.Push(ntIdentifier);
-  Stack.Push(ntRoutineKind);
-end;
-
-procedure TParser.PushChoice210;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexProcedure);
-end;
-
-procedure TParser.PushChoice211;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexFunction);
-end;
-
-procedure TParser.PushChoice212;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntIdentifier);
-end;
-
-procedure TParser.PushChoice213;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntReturnType);
-  Stack.Push(ntPriv43);
-end;
-
-procedure TParser.PushChoice214;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPropType);
-  Stack.Push(ntPriv44);
-end;
-
-procedure TParser.PushChoice215;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntParamList);
-end;
-
-procedure TParser.PushChoice216;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv45);
-  Stack.Push(ntParam);
-end;
-
-procedure TParser.PushChoice217;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntQualifiedIdent);
-  Stack.Push(lexColon);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice218;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntQualifiedIdent);
-  Stack.Push(lexColon);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice219;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntParamTypeAndDefault);
-  Stack.Push(ntParamNameList);
-  Stack.Push(ntParamKind);
-end;
-
-procedure TParser.PushChoice220;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexConst);
-end;
-
-procedure TParser.PushChoice221;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexVar);
-end;
-
-procedure TParser.PushChoice222;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexOut);
-end;
-
-procedure TParser.PushChoice223;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv46);
-  Stack.Push(ntIdentifier);
-end;
-
-procedure TParser.PushChoice224;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv47);
-  Stack.Push(ntComplexParamType);
-  Stack.Push(lexColon);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice225;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntParamArrayType);
-  Stack.Push(ntParamIsArray);
-end;
-
-procedure TParser.PushChoice226;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntParamType);
-end;
-
-procedure TParser.PushChoice227;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexOf);
-  Stack.Push(lexArray);
-end;
-
-procedure TParser.PushChoice228;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntQualifiedIdent);
-end;
-
-procedure TParser.PushChoice229;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexConst);
-end;
-
-procedure TParser.PushChoice230;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntQualifiedIdent);
-end;
-
-procedure TParser.PushChoice231;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntInitializationExpression);
-  Stack.Push(lexEquals);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice232;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntMethodImplementation);
-  Stack.Push(ntMethodImplDecl);
-end;
-
-procedure TParser.PushChoice233;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv49);
-  Stack.Push(lexSemiColon);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntPriv48);
-  Stack.Push(ntMethodSignature);
-  Stack.Push(ntQualifiedIdent);
-  Stack.Push(ntMethodKind);
-end;
-
-procedure TParser.PushChoice234;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntForwardMarker);
-end;
-
-procedure TParser.PushChoice235;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntMethodBody);
-end;
-
-procedure TParser.PushChoice236;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexSemiColon);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntBeginEndBlock);
-  Stack.Push(ntPriv50);
-end;
-
-procedure TParser.PushChoice237;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntTypeSection);
-end;
-
-procedure TParser.PushChoice238;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntConstSection);
-end;
-
-procedure TParser.PushChoice239;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntLocalVarSection);
-end;
-
-procedure TParser.PushChoice240;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexSemiColon);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(lexForward);
-end;
-
-procedure TParser.PushChoice241;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntInstructionList);
-  Stack.Push(lexInitialization);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice242;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntInstructionList);
-  Stack.Push(lexFinalization);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice243;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv51);
-  Stack.Push(ntLocalVar);
-  Stack.Push(lexVar);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice244;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexSemiColon);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntTypeDesc);
-  Stack.Push(lexColon);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntPriv52);
-  Stack.Push(ntIdentifier);
-end;
-
-procedure TParser.PushChoice245;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv53);
-end;
-
-procedure TParser.PushChoice246;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntNoInstruction);
-end;
-
-procedure TParser.PushChoice247;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntBeginEndBlock);
-end;
-
-procedure TParser.PushChoice248;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntIfThenElseInstruction);
-end;
-
-procedure TParser.PushChoice249;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntWhileInstruction);
-end;
-
-procedure TParser.PushChoice250;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntRepeatInstruction);
-end;
-
-procedure TParser.PushChoice251;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntForInstruction);
-end;
-
-procedure TParser.PushChoice252;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntTryInstruction);
-end;
-
-procedure TParser.PushChoice253;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntRaiseInstruction);
-end;
-
-procedure TParser.PushChoice254;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntExpressionInstruction);
-end;
-
-procedure TParser.PushChoice255;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexEnd);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntInstructionList);
-  Stack.Push(lexBegin);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice256;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntElseBranch);
-  Stack.Push(ntInstruction);
-  Stack.Push(lexThen);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntExpression);
-  Stack.Push(lexIf);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice257;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntInstruction);
-  Stack.Push(lexElse);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice258;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntNoInstruction);
-end;
-
-procedure TParser.PushChoice259;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntInstruction);
-  Stack.Push(lexDo);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntExpression);
-  Stack.Push(lexWhile);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice260;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntExpression);
-  Stack.Push(lexUntil);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntInstructionList);
-  Stack.Push(lexRepeat);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice261;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntInstruction);
-  Stack.Push(lexDo);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntExpression);
-  Stack.Push(ntToDownTo);
-  Stack.Push(ntExpression);
-  Stack.Push(lexAssign);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntIdentifier);
-  Stack.Push(lexFor);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice262;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexTo);
-end;
-
-procedure TParser.PushChoice263;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexDownTo);
-end;
-
-procedure TParser.PushChoice264;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexEnd);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntNextTryInstruction);
-  Stack.Push(ntInstructionList);
-  Stack.Push(lexTry);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice265;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntExceptClause);
-end;
-
-procedure TParser.PushChoice266;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntFinallyClause);
-end;
-
-procedure TParser.PushChoice267;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntNextExceptClause);
-  Stack.Push(lexExcept);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice268;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntInstructionList);
-end;
-
-procedure TParser.PushChoice269;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntMultiOn);
-end;
-
-procedure TParser.PushChoice270;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntMultiOnElseClause);
-  Stack.Push(ntPriv54);
-  Stack.Push(ntOnClause);
-end;
-
-procedure TParser.PushChoice271;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntInstructionList);
-  Stack.Push(lexDo);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntPriv55);
-  Stack.Push(ntQualifiedIdent);
-  Stack.Push(lexOn);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice272;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntInstructionList);
-  Stack.Push(lexElse);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice273;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntInstructionList);
-  Stack.Push(lexFinally);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice274;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv56);
-  Stack.Push(lexRaise);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice275;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv57);
-  Stack.Push(ntExpression);
-end;
-
-procedure TParser.PushChoice276;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexDot);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(lexEnd);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntImplementation);
-end;
-
-procedure TParser.PushChoice277;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv1);
-  Stack.Push(ntIntfSection);
-end;
-
-procedure TParser.PushChoice278;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv2);
-  Stack.Push(ntImplSection);
-end;
-
-procedure TParser.PushChoice279;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntUnitFinalization);
-end;
-
-procedure TParser.PushChoice280;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv4);
-  Stack.Push(ntIdentifier);
-  Stack.Push(lexComma);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice281;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv5);
-  Stack.Push(ntIdentifier);
-  Stack.Push(lexDot);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice282;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv6);
-  Stack.Push(ntInitializationExpression);
-  Stack.Push(lexComma);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice283;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv7);
-  Stack.Push(ntInitializationExpression);
-  Stack.Push(lexColon);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntIdentifier);
-  Stack.Push(lexSemiColon);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice284;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv8);
-  Stack.Push(ntSingleExpr);
-  Stack.Push(ntBinaryOp);
-end;
-
-procedure TParser.PushChoice285;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv9);
-  Stack.Push(ntSingleExpr);
-  Stack.Push(ntBinaryOpNoEquals);
-end;
-
-procedure TParser.PushChoice286;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv10);
-  Stack.Push(ntNextExpr);
-end;
-
-procedure TParser.PushChoice287;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv11);
-  Stack.Push(ntNextExpr);
-end;
-
-procedure TParser.PushChoice288;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv12);
-  Stack.Push(ntExpression);
-  Stack.Push(lexComma);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice289;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv13);
-  Stack.Push(ntSetRange);
-  Stack.Push(lexComma);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice290;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntExpression);
-  Stack.Push(lexRange);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice291;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv15);
-  Stack.Push(ntConstDecl);
-end;
-
-procedure TParser.PushChoice292;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv16);
-  Stack.Push(ntGlobalVar);
-end;
-
-procedure TParser.PushChoice293;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntInitializationExpression);
-  Stack.Push(lexEquals);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice294;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv18);
-  Stack.Push(ntIdentifier);
-  Stack.Push(lexComma);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice295;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv19);
-  Stack.Push(ntTypeDecl);
-end;
-
-procedure TParser.PushChoice296;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv20);
-  Stack.Push(ntArrayRange);
-  Stack.Push(lexComma);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice297;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntConstExpression);
-  Stack.Push(lexRange);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice298;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv22);
-  Stack.Push(ntIdentifier);
-end;
-
-procedure TParser.PushChoice299;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntConstExpressionNoEquals);
-  Stack.Push(lexRange);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice300;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexCloseSqBracket);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntConstExpression);
-  Stack.Push(lexOpenSqBracket);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice301;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv25);
-  Stack.Push(ntField);
-end;
-
-procedure TParser.PushChoice302;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntIdentifier);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(lexColon);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice303;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv27);
-  Stack.Push(ntRecordCase);
-end;
-
-procedure TParser.PushChoice304;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexSemiColon);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice305;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv29);
-  Stack.Push(ntConstExpression);
-  Stack.Push(lexComma);
-end;
-
-procedure TParser.PushChoice306;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv30);
-  Stack.Push(ntQualifiedIdent);
-  Stack.Push(lexComma);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice307;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv31);
-  Stack.Push(ntClassMemberList);
-  Stack.Push(ntVisibility);
-end;
-
-procedure TParser.PushChoice308;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv32);
-  Stack.Push(ntField);
-end;
-
-procedure TParser.PushChoice309;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv33);
-  Stack.Push(ntMethodProp);
-end;
-
-procedure TParser.PushChoice310;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexEnd);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntInterfaceMemberList);
-  Stack.Push(ntInterfaceGUID);
-  Stack.Push(ntInterfaceHeritage);
-end;
-
-procedure TParser.PushChoice311;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexEnd);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntInterfaceMemberList);
-  Stack.Push(ntInterfaceGUID);
-  Stack.Push(ntDispInterfaceHeritage);
-end;
-
-procedure TParser.PushChoice312;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv36);
-  Stack.Push(ntMethodProp);
-end;
-
-procedure TParser.PushChoice313;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv37);
-  Stack.Push(lexSemiColon);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntMethodModifier);
-end;
-
-procedure TParser.PushChoice314;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntConstExpression);
-end;
-
-procedure TParser.PushChoice315;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv39);
-  Stack.Push(ntPropInfo);
-end;
-
-procedure TParser.PushChoice316;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv40);
-  Stack.Push(lexSemiColon);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntPropertyModifier);
-end;
-
-procedure TParser.PushChoice317;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv41);
-  Stack.Push(ntRoutineModifier);
-end;
-
-procedure TParser.PushChoice318;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv42);
-  Stack.Push(lexSemiColon);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntRoutineModifier);
-end;
-
-procedure TParser.PushChoice319;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexCloseBracket);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntMethodParamList);
-  Stack.Push(lexOpenBracket);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice320;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(lexCloseSqBracket);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntParamList);
-  Stack.Push(lexOpenSqBracket);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice321;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv45);
-  Stack.Push(ntParam);
-  Stack.Push(lexSemiColon);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice322;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv46);
-  Stack.Push(ntIdentifier);
-  Stack.Push(lexComma);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice323;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntParamDefault);
-end;
-
-procedure TParser.PushChoice324;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv48);
-  Stack.Push(ntRoutineModifier);
-end;
-
-procedure TParser.PushChoice325;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv49);
-  Stack.Push(lexSemiColon);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntRoutineModifier);
-end;
-
-procedure TParser.PushChoice326;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv50);
-  Stack.Push(ntInMethodSection);
-end;
-
-procedure TParser.PushChoice327;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv51);
-  Stack.Push(ntLocalVar);
-end;
-
-procedure TParser.PushChoice328;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv52);
-  Stack.Push(ntIdentifier);
-  Stack.Push(lexComma);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice329;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv53);
-  Stack.Push(lexSemiColon);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntInstruction);
-end;
-
-procedure TParser.PushChoice330;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv54);
-  Stack.Push(ntOnClause);
-end;
-
-procedure TParser.PushChoice331;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntQualifiedIdent);
-  Stack.Push(lexColon);
-  Stack.Push(scNextChildIsFake);
-end;
-
-procedure TParser.PushChoice332;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntExpression);
-end;
-
-procedure TParser.PushChoice333;
-begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntExpression);
-  Stack.Push(lexAssign);
-  Stack.Push(scNextChildIsFake);
-end;
-
-{*
-  Parses the code
-  @param RootNode   Root node of the syntax tree
-*}
-procedure TParser.InternalParse(RootNode: TSepiParseTreeRootNode);
-var
-  Temp: TSepiNonTerminal;
-  Symbol: TSepiSymbolClass;
-  Rule: TRuleID;
-begin
-  Current := nil;
-
-  while not Stack.Empty do
-  begin
-    Symbol := Stack.Pop;
-
-    if Symbol = scNextChildIsFake then
-    begin
-      // Make a fake non-terminal
-      Current := TSepiFakeNonTerminal.Create(Current, Symbol,
-        CurTerminal.SourcePos);
-    end else if Symbol = scBackToParent then
-    begin
-      // Current non-terminal is done: go back to parent
-      Temp := Current;
-      Current := Temp.SyntacticParent;
-      Temp.EndParsing;
-    end else if Symbol = scPopTry then
-    begin
-      // Pop a try
-      Stack.PopTry;
-    end else if Symbol <= LastTerminal then
-    begin
-      // The prediction is a terminal: recognize it
-      if CurTerminal.SymbolClass <> Symbol then
-        Current := SyntaxError(SymbolClassNames[Symbol])
-      else
-      begin
-        CurTerminal := TSepiTerminalClass(CurTerminal.ClassType).Clone(
-          CurTerminal, Current);
-        CurTerminal.Parse;
-        Lexer.Next;
-        CurTerminal := Lexer.CurTerminal;
-      end;
-    end else
-    begin
-      // The prediction is a non-terminal: create it and use the parsing table
-      if Current = nil then
-        Current := RootNode
-      else
-        Current := NonTerminalClasses[Symbol].Create(Current, Symbol,
-          CurTerminal.SourcePos);
-
-      Current.BeginParsing;
-
-      Rule := ParsingTable[Current.SymbolClass, CurTerminal.SymbolClass];
-
-      if Rule < 0 then
-        Current := SyntaxError(SymbolClassNames[Current.SymbolClass])
-      else
-        PushChoiceProcs[Rule];
-    end;
-
-    { If we are now in a fake non-terminal, and it wasn't just added, go back
-      to parent. }
-    if (Current is TSepiFakeNonTerminal) and (Symbol <> scNextChildIsFake) then
-      Stack.Push(scBackToParent);
-  end;
-end;
-
-{*
-  Parses a source code
-  @param RootNode   Root node of the syntax tree
-  @param Code       Source code to parse
-*}
-class procedure TParser.Parse(RootNode: TSepiParseTreeRootNode; Lexer: TLexer);
-begin
-  with Create(Lexer) do
-  try
-    InternalParse(RootNode);
-  finally
-    Free;
-  end;
-end;
-
-{*
-  Parses a source code
-  @param RootNode   Root node of the syntax tree
-  @param Code       Source code to parse
-*}
-class procedure TParser.Parse(RootNode: TSepiParseTreeRootNode;
-  const Code: string; const FileName: string = '');
-begin
-  Parse(RootNode, TLexer.Create(RootNode.Errors, Code, FileName));
+  Result := NonTerminalClasses[Symbol];
 end;
 
 {*
@@ -3966,7 +3765,7 @@ begin
   SymbolClassNames[ntParamKind] := 'ntParamKind';
   SymbolClassNames[ntParamNameList] := 'ntParamNameList';
   SymbolClassNames[ntParamTypeAndDefault] := 'ntParamTypeAndDefault';
-  SymbolClassNames[ntComplexParamType] := 'ntComplexParamType';
+  SymbolClassNames[ntComptkParamType] := 'ntComptkParamType';
   SymbolClassNames[ntParamIsArray] := 'ntParamIsArray';
   SymbolClassNames[ntParamArrayType] := 'ntParamArrayType';
   SymbolClassNames[ntParamType] := 'ntParamType';

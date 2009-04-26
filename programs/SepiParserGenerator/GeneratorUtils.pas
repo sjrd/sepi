@@ -42,15 +42,11 @@ type
     LastNonTerminal: Integer;
 
     ClassesToSimplify: TScIntegerSet;
-    ClassesAsText: TScIntegerSet;
 
     NonTerminalConsts: TStrings;
-    ChoiceFuncsDecls: TStrings;
     PushChoiceProcsDecls: TStrings;
     ParsingTable: TStrings;
-    InitChoiceFuncs: TStrings;
     InitPushChoiceProcs: TStrings;
-    ChoiceFuncs: TStrings;
     PushChoiceProcs: TStrings;
     InitNodeNames: TStrings;
 
@@ -62,9 +58,6 @@ type
   end;
 
 implementation
-
-type
-  PTStrings = ^TStrings;
 
 function IntegerSetToStr(IntSet: TScIntegerSet; out Count: Integer): string;
 var
@@ -96,15 +89,11 @@ begin
   Source.LoadFromFile(Dir+'ParserBase.pas');
 
   ClassesToSimplify := TScIntegerSet.Create;
-  ClassesAsText := TScIntegerSet.Create;
 
   NonTerminalConsts := TStringList.Create;
-  ChoiceFuncsDecls := TStringList.Create;
   PushChoiceProcsDecls := TStringList.Create;
   ParsingTable := TStringList.Create;
-  InitChoiceFuncs := TStringList.Create;
   InitPushChoiceProcs := TStringList.Create;
-  ChoiceFuncs := TStringList.Create;
   PushChoiceProcs := TStringList.Create;
   InitNodeNames := TStringList.Create;
 end;
@@ -112,16 +101,12 @@ end;
 destructor TGenerator.Destroy;
 begin
   NonTerminalConsts.Free;
-  ChoiceFuncsDecls.Free;
   PushChoiceProcsDecls.Free;
   ParsingTable.Free;
-  InitChoiceFuncs.Free;
   InitPushChoiceProcs.Free;
-  ChoiceFuncs.Free;
   PushChoiceProcs.Free;
   InitNodeNames.Free;
 
-  ClassesAsText.Free;
   ClassesToSimplify.Free;
 
   Source.Free;
@@ -150,31 +135,25 @@ begin
     '{#ClassesToSimplify#}', IntegerSetToStr(ClassesToSimplify, Count));
   OutputString := AnsiReplaceStr(OutputString,
     '{#SimplifyCount#}', IntToStr(Count));
-  OutputString := AnsiReplaceStr(OutputString,
-    '{#ClassesAsText#}', IntegerSetToStr(ClassesAsText, Count));
-  OutputString := AnsiReplaceStr(OutputString,
-    '{#AsTextCount#}', IntToStr(Count));
 
   OutputString := AnsiReplaceStr(OutputString,
     '{#NonTerminalConsts#}', NonTerminalConsts.Text);
-  OutputString := AnsiReplaceStr(OutputString,
-    '{#ChoiceFuncsDecls#}', ChoiceFuncsDecls.Text);
   OutputString := AnsiReplaceStr(OutputString,
     '{#PushChoiceProcsDecls#}', PushChoiceProcsDecls.Text);
   OutputString := AnsiReplaceStr(OutputString,
     '{#ParsingTable#}', ParsingTable.Text);
   OutputString := AnsiReplaceStr(OutputString,
-    '{#InitChoiceFuncs#}', InitChoiceFuncs.Text);
-  OutputString := AnsiReplaceStr(OutputString,
     '{#InitPushChoiceProcs#}', InitPushChoiceProcs.Text);
-  OutputString := AnsiReplaceStr(OutputString,
-    '{#ChoiceFuncs#}', ChoiceFuncs.Text);
   OutputString := AnsiReplaceStr(OutputString,
     '{#PushChoiceProcs#}', PushChoiceProcs.Text);
   OutputString := AnsiReplaceStr(OutputString,
     '{#InitNodeNames#}', InitNodeNames.Text);
 
-  OutputString := AnsiReplaceStr(OutputString, '{#FileName#}', 'Parser');
+  OutputString := AnsiReplaceStr(OutputString,
+    'TSepiLanguageParser', 'TSepi'+LanguageName+'Parser');
+
+  OutputString := AnsiReplaceStr(OutputString, '{#FileName#}',
+    ChangeFileExt(ExtractFileName(DestFileName), ''));
 
   with TFileStream.Create(DestFileName,
     fmCreate or fmShareExclusive) do

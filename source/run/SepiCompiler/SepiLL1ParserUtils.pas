@@ -29,7 +29,8 @@ interface
 {$D-,L-}
 
 uses
-  SysUtils, Contnrs, SepiParseTrees, SepiCompilerConsts;
+  SysUtils, Contnrs, SepiParseTrees, SepiCompilerErrors, SepiCompilerConsts,
+  SepiLexerUtils, SepiParserUtils;
 
 type
   {*
@@ -97,6 +98,92 @@ type
   public
     procedure EndParsing; override;
   end;
+
+  {*
+    Procédure de push d'un choix sur la pile prédictive
+  *}
+  TPushChoiceProc = procedure of object;
+
+  {*
+    Tag marquant un try dans la pile prédictive
+    Sauf cas exceptionnels, vous ne devriez pas vous servir directement de
+    TTryTag. Cette classe est utilisée en interne par TSepiCustomLL1Parser pour
+    marquer un try dans sa pile prédictive.
+    @author sjrd
+    @version 1.0
+  *}
+  TTryTag = class(TObject)
+  private
+    FBookmark: TSepiLexerBookmark; /// Marque-page de l'analyseur lexical
+    FAltRule: TRuleID;             /// Règle alternative
+    FCurrent: TSepiNonTerminal;    /// Non-terminal courant sur ce try
+  public
+    constructor Create(ABookmark: TSepiLexerBookmark; AAltRule: TRuleID;
+      ACurrent: TSepiNonTerminal);
+    destructor Destroy; override;
+
+    property Bookmark: TSepiLexerBookmark read FBookmark;
+    property AltRule: TRuleID read FAltRule;
+    property Current: TSepiNonTerminal read FCurrent;
+  end;
+
+  {*
+    Classe de base pour les analyseurs syntaxiques LL(1) Sepi
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiCustomLL1Parser = class(TSepiCustomParser)
+  private
+    FStack: TSepiLL1ParsingStack; /// Pile prédictive
+
+    FCurrent: TSepiNonTerminal; /// Non-terminal courant
+
+    property Current: TSepiNonTerminal read FCurrent write FCurrent;
+  protected
+    /// Tableau des procédures qui push les choix sur la pile prédictive
+    PushChoiceProcs: array of TPushChoiceProc;
+
+    procedure PushEmptyChoice;
+
+    procedure PushTry(AltRule: TRuleID);
+    procedure PopTry;
+    procedure UnwindTry;
+
+    procedure UnwindTryOrSyntaxError(const Expected: string); overload;
+    procedure UnwindTryOrSyntaxError(
+      ExpectedSymbol: TSepiSymbolClass); overload;
+
+    function IsTerminal(Symbol: TSepiSymbolClass): Boolean; virtual; abstract;
+    function IsNonTerminal(
+      Symbol: TSepiSymbolClass): Boolean; virtual; abstract;
+
+    function GetStartSymbol: TSepiSymbolClass; virtual; abstract;
+    procedure InitPushChoiceProcs; virtual;
+
+    function GetExpectedString(
+      ExpectedSymbol: TSepiSymbolClass): string; virtual; abstract;
+
+    function GetParsingTable(NonTerminalClass: TSepiSymbolClass;
+      TerminalClass: TSepiSymbolClass): TRuleID; virtual; abstract;
+
+    function GetNonTerminalClass(
+      Symbol: TSepiSymbolClass): TSepiNonTerminalClass; virtual; abstract;
+    function CreateNonTerminal(Parent: TSepiNonTerminal;
+      Symbol: TSepiSymbolClass;
+      const SourcePos: TSepiSourcePosition): TSepiNonTerminal;
+
+    procedure InternalParse(RootNode: TSepiParseTreeRootNode); override;
+
+    property Stack: TSepiLL1ParsingStack read FStack;
+  public
+    constructor Create(ALexer: TSepiCustomLexer); override;
+    destructor Destroy; override;
+  end;
+
+const
+  scNextChildIsFake = -2; /// Code spécial : le prochain enfant est un fake
+  scBackToParent = -3;    /// Code spécial : retourner au parent
+  scPopTry = -4;          /// Code spécial : pop un try-tag depuis la pile
 
 implementation
 
@@ -248,6 +335,231 @@ begin
   for I := ChildCount-1 downto 0 do
     Children[I].Move(Parent, Index);
   Free;
+end;
+
+{---------------}
+{ TTryTag class }
+{---------------}
+
+{*
+  Crée un tag de try
+  @param ABookmark   Marque-page de l'analyseur lexical
+  @param AAltRule    Règle alternative
+  @param ACurrent    Non-terminal courant sur ce try
+*}
+constructor TTryTag.Create(ABookmark: TSepiLexerBookmark; AAltRule: TRuleID;
+  ACurrent: TSepiNonTerminal);
+begin
+  inherited Create;
+
+  FBookmark := ABookmark;
+  FAltRule := AAltRule;
+  FCurrent := ACurrent;
+end;
+
+{*
+  [@inheritDoc]
+*}
+destructor TTryTag.Destroy;
+begin
+  FBookmark.Free;
+
+  inherited;
+end;
+
+{----------------------------}
+{ TSepiCustomLL1Parser class }
+{----------------------------}
+
+{*
+  [@inheritDoc]
+*}
+constructor TSepiCustomLL1Parser.Create(ALexer: TSepiCustomLexer);
+begin
+  inherited;
+
+  FStack := TSepiLL1ParsingStack.Create(GetStartSymbol);
+
+  InitPushChoiceProcs;
+end;
+
+{*
+  [@inheritDoc]
+*}
+destructor TSepiCustomLL1Parser.Destroy;
+begin
+  FStack.Free;
+
+  inherited;
+end;
+
+{*
+  Push un choix vide sur la pile prédictive
+*}
+procedure TSepiCustomLL1Parser.PushEmptyChoice;
+begin
+  Stack.Push(scBackToParent);
+end;
+
+{*
+  Push un try sur la pile prédictive
+  @param Current   Non-terminal courant
+  @param AltRule   Règle alternative
+*}
+procedure TSepiCustomLL1Parser.PushTry(AltRule: TRuleID);
+begin
+  Stack.PushTry(TTryTag.Create(Lexer.MakeBookmark, AltRule, Current));
+end;
+
+{*
+  Pop un try de la pile prédictive
+*}
+procedure TSepiCustomLL1Parser.PopTry;
+begin
+  Stack.PopTry;
+end;
+
+{*
+  Déroule le try courant
+*}
+procedure TSepiCustomLL1Parser.UnwindTry;
+var
+  TryTag: TTryTag;
+  I: Integer;
+begin
+  TryTag := TTryTag(Stack.UnwindTry);
+  try
+    Lexer.ResetToBookmark(TryTag.Bookmark, False);
+    PushChoiceProcs[TryTag.AltRule];
+    Current := TryTag.Current;
+
+    for I := Current.ChildCount-1 downto 0 do
+      Current.Children[I].Free;
+  finally
+    TryTag.Free;
+  end;
+end;
+
+{*
+  Déroule le try courant s'il y en a un, sinon produit une erreur de syntaxe
+  @param Expected   Représentation de ce qui était attendu, si erreur
+  @return Non-terminal de reprise après le try déroule, le cas échéant
+*}
+procedure TSepiCustomLL1Parser.UnwindTryOrSyntaxError(const Expected: string);
+begin
+  if Stack.IsInTry then
+    UnwindTry
+  else
+    MakeSyntaxError(Expected);
+end;
+
+{*
+  Déroule le try courant s'il y en a un, sinon produit une erreur de syntaxe
+  @param ExpectedSymbol   Symbole attendu, si erreur
+  @return Non-terminal de reprise après le try déroule, le cas échéant
+*}
+procedure TSepiCustomLL1Parser.UnwindTryOrSyntaxError(
+  ExpectedSymbol: TSepiSymbolClass);
+begin
+  if Stack.IsInTry then
+    UnwindTry
+  else
+    MakeSyntaxError(GetExpectedString(ExpectedSymbol));
+end;
+
+{*
+  Initialise le tableau PushChoiceProcs
+*}
+procedure TSepiCustomLL1Parser.InitPushChoiceProcs;
+begin
+  if Length(PushChoiceProcs) = 0 then
+    SetLength(PushChoiceProcs, 1);
+
+  PushChoiceProcs[0] := PushEmptyChoice;
+end;
+
+{*
+  Crée un non-terminal de la bonne classe
+  @param Parent      Parent du non-terminal à créer
+  @param Symbol      Symbole du non-terminal
+  @param SourcePos   Position du non-terminal dans le source
+  @return Non-terminal créé
+*}
+function TSepiCustomLL1Parser.CreateNonTerminal(Parent: TSepiNonTerminal;
+  Symbol: TSepiSymbolClass;
+  const SourcePos: TSepiSourcePosition): TSepiNonTerminal;
+begin
+  Result := GetNonTerminalClass(Symbol).Create(Parent, Symbol, SourcePos);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiCustomLL1Parser.InternalParse(RootNode: TSepiParseTreeRootNode);
+var
+  Temp: TSepiNonTerminal;
+  Symbol: TSepiSymbolClass;
+  Rule: TRuleID;
+begin
+  Current := nil;
+
+  while not Stack.Empty do
+  begin
+    Symbol := Stack.Pop;
+
+    if Symbol = scNextChildIsFake then
+    begin
+      // Make a fake non-terminal
+      Current := TSepiFakeNonTerminal.Create(Current, Symbol,
+        CurTerminal.SourcePos);
+    end else if Symbol = scBackToParent then
+    begin
+      // Current non-terminal is done: go back to parent
+      Temp := Current;
+      Current := Temp.SyntacticParent;
+      Temp.EndParsing;
+    end else if Symbol = scPopTry then
+    begin
+      // Pop a try
+      PopTry;
+    end else if IsTerminal(Symbol) then
+    begin
+      // The prediction is a terminal: recognize it
+      if CurTerminal.SymbolClass <> Symbol then
+        UnwindTryOrSyntaxError(Symbol)
+      else
+      begin
+        TSepiTerminalClass(CurTerminal.ClassType).Clone(
+          CurTerminal, Current).Parse;
+        Lexer.NextTerminal;
+      end;
+    end else if IsNonTerminal(Symbol) then
+    begin
+      // The prediction is a non-terminal: create it and use the parsing table
+      if Current = nil then
+        Current := RootNode
+      else
+        Current := CreateNonTerminal(Current, Symbol, CurTerminal.SourcePos);
+
+      Current.BeginParsing; // This could modify Current.SymbolClass!
+
+      Rule := GetParsingTable(Current.SymbolClass, CurTerminal.SymbolClass);
+
+      if Rule < 0 then
+        UnwindTryOrSyntaxError(Current.SymbolClass)
+      else
+        PushChoiceProcs[Rule];
+    end else
+    begin
+      // Unknown code
+      Assert(False);
+    end;
+
+    { If we are now in a fake non-terminal, and it wasn't just added, go back
+      to parent. }
+    if (Current is TSepiFakeNonTerminal) and (Symbol <> scNextChildIsFake) then
+      Stack.Push(scBackToParent);
+  end;
 end;
 
 end.

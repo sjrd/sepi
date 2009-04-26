@@ -293,8 +293,6 @@ begin
     // Simplify-set and show-as-text set
     if NonTerminal.Simplify then
       Generator.ClassesToSimplify.Include(NonTerminal.ID);
-    if NonTerminal.ShowAsText then
-      Generator.ClassesAsText.Include(NonTerminal.ID);
   end;
 end;
 
@@ -341,7 +339,7 @@ procedure MakePushChoiceProcs(Grammar: TGrammar; Generator: TGenerator);
 var
   I, J: Integer;
 begin
-  for I := 0 to Grammar.ChoiceCount-1 do
+  for I := 1 to Grammar.ChoiceCount-1 do // 1 because empty choice is inherited
   begin
     with Grammar.Choices[I] do
     begin
@@ -350,8 +348,9 @@ begin
         '    procedure PushChoice%d;', [I]));
 
       // Method header
+      Generator.PushChoiceProcs.Add('');
       Generator.PushChoiceProcs.Add(Format(
-        'procedure TParser.PushChoice%d;', [I]));
+        'procedure TSepiLanguageParser.PushChoice%d;', [I]));
       Generator.PushChoiceProcs.Add('begin');
 
       // Try
@@ -376,70 +375,10 @@ begin
 
       // Method footer
       Generator.PushChoiceProcs.Add('end;');
-      Generator.PushChoiceProcs.Add('');
 
       // Method-table initialization
       Generator.InitPushChoiceProcs.Add(Format(
         '  PushChoiceProcs[%d] := PushChoice%0:d;', [I]));
-    end;
-  end;
-end;
-
-procedure MakeChoiceOfProcs(Grammar: TGrammar; Generator: TGenerator);
-var
-  I, J: Integer;
-begin
-  {-- Choice0 procedure --}
-
-  // Declaration
-  Generator.ChoiceFuncsDecls.Add(
-    '    function Choice0(Choice: TRuleID): Integer;');
-
-  // Method body
-  Generator.ChoiceFuncs.Add(
-    'function TParser.Choice0(Choice: TRuleID): Integer;');
-  Generator.ChoiceFuncs.Add('begin');
-  Generator.ChoiceFuncs.Add('  Result := 0;');
-  Generator.ChoiceFuncs.Add('end;');
-  Generator.ChoiceFuncs.Add('');
-
-  {-- ChoiceOfX procedures --}
-
-  for I := 0 to Grammar.NonTerminalCount-1 do
-  begin
-    with Grammar.NonTerminals[I] do
-    begin
-      // If ChoiciCount = 0, map to Choice0, and do nothing else
-      if ChoiceCount = 0 then
-      begin
-        Generator.InitChoiceFuncs.Add(Format(
-          '  NonTerminalChoiceFuncs[%d] := Choice0;', [ID]));
-        Continue;
-      end;
-
-      // Declaration
-      Generator.ChoiceFuncsDecls.Add(Format(
-        '    function ChoiceOf%s(Choice: TRuleID): Integer;', [Name]));
-
-      // Method body
-      Generator.ChoiceFuncs.Add(Format(
-        'function TParser.ChoiceOf%s(Choice: TRuleID): Integer;',
-        [Name]));
-      Generator.ChoiceFuncs.Add('begin');
-      Generator.ChoiceFuncs.Add('  case Choice of');
-      for J := 0 to ChoiceCount-1 do
-        with Choices[J] do
-          Generator.ChoiceFuncs.Add(Format(
-            '    %d: Result := %d;', [ID, J+1]));
-      Generator.ChoiceFuncs.Add('  else');
-      Generator.ChoiceFuncs.Add('    Result := 0;');
-      Generator.ChoiceFuncs.Add('  end;');
-      Generator.ChoiceFuncs.Add('end;');
-      Generator.ChoiceFuncs.Add('');
-
-      // Choice-funcs table initialization
-      Generator.InitChoiceFuncs.Add(Format(
-        '  NonTerminalChoiceFuncs[%d] := ChoiceOf%s;', [ID, Name]))
     end;
   end;
 end;
@@ -493,7 +432,6 @@ begin
     HandleNonTerminals(Grammar, Generator);
     MakeParsingTable(Grammar, Generator);
     MakePushChoiceProcs(Grammar, Generator);
-    MakeChoiceOfProcs(Grammar, Generator);
 
     // Generate parser
     Generator.Generate;

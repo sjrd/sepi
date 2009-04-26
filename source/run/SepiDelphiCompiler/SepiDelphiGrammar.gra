@@ -2,120 +2,120 @@ Ce fichier décrit la grammaire du langage Delphi.
 
 #####
 
-lexEof	Fin de fichier
-lexIdentifier	Identificateur
-lexInteger	Nombre entier
-lexFloat	Nombre en virgule flottante
-lexStringCst	Chaine
+tkEof	Fin de fichier
+tkIdentifier	Identificateur
+tkInteger	Nombre entier
+tkFloat	Nombre en virgule flottante
+tkStringCst	Chaine
 
-lexOpenBracket	(
-lexCloseBracket	)
-lexOpenSqBracket	[
-lexCloseSqBracket	]
-lexEquals	=
-lexComma	,
-lexColon	:
-lexSemiColon	;
-lexDot	.
-lexRange	..
-lexHat	^
-lexAt	@
-lexAssign	:=
+tkOpenBracket	(
+tkCloseBracket	)
+tkOpenSqBracket	[
+tkCloseSqBracket	]
+tkEquals	=
+tkComma	,
+tkColon	:
+tkSemiColon	;
+tkDot	.
+tkRange	..
+tkHat	^
+tkAt	@
+tkAssign	:=
 
-lexUnit	unit
-lexUses	uses
-lexType	type
-lexConst	const
-lexResourceString	resourcestring
-lexVar	var
-lexOut	out
+tkUnit	unit
+tkUses	uses
+tkType	type
+tkConst	const
+tkResourceString	resourcestring
+tkVar	var
+tkOut	out
 
-lexArray	array
-lexSet	set
-lexOf	of
-lexObject	object
-lexPacked	packed
-lexRecord	record
-lexCase	case
-lexInterface	interface
-lexDispInterface	dispinterface
-lexClass	class
-lexPrivate	private
-lexProtected	protected
-lexPublic	public
-lexPublished	published
-lexBegin	begin
-lexEnd	end
-lexNil	nil
+tkArray	array
+tkSet	set
+tkOf	of
+tkObject	object
+tkPacked	packed
+tkRecord	record
+tkCase	case
+tkInterface	interface
+tkDispInterface	dispinterface
+tkClass	class
+tkPrivate	private
+tkProtected	protected
+tkPublic	public
+tkPublished	published
+tkBegin	begin
+tkEnd	end
+tkNil	nil
 
-lexProcedure	procedure
-lexFunction	function
-lexProperty	property
-lexConstructor	constructor
-lexDestructor	destructor
+tkProcedure	procedure
+tkFunction	function
+tkProperty	property
+tkConstructor	constructor
+tkDestructor	destructor
 
-lexPlus	+
-lexMinus	-
-lexTimes	*
-lexDivide	/
-lexDiv	div
-lexMod	mod
-lexShl	shl
-lexShr	shr
-lexOr	or
-lexAnd	and
-lexXor	xor
-lexNot	not
-lexLowerThan	<
-lexLowerEq	<=
-lexGreaterThan	>
-lexGreaterEq	>=
-lexNotEqual	<>
+tkPlus	+
+tkMinus	-
+tkTimes	*
+tkDivide	/
+tkDiv	div
+tkMod	mod
+tkShl	shl
+tkShr	shr
+tkOr	or
+tkAnd	and
+tkXor	xor
+tkNot	not
+tkLowerThan	<
+tkLowerEq	<=
+tkGreaterThan	>
+tkGreaterEq	>=
+tkNotEqual	<>
 
-lexRegister	register
-lexCDecl	cdecl
-lexPascal	pascal
-lexStdCall	stdcall
-lexSafeCall	safecall
+tkRegister	register
+tkCDecl	cdecl
+tkPascal	pascal
+tkStdCall	stdcall
+tkSafeCall	safecall
 
-lexName	name
-lexIndex	index
-lexRead	read
-lexWrite	write
-lexDefault	default
-lexNoDefault	nodefault
-lexStored	stored
-lexDispID	dispid
-lexReadOnly	readonly
-lexWriteOnly	writeonly
-lexString	string
+tkName	name
+tkIndex	index
+tkRead	read
+tkWrite	write
+tkDefault	default
+tkNoDefault	nodefault
+tkStored	stored
+tkDispID	dispid
+tkReadOnly	readonly
+tkWriteOnly	writeonly
+tkString	string
 
-lexImplementation	implementation
-lexForward	forward
-lexInitialization	initialization
-lexFinalization	finalization
+tkImplementation	implementation
+tkForward	forward
+tkInitialization	initialization
+tkFinalization	finalization
 
-lexIf	if
-lexThen	then
-lexElse	else
-lexWhile	while
-lexDo	do
-lexRepeat	repeat
-lexUntil	until
-lexFor	for
-lexTo	to
-lexDownTo	downto
-lexTry	try
-lexExcept	except
-lexOn	on
-lexFinally	finally
-lexRaise	raise
-lexInherited	inherited
+tkIf	if
+tkThen	then
+tkElse	else
+tkWhile	while
+tkDo	do
+tkRepeat	repeat
+tkUntil	until
+tkFor	for
+tkTo	to
+tkDownTo	downto
+tkTry	try
+tkExcept	except
+tkOn	on
+tkFinally	finally
+tkRaise	raise
+tkInherited	inherited
 
 #####
 
 ntSource	Source
-	'unit'* Identifier ';'* Interface (Implementation 'end'* '.'*)? lexEof*
+	'unit'* Identifier ';'* Interface (Implementation 'end'* '.'*)? tkEof*
 
 ntInterface	Interface
 	'interface'* UsesSection (IntfSection)*
@@ -140,7 +140,7 @@ ntInitFinit	InitFinit	Simplify
 	@
 
 ntIdentifier	Identifier
-	lexIdentifier
+	tkIdentifier
 	CallingConvention
 	'name'
 	'index'
@@ -194,7 +194,7 @@ ntGUIDInitializationExpression	GUIDInitializationExpression
 
 ntGUIDInitialization	GUIDInitialization
 	RecordInitialization
-	lexStringCst
+	tkStringCst
 
 ntOtherInitializationExpression	OtherInitializationExpression
 	OtherInitialization
@@ -250,9 +250,9 @@ ntDereference	Dereference
 	'^'
 
 ntSingleValue	SingleValue
-	lexInteger
-	lexFloat
-	lexStringCst
+	tkInteger
+	tkFloat
+	tkStringCst
 	Identifier
 	'inherited' Identifier
 	'nil'
@@ -579,10 +579,10 @@ ntParamNameList	ParamNameList
 	Identifier (','* Identifier)*
 
 ntParamTypeAndDefault	ParamTypeAndDefault	Simplify
-	':'* ComplexParamType (ParamDefault)?
+	':'* ComptkParamType (ParamDefault)?
 	@
 
-ntComplexParamType	ComplexParamType	Simplify
+ntComptkParamType	ComptkParamType	Simplify
 	ParamIsArray ParamArrayType
 	ParamType
 

@@ -46,6 +46,14 @@ resourcestring
   STypeMismatch = 'Types incompatibles : %s et %s';
   SNeedConstExpression = 'Expression constante attendue';
 
+  // Erreurs de l'analyseur lexical
+  SBadSourceCharacter = 'Caractère %s incorrect dans un source';
+  SEndOfFile = 'Fin de fichier';
+  SStringNotTerminated = 'Chaîne non terminée';
+
+  // Erreurs de l'analyseur syntaxique
+  SSyntaxError = '%s attendu mais %s trouvé';
+
   // Erreurs de compilation sur les expressions
   SSepiErroneousTypeName = 'type erroné';
   STypeIsNotBaseType =

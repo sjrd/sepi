@@ -18,7 +18,7 @@ Sepi.  If not, see <http://www.gnu.org/licenses/>.
 -------------------------------------------------------------------------------}
 
 {*
-  Analyseur lexical d'une unité Delphi
+  Analyseur tkical d'une unité Delphi
   @author sjrd
   @version 1.0
 *}
@@ -29,219 +29,170 @@ interface
 {$D-,L-}
 
 uses
-  Classes, SysUtils, StrUtils, ScStrUtils, SepiCompilerErrors, SepiParseTrees;
+  Classes, SysUtils, StrUtils, ScStrUtils, SepiCompilerErrors, SepiParseTrees,
+  SepiLexerUtils, SepiCompilerConsts;
 
 resourcestring
   SIFInstrNotSupported = 'Instruction du pré-processeur $IF non supportée';
-  SBadSourceCharacter = 'Caractère %s incorrect dans un source';
-  SEndOfFile = 'Fin de fichier';
-  SInternalError = 'Erreur interne';
-  SUnterminatedString = 'Chaîne non terminée';
   SPreProcReachedEndOfFile = 'Fin de fichier atteinte par le pré-processeur';
 
 const
   FirstTerminal = 0;
   LastTerminal = 99;
 
-  lexEof = 0;        // End of file
-  lexIdentifier = 1; // Identifier
-  lexInteger = 2;    // Integer
-  lexFloat = 3;      // Floating point number
-  lexStringCst = 4;  // String
+  tkEof = SepiLexerUtils.tkEof; /// Fin de fichier
 
-  lexOpenBracket = 5;    // (
-  lexCloseBracket = 6;   // )
-  lexOpenSqBracket = 7;  // [
-  lexCloseSqBracket = 8; // ]
-  lexEquals = 9;         // =
-  lexComma = 10;         // ,
-  lexColon = 11;         // :
-  lexSemiColon = 12;     // ;
-  lexDot = 13;           // .
-  lexRange = 14;         // ..
-  lexHat = 15;           // ^
-  lexAt = 16;            // @
-  lexAssign = 17;        // :=
+  tkIdentifier = 1; // Identificateur
+  tkInteger = 2;    // Nombre entier
+  tkFloat = 3;      // Nombre en virgule flottante
+  tkStringCst = 4;  // Chaîne de caractères
 
-  lexUnit = 18;           // unit
-  lexUses = 19;           // uses
-  lexType = 20;           // type
-  lexConst = 21;          // const
-  lexResourceString = 22; // resourcestring
-  lexVar = 23;            // var
-  lexOut = 24;            // out
+  tkOpenBracket = 5;    // (
+  tkCloseBracket = 6;   // )
+  tkOpenSqBracket = 7;  // [
+  tkCloseSqBracket = 8; // ]
+  tkEquals = 9;         // =
+  tkComma = 10;         // ,
+  tkColon = 11;         // :
+  tkSemiColon = 12;     // ;
+  tkDot = 13;           // .
+  tkRange = 14;         // ..
+  tkHat = 15;           // ^
+  tkAt = 16;            // @
+  tkAssign = 17;        // :=
 
-  lexArray = 25;         // array
-  lexSet = 26;           // set
-  lexOf = 27;            // of
-  lexObject = 28;        // object
-  lexPacked = 29;        // packed
-  lexRecord = 30;        // record
-  lexCase = 31;          // case
-  lexInterface = 32;     // interface
-  lexDispInterface = 33; // dispinterface
-  lexClass = 34;         // class
-  lexPrivate = 35;       // private
-  lexProtected = 36;     // protected
-  lexPublic = 37;        // public
-  lexPublished = 38;     // published
-  lexBegin = 39;         // begin
-  lexEnd = 40;           // end
-  lexNil = 41;           // nil
+  tkUnit = 18;           // unit
+  tkUses = 19;           // uses
+  tkType = 20;           // type
+  tkConst = 21;          // const
+  tkResourceString = 22; // resourcestring
+  tkVar = 23;            // var
+  tkOut = 24;            // out
 
-  lexProcedure = 42;   // procedure
-  lexFunction = 43;    // function
-  lexProperty = 44;    // property
-  lexConstructor = 45; // constructor
-  lexDestructor = 46;  // destructor
+  tkArray = 25;         // array
+  tkSet = 26;           // set
+  tkOf = 27;            // of
+  tkObject = 28;        // object
+  tkPacked = 29;        // packed
+  tkRecord = 30;        // record
+  tkCase = 31;          // case
+  tkInterface = 32;     // interface
+  tkDispInterface = 33; // dispinterface
+  tkClass = 34;         // class
+  tkPrivate = 35;       // private
+  tkProtected = 36;     // protected
+  tkPublic = 37;        // public
+  tkPublished = 38;     // published
+  tkBegin = 39;         // begin
+  tkEnd = 40;           // end
+  tkNil = 41;           // nil
 
-  lexPlus = 47;        // +
-  lexMinus = 48;       // -
-  lexTimes = 49;       // *
-  lexDivide = 50;      // /
-  lexDiv = 51;         // div
-  lexMod = 52;         // mod
-  lexShl = 53;         // shl
-  lexShr = 54;         // shr
-  lexOr = 55;          // or
-  lexAnd = 56;         // and
-  lexXor = 57;         // xor
-  lexNot = 58;         // not
-  lexLowerThan = 59;   // <
-  lexLowerEq = 60;     // <=
-  lexGreaterThan = 61; // >
-  lexGreaterEq = 62;   // >=
-  lexNotEqual = 63;    // <>
+  tkProcedure = 42;   // procedure
+  tkFunction = 43;    // function
+  tkProperty = 44;    // property
+  tkConstructor = 45; // constructor
+  tkDestructor = 46;  // destructor
 
-  lexRegister = 64; // register
-  lexCDecl = 65;    // cdecl
-  lexPascal = 66;   // pascal
-  lexStdCall = 67;  // stdcall
-  lexSafeCall = 68; // safecall
+  tkPlus = 47;        // +
+  tkMinus = 48;       // -
+  tkTimes = 49;       // *
+  tkDivide = 50;      // /
+  tkDiv = 51;         // div
+  tkMod = 52;         // mod
+  tkShl = 53;         // shl
+  tkShr = 54;         // shr
+  tkOr = 55;          // or
+  tkAnd = 56;         // and
+  tkXor = 57;         // xor
+  tkNot = 58;         // not
+  tkLowerThan = 59;   // <
+  tkLowerEq = 60;     // <=
+  tkGreaterThan = 61; // >
+  tkGreaterEq = 62;   // >=
+  tkNotEqual = 63;    // <>
 
-  lexName = 69;      // name
-  lexIndex = 70;     // index
-  lexRead = 71;      // read
-  lexWrite = 72;     // write
-  lexDefault = 73;   // default
-  lexNoDefault = 74; // nodefault
-  lexStored = 75;    // stored
-  lexDispID = 76;    // dispid
-  lexReadOnly = 77;  // readonly
-  lexWriteOnly = 78; // writeonly
-  lexString = 79;    // string
+  tkRegister = 64; // register
+  tkCDecl = 65;    // cdecl
+  tkPascal = 66;   // pascal
+  tkStdCall = 67;  // stdcall
+  tkSafeCall = 68; // safecall
 
-  lexImplementation = 80; // implementation
-  lexForward = 81;        // forward
-  lexInitialization = 82; // initialization
-  lexFinalization = 83;   // finalization
+  tkName = 69;      // name
+  tkIndex = 70;     // index
+  tkRead = 71;      // read
+  tkWrite = 72;     // write
+  tkDefault = 73;   // default
+  tkNoDefault = 74; // nodefault
+  tkStored = 75;    // stored
+  tkDispID = 76;    // dispid
+  tkReadOnly = 77;  // readonly
+  tkWriteOnly = 78; // writeonly
+  tkString = 79;    // string
 
-  lexIf = 84;        // if
-  lexThen = 85;      // then
-  lexElse = 86;      // else
-  lexWhile = 87;     // while
-  lexDo = 88;        // do
-  lexRepeat = 89;    // repeat
-  lexUntil = 90;     // until
-  lexFor = 91;       // for
-  lexTo = 92;        // to
-  lexDownTo = 93;    // downto
-  lexTry = 94;       // try
-  lexExcept = 95;    // except
-  lexOn = 96;        // on
-  lexFinally = 97;   // finally
-  lexRaise = 98;     // raise
-  lexInherited = 99; // inherited
+  tkImplementation = 80; // implementation
+  tkForward = 81;        // forward
+  tkInitialization = 82; // initialization
+  tkFinalization = 83;   // finalization
 
-  lexPreProcessor = -1; // pre-processor instruction
+  tkIf = 84;        // if
+  tkThen = 85;      // then
+  tkElse = 86;      // else
+  tkWhile = 87;     // while
+  tkDo = 88;        // do
+  tkRepeat = 89;    // repeat
+  tkUntil = 90;     // until
+  tkFor = 91;       // for
+  tkTo = 92;        // to
+  tkDownTo = 93;    // downto
+  tkTry = 94;       // try
+  tkExcept = 95;    // except
+  tkOn = 96;        // on
+  tkFinally = 97;   // finally
+  tkRaise = 98;     // raise
+  tkInherited = 99; // inherited
+
+  tkPreProcessor = -1; // pre-processor instruction
 
 type
-  {*
-    Lexing function
-    @return True if a terminal has been processed, False otherwise
-  *}
-  TLexingFunc = function: Boolean of object;
+  TSepiDelphiLexer = class;
 
   {*
-    Lexer exception, raised in case of lexical error
-    @author sjrd
-    @version 1.0
-  *}
-  ELexicalError = class(Exception);
-
-  TLexer = class;
-
-  {*
-    Pre-processor
+    Pré-processeur
     @author sjrd
     @version 1.0
   *}
   TPreProcessor = class(TObject)
   private
-    Lexer: TLexer;     /// Owning lexer
-    Defines: TStrings; /// Defines
+    FLexer: TSepiDelphiLexer; /// Analyseur propriétaire
+    FDefines: TStrings;       /// Liste des defines
 
     procedure Skip;
+  protected
   public
-    constructor Create(ALexer: TLexer);
+    constructor Create(ALexer: TSepiDelphiLexer);
     destructor Destroy; override;
 
     procedure PreProc;
+
+    property Lexer: TSepiDelphiLexer read FLexer;
+    property Defines: TStrings read FDefines;
   end;
 
   {*
-    Lexer bookmark - used to go back into the code
+    Analyseur lexical pour le langage Delphi
     @author sjrd
     @version 1.0
   *}
-  TLexerBookmark = class(TObject)
+  TSepiDelphiLexer = class(TSepiCustomManualLexer)
   private
-    FCursor: Integer;                /// Cursor in the source code
-    FSourcePos: TSepiSourcePosition; /// Position in the source
+    FPreProcessor: TPreProcessor; /// Pré-processeur
+    FInterfaceOnly: Boolean;      /// Considérer 'implementation' comme Eof
+  protected
+    procedure IdentifyKeyword(const OrigKey: string;
+      var SymbolClass: TSepiSymbolClass); override;
 
-    FTerminalClass: TSepiSymbolClass;  /// Classe du terminal
-    FTerminalPos: TSepiSourcePosition; /// Terminal position
-    FTerminalRepr: string;             /// Terminal representation
-  public
-    constructor Create(ACursor: Integer; const ASourcePos: TSepiSourcePosition;
-      ATerminalClass: TSepiSymbolClass;
-      const ATerminalPos: TSepiSourcePosition; const ATerminalRepr: string);
+    procedure InitLexingFuncs; override;
 
-    property Cursor: Integer read FCursor;
-    property SourcePos: TSepiSourcePosition read FSourcePos;
-
-    property TerminalClass: TSepiSymbolClass read FTerminalClass;
-    property TerminalPos: TSepiSourcePosition read FTerminalPos;
-    property TerminalRepr: string read FTerminalRepr;
-  end;
-
-  {*
-    Lexer
-    @author sjrd
-    @version 1.0
-  *}
-  TLexer = class(TObject)
-  private
-    FErrors: TSepiCompilerErrorList;  /// Errors
-    Code: string;                     /// Source code being analyzed
-    Cursor: Integer;                  /// Current position in the source code
-    FCurrentPos: TSepiSourcePosition; /// Current position
-    FCurTerminal: TSepiTerminal;      /// Lastly analyzed terminal
-    PreProcessor: TPreProcessor;      /// Pre-processor
-    FInterfaceOnly: Boolean;          /// Only parse interface
-
-    /// Character-indexed table of lexing functions
-    LexingFuncs: array[#0..#255] of TLexingFunc;
-
-    procedure MakeError(const ErrorMsg: string;
-      Kind: TSepiErrorKind = ekError);
-
-    procedure MakeTerminal(SymbolClass: TSepiSymbolClass;
-      const Representation: string);
-
-    function ActionUnknown: Boolean;
-    function ActionEof: Boolean;
-    function ActionBlank: Boolean;
     function ActionSymbol: Boolean;
     function ActionIdentifier: Boolean;
     function ActionNumber: Boolean;
@@ -250,21 +201,14 @@ type
     function ActionMultiLineComment: Boolean;
 
     procedure NextPreProc;
+
+    property PreProcessor: TPreProcessor read FPreProcessor;
   public
     constructor Create(AErrors: TSepiCompilerErrorList; const ACode: string;
       const AFileName: TFileName = ''; AInterfaceOnly: Boolean = False);
     destructor Destroy; override;
 
-    procedure Next;
-
-    function MakeBookmark: TLexerBookmark;
-    procedure ResetToBookmark(Bookmark: TLexerBookmark;
-      FreeBookmark: Boolean = True);
-
-    property Errors: TSepiCompilerErrorList read FErrors;
-
-    property CurTerminal: TSepiTerminal read FCurTerminal;
-    property CurrentPos: TSepiSourcePosition read FCurrentPos;
+    procedure NextTerminal; override;
 
     property InterfaceOnly: Boolean read FInterfaceOnly;
   end;
@@ -276,7 +220,6 @@ var
 implementation
 
 const
-  BlankChars = [#9, #10, #13, ' '];
   IdentChars = ['A'..'Z', 'a'..'z', '_', '0'..'9'];
   NumberChars = ['0'..'9'];
   HexChars = ['0'..'9', 'A'..'F', 'a'..'f'];
@@ -300,16 +243,17 @@ const
 {---------------------}
 
 {*
-  Creates a new pre-processor
-  @param ALexer   Owning lexer
+  Crée un nouveau pré-processuer
+  @param ALexer   Analyseur lexical propriétaire
 *}
-constructor TPreProcessor.Create(ALexer: TLexer);
+constructor TPreProcessor.Create(ALexer: TSepiDelphiLexer);
 begin
   inherited Create;
-  Lexer := ALexer;
 
-  Defines := TStringList.Create;
-  with TStringList(Defines) do
+  FLexer := ALexer;
+  FDefines := TStringList.Create;
+
+  with TStringList(FDefines) do
   begin
     CaseSensitive := False;
     Sorted := True;
@@ -327,24 +271,27 @@ end;
 *}
 destructor TPreProcessor.Destroy;
 begin
-  Defines.Free;
+  FDefines.Free;
+
   inherited;
 end;
 
 {*
-  Skips a portion a source code, until the matching ELSE or ENDIF instruction
+  Élimine une portion de code, jusqu'au ELSE ou ENDIF correspondant
 *}
 procedure TPreProcessor.Skip;
 var
   Depth: Integer;
+  InstrStr: string;
 begin
   Depth := 1;
 
   while Depth > 0 do
   begin
     Lexer.NextPreProc;
-    case AnsiIndexText(
-      GetFirstToken(Lexer.CurTerminal.Representation, ' '), PreProcInstrs) of
+    InstrStr := GetFirstToken(Lexer.CurTerminal.Representation, ' ');
+
+    case AnsiIndexText(InstrStr, PreProcInstrs) of
       ppIfDef, ppIfNDef: Inc(Depth);
       ppElse, ppEndIf: Dec(Depth);
     end;
@@ -352,7 +299,7 @@ begin
 end;
 
 {*
-  Handles a pre-processor instruction
+  Applique une instruction du pré-processeur
 *}
 procedure TPreProcessor.PreProc;
 var
@@ -384,59 +331,137 @@ begin
   end;
 end;
 
-{----------------------}
-{ TLexerBookmark class }
-{----------------------}
-
-constructor TLexerBookmark.Create(ACursor: Integer;
-  const ASourcePos: TSepiSourcePosition; ATerminalClass: TSepiSymbolClass;
-  const ATerminalPos: TSepiSourcePosition; const ATerminalRepr: string);
-begin
-  inherited Create;
-
-  FCursor := ACursor;
-  FSourcePos := ASourcePos;
-
-  FTerminalClass := ATerminalClass;
-  FTerminalPos := ATerminalPos;
-  FTerminalRepr := ATerminalRepr;
-end;
-
-{--------------}
-{ TLexer class }
-{--------------}
+{------------------------}
+{ TSepiDelphiLexer class }
+{------------------------}
 
 {*
-  Creates a new lexer and analyze the first terminal
-  @param ACode   Source code to analyze
+  Crée un nouvel analyseur lexical
+  @param AErrors          Erreurs de compilation
+  @param ACode            Code source à analyser
+  @param AFileName        Nom du fichier source
+  @param AInterfaceOnly   Si True, considère 'implementation' come un Eof
 *}
-constructor TLexer.Create(AErrors: TSepiCompilerErrorList;
+constructor TSepiDelphiLexer.Create(AErrors: TSepiCompilerErrorList;
   const ACode: string; const AFileName: TFileName = '';
   AInterfaceOnly: Boolean = False);
+begin
+  inherited Create(AErrors, ACode, AFileName);
+
+  FPreProcessor := TPreProcessor.Create(Self);
+  FInterfaceOnly := AInterfaceOnly;
+end;
+
+{*
+  [@inheritDoc]
+*}
+destructor TSepiDelphiLexer.Destroy;
+begin
+  FPreProcessor.Free;
+
+  inherited;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiDelphiLexer.IdentifyKeyword(const OrigKey: string;
+  var SymbolClass: TSepiSymbolClass);
+var
+  Key: string;
+begin
+  Key := LowerCase(OrigKey);
+
+  case Key[1] of
+    'a' : if Key = 'and'            then SymbolClass := tkAnd else
+          if Key = 'array'          then SymbolClass := tkArray;
+    'b' : if Key = 'begin'          then SymbolClass := tkBegin;
+    'c' : if Key = 'case'           then SymbolClass := tkCase else
+          if Key = 'cdecl'          then SymbolClass := tkCDecl else
+          if Key = 'class'          then SymbolClass := tkClass else
+          if Key = 'const'          then SymbolClass := tkConst else
+          if Key = 'constructor'    then SymbolClass := tkConstructor;
+    'd' : if Key = 'default'        then SymbolClass := tkDefault else
+          if Key = 'destructor'     then SymbolClass := tkDestructor else
+          if Key = 'dispid'         then SymbolClass := tkDispID else
+          if Key = 'dispinterface'  then SymbolClass := tkDispInterface else
+          if Key = 'div'            then SymbolClass := tkDiv else
+          if Key = 'do'             then SymbolClass := tkDo else
+          if Key = 'downto'         then SymbolClass := tkDownto;
+    'e' : if Key = 'else'           then SymbolClass := tkElse else
+          if Key = 'end'            then SymbolClass := tkEnd else
+          if Key = 'except'         then SymbolClass := tkExcept;
+    'f' : if Key = 'finally'        then SymbolClass := tkFinally else
+          if Key = 'for'            then SymbolClass := tkFor else
+          if Key = 'forward'        then SymbolClass := tkForward else
+          if Key = 'function'       then SymbolClass := tkFunction;
+    'i' : if Key = 'if'             then SymbolClass := tkIf else
+          if Key = 'implementation' then SymbolClass := tkImplementation else
+          if Key = 'index'          then SymbolClass := tkIndex else
+          if Key = 'inherited'      then SymbolClass := tkInherited else
+          if Key = 'interface'      then SymbolClass := tkInterface;
+    'm' : if Key = 'mod'            then SymbolClass := tkMod;
+    'n' : if Key = 'name'           then SymbolClass := tkName else
+          if Key = 'nil'            then SymbolClass := tkNil else
+          if Key = 'nodefault'      then SymbolClass := tkNoDefault else
+          if Key = 'not'            then SymbolClass := tkNot;
+    'o' : if Key = 'object'         then SymbolClass := tkObject else
+          if Key = 'of'             then SymbolClass := tkOf else
+          if Key = 'on'             then SymbolClass := tkOn else
+          if Key = 'or'             then SymbolClass := tkOr else
+          if Key = 'out'            then SymbolClass := tkOut;
+    'p' : if Key = 'packed'         then SymbolClass := tkPacked else
+          if Key = 'pascal'         then SymbolClass := tkPascal else
+          if Key = 'private'        then SymbolClass := tkPrivate else
+          if Key = 'procedure'      then SymbolClass := tkProcedure else
+          if Key = 'property'       then SymbolClass := tkProperty else
+          if Key = 'protected'      then SymbolClass := tkProtected else
+          if Key = 'public'         then SymbolClass := tkPublic else
+          if Key = 'published'      then SymbolClass := tkPublished;
+    'r' : if Key = 'raise'          then SymbolClass := tkRaise else
+          if Key = 'read'           then SymbolClass := tkRead else
+          if Key = 'readonly'       then SymbolClass := tkReadOnly else
+          if Key = 'record'         then SymbolClass := tkRecord else
+          if Key = 'register'       then SymbolClass := tkRegister else
+          if Key = 'repeat'         then SymbolClass := tkRepeat else
+          if Key = 'resourcestring' then SymbolClass := tkResourceString;
+    's' : if Key = 'safecall'       then SymbolClass := tkSafeCall else
+          if Key = 'stdcall'        then SymbolClass := tkStdCall else
+          if Key = 'stored'         then SymbolClass := tkStored else
+          if Key = 'set'            then SymbolClass := tkSet else
+          if Key = 'shl'            then SymbolClass := tkShl else
+          if Key = 'shr'            then SymbolClass := tkShr else
+          if Key = 'string'         then SymbolClass := tkString;
+    't' : if Key = 'then'           then SymbolClass := tkThen else
+          if Key = 'to'             then SymbolClass := tkTo else
+          if Key = 'try'            then SymbolClass := tkTry else
+          if Key = 'type'           then SymbolClass := tkType;
+    'u' : if Key = 'unit'           then SymbolClass := tkUnit else
+          if Key = 'until'          then SymbolClass := tkUntil else
+          if Key = 'uses'           then SymbolClass := tkUses;
+    'v' : if Key = 'var'            then SymbolClass := tkVar;
+    'w' : if Key = 'while'          then SymbolClass := tkWhile else
+          if Key = 'write'          then SymbolClass := tkWrite else
+          if Key = 'writeonly'      then SymbolClass := tkWriteOnly;
+    'x' : if Key = 'xor'            then SymbolClass := tkXor;
+  end;
+
+  if (SymbolClass = tkImplementation) and InterfaceOnly then
+    SymbolClass := tkEof;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiDelphiLexer.InitLexingFuncs;
 var
   C: Char;
 begin
-  inherited Create;
-
-  FErrors := AErrors;
-  Code := ACode+#0;
-  Cursor := 1;
-
-  FCurrentPos.FileName := AFileName;
-  FCurrentPos.Line := 1;
-  FCurrentPos.Col := 1;
-
-  FCurTerminal := nil;
-
-  FInterfaceOnly := AInterfaceOnly;
+  inherited;
 
   for C := #0 to #255 do
   begin
     case C of
-      #0:
-        LexingFuncs[C] := ActionEof;
-      #9, #10, #13, ' ':
-        LexingFuncs[C] := ActionBlank;
       '(', ')', '[', ']', '=', ',', ':', ';', '.',
         '^', '@', '+', '-', '*', '/', '<', '>':
         LexingFuncs[C] := ActionSymbol;
@@ -448,106 +473,19 @@ begin
         LexingFuncs[C] := ActionString;
       '{':
         LexingFuncs[C] := ActionMultiLineComment;
-    else
-      LexingFuncs[C] := ActionUnknown;
     end;
   end;
-
-  PreProcessor := TPreProcessor.Create(Self);
-
-  Next;
 end;
 
 {*
-  [@inheritDoc]
+  Analyse un symbole ou un commentaire
+  @return True pour un symbole, False pour un commentaire
 *}
-destructor TLexer.Destroy;
-begin
-  PreProcessor.Free;
-  FCurTerminal.Free;
-  inherited;
-end;
-
-{*
-  Produit une erreur
-  @param ErrorMsg   Message d'erreur
-  @param Kind       Type d'erreur (défaut = Erreur)
-*}
-procedure TLexer.MakeError(const ErrorMsg: string;
-  Kind: TSepiErrorKind = ekError);
-begin
-  Errors.MakeError(ErrorMsg, Kind, CurrentPos);
-end;
-
-{*
-  Produit un terminal
-  @param SymbolClass   Class de symbole
-*}
-procedure TLexer.MakeTerminal(SymbolClass: TSepiSymbolClass;
-  const Representation: string);
-begin
-  FCurTerminal := TSepiTerminal.Create(SymbolClass, CurrentPos,
-    Representation);
-end;
-
-{*
-  Raises a lexical error
-  @return Nothing
-  @raise ELexicalError
-*}
-function TLexer.ActionUnknown: Boolean;
-begin
-  MakeError(Format(SBadSourceCharacter, [Code[Cursor]]), ekFatalError);
-  Result := False;
-end;
-
-{*
-  Analyzes an Eof terminal
-  @return True
-*}
-function TLexer.ActionEof: Boolean;
-begin
-  MakeTerminal(lexEof, SEndOfFile);
-  Result := True;
-end;
-
-{*
-  Analyzes a blank
-  @return False
-*}
-function TLexer.ActionBlank: Boolean;
-begin
-  while Code[Cursor] in BlankChars do
-  begin
-    if Code[Cursor] in [#10, #13] then
-    begin
-      if Code[Cursor] = #13 then
-        Inc(Cursor);
-      if Code[Cursor] = #10 then
-        Inc(Cursor);
-      Inc(FCurrentPos.Line);
-      FCurrentPos.Col := 1;
-    end else
-    begin
-      Inc(Cursor);
-      Inc(FCurrentPos.Col);
-    end;
-  end;
-  Result := False;
-end;
-
-{*
-  Analyzes a symbol or a comment
-  @return True for a symbol, False for a comment
-*}
-function TLexer.ActionSymbol: Boolean;
+function TSepiDelphiLexer.ActionSymbol: Boolean;
 var
-  BeginPos: Integer;
   Repr: string;
   SymbolClass: TSepiSymbolClass;
 begin
-  BeginPos := Cursor;
-
   case Code[Cursor] of
     '(':
     begin
@@ -558,105 +496,105 @@ begin
           Exit;
         end;
       else
-        Inc(Cursor);
+        CursorForward;
         Repr := '(';
-        SymbolClass := lexOpenBracket;
+        SymbolClass := tkOpenBracket;
       end;
     end;
     ')':
     begin
-      Inc(Cursor);
+      CursorForward;
       Repr := ')';
-      SymbolClass := lexCloseBracket;
+      SymbolClass := tkCloseBracket;
     end;
     '[':
     begin
-      Inc(Cursor);
+      CursorForward;
       Repr := '[';
-      SymbolClass := lexOpenSqBracket;
+      SymbolClass := tkOpenSqBracket;
     end;
     ']':
     begin
-      Inc(Cursor);
+      CursorForward;
       Repr := ']';
-      SymbolClass := lexCloseSqBracket;
+      SymbolClass := tkCloseSqBracket;
     end;
     '=':
     begin
-      Inc(Cursor);
+      CursorForward;
       Repr := '=';
-      SymbolClass := lexEquals;
+      SymbolClass := tkEquals;
     end;
     ',':
     begin
-      Inc(Cursor);
+      CursorForward;
       Repr := ',';
-      SymbolClass := lexComma;
+      SymbolClass := tkComma;
     end;
     ':':
     begin
-      Inc(Cursor);
+      CursorForward;
       if Code[Cursor] = '=' then
       begin
-        Inc(Cursor);
+        CursorForward;
         Repr := ':=';
-        SymbolClass := lexAssign;
+        SymbolClass := tkAssign;
       end else
       begin
         Repr := ':';
-        SymbolClass := lexColon;
+        SymbolClass := tkColon;
       end;
     end;
     ';':
     begin
-      Inc(Cursor);
+      CursorForward;
       Repr := ';';
-      SymbolClass := lexSemiColon;
+      SymbolClass := tkSemiColon;
     end;
     '.':
     begin
       case Code[Cursor+1] of
         '.':
         begin
-          Inc(Cursor, 2);
+          CursorForward(2);
           Repr := '..';
-          SymbolClass := lexRange;
+          SymbolClass := tkRange;
         end;
       else
-        Inc(Cursor);
+        CursorForward;
         Repr := '.';
-        SymbolClass := lexDot;
+        SymbolClass := tkDot;
       end;
     end;
     '^':
     begin
-      Inc(Cursor);
+      CursorForward;
       Repr := '^';
-      SymbolClass := lexHat;
+      SymbolClass := tkHat;
     end;
     '@':
     begin
-      Inc(Cursor);
+      CursorForward;
       Repr := '@';
-      SymbolClass := lexAt;
+      SymbolClass := tkAt;
     end;
     '+':
     begin
-      Inc(Cursor);
+      CursorForward;
       Repr := '+';
-      SymbolClass := lexPlus;
+      SymbolClass := tkPlus;
     end;
     '-':
     begin
-      Inc(Cursor);
+      CursorForward;
       Repr := '-';
-      SymbolClass := lexMinus;
+      SymbolClass := tkMinus;
     end;
     '*':
     begin
-      Inc(Cursor);
+      CursorForward;
       Repr := '*';
-      SymbolClass := lexTimes;
+      SymbolClass := tkTimes;
     end;
     '/':
     begin
@@ -667,9 +605,9 @@ begin
           Exit;
         end;
       else
-        Inc(Cursor);
+        CursorForward;
         Repr := '/';
-        SymbolClass := lexDivide;
+        SymbolClass := tkDivide;
       end;
     end;
     '<':
@@ -677,20 +615,20 @@ begin
       case Code[Cursor+1] of
         '=':
         begin
-          Inc(Cursor, 2);
+          CursorForward(2);
           Repr := '<=';
-          SymbolClass := lexLowerEq;
+          SymbolClass := tkLowerEq;
         end;
         '>':
         begin
-          Inc(Cursor, 2);
+          CursorForward(2);
           Repr := '<>';
-          SymbolClass := lexNotEqual;
+          SymbolClass := tkNotEqual;
         end;
       else
-        Inc(Cursor);
+        CursorForward;
         Repr := '<';
-        SymbolClass := lexLowerThan;
+        SymbolClass := tkLowerThan;
       end;
     end;
     '>':
@@ -698,14 +636,14 @@ begin
       case Code[Cursor+1] of
         '=':
         begin
-          Inc(Cursor, 2);
+          CursorForward(2);
           Repr := '>=';
-          SymbolClass := lexGreaterEq;
+          SymbolClass := tkGreaterEq;
         end;
       else
-        Inc(Cursor);
+        CursorForward;
         Repr := '>';
-        SymbolClass := lexGreaterThan;
+        SymbolClass := tkGreaterThan;
       end;
     end;
   else
@@ -714,172 +652,91 @@ begin
     Exit;
   end;
 
-  MakeTerminal(SymbolClass, Repr);
-  Inc(FCurrentPos.Col, Cursor-BeginPos);
+  TerminalParsed(SymbolClass, Repr);
   Result := True;
 end;
 
 {*
-  Analyzes an identifier
+  Analyse un identificateur
   @return True
 *}
-function TLexer.ActionIdentifier: Boolean;
+function TSepiDelphiLexer.ActionIdentifier: Boolean;
 var
   ForceIdent: Boolean;
   BeginPos: Integer;
-  Repr, Key: string;
+  Repr: string;
   SymbolClass: TSepiSymbolClass;
 begin
   ForceIdent := Code[Cursor] = '&';
   if ForceIdent then
-    Inc(Cursor);
+    CursorForward;
 
   BeginPos := Cursor;
-  Inc(Cursor);
+  CursorForward;
   while Code[Cursor] in IdentChars do
-    Inc(Cursor);
+    CursorForward;
 
   Repr := Copy(Code, BeginPos, Cursor-BeginPos);
-  Key := LowerCase(Repr);
-  SymbolClass := lexIdentifier;
+  SymbolClass := tkIdentifier;
 
   if not ForceIdent then
-  begin
-    case Key[1] of
-      'a' : if Key = 'and'            then SymbolClass := lexAnd else
-            if Key = 'array'          then SymbolClass := lexArray;
-      'b' : if Key = 'begin'          then SymbolClass := lexBegin;
-      'c' : if Key = 'case'           then SymbolClass := lexCase else
-            if Key = 'cdecl'          then SymbolClass := lexCDecl else
-            if Key = 'class'          then SymbolClass := lexClass else
-            if Key = 'const'          then SymbolClass := lexConst else
-            if Key = 'constructor'    then SymbolClass := lexConstructor;
-      'd' : if Key = 'default'        then SymbolClass := lexDefault else
-            if Key = 'destructor'     then SymbolClass := lexDestructor else
-            if Key = 'dispid'         then SymbolClass := lexDispID else
-            if Key = 'dispinterface'  then SymbolClass := lexDispInterface else
-            if Key = 'div'            then SymbolClass := lexDiv else
-            if Key = 'do'             then SymbolClass := lexDo else
-            if Key = 'downto'         then SymbolClass := lexDownto;
-      'e' : if Key = 'else'           then SymbolClass := lexElse else
-            if Key = 'end'            then SymbolClass := lexEnd else
-            if Key = 'except'         then SymbolClass := lexExcept;
-      'f' : if Key = 'finally'        then SymbolClass := lexFinally else
-            if Key = 'for'            then SymbolClass := lexFor else
-            if Key = 'forward'        then SymbolClass := lexForward else
-            if Key = 'function'       then SymbolClass := lexFunction;
-      'i' : if Key = 'if'             then SymbolClass := lexIf else
-            if Key = 'implementation' then SymbolClass := lexImplementation else
-            if Key = 'index'          then SymbolClass := lexIndex else
-            if Key = 'inherited'      then SymbolClass := lexInherited else
-            if Key = 'interface'      then SymbolClass := lexInterface;
-      'm' : if Key = 'mod'            then SymbolClass := lexMod;
-      'n' : if Key = 'name'           then SymbolClass := lexName else
-            if Key = 'nil'            then SymbolClass := lexNil else
-            if Key = 'nodefault'      then SymbolClass := lexNoDefault else
-            if Key = 'not'            then SymbolClass := lexNot;
-      'o' : if Key = 'object'         then SymbolClass := lexObject else
-            if Key = 'of'             then SymbolClass := lexOf else
-            if Key = 'on'             then SymbolClass := lexOn else
-            if Key = 'or'             then SymbolClass := lexOr else
-            if Key = 'out'            then SymbolClass := lexOut;
-      'p' : if Key = 'packed'         then SymbolClass := lexPacked else
-            if Key = 'pascal'         then SymbolClass := lexPascal else
-            if Key = 'private'        then SymbolClass := lexPrivate else
-            if Key = 'procedure'      then SymbolClass := lexProcedure else
-            if Key = 'property'       then SymbolClass := lexProperty else
-            if Key = 'protected'      then SymbolClass := lexProtected else
-            if Key = 'public'         then SymbolClass := lexPublic else
-            if Key = 'published'      then SymbolClass := lexPublished;
-      'r' : if Key = 'raise'          then SymbolClass := lexRaise else
-            if Key = 'read'           then SymbolClass := lexRead else
-            if Key = 'readonly'       then SymbolClass := lexReadOnly else
-            if Key = 'record'         then SymbolClass := lexRecord else
-            if Key = 'register'       then SymbolClass := lexRegister else
-            if Key = 'repeat'         then SymbolClass := lexRepeat else
-            if Key = 'resourcestring' then SymbolClass := lexResourceString;
-      's' : if Key = 'safecall'       then SymbolClass := lexSafeCall else
-            if Key = 'stdcall'        then SymbolClass := lexStdCall else
-            if Key = 'stored'         then SymbolClass := lexStored else
-            if Key = 'set'            then SymbolClass := lexSet else
-            if Key = 'shl'            then SymbolClass := lexShl else
-            if Key = 'shr'            then SymbolClass := lexShr else
-            if Key = 'string'         then SymbolClass := lexString;
-      't' : if Key = 'then'           then SymbolClass := lexThen else
-            if Key = 'to'             then SymbolClass := lexTo else
-            if Key = 'try'            then SymbolClass := lexTry else
-            if Key = 'type'           then SymbolClass := lexType;
-      'u' : if Key = 'unit'           then SymbolClass := lexUnit else
-            if Key = 'until'          then SymbolClass := lexUntil else
-            if Key = 'uses'           then SymbolClass := lexUses;
-      'v' : if Key = 'var'            then SymbolClass := lexVar;
-      'w' : if Key = 'while'          then SymbolClass := lexWhile else
-            if Key = 'write'          then SymbolClass := lexWrite else
-            if Key = 'writeonly'      then SymbolClass := lexWriteOnly;
-      'x' : if Key = 'xor'            then SymbolClass := lexXor;
-    end;
-  end;
+    IdentifyKeyword(Repr, SymbolClass);
 
-  if (SymbolClass = lexImplementation) and InterfaceOnly then
-    SymbolClass := lexEof;
-
-  MakeTerminal(SymbolClass, Repr);
-  Inc(FCurrentPos.Col, Cursor-BeginPos);
+  TerminalParsed(SymbolClass, Repr);
   Result := True;
 end;
 
 {*
-  Analyzes a number
+  Analyse un nombre
   @return True
 *}
-function TLexer.ActionNumber: Boolean;
+function TSepiDelphiLexer.ActionNumber: Boolean;
 var
   BeginPos: Integer;
   SymbolClass: TSepiSymbolClass;
 begin
   BeginPos := Cursor;
-  SymbolClass := lexInteger;
+  SymbolClass := tkInteger;
 
   if Code[Cursor] = '$' then
   begin
     repeat
-      Inc(Cursor);
+      CursorForward;
     until not (Code[Cursor] in HexChars);
   end else
   begin
     while Code[Cursor] in NumberChars do
-      Inc(Cursor);
+      CursorForward;
 
     if (Code[Cursor] = '.') and (Code[Cursor+1] in NumberChars) then
     begin
-      SymbolClass := lexFloat;
+      SymbolClass := tkFloat;
       repeat
-        Inc(Cursor);
+        CursorForward;
       until not (Code[Cursor] in NumberChars);
     end;
 
     if Code[Cursor] in ['e', 'E'] then
     begin
-      SymbolClass := lexFloat;
-      Inc(Cursor);
+      SymbolClass := tkFloat;
+      CursorForward;
       if Code[Cursor] in ['+', '-'] then
-        Inc(Cursor);
+        CursorForward;
 
       while Code[Cursor] in NumberChars do
-        Inc(Cursor);
+        CursorForward;
     end;
   end;
 
-  MakeTerminal(SymbolClass, Copy(Code, BeginPos, Cursor-BeginPos));
-  Inc(FCurrentPos.Col, Cursor-BeginPos);
+  TerminalParsed(SymbolClass, Copy(Code, BeginPos, Cursor-BeginPos));
   Result := True;
 end;
 
 {*
-  Analyzes a string
+  Analyse une chaîne de caractères
   @return True
 *}
-function TLexer.ActionString: Boolean;
+function TSepiDelphiLexer.ActionString: Boolean;
 var
   BeginPos: Integer;
 begin
@@ -890,213 +747,188 @@ begin
     case Code[Cursor] of
       '''':
       begin
-        Inc(Cursor);
+        CursorForward;
         while Code[Cursor] <> '''' do
         begin
           if Code[Cursor] in [#0, #10, #13] then
-            MakeError(SUnterminatedString, ekFatalError)
+            MakeError(SStringNotTerminated, ekFatalError)
           else
-            Inc(Cursor);
+            CursorForward;
         end;
-        Inc(Cursor);
+        CursorForward;
       end;
       '#':
       begin
-        Inc(Cursor);
+        CursorForward;
         if Code[Cursor] = '$' then
-          Inc(Cursor);
+          CursorForward;
         if not (Code[Cursor] in HexChars) then
-          MakeError(SUnterminatedString, ekFatalError);
+          MakeError(SStringNotTerminated, ekFatalError);
         while Code[Cursor] in HexChars do
-          Inc(Cursor);
+          CursorForward;
       end;
     end;
   end;
 
-  MakeTerminal(lexStringCst, Copy(Code, BeginPos, Cursor-BeginPos));
-  Inc(FCurrentPos.Col, Cursor-BeginPos);
+  TerminalParsed(tkStringCst, Copy(Code, BeginPos, Cursor-BeginPos));
   Result := True;
 end;
 
 {*
-  Analyzes a single-line comment
+  Analyse un commentaire sur une ligne
   @return False
 *}
-function TLexer.ActionSingleLineComment: Boolean;
+function TSepiDelphiLexer.ActionSingleLineComment: Boolean;
 begin
   while not (Code[Cursor] in [#0, #13, #10]) do
-    Inc(Cursor);
+    CursorForward;
+
+  NoTerminalParsed;
   Result := False;
 end;
 
 {*
-  Analyzes a multi-line comment
-  @return True for a pre-processor instruction, False otherwise
+  Analyse un commentaire sur plusieurs lignes
+  @return True pour une instruction du pré-processuer, False sinon
 *}
-function TLexer.ActionMultiLineComment: Boolean;
+function TSepiDelphiLexer.ActionMultiLineComment: Boolean;
 var
   BeginPos: Integer;
   Text: string;
 begin
   BeginPos := Cursor;
+
+  // Find end of comment
   if Code[Cursor] = '{' then
   begin
     while not (Code[Cursor] in [#0, '}']) do
-      Inc(Cursor);
-    Inc(Cursor);
+      CursorForward;
+    CursorForward;
   end else
   begin
     while ((Code[Cursor] <> '*') or (Code[Cursor+1] <> ')')) and
       (Code[Cursor] <> #0) do
-      Inc(Cursor);
-    Inc(Cursor, 2);
+      CursorForward;
+    CursorForward(2);
   end;
 
+  // Get comment text
   Text := Copy(Code, BeginPos, Cursor-BeginPos);
-  if Pos(#10, Text) > 0 then
-  begin
-    Inc(FCurrentPos.Line, NberCharInStr(#10, Text));
-    FCurrentPos.Col := Length(GetLastToken(Text, #10))+1;
-  end else
-    Inc(FCurrentPos.Col, Cursor-BeginPos);
-
-  Result := False;
-
   if Code[BeginPos] = '{' then
     Text := Copy(Text, 2, Length(Text)-2)
   else
     Text := Copy(Text, 3, Length(Text)-4);
 
+  // Is it a pre-processor instruction?
   if (Text <> '') and (Text[1] = '$') then
   begin
-    MakeTerminal(lexPreProcessor, Copy(Text, 2, MaxInt));
+    // Pre-processor instruction
+    TerminalParsed(tkPreProcessor, Copy(Text, 2, MaxInt));
     Result := True;
+  end else
+  begin
+    // Pure comment
+    NoTerminalParsed;
+    Result := False;
   end;
 end;
 
 {*
-  Analyzes further the source code, until a pre-processor instruction is found
+  Analyse le code source jusqu'à trouver une instruction du pré-processeur
 *}
-procedure TLexer.NextPreProc;
+procedure TSepiDelphiLexer.NextPreProc;
 begin
   while (not LexingFuncs[Code[Cursor]]) or
-    (CurTerminal.SymbolClass <> lexPreProcessor) do
+    (CurTerminal.SymbolClass <> tkPreProcessor) do
   begin
-    if CurTerminal.SymbolClass = lexEof then
+    if CurTerminal.SymbolClass = tkEof then
       MakeError(SPreProcReachedEndOfFile, ekFatalError);
   end;
 end;
 
 {*
-  Analyzes further the source code
+  [@inheritDoc]
 *}
-procedure TLexer.Next;
+procedure TSepiDelphiLexer.NextTerminal;
 begin
   repeat
-    FreeAndNil(FCurTerminal);
-
     while not LexingFuncs[Code[Cursor]] do;
-    if CurTerminal.SymbolClass = lexPreProcessor then
+
+    if CurTerminal.SymbolClass = tkPreProcessor then
       PreProcessor.PreProc;
-  until CurTerminal.SymbolClass <> lexPreProcessor;
-end;
-
-{*
-  Make a bookmark at current position
-  @return Bookmark
-*}
-function TLexer.MakeBookmark: TLexerBookmark;
-begin
-  Result := TLexerBookmark.Create(Cursor, CurrentPos,
-    CurTerminal.SymbolClass, CurTerminal.SourcePos, CurTerminal.Representation);
-end;
-
-{*
-  Go back in the source to a given bookmark
-  @param Bookmark       Bookmark
-  @param FreeBookmark   If True, will free bookmark afterwards
-*}
-procedure TLexer.ResetToBookmark(Bookmark: TLexerBookmark;
-  FreeBookmark: Boolean = True);
-begin
-  Cursor := Bookmark.Cursor;
-  FCurrentPos := Bookmark.SourcePos;
-
-  FCurTerminal.Free;
-  FCurTerminal := TSepiTerminal.Create(Bookmark.TerminalClass,
-    Bookmark.TerminalPos, Bookmark.TerminalRepr);
+  until CurTerminal.SymbolClass <> tkPreProcessor;
 end;
 
 initialization
   if Length(SymbolClassNames) < LastTerminal+1 then
     SetLength(SymbolClassNames, LastTerminal+1);
 
-  SymbolClassNames[lexEof] := 'lexEof';
-  SymbolClassNames[lexIdentifier] := 'lexIdentifier';
-  SymbolClassNames[lexInteger] := 'lexInteger';
-  SymbolClassNames[lexFloat] := 'lexFloat';
-  SymbolClassNames[lexStringCst] := 'lexStringCst';
+  SymbolClassNames[tkEof] := 'tkEof';
+  SymbolClassNames[tkIdentifier] := 'tkIdentifier';
+  SymbolClassNames[tkInteger] := 'tkInteger';
+  SymbolClassNames[tkFloat] := 'tkFloat';
+  SymbolClassNames[tkStringCst] := 'tkStringCst';
 
-  SymbolClassNames[lexOpenBracket] := 'lexOpenBracket';
-  SymbolClassNames[lexCloseBracket] := 'lexCloseBracket';
-  SymbolClassNames[lexOpenSqBracket] := 'lexOpenSqBracket';
-  SymbolClassNames[lexCloseSqBracket] := 'lexCloseSqBracket';
-  SymbolClassNames[lexEquals] := 'lexEquals';
-  SymbolClassNames[lexComma] := 'lexComma';
-  SymbolClassNames[lexColon] := 'lexColon';
-  SymbolClassNames[lexSemiColon] := 'lexSemiColon';
-  SymbolClassNames[lexRange] := 'lexRange';
-  SymbolClassNames[lexDot] := 'lexDot';
-  SymbolClassNames[lexHat] := 'lexHat';
+  SymbolClassNames[tkOpenBracket] := 'tkOpenBracket';
+  SymbolClassNames[tkCloseBracket] := 'tkCloseBracket';
+  SymbolClassNames[tkOpenSqBracket] := 'tkOpenSqBracket';
+  SymbolClassNames[tkCloseSqBracket] := 'tkCloseSqBracket';
+  SymbolClassNames[tkEquals] := 'tkEquals';
+  SymbolClassNames[tkComma] := 'tkComma';
+  SymbolClassNames[tkColon] := 'tkColon';
+  SymbolClassNames[tkSemiColon] := 'tkSemiColon';
+  SymbolClassNames[tkRange] := 'tkRange';
+  SymbolClassNames[tkDot] := 'tkDot';
+  SymbolClassNames[tkHat] := 'tkHat';
 
-  SymbolClassNames[lexUnit] := 'lexUnit';
-  SymbolClassNames[lexUses] := 'lexUses';
-  SymbolClassNames[lexType] := 'lexType';
-  SymbolClassNames[lexConst] := 'lexConst';
-  SymbolClassNames[lexResourceString] := 'lexResourceString';
-  SymbolClassNames[lexVar] := 'lexVar';
-  SymbolClassNames[lexOut] := 'lexOut';
+  SymbolClassNames[tkUnit] := 'tkUnit';
+  SymbolClassNames[tkUses] := 'tkUses';
+  SymbolClassNames[tkType] := 'tkType';
+  SymbolClassNames[tkConst] := 'tkConst';
+  SymbolClassNames[tkResourceString] := 'tkResourceString';
+  SymbolClassNames[tkVar] := 'tkVar';
+  SymbolClassNames[tkOut] := 'tkOut';
 
-  SymbolClassNames[lexArray] := 'lexArray';
-  SymbolClassNames[lexSet] := 'lexSet';
-  SymbolClassNames[lexOf] := 'lexOf';
-  SymbolClassNames[lexObject] := 'lexObject';
-  SymbolClassNames[lexPacked] := 'lexPacked';
-  SymbolClassNames[lexRecord] := 'lexRecord';
-  SymbolClassNames[lexCase] := 'lexCase';
-  SymbolClassNames[lexInterface] := 'lexInterface';
-  SymbolClassNames[lexClass] := 'lexClass';
-  SymbolClassNames[lexPrivate] := 'lexPrivate';
-  SymbolClassNames[lexProtected] := 'lexProtected';
-  SymbolClassNames[lexPublic] := 'lexPublic';
-  SymbolClassNames[lexPublished] := 'lexPublished';
-  SymbolClassNames[lexEnd] := 'lexEnd';
+  SymbolClassNames[tkArray] := 'tkArray';
+  SymbolClassNames[tkSet] := 'tkSet';
+  SymbolClassNames[tkOf] := 'tkOf';
+  SymbolClassNames[tkObject] := 'tkObject';
+  SymbolClassNames[tkPacked] := 'tkPacked';
+  SymbolClassNames[tkRecord] := 'tkRecord';
+  SymbolClassNames[tkCase] := 'tkCase';
+  SymbolClassNames[tkInterface] := 'tkInterface';
+  SymbolClassNames[tkClass] := 'tkClass';
+  SymbolClassNames[tkPrivate] := 'tkPrivate';
+  SymbolClassNames[tkProtected] := 'tkProtected';
+  SymbolClassNames[tkPublic] := 'tkPublic';
+  SymbolClassNames[tkPublished] := 'tkPublished';
+  SymbolClassNames[tkEnd] := 'tkEnd';
 
-  SymbolClassNames[lexProcedure] := 'lexProcedure';
-  SymbolClassNames[lexFunction] := 'lexFunction';
-  SymbolClassNames[lexProperty] := 'lexProperty';
-  SymbolClassNames[lexConstructor] := 'lexConstructor';
-  SymbolClassNames[lexDestructor] := 'lexDestructor';
+  SymbolClassNames[tkProcedure] := 'tkProcedure';
+  SymbolClassNames[tkFunction] := 'tkFunction';
+  SymbolClassNames[tkProperty] := 'tkProperty';
+  SymbolClassNames[tkConstructor] := 'tkConstructor';
+  SymbolClassNames[tkDestructor] := 'tkDestructor';
 
-  SymbolClassNames[lexPlus] := 'lexPlus';
-  SymbolClassNames[lexMinus] := 'lexMinus';
-  SymbolClassNames[lexTimes] := 'lexTimes';
-  SymbolClassNames[lexDivide] := 'lexDivide';
-  SymbolClassNames[lexDiv] := 'lexDiv';
-  SymbolClassNames[lexMod] := 'lexMod';
-  SymbolClassNames[lexShl] := 'lexShl';
-  SymbolClassNames[lexShr] := 'lexShr';
-  SymbolClassNames[lexOr] := 'lexOr';
-  SymbolClassNames[lexAnd] := 'lexAnd';
-  SymbolClassNames[lexXor] := 'lexXor';
+  SymbolClassNames[tkPlus] := 'tkPlus';
+  SymbolClassNames[tkMinus] := 'tkMinus';
+  SymbolClassNames[tkTimes] := 'tkTimes';
+  SymbolClassNames[tkDivide] := 'tkDivide';
+  SymbolClassNames[tkDiv] := 'tkDiv';
+  SymbolClassNames[tkMod] := 'tkMod';
+  SymbolClassNames[tkShl] := 'tkShl';
+  SymbolClassNames[tkShr] := 'tkShr';
+  SymbolClassNames[tkOr] := 'tkOr';
+  SymbolClassNames[tkAnd] := 'tkAnd';
+  SymbolClassNames[tkXor] := 'tkXor';
 
-  SymbolClassNames[lexRegister] := 'lexRegister';
-  SymbolClassNames[lexCDecl] := 'lexCDecl';
-  SymbolClassNames[lexPascal] := 'lexPascal';
-  SymbolClassNames[lexStdCall] := 'lexStdCall';
-  SymbolClassNames[lexSafeCall] := 'lexSafeCall';
+  SymbolClassNames[tkRegister] := 'tkRegister';
+  SymbolClassNames[tkCDecl] := 'tkCDecl';
+  SymbolClassNames[tkPascal] := 'tkPascal';
+  SymbolClassNames[tkStdCall] := 'tkStdCall';
+  SymbolClassNames[tkSafeCall] := 'tkSafeCall';
 
-  SymbolClassNames[lexNoDefault] := 'lexNoDefault';
-  SymbolClassNames[lexString] := 'lexString';
+  SymbolClassNames[tkNoDefault] := 'tkNoDefault';
+  SymbolClassNames[tkString] := 'tkString';
 end.
 

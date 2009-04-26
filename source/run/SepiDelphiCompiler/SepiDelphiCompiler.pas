@@ -1350,8 +1350,8 @@ begin
     RootNode := TRootNode.Create(ntSource, SepiRoot, Errors);
     try
       DecimalSeparator := '.';
-      TParser.Parse(RootNode, TLexer.Create(Errors, SourceFile.Text,
-        Errors.CurrentFileName));
+      TSepiDelphiParser.Parse(RootNode, TSepiDelphiLexer.Create(Errors,
+        SourceFile.Text, Errors.CurrentFileName));
     except
       on Error: ESepiCompilerFatalError do
         raise;
@@ -1967,7 +1967,7 @@ end;
 procedure TGUIDInitializationNode.ChildEndParsing(
   Child: TSepiParseTreeNode);
 begin
-  if Child.SymbolClass = lexStringCst then
+  if Child.SymbolClass = tkStringCst then
   begin
     try
       TGUID(ValuePtr^) := StringToGUID(StrRepresToStr(Child.AsText));
@@ -2271,7 +2271,7 @@ var
 begin
   Result := nil;
 
-  if Children[0].SymbolClass = lexAt then
+  if Children[0].SymbolClass = tkAt then
   begin
     if not Supports(Operand, ISepiAddressableValue, AddrValue) then
     begin
@@ -2290,8 +2290,8 @@ begin
     end;
 
     case Children[0].SymbolClass of
-      lexMinus: Operation := opNegate;
-      lexNot:   Operation := opNot;
+      tkMinus: Operation := opNegate;
+      tkNot:   Operation := opNot;
     else
       Result := Operand;
       Exit;
@@ -2333,7 +2333,7 @@ begin
 
     PointTo := TSepiPointerType(PointerValue.ValueType).PointTo;
 
-    if (PointTo.Kind in [tkInteger, tkChar]) and
+    if (PointTo.Kind in [TypInfo.tkInteger, tkChar]) and
       (PointTo.TypeData.OrdType = otUByte) then
     begin
       Result := PointerValue.ValueType;
@@ -2356,10 +2356,10 @@ end;
 function TBinaryOpNode.GetPriority: Integer;
 begin
   case Children[0].SymbolClass of
-    lexEquals, lexLowerThan, lexLowerEq,
-      lexGreaterThan, lexGreaterEq, lexNotEqual: Result := 1;
-    lexOr, lexAnd, lexXor: Result := 2;
-    lexPlus, lexMinus: Result := 3;
+    tkEquals, tkLowerThan, tkLowerEq,
+      tkGreaterThan, tkGreaterEq, tkNotEqual: Result := 1;
+    tkOr, tkAnd, tkXor: Result := 2;
+    tkPlus, tkMinus: Result := 3;
   else
     Result := 4;
   end;
@@ -2378,23 +2378,23 @@ var
   RecastTo: TSepiType;
 begin
   case Children[0].SymbolClass of
-    lexPlus:        Operation := opAdd;
-    lexMinus:       Operation := opSubtract;
-    lexTimes:       Operation := opMultiply;
-    lexDivide:      Operation := opDivide;
-    lexDiv:         Operation := opIntDivide;
-    lexMod:         Operation := opModulus;
-    lexShl:         Operation := opShiftLeft;
-    lexShr:         Operation := opShiftRight;
-    lexOr:          Operation := opOr;
-    lexAnd:         Operation := opAnd;
-    lexXor:         Operation := opXor;
-    lexEquals:      Operation := opCmpEQ;
-    lexLowerThan:   Operation := opCmpLT;
-    lexLowerEq:     Operation := opCmpLE;
-    lexGreaterThan: Operation := opCmpGT;
-    lexGreaterEq:   Operation := opCmpGE;
-    lexNotEqual:    Operation := opCmpNE;
+    tkPlus:        Operation := opAdd;
+    tkMinus:       Operation := opSubtract;
+    tkTimes:       Operation := opMultiply;
+    tkDivide:      Operation := opDivide;
+    tkDiv:         Operation := opIntDivide;
+    tkMod:         Operation := opModulus;
+    tkShl:         Operation := opShiftLeft;
+    tkShr:         Operation := opShiftRight;
+    tkOr:          Operation := opOr;
+    tkAnd:         Operation := opAnd;
+    tkXor:         Operation := opXor;
+    tkEquals:      Operation := opCmpEQ;
+    tkLowerThan:   Operation := opCmpLT;
+    tkLowerEq:     Operation := opCmpLE;
+    tkGreaterThan: Operation := opCmpGT;
+    tkGreaterEq:   Operation := opCmpGE;
+    tkNotEqual:    Operation := opCmpNE;
   else
     Assert(False);
     Operation := 0;
@@ -2425,7 +2425,7 @@ begin
     // Handle Integer / Integer with at least one constant
     if (Operation = opDivide) and
       ([LeftValue.ValueType.Kind, RightValue.ValueType.Kind] *
-      [tkFloat, tkVariant] = []) then
+      [TypInfo.tkFloat, tkVariant] = []) then
     begin
       if LeftValue.IsConstant then
         LeftValue := TSepiConvertOperation.ConvertValue(
@@ -2724,7 +2724,7 @@ begin
 
   case Child.SymbolClass of
     // Littéral entier
-    lexInteger:
+    tkInteger:
     begin
       if not TryStrToInt64(Text, IntValue) then
       begin
@@ -2737,7 +2737,7 @@ begin
     end;
 
     // Littéral flottant
-    lexFloat:
+    tkFloat:
     begin
       if not TryStrToFloat(Text, FloatValue) then
       begin
@@ -2750,7 +2750,7 @@ begin
     end;
 
     // Littéral chaîne
-    lexStringCst:
+    tkStringCst:
     begin
       StrValue := StrRepresToStr(Text);
 
@@ -2782,13 +2782,13 @@ begin
     end;
 
     // Inherited call
-    lexInherited:
+    tkInherited:
     begin
       HandleInherited(Children[1]);
     end;
 
     // nil
-    lexNil:
+    tkNil:
     begin
       Expression := TSepiExpression.Create(UnitCompiler);
       ISepiExpressionPart(TSepiNilValue.Create).AttachToExpression(Expression);
@@ -3254,7 +3254,7 @@ end;
 *}
 procedure TTypeDescNode.ChildEndParsing(Child: TSepiParseTreeNode);
 begin
-  if Child.SymbolClass = lexPacked then
+  if Child.SymbolClass = tkPacked then
     FIsPacked := True
   else
     FSepiType := (Child as TTypeDescriptorNode).SepiType;
@@ -3451,7 +3451,7 @@ begin
     // Type de routine
     ntRoutineKind:
     begin
-      if Child.Children[0].SymbolClass = lexProcedure then
+      if Child.Children[0].SymbolClass = tkProcedure then
         Signature.Kind := mkUnitProcedure
       else
         Signature.Kind := mkUnitFunction;
@@ -4020,7 +4020,7 @@ procedure TClassTypeNode.ChildBeginParsing(Child: TSepiParseTreeNode);
 begin
   inherited;
 
-  if Child.SymbolClass = lexOf then
+  if Child.SymbolClass = tkOf then
     FIsMetaClass := True
   else if Child is TMemberListNode then
   begin
@@ -4307,8 +4307,8 @@ begin
     ntRoutineKind:
     begin
       case Child.Children[0].SymbolClass of
-        lexProcedure: Signature.Kind := mkUnitProcedure;
-        lexFunction:  Signature.Kind := mkUnitFunction;
+        tkProcedure: Signature.Kind := mkUnitProcedure;
+        tkFunction:  Signature.Kind := mkUnitFunction;
       end;
     end;
   end;
@@ -4537,8 +4537,8 @@ begin
     ntRoutineKind:
     begin
       case Child.Children[0].SymbolClass of
-        lexProcedure: Signature.Kind := mkUnitProcedure;
-        lexFunction:  Signature.Kind := mkUnitFunction;
+        tkProcedure: Signature.Kind := mkUnitProcedure;
+        tkFunction:  Signature.Kind := mkUnitFunction;
       end;
     end;
 
@@ -4546,14 +4546,14 @@ begin
     ntMethodKind:
     begin
       case Child.Children[0].SymbolClass of
-        lexProcedure:   Signature.Kind := mkProcedure;
-        lexFunction:    Signature.Kind := mkFunction;
-        lexConstructor: Signature.Kind := mkConstructor;
-        lexDestructor:  Signature.Kind := mkDestructor;
+        tkProcedure:   Signature.Kind := mkProcedure;
+        tkFunction:    Signature.Kind := mkFunction;
+        tkConstructor: Signature.Kind := mkConstructor;
+        tkDestructor:  Signature.Kind := mkDestructor;
       else
         case Child.Children[1].SymbolClass of
-          lexProcedure: Signature.Kind := mkClassProcedure;
-          lexFunction:  Signature.Kind := mkClassFunction;
+          tkProcedure: Signature.Kind := mkClassProcedure;
+          tkFunction:  Signature.Kind := mkClassFunction;
         end;
       end;
     end;
@@ -4924,12 +4924,12 @@ begin
     ntPropInfo:
     begin
       case Child.Children[0].SymbolClass of
-        lexRead:      HandleAccess      (Child.Children[1], False);
-        lexWrite:     HandleAccess      (Child.Children[1], True);
-        lexIndex:     HandleIndex       (Child.Children[1]);
-        lexDefault:   HandleDefaultValue(Child.Children[1]);
-        lexNoDefault: HandleDefaultValue(nil);
-        lexStored:    HandleStorage     (Child.Children[1]);
+        tkRead:      HandleAccess      (Child.Children[1], False);
+        tkWrite:     HandleAccess      (Child.Children[1], True);
+        tkIndex:     HandleIndex       (Child.Children[1]);
+        tkDefault:   HandleDefaultValue(Child.Children[1]);
+        tkNoDefault: HandleDefaultValue(nil);
+        tkStored:    HandleStorage     (Child.Children[1]);
       end;
     end;
 
@@ -5076,9 +5076,9 @@ begin
       if Child.ChildCount > 0 then
       begin
         case Child.Children[0].SymbolClass of
-          lexConst: FKind := pkConst;
-          lexVar:   FKind := pkVar;
-          lexOut:   FKind := pkOut;
+          tkConst: FKind := pkConst;
+          tkVar:   FKind := pkVar;
+          tkOut:   FKind := pkOut;
         end;
       end;
     end;
@@ -5181,7 +5181,7 @@ var
 begin
   inherited;
 
-  if (ChildCount = 2) and (Children[0].SymbolClass = lexDefault) then
+  if (ChildCount = 2) and (Children[0].SymbolClass = tkDefault) then
   begin
     PropertyType := (Parent as TPropertyNode).Signature.ReturnType;
     (Children[1] as TConstExpressionNode).ValueType := PropertyType;
@@ -5365,14 +5365,14 @@ begin
     ntMethodKind:
     begin
       case Child.Children[0].SymbolClass of
-        lexProcedure:   Signature.Kind := mkUnitProcedure;
-        lexFunction:    Signature.Kind := mkUnitFunction;
-        lexConstructor: Signature.Kind := mkConstructor;
-        lexDestructor:  Signature.Kind := mkDestructor;
+        tkProcedure:   Signature.Kind := mkUnitProcedure;
+        tkFunction:    Signature.Kind := mkUnitFunction;
+        tkConstructor: Signature.Kind := mkConstructor;
+        tkDestructor:  Signature.Kind := mkDestructor;
       else
         case Child.Children[1].SymbolClass of
-          lexProcedure: Signature.Kind := mkClassProcedure;
-          lexFunction:  Signature.Kind := mkClassFunction;
+          tkProcedure: Signature.Kind := mkClassProcedure;
+          tkFunction:  Signature.Kind := mkClassFunction;
         end;
       end;
     end;
@@ -5740,7 +5740,7 @@ begin
     // 'to' or 'downto' keyword
     ToDownToChild:
     begin
-      Instruction.IsDownTo := (Child.SymbolClass = lexDownTo);
+      Instruction.IsDownTo := (Child.SymbolClass = tkDownTo);
     end;
   end;
 
