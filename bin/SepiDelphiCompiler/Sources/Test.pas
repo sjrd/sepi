@@ -61,6 +61,22 @@ begin
   DecimalSeparator := '.';
   WriteLn(FloatToStr(2.1416));
 
+  {$IF RTLVersion > 15}
+    WriteLn('RTLVersion > 15');
+  {$IFEND}
+
+  {$IF 3+5 = 6}
+    WriteLn('3+5 = 6');
+  {$IFEND}
+
+  {$IF Declared(ShorterVar) and not Defined(SOMETHING)}
+    WriteLn('Cool! This beast is working!');
+  {$IFEND}
+
+  {$IF Defined(MSWINDOWS)}
+    WriteLn('Compiled for Windows');
+  {$IFEND}
+
   Strings := TPrintOnAddStrings.Create;
   try
     for I := 0 to 10 do

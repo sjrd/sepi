@@ -29,6 +29,7 @@ program SepiParserGenerator;
 uses
   SysUtils,
   Classes,
+  ScUtils,
   ScIntegerSets,
   ScConsoleUtils,
   ScDelphiLanguage,
@@ -358,19 +359,16 @@ begin
       begin
         Generator.PushChoiceProcs.Add(Format(
           '  PushTry(%d);', [AlternativeChoice.ID]));
-        Generator.PushChoiceProcs.Add('  Stack.Push(scPopTry);');
       end;
 
       // Back-to parent
-      Generator.PushChoiceProcs.Add('  Stack.Push(scBackToParent);');
+      Generator.PushChoiceProcs.Add('  PushBackToParent;');
 
       // Actual choice: components
       for J := ItemCount-1 downto 0 do
       begin
-        Generator.PushChoiceProcs.Add(Format(
-          '  Stack.Push(%s);', [Items[J].StrID]));
-        if ItemsToRemove[J] then
-          Generator.PushChoiceProcs.Add('  Stack.Push(scNextChildIsFake);');
+        Generator.PushChoiceProcs.Add(Format('  Push%sSymbol(%s);',
+          [IIF(ItemsToRemove[J], 'Fake', ''), Items[J].StrID]));
       end;
 
       // Method footer

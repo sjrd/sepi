@@ -119,9 +119,6 @@ var
   UnitName: string;
   SepiRoot: TSepiRoot;
   SourceFile: TStrings;
-  DestFile: TStream;
-  RootNode: TRootNode;
-  Compiler: TSepiUnitCompiler;
 begin
   Errors := Context.Errors;
 
@@ -136,19 +133,16 @@ begin
   DestFileName := Context.OutputDir + UnitName + CompiledUnitExt;
 
   SourceFile := nil;
-  DestFile := nil;
-  RootNode := nil;
   SepiRoot := TSepiRoot.Create;
   try
     SepiRoot.OnLoadUnit := TSepiLoadUnitEvent(MakeMethod(
       @LoadUnit, Context));
 
-    SourceFile := TStringList.Create;
-
     // Update current file name
     Errors.CurrentFileName := ExtractFileName(SrcFileName);
 
     // Load source file
+    SourceFile := TStringList.Create;
     try
       SourceFile.LoadFromFile(SrcFileName);
     except
@@ -157,44 +151,12 @@ begin
           ekFatalError);
     end;
 
-    // Create destination file stream
-    try
-      DestFile := TFileStream.Create(DestFileName, fmCreate);
-    except
-      on EStreamError do
-        Errors.MakeError(Format(SCantOpenDestFile, [DestFileName]),
-          ekFatalError);
-    end;
-
-    // Actually compile the source file
-    RootNode := TRootNode.Create(ntSource, SepiRoot, Errors);
-    try
-      TParser.Parse(RootNode, TLexer.Create(Errors, SourceFile.Text,
-        Errors.CurrentFileName));
-    except
-      on Error: ESepiCompilerFatalError do
-        raise;
-      on Error: Exception do
-      begin
-        Errors.MakeError(Error.Message, ekFatalError,
-          FindRightMostNode(RootNode).SourcePos);
-      end;
-    end;
-
-    // Check for errors
-    Errors.CheckForErrors;
-
-    // Fetch Sepi unit compiler
-    Compiler := RootNode.UnitCompiler;
-
-    // Compile and write compiled unit to destination stream
-    Compiler.WriteToStream(DestFile);
+    // Compile the source
+    CompileDelphiSource(SepiRoot, Errors, SourceFile, DestFileName);
 
     // Let the user know we've finished this file
     WriteLn(ExtractFileName(SrcFileName), ' terminé');
   finally
-    RootNode.Free;
-    DestFile.Free;
     SourceFile.Free;
     SepiRoot.Free;
   end;

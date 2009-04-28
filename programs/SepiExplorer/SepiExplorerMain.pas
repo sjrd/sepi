@@ -58,6 +58,8 @@ type
     FSepiRoot: TSepiRoot;       /// Racine Sepi
     FRuntimeUnits: TStrings;    /// Unités de type run-time
 
+    FDisableLazyLoad: Boolean; /// Désactive le lazy-load temporairement
+
     function RootLoadUnit(Sender: TSepiRoot;
       const UnitName: string): TSepiUnit;
 
@@ -139,15 +141,18 @@ function TExplorerForm.RootLoadUnit(Sender: TSepiRoot;
 var
   UnitFileName: string;
   Stream: TStream;
-  LazyLoad: Boolean;
+  DisableLazyLoad, LazyLoad: Boolean;
   RuntimeUnit: TSepiRuntimeUnit;
 begin
   UnitFileName := Options.SearchFile(UnitName + CompiledIntfExt);
 
+  DisableLazyLoad := FDisableLazyLoad;
+  FDisableLazyLoad := False;
+
   if UnitFileName <> '' then
   begin
     Stream := TFileStream.Create(UnitFileName, fmOpenRead);
-    LazyLoad := Stream.Size > MaxSizeBeforeLazyLoad;
+    LazyLoad := (not DisableLazyLoad) and (Stream.Size > MaxSizeBeforeLazyLoad);
     try
       Result := TSepiUnit.LoadFromStream(Sender, Stream, LazyLoad);
       if LazyLoad then
@@ -227,6 +232,7 @@ end;
 procedure TExplorerForm.LoadUnit(const UnitName: string);
 begin
   try
+    FDisableLazyLoad := True;
     SepiRoot.LoadUnit(UnitName);
     TreeView.RootNodeCount := SepiRoot.UnitCount;
   except
