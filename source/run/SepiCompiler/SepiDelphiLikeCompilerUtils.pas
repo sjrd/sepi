@@ -53,6 +53,26 @@ type
   end;
 
   {*
+    Pseudo-routine de test d'identificateur
+    Ces pseudo-routines (en Delphi : Defined et Declared) sont utilisées par
+    les instructions du pré-processuer $IF. Aucune implémentation de cette
+    interface n'est disponible dans cette unité : les pré-processeurs les
+    définiront selon leur mode de fonctionnement.
+    @author sjrd
+    @version 1.0
+  *}
+  ISepiIdentifierTestPseudoRoutine = interface(ISepiReadableValue)
+    ['{3A4B9066-D284-4690-A4DF-9AF59BEEA79B}']
+
+    function GetIdentifier: string;
+    procedure SetIdentifier(const Value: string);
+
+    procedure Complete;
+
+    property Identifier: string read GetIdentifier write SetIdentifier;
+  end;
+
+  {*
     Pseudo-routine de transtypage
     @author sjrd
     @version 1.0

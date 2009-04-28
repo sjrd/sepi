@@ -100,6 +100,7 @@ type
 
     procedure AfterConstruction; override;
     procedure BeforeDestruction; override;
+    procedure DefaultHandler(var Message); override;
 
     procedure Move(NewParent: TSepiNonTerminal; Index: Integer = -1);
     function FindRightMost: TSepiParseTreeNode;
@@ -496,6 +497,15 @@ begin
 
   if Parent <> nil then
     RemoveFromParent;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiParseTreeNode.DefaultHandler(var Message);
+begin
+  if Parent <> nil then
+    Parent.Dispatch(Message);
 end;
 
 {*

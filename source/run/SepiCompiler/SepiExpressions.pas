@@ -6231,7 +6231,7 @@ end;
 *}
 procedure TSepiTypeOperationValue.CompleteSizeOf;
 begin
-  SetValueType(SepiRoot.FindType(TypeInfo(Integer)));
+  SetValueType(UnitCompiler.SystemUnit.Integer);
   AllocateConstant;
 
   Integer(ConstValuePtr^) := Operand.ExprType.Size;
@@ -6242,7 +6242,7 @@ end;
 *}
 procedure TSepiTypeOperationValue.CompleteTypeInfo;
 begin
-  SetValueType(SepiRoot.FindType('System.Pointer'));
+  SetValueType(UnitCompiler.SystemUnit.Pointer);
 
   if Operand.ExprType.TypeInfo = nil then
     AllocateConstant; // zero-initialized
