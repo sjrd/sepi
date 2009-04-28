@@ -25,7 +25,6 @@ type
     function IsNonTerminal(
       Symbol: TSepiSymbolClass): Boolean; override;
 
-    function GetStartSymbol: TSepiSymbolClass; override;
     procedure InitPushChoiceProcs; override;
 
     function GetExpectedString(
@@ -68,14 +67,6 @@ end;
 function TSepiLanguageParser.IsNonTerminal(Symbol: TSepiSymbolClass): Boolean;
 begin
   Result := (Symbol >= FirstNonTerminal) and (Symbol <= LastNonTerminal);
-end;
-
-{*
-  [@inheritDoc]
-*}
-function TSepiLanguageParser.GetStartSymbol: TSepiSymbolClass;
-begin
-  Result := ntSource;
 end;
 
 {*
