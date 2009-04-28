@@ -83,6 +83,8 @@ type
     FCurrentPos: TSepiSourcePosition; /// Position courante
     FNextPos: TSepiSourcePosition;    /// Prochaine position
     FCurTerminal: TSepiTerminal;      /// Dernier terminal analysé
+
+    FContext: TSepiNonTerminal; /// Contexte courant (peut être nil)
   protected
     procedure MakeError(const ErrorMsg: string;
       Kind: TSepiErrorKind = ekError);
@@ -115,6 +117,8 @@ type
     property CurrentPos: TSepiSourcePosition read FCurrentPos;
 
     property CurTerminal: TSepiTerminal read FCurTerminal;
+
+    property Context: TSepiNonTerminal read FContext write FContext;
   end;
 
   {*
@@ -198,7 +202,10 @@ begin
   FCode := ACode + #0;
   FCursor := 1;
 
-  FNextPos.FileName := AFileName;
+  if AFileName = '' then
+    FNextPos.FileName := AErrors.CurrentFileName
+  else
+    FNextPos.FileName := AFileName;
   FNextPos.Line := 1;
   FNextPos.Col := 1;
 
