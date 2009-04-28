@@ -386,6 +386,8 @@ type
   *}
   TParametersNode = class(TNextExprNode)
   private
+    procedure CompileIdentifierTest(
+      const PseudoRoutine: ISepiIdentifierTestPseudoRoutine);
     procedure CompileCastOrConvert(DestType: TSepiType);
     procedure CompileCast(const PseudoRoutine: ISepiCastPseudoRoutine);
     procedure CompileTypeOperation(
@@ -2897,6 +2899,19 @@ end;
 {-----------------------}
 
 {*
+  Compile une pseudo-routine de test d'identificateur
+*}
+procedure TParametersNode.CompileIdentifierTest(
+  const PseudoRoutine: ISepiIdentifierTestPseudoRoutine);
+begin
+  PseudoRoutine.Identifier := Children[0].AsText;
+  PseudoRoutine.Complete;
+
+  Expression := Base;
+  PseudoRoutine.AttachToExpression(Expression);
+end;
+
+{*
   Compile un transtypage ou une conversion
   @param DestType   Type de destination
 *}
@@ -3025,6 +3040,9 @@ begin
 
     Callable.AttachToExpression(Base);
   end;
+
+  if Supports(Base, ISepiIdentifierTestPseudoRoutine) then
+    SetSymbolClass(ntIdentTestParam);
 end;
 
 {*
@@ -3032,12 +3050,16 @@ end;
 *}
 procedure TParametersNode.EndParsing;
 var
+  IdentifierTestPseudoRoutine: ISepiIdentifierTestPseudoRoutine;
   CastPseudoRoutine: ISepiCastPseudoRoutine;
   TypeExpression: ISepiTypeExpression;
   TypeOperation: ISepiTypeOperationPseudoRoutine;
   Callable: ISepiCallable;
 begin
-  if Supports(Base, ISepiCastPseudoRoutine, CastPseudoRoutine) then
+  if Supports(Base, ISepiIdentifierTestPseudoRoutine,
+    IdentifierTestPseudoRoutine) then
+    CompileIdentifierTest(IdentifierTestPseudoRoutine)
+  else if Supports(Base, ISepiCastPseudoRoutine, CastPseudoRoutine) then
     CompileCast(CastPseudoRoutine)
   else if Supports(Base, ISepiTypeExpression, TypeExpression) then
     CompileCastOrConvert(TypeExpression.ExprType)
@@ -4945,7 +4967,7 @@ begin
           Child.MakeError(Format(SDuplicateModifier, [Str]))
         else if (Owner is TSepiClass) and
           (TSepiClass(Owner).DefaultProperty <> nil) and
-          (TSepiClass(Owner).DefaultProperty.Owner <> Owner) then
+          (TSepiClass(Owner).DefaultProperty.Owner = Owner) then
           Child.MakeError(SDuplicateDefaultProperty)
         else if Signature.ParamCount = 0 then
           Child.MakeError(SArrayPropertyRequired)

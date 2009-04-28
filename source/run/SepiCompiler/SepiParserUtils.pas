@@ -59,17 +59,16 @@ type
       Analyse syntaxique proprement dite
       @param RootNode   Noeud racine de l'arbre syntaxique
     *}
-    procedure InternalParse(
-      RootNode: TSepiParseTreeRootNode); virtual; abstract;
+    procedure InternalParse(RootNode: TSepiNonTerminal); virtual; abstract;
 
     property Lexer: TSepiCustomLexer read FLexer;
   public
     constructor Create(ALexer: TSepiCustomLexer); virtual;
     destructor Destroy; override;
 
-    class procedure Parse(RootNode: TSepiParseTreeRootNode;
+    class procedure Parse(RootNode: TSepiNonTerminal;
       Lexer: TSepiCustomLexer); overload;
-    class procedure Parse(RootNode: TSepiParseTreeRootNode;
+    class procedure Parse(RootNode: TSepiNonTerminal;
       const Code: string; const FileName: string = ''); overload;
 
     property Errors: TSepiCompilerErrorList read FErrors;
@@ -130,7 +129,7 @@ end;
   @param RootNode   Noeud racine de l'arbre syntaxique à produire
   @param Lexer      Analyseur lexical source
 *}
-class procedure TSepiCustomParser.Parse(RootNode: TSepiParseTreeRootNode;
+class procedure TSepiCustomParser.Parse(RootNode: TSepiNonTerminal;
   Lexer: TSepiCustomLexer);
 begin
   with Create(Lexer) do
@@ -146,10 +145,10 @@ end;
   @param RootNode   Noeud racine de l'arbre syntaxique à produire
   @param Code       Code source à analyser
 *}
-class procedure TSepiCustomParser.Parse(RootNode: TSepiParseTreeRootNode;
+class procedure TSepiCustomParser.Parse(RootNode: TSepiNonTerminal;
   const Code: string; const FileName: string = '');
 begin
-  Parse(RootNode, CreateDefaultLexer(RootNode.Errors, Code, FileName));
+  Parse(RootNode, CreateDefaultLexer(RootNode.RootNode.Errors, Code, FileName));
 end;
 
 end.

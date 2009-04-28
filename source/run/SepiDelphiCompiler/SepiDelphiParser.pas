@@ -7,217 +7,219 @@ uses
   SepiLL1ParserUtils, SepiDelphiLexer;
 
 const
-  ChoiceCount = 334;
+  ChoiceCount = 336;
   FirstNonTerminal = 100;
-  LastNonTerminal = 306;
+  LastNonTerminal = 308;
 
   ntSource = 100; // Source
-  ntInterface = 101; // Interface
-  ntImplementation = 102; // Implementation
-  ntIntfSection = 103; // IntfSection
-  ntImplSection = 104; // ImplSection
-  ntInitFinit = 105; // InitFinit
-  ntIdentifier = 106; // Identifier
-  ntCallingConvention = 107; // CallingConvention
-  ntUsesSection = 108; // UsesSection
-  ntCommaIdentList = 109; // CommaIdentList
-  ntQualifiedIdent = 110; // QualifiedIdent
-  ntInitializationExpression = 111; // InitializationExpression
-  ntArrayInitializationExpression = 112; // ArrayInitializationExpression
-  ntArrayInitialization = 113; // ArrayInitialization
-  ntRecordInitializationExpression = 114; // RecordInitializationExpression
-  ntRecordInitialization = 115; // RecordInitialization
-  ntGUIDInitializationExpression = 116; // GUIDInitializationExpression
-  ntGUIDInitialization = 117; // GUIDInitialization
-  ntOtherInitializationExpression = 118; // OtherInitializationExpression
-  ntOtherInitialization = 119; // OtherInitialization
-  ntExpression = 120; // Expression
-  ntExpressionNoEquals = 121; // ExpressionNoEquals
-  ntConstExpression = 122; // ConstExpression
-  ntConstExpressionNoEquals = 123; // ConstExpressionNoEquals
-  ntConstOrType = 124; // ConstOrType
-  ntConstOrTypeNoEquals = 125; // ConstOrTypeNoEquals
-  ntSingleExpr = 126; // SingleExpr
-  ntParenthesizedExpr = 127; // ParenthesizedExpr
-  ntNextExpr = 128; // NextExpr
-  ntParameters = 129; // Parameters
-  ntArrayIndices = 130; // ArrayIndices
-  ntExprList = 131; // ExprList
-  ntFieldSelection = 132; // FieldSelection
-  ntDereference = 133; // Dereference
-  ntSingleValue = 134; // SingleValue
-  ntSetValue = 135; // SetValue
-  ntSetRange = 136; // SetRange
-  ntBinaryOp = 137; // BinaryOp
-  ntBinaryOpNoEquals = 138; // BinaryOpNoEquals
-  ntUnaryOp = 139; // UnaryOp
-  ntConstSection = 140; // ConstSection
-  ntConstKeyWord = 141; // ConstKeyWord
-  ntConstDecl = 142; // ConstDecl
-  ntInnerConstDecl = 143; // InnerConstDecl
-  ntVarSection = 144; // VarSection
-  ntGlobalVar = 145; // GlobalVar
-  ntInnerGlobalVar = 146; // InnerGlobalVar
-  ntTypeSection = 147; // TypeSection
-  ntTypeDecl = 148; // TypeDecl
-  ntTypeDesc = 149; // TypeDesc
-  ntPackedDesc = 150; // PackedDesc
-  ntArrayDesc = 151; // ArrayDesc
-  ntArrayDims = 152; // ArrayDims
-  ntArrayRange = 153; // ArrayRange
-  ntTypeModifiers = 154; // TypeModifiers
-  ntCloneDesc = 155; // CloneDesc
-  ntRangeOrEnumDesc = 156; // RangeOrEnumDesc
-  ntRangeDesc = 157; // RangeDesc
-  ntEnumDesc = 158; // EnumDesc
-  ntSetDesc = 159; // SetDesc
-  ntStringDesc = 160; // StringDesc
-  ntPointerDesc = 161; // PointerDesc
-  ntRecordDesc = 162; // RecordDesc
-  ntRecordContents = 163; // RecordContents
-  ntRecordCaseBlock = 164; // RecordCaseBlock
-  ntRecordCase = 165; // RecordCase
-  ntCaseLabels = 166; // CaseLabels
-  ntRecordCaseContents = 167; // RecordCaseContents
-  ntNextRecordCaseContents = 168; // NextRecordCaseContents
-  ntNextRecordCaseContentsEx = 169; // NextRecordCaseContentsEx
-  ntRecordCaseField = 170; // RecordCaseField
-  ntField = 171; // Field
-  ntClassDesc = 172; // ClassDesc
-  ntClassExDesc = 173; // ClassExDesc
-  ntClassContents = 174; // ClassContents
-  ntClassHeritage = 175; // ClassHeritage
-  ntClassMemberLists = 176; // ClassMemberLists
-  ntVisibility = 177; // Visibility
-  ntClassMemberList = 178; // ClassMemberList
-  ntInterfaceDesc = 179; // InterfaceDesc
-  ntInterfaceHeritage = 180; // InterfaceHeritage
-  ntDispInterfaceDesc = 181; // DispInterfaceDesc
-  ntDispInterfaceHeritage = 182; // DispInterfaceHeritage
-  ntInterfaceGUID = 183; // InterfaceGUID
-  ntInterfaceMemberList = 184; // InterfaceMemberList
-  ntMethodProp = 185; // MethodProp
-  ntMethodDecl = 186; // MethodDecl
-  ntMethodKind = 187; // MethodKind
-  ntMethodKindEx = 188; // MethodKindEx
-  ntNextMethodDecl = 189; // NextMethodDecl
-  ntIntfMethodRedirector = 190; // IntfMethodRedirector
-  ntMethodModifier = 191; // MethodModifier
-  ntPropertyDecl = 192; // PropertyDecl
-  ntPropertyKind = 193; // PropertyKind
-  ntPropertyNextDecl = 194; // PropertyNextDecl
-  ntRedefineMarker = 195; // RedefineMarker
-  ntPropInfo = 196; // PropInfo
-  ntPropertyModifier = 197; // PropertyModifier
-  ntEventDesc = 198; // EventDesc
-  ntEventModifiers = 199; // EventModifiers
-  ntEventIsOfObject = 200; // EventIsOfObject
-  ntRoutineDecl = 201; // RoutineDecl
-  ntRoutineKind = 202; // RoutineKind
-  ntRoutineModifier = 203; // RoutineModifier
-  ntMethodSignature = 204; // MethodSignature
-  ntPropertySignature = 205; // PropertySignature
-  ntMethodParamList = 206; // MethodParamList
-  ntParamList = 207; // ParamList
-  ntReturnType = 208; // ReturnType
-  ntPropType = 209; // PropType
-  ntParam = 210; // Param
-  ntParamKind = 211; // ParamKind
-  ntParamNameList = 212; // ParamNameList
-  ntParamTypeAndDefault = 213; // ParamTypeAndDefault
-  ntComptkParamType = 214; // ComptkParamType
-  ntParamIsArray = 215; // ParamIsArray
-  ntParamArrayType = 216; // ParamArrayType
-  ntParamType = 217; // ParamType
-  ntParamDefault = 218; // ParamDefault
-  ntMethodImpl = 219; // MethodImpl
-  ntMethodImplDecl = 220; // MethodImplDecl
-  ntMethodImplementation = 221; // MethodImplementation
-  ntMethodBody = 222; // MethodBody
-  ntInMethodSection = 223; // InMethodSection
-  ntForwardMarker = 224; // ForwardMarker
-  ntUnitInitialization = 225; // UnitInitialization
-  ntUnitFinalization = 226; // UnitFinalization
-  ntLocalVarSection = 227; // LocalVarSection
-  ntLocalVar = 228; // LocalVar
-  ntInstructionList = 229; // InstructionList
-  ntInstruction = 230; // Instruction
-  ntNoInstruction = 231; // NoInstruction
-  ntBeginEndBlock = 232; // BeginEndBlock
-  ntIfThenElseInstruction = 233; // IfThenElseInstruction
-  ntElseBranch = 234; // ElseBranch
-  ntWhileInstruction = 235; // WhileInstruction
-  ntRepeatInstruction = 236; // RepeatInstruction
-  ntForInstruction = 237; // ForInstruction
-  ntToDownTo = 238; // ToDownTo
-  ntTryInstruction = 239; // TryInstruction
-  ntNextTryInstruction = 240; // NextTryInstruction
-  ntExceptClause = 241; // ExceptClause
-  ntNextExceptClause = 242; // NextExceptClause
-  ntMultiOn = 243; // MultiOn
-  ntOnClause = 244; // OnClause
-  ntMultiOnElseClause = 245; // MultiOnElseClause
-  ntFinallyClause = 246; // FinallyClause
-  ntRaiseInstruction = 247; // RaiseInstruction
-  ntExpressionInstruction = 248; // ExpressionInstruction
-  ntPriv0 = 249; // Priv0
-  ntPriv1 = 250; // Priv1
-  ntPriv2 = 251; // Priv2
-  ntPriv3 = 252; // Priv3
-  ntPriv4 = 253; // Priv4
-  ntPriv5 = 254; // Priv5
-  ntPriv6 = 255; // Priv6
-  ntPriv7 = 256; // Priv7
-  ntPriv8 = 257; // Priv8
-  ntPriv9 = 258; // Priv9
-  ntPriv10 = 259; // Priv10
-  ntPriv11 = 260; // Priv11
-  ntPriv12 = 261; // Priv12
-  ntPriv13 = 262; // Priv13
-  ntPriv14 = 263; // Priv14
-  ntPriv15 = 264; // Priv15
-  ntPriv16 = 265; // Priv16
-  ntPriv17 = 266; // Priv17
-  ntPriv18 = 267; // Priv18
-  ntPriv19 = 268; // Priv19
-  ntPriv20 = 269; // Priv20
-  ntPriv21 = 270; // Priv21
-  ntPriv22 = 271; // Priv22
-  ntPriv23 = 272; // Priv23
-  ntPriv24 = 273; // Priv24
-  ntPriv25 = 274; // Priv25
-  ntPriv26 = 275; // Priv26
-  ntPriv27 = 276; // Priv27
-  ntPriv28 = 277; // Priv28
-  ntPriv29 = 278; // Priv29
-  ntPriv30 = 279; // Priv30
-  ntPriv31 = 280; // Priv31
-  ntPriv32 = 281; // Priv32
-  ntPriv33 = 282; // Priv33
-  ntPriv34 = 283; // Priv34
-  ntPriv35 = 284; // Priv35
-  ntPriv36 = 285; // Priv36
-  ntPriv37 = 286; // Priv37
-  ntPriv38 = 287; // Priv38
-  ntPriv39 = 288; // Priv39
-  ntPriv40 = 289; // Priv40
-  ntPriv41 = 290; // Priv41
-  ntPriv42 = 291; // Priv42
-  ntPriv43 = 292; // Priv43
-  ntPriv44 = 293; // Priv44
-  ntPriv45 = 294; // Priv45
-  ntPriv46 = 295; // Priv46
-  ntPriv47 = 296; // Priv47
-  ntPriv48 = 297; // Priv48
-  ntPriv49 = 298; // Priv49
-  ntPriv50 = 299; // Priv50
-  ntPriv51 = 300; // Priv51
-  ntPriv52 = 301; // Priv52
-  ntPriv53 = 302; // Priv53
-  ntPriv54 = 303; // Priv54
-  ntPriv55 = 304; // Priv55
-  ntPriv56 = 305; // Priv56
-  ntPriv57 = 306; // Priv57
+  ntInPreProcessorExpression = 101; // InPreProcessorExpression
+  ntInterface = 102; // Interface
+  ntImplementation = 103; // Implementation
+  ntIntfSection = 104; // IntfSection
+  ntImplSection = 105; // ImplSection
+  ntInitFinit = 106; // InitFinit
+  ntIdentifier = 107; // Identifier
+  ntCallingConvention = 108; // CallingConvention
+  ntUsesSection = 109; // UsesSection
+  ntCommaIdentList = 110; // CommaIdentList
+  ntQualifiedIdent = 111; // QualifiedIdent
+  ntInitializationExpression = 112; // InitializationExpression
+  ntArrayInitializationExpression = 113; // ArrayInitializationExpression
+  ntArrayInitialization = 114; // ArrayInitialization
+  ntRecordInitializationExpression = 115; // RecordInitializationExpression
+  ntRecordInitialization = 116; // RecordInitialization
+  ntGUIDInitializationExpression = 117; // GUIDInitializationExpression
+  ntGUIDInitialization = 118; // GUIDInitialization
+  ntOtherInitializationExpression = 119; // OtherInitializationExpression
+  ntOtherInitialization = 120; // OtherInitialization
+  ntExpression = 121; // Expression
+  ntExpressionNoEquals = 122; // ExpressionNoEquals
+  ntConstExpression = 123; // ConstExpression
+  ntConstExpressionNoEquals = 124; // ConstExpressionNoEquals
+  ntConstOrType = 125; // ConstOrType
+  ntConstOrTypeNoEquals = 126; // ConstOrTypeNoEquals
+  ntSingleExpr = 127; // SingleExpr
+  ntParenthesizedExpr = 128; // ParenthesizedExpr
+  ntNextExpr = 129; // NextExpr
+  ntParameters = 130; // Parameters
+  ntIdentTestParam = 131; // IdentTestParam
+  ntArrayIndices = 132; // ArrayIndices
+  ntExprList = 133; // ExprList
+  ntFieldSelection = 134; // FieldSelection
+  ntDereference = 135; // Dereference
+  ntSingleValue = 136; // SingleValue
+  ntSetValue = 137; // SetValue
+  ntSetRange = 138; // SetRange
+  ntBinaryOp = 139; // BinaryOp
+  ntBinaryOpNoEquals = 140; // BinaryOpNoEquals
+  ntUnaryOp = 141; // UnaryOp
+  ntConstSection = 142; // ConstSection
+  ntConstKeyWord = 143; // ConstKeyWord
+  ntConstDecl = 144; // ConstDecl
+  ntInnerConstDecl = 145; // InnerConstDecl
+  ntVarSection = 146; // VarSection
+  ntGlobalVar = 147; // GlobalVar
+  ntInnerGlobalVar = 148; // InnerGlobalVar
+  ntTypeSection = 149; // TypeSection
+  ntTypeDecl = 150; // TypeDecl
+  ntTypeDesc = 151; // TypeDesc
+  ntPackedDesc = 152; // PackedDesc
+  ntArrayDesc = 153; // ArrayDesc
+  ntArrayDims = 154; // ArrayDims
+  ntArrayRange = 155; // ArrayRange
+  ntTypeModifiers = 156; // TypeModifiers
+  ntCloneDesc = 157; // CloneDesc
+  ntRangeOrEnumDesc = 158; // RangeOrEnumDesc
+  ntRangeDesc = 159; // RangeDesc
+  ntEnumDesc = 160; // EnumDesc
+  ntSetDesc = 161; // SetDesc
+  ntStringDesc = 162; // StringDesc
+  ntPointerDesc = 163; // PointerDesc
+  ntRecordDesc = 164; // RecordDesc
+  ntRecordContents = 165; // RecordContents
+  ntRecordCaseBlock = 166; // RecordCaseBlock
+  ntRecordCase = 167; // RecordCase
+  ntCaseLabels = 168; // CaseLabels
+  ntRecordCaseContents = 169; // RecordCaseContents
+  ntNextRecordCaseContents = 170; // NextRecordCaseContents
+  ntNextRecordCaseContentsEx = 171; // NextRecordCaseContentsEx
+  ntRecordCaseField = 172; // RecordCaseField
+  ntField = 173; // Field
+  ntClassDesc = 174; // ClassDesc
+  ntClassExDesc = 175; // ClassExDesc
+  ntClassContents = 176; // ClassContents
+  ntClassHeritage = 177; // ClassHeritage
+  ntClassMemberLists = 178; // ClassMemberLists
+  ntVisibility = 179; // Visibility
+  ntClassMemberList = 180; // ClassMemberList
+  ntInterfaceDesc = 181; // InterfaceDesc
+  ntInterfaceHeritage = 182; // InterfaceHeritage
+  ntDispInterfaceDesc = 183; // DispInterfaceDesc
+  ntDispInterfaceHeritage = 184; // DispInterfaceHeritage
+  ntInterfaceGUID = 185; // InterfaceGUID
+  ntInterfaceMemberList = 186; // InterfaceMemberList
+  ntMethodProp = 187; // MethodProp
+  ntMethodDecl = 188; // MethodDecl
+  ntMethodKind = 189; // MethodKind
+  ntMethodKindEx = 190; // MethodKindEx
+  ntNextMethodDecl = 191; // NextMethodDecl
+  ntIntfMethodRedirector = 192; // IntfMethodRedirector
+  ntMethodModifier = 193; // MethodModifier
+  ntPropertyDecl = 194; // PropertyDecl
+  ntPropertyKind = 195; // PropertyKind
+  ntPropertyNextDecl = 196; // PropertyNextDecl
+  ntRedefineMarker = 197; // RedefineMarker
+  ntPropInfo = 198; // PropInfo
+  ntPropertyModifier = 199; // PropertyModifier
+  ntEventDesc = 200; // EventDesc
+  ntEventModifiers = 201; // EventModifiers
+  ntEventIsOfObject = 202; // EventIsOfObject
+  ntRoutineDecl = 203; // RoutineDecl
+  ntRoutineKind = 204; // RoutineKind
+  ntRoutineModifier = 205; // RoutineModifier
+  ntMethodSignature = 206; // MethodSignature
+  ntPropertySignature = 207; // PropertySignature
+  ntMethodParamList = 208; // MethodParamList
+  ntParamList = 209; // ParamList
+  ntReturnType = 210; // ReturnType
+  ntPropType = 211; // PropType
+  ntParam = 212; // Param
+  ntParamKind = 213; // ParamKind
+  ntParamNameList = 214; // ParamNameList
+  ntParamTypeAndDefault = 215; // ParamTypeAndDefault
+  ntComptkParamType = 216; // ComptkParamType
+  ntParamIsArray = 217; // ParamIsArray
+  ntParamArrayType = 218; // ParamArrayType
+  ntParamType = 219; // ParamType
+  ntParamDefault = 220; // ParamDefault
+  ntMethodImpl = 221; // MethodImpl
+  ntMethodImplDecl = 222; // MethodImplDecl
+  ntMethodImplementation = 223; // MethodImplementation
+  ntMethodBody = 224; // MethodBody
+  ntInMethodSection = 225; // InMethodSection
+  ntForwardMarker = 226; // ForwardMarker
+  ntUnitInitialization = 227; // UnitInitialization
+  ntUnitFinalization = 228; // UnitFinalization
+  ntLocalVarSection = 229; // LocalVarSection
+  ntLocalVar = 230; // LocalVar
+  ntInstructionList = 231; // InstructionList
+  ntInstruction = 232; // Instruction
+  ntNoInstruction = 233; // NoInstruction
+  ntBeginEndBlock = 234; // BeginEndBlock
+  ntIfThenElseInstruction = 235; // IfThenElseInstruction
+  ntElseBranch = 236; // ElseBranch
+  ntWhileInstruction = 237; // WhileInstruction
+  ntRepeatInstruction = 238; // RepeatInstruction
+  ntForInstruction = 239; // ForInstruction
+  ntToDownTo = 240; // ToDownTo
+  ntTryInstruction = 241; // TryInstruction
+  ntNextTryInstruction = 242; // NextTryInstruction
+  ntExceptClause = 243; // ExceptClause
+  ntNextExceptClause = 244; // NextExceptClause
+  ntMultiOn = 245; // MultiOn
+  ntOnClause = 246; // OnClause
+  ntMultiOnElseClause = 247; // MultiOnElseClause
+  ntFinallyClause = 248; // FinallyClause
+  ntRaiseInstruction = 249; // RaiseInstruction
+  ntExpressionInstruction = 250; // ExpressionInstruction
+  ntPriv0 = 251; // Priv0
+  ntPriv1 = 252; // Priv1
+  ntPriv2 = 253; // Priv2
+  ntPriv3 = 254; // Priv3
+  ntPriv4 = 255; // Priv4
+  ntPriv5 = 256; // Priv5
+  ntPriv6 = 257; // Priv6
+  ntPriv7 = 258; // Priv7
+  ntPriv8 = 259; // Priv8
+  ntPriv9 = 260; // Priv9
+  ntPriv10 = 261; // Priv10
+  ntPriv11 = 262; // Priv11
+  ntPriv12 = 263; // Priv12
+  ntPriv13 = 264; // Priv13
+  ntPriv14 = 265; // Priv14
+  ntPriv15 = 266; // Priv15
+  ntPriv16 = 267; // Priv16
+  ntPriv17 = 268; // Priv17
+  ntPriv18 = 269; // Priv18
+  ntPriv19 = 270; // Priv19
+  ntPriv20 = 271; // Priv20
+  ntPriv21 = 272; // Priv21
+  ntPriv22 = 273; // Priv22
+  ntPriv23 = 274; // Priv23
+  ntPriv24 = 275; // Priv24
+  ntPriv25 = 276; // Priv25
+  ntPriv26 = 277; // Priv26
+  ntPriv27 = 278; // Priv27
+  ntPriv28 = 279; // Priv28
+  ntPriv29 = 280; // Priv29
+  ntPriv30 = 281; // Priv30
+  ntPriv31 = 282; // Priv31
+  ntPriv32 = 283; // Priv32
+  ntPriv33 = 284; // Priv33
+  ntPriv34 = 285; // Priv34
+  ntPriv35 = 286; // Priv35
+  ntPriv36 = 287; // Priv36
+  ntPriv37 = 288; // Priv37
+  ntPriv38 = 289; // Priv38
+  ntPriv39 = 290; // Priv39
+  ntPriv40 = 291; // Priv40
+  ntPriv41 = 292; // Priv41
+  ntPriv42 = 293; // Priv42
+  ntPriv43 = 294; // Priv43
+  ntPriv44 = 295; // Priv44
+  ntPriv45 = 296; // Priv45
+  ntPriv46 = 297; // Priv46
+  ntPriv47 = 298; // Priv47
+  ntPriv48 = 299; // Priv48
+  ntPriv49 = 300; // Priv49
+  ntPriv50 = 301; // Priv50
+  ntPriv51 = 302; // Priv51
+  ntPriv52 = 303; // Priv52
+  ntPriv53 = 304; // Priv53
+  ntPriv54 = 305; // Priv54
+  ntPriv55 = 306; // Priv55
+  ntPriv56 = 307; // Priv56
+  ntPriv57 = 308; // Priv57
 
 type
   {*
@@ -560,12 +562,13 @@ type
     procedure PushChoice331;
     procedure PushChoice332;
     procedure PushChoice333;
+    procedure PushChoice334;
+    procedure PushChoice335;
   protected
     function IsTerminal(Symbol: TSepiSymbolClass): Boolean; override;
     function IsNonTerminal(
       Symbol: TSepiSymbolClass): Boolean; override;
 
-    function GetStartSymbol: TSepiSymbolClass; override;
     procedure InitPushChoiceProcs; override;
 
     function GetExpectedString(
@@ -591,24 +594,24 @@ type
 const
   ParsingTable: TParsingTable = (
     ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   2,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   3,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   4,   5,   5,   6,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   7,   7,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   8,   9,   9,  10,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  11,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  11,  11,  -1,  11,  11,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  12,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  13,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  14,  14,  14,  14,  14,  15,  16,  17,  18,  19,  20,  21,  22,  23,  24,  25,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  26,  27,  28,  29,  30,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    (  0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  31,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  32,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  32,  32,  32,  32,  32,  32,  32,  32,  32,  32,  32,  32,  32,  32,  32,  32,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,   2,   2,   2,   2,   2,  -1,   2,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   2,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   2,  -1,  -1,  -1,  -1,  -1,   2,   2,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   2,  -1,  -1,  -1,  -1,  -1,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   2),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   3,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   4,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   5,   6,   6,   7,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   8,   8,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   9,  10,  10,  11,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  12,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  12,  12,  -1,  12,  12,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  13,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  14,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  15,  15,  15,  15,  15,  16,  17,  18,  19,  20,  21,  22,  23,  24,  25,  26,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  27,  28,  29,  30,  31,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    (  0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  32,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
     ( -1,  33,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  33,  33,  33,  33,  33,  33,  33,  33,  33,  33,  33,  33,  33,  33,  33,  33,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  37,  37,  37,  37,  37,  -1,  37,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  37,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  37,  -1,  -1,  -1,  -1,  -1,  37,  37,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  37,  -1,  -1,  -1,  -1,  -1,  37,  37,  37,  37,  37,  37,  37,  37,  37,  37,  37,  37,  37,  37,  37,  37,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  37),
-    ( -1,  -1,  -1,  -1,  -1,  38,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  34,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  34,  34,  34,  34,  34,  34,  34,  34,  34,  34,  34,  34,  34,  34,  34,  34,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  38,  38,  38,  38,  38,  -1,  38,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  38,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  38,  -1,  -1,  -1,  -1,  -1,  38,  38,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  38,  -1,  -1,  -1,  -1,  -1,  38,  38,  38,  38,  38,  38,  38,  38,  38,  38,  38,  38,  38,  38,  38,  38,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  38),
     ( -1,  -1,  -1,  -1,  -1,  39,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
     ( -1,  -1,  -1,  -1,  -1,  40,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
     ( -1,  -1,  -1,  -1,  -1,  41,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  42,  42,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  44,  43,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  45,  45,  45,  45,  45,  -1,  45,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  45,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  45,  -1,  -1,  -1,  -1,  -1,  45,  45,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  45,  -1,  -1,  -1,  -1,  -1,  45,  45,  45,  45,  45,  45,  45,  45,  45,  45,  45,  45,  45,  45,  45,  45,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  45),
+    ( -1,  -1,  -1,  -1,  -1,  42,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  43,  43,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  45,  44,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
     ( -1,  46,  46,  46,  46,  46,  -1,  46,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  46,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  46,  -1,  -1,  -1,  -1,  -1,  46,  46,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  46,  -1,  -1,  -1,  -1,  -1,  46,  46,  46,  46,  46,  46,  46,  46,  46,  46,  46,  46,  46,  46,  46,  46,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  46),
     ( -1,  47,  47,  47,  47,  47,  -1,  47,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  47,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  47,  -1,  -1,  -1,  -1,  -1,  47,  47,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  47,  -1,  -1,  -1,  -1,  -1,  47,  47,  47,  47,  47,  47,  47,  47,  47,  47,  47,  47,  47,  47,  47,  47,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  47),
     ( -1,  48,  48,  48,  48,  48,  -1,  48,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  48,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  48,  -1,  -1,  -1,  -1,  -1,  48,  48,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  48,  -1,  -1,  -1,  -1,  -1,  48,  48,  48,  48,  48,  48,  48,  48,  48,  48,  48,  48,  48,  48,  48,  48,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  48),
@@ -616,2639 +619,2508 @@ const
     ( -1,  50,  50,  50,  50,  50,  -1,  50,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  50,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  50,  -1,  -1,  -1,  -1,  -1,  50,  50,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  50,  -1,  -1,  -1,  -1,  -1,  50,  50,  50,  50,  50,  50,  50,  50,  50,  50,  50,  50,  50,  50,  50,  50,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  50),
     ( -1,  51,  51,  51,  51,  51,  -1,  51,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  51,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  51,  -1,  -1,  -1,  -1,  -1,  51,  51,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  51,  -1,  -1,  -1,  -1,  -1,  51,  51,  51,  51,  51,  51,  51,  51,  51,  51,  51,  51,  51,  51,  51,  51,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  51),
     ( -1,  52,  52,  52,  52,  52,  -1,  52,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  52,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  52,  -1,  -1,  -1,  -1,  -1,  52,  52,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  52,  -1,  -1,  -1,  -1,  -1,  52,  52,  52,  52,  52,  52,  52,  52,  52,  52,  52,  52,  52,  52,  52,  52,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  52),
-    ( -1,  54,  54,  54,  54,  53,  -1,  54,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  55,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  54,  -1,  -1,  -1,  -1,  -1,  55,  55,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  55,  -1,  -1,  -1,  -1,  -1,  54,  54,  54,  54,  54,  54,  54,  54,  54,  54,  54,  54,  54,  54,  54,  54,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  54),
-    ( -1,  -1,  -1,  -1,  -1,  56,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  57,  -1,  58,  -1,  -1,  -1,  -1,  -1,  59,  -1,  60,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  61,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  62,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  63,  63,  63,  63,  63,  -1,  63,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  63,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  63,  -1,  -1,  -1,  -1,  -1,  63,  63,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  63,  -1,  -1,  -1,  -1,  -1,  63,  63,  63,  63,  63,  63,  63,  63,  63,  63,  63,  63,  63,  63,  63,  63,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  63),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  64,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  65,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  69,  66,  67,  68,  -1,  -1,  72,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  71,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  69,  69,  69,  69,  69,  69,  69,  69,  69,  69,  69,  69,  69,  69,  69,  69,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  70),
-    ( -1,  73,  73,  73,  73,  73,  -1,  73,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  73,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  73,  -1,  -1,  -1,  -1,  -1,  73,  73,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  73,  -1,  -1,  -1,  -1,  -1,  73,  73,  73,  73,  73,  73,  73,  73,  73,  73,  73,  73,  73,  73,  73,  73,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  73),
-    ( -1,  74,  74,  74,  74,  74,  -1,  74,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  74,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  74,  -1,  -1,  -1,  -1,  -1,  74,  74,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  74,  -1,  -1,  -1,  -1,  -1,  74,  74,  74,  74,  74,  74,  74,  74,  74,  74,  74,  74,  74,  74,  74,  74,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  74),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  86,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  75,  76,  77,  78,  79,  80,  81,  82,  83,  84,  85,  -1,  87,  88,  89,  90,  91,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  92,  93,  94,  95,  96,  97,  98,  99, 100, 101, 102,  -1, 103, 104, 105, 106, 107,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 108,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 109, 110,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 111,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 112, 112,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 113, 114,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1, 115,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 115, 115, 115, 115, 115, 115, 115, 115, 115, 115, 115, 115, 115, 115, 115, 115,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 117,  -1, 116,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 118,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1, 119,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 119, 119, 119, 119, 119, 119, 119, 119, 119, 119, 119, 119, 119, 119, 119, 119,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 121, 120,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 122,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1, 123,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 123, 123, 123, 123, 123, 123, 123, 123, 123, 123, 123, 123, 123, 123, 123, 123,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1, 125, 125, 125, 125, 125,  -1, 125,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 128, 125,  -1,  -1,  -1, 124,  -1,  -1,  -1,  -1, 129, 126,  -1,  -1, 130, 129,  -1, 132, 133, 131,  -1,  -1,  -1,  -1,  -1,  -1, 125, 134, 134,  -1,  -1,  -1, 125, 125,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 125,  -1,  -1,  -1,  -1,  -1, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 127,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 125),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 135,  -1,  -1,  -1,  -1, 136,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 137,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1, 138,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1, 139, 139, 139, 139, 139,  -1, 139,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 139,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 139,  -1,  -1,  -1,  -1,  -1, 139, 139,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 139,  -1,  -1,  -1,  -1,  -1, 139, 139, 139, 139, 139, 139, 139, 139, 139, 139, 139, 139, 139, 139, 139, 139,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 139),
-    ( -1, 140,  -1,  -1,  -1,  -1, 140,  -1,  -1,  -1,  -1,  -1, 140,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 140,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 140, 140, 140, 140, 140, 140, 140, 140, 140, 140, 140, 140, 140, 140, 140, 140,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 141,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1, 143, 143, 143, 143, 142,  -1, 143,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 143,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 143,  -1,  -1,  -1,  -1,  -1, 143, 143,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 143,  -1,  -1,  -1,  -1,  -1, 143, 143, 143, 143, 143, 143, 143, 143, 143, 143, 143, 143, 143, 143, 143, 143,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 143),
-    ( -1, 144, 144, 144, 144, 144,  -1, 144,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 144,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 144,  -1,  -1,  -1,  -1,  -1, 144, 144,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 144,  -1,  -1,  -1,  -1,  -1, 144, 144, 144, 144, 144, 144, 144, 144, 144, 144, 144, 144, 144, 144, 144, 144,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 144),
-    ( -1,  -1,  -1,  -1,  -1, 145,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 146,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 147,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 148,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 149,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1, 150,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 150,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 150,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150, 150,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 151,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1, 152, 152, 152, 152, 152,  -1, 152,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 152,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 152,  -1,  -1,  -1,  -1,  -1, 152, 152,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 152,  -1,  -1,  -1,  -1,  -1, 152, 152, 152, 152, 152, 152, 152, 152, 152, 152, 152, 152, 152, 152, 152, 152,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 152),
-    ( -1, 153, 153, 153, 153, 153,  -1, 153,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 153,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 153,  -1,  -1,  -1,  -1,  -1, 153, 153,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 153,  -1,  -1,  -1,  -1,  -1, 153, 153, 153, 153, 153, 153, 153, 153, 153, 153, 153, 153, 153, 153, 153, 153,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 153),
-    ( -1, 154,  -1,  -1,  -1,  -1, 154,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 154,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1, 156,  -1,  -1,  -1,  -1,  -1, 155,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 156,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1, 157,  -1,  -1,  -1,  -1, 158,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 158,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 157, 157, 157, 157, 157, 157, 157, 157, 157, 157, 157, 157, 157, 157, 157, 157,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1, 159,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 159, 159, 159, 159, 159, 159, 159, 159, 159, 159, 159, 159, 159, 159, 159, 159,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1, 160,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 160, 160, 160, 160, 160, 160, 160, 160, 160, 160, 160, 160, 160, 160, 160, 160,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 161,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1, 162,  -1,  -1,  -1, 162, 162,  -1,  -1, 162,  -1,  -1, 162,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 163,  -1,  -1,  -1, 162,  -1,  -1, 162, 162, 162, 162, 162,  -1, 162,  -1, 162, 162, 162, 162, 162,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 162, 162, 162, 162, 162, 162, 162, 162, 162, 162, 162, 162, 162, 162, 162, 162,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1, 164,  -1,  -1,  -1,  -1,   0,  -1,  -1,   0,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1, 164, 164, 164, 164, 164,  -1, 164,  -1, 164, 164, 164, 164, 164,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 164, 164, 164, 164, 164, 164, 164, 164, 164, 164, 164, 164, 164, 164, 164, 164,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,   0,  -1,  -1,  -1, 165,   0,  -1,  -1,   0,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,   0,   0,   0,   0,   0,  -1,   0,  -1,   0,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1, 166,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 166, 166, 166, 166, 166,  -1, 166,  -1, 166, 166, 166, 166, 166,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 166, 166, 166, 166, 166, 166, 166, 166, 166, 166, 166, 166, 166, 166, 166, 166,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 167, 168, 169, 170,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1, 171,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 171, 171, 171, 171, 171,  -1, 171,  -1, 171, 171, 171, 171, 171,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171, 171,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 172,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1, 173,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,   0,  -1,   0,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 174,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  53,  53,  53,  53,  53,  -1,  53,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  53,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  53,  -1,  -1,  -1,  -1,  -1,  53,  53,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  53,  -1,  -1,  -1,  -1,  -1,  53,  53,  53,  53,  53,  53,  53,  53,  53,  53,  53,  53,  53,  53,  53,  53,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  53),
+    ( -1,  55,  55,  55,  55,  54,  -1,  55,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  56,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  55,  -1,  -1,  -1,  -1,  -1,  56,  56,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  56,  -1,  -1,  -1,  -1,  -1,  55,  55,  55,  55,  55,  55,  55,  55,  55,  55,  55,  55,  55,  55,  55,  55,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  55),
+    ( -1,  -1,  -1,  -1,  -1,  57,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  58,  -1,  59,  -1,  -1,  -1,  -1,  -1,  60,  -1,  61,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  62,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  63,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  64,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  65,  65,  65,  65,  65,  -1,  65,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  65,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  65,  -1,  -1,  -1,  -1,  -1,  65,  65,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  65,  -1,  -1,  -1,  -1,  -1,  65,  65,  65,  65,  65,  65,  65,  65,  65,  65,  65,  65,  65,  65,  65,  65,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  65),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  66,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  67,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  71,  68,  69,  70,  -1,  -1,  74,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  73,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  71,  71,  71,  71,  71,  71,  71,  71,  71,  71,  71,  71,  71,  71,  71,  71,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  72),
+    ( -1,  75,  75,  75,  75,  75,  -1,  75,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  75,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  75,  -1,  -1,  -1,  -1,  -1,  75,  75,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  75,  -1,  -1,  -1,  -1,  -1,  75,  75,  75,  75,  75,  75,  75,  75,  75,  75,  75,  75,  75,  75,  75,  75,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  75),
+    ( -1,  76,  76,  76,  76,  76,  -1,  76,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  76,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  76,  -1,  -1,  -1,  -1,  -1,  76,  76,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  76,  -1,  -1,  -1,  -1,  -1,  76,  76,  76,  76,  76,  76,  76,  76,  76,  76,  76,  76,  76,  76,  76,  76,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  76),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  88,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  77,  78,  79,  80,  81,  82,  83,  84,  85,  86,  87,  -1,  89,  90,  91,  92,  93,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  94,  95,  96,  97,  98,  99, 100, 101, 102, 103, 104,  -1, 105, 106, 107, 108, 109,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 110,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 111, 112,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 113,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 114, 114,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 115, 116,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1, 117,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 117, 117, 117, 117, 117, 117, 117, 117, 117, 117, 117, 117, 117, 117, 117, 117,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 119,  -1, 118,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 120,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1, 121,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 121, 121, 121, 121, 121, 121, 121, 121, 121, 121, 121, 121, 121, 121, 121, 121,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 123, 122,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 124,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1, 125,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1, 127, 127, 127, 127, 127,  -1, 127,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 130, 127,  -1,  -1,  -1, 126,  -1,  -1,  -1,  -1, 131, 128,  -1,  -1, 132, 131,  -1, 134, 135, 133,  -1,  -1,  -1,  -1,  -1,  -1, 127, 136, 136,  -1,  -1,  -1, 127, 127,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 127,  -1,  -1,  -1,  -1,  -1, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 129,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 127),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 137,  -1,  -1,  -1,  -1, 138,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 139,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1, 140,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1, 141, 141, 141, 141, 141,  -1, 141,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 141,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 141,  -1,  -1,  -1,  -1,  -1, 141, 141,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 141,  -1,  -1,  -1,  -1,  -1, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 141),
+    ( -1, 142,  -1,  -1,  -1,  -1, 142,  -1,  -1,  -1,  -1,  -1, 142,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 142,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 142, 142, 142, 142, 142, 142, 142, 142, 142, 142, 142, 142, 142, 142, 142, 142,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 143,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1, 145, 145, 145, 145, 144,  -1, 145,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 145,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 145,  -1,  -1,  -1,  -1,  -1, 145, 145,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 145,  -1,  -1,  -1,  -1,  -1, 145, 145, 145, 145, 145, 145, 145, 145, 145, 145, 145, 145, 145, 145, 145, 145,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 145),
+    ( -1, 146, 146, 146, 146, 146,  -1, 146,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 146,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 146,  -1,  -1,  -1,  -1,  -1, 146, 146,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 146,  -1,  -1,  -1,  -1,  -1, 146, 146, 146, 146, 146, 146, 146, 146, 146, 146, 146, 146, 146, 146, 146, 146,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 146),
+    ( -1,  -1,  -1,  -1,  -1, 147,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 148,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 149,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 150,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 151,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1, 152,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 152,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 152,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 152, 152, 152, 152, 152, 152, 152, 152, 152, 152, 152, 152, 152, 152, 152, 152,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 153,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1, 154, 154, 154, 154, 154,  -1, 154,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 154,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 154,  -1,  -1,  -1,  -1,  -1, 154, 154,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 154,  -1,  -1,  -1,  -1,  -1, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154, 154,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 154),
+    ( -1, 155, 155, 155, 155, 155,  -1, 155,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 155,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 155,  -1,  -1,  -1,  -1,  -1, 155, 155,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 155,  -1,  -1,  -1,  -1,  -1, 155, 155, 155, 155, 155, 155, 155, 155, 155, 155, 155, 155, 155, 155, 155, 155,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 155),
+    ( -1, 156,  -1,  -1,  -1,  -1, 156,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 156,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 156, 156, 156, 156, 156, 156, 156, 156, 156, 156, 156, 156, 156, 156, 156, 156,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1, 158,  -1,  -1,  -1,  -1,  -1, 157,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 158,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1, 159,  -1,  -1,  -1,  -1, 160,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 160,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 159, 159, 159, 159, 159, 159, 159, 159, 159, 159, 159, 159, 159, 159, 159, 159,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1, 161,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 161, 161, 161, 161, 161, 161, 161, 161, 161, 161, 161, 161, 161, 161, 161, 161,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1, 162,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 162, 162, 162, 162, 162, 162, 162, 162, 162, 162, 162, 162, 162, 162, 162, 162,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 163,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1, 164,  -1,  -1,  -1, 164, 164,  -1,  -1, 164,  -1,  -1, 164,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 165,  -1,  -1,  -1, 164,  -1,  -1, 164, 164, 164, 164, 164,  -1, 164,  -1, 164, 164, 164, 164, 164,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 164, 164, 164, 164, 164, 164, 164, 164, 164, 164, 164, 164, 164, 164, 164, 164,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1, 166,  -1,  -1,  -1,  -1,   0,  -1,  -1,   0,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1, 166, 166, 166, 166, 166,  -1, 166,  -1, 166, 166, 166, 166, 166,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 166, 166, 166, 166, 166, 166, 166, 166, 166, 166, 166, 166, 166, 166, 166, 166,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,   0,  -1,  -1,  -1, 167,   0,  -1,  -1,   0,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,   0,   0,   0,   0,   0,  -1,   0,  -1,   0,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1, 168,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 168, 168, 168, 168, 168,  -1, 168,  -1, 168, 168, 168, 168, 168,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168, 168,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 169, 170, 171, 172,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1, 173,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 173, 173, 173, 173, 173,  -1, 173,  -1, 173, 173, 173, 173, 173,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 173, 173, 173, 173, 173, 173, 173, 173, 173, 173, 173, 173, 173, 173, 173, 173,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 174,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1, 175,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,   0,  -1,   0,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 176,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
     ( -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,   0,  -1,   0,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1, 175,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,   0,  -1,   0,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 176,  -1,  -1,  -1,  -1,  -1, 176,  -1, 176, 176, 176, 176, 176,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 177,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 177, 177, 178, 177, 177,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 179,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 179, 179,  -1, 179, 179,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 180,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 181, 181,  -1, 182, 183,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 184, 185,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1, 186,  -1,  -1,  -1,  -1,  -1, 186, 186, 187,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 188,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1, 189,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 189, 189, 189, 189, 189, 189, 189, 189, 189, 189, 189, 189, 189, 189, 189, 189,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 190,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 191,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1, 192,  -1,  -1,  -1, 192, 193,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 193, 193, 193, 193, 193, 193, 193, 193, 193,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1, 177,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,   0,  -1,   0,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 178,  -1,  -1,  -1,  -1,  -1, 178,  -1, 178, 178, 178, 178, 178,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 179,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 179, 179, 180, 179, 179,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 181,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 181, 181,  -1, 181, 181,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 182,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 183, 183,  -1, 184, 185,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 186, 187,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1, 188,  -1,  -1,  -1,  -1,  -1, 188, 188, 189,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 190,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1, 191,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 191, 191, 191, 191, 191, 191, 191, 191, 191, 191, 191, 191, 191, 191, 191, 191,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 192,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 193,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1, 194,  -1,  -1,  -1, 194, 195,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 195, 195, 195, 195, 195, 195, 195, 195, 195,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
     ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,   0,   0,   0,   0,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 196, 194, 195, 197, 198, 199, 202, 200, 201,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1, 203,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 203, 203, 203, 203, 203, 203, 203, 203, 203, 203, 203, 203, 203, 203, 203, 203,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 204, 204,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,   0,  -1,  -1,  -1,  -1,   0,  -1,  -1,   0,  -1,  -1, 207,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 206,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 205, 205, 205, 205, 205,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 208,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 209, 209,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 210, 211,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1, 212,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 212, 212, 212, 212, 212, 212, 212, 212, 212, 212, 212, 212, 212, 212, 212, 212,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1, 213,  -1,  -1,  -1, 213, 213,  -1,  -1, 213,  -1, 213, 213,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 213,  -1,  -1,  -1, 213,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 213, 213, 213, 213, 213, 213, 213, 213, 213, 213, 213, 213, 213, 213, 213, 213,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1, 214,  -1,  -1,  -1, 214,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1, 215,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 215,  -1, 215, 215,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 215, 215, 215, 215, 215, 215, 215, 215, 215, 215, 215, 215, 215, 215, 215, 215,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1, 216,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 216,  -1, 216, 216,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 216, 216, 216, 216, 216, 216, 216, 216, 216, 216, 216, 216, 216, 216, 216, 216,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,   0,  -1,  -1,  -1,  -1,   0,  -1,  -1,   0,  -1, 217,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 218,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1, 219,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 219,  -1, 219, 219,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 219, 219, 219, 219, 219, 219, 219, 219, 219, 219, 219, 219, 219, 219, 219, 219,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 220,  -1, 221, 222,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1, 223,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 223, 223, 223, 223, 223, 223, 223, 223, 223, 223, 223, 223, 223, 223, 223, 223,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,   0,  -1,  -1, 224,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1, 226,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 225,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 226, 226, 226, 226, 226, 226, 226, 226, 226, 226, 226, 226, 226, 226, 226, 226,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 227,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1, 228,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 229,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 228, 228, 228, 228, 228, 228, 228, 228, 228, 228, 228, 228, 228, 228, 228, 228,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1, 230,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 230, 230, 230, 230, 230, 230, 230, 230, 230, 230, 230, 230, 230, 230, 230, 230,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 231,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 232,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 232, 232,  -1, 232, 232,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 233,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 233, 233,  -1, 233, 233,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 235, 235, 235, 235,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 235,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 234,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 236, 236, 236, 236,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 236,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 237, 238, 238, 239,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 240,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 241,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 242,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 243,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1, 244,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 244, 244, 244, 244, 244, 244, 244, 244, 244, 244, 244, 244, 244, 244, 244, 244,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1, 245, 245, 245, 245, 245,  -1, 245,  -1,  -1,  -1,  -1, 245,  -1,  -1,  -1, 245,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 245, 245, 245,  -1,  -1,  -1,  -1,  -1, 245, 245,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 245,  -1,  -1,  -1,  -1,  -1, 245, 245, 245, 245, 245, 245, 245, 245, 245, 245, 245, 245, 245, 245, 245, 245,  -1,  -1,  -1, 245, 245,  -1, 245, 245,  -1, 245, 245, 245,  -1,  -1, 245, 245, 245, 245, 245, 245),
-    ( -1, 254, 254, 254, 254, 254,  -1, 254,  -1,  -1,  -1,  -1, 246,  -1,  -1,  -1, 254,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 247,  -1, 254,  -1,  -1,  -1,  -1,  -1, 254, 254,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 254,  -1,  -1,  -1,  -1,  -1, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254,  -1,  -1,  -1,  -1, 248,  -1, 246, 249,  -1, 250,  -1, 251,  -1,  -1, 252,  -1,  -1,  -1, 253, 254),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 198, 196, 197, 199, 200, 201, 204, 202, 203,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1, 205,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205, 205,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 206, 206,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,   0,  -1,  -1,  -1,  -1,   0,  -1,  -1,   0,  -1,  -1, 209,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 208,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 207, 207, 207, 207, 207,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 210,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 211, 211,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 212, 213,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1, 214,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 214, 214, 214, 214, 214, 214, 214, 214, 214, 214, 214, 214, 214, 214, 214, 214,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1, 215,  -1,  -1,  -1, 215, 215,  -1,  -1, 215,  -1, 215, 215,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 215,  -1,  -1,  -1, 215,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 215, 215, 215, 215, 215, 215, 215, 215, 215, 215, 215, 215, 215, 215, 215, 215,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1, 216,  -1,  -1,  -1, 216,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1, 217,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 217,  -1, 217, 217,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 217, 217, 217, 217, 217, 217, 217, 217, 217, 217, 217, 217, 217, 217, 217, 217,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1, 218,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 218,  -1, 218, 218,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 218, 218, 218, 218, 218, 218, 218, 218, 218, 218, 218, 218, 218, 218, 218, 218,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,   0,  -1,  -1,  -1,  -1,   0,  -1,  -1,   0,  -1, 219,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 220,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1, 221,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 221,  -1, 221, 221,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 221, 221, 221, 221, 221, 221, 221, 221, 221, 221, 221, 221, 221, 221, 221, 221,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 222,  -1, 223, 224,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1, 225,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 225, 225, 225, 225, 225, 225, 225, 225, 225, 225, 225, 225, 225, 225, 225, 225,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,   0,  -1,  -1, 226,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1, 228,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 227,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 228, 228, 228, 228, 228, 228, 228, 228, 228, 228, 228, 228, 228, 228, 228, 228,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 229,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1, 230,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 231,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 230, 230, 230, 230, 230, 230, 230, 230, 230, 230, 230, 230, 230, 230, 230, 230,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1, 232,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 232, 232, 232, 232, 232, 232, 232, 232, 232, 232, 232, 232, 232, 232, 232, 232,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 233,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 234,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 234, 234,  -1, 234, 234,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 235,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 235, 235,  -1, 235, 235,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 237, 237, 237, 237,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 237,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 236,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 238, 238, 238, 238,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 238,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 239, 240, 240, 241,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 242,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 243,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 244,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 245,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1, 246,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 246, 246, 246, 246, 246, 246, 246, 246, 246, 246, 246, 246, 246, 246, 246, 246,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1, 247, 247, 247, 247, 247,  -1, 247,  -1,  -1,  -1,  -1, 247,  -1,  -1,  -1, 247,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 247, 247, 247,  -1,  -1,  -1,  -1,  -1, 247, 247,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 247,  -1,  -1,  -1,  -1,  -1, 247, 247, 247, 247, 247, 247, 247, 247, 247, 247, 247, 247, 247, 247, 247, 247,  -1,  -1,  -1, 247, 247,  -1, 247, 247,  -1, 247, 247, 247,  -1,  -1, 247, 247, 247, 247, 247, 247),
+    ( -1, 256, 256, 256, 256, 256,  -1, 256,  -1,  -1,  -1,  -1, 248,  -1,  -1,  -1, 256,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 249,  -1, 256,  -1,  -1,  -1,  -1,  -1, 256, 256,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 256,  -1,  -1,  -1,  -1,  -1, 256, 256, 256, 256, 256, 256, 256, 256, 256, 256, 256, 256, 256, 256, 256, 256,  -1,  -1,  -1,  -1, 250,  -1, 248, 251,  -1, 252,  -1, 253,  -1,  -1, 254,  -1,  -1,  -1, 255, 256),
     ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 255,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 256,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 258,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 257,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 259,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 260,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 261,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 262, 263,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 264,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 265,  -1, 266,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 267,  -1,  -1,  -1,  -1),
-    ( -1, 268, 268, 268, 268, 268,  -1, 268,  -1,  -1,  -1,  -1, 268,  -1,  -1,  -1, 268,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 268, 268, 268,  -1,  -1,  -1,  -1,  -1, 268, 268,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 268,  -1,  -1,  -1,  -1,  -1, 268, 268, 268, 268, 268, 268, 268, 268, 268, 268, 268, 268, 268, 268, 268, 268,  -1,  -1,  -1,  -1, 268,  -1,  -1, 268,  -1, 268,  -1, 268,  -1,  -1, 268,  -1, 269,  -1, 268, 268),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 270,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 271,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 272,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 273,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 274,  -1),
-    ( -1, 275, 275, 275, 275, 275,  -1, 275,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 275,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 275,  -1,  -1,  -1,  -1,  -1, 275, 275,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 275,  -1,  -1,  -1,  -1,  -1, 275, 275, 275, 275, 275, 275, 275, 275, 275, 275, 275, 275, 275, 275, 275, 275,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 275),
-    (  0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 276,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    (  0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 277, 277, 277, 277,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 277, 277,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 278, 278, 278, 278,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 278,  -1,  -1,  -1,  -1,  -1,   0,  -1, 278, 278,  -1, 278, 278,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 279,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1, 280,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,   0,  -1,  -1,  -1,   0,   0,  -1,   0,   0,   0,   0,   0, 281,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1, 282,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1, 283,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,   0,  -1,  -1,  -1,  -1,   0,  -1,   0, 284,   0,   0,   0,  -1,   0,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 284, 284, 284, 284, 284, 284, 284, 284, 284, 284, 284,  -1, 284, 284, 284, 284, 284,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,   0,   0,  -1,   0,  -1,  -1,  -1,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,   0,  -1,  -1,  -1,  -1,   0,  -1,  -1,   0,  -1,  -1,   0,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 285, 285, 285, 285, 285, 285, 285, 285, 285, 285, 285,  -1, 285, 285, 285, 285, 285,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,   0,  -1,  -1,  -1, 286,   0, 286,   0,   0,   0,   0,   0, 286,   0, 286,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  -1,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,   0,   0,  -1,   0,  -1,  -1,  -1,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,   0,  -1,  -1,  -1, 287,   0, 287,   0,   0,   0,   0,   0, 287,   0, 287,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  -1,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,   0,   0,  -1,   0,  -1,  -1,  -1,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,   0,  -1, 288,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1, 289,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,   0,  -1,  -1,  -1, 290,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    (  0, 291,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,   0,   0,  -1,   0,   0,  -1,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 291, 291, 291, 291, 291, 291, 291, 291, 291, 291, 291, 291, 291, 291, 291, 291,   0,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    (  0, 292,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,   0,  -1,   0,   0,  -1,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 292, 292, 292, 292, 292, 292, 292, 292, 292, 292, 292, 292, 292, 292, 292, 292,   0,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 293,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 294,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    (  0, 295,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,   0,   0,  -1,   0,   0,  -1,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 295, 295, 295, 295, 295, 295, 295, 295, 295, 295, 295, 295, 295, 295, 295, 295,   0,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1, 296,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,   0,  -1,  -1,  -1, 297,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1, 298,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 298, 298, 298, 298, 298, 298, 298, 298, 298, 298, 298, 298, 298, 298, 298, 298,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,   0,  -1,  -1,  -1,  -1,   0,  -1,  -1,   0,  -1,  -1,   0,  -1, 299,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,   0,  -1,  -1,  -1,  -1,   0, 300,  -1,   0,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1, 301,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 301, 301, 301, 301, 301, 301, 301, 301, 301, 301, 301, 301, 301, 301, 301, 301,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 302,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1, 303, 303, 303, 303, 303,   0, 303,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 303,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0, 303,  -1,  -1,  -1,  -1,  -1, 303, 303,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 303,  -1,  -1,  -1,  -1,  -1, 303, 303, 303, 303, 303, 303, 303, 303, 303, 303, 303, 303, 303, 303, 303, 303,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 303),
-    ( -1,   0,   0,   0,   0,   0,   0,   0,  -1,  -1,  -1,  -1, 304,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,   0,  -1,  -1,  -1,  -1,  -1,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 305,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1, 306,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 307, 307, 307, 307,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1, 308,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,   0,   0,   0,   0,  -1,   0,  -1,   0,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 309,   0,   0,   0,   0,  -1,   0,  -1, 309, 309, 309, 309, 309,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,   0,  -1,  -1,  -1, 310,   0, 310,  -1,   0,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1, 310,  -1,  -1,  -1,  -1,  -1, 310,  -1, 310, 310, 310, 310, 310,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,   0,  -1,  -1,  -1,  -1,   0, 311,  -1,   0,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1, 311,  -1,  -1,  -1,  -1,  -1, 311,  -1, 311, 311, 311, 311, 311,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 312,  -1,  -1,  -1,  -1,  -1,   0,  -1, 312, 312, 312, 312, 312,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1, 313,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,   0,   0,   0,   0,  -1,   0,  -1,   0,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 313, 313, 313, 313, 313, 313, 313, 313, 313, 313, 313, 313, 313, 313, 313, 313,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1, 314, 314, 314, 314, 314,  -1, 314,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1, 314,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 314,  -1,  -1,  -1,  -1,  -1, 314, 314,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 314,  -1,  -1,  -1,  -1,  -1, 314, 314, 314, 314, 314, 314, 314, 314, 314, 314, 314, 314, 314, 314, 314, 314,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 314),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 315, 315, 315, 315, 315, 315, 315, 315, 315,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1, 316,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,   0,   0,   0,   0,  -1,   0,  -1,   0,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 316, 316, 316, 316, 316, 316, 316, 316, 316, 316, 316, 316, 316, 316, 316, 316,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1, 317,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 317, 317, 317, 317, 317, 317, 317, 317, 317, 317, 317, 317, 317, 317, 317, 317,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    (  0, 318,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 318, 318, 318, 318, 318, 318, 318, 318, 318, 318, 318, 318, 318, 318, 318, 318,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,   0,  -1,  -1,  -1, 319,   0,  -1,  -1,   0,  -1,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1, 320,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,   0,  -1,  -1,  -1, 321,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,   0,  -1, 322,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,   0, 323,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1, 324,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 324, 324, 324, 324, 324, 324, 324, 324, 324, 324, 324, 324, 324, 324, 324, 324,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1, 325,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 325, 325, 325, 325, 325, 325, 325, 325, 325, 325, 325, 325, 325, 325, 325, 325,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 326, 326, 326, 326,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1, 327,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 327, 327, 327, 327, 327, 327, 327, 327, 327, 327, 327, 327, 327, 327, 327, 327,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 328,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1, 329, 329, 329, 329, 329,  -1, 329,  -1,  -1,  -1,  -1, 329,  -1,  -1,  -1, 329,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 329,   0, 329,  -1,  -1,  -1,  -1,  -1, 329, 329,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 329,  -1,  -1,  -1,  -1,  -1, 329, 329, 329, 329, 329, 329, 329, 329, 329, 329, 329, 329, 329, 329, 329, 329,  -1,  -1,  -1,   0, 329,  -1,   0, 329,  -1, 329,   0, 329,  -1,  -1, 329,   0,   0,   0, 329, 329),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 330,  -1,  -1,  -1),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 331,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
-    ( -1, 332, 332, 332, 332, 332,  -1, 332,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1, 332,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 332,  -1,  -1,  -1,  -1,  -1, 332, 332,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 332,  -1,  -1,  -1,  -1,  -1, 332, 332, 332, 332, 332, 332, 332, 332, 332, 332, 332, 332, 332, 332, 332, 332,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 332),
-    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1, 333,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1)
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 257,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 258,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 260,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 259,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 261,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 262,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 263,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 264, 265,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 266,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 267,  -1, 268,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 269,  -1,  -1,  -1,  -1),
+    ( -1, 270, 270, 270, 270, 270,  -1, 270,  -1,  -1,  -1,  -1, 270,  -1,  -1,  -1, 270,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 270, 270, 270,  -1,  -1,  -1,  -1,  -1, 270, 270,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 270,  -1,  -1,  -1,  -1,  -1, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270, 270,  -1,  -1,  -1,  -1, 270,  -1,  -1, 270,  -1, 270,  -1, 270,  -1,  -1, 270,  -1, 271,  -1, 270, 270),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 272,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 273,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 274,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 275,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 276,  -1),
+    ( -1, 277, 277, 277, 277, 277,  -1, 277,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 277,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 277,  -1,  -1,  -1,  -1,  -1, 277, 277,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 277,  -1,  -1,  -1,  -1,  -1, 277, 277, 277, 277, 277, 277, 277, 277, 277, 277, 277, 277, 277, 277, 277, 277,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 277),
+    (  0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 278,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    (  0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 279, 279, 279, 279,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 279, 279,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 280, 280, 280, 280,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 280,  -1,  -1,  -1,  -1,  -1,   0,  -1, 280, 280,  -1, 280, 280,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 281,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1, 282,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,   0,  -1,  -1,  -1,   0,   0,  -1,   0,   0,   0,   0,   0, 283,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1, 284,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1, 285,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    (  0,   0,  -1,  -1,  -1,  -1,   0,  -1,   0, 286,   0,   0,   0,  -1,   0,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 286, 286, 286, 286, 286, 286, 286, 286, 286, 286, 286,  -1, 286, 286, 286, 286, 286,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,   0,   0,  -1,   0,  -1,  -1,  -1,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,   0,  -1,  -1,  -1,  -1,   0,  -1,  -1,   0,  -1,  -1,   0,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 287, 287, 287, 287, 287, 287, 287, 287, 287, 287, 287,  -1, 287, 287, 287, 287, 287,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    (  0,   0,  -1,  -1,  -1, 288,   0, 288,   0,   0,   0,   0,   0, 288,   0, 288,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  -1,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,   0,   0,  -1,   0,  -1,  -1,  -1,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1),
+    (  0,   0,  -1,  -1,  -1, 289,   0, 289,   0,   0,   0,   0,   0, 289,   0, 289,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  -1,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,   0,   0,  -1,   0,  -1,  -1,  -1,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,   0,  -1, 290,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1, 291,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,   0,  -1,  -1,  -1, 292,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    (  0, 293,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,   0,   0,  -1,   0,   0,  -1,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 293, 293, 293, 293, 293, 293, 293, 293, 293, 293, 293, 293, 293, 293, 293, 293,   0,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    (  0, 294,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,   0,  -1,   0,   0,  -1,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 294, 294, 294, 294, 294, 294, 294, 294, 294, 294, 294, 294, 294, 294, 294, 294,   0,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 295,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 296,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    (  0, 297,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,   0,   0,  -1,   0,   0,  -1,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 297, 297, 297, 297, 297, 297, 297, 297, 297, 297, 297, 297, 297, 297, 297, 297,   0,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1, 298,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,   0,  -1,  -1,  -1, 299,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1, 300,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 300, 300, 300, 300, 300, 300, 300, 300, 300, 300, 300, 300, 300, 300, 300, 300,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,   0,  -1,  -1,  -1,  -1,   0,  -1,  -1,   0,  -1,  -1,   0,  -1, 301,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,   0,  -1,  -1,  -1,  -1,   0, 302,  -1,   0,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1, 303,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 303, 303, 303, 303, 303, 303, 303, 303, 303, 303, 303, 303, 303, 303, 303, 303,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 304,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1, 305, 305, 305, 305, 305,   0, 305,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 305,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0, 305,  -1,  -1,  -1,  -1,  -1, 305, 305,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 305,  -1,  -1,  -1,  -1,  -1, 305, 305, 305, 305, 305, 305, 305, 305, 305, 305, 305, 305, 305, 305, 305, 305,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 305),
+    ( -1,   0,   0,   0,   0,   0,   0,   0,  -1,  -1,  -1,  -1, 306,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,   0,  -1,  -1,  -1,  -1,  -1,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 307,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1, 308,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 309, 309, 309, 309,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1, 310,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,   0,   0,   0,   0,  -1,   0,  -1,   0,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 310, 310, 310, 310, 310, 310, 310, 310, 310, 310, 310, 310, 310, 310, 310, 310,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 311,   0,   0,   0,   0,  -1,   0,  -1, 311, 311, 311, 311, 311,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,   0,  -1,  -1,  -1, 312,   0, 312,  -1,   0,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1, 312,  -1,  -1,  -1,  -1,  -1, 312,  -1, 312, 312, 312, 312, 312,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,   0,  -1,  -1,  -1,  -1,   0, 313,  -1,   0,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1, 313,  -1,  -1,  -1,  -1,  -1, 313,  -1, 313, 313, 313, 313, 313,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 314,  -1,  -1,  -1,  -1,  -1,   0,  -1, 314, 314, 314, 314, 314,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1, 315,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,   0,   0,   0,   0,  -1,   0,  -1,   0,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 315, 315, 315, 315, 315, 315, 315, 315, 315, 315, 315, 315, 315, 315, 315, 315,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1, 316, 316, 316, 316, 316,  -1, 316,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1, 316,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 316,  -1,  -1,  -1,  -1,  -1, 316, 316,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 316,  -1,  -1,  -1,  -1,  -1, 316, 316, 316, 316, 316, 316, 316, 316, 316, 316, 316, 316, 316, 316, 316, 316,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 316),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 317, 317, 317, 317, 317, 317, 317, 317, 317,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1, 318,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,   0,   0,   0,   0,  -1,   0,  -1,   0,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 318, 318, 318, 318, 318, 318, 318, 318, 318, 318, 318, 318, 318, 318, 318, 318,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1, 319,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 319, 319, 319, 319, 319, 319, 319, 319, 319, 319, 319, 319, 319, 319, 319, 319,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    (  0, 320,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 320, 320, 320, 320, 320, 320, 320, 320, 320, 320, 320, 320, 320, 320, 320, 320,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,   0,  -1,  -1,  -1, 321,   0,  -1,  -1,   0,  -1,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1, 322,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,   0,  -1,  -1,  -1, 323,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,   0,  -1, 324,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,   0, 325,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1, 326,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 326, 326, 326, 326, 326, 326, 326, 326, 326, 326, 326, 326, 326, 326, 326, 326,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1, 327,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 327, 327, 327, 327, 327, 327, 327, 327, 327, 327, 327, 327, 327, 327, 327, 327,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 328, 328, 328, 328,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1, 329,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,   0,   0,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 329, 329, 329, 329, 329, 329, 329, 329, 329, 329, 329, 329, 329, 329, 329, 329,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 330,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1, 331, 331, 331, 331, 331,  -1, 331,  -1,  -1,  -1,  -1, 331,  -1,  -1,  -1, 331,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 331,   0, 331,  -1,  -1,  -1,  -1,  -1, 331, 331,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 331,  -1,  -1,  -1,  -1,  -1, 331, 331, 331, 331, 331, 331, 331, 331, 331, 331, 331, 331, 331, 331, 331, 331,  -1,  -1,  -1,   0, 331,  -1,   0, 331,  -1, 331,   0, 331,  -1,  -1, 331,   0,   0,   0, 331, 331),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 332,  -1,  -1,  -1),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 333,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1),
+    ( -1, 334, 334, 334, 334, 334,  -1, 334,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1, 334,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 334,  -1,  -1,  -1,  -1,  -1, 334, 334,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 334,  -1,  -1,  -1,  -1,  -1, 334, 334, 334, 334, 334, 334, 334, 334, 334, 334, 334, 334, 334, 334, 334, 334,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 334),
+    ( -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1, 335,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1)
   );
 
 { TSepiDelphiParser class }
 
 procedure TSepiDelphiParser.PushChoice1;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkEof);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntPriv0);
-  Stack.Push(ntInterface);
-  Stack.Push(tkSemiColon);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntIdentifier);
-  Stack.Push(tkUnit);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushFakeSymbol(tkEof);
+  PushSymbol(ntPriv0);
+  PushSymbol(ntInterface);
+  PushFakeSymbol(tkSemiColon);
+  PushSymbol(ntIdentifier);
+  PushFakeSymbol(tkUnit);
 end;
 
 procedure TSepiDelphiParser.PushChoice2;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv1);
-  Stack.Push(ntUsesSection);
-  Stack.Push(tkInterface);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushFakeSymbol(tkEof);
+  PushSymbol(ntConstExpression);
 end;
 
 procedure TSepiDelphiParser.PushChoice3;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntInitFinit);
-  Stack.Push(ntPriv2);
-  Stack.Push(tkImplementation);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(ntPriv1);
+  PushSymbol(ntUsesSection);
+  PushFakeSymbol(tkInterface);
 end;
 
 procedure TSepiDelphiParser.PushChoice4;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntTypeSection);
+  PushBackToParent;
+  PushSymbol(ntInitFinit);
+  PushSymbol(ntPriv2);
+  PushFakeSymbol(tkImplementation);
 end;
 
 procedure TSepiDelphiParser.PushChoice5;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntConstSection);
+  PushBackToParent;
+  PushSymbol(ntTypeSection);
 end;
 
 procedure TSepiDelphiParser.PushChoice6;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntVarSection);
+  PushBackToParent;
+  PushSymbol(ntConstSection);
 end;
 
 procedure TSepiDelphiParser.PushChoice7;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntRoutineDecl);
+  PushBackToParent;
+  PushSymbol(ntVarSection);
 end;
 
 procedure TSepiDelphiParser.PushChoice8;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntTypeSection);
+  PushBackToParent;
+  PushSymbol(ntRoutineDecl);
 end;
 
 procedure TSepiDelphiParser.PushChoice9;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntConstSection);
+  PushBackToParent;
+  PushSymbol(ntTypeSection);
 end;
 
 procedure TSepiDelphiParser.PushChoice10;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntVarSection);
+  PushBackToParent;
+  PushSymbol(ntConstSection);
 end;
 
 procedure TSepiDelphiParser.PushChoice11;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntMethodImpl);
+  PushBackToParent;
+  PushSymbol(ntVarSection);
 end;
 
 procedure TSepiDelphiParser.PushChoice12;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv3);
-  Stack.Push(ntUnitInitialization);
+  PushBackToParent;
+  PushSymbol(ntMethodImpl);
 end;
 
 procedure TSepiDelphiParser.PushChoice13;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkIdentifier);
+  PushBackToParent;
+  PushSymbol(ntPriv3);
+  PushSymbol(ntUnitInitialization);
 end;
 
 procedure TSepiDelphiParser.PushChoice14;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntCallingConvention);
+  PushBackToParent;
+  PushSymbol(tkIdentifier);
 end;
 
 procedure TSepiDelphiParser.PushChoice15;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkName);
+  PushBackToParent;
+  PushSymbol(ntCallingConvention);
 end;
 
 procedure TSepiDelphiParser.PushChoice16;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkIndex);
+  PushBackToParent;
+  PushSymbol(tkName);
 end;
 
 procedure TSepiDelphiParser.PushChoice17;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkRead);
+  PushBackToParent;
+  PushSymbol(tkIndex);
 end;
 
 procedure TSepiDelphiParser.PushChoice18;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkWrite);
+  PushBackToParent;
+  PushSymbol(tkRead);
 end;
 
 procedure TSepiDelphiParser.PushChoice19;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkDefault);
+  PushBackToParent;
+  PushSymbol(tkWrite);
 end;
 
 procedure TSepiDelphiParser.PushChoice20;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkNoDefault);
+  PushBackToParent;
+  PushSymbol(tkDefault);
 end;
 
 procedure TSepiDelphiParser.PushChoice21;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkStored);
+  PushBackToParent;
+  PushSymbol(tkNoDefault);
 end;
 
 procedure TSepiDelphiParser.PushChoice22;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkDispID);
+  PushBackToParent;
+  PushSymbol(tkStored);
 end;
 
 procedure TSepiDelphiParser.PushChoice23;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkReadOnly);
+  PushBackToParent;
+  PushSymbol(tkDispID);
 end;
 
 procedure TSepiDelphiParser.PushChoice24;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkWriteOnly);
+  PushBackToParent;
+  PushSymbol(tkReadOnly);
 end;
 
 procedure TSepiDelphiParser.PushChoice25;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkString);
+  PushBackToParent;
+  PushSymbol(tkWriteOnly);
 end;
 
 procedure TSepiDelphiParser.PushChoice26;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkRegister);
+  PushBackToParent;
+  PushSymbol(tkString);
 end;
 
 procedure TSepiDelphiParser.PushChoice27;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkCDecl);
+  PushBackToParent;
+  PushSymbol(tkRegister);
 end;
 
 procedure TSepiDelphiParser.PushChoice28;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkPascal);
+  PushBackToParent;
+  PushSymbol(tkCDecl);
 end;
 
 procedure TSepiDelphiParser.PushChoice29;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkStdCall);
+  PushBackToParent;
+  PushSymbol(tkPascal);
 end;
 
 procedure TSepiDelphiParser.PushChoice30;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkSafeCall);
+  PushBackToParent;
+  PushSymbol(tkStdCall);
 end;
 
 procedure TSepiDelphiParser.PushChoice31;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkSemiColon);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntCommaIdentList);
-  Stack.Push(tkUses);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(tkSafeCall);
 end;
 
 procedure TSepiDelphiParser.PushChoice32;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv4);
-  Stack.Push(ntIdentifier);
+  PushBackToParent;
+  PushFakeSymbol(tkSemiColon);
+  PushSymbol(ntCommaIdentList);
+  PushFakeSymbol(tkUses);
 end;
 
 procedure TSepiDelphiParser.PushChoice33;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv5);
-  Stack.Push(ntIdentifier);
+  PushBackToParent;
+  PushSymbol(ntPriv4);
+  PushSymbol(ntIdentifier);
 end;
 
 procedure TSepiDelphiParser.PushChoice34;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntArrayInitializationExpression);
+  PushBackToParent;
+  PushSymbol(ntPriv5);
+  PushSymbol(ntIdentifier);
 end;
 
 procedure TSepiDelphiParser.PushChoice35;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntRecordInitializationExpression);
+  PushBackToParent;
+  PushSymbol(ntArrayInitializationExpression);
 end;
 
 procedure TSepiDelphiParser.PushChoice36;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntGUIDInitializationExpression);
+  PushBackToParent;
+  PushSymbol(ntRecordInitializationExpression);
 end;
 
 procedure TSepiDelphiParser.PushChoice37;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntOtherInitializationExpression);
+  PushBackToParent;
+  PushSymbol(ntGUIDInitializationExpression);
 end;
 
 procedure TSepiDelphiParser.PushChoice38;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntArrayInitialization);
+  PushBackToParent;
+  PushSymbol(ntOtherInitializationExpression);
 end;
 
 procedure TSepiDelphiParser.PushChoice39;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkCloseBracket);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntPriv6);
-  Stack.Push(ntInitializationExpression);
-  Stack.Push(tkOpenBracket);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(ntArrayInitialization);
 end;
 
 procedure TSepiDelphiParser.PushChoice40;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntRecordInitialization);
+  PushBackToParent;
+  PushFakeSymbol(tkCloseBracket);
+  PushSymbol(ntPriv6);
+  PushSymbol(ntInitializationExpression);
+  PushFakeSymbol(tkOpenBracket);
 end;
 
 procedure TSepiDelphiParser.PushChoice41;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkCloseBracket);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntPriv7);
-  Stack.Push(ntInitializationExpression);
-  Stack.Push(tkColon);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntIdentifier);
-  Stack.Push(tkOpenBracket);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(ntRecordInitialization);
 end;
 
 procedure TSepiDelphiParser.PushChoice42;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntGUIDInitialization);
+  PushBackToParent;
+  PushFakeSymbol(tkCloseBracket);
+  PushSymbol(ntPriv7);
+  PushSymbol(ntInitializationExpression);
+  PushFakeSymbol(tkColon);
+  PushSymbol(ntIdentifier);
+  PushFakeSymbol(tkOpenBracket);
 end;
 
 procedure TSepiDelphiParser.PushChoice43;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntRecordInitialization);
+  PushBackToParent;
+  PushSymbol(ntGUIDInitialization);
 end;
 
 procedure TSepiDelphiParser.PushChoice44;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkStringCst);
+  PushBackToParent;
+  PushSymbol(ntRecordInitialization);
 end;
 
 procedure TSepiDelphiParser.PushChoice45;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntOtherInitialization);
+  PushBackToParent;
+  PushSymbol(tkStringCst);
 end;
 
 procedure TSepiDelphiParser.PushChoice46;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntConstExpression);
+  PushBackToParent;
+  PushSymbol(ntOtherInitialization);
 end;
 
 procedure TSepiDelphiParser.PushChoice47;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv8);
-  Stack.Push(ntSingleExpr);
+  PushBackToParent;
+  PushSymbol(ntConstExpression);
 end;
 
 procedure TSepiDelphiParser.PushChoice48;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv9);
-  Stack.Push(ntSingleExpr);
+  PushBackToParent;
+  PushSymbol(ntPriv8);
+  PushSymbol(ntSingleExpr);
 end;
 
 procedure TSepiDelphiParser.PushChoice49;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntExpression);
+  PushBackToParent;
+  PushSymbol(ntPriv9);
+  PushSymbol(ntSingleExpr);
 end;
 
 procedure TSepiDelphiParser.PushChoice50;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntExpressionNoEquals);
+  PushBackToParent;
+  PushSymbol(ntExpression);
 end;
 
 procedure TSepiDelphiParser.PushChoice51;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntExpression);
+  PushBackToParent;
+  PushSymbol(ntExpressionNoEquals);
 end;
 
 procedure TSepiDelphiParser.PushChoice52;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntExpressionNoEquals);
+  PushBackToParent;
+  PushSymbol(ntExpression);
 end;
 
 procedure TSepiDelphiParser.PushChoice53;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv10);
-  Stack.Push(ntParenthesizedExpr);
+  PushBackToParent;
+  PushSymbol(ntExpressionNoEquals);
 end;
 
 procedure TSepiDelphiParser.PushChoice54;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv11);
-  Stack.Push(ntSingleValue);
+  PushBackToParent;
+  PushSymbol(ntPriv10);
+  PushSymbol(ntParenthesizedExpr);
 end;
 
 procedure TSepiDelphiParser.PushChoice55;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntSingleExpr);
-  Stack.Push(ntUnaryOp);
+  PushBackToParent;
+  PushSymbol(ntPriv11);
+  PushSymbol(ntSingleValue);
 end;
 
 procedure TSepiDelphiParser.PushChoice56;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkCloseBracket);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntExpression);
-  Stack.Push(tkOpenBracket);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(ntSingleExpr);
+  PushSymbol(ntUnaryOp);
 end;
 
 procedure TSepiDelphiParser.PushChoice57;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntParameters);
+  PushBackToParent;
+  PushFakeSymbol(tkCloseBracket);
+  PushSymbol(ntExpression);
+  PushFakeSymbol(tkOpenBracket);
 end;
 
 procedure TSepiDelphiParser.PushChoice58;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntArrayIndices);
+  PushBackToParent;
+  PushSymbol(ntParameters);
 end;
 
 procedure TSepiDelphiParser.PushChoice59;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntFieldSelection);
+  PushBackToParent;
+  PushSymbol(ntArrayIndices);
 end;
 
 procedure TSepiDelphiParser.PushChoice60;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntDereference);
+  PushBackToParent;
+  PushSymbol(ntFieldSelection);
 end;
 
 procedure TSepiDelphiParser.PushChoice61;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkCloseBracket);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntExprList);
-  Stack.Push(tkOpenBracket);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(ntDereference);
 end;
 
 procedure TSepiDelphiParser.PushChoice62;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkCloseSqBracket);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntExprList);
-  Stack.Push(tkOpenSqBracket);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushFakeSymbol(tkCloseBracket);
+  PushSymbol(ntExprList);
+  PushFakeSymbol(tkOpenBracket);
 end;
 
 procedure TSepiDelphiParser.PushChoice63;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv12);
-  Stack.Push(ntExpression);
+  PushBackToParent;
+  PushFakeSymbol(tkCloseBracket);
+  PushSymbol(ntIdentifier);
+  PushFakeSymbol(tkOpenBracket);
 end;
 
 procedure TSepiDelphiParser.PushChoice64;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntIdentifier);
-  Stack.Push(tkDot);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushFakeSymbol(tkCloseSqBracket);
+  PushSymbol(ntExprList);
+  PushFakeSymbol(tkOpenSqBracket);
 end;
 
 procedure TSepiDelphiParser.PushChoice65;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkHat);
+  PushBackToParent;
+  PushSymbol(ntPriv12);
+  PushSymbol(ntExpression);
 end;
 
 procedure TSepiDelphiParser.PushChoice66;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkInteger);
+  PushBackToParent;
+  PushSymbol(ntIdentifier);
+  PushFakeSymbol(tkDot);
 end;
 
 procedure TSepiDelphiParser.PushChoice67;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkFloat);
+  PushBackToParent;
+  PushSymbol(tkHat);
 end;
 
 procedure TSepiDelphiParser.PushChoice68;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkStringCst);
+  PushBackToParent;
+  PushSymbol(tkInteger);
 end;
 
 procedure TSepiDelphiParser.PushChoice69;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntIdentifier);
+  PushBackToParent;
+  PushSymbol(tkFloat);
 end;
 
 procedure TSepiDelphiParser.PushChoice70;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntIdentifier);
-  Stack.Push(tkInherited);
+  PushBackToParent;
+  PushSymbol(tkStringCst);
 end;
 
 procedure TSepiDelphiParser.PushChoice71;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkNil);
+  PushBackToParent;
+  PushSymbol(ntIdentifier);
 end;
 
 procedure TSepiDelphiParser.PushChoice72;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkCloseSqBracket);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntSetValue);
-  Stack.Push(tkOpenSqBracket);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(ntIdentifier);
+  PushSymbol(tkInherited);
 end;
 
 procedure TSepiDelphiParser.PushChoice73;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv13);
-  Stack.Push(ntSetRange);
+  PushBackToParent;
+  PushSymbol(tkNil);
 end;
 
 procedure TSepiDelphiParser.PushChoice74;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv14);
-  Stack.Push(ntExpression);
+  PushBackToParent;
+  PushFakeSymbol(tkCloseSqBracket);
+  PushSymbol(ntSetValue);
+  PushFakeSymbol(tkOpenSqBracket);
 end;
 
 procedure TSepiDelphiParser.PushChoice75;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkPlus);
+  PushBackToParent;
+  PushSymbol(ntPriv13);
+  PushSymbol(ntSetRange);
 end;
 
 procedure TSepiDelphiParser.PushChoice76;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkMinus);
+  PushBackToParent;
+  PushSymbol(ntPriv14);
+  PushSymbol(ntExpression);
 end;
 
 procedure TSepiDelphiParser.PushChoice77;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkTimes);
+  PushBackToParent;
+  PushSymbol(tkPlus);
 end;
 
 procedure TSepiDelphiParser.PushChoice78;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkDivide);
+  PushBackToParent;
+  PushSymbol(tkMinus);
 end;
 
 procedure TSepiDelphiParser.PushChoice79;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkDiv);
+  PushBackToParent;
+  PushSymbol(tkTimes);
 end;
 
 procedure TSepiDelphiParser.PushChoice80;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkMod);
+  PushBackToParent;
+  PushSymbol(tkDivide);
 end;
 
 procedure TSepiDelphiParser.PushChoice81;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkShl);
+  PushBackToParent;
+  PushSymbol(tkDiv);
 end;
 
 procedure TSepiDelphiParser.PushChoice82;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkShr);
+  PushBackToParent;
+  PushSymbol(tkMod);
 end;
 
 procedure TSepiDelphiParser.PushChoice83;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkOr);
+  PushBackToParent;
+  PushSymbol(tkShl);
 end;
 
 procedure TSepiDelphiParser.PushChoice84;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkAnd);
+  PushBackToParent;
+  PushSymbol(tkShr);
 end;
 
 procedure TSepiDelphiParser.PushChoice85;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkXor);
+  PushBackToParent;
+  PushSymbol(tkOr);
 end;
 
 procedure TSepiDelphiParser.PushChoice86;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkEquals);
+  PushBackToParent;
+  PushSymbol(tkAnd);
 end;
 
 procedure TSepiDelphiParser.PushChoice87;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkLowerThan);
+  PushBackToParent;
+  PushSymbol(tkXor);
 end;
 
 procedure TSepiDelphiParser.PushChoice88;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkLowerEq);
+  PushBackToParent;
+  PushSymbol(tkEquals);
 end;
 
 procedure TSepiDelphiParser.PushChoice89;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkGreaterThan);
+  PushBackToParent;
+  PushSymbol(tkLowerThan);
 end;
 
 procedure TSepiDelphiParser.PushChoice90;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkGreaterEq);
+  PushBackToParent;
+  PushSymbol(tkLowerEq);
 end;
 
 procedure TSepiDelphiParser.PushChoice91;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkNotEqual);
+  PushBackToParent;
+  PushSymbol(tkGreaterThan);
 end;
 
 procedure TSepiDelphiParser.PushChoice92;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkPlus);
+  PushBackToParent;
+  PushSymbol(tkGreaterEq);
 end;
 
 procedure TSepiDelphiParser.PushChoice93;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkMinus);
+  PushBackToParent;
+  PushSymbol(tkNotEqual);
 end;
 
 procedure TSepiDelphiParser.PushChoice94;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkTimes);
+  PushBackToParent;
+  PushSymbol(tkPlus);
 end;
 
 procedure TSepiDelphiParser.PushChoice95;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkDivide);
+  PushBackToParent;
+  PushSymbol(tkMinus);
 end;
 
 procedure TSepiDelphiParser.PushChoice96;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkDiv);
+  PushBackToParent;
+  PushSymbol(tkTimes);
 end;
 
 procedure TSepiDelphiParser.PushChoice97;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkMod);
+  PushBackToParent;
+  PushSymbol(tkDivide);
 end;
 
 procedure TSepiDelphiParser.PushChoice98;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkShl);
+  PushBackToParent;
+  PushSymbol(tkDiv);
 end;
 
 procedure TSepiDelphiParser.PushChoice99;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkShr);
+  PushBackToParent;
+  PushSymbol(tkMod);
 end;
 
 procedure TSepiDelphiParser.PushChoice100;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkOr);
+  PushBackToParent;
+  PushSymbol(tkShl);
 end;
 
 procedure TSepiDelphiParser.PushChoice101;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkAnd);
+  PushBackToParent;
+  PushSymbol(tkShr);
 end;
 
 procedure TSepiDelphiParser.PushChoice102;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkXor);
+  PushBackToParent;
+  PushSymbol(tkOr);
 end;
 
 procedure TSepiDelphiParser.PushChoice103;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkLowerThan);
+  PushBackToParent;
+  PushSymbol(tkAnd);
 end;
 
 procedure TSepiDelphiParser.PushChoice104;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkLowerEq);
+  PushBackToParent;
+  PushSymbol(tkXor);
 end;
 
 procedure TSepiDelphiParser.PushChoice105;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkGreaterThan);
+  PushBackToParent;
+  PushSymbol(tkLowerThan);
 end;
 
 procedure TSepiDelphiParser.PushChoice106;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkGreaterEq);
+  PushBackToParent;
+  PushSymbol(tkLowerEq);
 end;
 
 procedure TSepiDelphiParser.PushChoice107;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkNotEqual);
+  PushBackToParent;
+  PushSymbol(tkGreaterThan);
 end;
 
 procedure TSepiDelphiParser.PushChoice108;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkAt);
+  PushBackToParent;
+  PushSymbol(tkGreaterEq);
 end;
 
 procedure TSepiDelphiParser.PushChoice109;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkPlus);
+  PushBackToParent;
+  PushSymbol(tkNotEqual);
 end;
 
 procedure TSepiDelphiParser.PushChoice110;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkMinus);
+  PushBackToParent;
+  PushSymbol(tkAt);
 end;
 
 procedure TSepiDelphiParser.PushChoice111;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkNot);
+  PushBackToParent;
+  PushSymbol(tkPlus);
 end;
 
 procedure TSepiDelphiParser.PushChoice112;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv15);
-  Stack.Push(ntConstDecl);
-  Stack.Push(ntConstKeyWord);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(tkMinus);
 end;
 
 procedure TSepiDelphiParser.PushChoice113;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkConst);
+  PushBackToParent;
+  PushSymbol(tkNot);
 end;
 
 procedure TSepiDelphiParser.PushChoice114;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkResourceString);
+  PushBackToParent;
+  PushSymbol(ntPriv15);
+  PushSymbol(ntConstDecl);
+  PushFakeSymbol(ntConstKeyWord);
 end;
 
 procedure TSepiDelphiParser.PushChoice115;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkSemiColon);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntTypeModifiers);
-  Stack.Push(ntInnerConstDecl);
-  Stack.Push(ntIdentifier);
+  PushBackToParent;
+  PushSymbol(tkConst);
 end;
 
 procedure TSepiDelphiParser.PushChoice116;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntInitializationExpression);
-  Stack.Push(tkEquals);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntTypeDesc);
-  Stack.Push(tkColon);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(tkResourceString);
 end;
 
 procedure TSepiDelphiParser.PushChoice117;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntConstExpression);
-  Stack.Push(tkEquals);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushFakeSymbol(tkSemiColon);
+  PushSymbol(ntTypeModifiers);
+  PushSymbol(ntInnerConstDecl);
+  PushSymbol(ntIdentifier);
 end;
 
 procedure TSepiDelphiParser.PushChoice118;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv16);
-  Stack.Push(ntGlobalVar);
-  Stack.Push(tkVar);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(ntInitializationExpression);
+  PushFakeSymbol(tkEquals);
+  PushSymbol(ntTypeDesc);
+  PushFakeSymbol(tkColon);
 end;
 
 procedure TSepiDelphiParser.PushChoice119;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkSemiColon);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntTypeModifiers);
-  Stack.Push(ntInnerGlobalVar);
-  Stack.Push(ntIdentifier);
+  PushBackToParent;
+  PushSymbol(ntConstExpression);
+  PushFakeSymbol(tkEquals);
 end;
 
 procedure TSepiDelphiParser.PushChoice120;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv17);
-  Stack.Push(ntTypeDesc);
-  Stack.Push(tkColon);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(ntPriv16);
+  PushSymbol(ntGlobalVar);
+  PushFakeSymbol(tkVar);
 end;
 
 procedure TSepiDelphiParser.PushChoice121;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntTypeDesc);
-  Stack.Push(tkColon);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntPriv18);
-  Stack.Push(ntIdentifier);
-  Stack.Push(tkComma);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushFakeSymbol(tkSemiColon);
+  PushSymbol(ntTypeModifiers);
+  PushSymbol(ntInnerGlobalVar);
+  PushSymbol(ntIdentifier);
 end;
 
 procedure TSepiDelphiParser.PushChoice122;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv19);
-  Stack.Push(ntTypeDecl);
-  Stack.Push(tkType);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(ntPriv17);
+  PushSymbol(ntTypeDesc);
+  PushFakeSymbol(tkColon);
 end;
 
 procedure TSepiDelphiParser.PushChoice123;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkSemiColon);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntTypeModifiers);
-  Stack.Push(ntTypeDesc);
-  Stack.Push(tkEquals);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntIdentifier);
+  PushBackToParent;
+  PushSymbol(ntTypeDesc);
+  PushFakeSymbol(tkColon);
+  PushSymbol(ntPriv18);
+  PushSymbol(ntIdentifier);
+  PushFakeSymbol(tkComma);
 end;
 
 procedure TSepiDelphiParser.PushChoice124;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntCloneDesc);
+  PushBackToParent;
+  PushSymbol(ntPriv19);
+  PushSymbol(ntTypeDecl);
+  PushFakeSymbol(tkType);
 end;
 
 procedure TSepiDelphiParser.PushChoice125;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntRangeOrEnumDesc);
+  PushBackToParent;
+  PushFakeSymbol(tkSemiColon);
+  PushSymbol(ntTypeModifiers);
+  PushSymbol(ntTypeDesc);
+  PushFakeSymbol(tkEquals);
+  PushSymbol(ntIdentifier);
 end;
 
 procedure TSepiDelphiParser.PushChoice126;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntSetDesc);
+  PushBackToParent;
+  PushSymbol(ntCloneDesc);
 end;
 
 procedure TSepiDelphiParser.PushChoice127;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntStringDesc);
+  PushBackToParent;
+  PushSymbol(ntRangeOrEnumDesc);
 end;
 
 procedure TSepiDelphiParser.PushChoice128;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPointerDesc);
+  PushBackToParent;
+  PushSymbol(ntSetDesc);
 end;
 
 procedure TSepiDelphiParser.PushChoice129;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPackedDesc);
+  PushBackToParent;
+  PushSymbol(ntStringDesc);
 end;
 
 procedure TSepiDelphiParser.PushChoice130;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPackedDesc);
-  Stack.Push(tkPacked);
+  PushBackToParent;
+  PushSymbol(ntPointerDesc);
 end;
 
 procedure TSepiDelphiParser.PushChoice131;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntClassDesc);
+  PushBackToParent;
+  PushSymbol(ntPackedDesc);
 end;
 
 procedure TSepiDelphiParser.PushChoice132;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntInterfaceDesc);
+  PushBackToParent;
+  PushSymbol(ntPackedDesc);
+  PushSymbol(tkPacked);
 end;
 
 procedure TSepiDelphiParser.PushChoice133;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntDispInterfaceDesc);
+  PushBackToParent;
+  PushSymbol(ntClassDesc);
 end;
 
 procedure TSepiDelphiParser.PushChoice134;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntEventDesc);
+  PushBackToParent;
+  PushSymbol(ntInterfaceDesc);
 end;
 
 procedure TSepiDelphiParser.PushChoice135;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntArrayDesc);
+  PushBackToParent;
+  PushSymbol(ntDispInterfaceDesc);
 end;
 
 procedure TSepiDelphiParser.PushChoice136;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntRecordDesc);
+  PushBackToParent;
+  PushSymbol(ntEventDesc);
 end;
 
 procedure TSepiDelphiParser.PushChoice137;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntTypeDesc);
-  Stack.Push(tkOf);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntArrayDims);
-  Stack.Push(tkArray);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(ntArrayDesc);
 end;
 
 procedure TSepiDelphiParser.PushChoice138;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkCloseSqBracket);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntPriv20);
-  Stack.Push(ntArrayRange);
-  Stack.Push(tkOpenSqBracket);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(ntRecordDesc);
 end;
 
 procedure TSepiDelphiParser.PushChoice139;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv21);
-  Stack.Push(ntConstOrType);
+  PushBackToParent;
+  PushSymbol(ntTypeDesc);
+  PushFakeSymbol(tkOf);
+  PushSymbol(ntArrayDims);
+  PushFakeSymbol(tkArray);
 end;
 
 procedure TSepiDelphiParser.PushChoice140;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv22);
+  PushBackToParent;
+  PushFakeSymbol(tkCloseSqBracket);
+  PushSymbol(ntPriv20);
+  PushSymbol(ntArrayRange);
+  PushFakeSymbol(tkOpenSqBracket);
 end;
 
 procedure TSepiDelphiParser.PushChoice141;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntQualifiedIdent);
-  Stack.Push(tkType);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(ntPriv21);
+  PushSymbol(ntConstOrType);
 end;
 
 procedure TSepiDelphiParser.PushChoice142;
 begin
-  PushTry(143);
-  Stack.Push(scPopTry);
-  Stack.Push(scBackToParent);
-  Stack.Push(ntEnumDesc);
+  PushBackToParent;
+  PushSymbol(ntPriv22);
 end;
 
 procedure TSepiDelphiParser.PushChoice143;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntRangeDesc);
+  PushBackToParent;
+  PushSymbol(ntQualifiedIdent);
+  PushFakeSymbol(tkType);
 end;
 
 procedure TSepiDelphiParser.PushChoice144;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv23);
-  Stack.Push(ntConstOrTypeNoEquals);
+  PushTry(145);
+  PushBackToParent;
+  PushSymbol(ntEnumDesc);
 end;
 
 procedure TSepiDelphiParser.PushChoice145;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkCloseBracket);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntCommaIdentList);
-  Stack.Push(tkOpenBracket);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(ntRangeDesc);
 end;
 
 procedure TSepiDelphiParser.PushChoice146;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntTypeDesc);
-  Stack.Push(tkOf);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(tkSet);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(ntPriv23);
+  PushSymbol(ntConstOrTypeNoEquals);
 end;
 
 procedure TSepiDelphiParser.PushChoice147;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv24);
-  Stack.Push(tkString);
+  PushBackToParent;
+  PushFakeSymbol(tkCloseBracket);
+  PushSymbol(ntCommaIdentList);
+  PushFakeSymbol(tkOpenBracket);
 end;
 
 procedure TSepiDelphiParser.PushChoice148;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntQualifiedIdent);
-  Stack.Push(tkHat);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(ntTypeDesc);
+  PushFakeSymbol(tkOf);
+  PushFakeSymbol(tkSet);
 end;
 
 procedure TSepiDelphiParser.PushChoice149;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkEnd);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntRecordContents);
-  Stack.Push(tkRecord);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(ntPriv24);
+  PushSymbol(tkString);
 end;
 
 procedure TSepiDelphiParser.PushChoice150;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntRecordCaseBlock);
-  Stack.Push(ntPriv25);
+  PushBackToParent;
+  PushSymbol(ntQualifiedIdent);
+  PushFakeSymbol(tkHat);
 end;
 
 procedure TSepiDelphiParser.PushChoice151;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv27);
-  Stack.Push(tkOf);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntPriv26);
-  Stack.Push(ntIdentifier);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(tkCase);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushFakeSymbol(tkEnd);
+  PushSymbol(ntRecordContents);
+  PushFakeSymbol(tkRecord);
 end;
 
 procedure TSepiDelphiParser.PushChoice152;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv28);
-  Stack.Push(tkCloseBracket);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntRecordCaseContents);
-  Stack.Push(tkOpenBracket);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(tkColon);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntCaseLabels);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(ntRecordCaseBlock);
+  PushSymbol(ntPriv25);
 end;
 
 procedure TSepiDelphiParser.PushChoice153;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv29);
-  Stack.Push(ntConstExpression);
+  PushBackToParent;
+  PushSymbol(ntPriv27);
+  PushFakeSymbol(tkOf);
+  PushSymbol(ntPriv26);
+  PushFakeSymbol(ntIdentifier);
+  PushFakeSymbol(tkCase);
 end;
 
 procedure TSepiDelphiParser.PushChoice154;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntNextRecordCaseContentsEx);
+  PushBackToParent;
+  PushSymbol(ntPriv28);
+  PushFakeSymbol(tkCloseBracket);
+  PushSymbol(ntRecordCaseContents);
+  PushFakeSymbol(tkOpenBracket);
+  PushFakeSymbol(tkColon);
+  PushFakeSymbol(ntCaseLabels);
 end;
 
 procedure TSepiDelphiParser.PushChoice155;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntNextRecordCaseContentsEx);
-  Stack.Push(tkSemiColon);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(ntPriv29);
+  PushSymbol(ntConstExpression);
 end;
 
 procedure TSepiDelphiParser.PushChoice156;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntRecordCaseBlock);
+  PushBackToParent;
+  PushSymbol(ntNextRecordCaseContentsEx);
 end;
 
 procedure TSepiDelphiParser.PushChoice157;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntNextRecordCaseContents);
-  Stack.Push(ntRecordCaseField);
+  PushBackToParent;
+  PushSymbol(ntNextRecordCaseContentsEx);
+  PushFakeSymbol(tkSemiColon);
 end;
 
 procedure TSepiDelphiParser.PushChoice158;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntRecordCaseBlock);
+  PushBackToParent;
+  PushSymbol(ntRecordCaseBlock);
 end;
 
 procedure TSepiDelphiParser.PushChoice159;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntTypeModifiers);
-  Stack.Push(ntTypeDesc);
-  Stack.Push(tkColon);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntCommaIdentList);
+  PushBackToParent;
+  PushSymbol(ntNextRecordCaseContents);
+  PushSymbol(ntRecordCaseField);
 end;
 
 procedure TSepiDelphiParser.PushChoice160;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkSemiColon);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntTypeModifiers);
-  Stack.Push(ntTypeDesc);
-  Stack.Push(tkColon);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntCommaIdentList);
+  PushBackToParent;
+  PushSymbol(ntRecordCaseBlock);
 end;
 
 procedure TSepiDelphiParser.PushChoice161;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntClassExDesc);
-  Stack.Push(tkClass);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(ntTypeModifiers);
+  PushSymbol(ntTypeDesc);
+  PushFakeSymbol(tkColon);
+  PushSymbol(ntCommaIdentList);
 end;
 
 procedure TSepiDelphiParser.PushChoice162;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntClassContents);
-  Stack.Push(ntClassHeritage);
+  PushBackToParent;
+  PushFakeSymbol(tkSemiColon);
+  PushSymbol(ntTypeModifiers);
+  PushSymbol(ntTypeDesc);
+  PushFakeSymbol(tkColon);
+  PushSymbol(ntCommaIdentList);
 end;
 
 procedure TSepiDelphiParser.PushChoice163;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntQualifiedIdent);
-  Stack.Push(tkOf);
+  PushBackToParent;
+  PushSymbol(ntClassExDesc);
+  PushFakeSymbol(tkClass);
 end;
 
 procedure TSepiDelphiParser.PushChoice164;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkEnd);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntClassMemberLists);
+  PushBackToParent;
+  PushSymbol(ntClassContents);
+  PushSymbol(ntClassHeritage);
 end;
 
 procedure TSepiDelphiParser.PushChoice165;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkCloseBracket);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntPriv30);
-  Stack.Push(ntQualifiedIdent);
-  Stack.Push(tkOpenBracket);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(ntQualifiedIdent);
+  PushSymbol(tkOf);
 end;
 
 procedure TSepiDelphiParser.PushChoice166;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv31);
-  Stack.Push(ntClassMemberList);
+  PushBackToParent;
+  PushFakeSymbol(tkEnd);
+  PushSymbol(ntClassMemberLists);
 end;
 
 procedure TSepiDelphiParser.PushChoice167;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkPrivate);
+  PushBackToParent;
+  PushFakeSymbol(tkCloseBracket);
+  PushSymbol(ntPriv30);
+  PushSymbol(ntQualifiedIdent);
+  PushFakeSymbol(tkOpenBracket);
 end;
 
 procedure TSepiDelphiParser.PushChoice168;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkProtected);
+  PushBackToParent;
+  PushSymbol(ntPriv31);
+  PushSymbol(ntClassMemberList);
 end;
 
 procedure TSepiDelphiParser.PushChoice169;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkPublic);
+  PushBackToParent;
+  PushSymbol(tkPrivate);
 end;
 
 procedure TSepiDelphiParser.PushChoice170;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkPublished);
+  PushBackToParent;
+  PushSymbol(tkProtected);
 end;
 
 procedure TSepiDelphiParser.PushChoice171;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv33);
-  Stack.Push(ntPriv32);
+  PushBackToParent;
+  PushSymbol(tkPublic);
 end;
 
 procedure TSepiDelphiParser.PushChoice172;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv34);
-  Stack.Push(tkInterface);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(tkPublished);
 end;
 
 procedure TSepiDelphiParser.PushChoice173;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkCloseBracket);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntQualifiedIdent);
-  Stack.Push(tkOpenBracket);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(ntPriv33);
+  PushSymbol(ntPriv32);
 end;
 
 procedure TSepiDelphiParser.PushChoice174;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv35);
-  Stack.Push(tkDispInterface);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(ntPriv34);
+  PushFakeSymbol(tkInterface);
 end;
 
 procedure TSepiDelphiParser.PushChoice175;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkCloseSqBracket);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntConstExpression);
-  Stack.Push(tkOpenSqBracket);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushFakeSymbol(tkCloseBracket);
+  PushSymbol(ntQualifiedIdent);
+  PushFakeSymbol(tkOpenBracket);
 end;
 
 procedure TSepiDelphiParser.PushChoice176;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv36);
+  PushBackToParent;
+  PushSymbol(ntPriv35);
+  PushFakeSymbol(tkDispInterface);
 end;
 
 procedure TSepiDelphiParser.PushChoice177;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntMethodDecl);
+  PushBackToParent;
+  PushFakeSymbol(tkCloseSqBracket);
+  PushSymbol(ntConstExpression);
+  PushFakeSymbol(tkOpenSqBracket);
 end;
 
 procedure TSepiDelphiParser.PushChoice178;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPropertyDecl);
+  PushBackToParent;
+  PushSymbol(ntPriv36);
 end;
 
 procedure TSepiDelphiParser.PushChoice179;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntNextMethodDecl);
-  Stack.Push(ntIdentifier);
-  Stack.Push(ntMethodKind);
+  PushBackToParent;
+  PushSymbol(ntMethodDecl);
 end;
 
 procedure TSepiDelphiParser.PushChoice180;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntMethodKindEx);
-  Stack.Push(tkClass);
+  PushBackToParent;
+  PushSymbol(ntPropertyDecl);
 end;
 
 procedure TSepiDelphiParser.PushChoice181;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntMethodKindEx);
+  PushBackToParent;
+  PushSymbol(ntNextMethodDecl);
+  PushSymbol(ntIdentifier);
+  PushSymbol(ntMethodKind);
 end;
 
 procedure TSepiDelphiParser.PushChoice182;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkConstructor);
+  PushBackToParent;
+  PushSymbol(ntMethodKindEx);
+  PushSymbol(tkClass);
 end;
 
 procedure TSepiDelphiParser.PushChoice183;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkDestructor);
+  PushBackToParent;
+  PushSymbol(ntMethodKindEx);
 end;
 
 procedure TSepiDelphiParser.PushChoice184;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkProcedure);
+  PushBackToParent;
+  PushSymbol(tkConstructor);
 end;
 
 procedure TSepiDelphiParser.PushChoice185;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkFunction);
+  PushBackToParent;
+  PushSymbol(tkDestructor);
 end;
 
 procedure TSepiDelphiParser.PushChoice186;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv37);
-  Stack.Push(tkSemiColon);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntMethodSignature);
+  PushBackToParent;
+  PushSymbol(tkProcedure);
 end;
 
 procedure TSepiDelphiParser.PushChoice187;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkSemiColon);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntIntfMethodRedirector);
+  PushBackToParent;
+  PushSymbol(tkFunction);
 end;
 
 procedure TSepiDelphiParser.PushChoice188;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntIdentifier);
-  Stack.Push(tkEquals);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntIdentifier);
-  Stack.Push(tkDot);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(ntPriv37);
+  PushFakeSymbol(tkSemiColon);
+  PushSymbol(ntMethodSignature);
 end;
 
 procedure TSepiDelphiParser.PushChoice189;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv38);
-  Stack.Push(ntIdentifier);
+  PushBackToParent;
+  PushFakeSymbol(tkSemiColon);
+  PushSymbol(ntIntfMethodRedirector);
 end;
 
 procedure TSepiDelphiParser.PushChoice190;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv40);
-  Stack.Push(tkSemiColon);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntPriv39);
-  Stack.Push(ntPropertyNextDecl);
-  Stack.Push(ntIdentifier);
-  Stack.Push(ntPropertyKind);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(ntIdentifier);
+  PushFakeSymbol(tkEquals);
+  PushSymbol(ntIdentifier);
+  PushFakeSymbol(tkDot);
 end;
 
 procedure TSepiDelphiParser.PushChoice191;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkProperty);
+  PushBackToParent;
+  PushSymbol(ntPriv38);
+  PushSymbol(ntIdentifier);
 end;
 
 procedure TSepiDelphiParser.PushChoice192;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPropertySignature);
+  PushBackToParent;
+  PushSymbol(ntPriv40);
+  PushFakeSymbol(tkSemiColon);
+  PushSymbol(ntPriv39);
+  PushSymbol(ntPropertyNextDecl);
+  PushSymbol(ntIdentifier);
+  PushFakeSymbol(ntPropertyKind);
 end;
 
 procedure TSepiDelphiParser.PushChoice193;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntRedefineMarker);
+  PushBackToParent;
+  PushSymbol(tkProperty);
 end;
 
 procedure TSepiDelphiParser.PushChoice194;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntQualifiedIdent);
-  Stack.Push(tkRead);
+  PushBackToParent;
+  PushSymbol(ntPropertySignature);
 end;
 
 procedure TSepiDelphiParser.PushChoice195;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntQualifiedIdent);
-  Stack.Push(tkWrite);
+  PushBackToParent;
+  PushSymbol(ntRedefineMarker);
 end;
 
 procedure TSepiDelphiParser.PushChoice196;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntConstExpression);
-  Stack.Push(tkIndex);
+  PushBackToParent;
+  PushSymbol(ntQualifiedIdent);
+  PushSymbol(tkRead);
 end;
 
 procedure TSepiDelphiParser.PushChoice197;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntConstExpression);
-  Stack.Push(tkDefault);
+  PushBackToParent;
+  PushSymbol(ntQualifiedIdent);
+  PushSymbol(tkWrite);
 end;
 
 procedure TSepiDelphiParser.PushChoice198;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkNoDefault);
+  PushBackToParent;
+  PushSymbol(ntConstExpression);
+  PushSymbol(tkIndex);
 end;
 
 procedure TSepiDelphiParser.PushChoice199;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntExpression);
-  Stack.Push(tkStored);
+  PushBackToParent;
+  PushSymbol(ntConstExpression);
+  PushSymbol(tkDefault);
 end;
 
 procedure TSepiDelphiParser.PushChoice200;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkReadOnly);
+  PushBackToParent;
+  PushSymbol(tkNoDefault);
 end;
 
 procedure TSepiDelphiParser.PushChoice201;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkWriteOnly);
+  PushBackToParent;
+  PushSymbol(ntExpression);
+  PushSymbol(tkStored);
 end;
 
 procedure TSepiDelphiParser.PushChoice202;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntConstExpression);
-  Stack.Push(tkDispID);
+  PushBackToParent;
+  PushSymbol(tkReadOnly);
 end;
 
 procedure TSepiDelphiParser.PushChoice203;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntIdentifier);
+  PushBackToParent;
+  PushSymbol(tkWriteOnly);
 end;
 
 procedure TSepiDelphiParser.PushChoice204;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntEventModifiers);
-  Stack.Push(ntMethodSignature);
-  Stack.Push(ntRoutineKind);
+  PushBackToParent;
+  PushSymbol(ntConstExpression);
+  PushSymbol(tkDispID);
 end;
 
 procedure TSepiDelphiParser.PushChoice205;
 begin
-  PushTry(206);
-  Stack.Push(scPopTry);
-  Stack.Push(scBackToParent);
-  Stack.Push(ntEventModifiers);
-  Stack.Push(ntCallingConvention);
+  PushBackToParent;
+  PushSymbol(ntIdentifier);
 end;
 
 procedure TSepiDelphiParser.PushChoice206;
 begin
-  PushTry(207);
-  Stack.Push(scPopTry);
-  Stack.Push(scBackToParent);
-  Stack.Push(ntEventModifiers);
-  Stack.Push(ntEventIsOfObject);
+  PushBackToParent;
+  PushSymbol(ntEventModifiers);
+  PushSymbol(ntMethodSignature);
+  PushSymbol(ntRoutineKind);
 end;
 
 procedure TSepiDelphiParser.PushChoice207;
 begin
-  PushTry(0);
-  Stack.Push(scPopTry);
-  Stack.Push(scBackToParent);
-  Stack.Push(ntEventModifiers);
-  Stack.Push(ntCallingConvention);
-  Stack.Push(tkSemiColon);
-  Stack.Push(scNextChildIsFake);
+  PushTry(208);
+  PushBackToParent;
+  PushSymbol(ntEventModifiers);
+  PushSymbol(ntCallingConvention);
 end;
 
 procedure TSepiDelphiParser.PushChoice208;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkObject);
-  Stack.Push(tkOf);
+  PushTry(209);
+  PushBackToParent;
+  PushSymbol(ntEventModifiers);
+  PushSymbol(ntEventIsOfObject);
 end;
 
 procedure TSepiDelphiParser.PushChoice209;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv42);
-  Stack.Push(tkSemiColon);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntPriv41);
-  Stack.Push(ntMethodSignature);
-  Stack.Push(ntIdentifier);
-  Stack.Push(ntRoutineKind);
+  PushTry(0);
+  PushBackToParent;
+  PushSymbol(ntEventModifiers);
+  PushSymbol(ntCallingConvention);
+  PushFakeSymbol(tkSemiColon);
 end;
 
 procedure TSepiDelphiParser.PushChoice210;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkProcedure);
+  PushBackToParent;
+  PushSymbol(tkObject);
+  PushSymbol(tkOf);
 end;
 
 procedure TSepiDelphiParser.PushChoice211;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkFunction);
+  PushBackToParent;
+  PushSymbol(ntPriv42);
+  PushFakeSymbol(tkSemiColon);
+  PushSymbol(ntPriv41);
+  PushSymbol(ntMethodSignature);
+  PushSymbol(ntIdentifier);
+  PushSymbol(ntRoutineKind);
 end;
 
 procedure TSepiDelphiParser.PushChoice212;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntIdentifier);
+  PushBackToParent;
+  PushSymbol(tkProcedure);
 end;
 
 procedure TSepiDelphiParser.PushChoice213;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntReturnType);
-  Stack.Push(ntPriv43);
+  PushBackToParent;
+  PushSymbol(tkFunction);
 end;
 
 procedure TSepiDelphiParser.PushChoice214;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPropType);
-  Stack.Push(ntPriv44);
+  PushBackToParent;
+  PushSymbol(ntIdentifier);
 end;
 
 procedure TSepiDelphiParser.PushChoice215;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntParamList);
+  PushBackToParent;
+  PushSymbol(ntReturnType);
+  PushSymbol(ntPriv43);
 end;
 
 procedure TSepiDelphiParser.PushChoice216;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv45);
-  Stack.Push(ntParam);
+  PushBackToParent;
+  PushSymbol(ntPropType);
+  PushSymbol(ntPriv44);
 end;
 
 procedure TSepiDelphiParser.PushChoice217;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntQualifiedIdent);
-  Stack.Push(tkColon);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(ntParamList);
 end;
 
 procedure TSepiDelphiParser.PushChoice218;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntQualifiedIdent);
-  Stack.Push(tkColon);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(ntPriv45);
+  PushSymbol(ntParam);
 end;
 
 procedure TSepiDelphiParser.PushChoice219;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntParamTypeAndDefault);
-  Stack.Push(ntParamNameList);
-  Stack.Push(ntParamKind);
+  PushBackToParent;
+  PushSymbol(ntQualifiedIdent);
+  PushFakeSymbol(tkColon);
 end;
 
 procedure TSepiDelphiParser.PushChoice220;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkConst);
+  PushBackToParent;
+  PushSymbol(ntQualifiedIdent);
+  PushFakeSymbol(tkColon);
 end;
 
 procedure TSepiDelphiParser.PushChoice221;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkVar);
+  PushBackToParent;
+  PushSymbol(ntParamTypeAndDefault);
+  PushSymbol(ntParamNameList);
+  PushSymbol(ntParamKind);
 end;
 
 procedure TSepiDelphiParser.PushChoice222;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkOut);
+  PushBackToParent;
+  PushSymbol(tkConst);
 end;
 
 procedure TSepiDelphiParser.PushChoice223;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv46);
-  Stack.Push(ntIdentifier);
+  PushBackToParent;
+  PushSymbol(tkVar);
 end;
 
 procedure TSepiDelphiParser.PushChoice224;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv47);
-  Stack.Push(ntComptkParamType);
-  Stack.Push(tkColon);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(tkOut);
 end;
 
 procedure TSepiDelphiParser.PushChoice225;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntParamArrayType);
-  Stack.Push(ntParamIsArray);
+  PushBackToParent;
+  PushSymbol(ntPriv46);
+  PushSymbol(ntIdentifier);
 end;
 
 procedure TSepiDelphiParser.PushChoice226;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntParamType);
+  PushBackToParent;
+  PushSymbol(ntPriv47);
+  PushSymbol(ntComptkParamType);
+  PushFakeSymbol(tkColon);
 end;
 
 procedure TSepiDelphiParser.PushChoice227;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkOf);
-  Stack.Push(tkArray);
+  PushBackToParent;
+  PushSymbol(ntParamArrayType);
+  PushSymbol(ntParamIsArray);
 end;
 
 procedure TSepiDelphiParser.PushChoice228;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntQualifiedIdent);
+  PushBackToParent;
+  PushSymbol(ntParamType);
 end;
 
 procedure TSepiDelphiParser.PushChoice229;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkConst);
+  PushBackToParent;
+  PushSymbol(tkOf);
+  PushSymbol(tkArray);
 end;
 
 procedure TSepiDelphiParser.PushChoice230;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntQualifiedIdent);
+  PushBackToParent;
+  PushSymbol(ntQualifiedIdent);
 end;
 
 procedure TSepiDelphiParser.PushChoice231;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntInitializationExpression);
-  Stack.Push(tkEquals);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(tkConst);
 end;
 
 procedure TSepiDelphiParser.PushChoice232;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntMethodImplementation);
-  Stack.Push(ntMethodImplDecl);
+  PushBackToParent;
+  PushSymbol(ntQualifiedIdent);
 end;
 
 procedure TSepiDelphiParser.PushChoice233;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv49);
-  Stack.Push(tkSemiColon);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntPriv48);
-  Stack.Push(ntMethodSignature);
-  Stack.Push(ntQualifiedIdent);
-  Stack.Push(ntMethodKind);
+  PushBackToParent;
+  PushSymbol(ntInitializationExpression);
+  PushFakeSymbol(tkEquals);
 end;
 
 procedure TSepiDelphiParser.PushChoice234;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntForwardMarker);
+  PushBackToParent;
+  PushSymbol(ntMethodImplementation);
+  PushSymbol(ntMethodImplDecl);
 end;
 
 procedure TSepiDelphiParser.PushChoice235;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntMethodBody);
+  PushBackToParent;
+  PushSymbol(ntPriv49);
+  PushFakeSymbol(tkSemiColon);
+  PushSymbol(ntPriv48);
+  PushSymbol(ntMethodSignature);
+  PushSymbol(ntQualifiedIdent);
+  PushSymbol(ntMethodKind);
 end;
 
 procedure TSepiDelphiParser.PushChoice236;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkSemiColon);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntBeginEndBlock);
-  Stack.Push(ntPriv50);
+  PushBackToParent;
+  PushSymbol(ntForwardMarker);
 end;
 
 procedure TSepiDelphiParser.PushChoice237;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntTypeSection);
+  PushBackToParent;
+  PushSymbol(ntMethodBody);
 end;
 
 procedure TSepiDelphiParser.PushChoice238;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntConstSection);
+  PushBackToParent;
+  PushFakeSymbol(tkSemiColon);
+  PushSymbol(ntBeginEndBlock);
+  PushSymbol(ntPriv50);
 end;
 
 procedure TSepiDelphiParser.PushChoice239;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntLocalVarSection);
+  PushBackToParent;
+  PushSymbol(ntTypeSection);
 end;
 
 procedure TSepiDelphiParser.PushChoice240;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkSemiColon);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(tkForward);
+  PushBackToParent;
+  PushSymbol(ntConstSection);
 end;
 
 procedure TSepiDelphiParser.PushChoice241;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntInstructionList);
-  Stack.Push(tkInitialization);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(ntLocalVarSection);
 end;
 
 procedure TSepiDelphiParser.PushChoice242;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntInstructionList);
-  Stack.Push(tkFinalization);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushFakeSymbol(tkSemiColon);
+  PushSymbol(tkForward);
 end;
 
 procedure TSepiDelphiParser.PushChoice243;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv51);
-  Stack.Push(ntLocalVar);
-  Stack.Push(tkVar);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(ntInstructionList);
+  PushFakeSymbol(tkInitialization);
 end;
 
 procedure TSepiDelphiParser.PushChoice244;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkSemiColon);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntTypeDesc);
-  Stack.Push(tkColon);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntPriv52);
-  Stack.Push(ntIdentifier);
+  PushBackToParent;
+  PushSymbol(ntInstructionList);
+  PushFakeSymbol(tkFinalization);
 end;
 
 procedure TSepiDelphiParser.PushChoice245;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv53);
+  PushBackToParent;
+  PushSymbol(ntPriv51);
+  PushSymbol(ntLocalVar);
+  PushFakeSymbol(tkVar);
 end;
 
 procedure TSepiDelphiParser.PushChoice246;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntNoInstruction);
+  PushBackToParent;
+  PushFakeSymbol(tkSemiColon);
+  PushSymbol(ntTypeDesc);
+  PushFakeSymbol(tkColon);
+  PushSymbol(ntPriv52);
+  PushSymbol(ntIdentifier);
 end;
 
 procedure TSepiDelphiParser.PushChoice247;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntBeginEndBlock);
+  PushBackToParent;
+  PushSymbol(ntPriv53);
 end;
 
 procedure TSepiDelphiParser.PushChoice248;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntIfThenElseInstruction);
+  PushBackToParent;
+  PushSymbol(ntNoInstruction);
 end;
 
 procedure TSepiDelphiParser.PushChoice249;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntWhileInstruction);
+  PushBackToParent;
+  PushSymbol(ntBeginEndBlock);
 end;
 
 procedure TSepiDelphiParser.PushChoice250;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntRepeatInstruction);
+  PushBackToParent;
+  PushSymbol(ntIfThenElseInstruction);
 end;
 
 procedure TSepiDelphiParser.PushChoice251;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntForInstruction);
+  PushBackToParent;
+  PushSymbol(ntWhileInstruction);
 end;
 
 procedure TSepiDelphiParser.PushChoice252;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntTryInstruction);
+  PushBackToParent;
+  PushSymbol(ntRepeatInstruction);
 end;
 
 procedure TSepiDelphiParser.PushChoice253;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntRaiseInstruction);
+  PushBackToParent;
+  PushSymbol(ntForInstruction);
 end;
 
 procedure TSepiDelphiParser.PushChoice254;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntExpressionInstruction);
+  PushBackToParent;
+  PushSymbol(ntTryInstruction);
 end;
 
 procedure TSepiDelphiParser.PushChoice255;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkEnd);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntInstructionList);
-  Stack.Push(tkBegin);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(ntRaiseInstruction);
 end;
 
 procedure TSepiDelphiParser.PushChoice256;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntElseBranch);
-  Stack.Push(ntInstruction);
-  Stack.Push(tkThen);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntExpression);
-  Stack.Push(tkIf);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(ntExpressionInstruction);
 end;
 
 procedure TSepiDelphiParser.PushChoice257;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntInstruction);
-  Stack.Push(tkElse);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushFakeSymbol(tkEnd);
+  PushSymbol(ntInstructionList);
+  PushFakeSymbol(tkBegin);
 end;
 
 procedure TSepiDelphiParser.PushChoice258;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntNoInstruction);
+  PushBackToParent;
+  PushSymbol(ntElseBranch);
+  PushSymbol(ntInstruction);
+  PushFakeSymbol(tkThen);
+  PushSymbol(ntExpression);
+  PushFakeSymbol(tkIf);
 end;
 
 procedure TSepiDelphiParser.PushChoice259;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntInstruction);
-  Stack.Push(tkDo);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntExpression);
-  Stack.Push(tkWhile);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(ntInstruction);
+  PushFakeSymbol(tkElse);
 end;
 
 procedure TSepiDelphiParser.PushChoice260;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntExpression);
-  Stack.Push(tkUntil);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntInstructionList);
-  Stack.Push(tkRepeat);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(ntNoInstruction);
 end;
 
 procedure TSepiDelphiParser.PushChoice261;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntInstruction);
-  Stack.Push(tkDo);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntExpression);
-  Stack.Push(ntToDownTo);
-  Stack.Push(ntExpression);
-  Stack.Push(tkAssign);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntIdentifier);
-  Stack.Push(tkFor);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(ntInstruction);
+  PushFakeSymbol(tkDo);
+  PushSymbol(ntExpression);
+  PushFakeSymbol(tkWhile);
 end;
 
 procedure TSepiDelphiParser.PushChoice262;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkTo);
+  PushBackToParent;
+  PushSymbol(ntExpression);
+  PushFakeSymbol(tkUntil);
+  PushSymbol(ntInstructionList);
+  PushFakeSymbol(tkRepeat);
 end;
 
 procedure TSepiDelphiParser.PushChoice263;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkDownTo);
+  PushBackToParent;
+  PushSymbol(ntInstruction);
+  PushFakeSymbol(tkDo);
+  PushSymbol(ntExpression);
+  PushSymbol(ntToDownTo);
+  PushSymbol(ntExpression);
+  PushFakeSymbol(tkAssign);
+  PushSymbol(ntIdentifier);
+  PushFakeSymbol(tkFor);
 end;
 
 procedure TSepiDelphiParser.PushChoice264;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkEnd);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntNextTryInstruction);
-  Stack.Push(ntInstructionList);
-  Stack.Push(tkTry);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(tkTo);
 end;
 
 procedure TSepiDelphiParser.PushChoice265;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntExceptClause);
+  PushBackToParent;
+  PushSymbol(tkDownTo);
 end;
 
 procedure TSepiDelphiParser.PushChoice266;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntFinallyClause);
+  PushBackToParent;
+  PushFakeSymbol(tkEnd);
+  PushSymbol(ntNextTryInstruction);
+  PushSymbol(ntInstructionList);
+  PushFakeSymbol(tkTry);
 end;
 
 procedure TSepiDelphiParser.PushChoice267;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntNextExceptClause);
-  Stack.Push(tkExcept);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(ntExceptClause);
 end;
 
 procedure TSepiDelphiParser.PushChoice268;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntInstructionList);
+  PushBackToParent;
+  PushSymbol(ntFinallyClause);
 end;
 
 procedure TSepiDelphiParser.PushChoice269;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntMultiOn);
+  PushBackToParent;
+  PushSymbol(ntNextExceptClause);
+  PushFakeSymbol(tkExcept);
 end;
 
 procedure TSepiDelphiParser.PushChoice270;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntMultiOnElseClause);
-  Stack.Push(ntPriv54);
-  Stack.Push(ntOnClause);
+  PushBackToParent;
+  PushSymbol(ntInstructionList);
 end;
 
 procedure TSepiDelphiParser.PushChoice271;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntInstructionList);
-  Stack.Push(tkDo);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntPriv55);
-  Stack.Push(ntQualifiedIdent);
-  Stack.Push(tkOn);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(ntMultiOn);
 end;
 
 procedure TSepiDelphiParser.PushChoice272;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntInstructionList);
-  Stack.Push(tkElse);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(ntMultiOnElseClause);
+  PushSymbol(ntPriv54);
+  PushSymbol(ntOnClause);
 end;
 
 procedure TSepiDelphiParser.PushChoice273;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntInstructionList);
-  Stack.Push(tkFinally);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(ntInstructionList);
+  PushFakeSymbol(tkDo);
+  PushSymbol(ntPriv55);
+  PushSymbol(ntQualifiedIdent);
+  PushFakeSymbol(tkOn);
 end;
 
 procedure TSepiDelphiParser.PushChoice274;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv56);
-  Stack.Push(tkRaise);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(ntInstructionList);
+  PushFakeSymbol(tkElse);
 end;
 
 procedure TSepiDelphiParser.PushChoice275;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv57);
-  Stack.Push(ntExpression);
+  PushBackToParent;
+  PushSymbol(ntInstructionList);
+  PushFakeSymbol(tkFinally);
 end;
 
 procedure TSepiDelphiParser.PushChoice276;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkDot);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(tkEnd);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntImplementation);
+  PushBackToParent;
+  PushSymbol(ntPriv56);
+  PushFakeSymbol(tkRaise);
 end;
 
 procedure TSepiDelphiParser.PushChoice277;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv1);
-  Stack.Push(ntIntfSection);
+  PushBackToParent;
+  PushSymbol(ntPriv57);
+  PushSymbol(ntExpression);
 end;
 
 procedure TSepiDelphiParser.PushChoice278;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv2);
-  Stack.Push(ntImplSection);
+  PushBackToParent;
+  PushFakeSymbol(tkDot);
+  PushFakeSymbol(tkEnd);
+  PushSymbol(ntImplementation);
 end;
 
 procedure TSepiDelphiParser.PushChoice279;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntUnitFinalization);
+  PushBackToParent;
+  PushSymbol(ntPriv1);
+  PushSymbol(ntIntfSection);
 end;
 
 procedure TSepiDelphiParser.PushChoice280;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv4);
-  Stack.Push(ntIdentifier);
-  Stack.Push(tkComma);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(ntPriv2);
+  PushSymbol(ntImplSection);
 end;
 
 procedure TSepiDelphiParser.PushChoice281;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv5);
-  Stack.Push(ntIdentifier);
-  Stack.Push(tkDot);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(ntUnitFinalization);
 end;
 
 procedure TSepiDelphiParser.PushChoice282;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv6);
-  Stack.Push(ntInitializationExpression);
-  Stack.Push(tkComma);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(ntPriv4);
+  PushSymbol(ntIdentifier);
+  PushFakeSymbol(tkComma);
 end;
 
 procedure TSepiDelphiParser.PushChoice283;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv7);
-  Stack.Push(ntInitializationExpression);
-  Stack.Push(tkColon);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntIdentifier);
-  Stack.Push(tkSemiColon);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(ntPriv5);
+  PushSymbol(ntIdentifier);
+  PushFakeSymbol(tkDot);
 end;
 
 procedure TSepiDelphiParser.PushChoice284;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv8);
-  Stack.Push(ntSingleExpr);
-  Stack.Push(ntBinaryOp);
+  PushBackToParent;
+  PushSymbol(ntPriv6);
+  PushSymbol(ntInitializationExpression);
+  PushFakeSymbol(tkComma);
 end;
 
 procedure TSepiDelphiParser.PushChoice285;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv9);
-  Stack.Push(ntSingleExpr);
-  Stack.Push(ntBinaryOpNoEquals);
+  PushBackToParent;
+  PushSymbol(ntPriv7);
+  PushSymbol(ntInitializationExpression);
+  PushFakeSymbol(tkColon);
+  PushSymbol(ntIdentifier);
+  PushFakeSymbol(tkSemiColon);
 end;
 
 procedure TSepiDelphiParser.PushChoice286;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv10);
-  Stack.Push(ntNextExpr);
+  PushBackToParent;
+  PushSymbol(ntPriv8);
+  PushSymbol(ntSingleExpr);
+  PushSymbol(ntBinaryOp);
 end;
 
 procedure TSepiDelphiParser.PushChoice287;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv11);
-  Stack.Push(ntNextExpr);
+  PushBackToParent;
+  PushSymbol(ntPriv9);
+  PushSymbol(ntSingleExpr);
+  PushSymbol(ntBinaryOpNoEquals);
 end;
 
 procedure TSepiDelphiParser.PushChoice288;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv12);
-  Stack.Push(ntExpression);
-  Stack.Push(tkComma);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(ntPriv10);
+  PushSymbol(ntNextExpr);
 end;
 
 procedure TSepiDelphiParser.PushChoice289;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv13);
-  Stack.Push(ntSetRange);
-  Stack.Push(tkComma);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(ntPriv11);
+  PushSymbol(ntNextExpr);
 end;
 
 procedure TSepiDelphiParser.PushChoice290;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntExpression);
-  Stack.Push(tkRange);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(ntPriv12);
+  PushSymbol(ntExpression);
+  PushFakeSymbol(tkComma);
 end;
 
 procedure TSepiDelphiParser.PushChoice291;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv15);
-  Stack.Push(ntConstDecl);
+  PushBackToParent;
+  PushSymbol(ntPriv13);
+  PushSymbol(ntSetRange);
+  PushFakeSymbol(tkComma);
 end;
 
 procedure TSepiDelphiParser.PushChoice292;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv16);
-  Stack.Push(ntGlobalVar);
+  PushBackToParent;
+  PushSymbol(ntExpression);
+  PushFakeSymbol(tkRange);
 end;
 
 procedure TSepiDelphiParser.PushChoice293;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntInitializationExpression);
-  Stack.Push(tkEquals);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(ntPriv15);
+  PushSymbol(ntConstDecl);
 end;
 
 procedure TSepiDelphiParser.PushChoice294;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv18);
-  Stack.Push(ntIdentifier);
-  Stack.Push(tkComma);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(ntPriv16);
+  PushSymbol(ntGlobalVar);
 end;
 
 procedure TSepiDelphiParser.PushChoice295;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv19);
-  Stack.Push(ntTypeDecl);
+  PushBackToParent;
+  PushSymbol(ntInitializationExpression);
+  PushFakeSymbol(tkEquals);
 end;
 
 procedure TSepiDelphiParser.PushChoice296;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv20);
-  Stack.Push(ntArrayRange);
-  Stack.Push(tkComma);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(ntPriv18);
+  PushSymbol(ntIdentifier);
+  PushFakeSymbol(tkComma);
 end;
 
 procedure TSepiDelphiParser.PushChoice297;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntConstExpression);
-  Stack.Push(tkRange);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(ntPriv19);
+  PushSymbol(ntTypeDecl);
 end;
 
 procedure TSepiDelphiParser.PushChoice298;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv22);
-  Stack.Push(ntIdentifier);
+  PushBackToParent;
+  PushSymbol(ntPriv20);
+  PushSymbol(ntArrayRange);
+  PushFakeSymbol(tkComma);
 end;
 
 procedure TSepiDelphiParser.PushChoice299;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntConstExpressionNoEquals);
-  Stack.Push(tkRange);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(ntConstExpression);
+  PushFakeSymbol(tkRange);
 end;
 
 procedure TSepiDelphiParser.PushChoice300;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkCloseSqBracket);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntConstExpression);
-  Stack.Push(tkOpenSqBracket);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(ntPriv22);
+  PushSymbol(ntIdentifier);
 end;
 
 procedure TSepiDelphiParser.PushChoice301;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv25);
-  Stack.Push(ntField);
+  PushBackToParent;
+  PushSymbol(ntConstExpressionNoEquals);
+  PushFakeSymbol(tkRange);
 end;
 
 procedure TSepiDelphiParser.PushChoice302;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntIdentifier);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(tkColon);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushFakeSymbol(tkCloseSqBracket);
+  PushSymbol(ntConstExpression);
+  PushFakeSymbol(tkOpenSqBracket);
 end;
 
 procedure TSepiDelphiParser.PushChoice303;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv27);
-  Stack.Push(ntRecordCase);
+  PushBackToParent;
+  PushSymbol(ntPriv25);
+  PushSymbol(ntField);
 end;
 
 procedure TSepiDelphiParser.PushChoice304;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkSemiColon);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushFakeSymbol(ntIdentifier);
+  PushFakeSymbol(tkColon);
 end;
 
 procedure TSepiDelphiParser.PushChoice305;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv29);
-  Stack.Push(ntConstExpression);
-  Stack.Push(tkComma);
+  PushBackToParent;
+  PushSymbol(ntPriv27);
+  PushSymbol(ntRecordCase);
 end;
 
 procedure TSepiDelphiParser.PushChoice306;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv30);
-  Stack.Push(ntQualifiedIdent);
-  Stack.Push(tkComma);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushFakeSymbol(tkSemiColon);
 end;
 
 procedure TSepiDelphiParser.PushChoice307;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv31);
-  Stack.Push(ntClassMemberList);
-  Stack.Push(ntVisibility);
+  PushBackToParent;
+  PushSymbol(ntPriv29);
+  PushSymbol(ntConstExpression);
+  PushSymbol(tkComma);
 end;
 
 procedure TSepiDelphiParser.PushChoice308;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv32);
-  Stack.Push(ntField);
+  PushBackToParent;
+  PushSymbol(ntPriv30);
+  PushSymbol(ntQualifiedIdent);
+  PushFakeSymbol(tkComma);
 end;
 
 procedure TSepiDelphiParser.PushChoice309;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv33);
-  Stack.Push(ntMethodProp);
+  PushBackToParent;
+  PushSymbol(ntPriv31);
+  PushSymbol(ntClassMemberList);
+  PushSymbol(ntVisibility);
 end;
 
 procedure TSepiDelphiParser.PushChoice310;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkEnd);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntInterfaceMemberList);
-  Stack.Push(ntInterfaceGUID);
-  Stack.Push(ntInterfaceHeritage);
+  PushBackToParent;
+  PushSymbol(ntPriv32);
+  PushSymbol(ntField);
 end;
 
 procedure TSepiDelphiParser.PushChoice311;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkEnd);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntInterfaceMemberList);
-  Stack.Push(ntInterfaceGUID);
-  Stack.Push(ntDispInterfaceHeritage);
+  PushBackToParent;
+  PushSymbol(ntPriv33);
+  PushSymbol(ntMethodProp);
 end;
 
 procedure TSepiDelphiParser.PushChoice312;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv36);
-  Stack.Push(ntMethodProp);
+  PushBackToParent;
+  PushFakeSymbol(tkEnd);
+  PushSymbol(ntInterfaceMemberList);
+  PushSymbol(ntInterfaceGUID);
+  PushSymbol(ntInterfaceHeritage);
 end;
 
 procedure TSepiDelphiParser.PushChoice313;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv37);
-  Stack.Push(tkSemiColon);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntMethodModifier);
+  PushBackToParent;
+  PushFakeSymbol(tkEnd);
+  PushSymbol(ntInterfaceMemberList);
+  PushSymbol(ntInterfaceGUID);
+  PushSymbol(ntDispInterfaceHeritage);
 end;
 
 procedure TSepiDelphiParser.PushChoice314;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntConstExpression);
+  PushBackToParent;
+  PushSymbol(ntPriv36);
+  PushSymbol(ntMethodProp);
 end;
 
 procedure TSepiDelphiParser.PushChoice315;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv39);
-  Stack.Push(ntPropInfo);
+  PushBackToParent;
+  PushSymbol(ntPriv37);
+  PushFakeSymbol(tkSemiColon);
+  PushSymbol(ntMethodModifier);
 end;
 
 procedure TSepiDelphiParser.PushChoice316;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv40);
-  Stack.Push(tkSemiColon);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntPropertyModifier);
+  PushBackToParent;
+  PushSymbol(ntConstExpression);
 end;
 
 procedure TSepiDelphiParser.PushChoice317;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv41);
-  Stack.Push(ntRoutineModifier);
+  PushBackToParent;
+  PushSymbol(ntPriv39);
+  PushSymbol(ntPropInfo);
 end;
 
 procedure TSepiDelphiParser.PushChoice318;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv42);
-  Stack.Push(tkSemiColon);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntRoutineModifier);
+  PushBackToParent;
+  PushSymbol(ntPriv40);
+  PushFakeSymbol(tkSemiColon);
+  PushSymbol(ntPropertyModifier);
 end;
 
 procedure TSepiDelphiParser.PushChoice319;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkCloseBracket);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntMethodParamList);
-  Stack.Push(tkOpenBracket);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(ntPriv41);
+  PushSymbol(ntRoutineModifier);
 end;
 
 procedure TSepiDelphiParser.PushChoice320;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(tkCloseSqBracket);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntParamList);
-  Stack.Push(tkOpenSqBracket);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(ntPriv42);
+  PushFakeSymbol(tkSemiColon);
+  PushSymbol(ntRoutineModifier);
 end;
 
 procedure TSepiDelphiParser.PushChoice321;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv45);
-  Stack.Push(ntParam);
-  Stack.Push(tkSemiColon);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushFakeSymbol(tkCloseBracket);
+  PushSymbol(ntMethodParamList);
+  PushFakeSymbol(tkOpenBracket);
 end;
 
 procedure TSepiDelphiParser.PushChoice322;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv46);
-  Stack.Push(ntIdentifier);
-  Stack.Push(tkComma);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushFakeSymbol(tkCloseSqBracket);
+  PushSymbol(ntParamList);
+  PushFakeSymbol(tkOpenSqBracket);
 end;
 
 procedure TSepiDelphiParser.PushChoice323;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntParamDefault);
+  PushBackToParent;
+  PushSymbol(ntPriv45);
+  PushSymbol(ntParam);
+  PushFakeSymbol(tkSemiColon);
 end;
 
 procedure TSepiDelphiParser.PushChoice324;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv48);
-  Stack.Push(ntRoutineModifier);
+  PushBackToParent;
+  PushSymbol(ntPriv46);
+  PushSymbol(ntIdentifier);
+  PushFakeSymbol(tkComma);
 end;
 
 procedure TSepiDelphiParser.PushChoice325;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv49);
-  Stack.Push(tkSemiColon);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntRoutineModifier);
+  PushBackToParent;
+  PushSymbol(ntParamDefault);
 end;
 
 procedure TSepiDelphiParser.PushChoice326;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv50);
-  Stack.Push(ntInMethodSection);
+  PushBackToParent;
+  PushSymbol(ntPriv48);
+  PushSymbol(ntRoutineModifier);
 end;
 
 procedure TSepiDelphiParser.PushChoice327;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv51);
-  Stack.Push(ntLocalVar);
+  PushBackToParent;
+  PushSymbol(ntPriv49);
+  PushFakeSymbol(tkSemiColon);
+  PushSymbol(ntRoutineModifier);
 end;
 
 procedure TSepiDelphiParser.PushChoice328;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv52);
-  Stack.Push(ntIdentifier);
-  Stack.Push(tkComma);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(ntPriv50);
+  PushSymbol(ntInMethodSection);
 end;
 
 procedure TSepiDelphiParser.PushChoice329;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv53);
-  Stack.Push(tkSemiColon);
-  Stack.Push(scNextChildIsFake);
-  Stack.Push(ntInstruction);
+  PushBackToParent;
+  PushSymbol(ntPriv51);
+  PushSymbol(ntLocalVar);
 end;
 
 procedure TSepiDelphiParser.PushChoice330;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntPriv54);
-  Stack.Push(ntOnClause);
+  PushBackToParent;
+  PushSymbol(ntPriv52);
+  PushSymbol(ntIdentifier);
+  PushFakeSymbol(tkComma);
 end;
 
 procedure TSepiDelphiParser.PushChoice331;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntQualifiedIdent);
-  Stack.Push(tkColon);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(ntPriv53);
+  PushFakeSymbol(tkSemiColon);
+  PushSymbol(ntInstruction);
 end;
 
 procedure TSepiDelphiParser.PushChoice332;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntExpression);
+  PushBackToParent;
+  PushSymbol(ntPriv54);
+  PushSymbol(ntOnClause);
 end;
 
 procedure TSepiDelphiParser.PushChoice333;
 begin
-  Stack.Push(scBackToParent);
-  Stack.Push(ntExpression);
-  Stack.Push(tkAssign);
-  Stack.Push(scNextChildIsFake);
+  PushBackToParent;
+  PushSymbol(ntQualifiedIdent);
+  PushFakeSymbol(tkColon);
+end;
+
+procedure TSepiDelphiParser.PushChoice334;
+begin
+  PushBackToParent;
+  PushSymbol(ntExpression);
+end;
+
+procedure TSepiDelphiParser.PushChoice335;
+begin
+  PushBackToParent;
+  PushSymbol(ntExpression);
+  PushFakeSymbol(tkAssign);
 end;
 
 {*
@@ -3265,14 +3137,6 @@ end;
 function TSepiDelphiParser.IsNonTerminal(Symbol: TSepiSymbolClass): Boolean;
 begin
   Result := (Symbol >= FirstNonTerminal) and (Symbol <= LastNonTerminal);
-end;
-
-{*
-  [@inheritDoc]
-*}
-function TSepiDelphiParser.GetStartSymbol: TSepiSymbolClass;
-begin
-  Result := ntSource;
 end;
 
 {*
@@ -3617,6 +3481,8 @@ begin
   PushChoiceProcs[331] := PushChoice331;
   PushChoiceProcs[332] := PushChoice332;
   PushChoiceProcs[333] := PushChoice333;
+  PushChoiceProcs[334] := PushChoice334;
+  PushChoiceProcs[335] := PushChoice335;
 end;
 
 {*
@@ -3652,6 +3518,7 @@ end;
 procedure InitSymbolClassNames;
 begin
   SymbolClassNames[ntSource] := 'ntSource';
+  SymbolClassNames[ntInPreProcessorExpression] := 'ntInPreProcessorExpression';
   SymbolClassNames[ntInterface] := 'ntInterface';
   SymbolClassNames[ntImplementation] := 'ntImplementation';
   SymbolClassNames[ntIntfSection] := 'ntIntfSection';
@@ -3681,6 +3548,7 @@ begin
   SymbolClassNames[ntParenthesizedExpr] := 'ntParenthesizedExpr';
   SymbolClassNames[ntNextExpr] := 'ntNextExpr';
   SymbolClassNames[ntParameters] := 'ntParameters';
+  SymbolClassNames[ntIdentTestParam] := 'ntIdentTestParam';
   SymbolClassNames[ntArrayIndices] := 'ntArrayIndices';
   SymbolClassNames[ntExprList] := 'ntExprList';
   SymbolClassNames[ntFieldSelection] := 'ntFieldSelection';
@@ -3866,7 +3734,7 @@ end;
 procedure InitNonTerminalClasses;
 const
   ClassesToSimplify: array[0..89] of TSepiSymbolClass = (
-    -1, 103, 104, 105, 109, 128, 131, 143, 146, 150, 165, 168, 169, 173, 174, 178, 185, 188, 189, 194, 206, 207, 213, 214, 218, 221, 223, 230, 234, 238, 240, 242, 249, 250, 251, 252, 253, 254, 255, 256, 257, 258, 259, 260, 261, 262, 263, 264, 265, 266, 267, 268, 269, 270, 271, 272, 273, 274, 275, 276, 277, 278, 279, 280, 281, 282, 283, 284, 285, 286, 287, 288, 289, 290, 291, 292, 293, 294, 295, 296, 297, 298, 299, 300, 301, 302, 303, 304, 305, 306
+    -1, 104, 105, 106, 110, 129, 133, 145, 148, 152, 167, 170, 171, 175, 176, 180, 187, 190, 191, 196, 208, 209, 215, 216, 220, 223, 225, 232, 236, 240, 242, 244, 251, 252, 253, 254, 255, 256, 257, 258, 259, 260, 261, 262, 263, 264, 265, 266, 267, 268, 269, 270, 271, 272, 273, 274, 275, 276, 277, 278, 279, 280, 281, 282, 283, 284, 285, 286, 287, 288, 289, 290, 291, 292, 293, 294, 295, 296, 297, 298, 299, 300, 301, 302, 303, 304, 305, 306, 307, 308
   );
 var
   I: TSepiSymbolClass;

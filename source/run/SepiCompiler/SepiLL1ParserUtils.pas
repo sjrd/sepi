@@ -138,15 +138,28 @@ type
 
     FCurrent: TSepiNonTerminal; /// Non-terminal courant
 
-    property Current: TSepiNonTerminal read FCurrent write FCurrent;
+    procedure SetCurrent(Value: TSepiNonTerminal);
+
+    procedure BeginFakeNonTerminal;
+    procedure BackToParent;
+    procedure PopTry;
+    procedure BeginRootNode(RootNode: TSepiNonTerminal);
+    procedure ParseTerminal(Symbol: TSepiSymbolClass);
+    procedure BeginNonTerminal(Symbol: TSepiSymbolClass);
+    procedure BeginNonTerminalParsing;
+
+    property Stack: TSepiLL1ParsingStack read FStack;
   protected
     /// Tableau des procédures qui push les choix sur la pile prédictive
     PushChoiceProcs: array of TPushChoiceProc;
 
+    procedure PushSymbol(Symbol: TSepiSymbolClass);
+    procedure PushFakeSymbol(Symbol: TSepiSymbolClass);
+    procedure PushBackToParent;
+    procedure PushTry(AltRule: TRuleID);
+
     procedure PushEmptyChoice;
 
-    procedure PushTry(AltRule: TRuleID);
-    procedure PopTry;
     procedure UnwindTry;
 
     procedure UnwindTryOrSyntaxError(const Expected: string); overload;
@@ -157,7 +170,6 @@ type
     function IsNonTerminal(
       Symbol: TSepiSymbolClass): Boolean; virtual; abstract;
 
-    function GetStartSymbol: TSepiSymbolClass; virtual; abstract;
     procedure InitPushChoiceProcs; virtual;
 
     function GetExpectedString(
@@ -172,22 +184,22 @@ type
       Symbol: TSepiSymbolClass;
       const SourcePos: TSepiSourcePosition): TSepiNonTerminal;
 
-    procedure InternalParse(RootNode: TSepiParseTreeRootNode); override;
+    procedure InternalParse(RootNode: TSepiNonTerminal); override;
 
-    property Stack: TSepiLL1ParsingStack read FStack;
+    property Current: TSepiNonTerminal read FCurrent;
   public
     constructor Create(ALexer: TSepiCustomLexer); override;
     destructor Destroy; override;
   end;
 
+implementation
+
 const
   scNextChildIsFake = -2; /// Code spécial : le prochain enfant est un fake
   scBackToParent = -3;    /// Code spécial : retourner au parent
   scPopTry = -4;          /// Code spécial : pop un try-tag depuis la pile
+  scRootNode = -5;        /// Code spécial : noeud racine
 
-implementation
-
-const
   /// Sentinelle pour un try dans un pile de parser LL(1)
   scTrySentinel = Pointer($FFFFFFFF);
 
@@ -202,6 +214,7 @@ const
 constructor TSepiLL1ParsingStack.Create(StartSymbol: TSepiSymbolClass);
 begin
   inherited Create;
+
   FStack := TStack.Create;
   Push(StartSymbol);
 end;
@@ -212,6 +225,7 @@ end;
 destructor TSepiLL1ParsingStack.Destroy;
 begin
   FStack.Free;
+
   inherited Destroy;
 end;
 
@@ -378,7 +392,7 @@ constructor TSepiCustomLL1Parser.Create(ALexer: TSepiCustomLexer);
 begin
   inherited;
 
-  FStack := TSepiLL1ParsingStack.Create(GetStartSymbol);
+  FStack := TSepiLL1ParsingStack.Create(scRootNode);
 
   InitPushChoiceProcs;
 end;
@@ -393,10 +407,126 @@ begin
   inherited;
 end;
 
+procedure TSepiCustomLL1Parser.SetCurrent(Value: TSepiNonTerminal);
+begin
+  FCurrent := Value;
+  Lexer.Context := Value;
+end;
+
 {*
-  Push un choix vide sur la pile prédictive
+  Commence un emballage dans un faux non-terminal
 *}
-procedure TSepiCustomLL1Parser.PushEmptyChoice;
+procedure TSepiCustomLL1Parser.BeginFakeNonTerminal;
+begin
+  SetCurrent(TSepiFakeNonTerminal.Create(Current, scNextChildIsFake,
+    CurTerminal.SourcePos));
+
+  Current.BeginParsing;
+end;
+
+{*
+  Retourne au parent
+*}
+procedure TSepiCustomLL1Parser.BackToParent;
+var
+  Temp: TSepiNonTerminal;
+begin
+  Temp := Current;
+  SetCurrent(Temp.SyntacticParent);
+  Temp.EndParsing;
+end;
+
+{*
+  Pop un try de la pile prédictive
+*}
+procedure TSepiCustomLL1Parser.PopTry;
+begin
+  Stack.PopTry;
+end;
+
+{*
+  Commence l'analyse du noeud racine
+  @param RootNode   Noeud racine
+*}
+procedure TSepiCustomLL1Parser.BeginRootNode(RootNode: TSepiNonTerminal);
+begin
+  Assert(Current = nil);
+
+  SetCurrent(RootNode);
+  BeginNonTerminalParsing;
+end;
+
+{*
+  Analyse un terminal
+  @param Symbol   Symbole de terminal attendu
+*}
+procedure TSepiCustomLL1Parser.ParseTerminal(Symbol: TSepiSymbolClass);
+begin
+  if CurTerminal.SymbolClass <> Symbol then
+    UnwindTryOrSyntaxError(Symbol)
+  else
+  begin
+    TSepiTerminalClass(CurTerminal.ClassType).Clone(
+      CurTerminal, Current).Parse;
+    Lexer.NextTerminal;
+  end;
+end;
+
+{*
+  Commence l'analyse d'un non-terminal
+  @param Symbol   Symbole de non-terminal attendu
+*}
+procedure TSepiCustomLL1Parser.BeginNonTerminal(Symbol: TSepiSymbolClass);
+begin
+  Assert(Current <> nil);
+
+  SetCurrent(CreateNonTerminal(Current, Symbol, CurTerminal.SourcePos));
+  BeginNonTerminalParsing;
+end;
+
+{*
+  Commence l'analyse du non-terminal courant
+*}
+procedure TSepiCustomLL1Parser.BeginNonTerminalParsing;
+var
+  Rule: TRuleID;
+begin
+  Current.BeginParsing; // This could modify Current.SymbolClass!
+
+  Rule := GetParsingTable(Current.SymbolClass, CurTerminal.SymbolClass);
+
+  if Rule < 0 then
+    UnwindTryOrSyntaxError(Current.SymbolClass)
+  else
+    PushChoiceProcs[Rule];
+end;
+
+{*
+  Push un symbole grammatical sur la pile prédictive
+  @param Symbol   Symbole à placer
+*}
+procedure TSepiCustomLL1Parser.PushSymbol(Symbol: TSepiSymbolClass);
+begin
+  Stack.Push(Symbol);
+end;
+
+{*
+  Push un faux symbole grammatical sur la pile prédictive
+  Un faux symbole sera emballé dans un TSepiFakeNonTerminal, et n'apparaîtra
+  donc pas réellement dans l'arbre syntaxique.
+  @param Symbol   Symbole à placer
+*}
+procedure TSepiCustomLL1Parser.PushFakeSymbol(Symbol: TSepiSymbolClass);
+begin
+  Stack.Push(scBackToParent);
+  Stack.Push(Symbol);
+  Stack.Push(scNextChildIsFake);
+end;
+
+{*
+  Push un code indiquant de remonter au parent sur la pile prédictive
+*}
+procedure TSepiCustomLL1Parser.PushBackToParent;
 begin
   Stack.Push(scBackToParent);
 end;
@@ -409,14 +539,15 @@ end;
 procedure TSepiCustomLL1Parser.PushTry(AltRule: TRuleID);
 begin
   Stack.PushTry(TTryTag.Create(Lexer.MakeBookmark, AltRule, Current));
+  Stack.Push(scPopTry);
 end;
 
 {*
-  Pop un try de la pile prédictive
+  Push un choix vide sur la pile prédictive
 *}
-procedure TSepiCustomLL1Parser.PopTry;
+procedure TSepiCustomLL1Parser.PushEmptyChoice;
 begin
-  Stack.PopTry;
+  PushBackToParent;
 end;
 
 {*
@@ -431,7 +562,7 @@ begin
   try
     Lexer.ResetToBookmark(TryTag.Bookmark, False);
     PushChoiceProcs[TryTag.AltRule];
-    Current := TryTag.Current;
+    SetCurrent(TryTag.Current);
 
     for I := Current.ChildCount-1 downto 0 do
       Current.Children[I].Free;
@@ -495,70 +626,34 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiCustomLL1Parser.InternalParse(RootNode: TSepiParseTreeRootNode);
+procedure TSepiCustomLL1Parser.InternalParse(RootNode: TSepiNonTerminal);
 var
-  Temp: TSepiNonTerminal;
   Symbol: TSepiSymbolClass;
-  Rule: TRuleID;
 begin
-  Current := nil;
+  SetCurrent(nil);
+  Lexer.Context := RootNode;
 
   while not Stack.Empty do
   begin
     Symbol := Stack.Pop;
 
-    if Symbol = scNextChildIsFake then
-    begin
-      // Make a fake non-terminal
-      Current := TSepiFakeNonTerminal.Create(Current, Symbol,
-        CurTerminal.SourcePos);
-    end else if Symbol = scBackToParent then
-    begin
-      // Current non-terminal is done: go back to parent
-      Temp := Current;
-      Current := Temp.SyntacticParent;
-      Temp.EndParsing;
-    end else if Symbol = scPopTry then
-    begin
-      // Pop a try
-      PopTry;
-    end else if IsTerminal(Symbol) then
-    begin
-      // The prediction is a terminal: recognize it
-      if CurTerminal.SymbolClass <> Symbol then
-        UnwindTryOrSyntaxError(Symbol)
+    case Symbol of
+      scNextChildIsFake:
+        BeginFakeNonTerminal;
+      scBackToParent:
+        BackToParent;
+      scPopTry:
+        PopTry;
+      scRootNode:
+        BeginRootNode(RootNode);
+    else
+      if IsTerminal(Symbol) then
+        ParseTerminal(Symbol)
+      else if IsNonTerminal(Symbol) then
+        BeginNonTerminal(Symbol)
       else
-      begin
-        TSepiTerminalClass(CurTerminal.ClassType).Clone(
-          CurTerminal, Current).Parse;
-        Lexer.NextTerminal;
-      end;
-    end else if IsNonTerminal(Symbol) then
-    begin
-      // The prediction is a non-terminal: create it and use the parsing table
-      if Current = nil then
-        Current := RootNode
-      else
-        Current := CreateNonTerminal(Current, Symbol, CurTerminal.SourcePos);
-
-      Current.BeginParsing; // This could modify Current.SymbolClass!
-
-      Rule := GetParsingTable(Current.SymbolClass, CurTerminal.SymbolClass);
-
-      if Rule < 0 then
-        UnwindTryOrSyntaxError(Current.SymbolClass)
-      else
-        PushChoiceProcs[Rule];
-    end else
-    begin
-      // Unknown code
-      Assert(False);
+        Assert(False);
     end;
-
-    { If we are now in a fake non-terminal, and it wasn't just added, go back
-      to parent. }
-    if (Current is TSepiFakeNonTerminal) and (Symbol <> scNextChildIsFake) then
-      Stack.Push(scBackToParent);
   end;
 end;
 

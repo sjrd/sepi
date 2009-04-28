@@ -29,11 +29,14 @@ interface
 {$D-,L-}
 
 uses
-  Classes, SysUtils, StrUtils, ScStrUtils, SepiCompilerErrors, SepiParseTrees,
-  SepiLexerUtils, SepiCompilerConsts;
+  Windows, Classes, SysUtils, StrUtils, ScStrUtils, SepiCompilerErrors,
+  SepiParseTrees, SepiLexerUtils, SepiCompilerConsts, SepiExpressions,
+  SepiCompiler, SepiDelphiLikeCompilerUtils;
 
 resourcestring
-  SIFInstrNotSupported = 'Instruction du pré-processeur $IF non supportée';
+  SIFInstrNotSupported =
+    'Instruction du pré-processeur $IF non supportée sans contexte';
+  SErrorInIFInstr = 'Erreur dans la condition d''un $IF ou $ELSEIF';
   SPreProcReachedEndOfFile = 'Fin de fichier atteinte par le pré-processeur';
 
 const
@@ -157,6 +160,15 @@ type
   TSepiDelphiLexer = class;
 
   {*
+    Type d'instruction du pré-processuer
+  *}
+  TPreProcInstruction = (
+    ppUnknown,
+    ppDefine, ppUndef,
+    ppIfDef, ppIfNDef, ppIf, ppElse, ppElseIf, ppEndIf, ppIfEnd
+  );
+
+  {*
     Pré-processeur
     @author sjrd
     @version 1.0
@@ -166,8 +178,9 @@ type
     FLexer: TSepiDelphiLexer; /// Analyseur propriétaire
     FDefines: TStrings;       /// Liste des defines
 
-    procedure Skip;
-  protected
+    function ReadCommand(out Param: string): TPreProcInstruction;
+    procedure Skip(StopOnElseIf: Boolean = False);
+    function EvalCondition(const Condition: string): Boolean;
   public
     constructor Create(ALexer: TSepiDelphiLexer);
     destructor Destroy; override;
@@ -176,6 +189,50 @@ type
 
     property Lexer: TSepiDelphiLexer read FLexer;
     property Defines: TStrings read FDefines;
+  end;
+
+  {*
+    Noeud condition d'une instruction du pré-processeur $IF
+    @author sjrd
+    @version 1.0
+  *}
+  TPreProcIfConditionNode = class(TSepiHiddenNonTerminal)
+  private
+    FPreProcessor: TPreProcessor; /// Pré-processeur propriétaire
+  public
+    function ResolveIdent(const Identifier: string): ISepiExpression; override;
+
+    property PreProcessor: TPreProcessor read FPreProcessor;
+  end;
+
+  {*
+    Pseudo-routine d'opération sur un type
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiDefinedDeclaredPseudoRoutine = class(TSepiCustomComputedValue,
+    ISepiIdentifierTestPseudoRoutine)
+  private
+    FPreProcessor: TPreProcessor; /// Pré-processeur du contexte
+    FIsDeclared: Boolean;         /// False pour Defined ; True pour Declared
+    FIdentifier: string;          /// Identificateur à tester
+  protected
+    procedure AttachToExpression(const Expression: ISepiExpression); override;
+
+    procedure CompileCompute(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
+      TempVars: TSepiTempVarsLifeManager); override;
+
+    function GetIdentifier: string;
+    procedure SetIdentifier(const Value: string);
+  public
+    constructor Create(APreProcessor: TPreProcessor; AIsDeclared: Boolean);
+
+    procedure Complete;
+
+    property PreProcessor: TPreProcessor read FPreProcessor;
+    property IsDeclared: Boolean read FIsDeclared;
+    property Identifier: string read FIdentifier write FIdentifier;
   end;
 
   {*
@@ -219,24 +276,20 @@ var
 
 implementation
 
+uses
+  SepiDelphiParser, SepiDelphiCompiler;
+
 const
   IdentChars = ['A'..'Z', 'a'..'z', '_', '0'..'9'];
   NumberChars = ['0'..'9'];
   HexChars = ['0'..'9', 'A'..'F', 'a'..'f'];
   StringChars = ['''', '#'];
 
-  PreProcInstrs: array[0..6] of string = (
-    'DEFINE', 'UNDEF', 'IFDEF', 'IFNDEF', 'ELSE', 'ENDIF', 'IF'
+  PreProcInstrs: array[TPreProcInstruction] of string = (
+    '',
+    'DEFINE', 'UNDEF',
+    'IFDEF', 'IFNDEF', 'IF', 'ELSE', 'ELSEIF', 'ENDIF', 'IFEND'
   );
-
-  ppDefine = 0;
-  ppUndef = 1;
-  ppIfDef = 2;
-  ppIfNDef = 3;
-  ppElse = 4;
-  ppEndIF = 5;
-  ppIf = 6; // not supported
-
 
 {---------------------}
 { TPreProcessor class }
@@ -277,24 +330,87 @@ begin
 end;
 
 {*
-  Élimine une portion de code, jusqu'au ELSE ou ENDIF correspondant
+  Lit la commande du pré-processeur
+  @param Param   En sortie : paramètre de la commande (ou '' si aucun)
+  @return Numéro de la commande, ou -1 si inconnue
 *}
-procedure TPreProcessor.Skip;
+function TPreProcessor.ReadCommand(out Param: string): TPreProcInstruction;
+var
+  Instr, Command: string;
+  CommandIdx: Integer;
+begin
+  Instr := Lexer.CurTerminal.Representation;
+  if not SplitToken(Instr, ' ', Command, Param) then
+    Param := '';
+
+  CommandIdx := AnsiIndexText(Command, PreProcInstrs);
+
+  if CommandIdx < 0 then
+    Result := ppUnknown
+  else
+    Result := TPreProcInstruction(CommandIdx);
+end;
+
+{*
+  Élimine une portion de code, jusqu'au ELSE ou ENDIF correspondant
+  @param StopOnElseIf   Si True, s'arrête sur un $ELSEIF
+*}
+procedure TPreProcessor.Skip(StopOnElseIf: Boolean = False);
 var
   Depth: Integer;
-  InstrStr: string;
+  Param: string;
 begin
   Depth := 1;
 
   while Depth > 0 do
   begin
     Lexer.NextPreProc;
-    InstrStr := GetFirstToken(Lexer.CurTerminal.Representation, ' ');
 
-    case AnsiIndexText(InstrStr, PreProcInstrs) of
-      ppIfDef, ppIfNDef: Inc(Depth);
-      ppElse, ppEndIf: Dec(Depth);
+    case ReadCommand(Param) of
+      ppIfDef, ppIfNDef, ppIf:
+        Inc(Depth);
+      ppElse, ppEndIf, ppIfEnd:
+        Dec(Depth);
+      ppElseIf:
+      begin
+        { $ELSEIF decrements Depth and immediately increments it.  Therefore,
+          it has no effect; unless Depth reaches 0 à this time and we are
+          asked to StopOnElseIf. }
+        if (Depth = 1) and StopOnElseIf then
+          Break;
+      end;
     end;
+  end;
+end;
+
+{*
+  Évalue une condition booléenne constante dans le contexte courant
+  @param Condition   Condition à tester
+  @return Valeur de vérité de la condition
+*}
+function TPreProcessor.EvalCondition(const Condition: string): Boolean;
+var
+  RootNode: TPreProcIfConditionNode;
+  ExprNode: TConstExpressionNode;
+begin
+  if Lexer.Context = nil then
+    Lexer.MakeError(SIFInstrNotSupported, ekFatalError);
+
+  RootNode := TPreProcIfConditionNode.Create(Lexer.Context,
+    ntInPreProcessorExpression, Lexer.CurrentPos);
+  try
+    RootNode.FPreProcessor := Self;
+
+    // Parse the condition expression
+    TSepiDelphiParser.Parse(RootNode,
+      TSepiDelphiLexer.Create(Lexer.Errors, Condition));
+
+    // Fetch its value into Result
+    ExprNode := RootNode.Children[0] as TConstExpressionNode;
+    if not ExprNode.CompileConst(Result, ExprNode.SystemUnit.Boolean) then
+      Lexer.MakeError(SErrorInIFInstr, ekFatalError);
+  finally
+    RootNode.Free;
   end;
 end;
 
@@ -303,15 +419,14 @@ end;
 *}
 procedure TPreProcessor.PreProc;
 var
-  Instr, Command, Param: string;
+  Command: TPreProcInstruction;
+  Param: string;
   Defined: Boolean;
 begin
-  Instr := Lexer.CurTerminal.Representation;
-  if not SplitToken(Instr, ' ', Command, Param) then
-    Param := '';
+  Command := ReadCommand(Param);
   Defined := Defines.IndexOf(Param) >= 0;
 
-  case AnsiIndexText(Command, PreProcInstrs) of
+  case Command of
     ppDefine:
       Defines.Add(Param);
     ppUndef:
@@ -323,12 +438,121 @@ begin
     ppIfNDef:
       if Defined then
         Skip;
-    ppElse:
-      Skip;
-    ppEndIf: ;
     ppIf:
-      Lexer.MakeError(SIFInstrNotSupported, ekFatalError);
+    begin
+      while (Command in [ppIf, ppElseIf]) and (not EvalCondition(Param)) do
+      begin
+        Skip(True); // StopOnElseIf = True
+        Command := ReadCommand(Param);
+      end;
+    end;
+    ppElse, ppElseIf:
+      Skip;
+    ppEndIf, ppIfEnd: ;
   end;
+end;
+
+{-------------------------------}
+{ TPreProcIfConditionNode class }
+{-------------------------------}
+
+{*
+  [@inheritDoc]
+*}
+function TPreProcIfConditionNode.ResolveIdent(
+  const Identifier: string): ISepiExpression;
+begin
+  if AnsiSameText(Identifier, 'Defined') then
+  begin
+    Result := MakeExpression;
+    ISepiExpressionPart(TSepiDefinedDeclaredPseudoRoutine.Create(
+      PreProcessor, False)).AttachToExpression(Result);
+  end else if AnsiSameText(Identifier, 'Declared') then
+  begin
+    Result := MakeExpression;
+    ISepiExpressionPart(TSepiDefinedDeclaredPseudoRoutine.Create(
+      PreProcessor, True)).AttachToExpression(Result);
+  end else
+  begin
+    Result := inherited ResolveIdent(Identifier);
+  end;
+end;
+
+{-----------------------------------------}
+{ TSepiDefinedDeclaredPseudoRoutine class }
+{-----------------------------------------}
+
+{*
+  Crée la pseudo-routine
+*}
+constructor TSepiDefinedDeclaredPseudoRoutine.Create(
+  APreProcessor: TPreProcessor; AIsDeclared: Boolean);
+begin
+  inherited Create;
+
+  FPreProcessor := APreProcessor;
+  FIsDeclared := AIsDeclared;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiDefinedDeclaredPseudoRoutine.AttachToExpression(
+  const Expression: ISepiExpression);
+var
+  AsExpressionPart: ISepiExpressionPart;
+begin
+  AsExpressionPart := Self;
+  Expression.Attach(ISepiIdentifierTestPseudoRoutine, AsExpressionPart);
+
+  if Identifier <> '' then
+    inherited;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiDefinedDeclaredPseudoRoutine.CompileCompute(
+  Compiler: TSepiMethodCompiler; Instructions: TSepiInstructionList;
+  var Destination: TSepiMemoryReference; TempVars: TSepiTempVarsLifeManager);
+begin
+  Assert(False);
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiDefinedDeclaredPseudoRoutine.GetIdentifier: string;
+begin
+  Result := Identifier;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiDefinedDeclaredPseudoRoutine.SetIdentifier(const Value: string);
+begin
+  Identifier := Value;
+end;
+
+{*
+  Complète la pseudo-routine
+*}
+procedure TSepiDefinedDeclaredPseudoRoutine.Complete;
+var
+  Value: Boolean;
+begin
+  Assert(Identifier <> '');
+
+  SetValueType(UnitCompiler.SystemUnit.Boolean);
+  AllocateConstant;
+
+  if IsDeclared then
+    Value := PreProcessor.Lexer.Context.ResolveIdent(Identifier) <> nil
+  else
+    Value := PreProcessor.Defines.IndexOf(Identifier) >= 0;
+
+  Boolean(ConstValuePtr^) := Value;
 end;
 
 {------------------------}
