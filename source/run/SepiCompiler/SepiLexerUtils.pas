@@ -102,8 +102,6 @@ type
       const AFileName: TFileName = '');
     destructor Destroy; override;
 
-    procedure AfterConstruction; override;
-
     procedure NextTerminal; virtual; abstract;
 
     function MakeBookmark: TSepiLexerBookmark;
@@ -291,16 +289,6 @@ end;
 procedure TSepiCustomLexer.IdentifyKeyword(const Key: string;
   var SymbolClass: TSepiSymbolClass);
 begin
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TSepiCustomLexer.AfterConstruction;
-begin
-  inherited;
-
-  NextTerminal;
 end;
 
 {*

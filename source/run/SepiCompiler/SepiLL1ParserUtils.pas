@@ -633,6 +633,8 @@ begin
   SetCurrent(nil);
   Lexer.Context := RootNode;
 
+  Lexer.NextTerminal;
+
   while not Stack.Empty do
   begin
     Symbol := Stack.Pop;
