@@ -32,7 +32,8 @@ uses
   SepiStrTypes, SepiArrayTypes, SepiDelphiLexer, SepiDelphiParser,
   SepiCompilerErrors, SepiParseTrees, SepiCompiler, SepiCore,
   SepiCompilerConsts, SepiExpressions, SepiDelphiCompilerConsts, SepiOpCodes,
-  SepiDelphiLikeCompilerUtils, SepiLL1ParserUtils, SepiInstructions;
+  SepiDelphiLikeCompilerUtils, SepiLL1ParserUtils, SepiInstructions,
+  SepiCompilerUtils;
 
 type
   TRootNode = class;
@@ -45,16 +46,7 @@ type
   TDelphiSourceNode = class(TSepiNonTerminal)
   private
     function GetRootNode: TRootNode;
-  protected
-    function ValueAsInt64(const Value: ISepiReadableValue): Int64;
-    procedure TryAndConvertValues(
-      var LowerValue, HigherValue: ISepiReadableValue);
   public
-    function LookFor(const Name: string): TSepiMeta; overload;
-    function LookFor(Node: TSepiParseTreeNode;
-      RequiredClass: SepiReflectionCore.TSepiMetaClass;
-      const ErrorMsg: string): TSepiMeta; overload;
-
     property RootNode: TRootNode read GetRootNode;
   end;
 
@@ -1491,52 +1483,6 @@ begin
   NonTerminalClasses[ntExpressionInstruction] := TExpressionInstructionNode;
 end;
 
-{*
-  Vérifie qu'un identificateur a bien été trouvé, et produit une erreur sinon
-  @param Expression   Expression à vérifier
-  @param Identifier   Identificateur, pour le message d'erreur
-  @param Node         Symbole de grammaire, pour la position
-  @return True si le type a été trouvé, False sinon
-*}
-function CheckIdentFound(const Expression: ISepiExpression;
-  const Identifier: string; Node: TSepiParseTreeNode): Boolean; overload;
-begin
-  Result := Expression <> nil;
-  if not Result then
-    Node.MakeError(Format(SIdentifierNotFound, [Identifier]));
-end;
-
-{*
-  Vérifie qu'un identificateur a bien été trouvé, et produit une erreur sinon
-  @param Meta         Meta à vérifier
-  @param Identifier   Identificateur, pour le message d'erreur
-  @param Node         Symbole de grammaire, pour la position
-  @return True si le type a été trouvé, False sinon
-*}
-function CheckIdentFound(Meta: TSepiMeta;
-  const Identifier: string; Node: TSepiParseTreeNode): Boolean; overload;
-begin
-  Result := Meta <> nil;
-  if not Result then
-    Node.MakeError(Format(SIdentifierNotFound, [Identifier]));
-end;
-
-{*
-  Vérifie que des types correspondent, et produit une erreur sinon
-  @param AssignedType     Type de la variable assignée
-  @param ExpressionType   Type de l'expression
-  @param Node             Symbole de grammaire, pour la position
-  @return True si les types correspondent, False sinon
-*}
-function CheckTypeMatch(AssignedType, ExpressionType: TSepiType;
-  Node: TSepiParseTreeNode): Boolean;
-begin
-  Result := AssignedType.CompatibleWith(ExpressionType);
-  if not Result then
-    Node.MakeError(
-      Format(STypeMismatch, [AssignedType.Name, ExpressionType.Name]));
-end;
-
 {-------------------------}
 { TDelphiSourceNode class }
 {-------------------------}
@@ -1544,144 +1490,6 @@ end;
 function TDelphiSourceNode.GetRootNode: TRootNode;
 begin
   Result := TSepiNonTerminal(Self).RootNode as TRootNode;
-end;
-
-{*
-  Lit une valeur comme un Int64
-  @param Value   Valeur à lire
-  @return Valeur sous forme d'Int64
-*}
-function TDelphiSourceNode.ValueAsInt64(const Value: ISepiReadableValue): Int64;
-var
-  IntegerType: TSepiIntegerType;
-begin
-  if Value.ValueType is TSepiInt64Type then
-    Result := Int64(Value.ConstValuePtr^)
-  else begin
-    IntegerType := TSepiIntegerType(Value.ValueType);
-
-    if IntegerType.Signed then
-      Result := IntegerType.ValueAsInteger(Value.ConstValuePtr^)
-    else
-      Result := IntegerType.ValueAsCardinal(Value.ConstValuePtr^);
-  end;
-end;
-
-{*
-  Essaie de convertir les valeurs pour qu'elles aient le même type
-  @param LowerValue    Valeur basse
-  @param HigherValue   Valeur haute
-*}
-procedure TDelphiSourceNode.TryAndConvertValues(
-  var LowerValue, HigherValue: ISepiReadableValue);
-var
-  LowerType, HigherType, CommonType: TSepiType;
-  IntLowerValue, IntHigherValue: Int64;
-begin
-  LowerType := LowerValue.ValueType;
-  HigherType := HigherValue.ValueType;
-
-  if (LowerType is TSepiEnumType) and (HigherType is TSepiEnumType) then
-  begin
-    // Enumeration types
-
-    CommonType := TSepiEnumType(LowerType).BaseType;
-
-    if TSepiEnumType(HigherType).BaseType = CommonType then
-    begin
-      if LowerType <> CommonType then
-        LowerValue := TSepiCastOperator.CastValue(
-          CommonType, LowerValue) as ISepiReadableValue;
-
-      if HigherType <> CommonType then
-        HigherValue := TSepiCastOperator.CastValue(
-          CommonType, HigherValue) as ISepiReadableValue;
-    end;
-  end else
-  begin
-    // Integer or char types
-
-    if ((LowerType is TSepiIntegerType) or (LowerType is TSepiInt64Type)) and
-      ((HigherType is TSepiIntegerType) or (HigherType is TSepiInt64Type)) then
-    begin
-      // Integer types
-
-      IntLowerValue := ValueAsInt64(LowerValue);
-      IntHigherValue := ValueAsInt64(HigherValue);
-
-      if (Integer(IntLowerValue) = IntLowerValue) and
-        (Integer(IntHigherValue) = IntHigherValue) then
-        CommonType := SystemUnit.Integer
-      else if (Cardinal(IntLowerValue) = IntLowerValue) and
-        (Cardinal(IntHigherValue) = IntHigherValue) then
-        CommonType := SystemUnit.Cardinal
-      else
-        CommonType := SystemUnit.Int64;
-    end else if (LowerType is TSepiCharType) and
-      (HigherType is TSepiCharType) then
-    begin
-      // Char types
-
-      if LowerType.Size >= HigherType.Size then
-        CommonType := LowerType
-      else
-        CommonType := HigherType;
-    end else
-    begin
-      // Error
-      Exit;
-    end;
-
-    if LowerType <> CommonType then
-      LowerValue := TSepiConvertOperation.ConvertValue(
-        CommonType, LowerValue);
-
-    if HigherType <> CommonType then
-      HigherValue := TSepiConvertOperation.ConvertValue(
-        CommonType, HigherValue) as ISepiReadableValue;
-  end;
-end;
-
-{*
-  Recherche un meta dans le contexte de ce noeud
-  @param Name   Nom du meta
-  @return Meta trouvé, ou nil si non trouvé
-*}
-function TDelphiSourceNode.LookFor(const Name: string): TSepiMeta;
-begin
-  Result := SepiContext.LookFor(Name);
-end;
-
-{*
-  Recherche un meta d'un type particulier
-  @param Node            Noeud dont le texte est le nom du meta à rechercher
-  @param RequiredClass   Classe de meta requise
-  @param ErrorMsg        Message d'erreur si mauvaise classe de meta
-*}
-function TDelphiSourceNode.LookFor(Node: TSepiParseTreeNode;
-  RequiredClass: SepiReflectionCore.TSepiMetaClass;
-  const ErrorMsg: string): TSepiMeta;
-var
-  Ancestor: TSepiParseTreeNode;
-  Meta: TSepiMeta;
-begin
-  Ancestor := Node;
-  while (Ancestor <> nil) and (not (Ancestor is TDelphiSourceNode)) do
-    Ancestor := Ancestor.Parent;
-
-  if Ancestor = nil then
-    Meta := nil
-  else
-    Meta := TDelphiSourceNode(Ancestor).LookFor(Node.AsText);
-
-  if CheckIdentFound(Meta, Node.AsText, Node) and
-    (not (Meta is RequiredClass)) then
-  begin
-    Node.MakeError(ErrorMsg);
-    Meta := nil;
-  end;
-
-  Result := TSepiType(Meta);
 end;
 
 {-----------------}
@@ -3534,7 +3342,7 @@ procedure TTypeCloneNode.EndParsing;
 var
   OldType: TSepiType;
 begin
-  OldType := TSepiType(LookFor(Children[0], TSepiType,
+  OldType := TSepiType(LookForOrError(Children[0], TSepiType,
     STypeIdentifierRequired));
 
   if OldType = nil then
@@ -3672,7 +3480,7 @@ begin
     if (LowerValue <> nil) and (HigherValue <> nil) then
     begin
       // Try and convert value types
-      TryAndConvertValues(LowerValue, HigherValue);
+      TryAndConvertValues(SystemUnit, LowerValue, HigherValue);
 
       // Some checks
       if LowerValue.ValueType <> HigherValue.ValueType then
@@ -3784,7 +3592,7 @@ var
   PointedType: TSepiType;
 begin
   PointedName := Children[0].AsText;
-  PointedType := RootNode.SepiUnit.LookFor(PointedName) as TSepiType;
+  PointedType := SepiUnit.LookFor(PointedName) as TSepiType;
 
   if PointedType <> nil then
     SepiType := TSepiPointerType.Create(SepiContext, TypeName, PointedType)
@@ -3820,7 +3628,7 @@ begin
   if (LowerValue <> nil) and (HigherValue <> nil) then
   begin
     // Try and convert value types
-    TryAndConvertValues(LowerValue, HigherValue);
+    TryAndConvertValues(SystemUnit, LowerValue, HigherValue);
 
     // Some checks
     if LowerValue.ValueType <> HigherValue.ValueType then
@@ -3834,8 +3642,8 @@ begin
     begin
       // OK, we're good
       Result := TSepiStaticArrayType.Create(SepiContext, TypeName,
-        TSepiOrdType(LowerValue.ValueType), ValueAsInt64(LowerValue),
-        ValueAsInt64(HigherValue), ElementType);
+        TSepiOrdType(LowerValue.ValueType), ConstValueAsInt64(LowerValue),
+        ConstValueAsInt64(HigherValue), ElementType);
     end;
   end;
 
@@ -4072,7 +3880,7 @@ begin
     FIsClass := True;
 
     // Parent class
-    ParentClass := TSepiClass(LookFor(Child.Children[0],
+    ParentClass := TSepiClass(LookForOrError(Child.Children[0],
       TSepiClass, SClassTypeRequired));
 
     // Create class
@@ -4081,7 +3889,7 @@ begin
     // Implemented interfaces
     for I := 1 to Child.ChildCount-1 do
     begin
-      ImplementedIntf := TSepiInterface(LookFor(Child.Children[I],
+      ImplementedIntf := TSepiInterface(LookForOrError(Child.Children[I],
         TSepiInterface, SInterfaceTypeRequired));
 
       if ImplementedIntf <> nil then
@@ -4092,7 +3900,7 @@ begin
     // Make meta-class
     Assert(IsMetaClass);
 
-    ReferencedClass := TSepiClass(LookFor(Child,
+    ReferencedClass := TSepiClass(LookForOrError(Child,
       TSepiClass, SClassTypeRequired));
 
     if ReferencedClass = nil then
@@ -4139,7 +3947,7 @@ var
 begin
   if SepiClass <> nil then
   begin
-    Meta := LookFor(Identifier);
+    Meta := SepiContext.LookFor(Identifier);
     if Meta <> nil then
     begin
       Result := MakeExpression;
@@ -4219,7 +4027,7 @@ begin
   begin
     if Child.ChildCount > 0 then
     begin
-      FParentIntf := TSepiInterface(LookFor(Child,
+      FParentIntf := TSepiInterface(LookForOrError(Child,
         TSepiInterface, SInterfaceTypeRequired));
     end;
   end else if Child.SymbolClass = ntInterfaceGUID then
@@ -4272,7 +4080,7 @@ var
 begin
   if SepiIntf <> nil then
   begin
-    Meta := LookFor(Identifier);
+    Meta := SepiContext.LookFor(Identifier);
     if Meta <> nil then
     begin
       Result := MakeExpression;
@@ -4498,7 +4306,7 @@ begin
 
   // Read interface node
 
-  Intf := TSepiInterface(LookFor(IntfNode, TSepiInterface,
+  Intf := TSepiInterface(LookForOrError(IntfNode, TSepiInterface,
     SInterfaceTypeRequired));
   if Intf = nil then
     Exit;
@@ -5124,7 +4932,7 @@ begin
     begin
       if Child.Children[0].SymbolClass = ntQualifiedIdent then
       begin
-        FType := TSepiType(LookFor(Child.Children[0], TSepiType,
+        FType := TSepiType(LookForOrError(Child.Children[0], TSepiType,
           STypeIdentifierRequired));
         if FType = nil then
           FType := SystemUnit.Integer;
@@ -5168,7 +4976,7 @@ begin
     // Return type required
     if ChildCount > 0 then
     begin
-      ReturnType := TSepiType(LookFor(Children[0], TSepiType,
+      ReturnType := TSepiType(LookForOrError(Children[0], TSepiType,
         STypeIdentifierRequired));
     end else
     begin
@@ -5960,7 +5768,7 @@ end;
 procedure TOnClauseNode.ParseExceptObjectClass(Node: TSepiParseTreeNode);
 begin
   // Class handled in this on clause
-  FExceptObjectClass := TSepiClass(LookFor(Node, TSepiClass,
+  FExceptObjectClass := TSepiClass(LookForOrError(Node, TSepiClass,
     SClassTypeRequired));
 
   // Recover from error

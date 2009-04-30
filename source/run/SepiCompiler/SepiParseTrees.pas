@@ -32,7 +32,8 @@ interface
 
 uses
   Windows, SysUtils, Classes, Contnrs, RTLConsts, SepiReflectionCore,
-  SepiSystemUnit, SepiCompiler, SepiCompilerErrors;
+  SepiSystemUnit, SepiCompiler, SepiCompilerUtils, SepiCompilerErrors,
+  SepiCompilerConsts;
 
 type
   TSepiNonTerminal = class;
@@ -106,6 +107,26 @@ type
     function FindRightMost: TSepiParseTreeNode;
 
     function ResolveIdent(const Identifier: string): ISepiExpression; virtual;
+
+    function ResolveIdentOrError(Node: TSepiParseTreeNode): ISepiExpression;
+
+    function LookFor(Node: TSepiParseTreeNode): TSepiMeta; overload;
+    function LookFor(Node: TSepiParseTreeNode;
+      RequiredClass: SepiReflectionCore.TSepiMetaClass): TSepiMeta; overload;
+
+    function LookForSelfText: TSepiMeta; overload;
+    function LookForSelfText(
+      RequiredClass: SepiReflectionCore.TSepiMetaClass): TSepiMeta; overload;
+
+    function LookForOrError(Node: TSepiParseTreeNode): TSepiMeta; overload;
+    function LookForOrError(Node: TSepiParseTreeNode;
+      RequiredClass: SepiReflectionCore.TSepiMetaClass;
+      const BadClassErrorMsg: string): TSepiMeta; overload;
+
+    function LookForSelfTextOrError: TSepiMeta; overload;
+    function LookForSelfTextOrError(
+      RequiredClass: SepiReflectionCore.TSepiMetaClass;
+      const BadClassErrorMsg: string): TSepiMeta; overload;
 
     procedure MakeError(const ErrorMsg: string;
       Kind: TSepiErrorKind = ekError);
@@ -249,7 +270,65 @@ type
     property IndexAsChild: Integer read FIndexAsChild;
   end;
 
+function CheckIdentFound(const Expression: ISepiExpression;
+  const Identifier: string; Node: TSepiParseTreeNode): Boolean; overload;
+function CheckIdentFound(Meta: TSepiMeta;
+  const Identifier: string; Node: TSepiParseTreeNode): Boolean; overload;
+
+function CheckTypeMatch(AssignedType, ExpressionType: TSepiType;
+  Node: TSepiParseTreeNode): Boolean;
+
 implementation
+
+{-----------------}
+{ Global routines }
+{-----------------}
+
+{*
+  Vérifie qu'un identificateur a bien été trouvé, et produit une erreur sinon
+  @param Expression   Expression à vérifier
+  @param Identifier   Identificateur, pour le message d'erreur
+  @param Node         Symbole de grammaire, pour la position
+  @return True si l'identificateur a été trouvé, False sinon
+*}
+function CheckIdentFound(const Expression: ISepiExpression;
+  const Identifier: string; Node: TSepiParseTreeNode): Boolean; overload;
+begin
+  Result := Expression <> nil;
+  if not Result then
+    Node.MakeError(Format(SIdentifierNotFound, [Identifier]));
+end;
+
+{*
+  Vérifie qu'un identificateur a bien été trouvé, et produit une erreur sinon
+  @param Meta         Meta à vérifier
+  @param Identifier   Identificateur, pour le message d'erreur
+  @param Node         Symbole de grammaire, pour la position
+  @return True si l'identificateur a été trouvé, False sinon
+*}
+function CheckIdentFound(Meta: TSepiMeta;
+  const Identifier: string; Node: TSepiParseTreeNode): Boolean; overload;
+begin
+  Result := Meta <> nil;
+  if not Result then
+    Node.MakeError(Format(SIdentifierNotFound, [Identifier]));
+end;
+
+{*
+  Vérifie que des types correspondent, et produit une erreur sinon
+  @param AssignedType     Type de la variable assignée
+  @param ExpressionType   Type de l'expression
+  @param Node             Symbole de grammaire, pour la position
+  @return True si les types correspondent, False sinon
+*}
+function CheckTypeMatch(AssignedType, ExpressionType: TSepiType;
+  Node: TSepiParseTreeNode): Boolean;
+begin
+  Result := AssignedType.CompatibleWith(ExpressionType);
+  if not Result then
+    Node.MakeError(
+      Format(STypeMismatch, [AssignedType.Name, ExpressionType.Name]));
+end;
 
 {--------------------------}
 { TSepiParseTreeNode class }
@@ -566,6 +645,125 @@ begin
     Result := Parent.ResolveIdent(Identifier)
   else
     Result := nil;
+end;
+
+{*
+  Résoud un identificateur dans le contexte de ce noeud
+  Émet un message d'erreur si l'identificateur n'a pas été trouvé.
+  @param Node   Noeud dont le texte est l'identificateur à rechercher
+  @return Expression représentant l'identificateur, ou nil si non trouvé
+*}
+function TSepiParseTreeNode.ResolveIdentOrError(
+  Node: TSepiParseTreeNode): ISepiExpression;
+begin
+  Result := ResolveIdent(Node.AsText);
+  CheckIdentFound(Result, Node.AsText, Node);
+end;
+
+{*
+  Recherche un meta dans le contexte de ce noeud
+  @param Node   Noeud dont le texte est le nom du meta à rechercher
+  @return Meta trouvé, ou nil si non trouvé
+*}
+function TSepiParseTreeNode.LookFor(Node: TSepiParseTreeNode): TSepiMeta;
+begin
+  Result := SepiContext.LookFor(Node.AsText);
+end;
+
+{*
+  Recherche un meta d'un type particulier dans le contexte de ce noeud
+  @param Node            Noeud dont le texte est le nom du meta à rechercher
+  @param RequiredClass   Classe de meta requise
+  @return Meta trouvé, ou nil si non trouvé ou pas de la bonne classe
+*}
+function TSepiParseTreeNode.LookFor(Node: TSepiParseTreeNode;
+  RequiredClass: SepiReflectionCore.TSepiMetaClass): TSepiMeta;
+begin
+  Result := LookFor(Node);
+
+  if not (Result is RequiredClass) then
+    Result := nil;
+end;
+
+{*
+  Recherche un meta dont le nom est le texte de ce noeud
+  @param Node   Noeud dont le texte est le nom du meta à rechercher
+  @return Meta trouvé, ou nil si non trouvé
+*}
+function TSepiParseTreeNode.LookForSelfText: TSepiMeta;
+begin
+  Result := LookFor(Self);
+end;
+
+{*
+  Recherche un meta d'un type particulier dont le nom est le texte de ce noeud
+  @param RequiredClass   Classe de meta requise
+  @return Meta trouvé, ou nil si non trouvé ou pas de la bonne classe
+*}
+function TSepiParseTreeNode.LookForSelfText(
+  RequiredClass: SepiReflectionCore.TSepiMetaClass): TSepiMeta;
+begin
+  Result := LookFor(Self, RequiredClass);
+end;
+
+{*
+  Recherche un meta dans le contexte de ce noeud
+  Émet un message d'erreur si le meta n'a pas été trouvé.
+  @param Node   Noeud dont le texte est le nom du meta à rechercher
+  @return Meta trouvé, ou nil si non trouvé
+*}
+function TSepiParseTreeNode.LookForOrError(Node: TSepiParseTreeNode): TSepiMeta;
+begin
+  Result := LookFor(Node);
+  CheckIdentFound(Result, Node.AsText, Node);
+end;
+
+{*
+  Recherche un meta d'un type particulier dans le contexte de ce noeud
+  Émet un message d'erreur si le meta n'a pas été trouvé, ou s'il n'est pas du
+  type requis.
+  @param Node               Noeud dont le texte est le nom du meta à rechercher
+  @param RequiredClass      Classe de meta requise
+  @param BadClassErrorMsg   Message d'erreur si mauvaise classe de meta
+  @return Meta trouvé, ou nil si non trouvé ou pas de la bonne classe
+*}
+function TSepiParseTreeNode.LookForOrError(Node: TSepiParseTreeNode;
+  RequiredClass: SepiReflectionCore.TSepiMetaClass;
+  const BadClassErrorMsg: string): TSepiMeta;
+begin
+  Result := LookForOrError(Node);
+
+  if (Result <> nil) and (not (Result is RequiredClass)) then
+  begin
+    Node.MakeError(BadClassErrorMsg);
+    Result := nil;
+  end;
+end;
+
+{*
+  Recherche un meta dont le nom est le texte de ce noeud
+  Émet un message d'erreur si le meta n'a pas été trouvé.
+  @param Node   Noeud dont le texte est le nom du meta à rechercher
+  @return Meta trouvé, ou nil si non trouvé
+*}
+function TSepiParseTreeNode.LookForSelfTextOrError: TSepiMeta;
+begin
+  Result := LookForOrError(Self);
+end;
+
+{*
+  Recherche un meta d'un type particulier dont le nom est le texte de ce noeud
+  Émet un message d'erreur si le meta n'a pas été trouvé, ou s'il n'est pas du
+  type requis.
+  @param RequiredClass      Classe de meta requise
+  @param BadClassErrorMsg   Message d'erreur si mauvaise classe de meta
+  @return Meta trouvé, ou nil si non trouvé ou pas de la bonne classe
+*}
+function TSepiParseTreeNode.LookForSelfTextOrError(
+  RequiredClass: SepiReflectionCore.TSepiMetaClass;
+  const BadClassErrorMsg: string): TSepiMeta;
+begin
+  Result := LookForOrError(Self, RequiredClass, BadClassErrorMsg);
 end;
 
 {*

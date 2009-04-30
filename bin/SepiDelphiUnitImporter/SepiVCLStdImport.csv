@@ -11,6 +11,6 @@ ExtCtrls.pas
 ClipBrd.pas
 ListActns.pas
 ToolWin.pas
-ComCtrls.pas
+OvldSource\ComCtrls.pas
 Buttons.pas
 Spin.pas
