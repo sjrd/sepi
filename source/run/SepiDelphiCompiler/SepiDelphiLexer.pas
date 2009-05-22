@@ -31,7 +31,7 @@ interface
 uses
   Windows, Classes, SysUtils, StrUtils, ScStrUtils, SepiCompilerErrors,
   SepiParseTrees, SepiLexerUtils, SepiCompilerConsts, SepiExpressions,
-  SepiCompiler, SepiDelphiLikeCompilerUtils;
+  SepiCompiler, SepiDelphiLikeCompilerUtils, SepiOrdTypes;
 
 resourcestring
   SIFInstrNotSupported =
@@ -156,16 +156,31 @@ const
 
   tkPreProcessor = -1; // pre-processor instruction
 
+const
+  /// ID message Directive du Compilateur : $MINEMUMSIZE ou $Z
+  CDM_MINENUMSIZE = 1;
+
 type
   TSepiDelphiLexer = class;
+
+  {*
+    Type de message Directive du Compilateur : $MINEMUMSIZE ou $Z
+    @author sjrd
+    @version 1.0
+  *}
+  TCDMMinEnumSize = record
+    MsgID: Word;                   /// ID du message (CDM_MINENUMSIZE)
+    MinEmumSize: TSepiMinEnumSize; /// Nouvelle taille mininum d'enum
+  end;
 
   {*
     Type d'instruction du pré-processuer
   *}
   TPreProcInstruction = (
-    ppUnknown,
+    ppUnknown, ppToggles,
     ppDefine, ppUndef,
-    ppIfDef, ppIfNDef, ppIf, ppElse, ppElseIf, ppEndIf, ppIfEnd
+    ppIfDef, ppIfNDef, ppIf, ppElse, ppElseIf, ppEndIf, ppIfEnd,
+    ppMinEnumSize
   );
 
   {*
@@ -181,6 +196,11 @@ type
     function ReadCommand(out Param: string): TPreProcInstruction;
     procedure Skip(StopOnElseIf: Boolean = False);
     function EvalCondition(const Condition: string): Boolean;
+
+    procedure MinEnumSize(const Param: string);
+
+    procedure HandleToggle(Toggle, Value: Char);
+    procedure HandleToggles(const Toggles: string);
   public
     constructor Create(ALexer: TSepiDelphiLexer);
     destructor Destroy; override;
@@ -289,9 +309,10 @@ const
   StringChars = ['''', '#'];
 
   PreProcInstrs: array[TPreProcInstruction] of string = (
-    '',
+    '', '',
     'DEFINE', 'UNDEF',
-    'IFDEF', 'IFNDEF', 'IF', 'ELSE', 'ELSEIF', 'ENDIF', 'IFEND'
+    'IFDEF', 'IFNDEF', 'IF', 'ELSE', 'ELSEIF', 'ENDIF', 'IFEND',
+    'MINENUMSIZE'
   );
 
 {---------------------}
@@ -346,12 +367,20 @@ begin
   if not SplitToken(Instr, ' ', Command, Param) then
     Param := '';
 
-  CommandIdx := AnsiIndexText(Command, PreProcInstrs);
+  if (Length(Command) >= 2) and (Command[1] in ['A'..'Z']) and
+    (Command[2] in ['+', '-', '0'..'9']) then
+  begin
+    Param := Instr;
+    Result := ppToggles;
+  end else
+  begin
+    CommandIdx := AnsiIndexText(Command, PreProcInstrs);
 
-  if CommandIdx < 0 then
-    Result := ppUnknown
-  else
-    Result := TPreProcInstruction(CommandIdx);
+    if CommandIdx < 0 then
+      Result := ppUnknown
+    else
+      Result := TPreProcInstruction(CommandIdx);
+  end;
 end;
 
 {*
@@ -418,6 +447,65 @@ begin
 end;
 
 {*
+  Applique la directive $MINENUMSIZE ou $Z
+  @param Param   Paramètre
+*}
+procedure TPreProcessor.MinEnumSize(const Param: string);
+var
+  MinEnumSizeMsg: TCDMMinEnumSize;
+begin
+  MinEnumSizeMsg.MsgID := CDM_MINENUMSIZE;
+
+  if Param = '+' then
+    MinEnumSizeMsg.MinEmumSize := mesLongWord
+  else if Param = '-' then
+    MinEnumSizeMsg.MinEmumSize := mesByte
+  else
+  begin
+    case StrToIntDef(Param, 0) of
+      1: MinEnumSizeMsg.MinEmumSize := mesByte;
+      2: MinEnumSizeMsg.MinEmumSize := mesWord;
+      4: MinEnumSizeMsg.MinEmumSize := mesLongWord;
+    end;
+  end;
+
+  Lexer.Context.Dispatch(MinEnumSizeMsg);
+end;
+
+{*
+  Applique une directive de type toggle
+  @param Toggle   Toggle à appliquer
+  @param Value    Valeur du toggle
+*}
+procedure TPreProcessor.HandleToggle(Toggle, Value: Char);
+begin
+  if Toggle = 'Z' then
+    MinEnumSize(Value);
+end;
+
+{*
+  Applique une directive avec des toggles
+  @param Param   Paramètre
+*}
+procedure TPreProcessor.HandleToggles(const Toggles: string);
+var
+  Remaining, Temp, Toggle: string;
+begin
+  Remaining := Toggles;
+  while Remaining <> '' do
+  begin
+    if SplitToken(Remaining, ',', Toggle, Temp) then
+      Remaining := Temp
+    else
+      Remaining := '';
+
+    Toggle := Trim(Toggle);
+    if Length(Toggle) = 2 then
+      HandleToggle(Toggle[1], Toggle[2]);
+  end;
+end;
+
+{*
   Applique une instruction du pré-processeur
 *}
 procedure TPreProcessor.PreProc;
@@ -430,6 +518,8 @@ begin
   Defined := Defines.IndexOf(Param) >= 0;
 
   case Command of
+    ppToggles:
+      HandleToggles(Param);
     ppDefine:
       Defines.Add(Param);
     ppUndef:
@@ -452,6 +542,8 @@ begin
     ppElse, ppElseIf:
       Skip;
     ppEndIf, ppIfEnd: ;
+    ppMinEnumSize:
+      MinEnumSize(Param);
   end;
 end;
 

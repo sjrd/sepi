@@ -234,7 +234,7 @@ type
     procedure SetSepiUnit(ASepiUnit: TSepiUnit);
   public
     constructor Create(AClass: TSepiSymbolClass; ASepiRoot: TSepiRoot;
-      AErrors: TSepiCompilerErrorList);
+      AErrors: TSepiCompilerErrorList); virtual;
 
     property UnitCompiler: TSepiUnitCompiler read FUnitCompiler;
     property SepiRoot: TSepiRoot read FSepiRoot;

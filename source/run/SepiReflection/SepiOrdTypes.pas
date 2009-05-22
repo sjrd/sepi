@@ -44,7 +44,7 @@ type
   {*
     Taille minimale d'un type énuméré
   *}
-  TSepiEnumMinemumSize = (msByte, msWord, msLongWord);
+  TSepiMinEnumSize = (mesByte, mesWord, mesLongWord);
 
   {*
     Type ordinal
@@ -240,7 +240,7 @@ type
     constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
     constructor Create(AOwner: TSepiMeta; const AName: string;
       const AValues: array of string;
-      AMinemumSize: TSepiEnumMinemumSize = msByte); overload;
+      AMinEnumSize: TSepiMinEnumSize = mesByte); overload;
     constructor Create(AOwner: TSepiMeta; const AName: string;
       ABaseType: TSepiEnumType; AMinValue, AMaxValue: Integer); overload;
     constructor Clone(AOwner: TSepiMeta; const AName: string;
@@ -1040,7 +1040,7 @@ end;
   @param AMinimumSize   Taille minimale (pour compatibilité avec C/C++)
 *}
 constructor TSepiEnumType.Create(AOwner: TSepiMeta; const AName: string;
-  const AValues: array of string; AMinemumSize: TSepiEnumMinemumSize = msByte);
+  const AValues: array of string; AMinEnumSize: TSepiMinEnumSize = mesByte);
 var
   I, Len: Integer;
   Current: PChar;
@@ -1065,11 +1065,11 @@ begin
   // Initialisation des informations scalaires des données de type
   with TypeData^ do
   begin
-    case AMinemumSize of
-      msWord: OrdType := otUWord;
-      msLongWord: OrdType := otULong;
+    case AMinEnumSize of
+      mesWord: OrdType := otUWord;
+      mesLongWord: OrdType := otULong;
     else
-      if ValueCount >= 256 then
+      if ValueCount > 256 then
         OrdType := otUWord
       else
         OrdType := otUByte;

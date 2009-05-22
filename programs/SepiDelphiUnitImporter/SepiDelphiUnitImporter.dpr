@@ -472,8 +472,6 @@ begin
 end;
 
 begin
-  DecimalSeparator := '.';
-
   Main;
 end.
 

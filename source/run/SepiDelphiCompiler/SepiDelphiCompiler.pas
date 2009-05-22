@@ -47,6 +47,10 @@ type
   private
     function GetRootNode: TRootNode;
   public
+    function StrToFloat(const S: string): Extended;
+    function StrToFloatDef(const S: string; const Default: Extended): Extended;
+    function TryStrToFloat(const S: string; out Value: Extended): Boolean;
+
     property RootNode: TRootNode read GetRootNode;
   end;
 
@@ -57,15 +61,28 @@ type
   *}
   TRootNode = class(TSepiParseTreeRootNode)
   private
-    FMinemumSize: TSepiEnumMinemumSize; /// Taille minimale d'énumération
+    FFormatSettings: TFormatSettings; /// FormatSettings pour StrToFloat
+
+    FMinEnumSize: TSepiMinEnumSize; /// Taille minimale d'énumération
+
+    procedure CDMMinEnumSize(var Msg: TCDMMinEnumSize); message CDM_MINENUMSIZE;
   protected
     procedure ChildEndParsing(Child: TSepiParseTreeNode); override;
   public
+    constructor Create(AClass: TSepiSymbolClass; ASepiRoot: TSepiRoot;
+      AErrors: TSepiCompilerErrorList); override;
+
     procedure EndParsing; override;
 
     function ResolveIdent(const Identifier: string): ISepiExpression; override;
 
-    property MinemumSize: TSepiEnumMinemumSize read FMinemumSize;
+    function StrToFloat(const S: string): Extended;
+    function StrToFloatDef(const S: string; const Default: Extended): Extended;
+    function TryStrToFloat(const S: string; out Value: Extended): Boolean;
+
+    property FormatSettings: TFormatSettings read FFormatSettings;
+
+    property MinEnumSize: TSepiMinEnumSize read FMinEnumSize;
   end;
 
   {*
@@ -1330,7 +1347,6 @@ function CompileDelphiSource(SepiRoot: TSepiRoot;
   Errors: TSepiCompilerErrorList; SourceFile: TStrings;
   const DestFileName: TFileName): TSepiUnit;
 begin
-  DecimalSeparator := '.';
   Result := SepiCompilerUtils.CompileSepiSource(SepiRoot, Errors, SourceFile,
     DestFileName, TRootNode, ntSource, TSepiDelphiLexer, TSepiDelphiParser);
 end;
@@ -1440,14 +1456,79 @@ end;
 { TDelphiSourceNode class }
 {-------------------------}
 
+{*
+  Noeud racine
+  @return Noeud racine
+*}
 function TDelphiSourceNode.GetRootNode: TRootNode;
 begin
   Result := TSepiNonTerminal(Self).RootNode as TRootNode;
 end;
 
+{*
+  Convertit une chaîne de caractères en flottant
+  @param S   Chaîne à convertir
+  @return Valeur convertie en flottant
+  @raise EConvertError S n'est pas un flottant correct
+*}
+function TDelphiSourceNode.StrToFloat(const S: string): Extended;
+begin
+  Result := RootNode.StrToFloat(S);
+end;
+
+{*
+  Convertit une chaîne de caractères en flottant
+  @param S         Chaîne à convertir
+  @param Default   Valeur par défaut, si S n'est pas un flottant correct
+  @return Valeur convertie en flottant
+*}
+function TDelphiSourceNode.StrToFloatDef(const S: string;
+  const Default: Extended): Extended;
+begin
+  Result := RootNode.StrToFloatDef(S, Default);
+end;
+
+{*
+  Convertit une chaîne de caractères en flottant
+  @param S       Chaîne à convertir
+  @param Value   En sortie : Valeur convertie en flottant
+  @return True en cas de succès, False sinon
+*}
+function TDelphiSourceNode.TryStrToFloat(const S: string;
+  out Value: Extended): Boolean;
+begin
+  Result := RootNode.TryStrToFloat(S, Value);
+end;
+
 {-----------------}
 { TRootNode class }
 {-----------------}
+
+{*
+  [@inheritDoc]
+*}
+constructor TRootNode.Create(AClass: TSepiSymbolClass;
+  ASepiRoot: TSepiRoot; AErrors: TSepiCompilerErrorList);
+const
+  LCID_EN_US = 1033;
+begin
+  inherited;
+
+  GetLocaleFormatSettings(LCID_EN_US, FFormatSettings);
+  FFormatSettings.ThousandSeparator := #0;
+  FFormatSettings.DecimalSeparator := '.';
+
+  FMinEnumSize := mesByte;
+end;
+
+{*
+  Gestionnaire de message CDM_MINENUMSIZE
+  @param Msg   Message
+*}
+procedure TRootNode.CDMMinEnumSize(var Msg: TCDMMinEnumSize);
+begin
+  FMinEnumSize := Msg.MinEmumSize;
+end;
 
 {*
   [@inheritDoc]
@@ -1468,6 +1549,41 @@ begin
   SepiUnit.Complete;
 
   inherited;
+end;
+
+{*
+  Convertit une chaîne de caractères en flottant
+  @param S   Chaîne à convertir
+  @return Valeur convertie en flottant
+  @raise EConvertError S n'est pas un flottant correct
+*}
+function TRootNode.StrToFloat(const S: string): Extended;
+begin
+  Result := SysUtils.StrToFloat(S, FFormatSettings);
+end;
+
+{*
+  Convertit une chaîne de caractères en flottant
+  @param S         Chaîne à convertir
+  @param Default   Valeur par défaut, si S n'est pas un flottant correct
+  @return Valeur convertie en flottant
+*}
+function TRootNode.StrToFloatDef(const S: string;
+  const Default: Extended): Extended;
+begin
+  Result := SysUtils.StrToFloatDef(S, Default, FFormatSettings);
+end;
+
+{*
+  Convertit une chaîne de caractères en flottant
+  @param S       Chaîne à convertir
+  @param Value   En sortie : Valeur convertie en flottant
+  @return True en cas de succès, False sinon
+*}
+function TRootNode.TryStrToFloat(const S: string;
+  out Value: Extended): Boolean;
+begin
+  Result := SysUtils.TryStrToFloat(S, Value, FFormatSettings);
 end;
 
 {*
@@ -3473,7 +3589,7 @@ begin
     Values[I] := Children[I].AsText;
 
   SepiType := TSepiEnumType.Create(SepiContext, TypeName, Values,
-    RootNode.MinemumSize);
+    RootNode.MinEnumSize);
 
   inherited;
 end;
