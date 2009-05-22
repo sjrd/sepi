@@ -262,7 +262,10 @@ type
     property PreProcessor: TPreProcessor read FPreProcessor;
   public
     constructor Create(AErrors: TSepiCompilerErrorList; const ACode: string;
-      const AFileName: TFileName = ''; AInterfaceOnly: Boolean = False);
+      const AFileName: TFileName = ''); override;
+    constructor CreateSpecial(AErrors: TSepiCompilerErrorList;
+      const ACode: string; const AFileName: TFileName;
+      AInterfaceOnly: Boolean); virtual;
     destructor Destroy; override;
 
     procedure NextTerminal; override;
@@ -561,14 +564,26 @@ end;
 
 {*
   Crée un nouvel analyseur lexical
+  @param AErrors     Erreurs de compilation
+  @param ACode       Code source à analyser
+  @param AFileName   Nom du fichier source
+*}
+constructor TSepiDelphiLexer.Create(AErrors: TSepiCompilerErrorList;
+  const ACode: string; const AFileName: TFileName = '');
+begin
+  CreateSpecial(AErrors, ACode, AFileName, False);
+end;
+
+{*
+  Crée un nouvel analyseur lexical spécial
   @param AErrors          Erreurs de compilation
   @param ACode            Code source à analyser
   @param AFileName        Nom du fichier source
   @param AInterfaceOnly   Si True, considère 'implementation' come un Eof
 *}
-constructor TSepiDelphiLexer.Create(AErrors: TSepiCompilerErrorList;
-  const ACode: string; const AFileName: TFileName = '';
-  AInterfaceOnly: Boolean = False);
+constructor TSepiDelphiLexer.CreateSpecial(AErrors: TSepiCompilerErrorList;
+  const ACode: string; const AFileName: TFileName;
+  AInterfaceOnly: Boolean);
 begin
   inherited Create(AErrors, ACode, AFileName);
 

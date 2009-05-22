@@ -260,7 +260,7 @@ begin
     // Actually compile the source code
     RootNode := TRootNode.Create(ntSource, SepiRoot, Errors);
     try
-      TSepiDelphiParser.Parse(RootNode, TSepiDelphiLexer.Create(Errors,
+      TSepiDelphiParser.Parse(RootNode, TSepiDelphiLexer.CreateSpecial(Errors,
         SourceFile.Text, Errors.CurrentFileName, True));
     except
       on Error: ESepiCompilerFatalError do

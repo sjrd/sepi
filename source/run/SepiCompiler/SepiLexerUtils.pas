@@ -99,7 +99,7 @@ type
       var SymbolClass: TSepiSymbolClass); virtual;
   public
     constructor Create(AErrors: TSepiCompilerErrorList; const ACode: string;
-      const AFileName: TFileName = '');
+      const AFileName: TFileName = ''); virtual;
     destructor Destroy; override;
 
     procedure NextTerminal; virtual; abstract;
@@ -119,6 +119,9 @@ type
     property Context: TSepiNonTerminal read FContext write FContext;
   end;
 
+  /// Classe de TSepiCustomLexerClass
+  TSepiCustomLexerClass = class of TSepiCustomLexer;
+
   {*
     Classe de base pour les analyseurs lexicaux Sepi écrits à la main
     @author sjrd
@@ -136,7 +139,7 @@ type
     function ActionBlank: Boolean;
   public
     constructor Create(AErrors: TSepiCompilerErrorList; const ACode: string;
-      const AFileName: TFileName = '');
+      const AFileName: TFileName = ''); override;
 
     procedure NextTerminal; override;
   end;

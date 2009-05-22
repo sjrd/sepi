@@ -76,6 +76,9 @@ type
     property CurTerminal: TSepiTerminal read GetCurTerminal;
   end;
 
+  /// Classe de TSepiCustomParser
+  TSepiCustomParserClass = class of TSepiCustomParser;
+
 implementation
 
 {-------------------------}

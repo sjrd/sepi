@@ -32,8 +32,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, Contnrs, RTLConsts, SepiReflectionCore,
-  SepiSystemUnit, SepiCompiler, SepiCompilerUtils, SepiCompilerErrors,
-  SepiCompilerConsts;
+  SepiSystemUnit, SepiCompiler, SepiCompilerErrors, SepiCompilerConsts;
 
 type
   TSepiNonTerminal = class;
@@ -243,6 +242,9 @@ type
 
     property Errors: TSepiCompilerErrorList read FErrors;
   end;
+
+  /// Classe de TSepiParseTreeRootNode
+  TSepiParseTreeRootNodeClass = class of TSepiParseTreeRootNode;
 
   {*
     Non-terminal caché, que le parent ne connaît pas
