@@ -2,6 +2,8 @@ unit Sepi{#LanguageName#}Parser;
 
 interface
 
+{$D-,L-}
+
 uses
   SysUtils, Contnrs, SepiCompilerErrors, SepiParseTrees, SepiParserUtils,
   SepiLL1ParserUtils, Sepi{#LanguageName#}Lexer;
