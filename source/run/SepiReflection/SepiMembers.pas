@@ -602,6 +602,7 @@ type
 
     procedure Complete;
 
+    function Equals(Other: TSepiType): Boolean; override;
     function CompatibleWith(AType: TSepiType): Boolean; override;
 
     property IsPacked: Boolean read FPacked;
@@ -666,6 +667,8 @@ type
       AIsDefault: Boolean): TSepiProperty; overload;
 
     procedure Complete;
+
+    function Equals(Other: TSepiType): Boolean; override;
 
     function IntfInheritsFrom(AParent: TSepiInterface): Boolean;
 
@@ -838,7 +841,9 @@ type
 
     procedure Complete;
 
+    function Equals(Other: TSepiType): Boolean; override;
     function CompatibleWith(AType: TSepiType): Boolean; override;
+
     function ClassInheritsFrom(AParent: TSepiClass): Boolean;
     function ClassImplementsInterface(AInterface: TSepiInterface): Boolean;
 
@@ -881,6 +886,7 @@ type
     constructor Clone(AOwner: TSepiMeta; const AName: string;
       Source: TSepiType); override;
 
+    function Equals(Other: TSepiType): Boolean; override;
     function CompatibleWith(AType: TSepiType): Boolean; override;
 
     property SepiClass: TSepiClass read FClass;
@@ -910,6 +916,7 @@ type
       Source: TSepiType); override;
     destructor Destroy; override;
 
+    function Equals(Other: TSepiType): Boolean; override;
     function CompatibleWith(AType: TSepiType): Boolean; override;
 
     property Signature: TSepiSignature read FSignature;
@@ -3191,6 +3198,14 @@ end;
 {*
   [@inheritDoc]
 *}
+function TSepiRecordType.Equals(Other: TSepiType): Boolean;
+begin
+  Result := Self = Other;
+end;
+
+{*
+  [@inheritDoc]
+*}
 function TSepiRecordType.CompatibleWith(AType: TSepiType): Boolean;
 begin
   Result := Self = AType;
@@ -3387,6 +3402,14 @@ begin
     FNeedInit := True;
     FResultBehavior := rbParameter;
   end;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiInterface.Equals(Other: TSepiType): Boolean;
+begin
+  Result := Self = Other;
 end;
 
 {*
@@ -4677,6 +4700,14 @@ end;
 {*
   [@inheritDoc]
 *}
+function TSepiClass.Equals(Other: TSepiType): Boolean;
+begin
+  Result := Self = Other;
+end;
+
+{*
+  [@inheritDoc]
+*}
 function TSepiClass.CompatibleWith(AType: TSepiType): Boolean;
 begin
   Result := (AType is TSepiClass) and
@@ -4837,6 +4868,15 @@ end;
 {*
   [@inheritDoc]
 *}
+function TSepiMetaClass.Equals(Other: TSepiType): Boolean;
+begin
+  Result := (ClassType = Other.ClassType) and
+    SepiClass.Equals(TSepiMetaClass(Other).SepiClass);
+end;
+
+{*
+  [@inheritDoc]
+*}
 function TSepiMetaClass.CompatibleWith(AType: TSepiType): Boolean;
 begin
   Result := (AType is TSepiMetaClass) and
@@ -4982,6 +5022,15 @@ procedure TSepiMethodRefType.Save(Stream: TStream);
 begin
   inherited;
   Signature.Save(Stream);
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiMethodRefType.Equals(Other: TSepiType): Boolean;
+begin
+  Result := (ClassType = Other.ClassType) and
+    Signature.Equals(TSepiMethodRefType(Other).Signature, scoCompatibility);
 end;
 
 {*

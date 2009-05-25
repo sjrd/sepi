@@ -53,6 +53,8 @@ type
     constructor Create(AOwner: TSepiMeta; const AName: string;
       AKind: TTypeKind; AElementType: TSepiType);
 
+    function Equals(Other: TSepiType): Boolean; override;
+
     property IndexType: TSepiOrdType read GetIndexType;
     property ElementType: TSepiType read FElementType;
   end;
@@ -110,6 +112,7 @@ type
     constructor Clone(AOwner: TSepiMeta; const AName: string;
       Source: TSepiType); override;
 
+    function Equals(Other: TSepiType): Boolean; override;
     function CompatibleWith(AType: TSepiType): Boolean; override;
 
     property LowerBound: Integer read FLowerBound;
@@ -211,6 +214,15 @@ begin
   inherited;
 
   OwningUnit.WriteRef(Stream, FElementType);
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiArrayType.Equals(Other: TSepiType): Boolean;
+begin
+  Result := (ClassType = Other.ClassType) and
+    (ElementType = TSepiArrayType(Other).ElementType);
 end;
 
 {-----------------------------}
@@ -471,6 +483,17 @@ end;
 function TSepiStaticArrayType.GetIndexType: TSepiOrdType;
 begin
   Result := FIndexType;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiStaticArrayType.Equals(Other: TSepiType): Boolean;
+begin
+  Result := (inherited Equals(Other)) and
+    IndexType.Equals(TSepiStaticArrayType(Other).IndexType) and
+    (LowerBound = TSepiStaticArrayType(Other).LowerBound) and
+    (HigherBound = TSepiStaticArrayType(Other).HigherBound);
 end;
 
 {*

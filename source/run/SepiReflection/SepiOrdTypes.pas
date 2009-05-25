@@ -58,6 +58,8 @@ type
   protected
     procedure ExtractTypeData; override;
   public
+    function Equals(Other: TSepiType): Boolean; override;
+
     function ValueAsInteger(const Value): Integer;
     function ValueAsCardinal(const Value): Cardinal;
 
@@ -182,6 +184,8 @@ type
     constructor Clone(AOwner: TSepiMeta; const AName: string;
       Source: TSepiType); override;
 
+    function Equals(Other: TSepiType): Boolean; override;
+
     function ValueAsExtended(const Value): Extended;
     procedure SetValueAsExtended(var Dest; Source: Extended);
 
@@ -246,6 +250,7 @@ type
     constructor Clone(AOwner: TSepiMeta; const AName: string;
       Source: TSepiType); override;
 
+    function Equals(Other: TSepiType): Boolean; override;
     function CompatibleWith(AType: TSepiType): Boolean; override;
 
     property BaseType: TSepiEnumType read FBaseType;
@@ -280,6 +285,7 @@ type
     constructor Clone(AOwner: TSepiMeta; const AName: string;
       Source: TSepiType); override;
 
+    function Equals(Other: TSepiType): Boolean; override;
     function CompatibleWith(AType: TSepiType): Boolean; override;
 
     property CompType: TSepiOrdType read FCompType;
@@ -327,6 +333,8 @@ type
 
     class function NewInstance: TObject; override;
 
+    function Equals(Other: TSepiType): Boolean; override;
+
     property PointTo: TSepiType read FPointTo;
   end;
 
@@ -366,6 +374,15 @@ begin
 
   FMinValue := TypeData.MinValue;
   FMaxValue := TypeData.MaxValue;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiOrdType.Equals(Other: TSepiType): Boolean;
+begin
+  Result := (ClassType = Other.ClassType) and
+    (TypeData.OrdType = Other.TypeData.OrdType);
 end;
 
 {*
@@ -850,6 +867,15 @@ begin
 end;
 
 {*
+  [@inheritDoc]
+*}
+function TSepiFloatType.Equals(Other: TSepiType): Boolean;
+begin
+  Result := (ClassType = Other.ClassType) and
+    (FloatType = TSepiFloatType(Other).FloatType);
+end;
+
+{*
   Lit une valeur de ce type comme valeur Extended
   @param Value   Valeur à lire
   @return Valeur comme Extended
@@ -1240,10 +1266,18 @@ end;
 {*
   [@inheritDoc]
 *}
+function TSepiEnumType.Equals(Other: TSepiType): Boolean;
+begin
+  Result := (ClassType = Other.ClassType) and
+    (BaseType = TSepiEnumType(Other).BaseType);
+end;
+
+{*
+  [@inheritDoc]
+*}
 function TSepiEnumType.CompatibleWith(AType: TSepiType): Boolean;
 begin
-  Result := (AType is TSepiEnumType) and
-    (BaseType = TSepiEnumType(AType).BaseType);
+  Result := Equals(AType);
 end;
 
 {---------------------}
@@ -1382,6 +1416,26 @@ begin
     Result := Size
   else
     Result := 1;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiSetType.Equals(Other: TSepiType): Boolean;
+var
+  OtherCompType: TSepiOrdType;
+begin
+  if ClassType = Other.ClassType then
+  begin
+    OtherCompType := TSepiSetType(Other).CompType;
+
+    Result := CompType.Equals(OtherCompType) and
+      (CompType.MinValue = OtherCompType.MinValue) and
+      (CompType.MaxValue = OtherCompType.MaxValue);
+  end else
+  begin
+    Result := False;
+  end;
 end;
 
 {*
@@ -1561,6 +1615,16 @@ begin
     FNeedInit := False;
     FResultBehavior := rbOrdinal;
   end;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiPointerType.Equals(Other: TSepiType): Boolean;
+begin
+  Result := (ClassType = Other.ClassType) and
+    ((PointTo = TSepiPointerType(Other).PointTo) or
+    (PointTo = nil) or (TSepiPointerType(Other).PointTo = nil));
 end;
 
 initialization

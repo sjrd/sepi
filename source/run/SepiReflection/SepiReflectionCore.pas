@@ -343,6 +343,7 @@ type
     procedure DisposeValue(Value: Pointer);
     procedure CopyData(const Source; var Dest);
 
+    function Equals(Other: TSepiType): Boolean; virtual;
     function CompatibleWith(AType: TSepiType): Boolean; virtual;
 
     property Kind: TTypeKind read FKind;
@@ -1935,6 +1936,19 @@ end;
 procedure TSepiType.CopyData(const Source; var Dest);
 begin
   ScTypInfo.CopyData(Source, Dest, Size, TypeInfo);
+end;
+
+{*
+  Teste si un type est égal à un autre
+  Deux types sont égaux si et seulement si leurs variables ont la même structure
+  interne. Dans ce cas, une copie via CopyData est valide.
+  La relation établie avec Equals est une relation d'équivalence.
+  @param Other   Autre type à comparer
+  @return True si les types sont égaux, False sinon
+*}
+function TSepiType.Equals(Other: TSepiType): Boolean;
+begin
+  Result := ClassType = Other.ClassType;
 end;
 
 {*

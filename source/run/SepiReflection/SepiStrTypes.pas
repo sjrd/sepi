@@ -53,6 +53,8 @@ type
     constructor Clone(AOwner: TSepiMeta; const AName: string;
       Source: TSepiType); override;
 
+    function Equals(Other: TSepiType): Boolean; override;
+
     property MaxLength: Integer read FMaxLength;
   end;
 
@@ -76,6 +78,8 @@ type
       AIsUnicode: Boolean = False);
     constructor Clone(AOwner: TSepiMeta; const AName: string;
       Source: TSepiType); override;
+
+    function Equals(Other: TSepiType): Boolean; override;
 
     property IsUnicode: Boolean read FIsUnicode;
   end;
@@ -174,6 +178,15 @@ begin
   Result := 1;
 end;
 
+{*
+  [@inheritDoc]
+*}
+function TSepiShortStringType.Equals(Other: TSepiType): Boolean;
+begin
+  Result := (ClassType = Other.ClassType) and
+    (MaxLength = TSepiShortStringType(Other).MaxLength);
+end;
+
 {------------------------}
 { Classe TSepiStringType }
 {------------------------}
@@ -256,6 +269,15 @@ begin
   FNeedInit := True;
   FResultBehavior := rbParameter;
   FIsUnicode := Kind = tkWString;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiStringType.Equals(Other: TSepiType): Boolean;
+begin
+  Result := (ClassType = Other.ClassType) and
+    (IsUnicode = TSepiStringType(Other).IsUnicode);
 end;
 
 initialization
