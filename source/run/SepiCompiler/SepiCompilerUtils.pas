@@ -151,8 +151,7 @@ begin
   RootNode := nil;
   try
     // Actually compile the source file
-    RootNode := TSepiParseTreeRootNode.Create(
-      RootSymbolClass, SepiRoot, Errors);
+    RootNode := RootNodeClass.Create(RootSymbolClass, SepiRoot, Errors);
     try
       ParserClass.Parse(RootNode, LexerClass.Create(Errors,
         SourceFile.Text, Errors.CurrentFileName));

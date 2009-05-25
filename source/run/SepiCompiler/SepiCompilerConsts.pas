@@ -64,7 +64,12 @@ resourcestring
   STypeHasNoTypeInfo = 'Ce type n''a pas d''informations de type';
   STestValueIsAlways = 'La condition est toujours évaluée à %s';
   SConstExpressionRequired = 'Expression constante attendue';
+  SMethodRequired = 'Identificateur de méthode requis';
+  SInheritNeedClassOrObjectMethod =
+    'Appel de type inherited invalide hors d''une méthode d''objet ou de '+
+    'classe';
   SCallableRequired = 'Expression invocable requise';
+  SMetaRequired = 'Nom d''objet requis';
 
   // Sorte particulière de type requise
   STypeIdentifierRequired = 'Identificateur de type requis';

@@ -239,15 +239,6 @@ type
   end;
 
   {*
-    Expression nil
-    @author sjrd
-    @version 1.0
-  *}
-  ISepiNilValue = interface(ISepiValue)
-    ['{2574C3DC-87FE-426C-931D-5230267A1573}']
-  end;
-
-  {*
     Expression qui représente un meta
     @author sjrd
     @version 1.0
@@ -480,6 +471,25 @@ type
 
     property Constant: TSepiConstant read FConstant;
     property ConstValuePtr;
+  end;
+
+  {*
+    Valeur erronée
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiErroneousValue = class(TSepiCustomDirectValue, ISepiTypeForceableValue)
+  protected
+    function CompileAsMemoryRef(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList;
+      TempVars: TSepiTempVarsLifeManager): TSepiMemoryReference; override;
+
+    function CanForceType(AValueType: TSepiType;
+      Explicit: Boolean = False): Boolean;
+    procedure ForceType(AValueType: TSepiType);
+  public
+    constructor Create(ASepiRoot: TSepiRoot); overload;
+    constructor Create(AValueType: TSepiType); overload;
   end;
 
   {*
@@ -1246,13 +1256,29 @@ type
     @author sjrd
     @version 1.0
   *}
-  TSepiNilValue = class(TSepiCustomExpressionPart, ISepiValue, ISepiNilValue)
+  TSepiNilValue = class(TSepiCustomExpressionPart, ISepiValue,
+    ISepiReadableValue, ISepiTypeForceableValue)
+  private
+    FValueType: TSepiType; /// Type de valeur
   protected
     procedure AttachToExpression(const Expression: ISepiExpression); override;
 
-    procedure Finalize;
+    procedure Finalize; virtual;
 
     function GetValueType: TSepiType;
+
+    function GetIsConstant: Boolean;
+    function GetConstValuePtr: Pointer;
+
+    procedure CompileRead(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
+      TempVars: TSepiTempVarsLifeManager);
+
+    function CanForceType(AValueType: TSepiType;
+      Explicit: Boolean = False): Boolean;
+    procedure ForceType(AValueType: TSepiType);
+  public
+    constructor Create(SepiRoot: TSepiRoot);
   end;
 
   {*
@@ -2234,6 +2260,62 @@ begin
 end;
 
 {---------------------------}
+{ TSepiErroneousValue class }
+{---------------------------}
+
+{*
+  Crée une valeur erronée d'un type inconnu
+  @param ASepiRoot   RacineSepi
+*}
+constructor TSepiErroneousValue.Create(ASepiRoot: TSepiRoot);
+begin
+  Create((ASepiRoot.SystemUnit as TSepiSystemUnit).Integer);
+end;
+
+{*
+  Crée une valeur erronée d'un type donné
+  @param AValueType   Type de la valeur erronée
+*}
+constructor TSepiErroneousValue.Create(AValueType: TSepiType);
+begin
+  inherited Create;
+
+  SetValueType(AValueType);
+  ConstValuePtr := @ZeroMemory;
+
+  IsReadable := True;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiErroneousValue.CompileAsMemoryRef(Compiler: TSepiMethodCompiler;
+  Instructions: TSepiInstructionList;
+  TempVars: TSepiTempVarsLifeManager): TSepiMemoryReference;
+begin
+  Result := TSepiMemoryReference.Create(Compiler, [aoAcceptZero]);
+  Result.SetSpace(msZero);
+  Result.Seal;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiErroneousValue.CanForceType(AValueType: TSepiType;
+  Explicit: Boolean): Boolean;
+begin
+  Result := True;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiErroneousValue.ForceType(AValueType: TSepiType);
+begin
+  SetValueType(AValueType);
+end;
+
+{---------------------------}
 { TSepiMetaClassValue class }
 {---------------------------}
 
@@ -2497,13 +2579,6 @@ var
   ConstOp: ISepiReadableValue;
   OpType: TSepiType;
 begin
-  // Handle nil constant
-  if Supports(Operand, ISepiNilValue) then
-  begin
-    ConstValuePtr := @ZeroMemory;
-    Exit;
-  end;
-
   // If operand is not a constant value, exit
   if Operand.QueryInterface(ISepiReadableValue, ConstOp) <> 0 then
     Exit;
@@ -2614,22 +2689,18 @@ begin
   if ValueType = nil then
     Exit;
 
-  // Update access flags and check types
-  if Supports(Operand, ISepiNilValue) then
-    IsReadable := True
-  else
-  begin
-    IsReadable := Supports(Operand, ISepiReadableValue);
-    IsWritable := Supports(Operand, ISepiWritableValue);
-    IsAddressable := Supports(Operand, ISepiAddressableValue);
+  // Update access flags
+  IsReadable := Supports(Operand, ISepiReadableValue);
+  IsWritable := Supports(Operand, ISepiWritableValue);
+  IsAddressable := Supports(Operand, ISepiAddressableValue);
 
-    if (OpType <> nil) and (OpType.Size <> ValueType.Size) then
+  // Check types
+  if (OpType <> nil) and (OpType.Size <> ValueType.Size) then
+  begin
+    if (OpType.Size < ValueType.Size) or (not ForceCast) then
     begin
-      if (OpType.Size < ValueType.Size) or (not ForceCast) then
-      begin
-        MakeError(Format(SInvalidCast, [OpType.Name, ValueType.Name]));
-        Exit;
-      end;
+      MakeError(Format(SInvalidCast, [OpType.Name, ValueType.Name]));
+      Exit;
     end;
   end;
 
@@ -3687,7 +3758,7 @@ begin
   end;
 
   if Operation in opComparisonOps then
-    SetValueType(SepiRoot.FindType(TypeInfo(Boolean)))
+    SetValueType((SepiRoot.SystemUnit as TSepiSystemUnit).Boolean)
   else
     SetValueType(LeftType);
 end;
@@ -6358,6 +6429,13 @@ end;
 { TSepiNilValue class }
 {---------------------}
 
+constructor TSepiNilValue.Create(SepiRoot: TSepiRoot);
+begin
+  inherited Create;
+
+  FValueType := (SepiRoot.SystemUnit as TSepiSystemUnit).Pointer;
+end;
+
 {*
   [@inheritDoc]
 *}
@@ -6367,7 +6445,7 @@ var
 begin
   AsExpressionPart := Self;
   Expression.Attach(ISepiValue, AsExpressionPart);
-  Expression.Attach(ISepiNilValue, AsExpressionPart);
+  Expression.Attach(ISepiReadableValue, AsExpressionPart);
 end;
 
 {*
@@ -6382,7 +6460,58 @@ end;
 *}
 function TSepiNilValue.GetValueType: TSepiType;
 begin
-  Result := nil;
+  Result := FValueType;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiNilValue.GetIsConstant: Boolean;
+begin
+  Result := True;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiNilValue.GetConstValuePtr: Pointer;
+begin
+  Result := @ZeroMemory;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiNilValue.CompileRead(Compiler: TSepiMethodCompiler;
+  Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
+  TempVars: TSepiTempVarsLifeManager);
+begin
+  Destination := TSepiMemoryReference.Create(MethodCompiler, [aoAcceptZero]);
+  Destination.SetSpace(msZero);
+  Destination.Seal;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiNilValue.CanForceType(AValueType: TSepiType;
+  Explicit: Boolean = False): Boolean;
+begin
+  Result := (AValueType is TSepiPointerType) or (AValueType is TSepiClass) or
+    (AValueType is TSepiMetaClass) or (AValueType is TSepiInterface) or
+    (AValueType is TSepiStringType) or (AValueType is TSepiDynArrayType) or
+    (AValueType is TSepiMethodRefType);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiNilValue.ForceType(AValueType: TSepiType);
+begin
+  if CanForceType(AValueType) then
+    FValueType := AValueType
+  else
+    Assert(False);
 end;
 
 {---------------------------}

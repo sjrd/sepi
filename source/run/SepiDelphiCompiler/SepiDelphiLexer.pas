@@ -18,7 +18,7 @@ Sepi.  If not, see <http://www.gnu.org/licenses/>.
 -------------------------------------------------------------------------------}
 
 {*
-  Analyseur tkical d'une unité Delphi
+  Analyseur lexical d'une unité Delphi
   @author sjrd
   @version 1.0
 *}

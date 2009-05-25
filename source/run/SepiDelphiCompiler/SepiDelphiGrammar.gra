@@ -256,13 +256,31 @@ ntDereference	Dereference
 	'^'
 
 ntSingleValue	SingleValue
-	tkInteger
-	tkFloat
-	tkStringCst
-	Identifier
-	'inherited' Identifier
-	'nil'
+	IntegerConst
+	FloatConst
+	StringConst
+	IdentifierSingleValue
+	InheritedSingleValue
+	NilValue
 	'['* SetValue ']'*
+
+ntIntegerConst	IntegerConst
+	tkInteger
+
+ntFloatConst	FloatConst
+	tkFloat
+
+ntStringConst	StringConst
+	tkStringCst
+
+ntIdentifierSingleValue	IdentifierSingleValue
+	Identifier
+
+ntInheritedSingleValue	InheritedSingleValue
+	'inherited'* Identifier
+
+ntNilValue	NilValue
+	'nil'
 
 ntSetValue	SetValue
 	SetRange (','* SetRange)*

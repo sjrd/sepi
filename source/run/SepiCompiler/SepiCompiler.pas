@@ -353,6 +353,8 @@ type
 
     function GetCount: Integer;
     function GetVariables(Index: Integer): TSepiLocalVar;
+
+    function GetHiddenVar(Kind: TSepiHiddenParamKind): TSepiLocalVar;
   public
     constructor Create(ACompiler: TSepiMethodCompiler);
     destructor Destroy; override;
@@ -377,6 +379,9 @@ type
     property Count: Integer read GetCount;
     property Variables[Index: Integer]: TSepiLocalVar
       read GetVariables; default;
+
+    property SelfVar: TSepiLocalVar index hpSelf read GetHiddenVar;
+    property ResultVar: TSepiLocalVar index hpResult read GetHiddenVar;
 
     property Size: Integer read FSize;
   end;
@@ -1743,6 +1748,17 @@ end;
 function TSepiLocalVariables.GetVariables(Index: Integer): TSepiLocalVar;
 begin
   Result := TSepiLocalVar(FVariables[Index]);
+end;
+
+{*
+  Tableau des variables cachées indicées par le type de paramètre caché
+  @param Kind   Type de paramètre caché
+  @return Variable correspondante
+*}
+function TSepiLocalVariables.GetHiddenVar(
+  Kind: TSepiHiddenParamKind): TSepiLocalVar;
+begin
+  Result := Self.GetVarByName(HiddenParamNames[Kind]);
 end;
 
 {*

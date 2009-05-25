@@ -46,7 +46,8 @@ contains
   SepiDelphiLikeCompilerUtils in '..\..\source\run\SepiCompiler\SepiDelphiLikeCompilerUtils.pas',
   SepiParserUtils in '..\..\source\run\SepiCompiler\SepiParserUtils.pas',
   SepiLexerUtils in '..\..\source\run\SepiCompiler\SepiLexerUtils.pas',
-  SepiCompilerUtils in '..\..\source\run\SepiCompiler\SepiCompilerUtils.pas';
+  SepiCompilerUtils in '..\..\source\run\SepiCompiler\SepiCompilerUtils.pas',
+  SepiStdCompilerNodes in '..\..\source\run\SepiCompiler\SepiStdCompilerNodes.pas';
 
 end.
 
