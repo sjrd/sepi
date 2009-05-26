@@ -36,7 +36,7 @@ uses
   SepiOpCodes,
   SepiCompiler, SepiCompilerErrors, SepiExpressions, SepiInstructions,
   SepiCompilerConsts,
-  SepiParseTrees, SepiCompilerUtils;
+  SepiParseTrees, SepiCompilerUtils, SepiDelphiLikeCompilerUtils;
 
 type
   {*
@@ -165,21 +165,6 @@ type
   end;
 
   {*
-    Noeud expression calculé par un arbre d'opérations binaires
-    @author sjrd
-    @version 1.0
-  *}
-  TSepiBinaryOpTreeNode = class(TSepiExpressionNode)
-  private
-    function FindSubTreeOpIndex(Lower, Higher: Integer): Integer;
-    function CompileSubTree(Lower, Higher: Integer): ISepiExpression;
-  protected
-    function CompileTree: ISepiExpression;
-  public
-    procedure EndParsing; override;
-  end;
-
-  {*
     Sens d'évaluation d'un opérateur binaire
     - bodLeftToRight : évalué de gauche à droite (comme la soustraction) ;
     - bodRightToLeft : évalué de droite à gauche (comme le = du C).
@@ -204,6 +189,21 @@ type
   end;
 
   {*
+    Noeud expression calculé par un arbre d'opérations binaires
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiBinaryOpTreeNode = class(TSepiExpressionNode)
+  private
+    function FindSubTreeOpIndex(Lower, Higher: Integer): Integer;
+    function CompileSubTree(Lower, Higher: Integer): ISepiExpression;
+  protected
+    function CompileTree: ISepiExpression;
+  public
+    procedure EndParsing; override;
+  end;
+
+  {*
     Noeud représentant un opérateur unaire
     @author sjrd
     @version 1.0
@@ -212,6 +212,21 @@ type
   public
     function MakeOperation(
       const Operand: ISepiExpression): ISepiExpression; virtual; abstract;
+  end;
+
+  {*
+    Noeud expression calculé par une opération unaire
+    Un noeud de ce type doit posséder exactement deux enfants. L'un des deux
+    doit être de type TSepiUnaryOpNode et l'autre de type TSepiExpressionNode.
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiUnaryOperationNode = class(TSepiExpressionNode)
+  protected
+    function CompileOperation(OperatorNode: TSepiUnaryOpNode;
+      OperandNode: TSepiExpressionNode): ISepiExpression;
+  public
+    procedure EndParsing; override;
   end;
 
   {*
@@ -300,6 +315,82 @@ type
       const SelfParam: ISepiReadableValue): ISepiCallable; virtual;
 
     function CompileCallable: ISepiCallable; virtual;
+  public
+    procedure EndParsing; override;
+  end;
+
+  {*
+    Noeud représentant une expression avec des modificateurs
+    Le premier enfant d'un noeud de ce type est une expression classique, de
+    type TSepiExpressionNode. Les suivants sont des "modifieurs", de type
+    TSepiExpressionModifierNode, qui modifient successivement les expressions
+    intermédiaire.
+    Par exemple, s'il y a trois enfants, le résultat est l'application du
+    modifieur 2 sur une expression intermédiaire, qui est l'application du
+    modifieur 1 sur l'expression de l'enfant 0.
+    Des modifieurs courants sont des indices de tableaux, des paramètres d'appel
+    de méthode ou une sélection d'un champ.
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiExpressionWithModifiersNode = class(TSepiExpressionNode)
+  protected
+    procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
+    procedure ChildEndParsing(Child: TSepiParseTreeNode); override;
+  public
+    procedure EndParsing; override;
+  end;
+
+  {*
+    Noeud modifieur d'expression
+    Une modifieur d'expression est un noeud qui part d'une expression existante
+    et la modifie. L'expression de base doit être renseignée avec SetBase avant
+    BeginParsing.
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiExpressionModifierNode = class(TSepiExpressionNode)
+  private
+    FBase: ISepiExpression; /// Expression de base à modifier
+  protected
+    property Base: ISepiExpression read FBase;
+  public
+    procedure SetBase(const ABase: ISepiExpression);
+  end;
+
+  {*
+    Noeud index de tableau ou de propriété tableau
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiArrayIndicesModifierNode = class(TSepiExpressionModifierNode)
+  protected
+    procedure CompileProperty(const Prop: ISepiProperty); virtual;
+    procedure CompileArrayItem(const BaseValue: ISepiValue); virtual;
+    procedure CompileDefaultProperty(
+      const ObjectValue: ISepiReadableValue); virtual;
+  public
+    procedure EndParsing; override;
+  end;
+
+  {*
+    Noeud sélection de champ
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiFieldSelectionModifierNode = class(TSepiExpressionModifierNode)
+  protected
+    function MakeFieldSelection: ISepiExpression; virtual;
+  public
+    procedure EndParsing; override;
+  end;
+
+  {*
+    Noeud déréférencement
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiDereferenceModifierNode = class(TSepiExpressionModifierNode)
   public
     procedure EndParsing; override;
   end;
@@ -796,6 +887,49 @@ begin
   Result := bodLeftToRight;
 end;
 
+{-------------------------------}
+{ TSepiUnaryOperationNode class }
+{-------------------------------}
+
+{*
+  Compile l'arbre de l'expression
+  @return Expression représentant l'arbre
+*}
+function TSepiUnaryOperationNode.CompileOperation(
+  OperatorNode: TSepiUnaryOpNode;
+  OperandNode: TSepiExpressionNode): ISepiExpression;
+begin
+  Result := OperatorNode.MakeOperation(OperandNode.Expression);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiUnaryOperationNode.EndParsing;
+begin
+  if Expression = nil then
+  begin
+    Assert(ChildCount = 2);
+
+    if (Children[0] is TSepiUnaryOpNode) and
+      (Children[1] is TSepiExpressionNode) then
+    begin
+      SetExpression(CompileOperation(TSepiUnaryOpNode(Children[0]),
+        TSepiExpressionNode(Children[1])));
+    end else if (Children[0] is TSepiExpressionNode) and
+      (Children[1] is TSepiUnaryOpNode) then
+    begin
+      SetExpression(CompileOperation(TSepiUnaryOpNode(Children[1]),
+        TSepiExpressionNode(Children[0])));
+    end else
+    begin
+      Assert(False);
+    end;
+  end;
+
+  inherited;
+end;
+
 {-----------------------------}
 { TSepiLiteralConstNode class }
 {-----------------------------}
@@ -1049,6 +1183,235 @@ begin
   begin
     SetExpression(MakeExpression);
     Callable.AttachToExpression(Expression);
+  end;
+
+  inherited;
+end;
+
+{----------------------------------------}
+{ TSepiExpressionWithModifiersNode class }
+{----------------------------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiExpressionWithModifiersNode.ChildBeginParsing(
+  Child: TSepiParseTreeNode);
+begin
+  inherited;
+
+  if Child is TSepiExpressionModifierNode then
+    TSepiExpressionModifierNode(Child).SetBase(Expression);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiExpressionWithModifiersNode.ChildEndParsing(
+  Child: TSepiParseTreeNode);
+begin
+  SetExpression((Child as TSepiExpressionNode).Expression);
+
+  inherited;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiExpressionWithModifiersNode.EndParsing;
+begin
+  Assert(ChildCount > 0);
+
+  inherited;
+end;
+
+{-----------------------------------}
+{ TSepiExpressionModifierNode class }
+{-----------------------------------}
+
+{*
+  Spécifie l'expression de base à modifier
+  @param ABase   Expression de base à modifier
+*}
+procedure TSepiExpressionModifierNode.SetBase(const ABase: ISepiExpression);
+begin
+  FBase := ABase;
+end;
+
+{-------------------------------------}
+{ TSepiArrayIndicesModifierNode class }
+{-------------------------------------}
+
+{*
+  Compile les indices d'une propriété de type tableau
+  @param Prop   Propriété
+*}
+procedure TSepiArrayIndicesModifierNode.CompileProperty(
+  const Prop: ISepiProperty);
+var
+  Count, I: Integer;
+  Value: ISepiValue;
+begin
+  if ChildCount < Prop.ParamCount then
+    Count := ChildCount
+  else
+    Count := Prop.ParamCount;
+
+  for I := 0 to Count-1 do
+  begin
+    if Supports((Children[I] as TSepiExpressionNode).Expression,
+      ISepiValue, Value) then
+      Prop.Params[I] := Value
+    else
+      Children[I].MakeError(SValueRequired);
+  end;
+
+  if ChildCount < Prop.ParamCount then
+    MakeError(SNotEnoughActualParameters)
+  else if ChildCount > Prop.ParamCount then
+    MakeError(STooManyActualParameters);
+
+  SetExpression(Base);
+end;
+
+{*
+  Compile l'accès à un élément de tableau
+  @param BaseValue   Valeur tableau de base
+*}
+procedure TSepiArrayIndicesModifierNode.CompileArrayItem(
+  const BaseValue: ISepiValue);
+var
+  CurrentValue: ISepiValue;
+  IndexValue: ISepiReadableValue;
+  I: Integer;
+  Child: TSepiExpressionNode;
+  BaseType: TSepiType;
+begin
+  CurrentValue := BaseValue;
+
+  for I := 0 to ChildCount-1 do
+  begin
+    Child := Children[0] as TSepiExpressionNode;
+    BaseType := CurrentValue.ValueType;
+
+    if not (BaseType is TSepiArrayType) then
+    begin
+      Child.MakeError(STooManyArrayIndices);
+      Break;
+    end else
+    begin
+      if Supports(Child.Expression, ISepiReadableValue, IndexValue) then
+      begin
+        CurrentValue := TSepiArrayItemValue.MakeArrayItemValue(
+          CurrentValue, IndexValue);
+      end else
+      begin
+        Child.Expression.MakeError(SReadableValueRequired);
+        Break;
+      end;
+    end;
+  end;
+
+  SetExpression(CurrentValue as ISepiExpression);
+end;
+
+{*
+  Compile les indices de la propriété par défaut d'un objet
+  @param ObjectValue   Valeur objet
+*}
+procedure TSepiArrayIndicesModifierNode.CompileDefaultProperty(
+  const ObjectValue: ISepiReadableValue);
+var
+  Prop: TSepiProperty;
+begin
+  Prop := TSepiClass(ObjectValue.ValueType).DefaultProperty;
+
+  SetBase(TSepiExpression.Create(Base));
+
+  ISepiExpressionPart(TSepiPropertyValue.Create(ObjectValue,
+    Prop)).AttachToExpression(Base);
+
+  CompileProperty(Base as ISepiProperty);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiArrayIndicesModifierNode.EndParsing;
+var
+  Prop: ISepiProperty;
+  BaseValue: ISepiValue;
+  ObjectValue: ISepiReadableValue;
+begin
+  if Expression <> nil then
+  begin
+    if Supports(Base, ISepiProperty, Prop) and (not Prop.ParamsCompleted) then
+    begin
+      // Array property
+      CompileProperty(Prop);
+    end else if Supports(Base, ISepiValue, BaseValue) and
+      (BaseValue.ValueType is TSepiArrayType) then
+    begin
+      // True array indices
+      CompileArrayItem(BaseValue);
+    end else if Supports(Base, ISepiReadableValue, ObjectValue) and
+      (ObjectValue.ValueType is TSepiClass) and
+      (TSepiClass(ObjectValue.ValueType).DefaultProperty <> nil) then
+    begin
+      // Default array property
+      CompileDefaultProperty(ObjectValue);
+    end else
+    begin
+      // Error
+      Base.MakeError(SArrayOrArrayPropRequired);
+    end;
+  end;
+
+  inherited;
+end;
+
+{---------------------------------------}
+{ TSepiFieldSelectionModifierNode class }
+{---------------------------------------}
+
+function TSepiFieldSelectionModifierNode.MakeFieldSelection: ISepiExpression;
+begin
+  Result := FieldSelection(SepiContext, Base, Children[0].AsText);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiFieldSelectionModifierNode.EndParsing;
+begin
+  if Expression = nil then
+  begin
+    SetExpression(MakeFieldSelection);
+    CheckIdentFound(Expression, Children[0].AsText, Children[0]);
+  end;
+
+  inherited;
+end;
+
+{------------------------------------}
+{ TSepiDereferenceModifierNode class }
+{------------------------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiDereferenceModifierNode.EndParsing;
+var
+  Value: ISepiReadableValue;
+begin
+  if Supports(Base, ISepiReadableValue, Value) and
+    (Value.ValueType is TSepiPointerType) then
+  begin
+    SetExpression(TSepiDereferenceValue.MakeDereference(
+      Value) as ISepiExpression);
+  end else
+  begin
+    MakeError(SPointerTypeRequired);
   end;
 
   inherited;

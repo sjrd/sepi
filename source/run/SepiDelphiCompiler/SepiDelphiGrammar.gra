@@ -226,6 +226,9 @@ ntConstOrTypeNoEquals	ConstOrTypeNoEquals
 ntSingleExpr	SingleExpr
 	ParenthesizedExpr (NextExpr)*
 	SingleValue (NextExpr)*
+	UnaryOpExpr
+
+ntUnaryOpExpr	UnaryOpExpr
 	UnaryOp SingleExpr
 
 ntParenthesizedExpr	ParenthesizedExpr

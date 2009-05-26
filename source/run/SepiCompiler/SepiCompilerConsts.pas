@@ -107,6 +107,10 @@ resourcestring
   SCallPatternOnlyOnClassMethod =
     'Forme d''appel autorisée uniquement sur les méthodes de classe';
 
+  // Erreurs sur les indices de tableau
+  SArrayOrArrayPropRequired = 'Valeur tableau ou propriété tableau requise';
+  STooManyArrayIndices = 'Trop d''index pour ce tableau';
+
   // Erreurs sur des classes ou interfaces
   SClassDoesNotImplementIntf = 'La classe %s n''implémente pas l''interface %s';
 

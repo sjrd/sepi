@@ -60,8 +60,6 @@ resourcestring
   SArrayPropertyRequired = 'Propriété tableau requise';
   SDuplicateDefaultProperty = 'Ne peut avoir plusieurs propriétés par défaut';
   SParametersMismatch = 'Les paramètres ne correspondent pas';
-  SArrayOrArrayPropRequired = 'Valeur tableau ou propriété tableau requise';
-  STooManyArrayIndices = 'Trop d''index pour ce tableau';
   SMethodNotDeclared = 'Méthode %s non déclarée';
   SMethodMustBeOverloaded =
     'La méthode %s doit être marquée avec la directive overload';
