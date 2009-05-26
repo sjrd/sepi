@@ -395,6 +395,107 @@ type
     procedure EndParsing; override;
   end;
 
+  {*
+    Noeud représentant une déclaration d'un identificateur
+    TSepiIdentifierDeclarationNode prend en charge la vérification de l'unicité
+    de l'identificateur, et son remplacement en cas d'erreur.
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiIdentifierDeclarationNode = class(TSepiNonTerminal)
+  private
+    FIdentifier: string; /// Identificateur (si vide, AsText est utilisé)
+
+    function GetIdentifier: string;
+  protected
+    procedure SetIdentifier(const AIdentifier: string);
+
+    function IsRedeclared: Boolean; virtual;
+    procedure MakeErroneousName; virtual;
+  public
+    procedure EndParsing; override;
+
+    property Identifier: string read GetIdentifier;
+  end;
+
+  {*
+    Classe de base pour les noeuds qui doivent construire une signature
+    TSepiSignatureBuilderNode ne crée pas elle-même d'instance de
+    TSepiSignature. Elle est prévue pour construire une signature créée par un
+    noeud parent, et renseignée au moyen de SetSignature (avant BeginParsing).
+    Certaines sous-classes de TSepiSignatureBuilderNode acceptent que Signature
+    ne soit pas renseignée. Dans ce cas, elles n'ont aucun effet en elles-mêmes,
+    mais proposent souvent des propriétés permettant de savoir quel aurait été
+    TSepiSignatureBuilderNode transfère aussi sa signature à tous ses enfants
+    qui sont des instances de TSepiSignatureBuilderNode.
+    leur effet.
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiSignatureBuilderNode = class(TSepiNonTerminal)
+  private
+    FSignature: TSepiSignature; /// Signature à construire
+  protected
+    procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
+
+    property Signature: TSepiSignature read FSignature;
+  public
+    procedure SetSignature(ASignature: TSepiSignature);
+  end;
+
+  {*
+    Noeud représentant un type de signature
+    Cette classe admet que Signature ne soit pas renseignée.
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiSignatureKindNode = class(TSepiSignatureBuilderNode)
+  protected
+    function GetKind: TMethodKind; virtual;
+  public
+    procedure EndParsing; override;
+
+    property Kind: TMethodKind read GetKind;
+  end;
+
+  {*
+    Noeud représentant la convention d'appel d'une signature
+    Cette classe admet que Signature ne soit pas renseignée.
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiCallingConventionNode = class(TSepiSignatureBuilderNode)
+  protected
+    function GetCallingConvention: TCallingConvention; virtual;
+  public
+    procedure EndParsing; override;
+
+    property CallingConvention: TCallingConvention read GetCallingConvention;
+  end;
+
+  {*
+    Noeud représentant le type de retour d'une signature
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiSignatureReturnTypeNode = class(TSepiSignatureBuilderNode)
+  private
+    procedure AdaptSignatureKindToProcedure;
+    procedure AdaptSignatureKindToFunction;
+    procedure AdaptSignatureKindIfNeeded;
+  protected
+    function MustAdaptSignatureKind: Boolean; virtual;
+
+    function GetTypeName: string;
+
+    procedure CompileNoReturnType; virtual;
+    function CompileReturnType: TSepiType; virtual;
+
+    property TypeName: string read GetTypeName;
+  public
+    procedure EndParsing; override;
+  end;
+
 implementation
 
 {------------------------}
@@ -1412,6 +1513,270 @@ begin
   end else
   begin
     MakeError(SPointerTypeRequired);
+  end;
+
+  inherited;
+end;
+
+{--------------------------------------}
+{ TSepiIdentifierDeclarationNode class }
+{--------------------------------------}
+
+{*
+  Identificateur représenté par ce noeud
+  @return Identificateur représenté par ce noeud
+*}
+function TSepiIdentifierDeclarationNode.GetIdentifier: string;
+begin
+  if FIdentifier = '' then
+    Result := AsText
+  else
+    Result := FIdentifier;
+end;
+
+{*
+  Modifie l'identificateur représenté par ce noeud
+  @param AIdentifier   Nouvel identificateur
+*}
+procedure TSepiIdentifierDeclarationNode.SetIdentifier(
+  const AIdentifier: string);
+begin
+  FIdentifier := AIdentifier;
+end;
+
+{*
+  Teste si cet identificateur est redéclaré
+  @return True s'il est redéclaré, False sinon
+*}
+function TSepiIdentifierDeclarationNode.IsRedeclared: Boolean;
+begin
+  Result := SepiContext.GetMeta(Identifier) <> nil;
+end;
+
+{*
+  Construit un identificateur erroné
+*}
+procedure TSepiIdentifierDeclarationNode.MakeErroneousName;
+begin
+  SetIdentifier(SepiContext.MakeUnnamedChildName);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiIdentifierDeclarationNode.EndParsing;
+begin
+  if IsRedeclared then
+  begin
+    MakeError(SRedeclaredIdentifier);
+    MakeErroneousName;
+  end;
+
+  inherited;
+end;
+
+{---------------------------------}
+{ TSepiSignatureBuilderNode class }
+{---------------------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiSignatureBuilderNode.ChildBeginParsing(
+  Child: TSepiParseTreeNode);
+begin
+  inherited;
+
+  if Child is TSepiSignatureBuilderNode then
+    TSepiSignatureBuilderNode(Child).SetSignature(Signature);
+end;
+
+{*
+  Renseigne la signature à construire
+  @param ASignature   Signature à construire
+*}
+procedure TSepiSignatureBuilderNode.SetSignature(ASignature: TSepiSignature);
+begin
+  FSignature := ASignature;
+end;
+
+{------------------------------}
+{ TSepiSignatureKindNode class }
+{------------------------------}
+
+{*
+  Type de signature représentée par ce noeud
+  @return Type de signature représentée par ce noeud
+*}
+function TSepiSignatureKindNode.GetKind: TMethodKind;
+var
+  OrdKind: Integer;
+begin
+  OrdKind := AnsiIndexText(AsText, MethodKindStrings);
+
+  if OrdKind < 0 then
+    Result := mkProcedure
+  else
+    Result := TMethodKind(OrdKind);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiSignatureKindNode.EndParsing;
+begin
+  if Signature <> nil then
+    Signature.Kind := Kind;
+
+  inherited;
+end;
+
+{----------------------------------}
+{ TSepiCallingConventionNode class }
+{----------------------------------}
+
+{*
+  Type de signature représentée par ce noeud
+  @return Type de signature représentée par ce noeud
+*}
+function TSepiCallingConventionNode.GetCallingConvention: TCallingConvention;
+var
+  OrdCallingConvention: Integer;
+begin
+  OrdCallingConvention := AnsiIndexText(AsText, CallingConventionStrings);
+
+  if OrdCallingConvention < 0 then
+    Result := ccRegister
+  else
+    Result := TCallingConvention(OrdCallingConvention);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiCallingConventionNode.EndParsing;
+begin
+  if Signature <> nil then
+    Signature.CallingConvention := CallingConvention;
+
+  inherited;
+end;
+
+{------------------------------}
+{ TSepiSignatureReturnTypeNode }
+{------------------------------}
+
+{*
+  Adapte le type de signature en procédure (sans valeur de retour)
+*}
+procedure TSepiSignatureReturnTypeNode.AdaptSignatureKindToProcedure;
+begin
+  if Signature.Kind = mkFunction then
+    Signature.Kind := mkProcedure
+  else if Signature.Kind = mkClassFunction then
+    Signature.Kind := mkClassProcedure
+  else if Signature.Kind = mkUnitFunction then
+    Signature.Kind := mkUnitProcedure;
+end;
+
+{*
+  Adapte le type de signature en fonction (avec valeur de retour)
+*}
+procedure TSepiSignatureReturnTypeNode.AdaptSignatureKindToFunction;
+begin
+  if Signature.Kind = mkProcedure then
+    Signature.Kind := mkFunction
+  else if Signature.Kind = mkClassProcedure then
+    Signature.Kind := mkClassFunction
+  else if Signature.Kind = mkUnitProcedure then
+    Signature.Kind := mkUnitFunction;
+end;
+
+{*
+  Adapte le type de signature si nécessaire
+*}
+procedure TSepiSignatureReturnTypeNode.AdaptSignatureKindIfNeeded;
+begin
+  if MustAdaptSignatureKind then
+  begin
+    if TypeName = '' then
+      AdaptSignatureKindToProcedure
+    else
+      AdaptSignatureKindToFunction;
+  end;
+end;
+
+{*
+  Si True, adapte Signature.Kind en fonction la présence d'un type de retour
+  Si False, la présence d'un type de retour doit se conformer à la valeur
+  courante de Signature.Kind.
+  Par défaut, AdaptSignatureKind renvoie False, ce qui correspond au
+  comportement du langage Delphi.
+  @return True s'il faut adapter Signature.Kind, False sinon.
+*}
+function TSepiSignatureReturnTypeNode.MustAdaptSignatureKind: Boolean;
+begin
+  Result := False;
+end;
+
+{*
+  Nom du type de retour
+  Le nom du type de retour est toujours la valeur de AsText. Si vous voulez
+  modifier ce comportement dans une classe de base, surchargez AsText.
+  @return Nom du type de retour, ou '' si absent
+*}
+function TSepiSignatureReturnTypeNode.GetTypeName: string;
+begin
+  Result := AsText;
+end;
+
+{*
+  Compile le fait qu'il n'y a pas de type de retour
+  S'il y a un type de retour, émet une erreur.
+*}
+procedure TSepiSignatureReturnTypeNode.CompileNoReturnType;
+begin
+  if TypeName <> '' then
+    MakeError(SReturnTypeForbidden);
+
+  Signature.ReturnType := nil;
+end;
+
+{*
+  Compile le type de retour qui doit être présent
+  Si le type de retour est absent ou invalide, émet une erreur.
+  @return Type de retour
+*}
+function TSepiSignatureReturnTypeNode.CompileReturnType: TSepiType;
+begin
+  if TypeName = '' then
+  begin
+    MakeError(SReturnTypeRequired);
+    Result := SystemUnit.Integer;
+  end else
+  begin
+    Result := TSepiType(LookForSelfTextOrError(
+      TSepiType, STypeIdentifierRequired));
+
+    if Result = nil then
+      Result := SystemUnit.Integer;
+  end;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiSignatureReturnTypeNode.EndParsing;
+begin
+  AdaptSignatureKindIfNeeded;
+
+  if (Signature.Kind = mkFunction) or (Signature.Kind = mkClassFunction) or
+    (Signature.Kind = mkUnitFunction) or (Signature.Kind = mkProperty) then
+  begin
+    Signature.ReturnType := CompileReturnType;
+  end else
+  begin
+    CompileNoReturnType;
   end;
 
   inherited;

@@ -606,10 +606,10 @@ ntParamNameList	ParamNameList
 	Identifier (','* Identifier)*
 
 ntParamTypeAndDefault	ParamTypeAndDefault	Simplify
-	':'* ComptkParamType (ParamDefault)?
+	':'* ComplexParamType (ParamDefault)?
 	@
 
-ntComptkParamType	ComptkParamType	Simplify
+ntComplexParamType	ComplexParamType	Simplify
 	ParamIsArray ParamArrayType
 	ParamType
 

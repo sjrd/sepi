@@ -756,6 +756,12 @@ const
     AlwaysByAddress: False; AlwaysByStack: False
   );
 
+  /// Chaînes des visibilités
+  VisibilityStrings: array[TMemberVisibility] of string = (
+    'strict private', 'private', 'strict protected', 'protected', 'public',
+    'published'
+  );
+
 implementation
 
 uses

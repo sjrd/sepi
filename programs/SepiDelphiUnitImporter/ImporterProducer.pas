@@ -880,7 +880,7 @@ begin
   // Calling convention
   if Signature.CallingConvention <> ccRegister then
     Result := Result + '; ' +
-      CallingConventionNames[Signature.CallingConvention];
+      CallingConventionStrings[Signature.CallingConvention];
 end;
 
 {*

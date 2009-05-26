@@ -46,8 +46,6 @@ resourcestring
     'Le nombre d''éléments (%1:d) diffère de la déclaration (%0:d)';
   STypeIdentifierRequired = 'Identificateur de type requis';
   SOneParamRequiredForCast = 'Un paramètre requis pour un transtypage';
-  SReturnTypeRequired = 'La fonction exige un type de retour';
-  SReturnTypeForbidden = 'La procédure ne peut avoir de type de retour';
   SOpenArrayParamCantHaveDefaultValue =
     'Un paramètre tableau ouvert ne peut pas avoir de valeur par défaut';
   SMultiNameParamCantHaveDefaultValue =
@@ -70,23 +68,6 @@ resourcestring
     'La déclaration de %s diffère de la déclaration précédente';
   SMethodAlreadyImplemented = 'La méthode %s a déjà été implémentée';
   SLocalVarNameRequired = 'Variable locale requise';
-
-const
-  /// Nom des types de liaison de méthodes
-  LinkKindNames: array[TMethodLinkKind] of string = (
-    '', 'virtual', 'dynamic', 'message', '', 'override'
-  );
-
-  /// Nom des conventions d'appel
-  CallingConventionNames: array[TCallingConvention] of string = (
-    'register', 'cdecl', 'pascal', 'stdcall', 'safecall'
-  );
-
-  /// Nom des visibilités
-  Visibilities: array[TMemberVisibility] of string = (
-    'strict private', 'private', 'strict protected', 'protected', 'public',
-    'published'
-  );
 
 implementation
 

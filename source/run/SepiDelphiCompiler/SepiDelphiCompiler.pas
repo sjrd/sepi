@@ -36,24 +36,6 @@ uses
   SepiCompilerUtils, SepiStdCompilerNodes;
 
 type
-  TRootNode = class;
-
-  {*
-    Noeud d'un source Delphi
-    @author sjrd
-    @version 1.0
-  *}
-  TDelphiSourceNode = class(TSepiNonTerminal)
-  private
-    function GetRootNode: TRootNode;
-  public
-    function StrToFloat(const S: string): Extended;
-    function StrToFloatDef(const S: string; const Default: Extended): Extended;
-    function TryStrToFloat(const S: string; out Value: Extended): Boolean;
-
-    property RootNode: TRootNode read GetRootNode;
-  end;
-
   {*
     Noeud racine
     @author sjrd
@@ -61,8 +43,6 @@ type
   *}
   TRootNode = class(TSepiParseTreeRootNode)
   private
-    FFormatSettings: TFormatSettings; /// FormatSettings pour StrToFloat
-
     FMinEnumSize: TSepiMinEnumSize; /// Taille minimale d'énumération
 
     procedure CDMMinEnumSize(var Msg: TCDMMinEnumSize); message CDM_MINENUMSIZE;
@@ -76,12 +56,6 @@ type
 
     function ResolveIdent(const Identifier: string): ISepiExpression; override;
 
-    function StrToFloat(const S: string): Extended;
-    function StrToFloatDef(const S: string; const Default: Extended): Extended;
-    function TryStrToFloat(const S: string; out Value: Extended): Boolean;
-
-    property FormatSettings: TFormatSettings read FFormatSettings;
-
     property MinEnumSize: TSepiMinEnumSize read FMinEnumSize;
   end;
 
@@ -90,7 +64,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TInterfaceNode = class(TDelphiSourceNode)
+  TInterfaceNode = class(TSepiNonTerminal)
   public
     procedure BeginParsing; override;
   end;
@@ -100,7 +74,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TImplementationNode = class(TDelphiSourceNode)
+  TImplementationNode = class(TSepiNonTerminal)
   public
     procedure BeginParsing; override;
   end;
@@ -318,7 +292,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TTypeDescNode = class(TDelphiSourceNode)
+  TTypeDescNode = class(TSepiNonTerminal)
   private
     FTypeName: string;     /// Nom du type
     FIsAnonymous: Boolean; /// Indique si le type est anonyme
@@ -342,7 +316,7 @@ type
   {*
     Noeud d'élément d'une section (type, constante, variable ou routine)
   *}
-  TSectionItemNode = class(TDelphiSourceNode)
+  TSectionItemNode = class(TSepiNonTerminal)
   end;
 
   {*
@@ -426,7 +400,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TTypeDescriptorNode = class(TDelphiSourceNode)
+  TTypeDescriptorNode = class(TSepiNonTerminal)
   private
     FTypeName: string;  /// Nom du type
     FIsPacked: Boolean; /// Indique si le type doit être packed
@@ -551,7 +525,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TRecordContentsNode = class(TDelphiSourceNode)
+  TRecordContentsNode = class(TSepiNonTerminal)
   private
     FRecordType: TSepiRecordType; /// Type record
     FAfterField: string;          /// Nom du champ après lequel se placer
@@ -651,7 +625,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TMemberListNode = class(TDelphiSourceNode)
+  TMemberListNode = class(TSepiNonTerminal)
   private
     FOwner: TSepiType;
   protected
@@ -665,7 +639,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TMemberNode = class(TDelphiSourceNode)
+  TMemberNode = class(TSepiNonTerminal)
   private
     FOwner: TSepiType; /// Type propriétaire
   public
@@ -795,33 +769,11 @@ type
   end;
 
   {*
-    Noeud en rapport à une signature
-    @author sjrd
-    @version 1.0
-  *}
-  TInSignatureNode = class(TDelphiSourceNode)
-  private
-    FSignature: TSepiSignature; /// Signature à compiler
-  public
-    property Signature: TSepiSignature read FSignature write FSignature;
-  end;
-
-  {*
-    Noeud signature
-    @author sjrd
-    @version 1.0
-  *}
-  TSignatureNode = class(TInSignatureNode)
-  protected
-    procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
-  end;
-
-  {*
     Noeud paramètre
     @author sjrd
     @version 1.0
   *}
-  TParamNode = class(TInSignatureNode)
+  TParamNode = class(TSepiSignatureBuilderNode)
   private
     FKind: TSepiParamKind;   /// Type de paramètre
     FNames: TStringDynArray; /// Noms des paramètres
@@ -844,7 +796,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TReturnTypeNode = class(TInSignatureNode)
+  TReturnTypeNode = class(TSepiSignatureBuilderNode)
   public
     procedure EndParsing; override;
   end;
@@ -854,7 +806,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TPropInfoNode = class(TDelphiSourceNode)
+  TPropInfoNode = class(TSepiNonTerminal)
   protected
     procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
   end;
@@ -915,7 +867,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TMethodBodyNode = class(TDelphiSourceNode)
+  TMethodBodyNode = class(TSepiNonTerminal)
   private
     FSepiMethod: TSepiMethod;       /// Méthode Sepi implémentée dans ce corps
     FCompiler: TSepiMethodCompiler; /// Compilateur de la méthode
@@ -957,7 +909,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TInstructionNode = class(TDelphiSourceNode)
+  TInstructionNode = class(TSepiNonTerminal)
   private
     FInstructionList: TSepiInstructionList; /// Liste d'instructions contenante
   public
@@ -1303,8 +1255,8 @@ begin
   NonTerminalClasses[ntPropertyDecl]    := TPropertyNode;
   NonTerminalClasses[ntVisibility]      := TVisibilityNode;
 
-  NonTerminalClasses[ntMethodSignature]   := TSignatureNode;
-  NonTerminalClasses[ntPropertySignature] := TSignatureNode;
+  NonTerminalClasses[ntMethodSignature]   := TSepiSignatureBuilderNode;
+  NonTerminalClasses[ntPropertySignature] := TSepiSignatureBuilderNode;
   NonTerminalClasses[ntParam]             := TParamNode;
   NonTerminalClasses[ntReturnType]        := TReturnTypeNode;
   NonTerminalClasses[ntPropType]          := TReturnTypeNode;
@@ -1332,54 +1284,6 @@ begin
   NonTerminalClasses[ntExpressionInstruction] := TExpressionInstructionNode;
 end;
 
-{-------------------------}
-{ TDelphiSourceNode class }
-{-------------------------}
-
-{*
-  Noeud racine
-  @return Noeud racine
-*}
-function TDelphiSourceNode.GetRootNode: TRootNode;
-begin
-  Result := TSepiNonTerminal(Self).RootNode as TRootNode;
-end;
-
-{*
-  Convertit une chaîne de caractères en flottant
-  @param S   Chaîne à convertir
-  @return Valeur convertie en flottant
-  @raise EConvertError S n'est pas un flottant correct
-*}
-function TDelphiSourceNode.StrToFloat(const S: string): Extended;
-begin
-  Result := RootNode.StrToFloat(S);
-end;
-
-{*
-  Convertit une chaîne de caractères en flottant
-  @param S         Chaîne à convertir
-  @param Default   Valeur par défaut, si S n'est pas un flottant correct
-  @return Valeur convertie en flottant
-*}
-function TDelphiSourceNode.StrToFloatDef(const S: string;
-  const Default: Extended): Extended;
-begin
-  Result := RootNode.StrToFloatDef(S, Default);
-end;
-
-{*
-  Convertit une chaîne de caractères en flottant
-  @param S       Chaîne à convertir
-  @param Value   En sortie : Valeur convertie en flottant
-  @return True en cas de succès, False sinon
-*}
-function TDelphiSourceNode.TryStrToFloat(const S: string;
-  out Value: Extended): Boolean;
-begin
-  Result := RootNode.TryStrToFloat(S, Value);
-end;
-
 {-----------------}
 { TRootNode class }
 {-----------------}
@@ -1389,14 +1293,8 @@ end;
 *}
 constructor TRootNode.Create(AClass: TSepiSymbolClass;
   ASepiRoot: TSepiRoot; AErrors: TSepiCompilerErrorList);
-const
-  LCID_EN_US = 1033;
 begin
   inherited;
-
-  GetLocaleFormatSettings(LCID_EN_US, FFormatSettings);
-  FFormatSettings.ThousandSeparator := #0;
-  FFormatSettings.DecimalSeparator := '.';
 
   FMinEnumSize := mesByte;
 end;
@@ -1429,41 +1327,6 @@ begin
   SepiUnit.Complete;
 
   inherited;
-end;
-
-{*
-  Convertit une chaîne de caractères en flottant
-  @param S   Chaîne à convertir
-  @return Valeur convertie en flottant
-  @raise EConvertError S n'est pas un flottant correct
-*}
-function TRootNode.StrToFloat(const S: string): Extended;
-begin
-  Result := SysUtils.StrToFloat(S, FFormatSettings);
-end;
-
-{*
-  Convertit une chaîne de caractères en flottant
-  @param S         Chaîne à convertir
-  @param Default   Valeur par défaut, si S n'est pas un flottant correct
-  @return Valeur convertie en flottant
-*}
-function TRootNode.StrToFloatDef(const S: string;
-  const Default: Extended): Extended;
-begin
-  Result := SysUtils.StrToFloatDef(S, Default, FFormatSettings);
-end;
-
-{*
-  Convertit une chaîne de caractères en flottant
-  @param S       Chaîne à convertir
-  @param Value   En sortie : Valeur convertie en flottant
-  @return True en cas de succès, False sinon
-*}
-function TRootNode.TryStrToFloat(const S: string;
-  out Value: Extended): Boolean;
-begin
-  Result := SysUtils.TryStrToFloat(S, Value, FFormatSettings);
 end;
 
 {*
@@ -2518,8 +2381,8 @@ procedure TRoutineDeclNode.ChildBeginParsing(Child: TSepiParseTreeNode);
 begin
   inherited;
 
-  if Child is TSignatureNode then
-    TSignatureNode(Child).Signature := Signature;
+  if Child is TSepiSignatureBuilderNode then
+    TSepiSignatureBuilderNode(Child).SetSignature(Signature);
 end;
 
 {*
@@ -2554,7 +2417,7 @@ begin
     ntRoutineModifier:
     begin
       Str := Child.AsText;
-      Temp := AnsiIndexText(Str, CallingConventionNames);
+      Temp := AnsiIndexText(Str, CallingConventionStrings);
       if Temp >= 0 then
       begin
         // Calling convention
@@ -2777,7 +2640,7 @@ begin
     Values[I] := Children[I].AsText;
 
   SepiType := TSepiEnumType.Create(SepiContext, TypeName, Values,
-    RootNode.MinEnumSize);
+    (RootNode as TRootNode).MinEnumSize);
 
   inherited;
 end;
@@ -3380,8 +3243,8 @@ procedure TMethodRefTypeNode.ChildBeginParsing(Child: TSepiParseTreeNode);
 begin
   inherited;
 
-  if Child is TSignatureNode then
-    TSignatureNode(Child).Signature := Signature;
+  if Child is TSepiSignatureBuilderNode then
+    TSepiSignatureBuilderNode(Child).SetSignature(Signature);
 end;
 
 {*
@@ -3420,7 +3283,7 @@ begin
   begin
     ModifierNode := ModifiersNode.Children[0];
 
-    Index := AnsiIndexText(ModifierNode.AsText, CallingConventionNames);
+    Index := AnsiIndexText(ModifierNode.AsText, CallingConventionStrings);
 
     if Index >= 0 then
     begin
@@ -3603,8 +3466,8 @@ procedure TMethodNode.ChildBeginParsing(Child: TSepiParseTreeNode);
 begin
   inherited;
 
-  if Child is TSignatureNode then
-    TSignatureNode(Child).Signature := Signature;
+  if Child is TSepiSignatureBuilderNode then
+    TSepiSignatureBuilderNode(Child).SetSignature(Signature);
 end;
 
 {*
@@ -3663,7 +3526,7 @@ begin
     ntRoutineModifier, ntMethodModifier:
     begin
       Str := Child.Children[0].AsText;
-      Temp := AnsiIndexText(Str, LinkKindNames);
+      Temp := AnsiIndexText(Str, LinkKindStrings);
 
       if Temp >= 0 then
       begin
@@ -3676,7 +3539,7 @@ begin
             FMsgID, SystemUnit.Integer);
       end else
       begin
-        Temp := AnsiIndexText(Str, CallingConventionNames);
+        Temp := AnsiIndexText(Str, CallingConventionStrings);
         if Temp >= 0 then
         begin
           // Calling convention
@@ -3942,8 +3805,8 @@ procedure TPropertyNode.ChildBeginParsing(Child: TSepiParseTreeNode);
 begin
   inherited;
 
-  if Child is TSignatureNode then
-    TSignatureNode(Child).Signature := Signature;
+  if Child is TSepiSignatureBuilderNode then
+    TSepiSignatureBuilderNode(Child).SetSignature(Signature);
 end;
 
 {*
@@ -4104,23 +3967,9 @@ end;
 procedure TVisibilityNode.EndParsing;
 begin
   (Owner as TSepiClass).CurrentVisibility :=
-    TMemberVisibility(AnsiIndexText(AsText, Visibilities));
+    TMemberVisibility(AnsiIndexText(AsText, VisibilityStrings));
 
   inherited;
-end;
-
-{----------------------}
-{ TSignatureNode class }
-{----------------------}
-
-{*
-  [@inheritDoc]
-*}
-procedure TSignatureNode.ChildBeginParsing(Child: TSepiParseTreeNode);
-begin
-  inherited;
-
-  (Child as TInSignatureNode).Signature := Signature;
 end;
 
 {------------------}
@@ -4437,8 +4286,8 @@ procedure TMethodImplDeclNode.ChildBeginParsing(Child: TSepiParseTreeNode);
 begin
   inherited;
 
-  if Child is TSignatureNode then
-    TSignatureNode(Child).Signature := Signature;
+  if Child is TSepiSignatureBuilderNode then
+    TSepiSignatureBuilderNode(Child).SetSignature(Signature);
 end;
 
 {*
@@ -4480,7 +4329,7 @@ begin
     ntRoutineModifier:
     begin
       Str := Child.AsText;
-      Temp := AnsiIndexText(Str, CallingConventionNames);
+      Temp := AnsiIndexText(Str, CallingConventionStrings);
       if Temp >= 0 then
       begin
         // Calling convention

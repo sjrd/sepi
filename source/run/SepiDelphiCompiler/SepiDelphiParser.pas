@@ -136,7 +136,7 @@ const
   ntParamKind = 220; // ParamKind
   ntParamNameList = 221; // ParamNameList
   ntParamTypeAndDefault = 222; // ParamTypeAndDefault
-  ntComptkParamType = 223; // ComptkParamType
+  ntComplexParamType = 223; // ComplexParamType
   ntParamIsArray = 224; // ParamIsArray
   ntParamArrayType = 225; // ParamArrayType
   ntParamType = 226; // ParamType
@@ -2392,7 +2392,7 @@ procedure TSepiDelphiParser.PushChoice233;
 begin
   PushBackToParent;
   PushSymbol(ntPriv47);
-  PushSymbol(ntComptkParamType);
+  PushSymbol(ntComplexParamType);
   PushFakeSymbol(tkColon);
 end;
 
@@ -3712,7 +3712,7 @@ begin
   SymbolClassNames[ntParamKind] := 'ntParamKind';
   SymbolClassNames[ntParamNameList] := 'ntParamNameList';
   SymbolClassNames[ntParamTypeAndDefault] := 'ntParamTypeAndDefault';
-  SymbolClassNames[ntComptkParamType] := 'ntComptkParamType';
+  SymbolClassNames[ntComplexParamType] := 'ntComplexParamType';
   SymbolClassNames[ntParamIsArray] := 'ntParamIsArray';
   SymbolClassNames[ntParamArrayType] := 'ntParamArrayType';
   SymbolClassNames[ntParamType] := 'ntParamType';

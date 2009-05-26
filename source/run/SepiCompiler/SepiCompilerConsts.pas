@@ -97,6 +97,10 @@ resourcestring
     'Le type d''élément %s est trop petit pour contenir toutes les valeurs '+
     'possibles de cet ensemble';
 
+  // Erreurs sur les signatures
+  SReturnTypeRequired = 'La fonction exige un type de retour';
+  SReturnTypeForbidden = 'La procédure ne peut avoir de type de retour';
+
   // Erreurs sur les paramètres
   SVarParamTypeMustBeStrictlyEqual =
     'Les paramètres var originaux et formels doivent avoir le même type';

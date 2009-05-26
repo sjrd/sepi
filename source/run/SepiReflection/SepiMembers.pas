@@ -970,6 +970,16 @@ const
     '', '', '', 'unit procedure', 'unit function', 'property'
   );
 
+  /// Chaînes des types de liaison de méthodes
+  LinkKindStrings: array[TMethodLinkKind] of string = (
+    '', 'virtual', 'dynamic', 'message', '', 'override'
+  );
+
+  /// Chaînes des conventions d'appel
+  CallingConventionStrings: array[TCallingConvention] of string = (
+    'register', 'cdecl', 'pascal', 'stdcall', 'safecall'
+  );
+
 implementation
 
 uses
