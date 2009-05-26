@@ -819,9 +819,9 @@ var
   Param: TSepiParam;
 begin
   // Method kind
-  Result := MethodKindStrings[Signature.Kind];
-  if AnsiStartsStr('unit ', Result) then
-    Delete(Result, 1, 5);
+  Result := SignatureKindStrings[Signature.Kind];
+  if AnsiStartsStr('static ', Result) or AnsiStartsStr('object ', Result) then
+    Delete(Result, 1, 7);
 
   // Method name
   if MethodName <> '' then
@@ -862,7 +862,7 @@ begin
         Result := Result + ';';
     end;
 
-    if Signature.Kind = mkProperty then
+    if Signature.Kind = skProperty then
     begin
       Result[Index] := '[';
       Result[Length(Result)] := ']';

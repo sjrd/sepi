@@ -1034,9 +1034,9 @@ begin
 
     // Find the class
     case SepiMethod.Signature.Kind of
-      mkProcedure, mkFunction, mkDestructor:
+      skObjectProcedure, skObjectFunction, skDestructor:
         SelfClass := TObject(SelfPtr).ClassType;
-      mkConstructor, mkClassProcedure, mkClassFunction:
+      skConstructor, skClassProcedure, skClassFunction:
         SelfClass := TClass(SelfPtr);
     else
       RaiseInvalidOpCode;

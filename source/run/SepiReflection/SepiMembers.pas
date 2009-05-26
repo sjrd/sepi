@@ -42,6 +42,44 @@ const
 
 type
   {*
+    Type de signature
+    - skStaticProcedure : procédure statique (pas de Self) ;
+    - skStaticFunction : fonction statique (pas de Self) ;
+    - skObjectProcedure : procédure d'objet ;
+    - skObjectFunction : fonction d'objet ;
+    - skConstructor : constructeur ;
+    - skDestructor : destructeur ;
+    - skClassProcedure : procédure de classe ;
+    - skClassFunction : fonction de classe ;
+    - skClassConstructor : constructeur de classe (pour usage futur) ;
+    - skOperator : surcharge d'opérateur (pour usage futur) ;
+    - skProperty : propriété.
+  *}
+  TSepiSignatureKind = (
+    skStaticProcedure, skStaticFunction,
+    skObjectProcedure, skObjectFunction, skConstructor, skDestructor,
+    skClassProcedure, skClassFunction, skClassConstructor,
+    skOperator, skProperty
+  );
+
+const
+  /// Tous les types de signature
+  skAll = [Low(TSepiSignatureKind)..High(TSepiSignatureKind)];
+
+  /// Procédure (statique, d'objet ou de classe)
+  skProcedure = [skStaticProcedure, skObjectProcedure, skClassProcedure];
+
+  /// Fonction (statique, d'objet ou de classe)
+  skFunction = [skStaticFunction, skObjectFunction, skClassFunction];
+
+  /// Types de signature avec valeur de retour
+  skWithReturnType = skFunction + [skOperator, skProperty];
+
+  /// Types de signature avec un paramètre Self
+  skWithSelfParam = [skObjectProcedure..skClassConstructor];
+
+type
+  {*
     Type de paramètre caché
     - hpNormal : paramètre normal
     - hpSelf : paramètre Self des méthodes
@@ -259,7 +297,7 @@ type
     FAutoCreateHidden: Boolean; /// True pour créer automatiquement les cachés
     FCompleted: Boolean;        /// True si la signature est complétée
 
-    FKind: TMethodKind;                     /// Type de méthode
+    FKind: TSepiSignatureKind;              /// Type de signature
     FReturnType: TSepiType;                 /// Type de retour
     FCallingConvention: TCallingConvention; /// Convention d'appel
 
@@ -279,7 +317,7 @@ type
 
     function CheckInherited(ASignature: TSepiSignature): Boolean;
 
-    procedure SetKind(Value: TMethodKind);
+    procedure SetKind(Value: TSepiSignatureKind);
     procedure SetReturnType(Value: TSepiType);
     procedure SetCallingConvention(Value: TCallingConvention);
 
@@ -315,7 +353,7 @@ type
     property Root: TSepiRoot read FRoot;
     property OwningUnit: TSepiUnit read FOwningUnit;
     property Context: TSepiType read FContext;
-    property Kind: TMethodKind read FKind write SetKind;
+    property Kind: TSepiSignatureKind read FKind write SetKind;
 
     property Completed: Boolean read FCompleted;
 
@@ -900,6 +938,8 @@ type
   TSepiMethodRefType = class(TSepiType)
   private
     FSignature: TSepiSignature; /// Signature
+
+    procedure MakeSize;
   protected
     procedure ListReferences; override;
     procedure Save(Stream: TStream); override;
@@ -940,16 +980,6 @@ type
   end;
 
 const
-  /// Procédure d'unité
-  mkUnitProcedure = TMethodKind(Integer(High(TMethodKind))+1);
-  /// Fonction d'unité
-  mkUnitFunction = TMethodKind(Integer(High(TMethodKind))+2);
-  /// Propriété
-  mkProperty = TMethodKind(Integer(High(TMethodKind))+3);
-
-  /// Types de méthodes d'objet
-  mkOfObject = [mkProcedure..mkClassConstructor];
-
   /// Format du nom d'une méthode surchargée
   OverloadedNameFormat = 'OL$%s$%d';
 
@@ -964,10 +994,11 @@ const
   );
 
   /// Chaînes des types de méthode
-  MethodKindStrings: array[mkProcedure..mkProperty] of string = (
-    'procedure', 'function', 'constructor', 'destructor',
+  SignatureKindStrings: array[TSepiSignatureKind] of string = (
+    'static procedure', 'static function',
+    'object procedure', 'object function', 'constructor', 'destructor',
     'class procedure', 'class function', 'class constructor',
-    '', '', '', 'unit procedure', 'unit function', 'property'
+    'operator', 'property'
   );
 
   /// Chaînes des types de liaison de méthodes
@@ -1039,6 +1070,21 @@ const
 
   vmtMinIndex = vmtSelfPtr;
   vmtMinMethodIndex = vmtParent + 4;
+
+function FullSignature(const Signature: string; OfObject: Boolean): string;
+begin
+  if AnsiStartsText('procedure', Signature) or
+    AnsiStartsText('function', Signature) then
+  begin
+    if OfObject then
+      Result := 'object '+Signature
+    else
+      Result := 'static '+Signature;
+  end else
+  begin
+    Result := Signature;
+  end;
+end;
 
 procedure MakePropertyAccessKind(var Access: TSepiPropertyAccess);
 begin
@@ -1490,13 +1536,19 @@ end;
 *}
 constructor TSepiSignature.RegisterTypeData(AOwner: TSepiMeta;
   ATypeData: PTypeData);
+const
+  MethodKindToSignatureKind: array[TMethodKind] of TSepiSignatureKind = (
+    skObjectProcedure, skObjectFunction, skConstructor, skDestructor,
+    skClassProcedure, skClassFunction, skClassConstructor, skOperator,
+    skObjectProcedure, skObjectFunction
+  );
 var
   ParamData: Pointer;
   I: Integer;
 begin
   BaseCreate(AOwner);
 
-  FKind := ATypeData.MethodKind;
+  FKind := MethodKindToSignatureKind[ATypeData.MethodKind];
   ParamData := @ATypeData.ParamList;
 
   for I := 1 to ATypeData.ParamCount do
@@ -1504,7 +1556,7 @@ begin
 
   FCallingConvention := ccRegister;
 
-  if Kind in [mkFunction, mkClassFunction] then
+  if Kind in skWithReturnType then
     FReturnType := Root.FindType(PShortString(ParamData)^)
   else
     FReturnType := nil;
@@ -1572,18 +1624,17 @@ var
 begin
   BaseCreate(AOwner);
 
-  FKind := mkProcedure;
   FReturnType := nil;
   FCallingConvention := ACallingConvention;
 
   // Type de méthode
   ParamPos := MultiPos(['(', '[', ':'], ASignature);
-  FKind := TMethodKind(AnsiIndexText(
-    Trim(Copy(ASignature, 1, ParamPos-1)), MethodKindStrings));
+  FKind := TSepiSignatureKind(AnsiIndexText(
+    Trim(Copy(ASignature, 1, ParamPos-1)), SignatureKindStrings));
+  Assert(Ord(FKind) <> -1);
 
   // Type de retour
-  if (Kind = mkFunction) or (Kind = mkClassFunction) or
-    (Kind = mkUnitFunction) or (Kind = mkProperty) then
+  if Kind in skWithReturnType then
   begin
     ReturnTypePos := RightPos(':', ASignature);
     FReturnType := FOwner.Root.FindType(
@@ -1803,7 +1854,7 @@ end;
   Modifie le type de signature
   @param Value   Nouveau type de signature
 *}
-procedure TSepiSignature.SetKind(Value: TMethodKind);
+procedure TSepiSignature.SetKind(Value: TSepiSignatureKind);
 begin
   CheckNotCompleted;
   FKind := Value;
@@ -1947,11 +1998,11 @@ begin
       if (ReturnType <> nil) and (ReturnType.ResultBehavior = rbParameter) then
         TSepiParam.CreateHidden(Self, hpResult, ReturnType);
 
-      if Kind in mkOfObject then
+      if Kind in skWithSelfParam then
       begin
-        if Kind = mkConstructor then
+        if Kind = skConstructor then
           TSepiParam.CreateHidden(Self, hpAlloc)
-        else if Kind = mkDestructor then
+        else if Kind = skDestructor then
           TSepiParam.CreateHidden(Self, hpFree);
 
         TSepiParam.CreateHidden(Self, hpSelf);
@@ -2101,18 +2152,11 @@ constructor TSepiMethod.Create(AOwner: TSepiMeta; const AName: string;
   ACode: Pointer; const ASignature: string;
   ALinkKind: TMethodLinkKind = mlkStatic; AAbstract: Boolean = False;
   AMsgID: Integer = 0; ACallingConvention: TCallingConvention = ccRegister);
-var
-  SignPrefix: string;
 begin
   inherited Create(AOwner, AName);
 
-  if Owner is TSepiUnit then
-    SignPrefix := 'unit '
-  else
-    SignPrefix := '';
-
   FSignature := TSepiSignature.Create(Self,
-    SignPrefix + ASignature, ACallingConvention);
+    FullSignature(ASignature, not (Owner is TSepiUnit)), ACallingConvention);
 
   CommonCreate(ACode, ALinkKind, AAbstract, AMsgID);
 end;
@@ -2284,6 +2328,7 @@ begin
     mlkMessage: ; // nothing to do, FLinkIndex already set
     mlkOverride:
     begin
+      Assert(FInherited <> nil);
       FLinkKind := FInherited.LinkKind;
       FLinkIndex := FInherited.FLinkIndex;
     end;
@@ -4906,13 +4951,7 @@ begin
   inherited;
   FSignature := TSepiSignature.RegisterTypeData(Self, TypeData);
 
-  if Signature.Kind in mkOfObject then
-  begin
-    FSize := 8;
-    FParamBehavior.AlwaysByStack := True;
-    FResultBehavior := rbParameter;
-  end else
-    FSize := 4;
+  MakeSize;
 end;
 
 {*
@@ -4923,13 +4962,7 @@ begin
   inherited;
   FSignature := TSepiSignature.Load(Self, Stream);
 
-  if Signature.Kind in mkOfObject then
-  begin
-    FSize := 8;
-    FParamBehavior.AlwaysByStack := True;
-    FResultBehavior := rbParameter;
-  end else
-    FSize := 4;
+  MakeSize;
 end;
 
 {*
@@ -4943,25 +4976,13 @@ end;
 constructor TSepiMethodRefType.Create(AOwner: TSepiMeta;
   const AName, ASignature: string; AOfObject: Boolean = False;
   ACallingConvention: TCallingConvention = ccRegister);
-var
-  Prefix: string;
 begin
   inherited Create(AOwner, AName, tkMethod);
 
-  if AOfObject then
-    Prefix := ''
-  else
-    Prefix := 'unit ';
   FSignature := TSepiSignature.Create(Self,
-    Prefix + ASignature, ACallingConvention);
+    FullSignature(ASignature, AOfObject), ACallingConvention);
 
-  if Signature.Kind in mkOfObject then
-  begin
-    FSize := 8;
-    FParamBehavior.AlwaysByStack := True;
-    FResultBehavior := rbParameter;
-  end else
-    FSize := 4;
+  MakeSize;
 end;
 
 {*
@@ -4977,13 +4998,7 @@ begin
 
   FSignature := TSepiSignature.Clone(Self, ASignature);
 
-  if Signature.Kind in mkOfObject then
-  begin
-    FSize := 8;
-    FParamBehavior.AlwaysByStack := True;
-    FResultBehavior := rbParameter;
-  end else
-    FSize := 4;
+  MakeSize;
 end;
 
 {*
@@ -4997,13 +5012,7 @@ begin
   FSignature := TSepiSignature.Clone(Self,
     (Source as TSepiMethodRefType).Signature);
 
-  if Signature.Kind in mkOfObject then
-  begin
-    FSize := 8;
-    FParamBehavior.AlwaysByStack := True;
-    FResultBehavior := rbParameter;
-  end else
-    FSize := 4;
+  MakeSize;
 end;
 
 {*
@@ -5014,6 +5023,20 @@ begin
   FSignature.Free;
 
   inherited Destroy;
+end;
+
+{*
+  Calcule la taille de ce type
+*}
+procedure TSepiMethodRefType.MakeSize;
+begin
+  if Signature.Kind in skWithSelfParam then
+  begin
+    FSize := 8;
+    FParamBehavior.AlwaysByStack := True;
+    FResultBehavior := rbParameter;
+  end else
+    FSize := 4;
 end;
 
 {*

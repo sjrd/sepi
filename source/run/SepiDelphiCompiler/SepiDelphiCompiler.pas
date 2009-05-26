@@ -314,17 +314,11 @@ type
   end;
 
   {*
-    Noeud d'élément d'une section (type, constante, variable ou routine)
-  *}
-  TSectionItemNode = class(TSepiNonTerminal)
-  end;
-
-  {*
     Noeud déclaration de type
     @author sjrd
     @version 1.0
   *}
-  TTypeDeclNode = class(TSectionItemNode)
+  TTypeDeclNode = class(TSepiNonTerminal)
   protected
     procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
   end;
@@ -334,7 +328,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TConstantDeclNode = class(TSectionItemNode)
+  TConstantDeclNode = class(TSepiNonTerminal)
   private
     FName: string;            /// Nom de la constante
     FConstType: TSepiType;    /// Type de la constante
@@ -355,7 +349,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TVariableDeclNode = class(TSectionItemNode)
+  TVariableDeclNode = class(TSepiNonTerminal)
   private
     FNames: TStrings;         /// Nom de la variable
     FVarType: TSepiType;      /// Type de la variable
@@ -376,7 +370,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TRoutineDeclNode = class(TSectionItemNode)
+  TRoutineDeclNode = class(TSepiNonTerminal)
   private
     FName: string;              /// Nom de la routine
     FSignature: TSepiSignature; /// Signature
@@ -816,7 +810,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TMethodImplNode = class(TSectionItemNode)
+  TMethodImplNode = class(TSepiNonTerminal)
   private
     FName: string;              /// Nom de la routine
     FSignature: TSepiSignature; /// Signature
@@ -848,7 +842,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TMethodImplDeclNode = class(TSectionItemNode)
+  TMethodImplDeclNode = class(TSepiNonTerminal)
   private
     FName: string;              /// Nom de la routine
     FSignature: TSepiSignature; /// Signature
@@ -890,7 +884,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TLocalVarNode = class(TSectionItemNode)
+  TLocalVarNode = class(TSepiNonTerminal)
   private
     FNames: TStrings;
     FVarType: TSepiType;
@@ -2402,9 +2396,9 @@ begin
     ntRoutineKind:
     begin
       if Child.Children[0].SymbolClass = tkProcedure then
-        Signature.Kind := mkUnitProcedure
+        Signature.Kind := skStaticProcedure
       else
-        Signature.Kind := mkUnitFunction;
+        Signature.Kind := skStaticFunction;
     end;
 
     // Nom de la routine
@@ -3257,8 +3251,8 @@ begin
     ntRoutineKind:
     begin
       case Child.Children[0].SymbolClass of
-        tkProcedure: Signature.Kind := mkUnitProcedure;
-        tkFunction:  Signature.Kind := mkUnitFunction;
+        tkProcedure: Signature.Kind := skStaticProcedure;
+        tkFunction:  Signature.Kind := skStaticFunction;
       end;
     end;
   end;
@@ -3292,10 +3286,10 @@ begin
     end else if ModifierNode.SymbolClass = ntEventIsOfObject then
     begin
       // of object - do not duplicate
-      if Signature.Kind = mkUnitProcedure then
-        Signature.Kind := mkProcedure
-      else if Signature.Kind = mkUnitFunction then
-        Signature.Kind := mkFunction
+      if Signature.Kind = skStaticProcedure then
+        Signature.Kind := skObjectProcedure
+      else if Signature.Kind = skStaticFunction then
+        Signature.Kind := skObjectFunction
       else
       begin
         ModifierNode.MakeError(Format(
@@ -3487,8 +3481,8 @@ begin
     ntRoutineKind:
     begin
       case Child.Children[0].SymbolClass of
-        tkProcedure: Signature.Kind := mkUnitProcedure;
-        tkFunction:  Signature.Kind := mkUnitFunction;
+        tkProcedure: Signature.Kind := skStaticProcedure;
+        tkFunction:  Signature.Kind := skStaticFunction;
       end;
     end;
 
@@ -3496,14 +3490,14 @@ begin
     ntMethodKind:
     begin
       case Child.Children[0].SymbolClass of
-        tkProcedure:   Signature.Kind := mkProcedure;
-        tkFunction:    Signature.Kind := mkFunction;
-        tkConstructor: Signature.Kind := mkConstructor;
-        tkDestructor:  Signature.Kind := mkDestructor;
+        tkProcedure:   Signature.Kind := skObjectProcedure;
+        tkFunction:    Signature.Kind := skObjectFunction;
+        tkConstructor: Signature.Kind := skConstructor;
+        tkDestructor:  Signature.Kind := skDestructor;
       else
         case Child.Children[1].SymbolClass of
-          tkProcedure: Signature.Kind := mkClassProcedure;
-          tkFunction:  Signature.Kind := mkClassFunction;
+          tkProcedure: Signature.Kind := skClassProcedure;
+          tkFunction:  Signature.Kind := skClassFunction;
         end;
       end;
     end;
@@ -3634,7 +3628,7 @@ begin
   inherited;
 
   FSignature := TSepiSignature.CreateConstructing(SepiUnit, Owner);
-  FSignature.Kind := mkProperty;
+  FSignature.Kind := skProperty;
 end;
 
 {*
@@ -4077,13 +4071,12 @@ end;
 *}
 procedure TReturnTypeNode.EndParsing;
 var
-  Kind: TMethodKind;
+  Kind: TSepiSignatureKind;
   ReturnType: TSepiType;
 begin
   Kind := Signature.Kind;
 
-  if (Kind = mkFunction) or (Kind = mkClassFunction) or
-    (Kind = mkUnitFunction) or (Kind = mkProperty) then
+  if Kind in skWithReturnType then
   begin
     // Return type required
     if ChildCount > 0 then
@@ -4222,10 +4215,10 @@ begin
     // Update signature kind for a method implementation
     if (TempMethod <> nil) and (TempMethod.Owner is TSepiClass) then
     begin
-      if Signature.Kind = mkUnitProcedure then
-        Signature.Kind := mkProcedure
-      else if Signature.Kind = mkUnitFunction then
-        Signature.Kind := mkFunction;
+      if Signature.Kind = skStaticProcedure then
+        Signature.Kind := skObjectProcedure
+      else if Signature.Kind = skStaticFunction then
+        Signature.Kind := skObjectFunction;
     end;
 
     // Handle overloads
@@ -4307,14 +4300,14 @@ begin
     ntMethodKind:
     begin
       case Child.Children[0].SymbolClass of
-        tkProcedure:   Signature.Kind := mkUnitProcedure;
-        tkFunction:    Signature.Kind := mkUnitFunction;
-        tkConstructor: Signature.Kind := mkConstructor;
-        tkDestructor:  Signature.Kind := mkDestructor;
+        tkProcedure:   Signature.Kind := skStaticProcedure;
+        tkFunction:    Signature.Kind := skStaticFunction;
+        tkConstructor: Signature.Kind := skConstructor;
+        tkDestructor:  Signature.Kind := skDestructor;
       else
         case Child.Children[1].SymbolClass of
-          tkProcedure: Signature.Kind := mkClassProcedure;
-          tkFunction:  Signature.Kind := mkClassFunction;
+          tkProcedure: Signature.Kind := skClassProcedure;
+          tkFunction:  Signature.Kind := skClassFunction;
         end;
       end;
     end;

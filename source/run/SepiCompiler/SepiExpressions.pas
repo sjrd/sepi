@@ -5858,7 +5858,7 @@ end;
 *}
 procedure TSepiMethodCall.CheckSelfValueType;
 const
-  mkValidOnClass = [mkConstructor, mkClassProcedure, mkClassFunction];
+  skValidOnClass = [skConstructor, skClassProcedure, skClassFunction];
 begin
   if SelfValue = nil then
     Exit;
@@ -5866,7 +5866,7 @@ begin
   // Can''t call an object method on a class value
   if SelfValue.ValueType is TSepiMetaClass then
   begin
-    if not (Signature.Kind in mkValidOnClass) then
+    if not (Signature.Kind in skValidOnClass) then
     begin
       MakeError(SCallPatternOnlyOnClassMethod);
       Exit;
@@ -5876,7 +5876,7 @@ begin
   // Call a class method on an object: auto-dereference
   if SelfValue.ValueType is TSepiClass then
   begin
-    if Signature.Kind in [mkClassProcedure, mkClassFunction] then
+    if Signature.Kind in [skClassProcedure, skClassFunction] then
     begin
       SelfValue := TSepiDereferenceValue.MakeDereference(
         SelfValue) as ISepiReadableValue;
@@ -5891,7 +5891,7 @@ function TSepiMethodCall.GetReturnType: TSepiType;
 begin
   if Signature = nil then
     Result := nil
-  else if (Signature.Kind = mkConstructor) and (SelfValue <> nil) and
+  else if (Signature.Kind = skConstructor) and (SelfValue <> nil) and
     (SelfValue.ValueType is TSepiMetaClass) then
     Result := TSepiMetaClass(SelfValue.ValueType).SepiClass
   else

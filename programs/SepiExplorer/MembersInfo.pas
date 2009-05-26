@@ -119,7 +119,7 @@ procedure PrintSignature(Output: TOutputWriter; Signature: TSepiSignature;
 var
   ParameterCount, I: Integer;
 begin
-  Output.Write('  ' + MethodKindStrings[Signature.Kind]);
+  Output.Write('  ' + SignatureKindStrings[Signature.Kind]);
   if Name <> '' then
     Output.Write(' ' + Name);
 

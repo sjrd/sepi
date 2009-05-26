@@ -451,11 +451,11 @@ type
   *}
   TSepiSignatureKindNode = class(TSepiSignatureBuilderNode)
   protected
-    function GetKind: TMethodKind; virtual;
+    function GetKind: TSepiSignatureKind; virtual;
   public
     procedure EndParsing; override;
 
-    property Kind: TMethodKind read GetKind;
+    property Kind: TSepiSignatureKind read GetKind;
   end;
 
   {*
@@ -1444,7 +1444,7 @@ var
   BaseValue: ISepiValue;
   ObjectValue: ISepiReadableValue;
 begin
-  if Expression <> nil then
+  if Expression = nil then
   begin
     if Supports(Base, ISepiProperty, Prop) and (not Prop.ParamsCompleted) then
     begin
@@ -1608,16 +1608,16 @@ end;
   Type de signature représentée par ce noeud
   @return Type de signature représentée par ce noeud
 *}
-function TSepiSignatureKindNode.GetKind: TMethodKind;
+function TSepiSignatureKindNode.GetKind: TSepiSignatureKind;
 var
   OrdKind: Integer;
 begin
-  OrdKind := AnsiIndexText(AsText, MethodKindStrings);
+  OrdKind := AnsiIndexText(AsText, SignatureKindStrings);
 
   if OrdKind < 0 then
-    Result := mkProcedure
+    Result := skStaticProcedure
   else
-    Result := TMethodKind(OrdKind);
+    Result := TSepiSignatureKind(OrdKind);
 end;
 
 {*
@@ -1671,12 +1671,14 @@ end;
 *}
 procedure TSepiSignatureReturnTypeNode.AdaptSignatureKindToProcedure;
 begin
-  if Signature.Kind = mkFunction then
-    Signature.Kind := mkProcedure
-  else if Signature.Kind = mkClassFunction then
-    Signature.Kind := mkClassProcedure
-  else if Signature.Kind = mkUnitFunction then
-    Signature.Kind := mkUnitProcedure;
+  case Signature.Kind of
+    skStaticFunction:
+      Signature.Kind := skStaticProcedure;
+    skObjectFunction:
+      Signature.Kind := skObjectProcedure;
+    skClassFunction:
+      Signature.Kind := skClassProcedure;
+  end;
 end;
 
 {*
@@ -1684,12 +1686,14 @@ end;
 *}
 procedure TSepiSignatureReturnTypeNode.AdaptSignatureKindToFunction;
 begin
-  if Signature.Kind = mkProcedure then
-    Signature.Kind := mkFunction
-  else if Signature.Kind = mkClassProcedure then
-    Signature.Kind := mkClassFunction
-  else if Signature.Kind = mkUnitProcedure then
-    Signature.Kind := mkUnitFunction;
+  case Signature.Kind of
+    skStaticProcedure:
+      Signature.Kind := skStaticFunction;
+    skObjectProcedure:
+      Signature.Kind := skObjectFunction;
+    skClassProcedure:
+      Signature.Kind := skClassFunction;
+  end;
 end;
 
 {*
@@ -1770,14 +1774,10 @@ procedure TSepiSignatureReturnTypeNode.EndParsing;
 begin
   AdaptSignatureKindIfNeeded;
 
-  if (Signature.Kind = mkFunction) or (Signature.Kind = mkClassFunction) or
-    (Signature.Kind = mkUnitFunction) or (Signature.Kind = mkProperty) then
-  begin
-    Signature.ReturnType := CompileReturnType;
-  end else
-  begin
+  if Signature.Kind in skWithReturnType then
+    Signature.ReturnType := CompileReturnType
+  else
     CompileNoReturnType;
-  end;
 
   inherited;
 end;

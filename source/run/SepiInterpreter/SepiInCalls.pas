@@ -347,8 +347,8 @@ var
 begin
   // Find the appropriate result thunk
   case RuntimeMethod.SepiMethod.Signature.Kind of
-    mkConstructor: ResultThunk := @ConstructorThunk;
-    mkDestructor: ResultThunk := @DestructorThunk;
+    skConstructor: ResultThunk := @ConstructorThunk;
+    skDestructor: ResultThunk := @DestructorThunk;
   else
     ResultThunk := ResultThunks[ResultType.SafeResultBehavior];
   end;
