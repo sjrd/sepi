@@ -613,6 +613,8 @@ type
     procedure Save(Stream: TStream); override;
 
     function GetAlignment: Integer; override;
+
+    function GetDescription: string; override;
   public
     constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
     constructor Create(AOwner: TSepiMeta; const AName: string;
@@ -672,6 +674,8 @@ type
 
     function InternalLookFor(const Name: string; FromUnit: TSepiUnit;
       FromClass: TSepiMeta = nil): TSepiMeta; override;
+
+    function GetDescription: string; override;
   public
     constructor RegisterTypeInfo(AOwner: TSepiMeta;
       ATypeInfo: PTypeInfo); override;
@@ -796,6 +800,8 @@ type
     function InternalLookFor(const Name: string; FromUnit: TSepiUnit;
       FromClass: TSepiMeta = nil): TSepiMeta; override;
 
+    function GetDescription: string; override;
+
     function FindIntfMethodImpl(IntfMethod: TSepiMethod;
       FromClass: TSepiClass): TSepiMethod;
 
@@ -913,6 +919,8 @@ type
   protected
     procedure ListReferences; override;
     procedure Save(Stream: TStream); override;
+
+    function GetDescription: string; override;
   public
     constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
     constructor Create(AOwner: TSepiMeta; const AName: string;
@@ -943,6 +951,8 @@ type
   protected
     procedure ListReferences; override;
     procedure Save(Stream: TStream); override;
+
+    function GetDescription: string; override;
   public
     constructor RegisterTypeInfo(AOwner: TSepiMeta;
       ATypeInfo: PTypeInfo); override;
@@ -3134,6 +3144,14 @@ begin
 end;
 
 {*
+  [@inheritDoc]
+*}
+function TSepiRecordType.GetDescription: string;
+begin
+  Result := 'record';
+end;
+
+{*
   Ajoute un champ au record
   @param FieldName   Nom du champ
   @param FieldType   Type du champ
@@ -3449,6 +3467,14 @@ begin
   // If not found, continue search a level up
   if (Result = nil) and (Owner <> nil) then
     Result := TSepiInterface(Owner).InternalLookFor(Name, FromUnit, FromClass);
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiInterface.GetDescription: string;
+begin
+  Result := 'interface';
 end;
 
 {*
@@ -4370,6 +4396,14 @@ begin
 end;
 
 {*
+  [@inheritDoc]
+*}
+function TSepiClass.GetDescription: string;
+begin
+  Result := 'class';
+end;
+
+{*
   Trouve la méthode qui implémente une méthode d'interface
   @param IntfMethod   Méthode d'interface dont on cherche l'implémentation
   @param FromClass    Classe depuis laquelle on cherche
@@ -4930,6 +4964,14 @@ end;
 {*
   [@inheritDoc]
 *}
+function TSepiMetaClass.GetDescription: string;
+begin
+  Result := 'class of '+SepiClass.DisplayName;
+end;
+
+{*
+  [@inheritDoc]
+*}
 function TSepiMetaClass.Equals(Other: TSepiType): Boolean;
 begin
   Result := (ClassType = Other.ClassType) and
@@ -5062,6 +5104,14 @@ procedure TSepiMethodRefType.Save(Stream: TStream);
 begin
   inherited;
   Signature.Save(Stream);
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiMethodRefType.GetDescription: string;
+begin
+  Result := 'method ref';
 end;
 
 {*

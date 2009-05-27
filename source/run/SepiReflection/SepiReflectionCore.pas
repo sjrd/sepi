@@ -212,6 +212,8 @@ type
     function InternalLookFor(const Name: string; FromUnit: TSepiUnit;
       FromClass: TSepiMeta = nil): TSepiMeta; virtual;
 
+    function GetDisplayName: string; virtual;
+
     property State: TSepiMetaState read FState;
   public
     constructor Load(AOwner: TSepiMeta; Stream: TStream); virtual;
@@ -246,6 +248,7 @@ type
     property Root: TSepiRoot read FRoot;
     property OwningUnit: TSepiUnit read FOwningUnit;
     property Name: string read FName;
+    property DisplayName: string read GetDisplayName;
     property Visibility: TMemberVisibility read FVisibility write FVisibility;
     property CurrentVisibility: TMemberVisibility
       read FCurrentVisibility write FCurrentVisibility;
@@ -319,6 +322,9 @@ type
     function GetAlignment: Integer; virtual;
     function GetSafeResultBehavior: TSepiTypeResultBehavior;
 
+    function GetDisplayName: string; override;
+    function GetDescription: string; virtual;
+
     property TypeInfoRef: PPTypeInfo read FTypeInfoRef;
   public
     constructor RegisterTypeInfo(AOwner: TSepiMeta;
@@ -357,6 +363,7 @@ type
     property ResultBehavior: TSepiTypeResultBehavior read FResultBehavior;
     property SafeResultBehavior: TSepiTypeResultBehavior
       read GetSafeResultBehavior;
+    property Description: string read GetDescription;
   end;
 
   {*
@@ -1447,6 +1454,15 @@ begin
 end;
 
 {*
+  Nom destiné à l'affichage
+  @return Nom destiné à l'affichage
+*}
+function TSepiMeta.GetDisplayName: string;
+begin
+  Result := Name;
+end;
+
+{*
   Crée une nouvelle instance de TSepiMeta
   @return Instance créée
 *}
@@ -1835,6 +1851,26 @@ begin
     Result := rbNone
   else
     Result := FResultBehavior;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiType.GetDisplayName: string;
+begin
+  if Pos('$', Name) = 0 then
+    Result := Name
+  else
+    Result := Description;
+end;
+
+{*
+  Description courte
+  @return Description courte
+*}
+function TSepiType.GetDescription: string;
+begin
+  Result := Name;
 end;
 
 {*

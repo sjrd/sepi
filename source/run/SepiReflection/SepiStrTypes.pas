@@ -27,7 +27,7 @@ unit SepiStrTypes;
 interface
 
 uses
-  Classes, TypInfo, SepiReflectionCore;
+  SysUtils, Classes, TypInfo, SepiReflectionCore;
 
 type
   {*
@@ -44,6 +44,8 @@ type
     procedure ExtractTypeData; override;
 
     function GetAlignment: Integer; override;
+
+    function GetDescription: string; override;
   public
     constructor RegisterTypeInfo(AOwner: TSepiMeta;
       ATypeInfo: PTypeInfo); override;
@@ -176,6 +178,14 @@ end;
 function TSepiShortStringType.GetAlignment: Integer;
 begin
   Result := 1;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiShortStringType.GetDescription: string;
+begin
+  Result := 'string['+IntToStr(MaxLength)+']';
 end;
 
 {*

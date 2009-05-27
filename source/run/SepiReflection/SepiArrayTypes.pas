@@ -80,6 +80,8 @@ type
 
     function GetAlignment: Integer; override;
     function GetIndexType: TSepiOrdType; override;
+
+    function GetDescription: string; override;
   public
     constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
 
@@ -132,6 +134,8 @@ type
     procedure ExtractTypeData; override;
 
     function GetIndexType: TSepiOrdType; override;
+
+    function GetDescription: string; override;
   public
     constructor RegisterTypeInfo(AOwner: TSepiMeta;
       ATypeInfo: PTypeInfo); override;
@@ -488,6 +492,56 @@ end;
 {*
   [@inheritDoc]
 *}
+function TSepiStaticArrayType.GetDescription: string;
+var
+  InnerType: TSepiType;
+  InnerArray: TSepiStaticArrayType;
+begin
+  Result := 'array[';
+
+  InnerType := Self;
+  while InnerType is TSepiStaticArrayType do
+  begin
+    InnerArray := TSepiStaticArrayType(InnerType);
+    if InnerArray <> Self then
+      Result := Result + ', ';
+
+    with InnerArray do
+    begin
+      if (LowerBound = IndexType.MinValue) and
+        (HigherBound = IndexType.MaxValue) then
+      begin
+        Result := Result + IndexType.DisplayName;
+      end else
+      begin
+        if IndexType is TSepiIntegerType then
+        begin
+          Result := Result + Format('%d..%d', [LowerBound, HigherBound]);
+        end else if IndexType is TSepiCharType then
+        begin
+          Result := Result + Format('#%d..#%d', [LowerBound, HigherBound]);
+        end else if IndexType is TSepiEnumType then
+        begin
+          with TSepiEnumType(IndexType) do
+            Result := Result + Format('%s..%s',
+              [Names[LowerBound], Names[HigherBound]]);
+        end else
+        begin
+          Result := Result + Format('%s(%d)..%0:s(%2:d)',
+            [IndexType.Name, LowerBound, HigherBound]);
+        end;
+      end;
+    end;
+
+    InnerType := InnerArray.ElementType;
+  end;
+
+  Result := Result + '] of ' + InnerType.DisplayName;
+end;
+
+{*
+  [@inheritDoc]
+*}
 function TSepiStaticArrayType.Equals(Other: TSepiType): Boolean;
 begin
   Result := (inherited Equals(Other)) and
@@ -615,6 +669,14 @@ end;
 function TSepiDynArrayType.GetIndexType: TSepiOrdType;
 begin
   Result := (Root.SystemUnit as TSepiSystemUnit).Integer;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiDynArrayType.GetDescription: string;
+begin
+  Result := 'array of '+ElementType.DisplayName;
 end;
 
 {*

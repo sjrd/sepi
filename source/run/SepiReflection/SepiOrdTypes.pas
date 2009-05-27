@@ -80,6 +80,8 @@ type
     procedure Save(Stream: TStream); override;
 
     procedure ExtractTypeData; override;
+
+    function GetDescription: string; override;
   public
     constructor RegisterTypeInfo(AOwner: TSepiMeta;
       ATypeInfo: PTypeInfo); override;
@@ -111,6 +113,8 @@ type
     procedure Save(Stream: TStream); override;
 
     procedure ExtractTypeData; override;
+
+    function GetDescription: string; override;
   public
     constructor RegisterTypeInfo(AOwner: TSepiMeta;
       ATypeInfo: PTypeInfo); override;
@@ -144,6 +148,8 @@ type
     procedure Save(Stream: TStream); override;
 
     procedure ExtractTypeData; override;
+
+    function GetDescription: string; override;
   public
     constructor RegisterTypeInfo(AOwner: TSepiMeta;
       ATypeInfo: PTypeInfo); override;
@@ -238,6 +244,8 @@ type
     procedure Save(Stream: TStream); override;
 
     procedure ExtractTypeData; override;
+
+    function GetDescription: string; override;
   public
     constructor RegisterTypeInfo(AOwner: TSepiMeta;
       ATypeInfo: PTypeInfo); override;
@@ -274,6 +282,8 @@ type
     procedure ExtractTypeData; override;
 
     function GetAlignment: Integer; override;
+
+    function GetDescription: string; override;
   public
     constructor RegisterTypeInfo(AOwner: TSepiMeta;
       ATypeInfo: PTypeInfo); override;
@@ -320,6 +330,8 @@ type
 
     procedure ListReferences; override;
     procedure Save(Stream: TStream); override;
+
+    function GetDescription: string; override;
   public
     constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
     constructor Create(AOwner: TSepiMeta; const AName: string;
@@ -522,6 +534,14 @@ begin
 end;
 
 {*
+  [@inheritDoc]
+*}
+function TSepiIntegerType.GetDescription: string;
+begin
+  Result := IntToStr(MinValue)+'..'+IntToStr(MaxValue);
+end;
+
+{*
   Teste si une valeur est dans l'intervalle supporté par le type
   @param Value   Valeur à tester
   @return True si Value est dans l'intervalle supporté, False sinon
@@ -643,6 +663,22 @@ begin
 end;
 
 {*
+  [@inheritDoc]
+*}
+function TSepiCharType.GetDescription: string;
+begin
+  if ChrMinValue < #$100 then
+    Result := CharToCharRepres(AnsiChar(ChrMinValue)) + '..'
+  else
+    Result := '#'+IntToStr(MinValue) + '..';
+
+  if ChrMaxValue < #$100 then
+    Result := Result + CharToCharRepres(AnsiChar(ChrMaxValue))
+  else
+    Result := Result + '#'+IntToStr(MaxValue);
+end;
+
+{*
   Teste si une valeur est dans l'intervalle supporté par le type
   @param Value   Valeur à tester
   @return True si Value est dans l'intervalle supporté, False sinon
@@ -747,6 +783,14 @@ begin
   FMaxValue := TypeData.MaxInt64Value;
 
   FNeedRangeCheck := (FMinValue <> MinInt64) or (FMaxValue <> MaxInt64);
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiInt64Type.GetDescription: string;
+begin
+  Result := IntToStr(MinInt64)+'..'+IntToStr(MaxInt64);
 end;
 
 {*
@@ -1266,6 +1310,25 @@ end;
 {*
   [@inheritDoc]
 *}
+function TSepiEnumType.GetDescription: string;
+var
+  I: Integer;
+begin
+  if BaseType = Self then
+  begin
+    for I := 0 to ValueCount-1 do
+      Result := Result + ' ' + Names[I] + ',';
+    Result[1] := '(';
+    Result[Length(Result)] := ')';
+  end else
+  begin
+    Result := Names[MinValue]+'..'+Names[MaxValue];
+  end;
+end;
+
+{*
+  [@inheritDoc]
+*}
 function TSepiEnumType.Equals(Other: TSepiType): Boolean;
 begin
   Result := (ClassType = Other.ClassType) and
@@ -1416,6 +1479,14 @@ begin
     Result := Size
   else
     Result := 1;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiSetType.GetDescription: string;
+begin
+  Result := 'set of '+CompType.DisplayName;
 end;
 
 {*
@@ -1600,6 +1671,17 @@ procedure TSepiPointerType.Save(Stream: TStream);
 begin
   inherited;
   OwningUnit.WriteRef(Stream, FPointTo);
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiPointerType.GetDescription: string;
+begin
+  if PointTo <> nil then
+    Result := '^'+PointTo.DisplayName
+  else
+    Result := 'Pointer';
 end;
 
 {*

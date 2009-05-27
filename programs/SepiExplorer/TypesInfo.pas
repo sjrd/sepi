@@ -27,8 +27,7 @@ implementation
 
 procedure PrintIntInfo(Output: TOutputWriter; IntType: TSepiIntegerType);
 begin
-  Output.Write('From ' + IntToStr(IntType.MinValue) + ' to ' +
-    IntToStr(IntType.MaxValue));
+  Output.Write(IntType.Description);
   if IntType.Signed then
     Output.WriteLn(' (signed)')
   else
@@ -37,8 +36,7 @@ end;
 
 procedure PrintCharInfo(Output: TOutputWriter; CharType: TSepiCharType);
 begin
-  Output.Write('From ' + IntToStr(CharType.MinValue) + ' to ' +
-    IntToStr(CharType.MaxValue));
+  Output.Write(CharType.Description);
   if CharType.IsUnicode then
     Output.WriteLn(' (unicode)')
   else
@@ -47,8 +45,7 @@ end;
 
 procedure PrintInt64Info(Output: TOutputWriter; Int64Type: TSepiInt64Type);
 begin
-  Output.WriteLn('From ' + IntToStr(Int64Type.MinValue) + ' to ' +
-    IntToStr(Int64Type.MaxValue));
+  Output.WriteLn(Int64Type.Description);
 end;
 
 procedure PrintFloatInfo(Output: TOutputWriter; FloatType: TSepiFloatType);
@@ -65,22 +62,16 @@ begin
 end;
 
 procedure PrintEnumInfo(Output: TOutputWriter; EnumType: TSepiEnumType);
-var
-  Value: Integer;
 begin
   Output.Write('From ' + IntToStr(EnumType.MinValue) + ' to ' +
     IntToStr(EnumType.MaxValue));
   Output.WriteLn(' (based on ' + EnumType.BaseType.Name + ')');
-
-  Output.Write('  (');
-  for Value := EnumType.MinValue to EnumType.MaxValue-1 do
-    Output.Write(EnumType.Names[Value] + ', ');
-  Output.WriteLn(EnumType.Names[EnumType.MaxValue] + ')');
+  Output.WriteLn(EnumType.Description);
 end;
 
 procedure PrintSetInfo(Output: TOutputWriter; SetType: TSepiSetType);
 begin
-  Output.WriteLn('Component type: ' + SetType.CompType.Name);
+  Output.WriteLn(SetType.Description);
 end;
 
 procedure PrintPointerInfo(Output: TOutputWriter;
@@ -107,15 +98,13 @@ end;
 procedure PrintArrayInfo(Output: TOutputWriter;
   ArrayType: TSepiStaticArrayType);
 begin
-  Output.Write('array[' + IntToStr(ArrayType.LowerBound) + ', ' +
-    IntToStr(ArrayType.HigherBound));
-  Output.WriteLn('] of ' + ArrayType.ElementType.Name);
+  Output.WriteLn(ArrayType.Description);
 end;
 
 procedure PrintDynArrayInfo(Output: TOutputWriter;
   DynArrayType: TSepiDynArrayType);
 begin
-  Output.WriteLn('array of ' + DynArrayType.ElementType.Name);
+  Output.WriteLn(DynArrayType.Description);
 end;
 
 procedure PrintRecordInfo(Output: TOutputWriter; RecordType: TSepiRecordType);
@@ -200,7 +189,7 @@ end;
 
 procedure PrintMetaClassInfo(Output: TOutputWriter; MetaClass: TSepiMetaClass);
 begin
-  Output.WriteLn('class of ' + MetaClass.SepiClass.Name);
+  Output.WriteLn(MetaClass.Description);
 end;
 
 procedure PrintMethodRefInfo(Output: TOutputWriter;
@@ -279,7 +268,8 @@ begin
       if ValueType is TSepiPointerType then
       begin
         if Assigned(TSepiPointerType(ValueType).PointTo) and
-          (TSepiPointerType(ValueType).PointTo.TypeInfo = TypeInfo(Char)) then
+          (TSepiPointerType(ValueType).PointTo.TypeInfo = TypeInfo(Char)) and
+          (Cardinal(Value^) > $100) then
           Output.WriteLn(PChar(Value^))
         else
           Output.WriteLn('$'+IntToHex(PLongWord(Value)^, 8));
@@ -318,7 +308,7 @@ procedure PrintConstInfo(Output: TOutputWriter; Constant: TSepiConstant);
 begin
   with Constant do
   begin
-    Output.Write('const ' + Name + ' (' + ConstType.Name + ') = ');
+    Output.Write('const ' + Name + ' (' + ConstType.DisplayName + ') = ');
     PrintValue(Output, ValuePtr, ConstType);
   end;
 end;
@@ -331,7 +321,7 @@ begin
       Output.Write('const ')
     else
       Output.Write('var ');
-    Output.Write(Name + ': ' + VarType.Name + ' = ');
+    Output.Write(Name + ': ' + VarType.DisplayName + ' = ');
     PrintValue(Output, Value, VarType);
   end;
 end;

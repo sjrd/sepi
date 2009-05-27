@@ -82,7 +82,7 @@ procedure PrintFieldInfo(Output: TOutputWriter; Field: TSepiField);
 begin
   with Field do
     Output.WriteLn('  {' + IntToStr0(Offset, 2) + '}'#9 +
-      Name + ': ' + FieldType.Name + ';');
+      Name + ': ' + FieldType.DisplayName + ';');
 end;
 
 procedure PrintParamInfo(Output: TOutputWriter; Param: TSepiParam);
@@ -106,7 +106,7 @@ begin
     Output.Write(': ');
     if pfArray in Param.Flags then
       Output.Write('array of ');
-    Output.Write(Param.ParamType.Name);
+    Output.Write(Param.ParamType.DisplayName);
   end else if pfArray in Param.Flags then
     Output.Write(': array of const');
 
@@ -139,7 +139,7 @@ begin
     end;
 
     if ReturnType <> nil then
-      Output.Write(': ' + ReturnType.Name);
+      Output.Write(': ' + ReturnType.DisplayName);
 
     if CallingConvention <> ccRegister then
       Output.Write('; ' + LowerCase(Copy(
@@ -202,7 +202,7 @@ begin
     end;
   end;
 
-  Output.Write(': ' + Prop.PropType.Name);
+  Output.Write(': ' + Prop.PropType.DisplayName);
 
   if Prop.ReadAccess.Kind <> pakNone then
     Output.Write(' read ' + Prop.ReadAccess.Meta.Name);
