@@ -77,6 +77,7 @@ tkCDecl	cdecl
 tkPascal	pascal
 tkStdCall	stdcall
 tkSafeCall	safecall
+tkAssembler	assembler
 
 tkName	name
 tkIndex	index
@@ -89,6 +90,19 @@ tkDispID	dispid
 tkReadOnly	readonly
 tkWriteOnly	writeonly
 tkString	string
+
+tkDeprecated	deprecated
+tkPlatform	platform
+
+tkOverload	overload
+tkVirtual	virtual
+tkDynamic	dynamic
+tkMessage	message
+tkOverride	override
+tkAbstract	abstract
+tkStatic	static
+tkReintroduce	reintroduce
+tkInline	inline
 
 tkImplementation	implementation
 tkForward	forward
@@ -144,7 +158,12 @@ ntInitFinit	InitFinit	Simplify
 
 ntIdentifier	Identifier
 	tkIdentifier
-	CallingConvention
+	'register'
+	'cdecl'
+	'pascal'
+	'stdcall'
+	'safecall'
+	'assembler'
 	'name'
 	'index'
 	'read'
@@ -156,6 +175,17 @@ ntIdentifier	Identifier
 	'readonly'
 	'writeonly'
 	'string'
+	'deprecated'
+	'platform'
+	'overload'
+	'virtual'
+	'dynamic'
+	'message'
+	'override'
+	'abstract'
+	'static'
+	'reintroduce'
+	'inline'
 
 ntCallingConvention	CallingConvention
 	'register'
@@ -173,6 +203,9 @@ ntCommaIdentList	CommaIdentList	Simplify
 
 ntQualifiedIdent	QualifiedIdent	AsText
 	Identifier ('.'* Identifier)*
+
+ntIdentifierDecl	IdentifierDecl	AsText
+	Identifier
 
 ntInitializationExpression	InitializationExpression
 	0 ArrayInitializationExpression
@@ -564,11 +597,38 @@ ntEventIsOfObject	EventIsOfObject	AsText
 	'of' 'object'
 
 ntRoutineDecl	RoutineDecl
-	RoutineKind Identifier MethodSignature (RoutineModifier)* ';'* (RoutineModifier ';'*)*
+	RoutineKind MethodNameDeclaration MethodSignatureBeta (RoutineModifierBeta)* ';'* (RoutineModifierBeta ';'*)*
 
 ntRoutineKind	RoutineKind	AsText
 	'procedure'
 	'function'
+
+ntMethodNameDeclaration	MethodNameDeclaration
+	Identifier
+
+ntMethodSignatureBeta	MethodSignatureBeta
+	('('* MethodParamList ')'*)? ReturnType
+
+ntRoutineModifierBeta	RoutineModifierBeta	Simplify
+	CallingConventionBeta
+	OverloadMarker
+	IgnoredRoutineModifier
+
+ntCallingConventionBeta	CallingConventionBeta
+	'register'
+	'cdecl'
+	'pascal'
+	'stdcall'
+	'safecall'
+	'assembler'
+
+ntOverloadMarker	OverloadMarker
+	'overload'
+
+ntIgnoredRoutineModifier	IgnoredRoutineModifier
+	'deprecated' (tkStringCst)?
+	'platform'
+	'inline'
 
 ntRoutineModifier	RoutineModifier
 	Identifier

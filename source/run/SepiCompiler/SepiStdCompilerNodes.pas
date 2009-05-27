@@ -419,6 +419,16 @@ type
   end;
 
   {*
+    Noeud représentant une déclaration d'un identificateur non vérifié
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiUncheckedIdentifierDeclNode = class(TSepiIdentifierDeclarationNode)
+  protected
+    function IsRedeclared: Boolean; override;
+  end;
+
+  {*
     Classe de base pour les noeuds qui doivent construire une signature
     TSepiSignatureBuilderNode ne crée pas elle-même d'instance de
     TSepiSignature. Elle est prévue pour construire une signature créée par un
@@ -494,6 +504,38 @@ type
     property TypeName: string read GetTypeName;
   public
     procedure EndParsing; override;
+  end;
+
+  {*
+    Noeud déclaration de méthode
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiMethodDeclarationNode = class(TSepiNonTerminal)
+  private
+    FName: string;              /// Nom de la méthode
+    FSignature: TSepiSignature; /// Signature
+    FIsOverloaded: Boolean;     /// True si surchargée
+  protected
+    procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
+    procedure ChildEndParsing(Child: TSepiParseTreeNode); override;
+  public
+    destructor Destroy; override;
+
+    procedure BeginParsing; override;
+    procedure EndParsing; override;
+
+    property Name: string read FName;
+    property Signature: TSepiSignature read FSignature;
+    property IsOverloaded: Boolean read FIsOverloaded;
+  end;
+
+  {*
+    Marqueur overload
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiOverloadMarkerNode = class(TSepiNonTerminal)
   end;
 
 implementation
@@ -1575,6 +1617,18 @@ begin
   inherited;
 end;
 
+{----------------------------------------}
+{ TSepiUncheckedIdentifierDeclNode class }
+{----------------------------------------}
+
+{*
+  [@inheritDoc]
+*}
+function TSepiUncheckedIdentifierDeclNode.IsRedeclared: Boolean;
+begin
+  Result := False;
+end;
+
 {---------------------------------}
 { TSepiSignatureBuilderNode class }
 {---------------------------------}
@@ -1778,6 +1832,70 @@ begin
     Signature.ReturnType := CompileReturnType
   else
     CompileNoReturnType;
+
+  inherited;
+end;
+
+{----------------------------------}
+{ TSepiMethodDeclarationNode class }
+{----------------------------------}
+
+{*
+  [@inheritDoc]
+*}
+destructor TSepiMethodDeclarationNode.Destroy;
+begin
+  FSignature.Free;
+
+  inherited;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiMethodDeclarationNode.BeginParsing;
+begin
+  inherited;
+
+  FSignature := TSepiSignature.CreateConstructing(SepiUnit);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiMethodDeclarationNode.ChildBeginParsing(
+  Child: TSepiParseTreeNode);
+begin
+  inherited;
+
+  if Child is TSepiSignatureBuilderNode then
+    TSepiSignatureBuilderNode(Child).SetSignature(Signature);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiMethodDeclarationNode.ChildEndParsing(Child: TSepiParseTreeNode);
+begin
+  if Child is TSepiIdentifierDeclarationNode then
+    FName := TSepiIdentifierDeclarationNode(Child).Identifier
+  else if Child is TSepiOverloadMarkerNode then
+    FIsOverloaded := True;
+
+  inherited;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiMethodDeclarationNode.EndParsing;
+begin
+  Signature.Complete;
+
+  if IsOverloaded then
+    TSepiMethod.CreateOverloaded(SepiContext, Name, nil, Signature)
+  else
+    TSepiMethod.Create(SepiContext, Name, nil, Signature);
 
   inherited;
 end;

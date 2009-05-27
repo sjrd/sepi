@@ -366,27 +366,13 @@ type
   end;
 
   {*
-    Noeud déclaration de routine
+    Noeud type de routine
     @author sjrd
     @version 1.0
   *}
-  TRoutineDeclNode = class(TSepiNonTerminal)
-  private
-    FName: string;              /// Nom de la routine
-    FSignature: TSepiSignature; /// Signature
-    FIsOverloaded: Boolean;     /// True si surchargée
+  TRoutineKindNode = class(TSepiSignatureKindNode)
   protected
-    procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
-    procedure ChildEndParsing(Child: TSepiParseTreeNode); override;
-  public
-    destructor Destroy; override;
-
-    procedure BeginParsing; override;
-    procedure EndParsing; override;
-
-    property Name: string read FName;
-    property Signature: TSepiSignature read FSignature;
-    property IsOverloaded: Boolean read FIsOverloaded;
+    function GetKind: TSepiSignatureKind; override;
   end;
 
   {*
@@ -1179,12 +1165,13 @@ begin
   NonTerminalClasses[ntUsesSection]    := TUsesSectionNode;
 
   NonTerminalClasses[ntQualifiedIdent] := TSepiQualifiedIdentNode;
+  NonTerminalClasses[ntIdentifierDecl] := TSepiIdentifierDeclarationNode;
 
   NonTerminalClasses[ntTypeDesc]    := TTypeDescNode;
   NonTerminalClasses[ntTypeDecl]    := TTypeDeclNode;
   NonTerminalClasses[ntConstDecl]   := TConstantDeclNode;
   NonTerminalClasses[ntGlobalVar]   := TVariableDeclNode;
-  NonTerminalClasses[ntRoutineDecl] := TRoutineDeclNode;
+  NonTerminalClasses[ntRoutineDecl] := TSepiMethodDeclarationNode;
 
   NonTerminalClasses[ntInitializationExpression] :=
     TInitializationExpressionNode;
@@ -1242,6 +1229,13 @@ begin
 
   NonTerminalClasses[ntClassMemberLists]    := TMemberListNode;
   NonTerminalClasses[ntInterfaceMemberList] := TMemberListNode;
+
+  NonTerminalClasses[ntRoutineKind]           := TRoutineKindNode;
+  NonTerminalClasses[ntMethodNameDeclaration] :=
+    TSepiUncheckedIdentifierDeclNode;
+  NonTerminalClasses[ntMethodSignatureBeta]   := TSepiSignatureBuilderNode;
+  NonTerminalClasses[ntCallingConventionBeta] := TSepiCallingConventionNode;
+  NonTerminalClasses[ntOverloadMarker]        := TSepiOverloadMarkerNode;
 
   NonTerminalClasses[ntField]           := TFieldNode;
   NonTerminalClasses[ntRecordCaseField] := TFieldNode;
@@ -2345,104 +2339,18 @@ begin
 end;
 
 {------------------------}
-{ TRoutineDeclNode class }
+{ TRoutineKindNode class }
 {------------------------}
 
 {*
   [@inheritDoc]
 *}
-destructor TRoutineDeclNode.Destroy;
+function TRoutineKindNode.GetKind: TSepiSignatureKind;
 begin
-  FSignature.Free;
-
-  inherited;
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TRoutineDeclNode.BeginParsing;
-begin
-  inherited;
-
-  FSignature := TSepiSignature.CreateConstructing(SepiUnit);
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TRoutineDeclNode.ChildBeginParsing(Child: TSepiParseTreeNode);
-begin
-  inherited;
-
-  if Child is TSepiSignatureBuilderNode then
-    TSepiSignatureBuilderNode(Child).SetSignature(Signature);
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TRoutineDeclNode.ChildEndParsing(Child: TSepiParseTreeNode);
-const
-  IgnoredModifiers: array[0..3] of string = (
-    'deprecated', 'inline', 'assembler', 'platform'
-  );
-var
-  Str: string;
-  Temp: Integer;
-begin
-  case Child.SymbolClass of
-    // Type de routine
-    ntRoutineKind:
-    begin
-      if Child.Children[0].SymbolClass = tkProcedure then
-        Signature.Kind := skStaticProcedure
-      else
-        Signature.Kind := skStaticFunction;
-    end;
-
-    // Nom de la routine
-    ntIdentifier:
-    begin
-      FName := Child.AsText;
-    end;
-
-    // Modificateur
-    ntRoutineModifier:
-    begin
-      Str := Child.AsText;
-      Temp := AnsiIndexText(Str, CallingConventionStrings);
-      if Temp >= 0 then
-      begin
-        // Calling convention
-        Signature.CallingConvention := TCallingConvention(Temp);
-      end else
-      begin
-        // Other modifier
-        if LowerCase(Str) = 'overload' then
-          FIsOverloaded := True
-        else if AnsiIndexText(Str, IgnoredModifiers) = -1 then
-          Child.MakeError(Format(SUnknownMethodModifier, [Str]), ekWarning);
-      end;
-    end;
-  end;
-
-  inherited;
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TRoutineDeclNode.EndParsing;
-begin
-  Signature.Complete;
-
-  if IsOverloaded then
-    TSepiMethod.CreateOverloaded(SepiContext, Name, nil, Signature)
+  if Children[0].SymbolClass = tkProcedure then
+    Result := skStaticProcedure
   else
-    TSepiMethod.Create(SepiContext, Name, nil, Signature);
-
-  inherited;
+    Result := skStaticFunction;
 end;
 
 {----------------------}
