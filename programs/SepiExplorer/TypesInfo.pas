@@ -127,7 +127,8 @@ begin
   Output.WriteLn('record');
 
   for I := 0 to RecordType.ChildCount-1 do
-    PrintFieldInfo(Output, TSepiField(RecordType.Children[I]));
+    if RecordType.Children[I] is TSepiField then
+      PrintFieldInfo(Output, TSepiField(RecordType.Children[I]));
 
   Output.WriteLn('end;');
 end;

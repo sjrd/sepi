@@ -586,6 +586,25 @@ type
   end;
 
   {*
+    Noeud représentant une définition de type
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiTypeDefinitionNode = class(TSepiTypeNode)
+  private
+    FTypeName: string; /// Nom du type à définir (peut être '')
+
+    function GetIsAnonymous: Boolean;
+  protected
+    procedure MakeErroneousType; override;
+  public
+    procedure SetTypeName(const ATypeName: string);
+
+    property IsAnonymous: Boolean read GetIsAnonymous;
+    property TypeName: string read FTypeName;
+  end;
+
+  {*
     Noeud descripteur de contenu de record
     Le contexte Sepi d'un tel noeud doit toujours être de type TSepiRecordType.
     @author sjrd
@@ -2076,7 +2095,7 @@ end;
 *}
 procedure TSepiTypeNode.MakeErroneousType;
 begin
-  SetSepiType(SystemUnit.Integer);
+  SetSepiType(UnitCompiler.GetErroneousType);
 end;
 
 {*
@@ -2088,6 +2107,36 @@ begin
     MakeErroneousType;
 
   inherited;
+end;
+
+{-------------------------------}
+{ TSepiTypeDefinitionNode class }
+{-------------------------------}
+
+{*
+  Indique si le type à définir est anonyme
+  @return True si le type est anonyme, False sinon
+*}
+function TSepiTypeDefinitionNode.GetIsAnonymous: Boolean;
+begin
+  Result := TypeName = '';
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiTypeDefinitionNode.MakeErroneousType;
+begin
+  SetSepiType(UnitCompiler.MakeErroneousTypeAlias(TypeName));
+end;
+
+{*
+  Spécifie le nom type à définir
+  @param ATypeName   Nom du type à définir
+*}
+procedure TSepiTypeDefinitionNode.SetTypeName(const ATypeName: string);
+begin
+  FTypeName := ATypeName;
 end;
 
 {-------------------------------}

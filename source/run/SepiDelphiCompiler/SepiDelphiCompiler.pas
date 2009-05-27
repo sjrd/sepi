@@ -288,29 +288,6 @@ type
   end;
 
   {*
-    Noeud descripteur de type
-    @author sjrd
-    @version 1.0
-  *}
-  TTypeDescNode = class(TSepiTypeNode)
-  private
-    FTypeName: string;     /// Nom du type
-    FIsAnonymous: Boolean; /// Indique si le type est anonyme
-    FIsPacked: Boolean;    /// Indique si le type est packed
-  protected
-    procedure MakeErroneousType; override;
-
-    procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
-    procedure ChildEndParsing(Child: TSepiParseTreeNode); override;
-  public
-    procedure BeginParsing; override;
-
-    property TypeName: string read FTypeName write FTypeName;
-    property IsAnonymous: Boolean read FIsAnonymous;
-    property IsPacked: Boolean read FIsPacked;
-  end;
-
-  {*
     Noeud déclaration de type
     @author sjrd
     @version 1.0
@@ -373,29 +350,11 @@ type
   end;
 
   {*
-    Classe de base pour les descripteurs de types spécialisés
-    @author sjrd
-    @version 1.0
-  *}
-  TTypeDescriptorNode = class(TSepiNonTerminal)
-  private
-    FTypeName: string;  /// Nom du type
-    FIsPacked: Boolean; /// Indique si le type doit être packed
-
-    FSepiType: TSepiType; /// Type Sepi compilé
-  public
-    property TypeName: string read FTypeName write FTypeName;
-    property IsPacked: Boolean read FIsPacked write FIsPacked;
-
-    property SepiType: TSepiType read FSepiType write FSepiType;
-  end;
-
-  {*
     Noeud descripteur d'un clone de type
     @author sjrd
     @version 1.0
   *}
-  TTypeCloneNode = class(TTypeDescriptorNode)
+  TTypeCloneNode = class(TSepiTypeDefinitionNode)
   public
     procedure EndParsing; override;
   end;
@@ -403,11 +362,10 @@ type
   {*
     Noeud descripteur d'un type intervalle ou énumération
   *}
-  TRangeOrEnumTypeNode = class(TTypeDescriptorNode)
+  TRangeOrEnumTypeNode = class(TSepiTypeDefinitionNode)
   protected
     procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
-  public
-    procedure EndParsing; override;
+    procedure ChildEndParsing(Child: TSepiParseTreeNode); override;
   end;
 
   {*
@@ -415,7 +373,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TRangeTypeNode = class(TTypeDescriptorNode)
+  TRangeTypeNode = class(TSepiTypeDefinitionNode)
   private
     function MakeType(const TypeName: string; BaseType: TSepiType;
       const LowerValue, HigherValue): TSepiType;
@@ -430,7 +388,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TEnumTypeNode = class(TTypeDescriptorNode)
+  TEnumTypeNode = class(TSepiTypeDefinitionNode)
   public
     procedure EndParsing; override;
   end;
@@ -440,7 +398,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TSetTypeNode = class(TTypeDescriptorNode)
+  TSetTypeNode = class(TSepiTypeDefinitionNode)
   public
     procedure EndParsing; override;
   end;
@@ -450,7 +408,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TStringTypeNode = class(TTypeDescriptorNode)
+  TStringTypeNode = class(TSepiTypeDefinitionNode)
   public
     procedure EndParsing; override;
   end;
@@ -460,7 +418,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TPointerTypeNode = class(TTypeDescriptorNode)
+  TPointerTypeNode = class(TSepiTypeDefinitionNode)
   public
     procedure EndParsing; override;
   end;
@@ -470,7 +428,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TArrayTypeNode = class(TTypeDescriptorNode)
+  TArrayTypeNode = class(TSepiTypeDefinitionNode)
   private
     function RangeDefinition(const TypeName: string;
       RangeNode: TSepiParseTreeNode; ElementType: TSepiType): TSepiStaticArrayType;
@@ -481,15 +439,27 @@ type
   end;
 
   {*
+    Noeud descripteur d'un type tableau packed
+    @author sjrd
+    @version 1.0
+  *}
+  TPackedArrayTypeNode = class(TArrayTypeNode)
+  end;
+
+  {*
     Noeud descripteur d'un type record
     @author sjrd
     @version 1.0
   *}
-  TRecordTypeNode = class(TTypeDescriptorNode)
+  TRecordTypeNode = class(TSepiTypeDefinitionNode)
   private
+    FIsPacked: Boolean; /// Indique si le record doit être packed
+
     FRecordType: TSepiRecordType; /// Type record
   protected
     function GetSepiContext: TSepiMeta; override;
+
+    property IsPacked: Boolean read FIsPacked write FIsPacked;
   public
     procedure BeginParsing; override;
     procedure EndParsing; override;
@@ -498,11 +468,22 @@ type
   end;
 
   {*
+    Noeud descripteur d'un type packed record
+    @author sjrd
+    @version 1.0
+  *}
+  TPackedRecordTypeNode = class(TRecordTypeNode)
+  public
+    constructor Create(AParent: TSepiNonTerminal; AClass: TSepiSymbolClass;
+      const ASourcePos: TSepiSourcePosition); override;
+  end;
+
+  {*
     Noeud descripteur d'un type classe
     @author sjrd
     @version 1.0
   *}
-  TClassTypeNode = class(TTypeDescriptorNode)
+  TClassTypeNode = class(TSepiTypeDefinitionNode)
   private
     FIsForwardClass: Boolean; /// True si c'est une classe forwardée
     FIsClass: Boolean;        /// True si c'est une classe
@@ -535,7 +516,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TInterfaceTypeNode = class(TTypeDescriptorNode)
+  TInterfaceTypeNode = class(TSepiTypeDefinitionNode)
   private
     FIsDispIntf: Boolean;        /// True si c'est une dispinterface
     FParentIntf: TSepiInterface; /// Interface parent
@@ -565,7 +546,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TMethodRefTypeNode = class(TTypeDescriptorNode)
+  TMethodRefTypeNode = class(TSepiTypeDefinitionNode)
   private
     FSignature: TSepiSignature; /// Signature
   protected
@@ -1142,7 +1123,6 @@ begin
   NonTerminalClasses[ntQualifiedIdent]     := TSepiQualifiedIdentNode;
   NonTerminalClasses[ntIdentifierDecl]     := TSepiIdentifierDeclarationNode;
 
-  NonTerminalClasses[ntTypeDesc]    := TTypeDescNode;
   NonTerminalClasses[ntTypeDecl]    := TTypeDeclNode;
   NonTerminalClasses[ntConstDecl]   := TConstantDeclNode;
   NonTerminalClasses[ntGlobalVar]   := TVariableDeclNode;
@@ -1192,7 +1172,9 @@ begin
   NonTerminalClasses[ntStringDesc]        := TStringTypeNode;
   NonTerminalClasses[ntPointerDesc]       := TPointerTypeNode;
   NonTerminalClasses[ntArrayDesc]         := TArrayTypeNode;
+  NonTerminalClasses[ntPackedArrayDesc]   := TPackedArrayTypeNode;
   NonTerminalClasses[ntRecordDesc]        := TRecordTypeNode;
+  NonTerminalClasses[ntPackedRecordDesc]  := TPackedRecordTypeNode;
   NonTerminalClasses[ntClassDesc]         := TClassTypeNode;
   NonTerminalClasses[ntInterfaceDesc]     := TInterfaceTypeNode;
   NonTerminalClasses[ntDispInterfaceDesc] := TInterfaceTypeNode;
@@ -2135,58 +2117,6 @@ begin
 end;
 
 {---------------------}
-{ TTypeDescNode class }
-{---------------------}
-
-{*
-  [@inheritDoc]
-*}
-procedure TTypeDescNode.MakeErroneousType;
-begin
-  SetSepiType(UnitCompiler.MakeErroneousTypeAlias(TypeName));
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TTypeDescNode.BeginParsing;
-begin
-  inherited;
-
-  FIsAnonymous := TypeName = '';
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TTypeDescNode.ChildBeginParsing(Child: TSepiParseTreeNode);
-var
-  Descriptor: TTypeDescriptorNode;
-begin
-  inherited;
-
-  if Child is TTypeDescriptorNode then
-  begin
-    Descriptor := TTypeDescriptorNode(Child);
-    Descriptor.TypeName := TypeName;
-    Descriptor.IsPacked := IsPacked;
-  end;
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TTypeDescNode.ChildEndParsing(Child: TSepiParseTreeNode);
-begin
-  if Child.SymbolClass = tkPacked then
-    FIsPacked := True
-  else
-    SetSepiType((Child as TTypeDescriptorNode).SepiType);
-
-  inherited;
-end;
-
-{---------------------}
 { TTypeDeclNode class }
 {---------------------}
 
@@ -2197,9 +2127,9 @@ procedure TTypeDeclNode.ChildBeginParsing(Child: TSepiParseTreeNode);
 begin
   inherited;
 
-  if Child is TTypeDescNode then
-    TTypeDescNode(Child).TypeName :=
-      (Children[0] as TSepiIdentifierDeclarationNode).Identifier;
+  if Child is TSepiTypeDefinitionNode then
+    TSepiTypeDefinitionNode(Child).SetTypeName(
+      (Children[0] as TSepiIdentifierDeclarationNode).Identifier);
 end;
 
 {-------------------------}
@@ -2231,9 +2161,9 @@ var
 begin
   if Child is TSepiIdentifierDeclarationNode then
     FName := TSepiIdentifierDeclarationNode(Child).Identifier
-  else if Child is TTypeDescNode then
+  else if Child is TSepiTypeNode then
   begin
-    FConstType := TTypeDescNode(Child).SepiType;
+    FConstType := TSepiTypeNode(Child).SepiType;
     FConstVar := TSepiVariable.Create(SepiContext, Name, ConstType, True);
   end else if Child is TConstExpressionNode then
   begin
@@ -2294,9 +2224,9 @@ begin
       FNames := TStringList.Create;
 
     Names.Add(TSepiIdentifierDeclarationNode(Child).Identifier);
-  end else if Child is TTypeDescNode then
+  end else if Child is TSepiTypeNode then
   begin
-    FVarType := TTypeDescNode(Child).SepiType;
+    FVarType := TSepiTypeNode(Child).SepiType;
 
     if Names.Count = 1 then
       FVariable := TSepiVariable.Create(SepiContext, Names[0], VarType)
@@ -2341,17 +2271,17 @@ begin
 
   if OldType = nil then
   begin
-    SepiType := UnitCompiler.MakeErroneousTypeAlias(TypeName);
+    SetSepiType(UnitCompiler.MakeErroneousTypeAlias(TypeName));
   end else
   begin
     try
-      SepiType := TSepiTypeClass(OldType.ClassType).Clone(
-        SepiContext, TypeName, OldType);
+      SetSepiType(TSepiTypeClass(OldType.ClassType).Clone(
+        SepiContext, TypeName, OldType));
     except
       on Error: ESepiError do
       begin
         MakeError(Error.Message);
-        SepiType := UnitCompiler.MakeErroneousTypeAlias(TypeName);
+        SetSepiType(UnitCompiler.MakeErroneousTypeAlias(TypeName));
       end;
     end;
   end;
@@ -2370,19 +2300,15 @@ procedure TRangeOrEnumTypeNode.ChildBeginParsing(Child: TSepiParseTreeNode);
 begin
   inherited;
 
-  with Child as TTypeDescriptorNode do
-  begin
-    TypeName := Self.TypeName;
-    IsPacked := Self.IsPacked;
-  end;
+  (Child as TSepiTypeDefinitionNode).SetTypeName(TypeName);
 end;
 
 {*
   [@inheritDoc]
 *}
-procedure TRangeOrEnumTypeNode.EndParsing;
+procedure TRangeOrEnumTypeNode.ChildEndParsing(Child: TSepiParseTreeNode);
 begin
-  SepiType := (Children[0] as TTypeDescriptorNode).SepiType;
+  SetSepiType((Child as TSepiTypeDefinitionNode).SepiType);
 
   inherited;
 end;
@@ -2447,7 +2373,7 @@ begin
 
     if Supports(Expression, ISepiTypeExpression, TypeExpression) then
     begin
-      SepiType := TypeExpression.ExprType;
+      SetSepiType(TypeExpression.ExprType);
 
       if TypeName <> '' then
         TSepiTypeAlias.Create(SepiContext, TypeName, SepiType);
@@ -2484,14 +2410,14 @@ begin
       end else
       begin
         // OK, we're good
-        SepiType := MakeType(TypeName, LowerValue.ValueType,
-          LowerValue.ConstValuePtr^, HigherValue.ConstValuePtr^);
+        SetSepiType(MakeType(TypeName, LowerValue.ValueType,
+          LowerValue.ConstValuePtr^, HigherValue.ConstValuePtr^));
       end;
     end;
   end;
 
   if SepiType = nil then
-    SepiType := UnitCompiler.MakeErroneousTypeAlias(TypeName);
+    SetSepiType(UnitCompiler.MakeErroneousTypeAlias(TypeName));
 
   inherited;
 end;
@@ -2513,8 +2439,8 @@ begin
   for I := 0 to ChildCount-1 do
     Values[I] := Children[I].AsText;
 
-  SepiType := TSepiEnumType.Create(SepiContext, TypeName, Values,
-    (RootNode as TRootNode).MinEnumSize);
+  SetSepiType(TSepiEnumType.Create(SepiContext, TypeName, Values,
+    (RootNode as TRootNode).MinEnumSize));
 
   inherited;
 end;
@@ -2531,15 +2457,15 @@ var
   CompType: TSepiType;
   OrdCompType: TSepiOrdType absolute CompType;
 begin
-  CompType := (Children[0] as TTypeDescNode).SepiType;
+  CompType := (Children[0] as TSepiTypeNode).SepiType;
 
   if (not (CompType is TSepiOrdType)) or
     (OrdCompType.MaxValue - OrdCompType.MinValue >= 256) then
   begin
     Children[0].MakeError(SWrongSetCompType);
-    SepiType := TSepiSetType.Create(SepiContext, TypeName, SystemUnit.Byte);
+    SetSepiType(TSepiSetType.Create(SepiContext, TypeName, SystemUnit.Byte));
   end else
-    SepiType := TSepiSetType.Create(SepiContext, TypeName, OrdCompType);
+    SetSepiType(TSepiSetType.Create(SepiContext, TypeName, OrdCompType));
 
   inherited;
 end;
@@ -2561,10 +2487,10 @@ begin
       MaxLength, SystemUnit.Integer) then
       MaxLength := 255;
 
-    SepiType := TSepiShortStringType.Create(SepiContext, TypeName, MaxLength);
+    SetSepiType(TSepiShortStringType.Create(SepiContext, TypeName, MaxLength));
   end else
   begin
-    SepiType := SystemUnit.LongString;
+    SetSepiType(SystemUnit.LongString);
 
     if TypeName <> '' then
       TSepiTypeAlias.Create(SepiContext, TypeName, SepiType);
@@ -2589,9 +2515,9 @@ begin
   PointedType := SepiUnit.LookFor(PointedName) as TSepiType;
 
   if PointedType <> nil then
-    SepiType := TSepiPointerType.Create(SepiContext, TypeName, PointedType)
+    SetSepiType(TSepiPointerType.Create(SepiContext, TypeName, PointedType))
   else
-    SepiType := TSepiPointerType.Create(SepiContext, TypeName, PointedName);
+    SetSepiType(TSepiPointerType.Create(SepiContext, TypeName, PointedName));
 
   inherited;
 end;
@@ -2693,14 +2619,14 @@ var
   RangeNode: TSepiParseTreeNode;
   SubTypeName: string;
 begin
-  ElementType := (Children[1] as TTypeDescNode).SepiType;
+  ElementType := (Children[1] as TSepiTypeNode).SepiType;
 
   with Children[0] do
   begin
     if ChildCount = 0 then
     begin
       // Dynamic array
-      SepiType := TSepiDynArrayType.Create(SepiContext, TypeName, ElementType);
+      SetSepiType(TSepiDynArrayType.Create(SepiContext, TypeName, ElementType));
     end else
     begin
       // Static array
@@ -2721,7 +2647,7 @@ begin
             RangeNode.Children[0] as TConstExpressionNode, ElementType);
       end;
 
-      SepiType := ElementType;
+      SetSepiType(ElementType);
     end;
   end;
 
@@ -2759,9 +2685,24 @@ end;
 procedure TRecordTypeNode.EndParsing;
 begin
   RecordType.Complete;
-  SepiType := RecordType;
+  SetSepiType(RecordType);
 
   inherited;
+end;
+
+{-----------------------------}
+{ TPackedRecordTypeNode class }
+{-----------------------------}
+
+{*
+  [@inheritDoc]
+*}
+constructor TPackedRecordTypeNode.Create(AParent: TSepiNonTerminal;
+  AClass: TSepiSymbolClass; const ASourcePos: TSepiSourcePosition);
+begin
+  inherited;
+
+  IsPacked := True;
 end;
 
 {----------------------}
@@ -2882,9 +2823,9 @@ begin
   end;
 
   if IsMetaClass then
-    SepiType := SepiMetaClass
+    SetSepiType(SepiMetaClass)
   else
-    SepiType := SepiClass;
+    SetSepiType(SepiClass);
 
   inherited;
 end;
@@ -3017,7 +2958,7 @@ begin
     SepiIntf.Complete;
   end;
 
-  SepiType := SepiIntf;
+  SetSepiType(SepiIntf);
 
   inherited;
 end;
@@ -3144,7 +3085,7 @@ begin
   end;
 
   Signature.Complete;
-  SepiType := TSepiMethodRefType.Create(SepiContext, TypeName, Signature);
+  SetSepiType(TSepiMethodRefType.Create(SepiContext, TypeName, Signature));
 
   inherited;
 end;
@@ -3176,16 +3117,13 @@ var
   I: Integer;
 begin
   IdentList := Children[0] as TSepiIdentifierDeclListNode;
-  FFieldType := (Children[1] as TTypeDescNode).SepiType;
+  FFieldType := (Children[1] as TSepiTypeNode).SepiType;
 
-  if FieldType <> nil then
-  begin
-    Assert(Owner is TSepiClass);
+  Assert(Owner is TSepiClass);
 
-    for I := 0 to IdentList.IdentifierCount-1 do
-      FLastField := TSepiClass(Owner).AddField(
-        IdentList.Identifiers[I], FieldType, I > 0);
-  end;
+  for I := 0 to IdentList.IdentifierCount-1 do
+    FLastField := TSepiClass(Owner).AddField(
+      IdentList.Identifiers[I], FieldType, I > 0);
 
   inherited;
 end;
@@ -4234,9 +4172,9 @@ begin
       FNames := TStringList.Create;
 
     Names.Add(TSepiIdentifierDeclarationNode(Child).Identifier);
-  end else if Child is TTypeDescNode then
+  end else if Child is TSepiTypeNode then
   begin
-    FVarType := TTypeDescNode(Child).SepiType;
+    FVarType := TSepiTypeNode(Child).SepiType;
 
     for I := 0 to Names.Count-1 do
       MethodCompiler.Locals.AddLocalVar(Names[I], VarType);

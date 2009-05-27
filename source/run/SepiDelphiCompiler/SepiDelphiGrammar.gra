@@ -401,24 +401,28 @@ ntTypeSection	TypeSection
 ntTypeDecl	TypeDecl
 	IdentifierDecl '='* TypeDesc TypeModifiers ';'*
 
-ntTypeDesc	TypeDesc
+ntTypeDesc	TypeDesc	Simplify
 	CloneDesc
 	RangeOrEnumDesc
 	SetDesc
 	1 StringDesc
 	PointerDesc
-	PackedDesc
-	'packed' PackedDesc
+	ArrayDesc
+	RecordDesc
+	'packed'* PackedDesc
 	ClassDesc
 	InterfaceDesc
 	DispInterfaceDesc
 	EventDesc
 
 ntPackedDesc	PackedDesc	Simplify
-	ArrayDesc
-	RecordDesc
+	PackedArrayDesc
+	PackedRecordDesc
 
 ntArrayDesc	ArrayDesc
+	'array'* ArrayDims 'of'* TypeDesc
+
+ntPackedArrayDesc	PackedArrayDesc
 	'array'* ArrayDims 'of'* TypeDesc
 
 ntArrayDims	ArrayDims
@@ -454,6 +458,9 @@ ntPointerDesc	PointerDesc
 	'^'* QualifiedIdent
 
 ntRecordDesc	RecordDesc
+	'record'* RecordContents 'end'*
+
+ntPackedRecordDesc	PackedRecordDesc
 	'record'* RecordContents 'end'*
 
 ntRecordContents	RecordContents
