@@ -201,6 +201,9 @@ ntUsesSection	UsesSection
 ntCommaIdentList	CommaIdentList	Simplify
 	Identifier (','* Identifier)*
 
+ntCommaIdentDeclList	CommaIdentDeclList	Simplify
+	IdentifierDecl (','* IdentifierDecl)*
+
 ntQualifiedIdent	QualifiedIdent	AsText
 	Identifier ('.'* Identifier)*
 
@@ -376,7 +379,7 @@ ntConstKeyWord	ConstKeyWord
 	'resourcestring'
 
 ntConstDecl	ConstDecl
-	Identifier InnerConstDecl TypeModifiers ';'*
+	IdentifierDecl InnerConstDecl TypeModifiers ';'*
 
 ntInnerConstDecl	InnerConstDecl	Simplify
 	':'* TypeDesc '='* InitializationExpression
@@ -386,17 +389,17 @@ ntVarSection	VarSection
 	'var'* (GlobalVar)+
 
 ntGlobalVar	GlobalVar
-	Identifier InnerGlobalVar TypeModifiers ';'*
+	IdentifierDecl InnerGlobalVar TypeModifiers ';'*
 
 ntInnerGlobalVar	InnerGlobalVar	Simplify
 	':'* TypeDesc ('='* InitializationExpression)?
-	(','* Identifier)+ ':'* TypeDesc
+	(','* IdentifierDecl)+ ':'* TypeDesc
 
 ntTypeSection	TypeSection
 	'type'* (TypeDecl)+
 
 ntTypeDecl	TypeDecl
-	Identifier '='* TypeDesc TypeModifiers ';'*
+	IdentifierDecl '='* TypeDesc TypeModifiers ';'*
 
 ntTypeDesc	TypeDesc
 	CloneDesc
@@ -478,10 +481,10 @@ ntNextRecordCaseContentsEx	NextRecordCaseContentsEx	Simplify
 	RecordCaseBlock
 
 ntRecordCaseField	RecordCaseField
-	CommaIdentList ':'* TypeDesc TypeModifiers
+	CommaIdentDeclList ':'* TypeDesc TypeModifiers
 
 ntField	Field
-	CommaIdentList ':'* TypeDesc TypeModifiers ';'*
+	CommaIdentDeclList ':'* TypeDesc TypeModifiers ';'*
 
 ntClassDesc	ClassDesc
 	'class'* ClassExDesc
@@ -535,7 +538,7 @@ ntMethodProp	MethodProp	Simplify
 	PropertyDecl
 
 ntMethodDecl	MethodDecl
-	MethodKind Identifier NextMethodDecl
+	MethodKind MethodNameDeclaration NextMethodDecl
 
 ntMethodKind	MethodKind	AsText
 	'class' MethodKindEx
@@ -558,7 +561,7 @@ ntMethodModifier	MethodModifier
 	Identifier (ConstExpression)?
 
 ntPropertyDecl	PropertyDecl
-	PropertyKind* Identifier PropertyNextDecl (PropInfo)* ';'* (PropertyModifier ';'*)*
+	PropertyKind* IdentifierDecl PropertyNextDecl (PropInfo)* ';'* (PropertyModifier ';'*)*
 
 ntPropertyKind	PropertyKind	AsText
 	'property'
@@ -663,7 +666,10 @@ ntParamKind	ParamKind
 	@
 
 ntParamNameList	ParamNameList
-	Identifier (','* Identifier)*
+	ParamName (','* ParamName)*
+
+ntParamName	ParamName
+	Identifier
 
 ntParamTypeAndDefault	ParamTypeAndDefault	Simplify
 	':'* ComplexParamType (ParamDefault)?
@@ -717,7 +723,7 @@ ntLocalVarSection	LocalVarSection
 	'var'* (LocalVar)+
 
 ntLocalVar	LocalVar
-	Identifier (','* Identifier)* ':'* TypeDesc ';'*
+	IdentifierDecl (','* IdentifierDecl)* ':'* TypeDesc ';'*
 
 ntInstructionList	InstructionList
 	(Instruction ';'*)*

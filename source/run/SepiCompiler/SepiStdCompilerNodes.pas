@@ -1591,8 +1591,11 @@ end;
   @return True s'il est redéclaré, False sinon
 *}
 function TSepiIdentifierDeclarationNode.IsRedeclared: Boolean;
+var
+  FirstDecl: TSepiMeta;
 begin
-  Result := SepiContext.GetMeta(Identifier) <> nil;
+  FirstDecl := SepiContext.GetMeta(Identifier);
+  Result := (FirstDecl <> nil) and (not FirstDecl.IsForward);
 end;
 
 {*

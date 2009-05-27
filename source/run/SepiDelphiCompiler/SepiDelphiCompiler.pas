@@ -493,6 +493,8 @@ type
     FRecordType: TSepiRecordType; /// Type record
   protected
     procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
+
+    function GetSepiContext: TSepiMeta; override;
   public
     procedure BeginParsing; override;
     procedure EndParsing; override;
@@ -2227,7 +2229,8 @@ begin
   inherited;
 
   if Child is TTypeDescNode then
-    TTypeDescNode(Child).TypeName := Children[0].AsText;
+    TTypeDescNode(Child).TypeName :=
+      (Children[0] as TSepiIdentifierDeclarationNode).Identifier;
 end;
 
 {-------------------------}
@@ -2257,8 +2260,8 @@ procedure TConstantDeclNode.ChildEndParsing(Child: TSepiParseTreeNode);
 var
   ReadableValue: ISepiReadableValue;
 begin
-  if Child.SymbolClass = ntIdentifier then
-    FName := Child.AsText
+  if Child is TSepiIdentifierDeclarationNode then
+    FName := TSepiIdentifierDeclarationNode(Child).Identifier
   else if Child is TTypeDescNode then
   begin
     FConstType := TTypeDescNode(Child).SepiType;
@@ -2316,12 +2319,12 @@ procedure TVariableDeclNode.ChildEndParsing(Child: TSepiParseTreeNode);
 var
   I: Integer;
 begin
-  if Child.SymbolClass = ntIdentifier then
+  if Child is TSepiIdentifierDeclarationNode then
   begin
     if FNames = nil then
       FNames := TStringList.Create;
 
-    Names.Add(Child.AsText);
+    Names.Add(TSepiIdentifierDeclarationNode(Child).Identifier);
   end else if Child is TTypeDescNode then
   begin
     FVarType := TTypeDescNode(Child).SepiType;
@@ -2759,6 +2762,17 @@ end;
 {-----------------------}
 { TRecordTypeNode class }
 {-----------------------}
+
+{*
+  [@inheritDoc]
+*}
+function TRecordTypeNode.GetSepiContext: TSepiMeta;
+begin
+  if RecordType <> nil then
+    Result := RecordType
+  else
+    Result := inherited GetSepiContext;
+end;
 
 {*
   [@inheritDoc]
@@ -3254,16 +3268,15 @@ procedure TFieldNode.ChildEndParsing(Child: TSepiParseTreeNode);
 var
   I: Integer;
 begin
-  if Child.SymbolClass = ntIdentifier then
+  if Child is TSepiIdentifierDeclarationNode then
   begin
     if FNames = nil then
       FNames := TStringList.Create;
 
-    if (Owner.GetMeta(Child.AsText) <> nil) or
-      (Names.IndexOf(Child.AsText) >= 0) then
+    if Names.IndexOf(TSepiIdentifierDeclarationNode(Child).Identifier) >= 0 then
     begin
       Child.MakeError(SRedeclaredIdentifier);
-      Names.Add('');
+      Names.Add(Owner.MakeUnnamedChildName);
     end else
       Names.Add(Child.AsText);
   end else if Child is TTypeDescNode then
@@ -3384,6 +3397,9 @@ var
   Str: string;
   Temp: Integer;
 begin
+  if Child is TSepiIdentifierDeclarationNode then
+    FName := TSepiIdentifierDeclarationNode(Child).Identifier;
+
   case Child.SymbolClass of
     // Type de routine
     ntRoutineKind:
@@ -3408,12 +3424,6 @@ begin
           tkFunction:  Signature.Kind := skClassFunction;
         end;
       end;
-    end;
-
-    // Nom de la routine
-    ntIdentifier:
-    begin
-      FName := Child.AsText;
     end;
 
     // Redirecteur de méthode d'interface
@@ -3723,13 +3733,10 @@ var
   Str: string;
   I: Integer;
 begin
-  case Child.SymbolClass of
-    // Nom de la propriété
-    ntIdentifier:
-    begin
-      FName := Child.AsText;
-    end;
+  if Child is TSepiIdentifierDeclarationNode then
+    FName := TSepiIdentifierDeclarationNode(Child).Identifier;
 
+  case Child.SymbolClass of
     // Signature
     ntPropertySignature:
     begin
@@ -4341,12 +4348,12 @@ procedure TLocalVarNode.ChildEndParsing(Child: TSepiParseTreeNode);
 var
   I: Integer;
 begin
-  if Child.SymbolClass = ntIdentifier then
+  if Child is TSepiIdentifierDeclarationNode then
   begin
     if FNames = nil then
       FNames := TStringList.Create;
 
-    Names.Add(Child.AsText);
+    Names.Add(TSepiIdentifierDeclarationNode(Child).Identifier);
   end else if Child is TTypeDescNode then
   begin
     FVarType := TTypeDescNode(Child).SepiType;

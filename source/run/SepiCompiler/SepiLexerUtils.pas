@@ -26,6 +26,8 @@ unit SepiLexerUtils;
 
 interface
 
+{$D-,L-}
+
 uses
   SysUtils, Classes, SepiCore, SepiCompilerErrors, SepiParseTrees,
   SepiCompilerConsts;

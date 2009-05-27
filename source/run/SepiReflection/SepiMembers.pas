@@ -3066,7 +3066,8 @@ begin
   try
     // Listings the fields which need initialization
     for I := 0 to ChildCount-1 do
-      if TSepiField(Children[I]).FieldType.NeedInit then
+      if (Children[I] is TSepiField) and
+        TSepiField(Children[I]).FieldType.NeedInit then
         Fields.Add(Children[I]);
 
     // Creating the RTTI
@@ -3143,11 +3144,17 @@ function TSepiRecordType.AddField(const FieldName: string;
   FieldType: TSepiType; ForcePack: Boolean = False): TSepiField;
 var
   LastField: TSepiField;
+  I: Integer;
 begin
-  if ChildCount = 0 then
-    LastField := nil
-  else
-    LastField := TSepiField(Children[ChildCount-1]);
+  LastField := nil;
+  for I := ChildCount-1 downto 0 do
+  begin
+    if Children[I] is TSepiField then
+    begin
+      LastField := TSepiField(Children[I]);
+      Break;
+    end;
+  end;
 
   Result := PrivAddField(FieldName, FieldType, LastField, ForcePack);
 end;
@@ -3191,7 +3198,7 @@ function TSepiRecordType.AddFieldAfter(const FieldName: string;
   ForcePack: Boolean = False): TSepiField;
 begin
   Result := PrivAddField(FieldName, FieldType,
-    TSepiField(FindMeta(After)), ForcePack);
+    FindMeta(After) as TSepiField, ForcePack);
 end;
 
 {*
@@ -3207,7 +3214,7 @@ function TSepiRecordType.AddFieldAfter(const FieldName: string;
   ForcePack: Boolean = False): TSepiField;
 begin
   Result := PrivAddField(FieldName, Root.FindType(FieldTypeInfo),
-    TSepiField(FindMeta(After)), ForcePack);
+    FindMeta(After) as TSepiField, ForcePack);
 end;
 
 {*
@@ -3223,7 +3230,7 @@ function TSepiRecordType.AddFieldAfter(
   ForcePack: Boolean = False): TSepiField;
 begin
   Result := PrivAddField(FieldName, Root.FindType(FieldTypeName),
-    TSepiField(FindMeta(After)), ForcePack);
+    FindMeta(After) as TSepiField, ForcePack);
 end;
 
 {*
