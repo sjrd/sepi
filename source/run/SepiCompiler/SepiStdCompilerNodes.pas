@@ -399,12 +399,18 @@ type
     Noeud représentant une déclaration d'un identificateur
     TSepiIdentifierDeclarationNode prend en charge la vérification de l'unicité
     de l'identificateur, et son remplacement en cas d'erreur.
+    La vérification se fait au moyen de IsRedeclared. De plus, si le parent d'un
+    tel noeud est une instance de TSepiIdentifierDeclListNode, sont considérés
+    les identificateurs déjà déclarés dans la liste, tels que testés avec la
+    fonction TSepiIdentifierDeclListNode.IsDeclared.
     @author sjrd
     @version 1.0
   *}
   TSepiIdentifierDeclarationNode = class(TSepiNonTerminal)
   private
     FIdentifier: string; /// Identificateur (si vide, AsText est utilisé)
+
+    function IsRedeclaredInCurrentList: Boolean;
 
     function GetIdentifier: string;
   protected
@@ -429,6 +435,28 @@ type
   end;
 
   {*
+    Noeud représentant une liste de déclarations d'identificateurs
+    Tous les enfants d'une instance de TSepiIdentifierDeclListNode doivent être
+    des instances de TSepiIdentifierDeclarationNode.
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiIdentifierDeclListNode = class(TSepiNonTerminal)
+  private
+    FIdentifierCount: Integer; /// Nombre d'identificateurs
+
+    function GetIdentifiers(Index: Integer): string;
+  protected
+    procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
+    procedure ChildEndParsing(Child: TSepiParseTreeNode); override;
+  public
+    function IsDeclared(const Identifier: string): Boolean;
+
+    property IdentifierCount: Integer read FIdentifierCount;
+    property Identifiers[Index: Integer]: string read GetIdentifiers;
+  end;
+
+  {*
     Classe de base pour les noeuds qui doivent construire une signature
     TSepiSignatureBuilderNode ne crée pas elle-même d'instance de
     TSepiSignature. Elle est prévue pour construire une signature créée par un
@@ -436,6 +464,7 @@ type
     Certaines sous-classes de TSepiSignatureBuilderNode acceptent que Signature
     ne soit pas renseignée. Dans ce cas, elles n'ont aucun effet en elles-mêmes,
     mais proposent souvent des propriétés permettant de savoir quel aurait été
+    son effet si Signature avait été renseigné.
     TSepiSignatureBuilderNode transfère aussi sa signature à tous ses enfants
     qui sont des instances de TSepiSignatureBuilderNode.
     leur effet.
@@ -536,6 +565,64 @@ type
     @version 1.0
   *}
   TSepiOverloadMarkerNode = class(TSepiNonTerminal)
+  end;
+
+  {*
+    Noeud représentant un type
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiTypeNode = class(TSepiNonTerminal)
+  private
+    FSepiType: TSepiType; /// Type représenté
+  protected
+    procedure SetSepiType(ASepiType: TSepiType);
+
+    procedure MakeErroneousType; virtual;
+  public
+    procedure EndParsing; override;
+
+    property SepiType: TSepiType read FSepiType;
+  end;
+
+  {*
+    Noeud descripteur de contenu de record
+    Le contexte Sepi d'un tel noeud doit toujours être de type TSepiRecordType.
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiRecordContentsNode = class(TSepiNonTerminal)
+  private
+    FAfterField: string; /// Nom du champ après lequel se placer
+  protected
+    procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
+    procedure ChildEndParsing(Child: TSepiParseTreeNode); override;
+
+    property AfterField: string read FAfterField;
+  public
+    procedure BeginParsing; override;
+
+    procedure SetAfterField(const AAfterField: string);
+  end;
+
+  {*
+    Noeud d'un champ de record
+    Le contexte Sepi d'un tel noeud doit toujours être de type TSepiRecordType.
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiRecordFieldNode = class(TSepiNonTerminal)
+  private
+    FAfterField: string;    /// Champ après lequel se placer
+    FLastField: TSepiField; /// Dernier champ compilé
+  protected
+    property AfterField: string read FAfterField;
+  public
+    procedure EndParsing; override;
+
+    procedure SetAfterField(const AAfterField: string);
+
+    property LastField: TSepiField read FLastField;
   end;
 
 implementation
@@ -1565,6 +1652,16 @@ end;
 {--------------------------------------}
 
 {*
+  Teste si cet identificateur est redéclaré dans sa liste courante
+  @return True s'il est redéclaré, False sinon
+*}
+function TSepiIdentifierDeclarationNode.IsRedeclaredInCurrentList: Boolean;
+begin
+  Result := (Parent is TSepiIdentifierDeclListNode) and
+    TSepiIdentifierDeclListNode(Parent).IsDeclared(Identifier);
+end;
+
+{*
   Identificateur représenté par ce noeud
   @return Identificateur représenté par ce noeud
 *}
@@ -1611,7 +1708,7 @@ end;
 *}
 procedure TSepiIdentifierDeclarationNode.EndParsing;
 begin
-  if IsRedeclared then
+  if IsRedeclared or IsRedeclaredInCurrentList then
   begin
     MakeError(SRedeclaredIdentifier);
     MakeErroneousName;
@@ -1629,6 +1726,64 @@ end;
 *}
 function TSepiUncheckedIdentifierDeclNode.IsRedeclared: Boolean;
 begin
+  Result := False;
+end;
+
+{-----------------------------------}
+{ TSepiIdentifierDeclListNode class }
+{-----------------------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiIdentifierDeclListNode.ChildBeginParsing(
+  Child: TSepiParseTreeNode);
+begin
+  inherited;
+
+  Assert(Child is TSepiIdentifierDeclarationNode);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiIdentifierDeclListNode.ChildEndParsing(
+  Child: TSepiParseTreeNode);
+begin
+  Inc(FIdentifierCount);
+
+  inherited;
+end;
+
+{*
+  Tableau zero-based des identificateurs
+  @param Index   Index d'un identificateur
+  @return L'identificateur à l'index donné
+*}
+function TSepiIdentifierDeclListNode.GetIdentifiers(Index: Integer): string;
+begin
+  Result := TSepiIdentifierDeclarationNode(Children[Index]).Identifier;
+end;
+
+{*
+  Teste si un identificateur donné est déclaré dans cette liste
+  @param Identifier   Identificateur à tester
+  @return True si l'identificateur est déclaré, False sinon
+*}
+function TSepiIdentifierDeclListNode.IsDeclared(
+  const Identifier: string): Boolean;
+var
+  I: Integer;
+begin
+  for I := 0 to IdentifierCount-1 do
+  begin
+    if AnsiSameText(Identifier, Identifiers[I]) then
+    begin
+      Result := True;
+      Exit;
+    end;
+  end;
+
   Result := False;
 end;
 
@@ -1901,6 +2056,138 @@ begin
     TSepiMethod.Create(SepiContext, Name, nil, Signature);
 
   inherited;
+end;
+
+{---------------------}
+{ TSepiTypeNode class }
+{---------------------}
+
+{*
+  Renseigne le type représenté
+  @param ASepiType   Type représenté
+*}
+procedure TSepiTypeNode.SetSepiType(ASepiType: TSepiType);
+begin
+  FSepiType := ASepiType;
+end;
+
+{*
+  Construit un type erroné
+*}
+procedure TSepiTypeNode.MakeErroneousType;
+begin
+  SetSepiType(SystemUnit.Integer);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiTypeNode.EndParsing;
+begin
+  if SepiType = nil then
+    MakeErroneousType;
+
+  inherited;
+end;
+
+{-------------------------------}
+{ TSepiRecordContentsNode class }
+{-------------------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiRecordContentsNode.BeginParsing;
+begin
+  inherited;
+
+  Assert(SepiContext is TSepiRecordType);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiRecordContentsNode.ChildBeginParsing(Child: TSepiParseTreeNode);
+begin
+  inherited;
+
+  if Child is TSepiRecordFieldNode then
+  begin
+    if ChildCount = 1 then
+      TSepiRecordFieldNode(Child).SetAfterField(AfterField)
+    else
+      TSepiRecordFieldNode(Child).SetAfterField('~');
+  end else if Child is TSepiRecordContentsNode then
+  begin
+    TSepiRecordContentsNode(Child).SetAfterField(AfterField);
+  end;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiRecordContentsNode.ChildEndParsing(Child: TSepiParseTreeNode);
+begin
+  if Child is TSepiRecordFieldNode then
+  begin
+    if TSepiRecordFieldNode(Child).LastField <> nil then
+      FAfterField := TSepiRecordFieldNode(Child).LastField.Name;
+  end;
+
+  inherited;
+end;
+
+{*
+  Spécifie le nom du champ après lequel placer les champs enfants de ce noeud
+  @param AAfterField   Nom du champ
+*}
+procedure TSepiRecordContentsNode.SetAfterField(const AAfterField: string);
+begin
+  FAfterField := AAfterField;
+end;
+
+{----------------------------}
+{ TSepiRecordFieldNode class }
+{----------------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiRecordFieldNode.EndParsing;
+var
+  RecordType: TSepiRecordType;
+  IdentList: TSepiIdentifierDeclListNode;
+  FieldType: TSepitype;
+  I: Integer;
+begin
+  RecordType := SepiContext as TSepiRecordType;
+  IdentList := Children[0] as TSepiIdentifierDeclListNode;
+  FieldType := (Children[1] as TSepiTypeNode).SepiType;
+
+  if FieldType <> nil then
+  begin
+    if AfterField = '~' then
+      FLastField := RecordType.AddField(
+        IdentList.Identifiers[0], FieldType)
+    else
+      FLastField := RecordType.AddFieldAfter(
+        IdentList.Identifiers[0], FieldType, AfterField);
+
+    for I := 1 to IdentList.IdentifierCount-1 do
+      FLastField := RecordType.AddField(
+        IdentList.Identifiers[I], FieldType, True);
+  end;
+
+  inherited;
+end;
+
+{*
+  Spécifie le nom du champ après lequel placer les champs enfants de ce noeud
+  @param AAfterField   Nom du champ
+*}
+procedure TSepiRecordFieldNode.SetAfterField(const AAfterField: string);
+begin
+  FAfterField := AAfterField;
 end;
 
 end.

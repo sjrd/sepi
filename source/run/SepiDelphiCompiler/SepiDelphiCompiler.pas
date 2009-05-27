@@ -292,25 +292,22 @@ type
     @author sjrd
     @version 1.0
   *}
-  TTypeDescNode = class(TSepiNonTerminal)
+  TTypeDescNode = class(TSepiTypeNode)
   private
     FTypeName: string;     /// Nom du type
     FIsAnonymous: Boolean; /// Indique si le type est anonyme
     FIsPacked: Boolean;    /// Indique si le type est packed
-
-    FSepiType: TSepiType; /// Type Sepi compilé
   protected
+    procedure MakeErroneousType; override;
+
     procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
     procedure ChildEndParsing(Child: TSepiParseTreeNode); override;
   public
     procedure BeginParsing; override;
-    procedure EndParsing; override;
 
     property TypeName: string read FTypeName write FTypeName;
     property IsAnonymous: Boolean read FIsAnonymous;
     property IsPacked: Boolean read FIsPacked;
-
-    property SepiType: TSepiType read FSepiType;
   end;
 
   {*
@@ -492,31 +489,12 @@ type
   private
     FRecordType: TSepiRecordType; /// Type record
   protected
-    procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
-
     function GetSepiContext: TSepiMeta; override;
   public
     procedure BeginParsing; override;
     procedure EndParsing; override;
 
     property RecordType: TSepiRecordType read FRecordType;
-  end;
-
-  {*
-    Noeud descripteur de contenu de record
-    @author sjrd
-    @version 1.0
-  *}
-  TRecordContentsNode = class(TSepiNonTerminal)
-  private
-    FRecordType: TSepiRecordType; /// Type record
-    FAfterField: string;          /// Nom du champ après lequel se placer
-  protected
-    procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
-    procedure ChildEndParsing(Child: TSepiParseTreeNode); override;
-  public
-    property RecordType: TSepiRecordType read FRecordType write FRecordType;
-    property AfterField: string read FAfterField write FAfterField;
   end;
 
   {*
@@ -635,17 +613,11 @@ type
   *}
   TFieldNode = class(TMemberNode)
   private
-    FAfterField: string;    /// Champ après lequel se placer (record seulement)
-    FNames: TStrings;       /// Noms des champs
     FFieldType: TSepiType;  /// Type des champs
     FLastField: TSepiField; /// Dernier champ compilé
-  protected
-    procedure ChildEndParsing(Child: TSepiParseTreeNode); override;
   public
-    destructor Destroy; override;
+    procedure EndParsing; override;
 
-    property AfterField: string read FAfterField write FAfterField;
-    property Names: TStrings read FNames;
     property FieldType: TSepiType read FFieldType;
     property LastField: TSepiField read FLastField;
   end;
@@ -1166,8 +1138,9 @@ begin
   NonTerminalClasses[ntImplementation] := TImplementationNode;
   NonTerminalClasses[ntUsesSection]    := TUsesSectionNode;
 
-  NonTerminalClasses[ntQualifiedIdent] := TSepiQualifiedIdentNode;
-  NonTerminalClasses[ntIdentifierDecl] := TSepiIdentifierDeclarationNode;
+  NonTerminalClasses[ntCommaIdentDeclList] := TSepiIdentifierDeclListNode;
+  NonTerminalClasses[ntQualifiedIdent]     := TSepiQualifiedIdentNode;
+  NonTerminalClasses[ntIdentifierDecl]     := TSepiIdentifierDeclarationNode;
 
   NonTerminalClasses[ntTypeDesc]    := TTypeDescNode;
   NonTerminalClasses[ntTypeDecl]    := TTypeDeclNode;
@@ -1225,9 +1198,9 @@ begin
   NonTerminalClasses[ntDispInterfaceDesc] := TInterfaceTypeNode;
   NonTerminalClasses[ntEventDesc]         := TMethodRefTypeNode;
 
-  NonTerminalClasses[ntRecordContents]     := TRecordContentsNode;
-  NonTerminalClasses[ntRecordCaseBlock]    := TRecordContentsNode;
-  NonTerminalClasses[ntRecordCaseContents] := TRecordContentsNode;
+  NonTerminalClasses[ntRecordContents]     := TSepiRecordContentsNode;
+  NonTerminalClasses[ntRecordCaseBlock]    := TSepiRecordContentsNode;
+  NonTerminalClasses[ntRecordCaseContents] := TSepiRecordContentsNode;
 
   NonTerminalClasses[ntClassMemberLists]    := TMemberListNode;
   NonTerminalClasses[ntInterfaceMemberList] := TMemberListNode;
@@ -1239,8 +1212,9 @@ begin
   NonTerminalClasses[ntCallingConventionBeta] := TSepiCallingConventionNode;
   NonTerminalClasses[ntOverloadMarker]        := TSepiOverloadMarkerNode;
 
+  NonTerminalClasses[ntRecordField]     := TSepiRecordFieldNode;
+  NonTerminalClasses[ntRecordCaseField] := TSepiRecordFieldNode;
   NonTerminalClasses[ntField]           := TFieldNode;
-  NonTerminalClasses[ntRecordCaseField] := TFieldNode;
   NonTerminalClasses[ntMethodDecl]      := TMethodNode;
   NonTerminalClasses[ntPropertyDecl]    := TPropertyNode;
   NonTerminalClasses[ntVisibility]      := TVisibilityNode;
@@ -2167,6 +2141,14 @@ end;
 {*
   [@inheritDoc]
 *}
+procedure TTypeDescNode.MakeErroneousType;
+begin
+  SetSepiType(UnitCompiler.MakeErroneousTypeAlias(TypeName));
+end;
+
+{*
+  [@inheritDoc]
+*}
 procedure TTypeDescNode.BeginParsing;
 begin
   inherited;
@@ -2199,20 +2181,7 @@ begin
   if Child.SymbolClass = tkPacked then
     FIsPacked := True
   else
-    FSepiType := (Child as TTypeDescriptorNode).SepiType;
-
-  inherited;
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TTypeDescNode.EndParsing;
-begin
-  if (Children[ChildCount-1] as TTypeDescriptorNode).SepiType = nil then
-    FSepiType := UnitCompiler.MakeErroneousTypeAlias(TypeName)
-  else
-    FSepiType := TTypeDescriptorNode(Children[ChildCount-1]).SepiType;
+    SetSepiType((Child as TTypeDescriptorNode).SepiType);
 
   inherited;
 end;
@@ -2787,63 +2756,10 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TRecordTypeNode.ChildBeginParsing(Child: TSepiParseTreeNode);
-begin
-  inherited;
-
-  (Children[0] as TRecordContentsNode).RecordType := RecordType;
-end;
-
-{*
-  [@inheritDoc]
-*}
 procedure TRecordTypeNode.EndParsing;
 begin
   RecordType.Complete;
   SepiType := RecordType;
-
-  inherited;
-end;
-
-{---------------------------}
-{ TRecordContentsNode class }
-{---------------------------}
-
-{*
-  [@inheritDoc]
-*}
-procedure TRecordContentsNode.ChildBeginParsing(Child: TSepiParseTreeNode);
-begin
-  inherited;
-
-  if Child is TFieldNode then
-  begin
-    with TFieldNode(Child) do
-    begin
-      Owner := RecordType;
-
-      if Self.ChildCount = 1 then
-        AfterField := Self.AfterField
-      else
-        AfterField := '~';
-    end;
-  end else if Child is TRecordContentsNode then
-  begin
-    TRecordContentsNode(Child).RecordType := RecordType;
-    TRecordContentsNode(Child).AfterField := AfterField;
-  end;
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TRecordContentsNode.ChildEndParsing(Child: TSepiParseTreeNode);
-begin
-  if Child is TFieldNode then
-  begin
-    if TFieldNode(Child).LastField <> nil then
-      AfterField := TFieldNode(Child).LastField.Name;
-  end;
 
   inherited;
 end;
@@ -3254,57 +3170,21 @@ end;
 {*
   [@inheritDoc]
 *}
-destructor TFieldNode.Destroy;
-begin
-  FNames.Free;
-
-  inherited;
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TFieldNode.ChildEndParsing(Child: TSepiParseTreeNode);
+procedure TFieldNode.EndParsing;
 var
+  IdentList: TSepiIdentifierDeclListNode;
   I: Integer;
 begin
-  if Child is TSepiIdentifierDeclarationNode then
+  IdentList := Children[0] as TSepiIdentifierDeclListNode;
+  FFieldType := (Children[1] as TTypeDescNode).SepiType;
+
+  if FieldType <> nil then
   begin
-    if FNames = nil then
-      FNames := TStringList.Create;
+    Assert(Owner is TSepiClass);
 
-    if Names.IndexOf(TSepiIdentifierDeclarationNode(Child).Identifier) >= 0 then
-    begin
-      Child.MakeError(SRedeclaredIdentifier);
-      Names.Add(Owner.MakeUnnamedChildName);
-    end else
-      Names.Add(Child.AsText);
-  end else if Child is TTypeDescNode then
-  begin
-    FFieldType := TTypeDescNode(Child).SepiType;
-
-    if FieldType <> nil then
-    begin
-      if Owner is TSepiRecordType then
-      begin
-        if AfterField = '~' then
-          FLastField := TSepiRecordType(Owner).AddField(
-            Names[0], FieldType)
-        else
-          FLastField := TSepiRecordType(Owner).AddFieldAfter(
-            Names[0], FieldType, AfterField);
-
-        for I := 1 to Names.Count-1 do
-          FLastField := TSepiRecordType(Owner).AddField(
-            Names[I], FieldType, True);
-      end else
-      begin
-        Assert(Owner is TSepiClass);
-
-        for I := 0 to Names.Count-1 do
-          FLastField := TSepiClass(Owner).AddField(Names[I], FieldType, I > 0);
-      end;
-    end;
+    for I := 0 to IdentList.IdentifierCount-1 do
+      FLastField := TSepiClass(Owner).AddField(
+        IdentList.Identifiers[I], FieldType, I > 0);
   end;
 
   inherited;

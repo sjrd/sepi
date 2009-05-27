@@ -201,7 +201,7 @@ ntUsesSection	UsesSection
 ntCommaIdentList	CommaIdentList	Simplify
 	Identifier (','* Identifier)*
 
-ntCommaIdentDeclList	CommaIdentDeclList	Simplify
+ntCommaIdentDeclList	CommaIdentDeclList
 	IdentifierDecl (','* IdentifierDecl)*
 
 ntQualifiedIdent	QualifiedIdent	AsText
@@ -457,7 +457,7 @@ ntRecordDesc	RecordDesc
 	'record'* RecordContents 'end'*
 
 ntRecordContents	RecordContents
-	(Field)* RecordCaseBlock
+	(RecordField)* RecordCaseBlock
 
 ntRecordCaseBlock	RecordCaseBlock
 	'case'* Identifier* (':'* Identifier*)? 'of'* (RecordCase)*
@@ -479,6 +479,9 @@ ntNextRecordCaseContents	NextRecordCaseContents	Simplify
 ntNextRecordCaseContentsEx	NextRecordCaseContentsEx	Simplify
 	RecordCaseField NextRecordCaseContents
 	RecordCaseBlock
+
+ntRecordField	RecordField
+	CommaIdentDeclList ':'* TypeDesc TypeModifiers ';'*
 
 ntRecordCaseField	RecordCaseField
 	CommaIdentDeclList ':'* TypeDesc TypeModifiers
