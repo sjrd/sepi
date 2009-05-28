@@ -970,19 +970,6 @@ type
     property Instruction: TSepiTryFinally read FInstruction;
   end;
 
-  {*
-    Instruction Expression ou Expression := Expression
-    @author sjrd
-    @version 1.0
-  *}
-  TExpressionInstructionNode = class(TSepiInstructionNode)
-  private
-    procedure CompileCall;
-    procedure CompileAssignment;
-  public
-    procedure EndParsing; override;
-  end;
-
 function CompileDelphiSource(SepiRoot: TSepiRoot;
   Errors: TSepiCompilerErrorList; SourceFile: TStrings;
   const DestFileName: TFileName): TSepiUnit;
@@ -1129,7 +1116,9 @@ begin
   NonTerminalClasses[ntMultiOnElseClause]     := TMultiOnElseClauseNode;
   NonTerminalClasses[ntFinallyClause]         := TFinallyClauseNode;
   NonTerminalClasses[ntRaiseInstruction]      := TSepiRaiseInstructionNode;
-  NonTerminalClasses[ntExpressionInstruction] := TExpressionInstructionNode;
+  NonTerminalClasses[ntExpressionInstruction] := TSepiExpressionInstructionNode;
+  NonTerminalClasses[ntCallInstruction]       := TSepiCallInstructionNode;
+  NonTerminalClasses[ntAssignmentInstruction] := TSepiAssignmentInstructionNode;
 end;
 
 {-----------------}
@@ -4143,69 +4132,6 @@ end;
 procedure TForInstructionNode.EndParsing;
 begin
   InstructionList.Add(Instruction);
-
-  inherited;
-end;
-
-{----------------------------------}
-{ TExpressionInstructionNode class }
-{----------------------------------}
-
-{*
-  Compile un appel
-*}
-procedure TExpressionInstructionNode.CompileCall;
-var
-  Instruction: TSepiCall;
-  Callable: ISepiCallable;
-begin
-  if Supports((Children[0] as TSepiExpressionNode).Expression,
-    ISepiCallable, Callable) then
-  begin
-    Instruction := TSepiCall.Create(MethodCompiler);
-    Instruction.Callable := Callable;
-    InstructionList.Add(Instruction);
-  end else
-  begin
-    Children[0].MakeError(SCallableRequired);
-  end;
-end;
-
-{*
-  Compile une assignation
-*}
-procedure TExpressionInstructionNode.CompileAssignment;
-var
-  Instruction: TSepiAssignment;
-  DestValue: ISepiWritableValue;
-  SourceValue: ISepiReadableValue;
-begin
-  if not Supports((Children[0] as TSepiExpressionNode).AsValue,
-    ISepiWritableValue, DestValue) then
-  begin
-    Children[0].MakeError(SWritableValueRequired);
-  end else if not Supports((Children[1] as TSepiExpressionNode).AsValue,
-    ISepiReadableValue, SourceValue) then
-  begin
-    Children[1].MakeError(SReadableValueRequired);
-  end else
-  begin
-    Instruction := TSepiAssignment.Create(MethodCompiler);
-    Instruction.Destination := DestValue;
-    Instruction.Source := SourceValue;
-    InstructionList.Add(Instruction);
-  end;
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TExpressionInstructionNode.EndParsing;
-begin
-  if ChildCount = 1 then
-    CompileCall
-  else
-    CompileAssignment;
 
   inherited;
 end;

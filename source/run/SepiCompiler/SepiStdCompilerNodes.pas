@@ -786,6 +786,54 @@ type
     procedure EndParsing; override;
   end;
 
+  {*
+    Instruction dont le premier enfant est une Expression
+    Une telle instruction ne prévoit rien en soi, mais son second enfant doit
+    être une instance de TSepiCustomExpressionInstructionNode. La propriété
+    FirstExpression de cette instance est renseignée avec l'expression du
+    premier enfant de TSepiExpressionInstructionNode.
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiExpressionInstructionNode = class(TSepiInstructionNode)
+  protected
+    procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
+  end;
+
+  {*
+    Classe de base pour les instructions avec une Expression en premier enfant
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiCustomExpressionInstructionNode = class(TSepiInstructionNode)
+  private
+    FFirstExpression: ISepiExpression; /// Première expression
+  protected
+    property FirstExpression: ISepiExpression read FFirstExpression;
+  public
+    procedure SetFirstExpression(const AFirstExpression: ISepiExpression);
+  end;
+
+  {*
+    Instruction d'invocation de méthode
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiCallInstructionNode = class(TSepiCustomExpressionInstructionNode)
+  public
+    procedure EndParsing; override;
+  end;
+
+  {*
+    Instruction d'assignation
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiAssignmentInstructionNode = class(TSepiCustomExpressionInstructionNode)
+  public
+    procedure EndParsing; override;
+  end;
+
 implementation
 
 {------------------------}
@@ -2668,6 +2716,104 @@ begin
     MakeRaiseInstruction
   else
     MakeReraiseInstruction;
+
+  inherited;
+end;
+
+{--------------------------------------}
+{ TSepiExpressionInstructionNode class }
+{--------------------------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiExpressionInstructionNode.ChildBeginParsing(
+  Child: TSepiParseTreeNode);
+var
+  ExprInstrNode: TSepiCustomExpressionInstructionNode;
+begin
+  inherited;
+
+  if Child is TSepiCustomExpressionInstructionNode then
+  begin
+    ExprInstrNode := TSepiCustomExpressionInstructionNode(Child);
+
+    ExprInstrNode.SetFirstExpression(
+      (Children[0] as TSepiExpressionNode).Expression);
+    ExprInstrNode.InstructionList := InstructionList;
+  end;
+end;
+
+{--------------------------------------------}
+{ TSepiCustomExpressionInstructionNode class }
+{--------------------------------------------}
+
+{*
+  Spécifie la première expression
+  Cette méthode doit être appelée une fois avant BeginParsing.
+  @param AFirstExpression   Première expression
+*}
+procedure TSepiCustomExpressionInstructionNode.SetFirstExpression(
+  const AFirstExpression: ISepiExpression);
+begin
+  FFirstExpression := AFirstExpression;
+end;
+
+{--------------------------------}
+{ TSepiCallInstructionNode class }
+{--------------------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiCallInstructionNode.EndParsing;
+var
+  Instruction: TSepiCall;
+  Callable: ISepiCallable;
+begin
+  if Supports(FirstExpression, ISepiCallable, Callable) then
+  begin
+    Instruction := TSepiCall.Create(MethodCompiler);
+    Instruction.Callable := Callable;
+    InstructionList.Add(Instruction);
+  end else
+  begin
+    FirstExpression.MakeError(SCallableRequired);
+  end;
+
+  inherited;
+end;
+
+{--------------------------------------}
+{ TSepiAssignmentInstructionNode class }
+{--------------------------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiAssignmentInstructionNode.EndParsing;
+var
+  Instruction: TSepiAssignment;
+  DestValue: ISepiWritableValue;
+  SourceValue: ISepiReadableValue;
+begin
+  if not Supports(FirstExpression, ISepiWritableValue, DestValue) then
+  begin
+    FirstExpression.MakeError(SWritableValueRequired);
+    (Children[0] as TSepiExpressionNode).AsReadableValue;
+  end else
+  begin
+    SourceValue := (Children[0] as TSepiExpressionNode).AsReadableValue(
+      DestValue.ValueType);
+
+    if SourceValue <> nil then
+    begin
+      Instruction := TSepiAssignment.Create(MethodCompiler);
+      Instruction.Destination := DestValue;
+      Instruction.Source := SourceValue;
+      InstructionList.Add(Instruction);
+    end;
+  end;
 
   inherited;
 end;
