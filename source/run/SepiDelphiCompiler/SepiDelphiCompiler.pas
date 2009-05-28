@@ -399,6 +399,10 @@ type
     @version 1.0
   *}
   TSetTypeNode = class(TSepiTypeDefinitionNode)
+  protected
+    procedure MakeErroneousType; override;
+
+    function IsValidCompType(CompType: TSepiType): Boolean;
   public
     procedure EndParsing; override;
   end;
@@ -539,6 +543,18 @@ type
     property ParentIntf: TSepiInterface read FParentIntf;
     property GUID: TGUID read FGUID;
     property SepiIntf: TSepiInterface read FSepiIntf;
+  end;
+
+  {*
+    Noeud GUID d'interface
+    @author sjrd
+    @version 1.0
+  *}
+  TInterfaceGUIDNode = class(TSepiInitializationExpressionNode)
+  protected
+    procedure ChildEndParsing(Child: TSepiParseTreeNode); override;
+  public
+    procedure SetValuePtr(AValuePtr: PGUID);
   end;
 
   {*
@@ -1185,6 +1201,7 @@ begin
   NonTerminalClasses[ntRecordCaseContents] := TSepiRecordContentsNode;
 
   NonTerminalClasses[ntClassMemberLists]    := TMemberListNode;
+  NonTerminalClasses[ntInterfaceGUID]       := TInterfaceGUIDNode;
   NonTerminalClasses[ntInterfaceMemberList] := TMemberListNode;
 
   NonTerminalClasses[ntRoutineKind]           := TRoutineKindNode;
@@ -2269,10 +2286,7 @@ begin
   OldType := TSepiType(LookForOrError(Children[0], TSepiType,
     STypeIdentifierRequired));
 
-  if OldType = nil then
-  begin
-    SetSepiType(UnitCompiler.MakeErroneousTypeAlias(TypeName));
-  end else
+  if OldType <> nil then
   begin
     try
       SetSepiType(TSepiTypeClass(OldType.ClassType).Clone(
@@ -2392,10 +2406,8 @@ var
 begin
   if ChildCount > 1 then
   begin
-    LowerValue :=
-      (Children[0] as TConstExpressionNode).AsValue as ISepiReadableValue;
-    HigherValue :=
-      (Children[1] as TConstExpressionNode).AsValue as ISepiReadableValue;
+    LowerValue  := (Children[0] as TConstExpressionNode).AsReadableValue;
+    HigherValue := (Children[1] as TConstExpressionNode).AsReadableValue;
 
     if (LowerValue <> nil) and (HigherValue <> nil) then
     begin
@@ -2415,9 +2427,6 @@ begin
       end;
     end;
   end;
-
-  if SepiType = nil then
-    SetSepiType(UnitCompiler.MakeErroneousTypeAlias(TypeName));
 
   inherited;
 end;
@@ -2452,20 +2461,37 @@ end;
 {*
   [@inheritDoc]
 *}
+procedure TSetTypeNode.MakeErroneousType;
+begin
+  SetSepiType(TSepiSetType.Create(SepiContext, TypeName, SystemUnit.Byte));
+end;
+
+{*
+  Teste si un type donné est valide comme type d'élément d'ensemble
+  @param CompType   Type de composant à tester
+  @return True s'il est valide, False sinon
+*}
+function TSetTypeNode.IsValidCompType(CompType: TSepiType): Boolean;
+begin
+  Result := (CompType is TSepiOrdType) and
+    (TSepiOrdType(CompType).MaxValue - TSepiOrdType(CompType).MinValue < 256);
+end;
+
+{*
+  [@inheritDoc]
+*}
 procedure TSetTypeNode.EndParsing;
 var
   CompType: TSepiType;
-  OrdCompType: TSepiOrdType absolute CompType;
 begin
   CompType := (Children[0] as TSepiTypeNode).SepiType;
 
-  if (not (CompType is TSepiOrdType)) or
-    (OrdCompType.MaxValue - OrdCompType.MinValue >= 256) then
+  if IsValidCompType(CompType) then
   begin
-    Children[0].MakeError(SWrongSetCompType);
-    SetSepiType(TSepiSetType.Create(SepiContext, TypeName, SystemUnit.Byte));
+    SetSepiType(TSepiSetType.Create(SepiContext, TypeName,
+      TSepiOrdType(CompType)));
   end else
-    SetSepiType(TSepiSetType.Create(SepiContext, TypeName, OrdCompType));
+    Children[0].MakeError(SWrongSetCompType);
 
   inherited;
 end;
@@ -2512,7 +2538,7 @@ var
   PointedType: TSepiType;
 begin
   PointedName := Children[0].AsText;
-  PointedType := SepiUnit.LookFor(PointedName) as TSepiType;
+  PointedType := TSepiType(LookFor(Children[0], TSepiType));
 
   if PointedType <> nil then
     SetSepiType(TSepiPointerType.Create(SepiContext, TypeName, PointedType))
@@ -2538,10 +2564,10 @@ function TArrayTypeNode.RangeDefinition(const TypeName: string;
 var
   LowerValue, HigherValue: ISepiReadableValue;
 begin
-  LowerValue := (RangeNode.Children[0] as
-    TConstExpressionNode).AsValue as ISepiReadableValue;
-  HigherValue := (RangeNode.Children[1] as
-    TConstExpressionNode).AsValue as ISepiReadableValue;
+  LowerValue :=
+    (RangeNode.Children[0] as TConstExpressionNode).AsReadableValue;
+  HigherValue :=
+    (RangeNode.Children[1] as TConstExpressionNode).AsReadableValue;
 
   Result := nil;
 
@@ -2901,7 +2927,10 @@ procedure TInterfaceTypeNode.ChildBeginParsing(Child: TSepiParseTreeNode);
 begin
   inherited;
 
-  if Child is TMemberListNode then
+  if Child is TInterfaceGUIDNode then
+  begin
+    TInterfaceGUIDNode(Child).SetValuePtr(@FGUID);
+  end else if Child is TMemberListNode then
   begin
     CreateInterface;
     TMemberListNode(Child).Owner := SepiIntf;
@@ -2912,9 +2941,6 @@ end;
   [@inheritDoc]
 *}
 procedure TInterfaceTypeNode.ChildEndParsing(Child: TSepiParseTreeNode);
-var
-  GUIDStr: string;
-  GUID: TGUID;
 begin
   if Child.SymbolClass = ntInterfaceHeritage then
   begin
@@ -2922,21 +2948,6 @@ begin
     begin
       FParentIntf := TSepiInterface(LookForOrError(Child,
         TSepiInterface, SInterfaceTypeRequired));
-    end;
-  end else if Child.SymbolClass = ntInterfaceGUID then
-  begin
-    if Child.ChildCount > 0 then
-    begin
-      try
-        if (Child.Children[0] as TConstExpressionNode).CompileConst(
-          GUIDStr, SystemUnit.LongString) then
-        begin
-          GUID := StringToGUID(GUIDStr);
-        end;
-      except
-        on Error: EConvertError do
-          Child.MakeError(Error.Message);
-      end;
     end;
   end;
 
@@ -2983,6 +2994,48 @@ begin
   end;
 
   Result := inherited ResolveIdent(Identifier);
+end;
+
+{--------------------------}
+{ TInterfaceGUIDNode class }
+{--------------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TInterfaceGUIDNode.ChildEndParsing(Child: TSepiParseTreeNode);
+var
+  ConstExpr: TConstExpressionNode;
+  GUIDStr: string;
+begin
+  ConstExpr := Child as TConstExpressionNode;
+
+  if ConstExpr.AsReadableValue.ValueType = SystemUnit.TGUID then
+  begin
+    ConstExpr.CompileConst(ValuePtr^, SystemUnit.TGUID);
+  end else if ConstExpr.CompileConst(GUIDStr, SystemUnit.LongString) then
+  begin
+    try
+      TGUID(ValuePtr^) := StringToGUID(GUIDStr);
+    except
+      on Error: EConvertError do
+        MakeError(Error.Message);
+    end;
+  end;
+
+  inherited;
+end;
+
+{*
+  Indique où stocker le résultat
+  Si AValuePtr vaut nil, une nouvelle valeur de type TGUID sera créée, et
+  libérée à la destruction de cet objet.
+  Cette méthode doit être appelée exactement une fois, avant BeginParsing.
+  @param AValuePtr   Pointeur où stocker le résultat (peut être nil)
+*}
+procedure TInterfaceGUIDNode.SetValuePtr(AValuePtr: PGUID);
+begin
+  SetValueTypeAndPtr(SystemUnit.TGUID, AValuePtr);
 end;
 
 {--------------------------}
