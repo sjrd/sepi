@@ -814,29 +814,6 @@ type
   end;
 
   {*
-    Noeud corps de méthode
-    @author sjrd
-    @version 1.0
-  *}
-  TMethodBodyNode = class(TSepiNonTerminal)
-  private
-    FSepiMethod: TSepiMethod;       /// Méthode Sepi implémentée dans ce corps
-    FCompiler: TSepiMethodCompiler; /// Compilateur de la méthode
-  protected
-    procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
-
-    function GetMethodCompiler: TSepiMethodCompiler; override;
-    function GetSepiContext: TSepiMeta; override;
-  public
-    function ResolveIdent(const Identifier: string): ISepiExpression; override;
-
-    procedure BeginParsing; override;
-    procedure EndParsing; override;
-
-    property SepiMethod: TSepiMethod read FSepiMethod write FSepiMethod;
-  end;
-
-  {*
     Noeud déclaration de variable locale
     @author sjrd
     @version 1.0
@@ -856,91 +833,11 @@ type
   end;
 
   {*
-    Classe de base pour les noeuds instruction
-    @author sjrd
-    @version 1.0
-  *}
-  TInstructionNode = class(TSepiNonTerminal)
-  private
-    FInstructionList: TSepiInstructionList; /// Liste d'instructions contenante
-  public
-    property InstructionList: TSepiInstructionList
-      read FInstructionList write FInstructionList;
-  end;
-
-  {*
-    Noeud "pas d'instruction"
-    @author sjrd
-    @version 1.0
-  *}
-  TNoInstructionNode = class(TInstructionNode)
-  end;
-
-  {*
-    Liste d'instructions
-    @author sjrd
-    @version 1.0
-  *}
-  TInstructionListNode = class(TInstructionNode)
-  protected
-    procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
-  end;
-
-  {*
-    Bloc begin..end
-    @author sjrd
-    @version 1.0
-  *}
-  TBeginEndBlockNode = class(TInstructionListNode)
-  end;
-
-  {*
-    Instruction if..then..else
-    @author sjrd
-    @version 1.0
-  *}
-  TIfThenElseInstructionNode = class(TInstructionNode)
-  private
-    FInstruction: TSepiIfThenElse; /// Instruction
-  protected
-    procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
-    procedure ChildEndParsing(Child: TSepiParseTreeNode); override;
-  public
-    procedure BeginParsing; override;
-    procedure EndParsing; override;
-
-    property Instruction: TSepiIfThenElse read FInstruction;
-  end;
-
-  {*
-    Instruction while..do ou repeat..until
-    @author sjrd
-    @version 1.0
-  *}
-  TWhileInstructionNode = class(TInstructionNode)
-  private
-    FIsRepeat: Boolean;       /// True si c'est un repeat..until
-    FInstruction: TSepiWhile; /// Instruction
-  protected
-    procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
-    procedure ChildEndParsing(Child: TSepiParseTreeNode); override;
-  public
-    constructor Create(AParent: TSepiNonTerminal; AClass: TSepiSymbolClass;
-      const ASourcePos: TSepiSourcePosition); override;
-
-    procedure BeginParsing; override;
-    procedure EndParsing; override;
-
-    property IsRepeat: Boolean read FIsRepeat;
-    property Instruction: TSepiWhile read FInstruction;
-  end;
-
-  {*
     Instruction for..do
     @author sjrd
     @version 1.0
   *}
-  TForInstructionNode = class(TInstructionNode)
+  TForInstructionNode = class(TSepiInstructionNode)
   private
     FInstruction: TSepiFor; /// Instruction
   protected
@@ -958,7 +855,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TTryInstructionNode = class(TInstructionNode)
+  TTryInstructionNode = class(TSepiInstructionNode)
   private
     FTryInstructions: TSepiInstructionList; /// Instructions dans le try
   protected
@@ -974,7 +871,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TNextTryInstructionNode = class(TInstructionNode)
+  TNextTryInstructionNode = class(TSepiInstructionNode)
   private
     FTryInstructions: TSepiInstructionList; /// Instructions dans le try
   public
@@ -1004,7 +901,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TMultiOnNode = class(TInstructionNode)
+  TMultiOnNode = class(TSepiInstructionNode)
   private
     FInstruction: TSepiMultiOn; /// Instruction
   protected
@@ -1021,7 +918,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TOnClauseNode = class(TInstructionNode)
+  TOnClauseNode = class(TSepiInstructionNode)
   private
     FInstruction: TSepiMultiOn; /// Instruction multi-on contenante
 
@@ -1051,7 +948,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TMultiOnElseClauseNode = class(TInstructionListNode)
+  TMultiOnElseClauseNode = class(TSepiInstructionListNode)
   public
     procedure EndParsing; override;
   end;
@@ -1074,24 +971,11 @@ type
   end;
 
   {*
-    Instruction raise
-    @author sjrd
-    @version 1.0
-  *}
-  TRaiseInstructionNode = class(TInstructionNode)
-  private
-    procedure MakeRaiseInstruction;
-    procedure MakeReraiseInstruction;
-  public
-    procedure EndParsing; override;
-  end;
-
-  {*
     Instruction Expression ou Expression := Expression
     @author sjrd
     @version 1.0
   *}
-  TExpressionInstructionNode = class(TInstructionNode)
+  TExpressionInstructionNode = class(TSepiInstructionNode)
   private
     procedure CompileCall;
     procedure CompileAssignment;
@@ -1227,15 +1111,16 @@ begin
 
   NonTerminalClasses[ntMethodImpl]     := TMethodImplNode;
   NonTerminalClasses[ntMethodImplDecl] := TMethodImplDeclNode;
-  NonTerminalClasses[ntMethodBody]     := TMethodBodyNode;
+  NonTerminalClasses[ntMethodBody]     := TSepiMethodBodyNode;
   NonTerminalClasses[ntLocalVar]       := TLocalVarNode;
 
-  NonTerminalClasses[ntInstructionList]       := TInstructionListNode;
-  NonTerminalClasses[ntNoInstruction]         := TNoInstructionNode;
-  NonTerminalClasses[ntBeginEndBlock]         := TBeginEndBlockNode;
-  NonTerminalClasses[ntIfThenElseInstruction] := TIfThenElseInstructionNode;
-  NonTerminalClasses[ntWhileInstruction]      := TWhileInstructionNode;
-  NonTerminalClasses[ntRepeatInstruction]     := TWhileInstructionNode;
+  NonTerminalClasses[ntInstructionList]       := TSepiInstructionListNode;
+  NonTerminalClasses[ntNoInstruction]         := TSepiNoInstructionNode;
+  NonTerminalClasses[ntBeginEndBlock]         := TSepiBeginEndBlockNode;
+  NonTerminalClasses[ntIfThenElseInstruction] := TSepiIfThenElseInstructionNode;
+  NonTerminalClasses[ntWhileInstruction]      := TSepiWhileInstructionNode;
+  NonTerminalClasses[ntRepeatInstruction] :=
+    TSepiRepeatUntilInstructionNode;
   NonTerminalClasses[ntForInstruction]        := TForInstructionNode;
   NonTerminalClasses[ntTryInstruction]        := TTryInstructionNode;
   NonTerminalClasses[ntExceptClause]          := TExceptClauseNode;
@@ -1243,7 +1128,7 @@ begin
   NonTerminalClasses[ntOnClause]              := TOnClauseNode;
   NonTerminalClasses[ntMultiOnElseClause]     := TMultiOnElseClauseNode;
   NonTerminalClasses[ntFinallyClause]         := TFinallyClauseNode;
-  NonTerminalClasses[ntRaiseInstruction]      := TRaiseInstructionNode;
+  NonTerminalClasses[ntRaiseInstruction]      := TSepiRaiseInstructionNode;
   NonTerminalClasses[ntExpressionInstruction] := TExpressionInstructionNode;
 end;
 
@@ -3976,10 +3861,10 @@ begin
     // Marqueur forward - ce doit être la première déclaration
     if not Self.FJustDeclared then
       MakeError(Format(SRedeclaredIdentifier, [Name]));
-  end else if Child is TMethodBodyNode then
+  end else if Child is TSepiMethodBodyNode then
   begin
     // Corps de la méthode - implémentation réelle
-    TMethodBodyNode(Child).SepiMethod := SepiMethod;
+    TSepiMethodBodyNode(Child).SetSepiMethod(SepiMethod);
   end;
 end;
 
@@ -4127,69 +4012,6 @@ begin
   inherited;
 end;
 
-{-----------------------}
-{ TMethodBodyNode class }
-{-----------------------}
-
-{*
-  [@inheritDoc]
-*}
-function TMethodBodyNode.GetMethodCompiler: TSepiMethodCompiler;
-begin
-  Result := FCompiler;
-end;
-
-{*
-  [@inheritDoc]
-*}
-function TMethodBodyNode.GetSepiContext: TSepiMeta;
-begin
-  if FCompiler <> nil then
-    Result := FCompiler.LocalNamespace
-  else
-    Result := inherited GetSepiContext;
-end;
-
-{*
-  [@inheritDoc]
-*}
-function TMethodBodyNode.ResolveIdent(
-  const Identifier: string): ISepiExpression;
-begin
-  Result := MethodResolveIdent(MethodCompiler, Identifier);
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TMethodBodyNode.BeginParsing;
-begin
-  inherited;
-
-  FCompiler := UnitCompiler.FindMethodCompiler(SepiMethod, True);
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TMethodBodyNode.ChildBeginParsing(Child: TSepiParseTreeNode);
-begin
-  inherited;
-
-  if Child is TInstructionNode then
-    TInstructionNode(Child).InstructionList := MethodCompiler.Instructions;
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TMethodBodyNode.EndParsing;
-begin
-  FCompiler.Complete;
-
-  inherited;
-end;
-
 {---------------------}
 { TLocalVarNode class }
 {---------------------}
@@ -4236,159 +4058,6 @@ begin
   inherited;
 end;
 
-{----------------------------}
-{ TInstructionListNode class }
-{----------------------------}
-
-{*
-  [@inheritDoc]
-*}
-procedure TInstructionListNode.ChildBeginParsing(Child: TSepiParseTreeNode);
-begin
-  inherited;
-
-  (Child as TInstructionNode).InstructionList := InstructionList;
-end;
-
-{----------------------------------}
-{ TIfThenElseInstructionNode class }
-{----------------------------------}
-
-{*
-  [@inheritDoc]
-*}
-procedure TIfThenElseInstructionNode.BeginParsing;
-begin
-  inherited;
-
-  FInstruction := TSepiIfThenElse.Create(MethodCompiler);
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TIfThenElseInstructionNode.ChildBeginParsing(
-  Child: TSepiParseTreeNode);
-const
-  TrueBranchChild = 1;
-  FalseBranchChild = 2;
-begin
-  inherited;
-
-  case Child.IndexAsChild of
-    TrueBranchChild:
-      (Child as TInstructionNode).InstructionList :=
-        Instruction.TrueInstructions;
-    FalseBranchChild:
-      (Child as TInstructionNode).InstructionList :=
-        Instruction.FalseInstructions;
-  end;
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TIfThenElseInstructionNode.ChildEndParsing(Child: TSepiParseTreeNode);
-var
-  TestValue: ISepiValue;
-  ReadableValue: ISepiReadableValue;
-begin
-  if Child is TSepiExpressionNode then
-  begin
-    TestValue := TSepiExpressionNode(Child).AsValue(SystemUnit.Boolean);
-
-    if Supports(TestValue, ISepiReadableValue, ReadableValue) then
-      Instruction.TestValue := ReadableValue
-    else
-      Child.MakeError(SReadableValueRequired);
-  end;
-
-  inherited;
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TIfThenElseInstructionNode.EndParsing;
-begin
-  InstructionList.Add(Instruction);
-
-  inherited;
-end;
-
-{-----------------------------}
-{ TWhileInstructionNode class }
-{-----------------------------}
-
-{*
-  [@inheritDoc]
-*}
-constructor TWhileInstructionNode.Create(AParent: TSepiNonTerminal;
-  AClass: TSepiSymbolClass; const ASourcePos: TSepiSourcePosition);
-begin
-  inherited;
-
-  FIsRepeat := SymbolClass = ntRepeatInstruction;
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TWhileInstructionNode.BeginParsing;
-begin
-  inherited;
-
-  FInstruction := TSepiWhile.Create(MethodCompiler, IsRepeat);
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TWhileInstructionNode.ChildBeginParsing(
-  Child: TSepiParseTreeNode);
-begin
-  inherited;
-
-  if Child is TInstructionNode then
-    TInstructionNode(Child).InstructionList := Instruction.LoopInstructions;
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TWhileInstructionNode.ChildEndParsing(Child: TSepiParseTreeNode);
-var
-  TestValue: ISepiValue;
-  ReadableValue: ISepiReadableValue;
-begin
-  if Child is TSepiExpressionNode then
-  begin
-    TestValue := TSepiExpressionNode(Child).AsValue(SystemUnit.Boolean);
-
-    if Supports(TestValue, ISepiReadableValue, ReadableValue) then
-    begin
-      if IsRepeat then
-        ReadableValue := TSepiUnaryOperation.MakeOperation(
-          opNot, ReadableValue);
-
-      Instruction.TestValue := ReadableValue;
-    end else
-      Child.MakeError(SReadableValueRequired);
-  end;
-
-  inherited;
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TWhileInstructionNode.EndParsing;
-begin
-  InstructionList.Add(Instruction);
-
-  inherited;
-end;
-
 {---------------------------}
 { TForInstructionNode class }
 {---------------------------}
@@ -4411,8 +4080,8 @@ procedure TForInstructionNode.ChildBeginParsing(
 begin
   inherited;
 
-  if Child is TInstructionNode then
-    TInstructionNode(Child).InstructionList := Instruction.LoopInstructions;
+  if Child is TSepiInstructionNode then
+    TSepiInstructionNode(Child).InstructionList := Instruction.LoopInstructions;
 end;
 
 {*
@@ -4567,7 +4236,7 @@ begin
     TNextTryInstructionNode(Child).TryInstructions := TryInstructions;
     TNextTryInstructionNode(Child).InstructionList := InstructionList;
   end else
-    (Child as TInstructionNode).InstructionList := TryInstructions;
+    (Child as TSepiInstructionNode).InstructionList := TryInstructions;
 end;
 
 {-------------------------}
@@ -4596,7 +4265,7 @@ procedure TExceptClauseNode.ChildBeginParsing(Child: TSepiParseTreeNode);
 begin
   inherited;
 
-  (Child as TInstructionNode).InstructionList :=
+  (Child as TSepiInstructionNode).InstructionList :=
     Instruction.ExceptInstructions;
 end;
 
@@ -4687,7 +4356,7 @@ procedure TOnClauseNode.ChildBeginParsing(Child: TSepiParseTreeNode);
 begin
   inherited;
 
-  if Child is TInstructionNode then
+  if Child is TSepiInstructionNode then
   begin
     if ExceptObjectClass = nil then
     begin
@@ -4695,7 +4364,7 @@ begin
       ParseExceptObjectClass(Children[0]);
     end;
 
-    TInstructionNode(Child).InstructionList := InstructionList;
+    TSepiInstructionNode(Child).InstructionList := InstructionList;
   end;
 end;
 
@@ -4802,7 +4471,7 @@ procedure TFinallyClauseNode.ChildBeginParsing(Child: TSepiParseTreeNode);
 begin
   inherited;
 
-  (Child as TInstructionNode).InstructionList :=
+  (Child as TSepiInstructionNode).InstructionList :=
     Instruction.FinallyInstructions;
 end;
 
@@ -4812,60 +4481,6 @@ end;
 procedure TFinallyClauseNode.EndParsing;
 begin
   InstructionList.Add(Instruction);
-
-  inherited;
-end;
-
-{-----------------------------}
-{ TRaiseInstructionNode class }
-{-----------------------------}
-
-{*
-  Construit l'instruction raise avec un objet
-*}
-procedure TRaiseInstructionNode.MakeRaiseInstruction;
-var
-  Instruction: TSepiRaise;
-  ExceptionValue: ISepiValue;
-  ReadableValue: ISepiReadableValue;
-begin
-  // Get exception value
-  ExceptionValue := (Children[0] as TSepiExpressionNode).AsValue(
-    SystemUnit.TObject);
-
-  // As readable value
-  if not Supports(ExceptionValue, ISepiReadableValue, ReadableValue) then
-  begin
-    (ExceptionValue as ISepiExpression).MakeError(SClassTypeRequired);
-    Exit;
-  end;
-
-  // Make instruction
-  Instruction := TSepiRaise.Create(MethodCompiler);
-  Instruction.ExceptionValue := ReadableValue;
-  InstructionList.Add(Instruction);
-end;
-
-{*
-  Construit l'instruction raise sans objet (reraise)
-*}
-procedure TRaiseInstructionNode.MakeReraiseInstruction;
-var
-  Instruction: TSepiReraise;
-begin
-  Instruction := TSepiReraise.Create(MethodCompiler);
-  InstructionList.Add(Instruction);
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TRaiseInstructionNode.EndParsing;
-begin
-  if ChildCount > 0 then
-    MakeRaiseInstruction
-  else
-    MakeReraiseInstruction;
 
   inherited;
 end;

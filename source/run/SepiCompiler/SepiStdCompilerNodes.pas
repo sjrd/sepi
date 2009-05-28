@@ -644,6 +644,148 @@ type
     property LastField: TSepiField read FLastField;
   end;
 
+  {*
+    Noeud du corps d'une méthode
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiMethodBodyNode = class(TSepiNonTerminal)
+  private
+    FSepiMethod: TSepiMethod;       /// Méthode Sepi implémentée dans ce corps
+    FCompiler: TSepiMethodCompiler; /// Compilateur de la méthode
+  protected
+    procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
+
+    function GetMethodCompiler: TSepiMethodCompiler; override;
+    function GetSepiContext: TSepiMeta; override;
+  public
+    function ResolveIdent(const Identifier: string): ISepiExpression; override;
+
+    procedure EndParsing; override;
+
+    procedure SetSepiMethod(ASepiMethod: TSepiMethod);
+
+    property SepiMethod: TSepiMethod read FSepiMethod;
+  end;
+
+  {*
+    Classe de base pour les noeuds instruction
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiInstructionNode = class(TSepiNonTerminal)
+  private
+    FInstructionList: TSepiInstructionList; /// Liste d'instructions contenante
+  public
+    property InstructionList: TSepiInstructionList
+      read FInstructionList write FInstructionList;
+  end;
+
+  {*
+    Noeud "pas d'instruction"
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiNoInstructionNode = class(TSepiInstructionNode)
+  end;
+
+  {*
+    Liste d'instructions
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiInstructionListNode = class(TSepiInstructionNode)
+  protected
+    procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
+  end;
+
+  {*
+    Bloc begin..end
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiBeginEndBlockNode = class(TSepiInstructionListNode)
+  end;
+
+  {*
+    Instruction if..then..else
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiIfThenElseInstructionNode = class(TSepiInstructionNode)
+  private
+    FInstruction: TSepiIfThenElse; /// Instruction
+  protected
+    procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
+    procedure ChildEndParsing(Child: TSepiParseTreeNode); override;
+  public
+    procedure BeginParsing; override;
+    procedure EndParsing; override;
+
+    property Instruction: TSepiIfThenElse read FInstruction;
+  end;
+
+  {*
+    Instruction while..do ou similaire
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiWhileInstructionNode = class(TSepiInstructionNode)
+  private
+    FTestAtEnd: Boolean;  /// True si le test est à la fin
+    FInvertTest: Boolean; /// True si le test doit être inversé (not Test)
+
+    FInstruction: TSepiWhile; /// Instruction
+  protected
+    procedure Configure(ATestAtEnd, AInvertTest: Boolean);
+
+    procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
+    procedure ChildEndParsing(Child: TSepiParseTreeNode); override;
+  public
+    procedure BeginParsing; override;
+    procedure EndParsing; override;
+
+    property TestAtEnd: Boolean read FTestAtEnd;
+    property InvertTest: Boolean read FInvertTest;
+
+    property Instruction: TSepiWhile read FInstruction;
+  end;
+
+  {*
+    Instruction do..while
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiDoWhileInstructionNode = class(TSepiWhileInstructionNode)
+  public
+    constructor Create(AParent: TSepiNonTerminal; AClass: TSepiSymbolClass;
+      const ASourcePos: TSepiSourcePosition); override;
+  end;
+
+  {*
+    Instruction repeat..until (comme do..while mais avec un test inversé)
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiRepeatUntilInstructionNode = class(TSepiWhileInstructionNode)
+  public
+    constructor Create(AParent: TSepiNonTerminal; AClass: TSepiSymbolClass;
+      const ASourcePos: TSepiSourcePosition); override;
+  end;
+
+  {*
+    Instruction raise
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiRaiseInstructionNode = class(TSepiInstructionNode)
+  private
+    procedure MakeRaiseInstruction;
+    procedure MakeReraiseInstruction;
+  public
+    procedure EndParsing; override;
+  end;
+
 implementation
 
 {------------------------}
@@ -2237,6 +2379,297 @@ end;
 procedure TSepiRecordFieldNode.SetAfterField(const AAfterField: string);
 begin
   FAfterField := AAfterField;
+end;
+
+{---------------------------}
+{ TSepiMethodBodyNode class }
+{---------------------------}
+
+{*
+  [@inheritDoc]
+*}
+function TSepiMethodBodyNode.GetMethodCompiler: TSepiMethodCompiler;
+begin
+  Result := FCompiler;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiMethodBodyNode.GetSepiContext: TSepiMeta;
+begin
+  if FCompiler <> nil then
+    Result := FCompiler.LocalNamespace
+  else
+    Result := inherited GetSepiContext;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiMethodBodyNode.ResolveIdent(
+  const Identifier: string): ISepiExpression;
+begin
+  Result := MethodResolveIdent(MethodCompiler, Identifier);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiMethodBodyNode.ChildBeginParsing(Child: TSepiParseTreeNode);
+begin
+  inherited;
+
+  if Child is TSepiInstructionNode then
+    TSepiInstructionNode(Child).InstructionList := MethodCompiler.Instructions;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiMethodBodyNode.EndParsing;
+begin
+  FCompiler.Complete;
+
+  inherited;
+end;
+
+{*
+  Spécifie la méthode Sepi dont le corps est compilé dans ce noeud
+  Cette méthode doit être appelée une fois avant BeginParsing.
+  @param ASepiMethod   Méthode à compiler
+*}
+procedure TSepiMethodBodyNode.SetSepiMethod(ASepiMethod: TSepiMethod);
+begin
+  FSepiMethod := ASepiMethod;
+
+  if SepiMethod = nil then
+    FCompiler := nil
+  else
+    FCompiler := UnitCompiler.FindMethodCompiler(SepiMethod, True);
+end;
+
+{--------------------------------}
+{ TSepiInstructionListNode class }
+{--------------------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiInstructionListNode.ChildBeginParsing(Child: TSepiParseTreeNode);
+begin
+  inherited;
+
+  (Child as TSepiInstructionNode).InstructionList := InstructionList;
+end;
+
+{--------------------------------------}
+{ TSepiIfThenElseInstructionNode class }
+{--------------------------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiIfThenElseInstructionNode.BeginParsing;
+begin
+  inherited;
+
+  FInstruction := TSepiIfThenElse.Create(MethodCompiler);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiIfThenElseInstructionNode.ChildBeginParsing(
+  Child: TSepiParseTreeNode);
+const
+  TrueBranchChild = 1;
+  FalseBranchChild = 2;
+begin
+  inherited;
+
+  case Child.IndexAsChild of
+    TrueBranchChild:
+      (Child as TSepiInstructionNode).InstructionList :=
+        Instruction.TrueInstructions;
+    FalseBranchChild:
+      (Child as TSepiInstructionNode).InstructionList :=
+        Instruction.FalseInstructions;
+  end;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiIfThenElseInstructionNode.ChildEndParsing(
+  Child: TSepiParseTreeNode);
+begin
+  if Child is TSepiExpressionNode then
+  begin
+    Instruction.TestValue :=
+      TSepiExpressionNode(Child).AsReadableValue(SystemUnit.Boolean);
+  end;
+
+  inherited;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiIfThenElseInstructionNode.EndParsing;
+begin
+  InstructionList.Add(Instruction);
+
+  inherited;
+end;
+
+{---------------------------------}
+{ TSepiWhileInstructionNode class }
+{---------------------------------}
+
+{*
+  Configure le type de boucle
+  @param ATestAtEnd    True si le test est à la fin
+  @param AInvertTest   True si le test doit être inverté (not Test)
+*}
+procedure TSepiWhileInstructionNode.Configure(ATestAtEnd, AInvertTest: Boolean);
+begin
+  FTestAtEnd := ATestAtEnd;
+  FInvertTest := AInvertTest;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiWhileInstructionNode.BeginParsing;
+begin
+  inherited;
+
+  FInstruction := TSepiWhile.Create(MethodCompiler, TestAtEnd);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiWhileInstructionNode.ChildBeginParsing(
+  Child: TSepiParseTreeNode);
+begin
+  inherited;
+
+  if Child is TSepiInstructionNode then
+    TSepiInstructionNode(Child).InstructionList := Instruction.LoopInstructions;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiWhileInstructionNode.ChildEndParsing(Child: TSepiParseTreeNode);
+var
+  TestValue: ISepiReadableValue;
+begin
+  if Child is TSepiExpressionNode then
+  begin
+    TestValue := TSepiExpressionNode(Child).AsReadableValue(SystemUnit.Boolean);
+
+    if TestValue <> nil then
+    begin
+      if InvertTest then
+        TestValue := TSepiUnaryOperation.MakeOperation(opNot, TestValue);
+
+      Instruction.TestValue := TestValue;
+    end;
+  end;
+
+  inherited;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiWhileInstructionNode.EndParsing;
+begin
+  InstructionList.Add(Instruction);
+
+  inherited;
+end;
+
+{-----------------------------------}
+{ TSepiDoWhileInstructionNode class }
+{-----------------------------------}
+
+{*
+  [@inheritDoc]
+*}
+constructor TSepiDoWhileInstructionNode.Create(AParent: TSepiNonTerminal;
+  AClass: TSepiSymbolClass; const ASourcePos: TSepiSourcePosition);
+begin
+  inherited;
+
+  Configure(True, False);
+end;
+
+{---------------------------------------}
+{ TSepiRepeatUntilInstructionNode class }
+{---------------------------------------}
+
+{*
+  [@inheritDoc]
+*}
+constructor TSepiRepeatUntilInstructionNode.Create(AParent: TSepiNonTerminal;
+  AClass: TSepiSymbolClass; const ASourcePos: TSepiSourcePosition);
+begin
+  inherited;
+
+  Configure(True, True);
+end;
+
+{---------------------------------}
+{ TSepiRaiseInstructionNode class }
+{---------------------------------}
+
+{*
+  Construit l'instruction raise avec un objet
+*}
+procedure TSepiRaiseInstructionNode.MakeRaiseInstruction;
+var
+  Instruction: TSepiRaise;
+  ExceptionValue: ISepiReadableValue;
+begin
+  // Get exception value
+  ExceptionValue := (Children[0] as TSepiExpressionNode).AsReadableValue(
+    SystemUnit.TObject);
+
+  // Make instruction
+  if ExceptionValue <> nil then
+  begin
+    Instruction := TSepiRaise.Create(MethodCompiler);
+    Instruction.ExceptionValue := ExceptionValue;
+    InstructionList.Add(Instruction);
+  end;
+end;
+
+{*
+  Construit l'instruction raise sans objet (reraise)
+*}
+procedure TSepiRaiseInstructionNode.MakeReraiseInstruction;
+var
+  Instruction: TSepiReraise;
+begin
+  Instruction := TSepiReraise.Create(MethodCompiler);
+  InstructionList.Add(Instruction);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiRaiseInstructionNode.EndParsing;
+begin
+  if ChildCount > 0 then
+    MakeRaiseInstruction
+  else
+    MakeReraiseInstruction;
+
+  inherited;
 end;
 
 end.
