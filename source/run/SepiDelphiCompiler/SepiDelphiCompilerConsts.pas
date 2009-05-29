@@ -30,7 +30,6 @@ uses
   SepiReflectionCore, SepiMembers;
 
 resourcestring
-  SIdentifierRequired = 'Identificateur requis';
   SWrongSetCompType =
     'Les éléments d''un ensemble doivent être des ordinaux avec maximum 256 '+
     'valeurs';

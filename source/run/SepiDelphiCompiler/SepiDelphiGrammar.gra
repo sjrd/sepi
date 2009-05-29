@@ -802,7 +802,10 @@ ntMultiOn	MultiOn
 	(OnClause)+ MultiOnElseClause
 
 ntOnClause	OnClause
-	'on'* QualifiedIdent (':'* QualifiedIdent)? 'do'* InstructionList
+	'on'* ExceptionVarAndType 'do'* InstructionList
+
+ntExceptionVarAndType	ExceptionVarAndType
+	QualifiedIdent (':'* QualifiedIdent)?
 
 ntMultiOnElseClause	MultiOnElseClause
 	'else'* InstructionList

@@ -767,13 +767,16 @@ end;
 *}
 function TSepiTryExcept.UseTempVar: TSepiLocalVar;
 begin
-  Result := MethodCompiler.Locals.AddTempVar(
-    MethodCompiler.SystemUnit.TObject);
-  Result.HandleLife;
-  Result.Life.AddInstrInterval(ExceptInstructions.BeforeRef,
-    ExceptInstructions.AfterRef);
+  if ExceptObjectVar = nil then
+  begin
+    ExceptObjectVar := MethodCompiler.Locals.AddTempVar(
+      MethodCompiler.SystemUnit.TObject);
+    ExceptObjectVar.HandleLife;
+    ExceptObjectVar.Life.AddInstrInterval(ExceptInstructions.BeforeRef,
+      ExceptInstructions.AfterRef);
+  end;
 
-  ExceptObjectVar := Result;
+  Result := ExceptObjectVar;
 end;
 
 {-----------------------}

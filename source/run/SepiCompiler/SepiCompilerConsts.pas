@@ -70,6 +70,7 @@ resourcestring
     'classe';
   SCallableRequired = 'Expression invocable requise';
   SMetaRequired = 'Nom d''objet requis';
+  SIdentifierRequired = 'Identificateur requis';
 
   // Sorte particulière de type requise
   STypeIdentifierRequired = 'Identificateur de type requis';
