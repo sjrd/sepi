@@ -833,24 +833,6 @@ type
   end;
 
   {*
-    Instruction for..do
-    @author sjrd
-    @version 1.0
-  *}
-  TForInstructionNode = class(TSepiInstructionNode)
-  private
-    FInstruction: TSepiFor; /// Instruction
-  protected
-    procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
-    procedure ChildEndParsing(Child: TSepiParseTreeNode); override;
-  public
-    procedure BeginParsing; override;
-    procedure EndParsing; override;
-
-    property Instruction: TSepiFor read FInstruction;
-  end;
-
-  {*
     Instruction try..except..end ou try..finally..end
     @author sjrd
     @version 1.0
@@ -1108,7 +1090,10 @@ begin
   NonTerminalClasses[ntWhileInstruction]      := TSepiWhileInstructionNode;
   NonTerminalClasses[ntRepeatInstruction] :=
     TSepiRepeatUntilInstructionNode;
-  NonTerminalClasses[ntForInstruction]        := TForInstructionNode;
+  NonTerminalClasses[ntForInstruction]        := TSepiForInstructionNode;
+  NonTerminalClasses[ntForControlVar]         := TSepiForControlVarNode;
+  NonTerminalClasses[ntForTo]                 := TSepiForToNode;
+  NonTerminalClasses[ntForDownTo]             := TSepiForDownToNode;
   NonTerminalClasses[ntTryInstruction]        := TTryInstructionNode;
   NonTerminalClasses[ntExceptClause]          := TExceptClauseNode;
   NonTerminalClasses[ntMultiOn]               := TMultiOnNode;
@@ -4043,95 +4028,6 @@ begin
     for I := 0 to Names.Count-1 do
       MethodCompiler.Locals.AddLocalVar(Names[I], VarType);
   end;
-
-  inherited;
-end;
-
-{---------------------------}
-{ TForInstructionNode class }
-{---------------------------}
-
-{*
-  [@inheritDoc]
-*}
-procedure TForInstructionNode.BeginParsing;
-begin
-  inherited;
-
-  FInstruction := TSepiFor.Create(MethodCompiler);
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TForInstructionNode.ChildBeginParsing(
-  Child: TSepiParseTreeNode);
-begin
-  inherited;
-
-  if Child is TSepiInstructionNode then
-    TSepiInstructionNode(Child).InstructionList := Instruction.LoopInstructions;
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TForInstructionNode.ChildEndParsing(Child: TSepiParseTreeNode);
-const
-  ControlVarChild = 0;
-  StartValueChild = 1;
-  ToDownToChild = 2;
-  EndValueChild = 3;
-var
-  ControlVar: TSepiLocalVar;
-  BoundValue: ISepiValue;
-  ReadableValue: ISepiReadableValue;
-begin
-  case Child.IndexAsChild of
-    // Control variable
-    ControlVarChild:
-    begin
-      ControlVar := MethodCompiler.Locals.GetVarByName(Child.AsText);
-      if ControlVar = nil then
-      begin
-        Child.MakeError(SLocalVarNameRequired);
-        ControlVar := MethodCompiler.Locals.AddTempVar(SystemUnit.Integer);
-      end;
-
-      Instruction.ControlVar := ControlVar;
-    end;
-
-    // Start and end values
-    StartValueChild, EndValueChild:
-    begin
-      BoundValue := (Child as TSepiExpressionNode).AsValue;
-
-      if Supports(BoundValue, ISepiReadableValue, ReadableValue) then
-      begin
-        if Child.IndexAsChild = StartValueChild then
-          Instruction.StartValue := ReadableValue
-        else
-          Instruction.EndValue := ReadableValue;
-      end else
-        Child.MakeError(SReadableValueRequired);
-    end;
-
-    // 'to' or 'downto' keyword
-    ToDownToChild:
-    begin
-      Instruction.IsDownTo := (Child.SymbolClass = tkDownTo);
-    end;
-  end;
-
-  inherited;
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TForInstructionNode.EndParsing;
-begin
-  InstructionList.Add(Instruction);
 
   inherited;
 end;

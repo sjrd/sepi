@@ -769,10 +769,19 @@ ntRepeatInstruction	RepeatInstruction
 	'repeat'* InstructionList 'until'* Expression
 
 ntForInstruction	ForInstruction
-	'for'* Identifier ':='* Expression ToDownTo Expression 'do'* Instruction
+	'for'* ForControlVar ':='* Expression ForToDownTo Expression 'do'* Instruction
 
-ntToDownTo	ToDownTo	Simplify
+ntForControlVar	ForControlVar
+	Identifier
+
+ntForToDownTo	ForToDownTo	Simplify
+	ForTo
+	ForDownTo
+
+ntForTo	ForTo
 	'to'
+
+ntForDownTo	ForDownTo
 	'downto'
 
 ntTryInstruction	TryInstruction

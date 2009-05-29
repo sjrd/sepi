@@ -774,6 +774,96 @@ type
   end;
 
   {*
+    Instruction for..do
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiForInstructionNode = class(TSepiInstructionNode)
+  private
+    FInstruction: TSepiFor; /// Instruction
+  protected
+    function MakeErroneousBoundValue: ISepiReadableValue; virtual;
+
+    procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
+    procedure ChildEndParsing(Child: TSepiParseTreeNode); override;
+  public
+    procedure BeginParsing; override;
+    procedure EndParsing; override;
+
+    property Instruction: TSepiFor read FInstruction;
+  end;
+
+  {*
+    Noeud représentant le nom d'une variable locale à rechercher
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiLocalVarNameNode = class(TSepiNonTerminal)
+  private
+    FLocalVar: TSepiLocalVar; /// Variable locale
+  protected
+    procedure SetLocalVar(ALocalVar: TSepiLocalVar);
+
+    function GetLocalVarName: string; virtual;
+    function CompileLocalVar: TSepiLocalVar; virtual;
+
+    procedure MakeErroneousLocalVar; virtual;
+  public
+    procedure EndParsing; override;
+
+    property LocalVarName: string read GetLocalVarName;
+    property LocalVar: TSepiLocalVar read FLocalVar;
+  end;
+
+  {*
+    Noeud représentant la variable de contrôle d'une boucle for
+    Le parent d'un noeud ce type doit être une instance de
+    TSepiForInstructionNode.
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiForControlVarNode = class(TSepiLocalVarNameNode)
+  protected
+    procedure MakeErroneousLocalVar; override;
+  end;
+
+  {*
+    Classe de base pour des noeuds indiquant qu'un for est 'to' ou 'downto'
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiForToDownToNode = class(TSepiNonTerminal)
+  protected
+    {*
+      Indique si le for englobant est 'to' ou 'downto'
+      @return True s'il est 'downto', False s'il est 'to'
+    *}
+    function GetIsDownTo: Boolean; virtual; abstract;
+  public
+    property IsDownTo: Boolean read GetIsDownTo;
+  end;
+
+  {*
+    Noeud indiquant que le for englobant est 'to'
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiForToNode = class(TSepiForToDownToNode)
+  protected
+    function GetIsDownTo: Boolean; override;
+  end;
+
+  {*
+    Noeud indiquant que le for englobant est 'downto'
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiForDownToNode = class(TSepiForToDownToNode)
+  protected
+    function GetIsDownTo: Boolean; override;
+  end;
+
+  {*
     Instruction raise
     @author sjrd
     @version 1.0
@@ -2669,6 +2759,182 @@ begin
   inherited;
 
   Configure(True, True);
+end;
+
+{-------------------------------}
+{ TSepiForInstructionNode class }
+{-------------------------------}
+
+{*
+  Construit une valeur de borne erronée
+  @return Valeur construite
+*}
+function TSepiForInstructionNode.MakeErroneousBoundValue: ISepiReadableValue;
+begin
+  Result := TSepiErroneousValue.Create(SepiRoot);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiForInstructionNode.BeginParsing;
+begin
+  inherited;
+
+  FInstruction := TSepiFor.Create(MethodCompiler);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiForInstructionNode.ChildBeginParsing(
+  Child: TSepiParseTreeNode);
+begin
+  inherited;
+
+  if Child is TSepiInstructionNode then
+    TSepiInstructionNode(Child).InstructionList := Instruction.LoopInstructions;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiForInstructionNode.ChildEndParsing(Child: TSepiParseTreeNode);
+var
+  BoundValue: ISepiReadableValue;
+begin
+  if Child is TSepiForControlVarNode then
+    Instruction.ControlVar := TSepiForControlVarNode(Child).LocalVar;
+
+  if Child is TSepiExpressionNode then
+  begin
+    Assert(Instruction.ControlVar <> nil);
+    BoundValue := TSepiExpressionNode(Child).AsReadableValue(
+      Instruction.ControlVar.VarType);
+
+    if BoundValue = nil then
+    begin
+      BoundValue := MakeErroneousBoundValue;
+      BoundValue.AttachToExpression(
+        TSepiForInstructionNode(Child).MakeExpression);
+    end;
+
+    if Instruction.StartValue = nil then
+      Instruction.StartValue := BoundValue
+    else if Instruction.EndValue = nil then
+      Instruction.EndValue := BoundValue
+    else
+      Assert(False);
+  end;
+
+  if Child is TSepiForToDownToNode then
+    Instruction.IsDownTo := TSepiForToDownToNode(Child).IsDownTo;
+
+  inherited;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiForInstructionNode.EndParsing;
+begin
+  InstructionList.Add(Instruction);
+
+  inherited;
+end;
+
+{-----------------------------}
+{ TSepiLocalVarNameNode class }
+{-----------------------------}
+
+{*
+  Modifie la variable locale
+  @param ALocalVar   Variable locale
+*}
+procedure TSepiLocalVarNameNode.SetLocalVar(ALocalVar: TSepiLocalVar);
+begin
+  FLocalVar := ALocalVar;
+end;
+
+{*
+  Nom de la variable locale
+  @return Nom de la variable locale
+*}
+function TSepiLocalVarNameNode.GetLocalVarName: string;
+begin
+  Result := AsText;
+end;
+
+{*
+  Compile la variable locale
+  @return Variable locale
+*}
+function TSepiLocalVarNameNode.CompileLocalVar: TSepiLocalVar;
+begin
+  Result := MethodCompiler.Locals.GetVarByName(LocalVarName);
+
+  if Result = nil then
+    MakeError(SLocalVarNameRequired);
+end;
+
+{*
+  Construit une variable erronée
+*}
+procedure TSepiLocalVarNameNode.MakeErroneousLocalVar;
+begin
+  SetLocalVar(MethodCompiler.Locals.AddTempVar(SystemUnit.Integer));
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiLocalVarNameNode.EndParsing;
+begin
+  if LocalVar = nil then
+  begin
+    SetLocalVar(CompileLocalVar);
+    if LocalVar = nil then
+      MakeErroneousLocalVar;
+  end;
+
+  inherited;
+end;
+
+{------------------------------}
+{ TSepiForControlVarNode class }
+{------------------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiForControlVarNode.MakeErroneousLocalVar;
+begin
+  SetLocalVar((Parent as TSepiForInstructionNode).Instruction.UseTempVar(
+    SystemUnit.Integer));
+end;
+
+{----------------------}
+{ TSepiForToNode class }
+{----------------------}
+
+{*
+  [@inheritDoc]
+*}
+function TSepiForToNode.GetIsDownTo: Boolean;
+begin
+  Result := False;
+end;
+
+{--------------------------}
+{ TSepiForDownToNode class }
+{--------------------------}
+
+{*
+  [@inheritDoc]
+*}
+function TSepiForDownToNode.GetIsDownTo: Boolean;
+begin
+  Result := True;
 end;
 
 {---------------------------------}

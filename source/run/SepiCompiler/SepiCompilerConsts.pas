@@ -111,6 +111,9 @@ resourcestring
   SCallPatternOnlyOnClassMethod =
     'Forme d''appel autorisée uniquement sur les méthodes de classe';
 
+  // Erreurs sur les variables locales
+  SLocalVarNameRequired = 'Variable locale requise';
+
   // Erreurs sur les indices de tableau
   SArrayOrArrayPropRequired = 'Valeur tableau ou propriété tableau requise';
   STooManyArrayIndices = 'Trop d''index pour ce tableau';

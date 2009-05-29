@@ -67,7 +67,6 @@ resourcestring
   SDeclarationDiffersFromPreviousOne =
     'La déclaration de %s diffère de la déclaration précédente';
   SMethodAlreadyImplemented = 'La méthode %s a déjà été implémentée';
-  SLocalVarNameRequired = 'Variable locale requise';
 
 implementation
 
