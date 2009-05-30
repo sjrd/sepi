@@ -27,7 +27,7 @@ unit SepiCompiler;
 interface
 
 uses
-  Windows, SysUtils, Classes, Contnrs, TypInfo, ScUtils, ScTypInfo,
+  Types, Windows, SysUtils, Classes, Contnrs, TypInfo, ScUtils, ScTypInfo,
   ScIntegerSets, ScInterfaces, SepiReflectionCore, SepiMembers, SepiOrdTypes,
   SepiSystemUnit, SepiOpCodes, SepiReflectionConsts, SepiCompilerErrors,
   SepiCompilerConsts;
@@ -817,6 +817,69 @@ const
   /// Le label n'a pas été assigné
   LabelUnassigned = TObject($FFFFFFFF);
 
+type
+  {*
+    Noeud d'un graphe de variables locales
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiLocalVarVertex = class(TObject)
+  private
+    FLocalVar: TSepiLocalVar; /// Variable locale représentée
+    FColor: Integer;          /// Couleur assignée
+
+    FAdjacents: TObjectList; /// Liste des noeuds adjacents
+
+    function GetAdjacentCount: Integer;
+    function GetAdjacents(Index: Integer): TSepiLocalVarVertex;
+  public
+    constructor Create(ALocalVar: TSepiLocalVar);
+
+    procedure AddAdjacent(Adjacent: TSepiLocalVarVertex;
+      DoReciprocal: Boolean = True);
+    procedure RemoveAdjacent(Adjacent: TSepiLocalVarVertex;
+      DoReciprocal: Boolean = True);
+
+    property LocalVar: TSepiLocalVar read FLocalVar;
+    property Color: Integer read FColor write FColor;
+
+    property AdjacentCount: Integer read GetAdjacentCount;
+    property Adjacents[Index: Integer]: TSepiLocalVarVertex read GetAdjacents;
+  end;
+
+  {*
+    Graphe d'interférence des variables locales
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiLocalVarGraph = class(TObject)
+  private
+    FVertices: TObjectList;        /// Liste des noeuds du graphe
+    FColorSizes: TIntegerDynArray; /// Tailles associées aux couleurs
+
+    procedure MakeAdjacents;
+    function ColorForVertex(Vertex: TSepiLocalVarVertex): Integer;
+    procedure Colorize;
+    procedure SetOffsets(var Size: Integer);
+
+    function GetVertexCount: Integer;
+    function GetVertices(Index: Integer): TSepiLocalVarVertex;
+    function GetColorCount: Integer;
+    procedure SetColorCount(Value: Integer);
+
+    property ColorCount: Integer read GetColorCount write SetColorCount;
+  public
+    constructor Create;
+    destructor Destroy; override;
+
+    procedure AddLocalVar(LocalVar: TSepiLocalVar);
+
+    procedure ColorizeAndSetOffsets(var Size: Integer);
+
+    property VertexCount: Integer read GetVertexCount;
+    property Vertices[Index: Integer]: TSepiLocalVarVertex read GetVertices;
+  end;
+
 {*
   Calcule la taille en octets d'un entier signé
   @param Value           Entier signé
@@ -1371,7 +1434,10 @@ var
   I: Integer;
 begin
   for I := 0 to Length(FInstrIntervals) div 2 - 1 do
-    AddInterval(FInstrIntervals[I].Position, FInstrIntervals[I+1].Position);
+  begin
+    AddInterval(FInstrIntervals[2*I].InstructionIndex,
+      FInstrIntervals[2*I+1].InstructionIndex);
+  end;
 end;
 
 {*
@@ -1386,7 +1452,7 @@ begin
   Temp := TScIntegerSet.Clone(Self);
   try
     Temp.Intersect(Other);
-    Result := Temp.IntervalCount = 0;
+    Result := Temp.IntervalCount > 0;
   finally
     Temp.Free;
   end;
@@ -1668,6 +1734,7 @@ procedure TSepiLocalVariables.AllocateOffsets;
 var
   I: Integer;
   LocalVar: TSepiLocalVar;
+  Graph: TSepiLocalVarGraph;
 begin
   FSize := 0;
 
@@ -1682,15 +1749,18 @@ begin
   end;
 
   // Give offsets to non fixed variables
-  for I := 0 to Count-1 do
-  begin
-    LocalVar := Variables[I];
-    if LocalVar.IsAbsolute or LocalVar.IsFixed then
-      Continue;
+  Graph := TSepiLocalVarGraph.Create;
+  try
+    for I := 0 to Count-1 do
+    begin
+      LocalVar := Variables[I];
+      if not (LocalVar.IsAbsolute or LocalVar.IsFixed) then
+        Graph.AddLocalVar(LocalVar);
+    end;
 
-    LocalVar.VarType.AlignOffset(FSize);
-    LocalVar.SetOffset(FSize);
-    Inc(FSize, LocalVar.VarType.Size);
+    Graph.ColorizeAndSetOffsets(FSize);
+  finally
+    Graph.Free;
   end;
 
   // Align total size on a 4-byte boundary
@@ -3363,6 +3433,272 @@ var
 begin
   Offset := MakeOffset(FromPos);
   Stream.WriteBuffer(Offset, SizeOf(Smallint));
+end;
+
+{---------------------------}
+{ TSepiLocalVarVertex class }
+{---------------------------}
+
+{*
+  Crée un noeud de variable locale
+  @param ALocalVar   Variable locale représentée
+*}
+constructor TSepiLocalVarVertex.Create(ALocalVar: TSepiLocalVar);
+begin
+  inherited Create;
+
+  FLocalVar := ALocalVar;
+
+  FAdjacents := TObjectList.Create(False);
+end;
+
+{*
+  Nombre de noeuds adjacents
+  @return Nombre de noeuds adjacents
+*}
+function TSepiLocalVarVertex.GetAdjacentCount: Integer;
+begin
+  Result := FAdjacents.Count;
+end;
+
+{*
+  Tableau zero-based des noeuds adjacents
+  @param Index   Index d'un noeud adjacent
+  @return Noeud adjacent à l'index spécifié
+*}
+function TSepiLocalVarVertex.GetAdjacents(Index: Integer): TSepiLocalVarVertex;
+begin
+  Result := TSepiLocalVarVertex(FAdjacents[Index]);
+end;
+
+{*
+  Ajoute un noeud adjencent
+  @param Adjacent   Noeud adjacent
+  @param DoReciprocal   Indique s'il faut faire l'opération réciproque
+*}
+procedure TSepiLocalVarVertex.AddAdjacent(Adjacent: TSepiLocalVarVertex;
+  DoReciprocal: Boolean = True);
+begin
+  FAdjacents.Add(Adjacent);
+  if DoReciprocal then
+    Adjacent.AddAdjacent(Self, False);
+end;
+
+{*
+  Supprime un noeud adjencent
+  @param Adjacent   Noeud adjacent
+  @param DoReciprocal   Indique s'il faut faire l'opération réciproque
+*}
+procedure TSepiLocalVarVertex.RemoveAdjacent(Adjacent: TSepiLocalVarVertex;
+  DoReciprocal: Boolean = True);
+begin
+  FAdjacents.Remove(Adjacent);
+  if DoReciprocal then
+    Adjacent.RemoveAdjacent(Self, False);
+end;
+
+{--------------------------}
+{ TSepiLocalVarGraph class }
+{--------------------------}
+
+{*
+  Crée un graphe vide
+*}
+constructor TSepiLocalVarGraph.Create;
+begin
+  inherited Create;
+
+  FVertices := TObjectList.Create;
+end;
+
+{*
+  [@inheritDoc]
+*}
+destructor TSepiLocalVarGraph.Destroy;
+begin
+  FVertices.Free;
+
+  inherited;
+end;
+
+{*
+  Construit les arcs d'adjacence
+*}
+procedure TSepiLocalVarGraph.MakeAdjacents;
+var
+  I, J: Integer;
+  VertexI, VertexJ: TSepiLocalVarVertex;
+begin
+  for I := 0 to VertexCount-2 do
+  begin
+    VertexI := Vertices[I];
+    for J := I+1 to VertexCount-1 do
+    begin
+      VertexJ := Vertices[J];
+      if VertexI.LocalVar.InterfereWith(VertexJ.LocalVar) then
+        VertexI.AddAdjacent(VertexJ);
+    end;
+  end;
+end;
+
+{*
+  Choisit une couleur pour un noeud donné
+  @param Vertex   Noeud concerné
+  @return Couleur choisie
+*}
+function TSepiLocalVarGraph.ColorForVertex(
+  Vertex: TSepiLocalVarVertex): Integer;
+var
+  UsedColors: TBooleanDynArray;
+  I: Integer;
+begin
+  SetLength(UsedColors, ColorCount);
+  FillChar(UsedColors[0], ColorCount * SizeOf(Boolean), 0);
+
+  for I := 0 to Vertex.AdjacentCount-1 do
+    UsedColors[Vertex.Adjacents[I].Color] := True;
+
+  Result := 0;
+  while (Result < ColorCount) and UsedColors[Result] do
+    Inc(Result);
+
+  if Result = ColorCount then
+  begin
+    ColorCount := ColorCount+1;
+    FColorSizes[Result] := 0;
+  end;
+end;
+
+{*
+  Colorie le graphe
+*}
+procedure TSepiLocalVarGraph.Colorize;
+var
+  Backups: TObjectStack;
+  I: Integer;
+  Vertex: TSepiLocalVarVertex;
+begin
+  ColorCount := 0;
+
+  Backups := TObjectStack.Create;
+  try
+    // Pass 1 - remove all nodes of the graph
+    while VertexCount > 0 do
+    begin
+      // Find the vertex with lowest degree
+      Vertex := Vertices[0];
+      for I := 1 to VertexCount-1 do
+      begin
+        if Vertices[I].AdjacentCount < Vertex.AdjacentCount then
+          Vertex := Vertices[I];
+      end;
+
+      // Disconnect the vertex from the graph
+      FVertices.Extract(Vertex);
+      for I := 0 to Vertex.AdjacentCount-1 do
+        Vertex.Adjacents[I].RemoveAdjacent(Vertex, False);
+
+      // Back up the vertex
+      Backups.Push(Vertex);
+    end;
+
+    // Pass 2 - rebuild the graph and give colors
+    while Backups.Count > 0 do
+    begin
+      Vertex := TSepiLocalVarVertex(Backups.Pop);
+      Vertex.Color := ColorForVertex(Vertex);
+
+      // Update color size
+      if Vertex.LocalVar.VarType.Size > FColorSizes[Vertex.Color] then
+        FColorSizes[Vertex.Color] := Vertex.LocalVar.VarType.Size;
+
+      // Reconnect the vertex to the graph
+      for I := 0 to Vertex.AdjacentCount-1 do
+        Vertex.Adjacents[I].AddAdjacent(Vertex, False);
+      FVertices.Add(Vertex);
+    end;
+  finally
+    Backups.Free;
+  end;
+end;
+
+{*
+  Assigne les offsets
+  @param Size   Taille des variables locales
+*}
+procedure TSepiLocalVarGraph.SetOffsets(var Size: Integer);
+var
+  ColorOffsets: TIntegerDynArray;
+  I: Integer;
+begin
+  // Compute color offsets
+  SetLength(ColorOffsets, ColorCount);
+  for I := 0 to ColorCount-1 do
+  begin
+    ColorOffsets[I] := Size;
+    Inc(Size, FColorSizes[I]);
+  end;
+
+  // Set offsets to variables
+  for I := 0 to VertexCount-1 do
+    Vertices[I].LocalVar.SetOffset(ColorOffsets[Vertices[I].Color]);
+end;
+
+{*
+  Nombre de noeuds
+  @return Nombre de noeuds
+*}
+function TSepiLocalVarGraph.GetVertexCount: Integer;
+begin
+  Result := FVertices.Count;
+end;
+
+{*
+  Tableau zero-based des noeuds
+  @param Index   Index d'un noeud
+  @return Noeud à l'index spécifié
+*}
+function TSepiLocalVarGraph.GetVertices(Index: Integer): TSepiLocalVarVertex;
+begin
+  Result := TSepiLocalVarVertex(FVertices[Index]);
+end;
+
+{*
+  Nombre de couleurs
+  @return Nombre de couleurs
+*}
+function TSepiLocalVarGraph.GetColorCount: Integer;
+begin
+  Result := Length(FColorSizes);
+end;
+
+{*
+  Modifie le nombre de couleurs
+  @param Value   Nouveau nombre de couleurs
+*}
+procedure TSepiLocalVarGraph.SetColorCount(Value: Integer);
+begin
+  SetLength(FColorSizes, Value);
+end;
+
+{*
+  Ajoute une variable locale à traiter
+  @param LocalVar   Variable locale à ajouter
+*}
+procedure TSepiLocalVarGraph.AddLocalVar(LocalVar: TSepiLocalVar);
+begin
+  FVertices.Add(TSepiLocalVarVertex.Create(LocalVar));
+end;
+
+{*
+  Colorie le graphe et assigne les offsets
+  @param Size   Taille des variables locales
+*}
+procedure TSepiLocalVarGraph.ColorizeAndSetOffsets(var Size: Integer);
+begin
+  MakeAdjacents;
+  Colorize;
+  SetOffsets(Size);
 end;
 
 end.

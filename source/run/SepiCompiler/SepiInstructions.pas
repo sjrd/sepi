@@ -659,10 +659,6 @@ begin
 
   CompileReadBounds(HigherBoundVar);
 
-  TestResultVar := MethodCompiler.Locals.AddTempVar(
-    MethodCompiler.SystemUnit.Boolean);
-  TestResultVar.HandleLife;
-
   // Create ASM instructions
   TestJumpInstr := TSepiAsmCondJump.Create(MethodCompiler, True);
   JumpInstr := TSepiAsmJump.Create(MethodCompiler);
@@ -679,6 +675,12 @@ begin
     IncDecInstr := TSepiAsmOperation.Create(MethodCompiler,
       ocSelfInc, BaseType);
   end;
+
+  TestResultVar := MethodCompiler.Locals.AddTempVar(
+    MethodCompiler.SystemUnit.Boolean);
+  TestResultVar.HandleLife;
+  TestResultVar.Life.AddInstrInterval(CompareInstr.AfterRef,
+    TestJumpInstr.BeforeRef);
 
   // Compile loop
 
