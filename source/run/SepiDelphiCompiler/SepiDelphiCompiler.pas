@@ -606,22 +606,6 @@ type
   end;
 
   {*
-    Noeud d'un champ
-    @author sjrd
-    @version 1.0
-  *}
-  TFieldNode = class(TMemberNode)
-  private
-    FFieldType: TSepiType;  /// Type des champs
-    FLastField: TSepiField; /// Dernier champ compilé
-  public
-    procedure EndParsing; override;
-
-    property FieldType: TSepiType read FFieldType;
-    property LastField: TSepiField read FLastField;
-  end;
-
-  {*
     Noeud d'une propriété
     @author sjrd
     @version 1.0
@@ -908,7 +892,7 @@ begin
 
   NonTerminalClasses[ntRecordField]          := TSepiRecordFieldNode;
   NonTerminalClasses[ntRecordCaseField]      := TSepiRecordFieldNode;
-  NonTerminalClasses[ntField]                := TFieldNode;
+  NonTerminalClasses[ntField]                := TSepiClassFieldNode;
   NonTerminalClasses[ntIntfMethodRedirector] := TSepiIntfMethodRedirectorNode;
   NonTerminalClasses[ntMethodDecl]           := TSepiMethodDeclarationNode;
   NonTerminalClasses[ntPropertyDecl]         := TPropertyNode;
@@ -2793,30 +2777,6 @@ begin
 
   if Child is TMemberNode then
     TMemberNode(Child).Owner := Owner;
-end;
-
-{------------------}
-{ TFieldNode class }
-{------------------}
-
-{*
-  [@inheritDoc]
-*}
-procedure TFieldNode.EndParsing;
-var
-  IdentList: TSepiIdentifierDeclListNode;
-  I: Integer;
-begin
-  IdentList := Children[0] as TSepiIdentifierDeclListNode;
-  FFieldType := (Children[1] as TSepiTypeNode).SepiType;
-
-  Assert(Owner is TSepiClass);
-
-  for I := 0 to IdentList.IdentifierCount-1 do
-    FLastField := TSepiClass(Owner).AddField(
-      IdentList.Identifiers[I], FieldType, I > 0);
-
-  inherited;
 end;
 
 {---------------------}

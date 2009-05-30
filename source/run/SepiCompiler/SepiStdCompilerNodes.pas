@@ -477,6 +477,22 @@ type
   end;
 
   {*
+    Noeud d'un champ d'une classe
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiClassFieldNode = class(TSepiNonTerminal)
+  private
+    FFieldType: TSepiType;  /// Type des champs
+    FLastField: TSepiField; /// Dernier champ compilé
+  public
+    procedure EndParsing; override;
+
+    property FieldType: TSepiType read FFieldType;
+    property LastField: TSepiField read FLastField;
+  end;
+
+  {*
     Classe de base pour les noeuds qui doivent construire une signature
     TSepiSignatureBuilderNode ne crée pas elle-même d'instance de
     TSepiSignature. Elle est prévue pour construire une signature créée par un
@@ -2377,6 +2393,31 @@ begin
   end;
 
   Result := False;
+end;
+
+{---------------------------}
+{ TSepiClassFieldNode class }
+{---------------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiClassFieldNode.EndParsing;
+var
+  IdentList: TSepiIdentifierDeclListNode;
+  FieldType: TSepiType;
+  SepiClass: TSepiClass;
+  I: Integer;
+begin
+  IdentList := Children[0] as TSepiIdentifierDeclListNode;
+  FieldType := (Children[1] as TSepiTypeNode).SepiType;
+
+  SepiClass := SepiContext as TSepiClass;
+
+  for I := 0 to IdentList.IdentifierCount-1 do
+    SepiClass.AddField(IdentList.Identifiers[I], FieldType, I > 0);
+
+  inherited;
 end;
 
 {---------------------------------}
