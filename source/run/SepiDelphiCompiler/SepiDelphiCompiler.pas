@@ -174,35 +174,17 @@ type
   end;
 
   {*
-    Noeud expression constante
-    @author sjrd
-    @version 1.0
-  *}
-  TConstExpressionNode = class(TSepiSameAsChildExpressionNode)
-  private
-    FAcceptType: Boolean; /// Indique si peut accepter un identificateur de type
-
-    FValueType: TSepiType; /// Type de valeur censée être contenue dans ce noeud
-  protected
-    function ValidateExpression: Boolean; override;
-  public
-    function CompileConst(var Value;
-      ValueType: TSepiType): Boolean; virtual;
-
-    property AcceptType: Boolean read FAcceptType write FAcceptType;
-
-    property ValueType: TSepiType read FValueType write FValueType;
-  end;
-
-  {*
     Noeud expression constante ou type
     @author sjrd
     @version 1.0
   *}
-  TConstOrTypeNode = class(TConstExpressionNode)
+  TConstOrTypeNode = class(TSepiConstExpressionNode)
+  private
+    function GetIsType: Boolean;
+  protected
+    function ValidateExpression: Boolean; override;
   public
-    constructor Create(AParent: TSepiNonTerminal; AClass: TSepiSymbolClass;
-      const ASourcePos: TSepiSourcePosition); override;
+    property IsType: Boolean read GetIsType;
   end;
 
   {*
@@ -346,7 +328,17 @@ type
   *}
   TRoutineKindNode = class(TSepiSignatureKindNode)
   protected
-    function GetKind: TSepiSignatureKind; override;
+    function GetAsText: string; override;
+  end;
+
+  {*
+    Noeud type de méthode
+    @author sjrd
+    @version 1.0
+  *}
+  TMethodKindNode = class(TSepiSignatureKindNode)
+  protected
+    function GetAsText: string; override;
   end;
 
   {*
@@ -435,9 +427,11 @@ type
   TArrayTypeNode = class(TSepiTypeDefinitionNode)
   private
     function RangeDefinition(const TypeName: string;
-      RangeNode: TSepiParseTreeNode; ElementType: TSepiType): TSepiStaticArrayType;
+      RangeNode: TSepiParseTreeNode;
+      ElementType: TSepiType): TSepiStaticArrayType;
     function TypedDefinition(const TypeName: string;
-      IndexNode: TConstExpressionNode; ElementType: TSepiType): TSepiStaticArrayType;
+      IndexNode: TSepiConstExpressionNode;
+      ElementType: TSepiType): TSepiStaticArrayType;
   public
     procedure EndParsing; override;
   end;
@@ -578,6 +572,14 @@ type
   end;
 
   {*
+    Noeud marqueur of object
+    @author sjrd
+    @version 1.0
+  *}
+  TOfObjectMarkerNode = class(TSepiNonTerminal)
+  end;
+
+  {*
     Noeud liste de membres
     @author sjrd
     @version 1.0
@@ -617,42 +619,6 @@ type
 
     property FieldType: TSepiType read FFieldType;
     property LastField: TSepiField read FLastField;
-  end;
-
-  {*
-    Noeud d'une méthode
-    @author sjrd
-    @version 1.0
-  *}
-  TMethodNode = class(TMemberNode)
-  private
-    FName: string;              /// Nom de la routine
-    FSignature: TSepiSignature; /// Signature
-    FLinkKind: TMethodLinkKind; /// Type de liaison
-    FAbstract: Boolean;         /// Indique si la méthode est abstraite
-    FMsgID: Integer;            /// Message intercepté
-    FIsOverloaded: Boolean;     /// True si surchargée
-
-    FIsIntfMethodRedirector: Boolean; /// True si redirecteur de méthode
-
-    procedure HandleIntfMethodRedirector(
-      IntfNode, IntfMethodNode, RedirectorNode: TSepiParseTreeNode);
-  protected
-    procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
-    procedure ChildEndParsing(Child: TSepiParseTreeNode); override;
-  public
-    destructor Destroy; override;
-
-    procedure BeginParsing; override;
-    procedure EndParsing; override;
-
-    property Name: string read FName;
-    property Signature: TSepiSignature read FSignature;
-    property LinkKind: TMethodLinkKind read FLinkKind;
-    property IsAbstract: Boolean read FAbstract;
-    property MsgID: Integer read FMsgID;
-    property IsOverloaded: Boolean read FIsOverloaded;
-    property IsIntfMethodRedirector: Boolean read FIsIntfMethodRedirector;
   end;
 
   {*
@@ -886,8 +852,8 @@ begin
 
   NonTerminalClasses[ntExpression]              := TSepiBinaryOpTreeNode;
   NonTerminalClasses[ntExpressionNoEquals]      := TSepiBinaryOpTreeNode;
-  NonTerminalClasses[ntConstExpression]         := TConstExpressionNode;
-  NonTerminalClasses[ntConstExpressionNoEquals] := TConstExpressionNode;
+  NonTerminalClasses[ntConstExpression]         := TSepiConstExpressionNode;
+  NonTerminalClasses[ntConstExpressionNoEquals] := TSepiConstExpressionNode;
   NonTerminalClasses[ntConstOrType]             := TConstOrTypeNode;
   NonTerminalClasses[ntConstOrTypeNoEquals]     := TConstOrTypeNode;
 
@@ -929,6 +895,9 @@ begin
   NonTerminalClasses[ntDispInterfaceDesc] := TInterfaceTypeNode;
   NonTerminalClasses[ntEventDesc]         := TMethodRefTypeNode;
 
+  NonTerminalClasses[ntEventModifiers]  := TSepiChildThroughNonTerminal;
+  NonTerminalClasses[ntEventIsOfObject] := TOfObjectMarkerNode;
+
   NonTerminalClasses[ntRecordContents]     := TSepiRecordContentsNode;
   NonTerminalClasses[ntRecordCaseBlock]    := TSepiRecordContentsNode;
   NonTerminalClasses[ntRecordCaseContents] := TSepiRecordContentsNode;
@@ -937,19 +906,22 @@ begin
   NonTerminalClasses[ntInterfaceGUID]       := TInterfaceGUIDNode;
   NonTerminalClasses[ntInterfaceMemberList] := TMemberListNode;
 
-  NonTerminalClasses[ntRoutineKind]           := TRoutineKindNode;
+  NonTerminalClasses[ntRecordField]          := TSepiRecordFieldNode;
+  NonTerminalClasses[ntRecordCaseField]      := TSepiRecordFieldNode;
+  NonTerminalClasses[ntField]                := TFieldNode;
+  NonTerminalClasses[ntIntfMethodRedirector] := TSepiIntfMethodRedirectorNode;
+  NonTerminalClasses[ntMethodDecl]           := TSepiMethodDeclarationNode;
+  NonTerminalClasses[ntPropertyDecl]         := TPropertyNode;
+  NonTerminalClasses[ntVisibility]           := TVisibilityNode;
+
   NonTerminalClasses[ntMethodNameDeclaration] :=
     TSepiUncheckedIdentifierDeclNode;
-  NonTerminalClasses[ntMethodSignatureBeta]   := TSepiSignatureBuilderNode;
-  NonTerminalClasses[ntCallingConventionBeta] := TSepiCallingConventionNode;
-  NonTerminalClasses[ntOverloadMarker]        := TSepiOverloadMarkerNode;
-
-  NonTerminalClasses[ntRecordField]     := TSepiRecordFieldNode;
-  NonTerminalClasses[ntRecordCaseField] := TSepiRecordFieldNode;
-  NonTerminalClasses[ntField]           := TFieldNode;
-  NonTerminalClasses[ntMethodDecl]      := TMethodNode;
-  NonTerminalClasses[ntPropertyDecl]    := TPropertyNode;
-  NonTerminalClasses[ntVisibility]      := TVisibilityNode;
+  NonTerminalClasses[ntRoutineKind]       := TRoutineKindNode;
+  NonTerminalClasses[ntMethodKind]        := TMethodKindNode;
+  NonTerminalClasses[ntCallingConvention] := TSepiCallingConventionNode;
+  NonTerminalClasses[ntMethodLinkKind]    := TSepiMethodLinkKindNode;
+  NonTerminalClasses[ntAbstractMarker]    := TSepiAbstractMarkerNode;
+  NonTerminalClasses[ntOverloadMarker]    := TSepiOverloadMarkerNode;
 
   NonTerminalClasses[ntMethodSignature]   := TSepiSignatureBuilderNode;
   NonTerminalClasses[ntPropertySignature] := TSepiSignatureBuilderNode;
@@ -1284,7 +1256,7 @@ procedure TOtherInitializationNode.ChildBeginParsing(Child: TSepiParseTreeNode);
 begin
   inherited;
 
-  (Child as TConstExpressionNode).ValueType := ValueType;
+  (Child as TSepiConstExpressionNode).ValueType := ValueType;
 end;
 
 {*
@@ -1294,7 +1266,7 @@ procedure TOtherInitializationNode.EndParsing;
 var
   ReadableValue: ISepiReadableValue;
 begin
-  ReadableValue := (Children[0] as TConstExpressionNode).AsValue(
+  ReadableValue := (Children[0] as TSepiConstExpressionNode).AsValue(
     ValueType) as ISepiReadableValue;
 
   if (ValuePtr <> nil) and (ReadableValue <> nil) then
@@ -1311,76 +1283,25 @@ begin
     not ((AValueType is TSepiArrayType) or (AValueType is TSepiRecordType));
 end;
 
-{----------------------------}
-{ TConstExpressionNode class }
-{----------------------------}
-
-{*
-  [@inheritDoc]
-*}
-function TConstExpressionNode.ValidateExpression: Boolean;
-var
-  Value: ISepiValue;
-  ReadableValue: ISepiReadableValue;
-begin
-  if AcceptType and Supports(Expression, ISepiTypeExpression) then
-    Result := True
-  else
-  begin
-    Value := AsValue(ValueType);
-    if Value = nil then
-      Result := False
-    else
-    begin
-      if ValueType = nil then
-        Value.Finalize;
-
-      Result := Supports(Value, ISepiReadableValue, ReadableValue) and
-        ReadableValue.IsConstant;
-
-      if not Result then
-        MakeError(SConstExpressionRequired);
-    end;
-  end;
-end;
-
-{*
-  Compile une valeur constante
-  @param Value       En sortie : valeur compilée
-  @param ValueType   Type de la valeur
-  @return True si la compilation est réussie, False en cas d'erreur
-*}
-function TConstExpressionNode.CompileConst(var Value;
-  ValueType: TSepiType): Boolean;
-var
-  ReadableValue: ISepiReadableValue;
-begin
-  ReadableValue := AsReadableValue(ValueType);
-
-  if ReadableValue = nil then
-    Result := False
-  else
-  begin
-    Assert(ReadableValue.IsConstant);
-
-    ValueType.CopyData(ReadableValue.ConstValuePtr^, Value);
-    Result := True;
-  end;
-end;
-
 {------------------------}
 { TConstOrTypeNode class }
 {------------------------}
 
 {*
+  Indique si c'est un type
+  @return True si c'est un type, False sinon
+*}
+function TConstOrTypeNode.GetIsType: Boolean;
+begin
+  Result := Supports(Expression, ISepiTypeExpression);
+end;
+
+{*
   [@inheritDoc]
 *}
-constructor TConstOrTypeNode.Create(AParent: TSepiNonTerminal;
-  AClass: TSepiSymbolClass; const ASourcePos: TSepiSourcePosition);
+function TConstOrTypeNode.ValidateExpression: Boolean;
 begin
-  inherited;
-
-  AcceptType := True;
+  Result := IsType or (inherited ValidateExpression);
 end;
 
 {--------------------}
@@ -1922,9 +1843,9 @@ begin
   begin
     FConstType := TSepiTypeNode(Child).SepiType;
     FConstVar := TSepiVariable.Create(SepiContext, Name, ConstType, True);
-  end else if Child is TConstExpressionNode then
+  end else if Child is TSepiConstExpressionNode then
   begin
-    ReadableValue := TConstExpressionNode(Child).AsValue as ISepiReadableValue;
+    ReadableValue := TSepiConstExpressionNode(Child).AsReadableValue;
 
     if ReadableValue = nil then
       FConstant := TSepiConstant.Create(SepiContext, Name, 0)
@@ -2004,12 +1925,27 @@ end;
 {*
   [@inheritDoc]
 *}
-function TRoutineKindNode.GetKind: TSepiSignatureKind;
+function TRoutineKindNode.GetAsText: string;
 begin
-  if Children[0].SymbolClass = tkProcedure then
-    Result := skStaticProcedure
-  else
-    Result := skStaticFunction;
+  Result := inherited GetAsText;
+
+  if AnsiMatchText(Result, ['procedure', 'function']) then
+    Result := 'static '+Result;
+end;
+
+{-----------------------}
+{ TMethodKindNode class }
+{-----------------------}
+
+{*
+  [@inheritDoc]
+*}
+function TMethodKindNode.GetAsText: string;
+begin
+  Result := inherited GetAsText;
+
+  if AnsiMatchText(Result, ['procedure', 'function']) then
+    Result := 'object '+Result;
 end;
 
 {----------------------}
@@ -2123,7 +2059,7 @@ var
 begin
   if ChildCount = 1 then
   begin
-    Expression := (Children[0] as TConstExpressionNode).Expression;
+    Expression := (Children[0] as TSepiConstExpressionNode).Expression;
 
     if Supports(Expression, ISepiTypeExpression, TypeExpression) then
     begin
@@ -2146,8 +2082,8 @@ var
 begin
   if ChildCount > 1 then
   begin
-    LowerValue  := (Children[0] as TConstExpressionNode).AsReadableValue;
-    HigherValue := (Children[1] as TConstExpressionNode).AsReadableValue;
+    LowerValue  := (Children[0] as TSepiConstExpressionNode).AsReadableValue;
+    HigherValue := (Children[1] as TSepiConstExpressionNode).AsReadableValue;
 
     if (LowerValue <> nil) and (HigherValue <> nil) then
     begin
@@ -2249,7 +2185,7 @@ var
 begin
   if ChildCount > 1 then
   begin
-    if not (Children[1] as TConstExpressionNode).CompileConst(
+    if not (Children[1] as TSepiConstExpressionNode).CompileConst(
       MaxLength, SystemUnit.Integer) then
       MaxLength := 255;
 
@@ -2305,9 +2241,9 @@ var
   LowerValue, HigherValue: ISepiReadableValue;
 begin
   LowerValue :=
-    (RangeNode.Children[0] as TConstExpressionNode).AsReadableValue;
+    (RangeNode.Children[0] as TSepiConstExpressionNode).AsReadableValue;
   HigherValue :=
-    (RangeNode.Children[1] as TConstExpressionNode).AsReadableValue;
+    (RangeNode.Children[1] as TSepiConstExpressionNode).AsReadableValue;
 
   Result := nil;
 
@@ -2348,7 +2284,7 @@ end;
   @return Type tableau créé
 *}
 function TArrayTypeNode.TypedDefinition(const TypeName: string;
-  IndexNode: TConstExpressionNode;
+  IndexNode: TSepiConstExpressionNode;
   ElementType: TSepiType): TSepiStaticArrayType;
 var
   NodeType: TSepiType;
@@ -2410,7 +2346,7 @@ begin
           ElementType := RangeDefinition(SubTypeName, RangeNode, ElementType)
         else
           ElementType := TypedDefinition(SubTypeName,
-            RangeNode.Children[0] as TConstExpressionNode, ElementType);
+            RangeNode.Children[0] as TSepiConstExpressionNode, ElementType);
       end;
 
       SetSepiType(ElementType);
@@ -2745,10 +2681,10 @@ end;
 *}
 procedure TInterfaceGUIDNode.ChildEndParsing(Child: TSepiParseTreeNode);
 var
-  ConstExpr: TConstExpressionNode;
+  ConstExpr: TSepiConstExpressionNode;
   GUIDStr: string;
 begin
-  ConstExpr := Child as TConstExpressionNode;
+  ConstExpr := Child as TSepiConstExpressionNode;
 
   if ConstExpr.AsReadableValue.ValueType = SystemUnit.TGUID then
   begin
@@ -2818,14 +2754,15 @@ end;
 *}
 procedure TMethodRefTypeNode.ChildEndParsing(Child: TSepiParseTreeNode);
 begin
-  case Child.SymbolClass of
-    // Routine kind
-    ntRoutineKind:
-    begin
-      case Child.Children[0].SymbolClass of
-        tkProcedure: Signature.Kind := skStaticProcedure;
-        tkFunction:  Signature.Kind := skStaticFunction;
-      end;
+  if Child is TOfObjectMarkerNode then
+  begin
+    case Signature.Kind of
+      skStaticProcedure:
+        Signature.Kind := skObjectProcedure;
+      skStaticFunction:
+        Signature.Kind := skObjectFunction;
+    else
+      Child.MakeError(Format(SDuplicateModifier, [Child.AsText]));
     end;
   end;
 
@@ -2836,47 +2773,7 @@ end;
   [@inheritDoc]
 *}
 procedure TMethodRefTypeNode.EndParsing;
-const
-  IgnoredModifiers: array[0..2] of string = (
-    'assembler', 'platform', 'deprecated'
-  );
-var
-  Index: Integer;
-  ModifiersNode, ModifierNode: TSepiParseTreeNode;
 begin
-  ModifiersNode := Children[2];
-  while ModifiersNode.ChildCount > 0 do
-  begin
-    ModifierNode := ModifiersNode.Children[0];
-
-    Index := AnsiIndexText(ModifierNode.AsText, CallingConventionStrings);
-
-    if Index >= 0 then
-    begin
-      // Calling convention
-      Signature.CallingConvention := TCallingConvention(Index);
-    end else if ModifierNode.SymbolClass = ntEventIsOfObject then
-    begin
-      // of object - do not duplicate
-      if Signature.Kind = skStaticProcedure then
-        Signature.Kind := skObjectProcedure
-      else if Signature.Kind = skStaticFunction then
-        Signature.Kind := skObjectFunction
-      else
-      begin
-        ModifierNode.MakeError(Format(
-          SDuplicateModifier, [ModifierNode.AsText]));
-      end;
-    end else if AnsiIndexText(ModifierNode.AsText, IgnoredModifiers) = -1 then
-    begin
-      // Unknown modifier
-      ModifierNode.MakeError(Format(SUnknownMethodRefModifier,
-        [ModifierNode.AsText]), ekWarning);
-    end;
-
-    ModifiersNode := ModifiersNode.Children[1];
-  end;
-
   Signature.Complete;
   SetSepiType(TSepiMethodRefType.Create(SepiContext, TypeName, Signature));
 
@@ -2894,7 +2791,8 @@ procedure TMemberListNode.ChildBeginParsing(Child: TSepiParseTreeNode);
 begin
   inherited;
 
-  (Child as TMemberNode).Owner := Owner;
+  if Child is TMemberNode then
+    TMemberNode(Child).Owner := Owner;
 end;
 
 {------------------}
@@ -2917,220 +2815,6 @@ begin
   for I := 0 to IdentList.IdentifierCount-1 do
     FLastField := TSepiClass(Owner).AddField(
       IdentList.Identifiers[I], FieldType, I > 0);
-
-  inherited;
-end;
-
-{-------------------}
-{ TMethodNode class }
-{-------------------}
-
-{*
-  [@inheritDoc]
-*}
-destructor TMethodNode.Destroy;
-begin
-  FSignature.Free;
-
-  inherited;
-end;
-
-{*
-  Construit un redirecteur de méthode d'interface
-  @param IntfNode         Noeud de l'interface
-  @param IntfMethodNode   Noeud de la méthode d'interface
-  @param RedirectorNode   Noeud du redirecteur
-*}
-procedure TMethodNode.HandleIntfMethodRedirector(
-  IntfNode, IntfMethodNode, RedirectorNode: TSepiParseTreeNode);
-var
-  SepiClass: TSepiClass;
-  Intf: TSepiInterface;
-  IntfMethod: TSepiMethod;
-begin
-  SepiClass := Signature.Context as TSepiClass;
-
-  // Read interface node
-
-  Intf := TSepiInterface(LookForOrError(IntfNode, TSepiInterface,
-    SInterfaceTypeRequired));
-  if Intf = nil then
-    Exit;
-
-  if not SepiClass.ClassImplementsInterface(Intf) then
-  begin
-    IntfNode.MakeError(Format(SClassDoesNotImplementIntf,
-      [SepiClass.Name, Intf.Name]));
-    Exit;
-  end;
-
-  // Read interface method node
-
-  IntfMethod := Intf.LookForMember(IntfMethodNode.AsText) as TSepiMethod;
-  if not CheckIdentFound(IntfMethod, IntfMethodNode.AsText, IntfMethodNode) then
-    Exit;
-
-  // Create redirector
-
-  SepiClass.AddIntfMethodRedirector(IntfMethod, RedirectorNode.AsText);
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TMethodNode.BeginParsing;
-begin
-  inherited;
-
-  FSignature := TSepiSignature.CreateConstructing(SepiUnit, Owner);
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TMethodNode.ChildBeginParsing(Child: TSepiParseTreeNode);
-begin
-  inherited;
-
-  if Child is TSepiSignatureBuilderNode then
-    TSepiSignatureBuilderNode(Child).SetSignature(Signature);
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TMethodNode.ChildEndParsing(Child: TSepiParseTreeNode);
-const
-  IgnoredModifiers: array[0..5] of string = (
-    'deprecated', 'inline', 'assembler', 'platform', 'reintroduce', 'dispid'
-  );
-var
-  Str: string;
-  Temp: Integer;
-begin
-  if Child is TSepiIdentifierDeclarationNode then
-    FName := TSepiIdentifierDeclarationNode(Child).Identifier;
-
-  case Child.SymbolClass of
-    // Type de routine
-    ntRoutineKind:
-    begin
-      case Child.Children[0].SymbolClass of
-        tkProcedure: Signature.Kind := skStaticProcedure;
-        tkFunction:  Signature.Kind := skStaticFunction;
-      end;
-    end;
-
-    // Type de méthode
-    ntMethodKind:
-    begin
-      case Child.Children[0].SymbolClass of
-        tkProcedure:   Signature.Kind := skObjectProcedure;
-        tkFunction:    Signature.Kind := skObjectFunction;
-        tkConstructor: Signature.Kind := skConstructor;
-        tkDestructor:  Signature.Kind := skDestructor;
-      else
-        case Child.Children[1].SymbolClass of
-          tkProcedure: Signature.Kind := skClassProcedure;
-          tkFunction:  Signature.Kind := skClassFunction;
-        end;
-      end;
-    end;
-
-    // Redirecteur de méthode d'interface
-    ntIntfMethodRedirector:
-    begin
-      FIsIntfMethodRedirector := True;
-      HandleIntfMethodRedirector(Children[1], Child.Children[0],
-        Child.Children[1]);
-    end;
-
-    // Modificateur
-    ntRoutineModifier, ntMethodModifier:
-    begin
-      Str := Child.Children[0].AsText;
-      Temp := AnsiIndexText(Str, LinkKindStrings);
-
-      if Temp >= 0 then
-      begin
-        // Link kind
-        FLinkKind := TMethodLinkKind(Temp);
-
-        // Store message ID
-        if LinkKind = mlkMessage then
-          (Child.Children[1] as TConstExpressionNode).CompileConst(
-            FMsgID, SystemUnit.Integer);
-      end else
-      begin
-        Temp := AnsiIndexText(Str, CallingConventionStrings);
-        if Temp >= 0 then
-        begin
-          // Calling convention
-          Signature.CallingConvention := TCallingConvention(Temp);
-        end else
-        begin
-          // Other modifier
-          if LowerCase(Str) = 'abstract' then
-          begin
-            // abstract
-            FAbstract := True;
-          end else if LowerCase(Str) = 'overload' then
-          begin
-            // overload
-            if Signature.Context is TSepiInterface then
-              Child.MakeError(SIntfMethodCantBeOverloaded)
-            else
-              FIsOverloaded := True;
-          end else if AnsiIndexText(Str, IgnoredModifiers) = -1 then
-          begin
-            // Unknown modifier
-            Child.MakeError(Format(SUnknownMethodModifier, [Str]), ekWarning);
-          end;
-        end;
-      end;
-    end;
-  end;
-
-  inherited;
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TMethodNode.EndParsing;
-begin
-  if not IsIntfMethodRedirector then
-  begin
-    Signature.Complete;
-
-    // Create method
-    if Signature.Context is TSepiClass then
-    begin
-      // Class method
-      if (not IsOverloaded) and (LinkKind = mlkOverride) and
-        (TSepiClass(Owner).LookForMember(Name) is TSepiOverloadedMethod) then
-        FIsOverloaded := True;
-
-      if IsOverloaded then
-        TSepiClass(Owner).AddOverloadedMethod(Name, nil, Signature, LinkKind,
-          IsAbstract, MsgID)
-      else
-        TSepiClass(Owner).AddMethod(Name, nil, Signature, LinkKind,
-          IsAbstract, MsgID)
-    end else if Signature.Context is TSepiInterface then
-    begin
-      // Interface method - can't be overloaded
-      TSepiInterface(Owner).AddMethod(Name, Signature);
-    end else if Signature.Context = nil then
-    begin
-      // Routine
-      if IsOverloaded then
-        TSepiMethod.CreateOverloaded(SepiUnit, Name, nil, Signature)
-      else
-        TSepiMethod.Create(SepiUnit, Name, nil, Signature);
-    end else
-      Assert(False);
-  end;
 
   inherited;
 end;
@@ -3292,7 +2976,7 @@ end;
 *}
 procedure TPropertyNode.HandleIndex(Node: TSepiParseTreeNode);
 begin
-  FIndex := (Node as TConstExpressionNode).AsValue as ISepiReadableValue;
+  FIndex := (Node as TSepiConstExpressionNode).AsValue as ISepiReadableValue;
 
   if not (Index.ValueType is TSepiOrdType) then
   begin
@@ -3645,7 +3329,7 @@ begin
   if (ChildCount = 2) and (Children[0].SymbolClass = tkDefault) then
   begin
     PropertyType := (Parent as TPropertyNode).Signature.ReturnType;
-    (Children[1] as TConstExpressionNode).ValueType := PropertyType;
+    (Children[1] as TSepiConstExpressionNode).ValueType := PropertyType;
   end;
 end;
 

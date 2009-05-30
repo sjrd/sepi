@@ -187,13 +187,6 @@ ntIdentifier	Identifier
 	'reintroduce'
 	'inline'
 
-ntCallingConvention	CallingConvention
-	'register'
-	'cdecl'
-	'pascal'
-	'stdcall'
-	'safecall'
-
 ntUsesSection	UsesSection
 	'uses'* CommaIdentList ';'*
 	@
@@ -521,7 +514,7 @@ ntVisibility	Visibility
 	'published'
 
 ntClassMemberList	ClassMemberList	Simplify
-	(Field)* (MethodProp)*
+	(Field)* (ClassMethodProp)*
 
 ntInterfaceDesc	InterfaceDesc
 	'interface'* (InterfaceHeritage InterfaceGUID InterfaceMemberList 'end'*)?
@@ -541,34 +534,29 @@ ntInterfaceGUID	InterfaceGUID	AsText
 	@
 
 ntInterfaceMemberList	InterfaceMemberList
-	(MethodProp)*
+	(IntfMethodProp)*
 
-ntMethodProp	MethodProp	Simplify
+ntClassMethodProp	ClassMethodProp	Simplify
+	ClassMethodDecl
+	PropertyDecl
+
+ntClassMethodDecl	ClassMethodDecl	SuccessiveTries
+	IntfMethodRedirector
+	MethodDecl
+
+ntIntfMethodProp	IntfMethodProp	Simplify
 	MethodDecl
 	PropertyDecl
 
-ntMethodDecl	MethodDecl
-	MethodKind MethodNameDeclaration NextMethodDecl
+ntIntfMethodRedirector	IntfMethodRedirector
+	IntfMethodRedirKind* Identifier '.'* Identifier '='* Identifier ';'*
 
-ntMethodKind	MethodKind	AsText
-	'class' MethodKindEx
-	MethodKindEx
-	'constructor'
-	'destructor'
-
-ntMethodKindEx	MethodKindEx	Simplify
+ntIntfMethodRedirKind	IntfMethodRedirKind
 	'procedure'
 	'function'
 
-ntNextMethodDecl	NextMethodDecl	Simplify
-	MethodSignature ';'* (MethodModifier ';'*)*
-	IntfMethodRedirector ';'*
-
-ntIntfMethodRedirector	IntfMethodRedirector
-	'.'* Identifier '='* Identifier
-
-ntMethodModifier	MethodModifier
-	Identifier (ConstExpression)?
+ntMethodDecl	MethodDecl
+	MethodKind MethodNameDeclaration MethodSignature ';'* (MethodModifier ';'*)*
 
 ntPropertyDecl	PropertyDecl
 	PropertyKind* IdentifierDecl PropertyNextDecl (PropInfo)* ';'* (PropertyModifier ';'*)*
@@ -610,30 +598,54 @@ ntEventIsOfObject	EventIsOfObject	AsText
 	'of' 'object'
 
 ntRoutineDecl	RoutineDecl
-	RoutineKind MethodNameDeclaration MethodSignatureBeta (RoutineModifierBeta)* ';'* (RoutineModifierBeta ';'*)*
+	RoutineKind MethodNameDeclaration MethodSignature (RoutineModifier)* ';'* (RoutineModifier ';'*)*
 
 ntRoutineKind	RoutineKind	AsText
+	'procedure'
+	'function'
+
+ntMethodKind	MethodKind	AsText
+	'class' ClassMethodKind
+	'procedure'
+	'function'
+	'constructor'
+	'destructor'
+
+ntClassMethodKind	ClassMethodKind	Simplify
 	'procedure'
 	'function'
 
 ntMethodNameDeclaration	MethodNameDeclaration
 	Identifier
 
-ntMethodSignatureBeta	MethodSignatureBeta
-	('('* MethodParamList ')'*)? ReturnType
-
-ntRoutineModifierBeta	RoutineModifierBeta	Simplify
-	CallingConventionBeta
+ntRoutineModifier	RoutineModifier	Simplify
+	CallingConvention
 	OverloadMarker
 	IgnoredRoutineModifier
 
-ntCallingConventionBeta	CallingConventionBeta
+ntMethodModifier	MethodModifier	Simplify
+	CallingConvention
+	OverloadMarker
+	MethodLinkKind
+	AbstractMarker
+	IgnoredMethodModifier
+
+ntCallingConvention	CallingConvention
 	'register'
 	'cdecl'
 	'pascal'
 	'stdcall'
 	'safecall'
 	'assembler'
+
+ntMethodLinkKind	MethodLinkKind
+	'virtual'
+	'dynamic'
+	'message' ConstExpression
+	'override'
+
+ntAbstractMarker	AbstractMarker
+	'abstract'
 
 ntOverloadMarker	OverloadMarker
 	'overload'
@@ -643,8 +655,12 @@ ntIgnoredRoutineModifier	IgnoredRoutineModifier
 	'platform'
 	'inline'
 
-ntRoutineModifier	RoutineModifier
-	Identifier
+ntIgnoredMethodModifier	IgnoredMethodModifier
+	'deprecated' (tkStringCst)?
+	'platform'
+	'inline'
+	'reintroduce'
+	'dispid' ConstExpression
 
 ntMethodSignature	MethodSignature
 	('('* MethodParamList ')'*)? ReturnType

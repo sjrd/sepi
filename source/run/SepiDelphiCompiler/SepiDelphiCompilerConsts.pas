@@ -37,8 +37,6 @@ resourcestring
     'Modificateur de référence de méthode %s inconnu';
   SUnknownMethodModifier = 'Modificateur de méthode %s inconnu';
   SUnknownPropertyModifier = 'Modificateur de propriété %s inconnu';
-  SIntfMethodCantBeOverloaded =
-    'Les méthodes d''interface ne peuvent être surchargées';
   SArrayValueRequired = 'Type tableau requis';
   SRecordValueRequired = 'Type record requis';
   SElementCountMismatch =

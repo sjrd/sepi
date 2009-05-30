@@ -101,6 +101,13 @@ resourcestring
   // Erreurs sur les signatures
   SReturnTypeRequired = 'La fonction exige un type de retour';
   SReturnTypeForbidden = 'La procédure ne peut avoir de type de retour';
+  SIntfMethodCantBeOverloaded =
+    'Les méthodes d''interface ne peuvent être surchargées';
+  SIntfMethodCantChangeLinkKind =
+    'Type de liaison invalide pour une méthode d''interface';
+  SDuplicatedLinkKind = 'Directive de type de liaison dupliquée';
+  SDuplicatedAbstractMarker = 'Directive abstract dupliquée';
+  SVirtualOrDynamicMethodRequired = 'Méthod virtuelle ou dynamique requise';
 
   // Erreurs sur les paramètres
   SVarParamTypeMustBeStrictlyEqual =

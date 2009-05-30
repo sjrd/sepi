@@ -31,7 +31,7 @@ interface
 uses
   Windows, Classes, SysUtils, StrUtils, ScStrUtils, SepiCompilerErrors,
   SepiParseTrees, SepiLexerUtils, SepiCompilerConsts, SepiExpressions,
-  SepiCompiler, SepiDelphiLikeCompilerUtils, SepiOrdTypes;
+  SepiCompiler, SepiDelphiLikeCompilerUtils, SepiOrdTypes, SepiStdCompilerNodes;
 
 resourcestring
   SIFInstrNotSupported =
@@ -437,7 +437,7 @@ end;
 function TPreProcessor.EvalCondition(const Condition: string): Boolean;
 var
   RootNode: TPreProcIfConditionNode;
-  ExprNode: TConstExpressionNode;
+  ExprNode: TSepiConstExpressionNode;
 begin
   if Lexer.Context = nil then
     Lexer.MakeError(SIFInstrNotSupported, ekFatalError);
@@ -452,7 +452,7 @@ begin
       TSepiDelphiLexer.Create(Lexer.Errors, Condition));
 
     // Fetch its value into Result
-    ExprNode := RootNode.Children[0] as TConstExpressionNode;
+    ExprNode := RootNode.Children[0] as TSepiConstExpressionNode;
     if not ExprNode.CompileConst(Result, ExprNode.SystemUnit.Boolean) then
       Lexer.MakeError(SErrorInIFInstr, ekFatalError);
   finally

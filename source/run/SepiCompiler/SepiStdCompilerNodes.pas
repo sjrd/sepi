@@ -155,6 +155,26 @@ type
   end;
 
   {*
+    Noeud expression constante
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiConstExpressionNode = class(TSepiSameAsChildExpressionNode)
+  private
+    FValueType: TSepiType; /// Type de valeur censée être contenue dans ce noeud
+  protected
+    function ValidateExpression: Boolean; override;
+    procedure MakeErroneousExpression; override;
+  public
+    function CompileConst(var Value;
+      ValueType: TSepiType = nil): Boolean; virtual;
+
+    function AsInteger(DefaultValue: Integer = 0): Integer;
+
+    property ValueType: TSepiType read FValueType write FValueType;
+  end;
+
+  {*
     Noeud valeur
     @author sjrd
     @version 1.0
@@ -544,6 +564,9 @@ type
   private
     FName: string;              /// Nom de la méthode
     FSignature: TSepiSignature; /// Signature
+    FLinkKind: TMethodLinkKind; /// Type de liaison
+    FAbstract: Boolean;         /// Indique si la méthode est abstraite
+    FMsgID: Integer;            /// Message intercepté
     FIsOverloaded: Boolean;     /// True si surchargée
   protected
     procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
@@ -556,7 +579,34 @@ type
 
     property Name: string read FName;
     property Signature: TSepiSignature read FSignature;
+    property LinkKind: TMethodLinkKind read FLinkKind;
+    property IsAbstract: Boolean read FAbstract;
+    property MsgID: Integer read FMsgID;
     property IsOverloaded: Boolean read FIsOverloaded;
+  end;
+
+  {*
+    Noeud représentant le type de liaison d'une méthode
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiMethodLinkKindNode = class(TSepiNonTerminal)
+  protected
+    function GetLinkKind: TMethodLinkKind; virtual;
+    function GetMessageID: Integer; virtual;
+
+    procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
+  public
+    property LinkKind: TMethodLinkKind read GetLinkKind;
+    property MessageID: Integer read GetMessageID;
+  end;
+
+  {*
+    Marqueur abstract
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiAbstractMarkerNode = class(TSepiNonTerminal)
   end;
 
   {*
@@ -565,6 +615,28 @@ type
     @version 1.0
   *}
   TSepiOverloadMarkerNode = class(TSepiNonTerminal)
+  end;
+
+  {*
+    Noeud redirecteur de méthode d'interface
+    Ce type de noeud doit toujours avoir en contexte une classe
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiIntfMethodRedirectorNode = class(TSepiNonTerminal)
+  private
+    FSepiClass: TSepiClass; /// Classe englobante
+  protected
+    function CompileInterface: TSepiInterface; virtual;
+    function CompileIntfMethod(SepiIntf: TSepiInterface): TSepiMethod; virtual;
+    function GetRedirectorName: string; virtual;
+
+    procedure CompileMethodRedirector; virtual;
+
+    property SepiClass: TSepiClass read FSepiClass;
+  public
+    procedure BeginParsing; override;
+    procedure EndParsing; override;
   end;
 
   {*
@@ -1431,10 +1503,81 @@ end;
 procedure TSepiSameAsChildExpressionNode.EndParsing;
 begin
   Assert(ChildCount = 1);
-  
+
   SetExpression((Children[0] as TSepiExpressionNode).Expression);
 
   inherited;
+end;
+
+{--------------------------------}
+{ TSepiConstExpressionNode class }
+{--------------------------------}
+
+{*
+  [@inheritDoc]
+*}
+function TSepiConstExpressionNode.ValidateExpression: Boolean;
+var
+  Value: ISepiValue;
+  ReadableValue: ISepiReadableValue;
+begin
+  Value := AsValue(ValueType);
+  if Value = nil then
+    Result := False
+  else
+  begin
+    if ValueType = nil then
+      Value.Finalize;
+
+    Result := Supports(Value, ISepiReadableValue, ReadableValue) and
+      ReadableValue.IsConstant;
+
+    if not Result then
+      MakeError(SConstExpressionRequired);
+  end;
+end;
+
+{*
+  Construit une expression erronée
+*}
+procedure TSepiConstExpressionNode.MakeErroneousExpression;
+begin
+  SetExpressionPart(MakeErroneousValue(ValueType));
+end;
+
+{*
+  Compile une valeur constante
+  @param Value       En sortie : valeur compilée
+  @param ValueType   Type de la valeur (si nil, utilise la propriété ValueType)
+  @return True si la compilation est réussie, False en cas d'erreur
+*}
+function TSepiConstExpressionNode.CompileConst(var Value;
+  ValueType: TSepiType = nil): Boolean;
+var
+  ReadableValue: ISepiReadableValue;
+begin
+  if ValueType = nil then
+  begin
+    ValueType := FValueType;
+    Assert(ValueType <> nil);
+  end;
+
+  ReadableValue := AsReadableValue(ValueType);
+  Result := (ReadableValue <> nil) and ReadableValue.IsConstant;
+
+  if Result then
+    ValueType.CopyData(ReadableValue.ConstValuePtr^, Value);
+end;
+
+{*
+  Lit l'expression en tant que valeur entière constante
+  @param DefaultValue   Valeur par défaut
+  @return L'expression comme valeur entière, ou DefaultValue en cas d'erreur
+*}
+function TSepiConstExpressionNode.AsInteger(DefaultValue: Integer = 0): Integer;
+begin
+  if not CompileConst(Result, SystemUnit.Integer) then
+    Result := DefaultValue;
 end;
 
 {----------------------}
@@ -2461,10 +2604,21 @@ end;
   [@inheritDoc]
 *}
 procedure TSepiMethodDeclarationNode.BeginParsing;
+var
+  SignatureContext: TSepiType;
 begin
   inherited;
 
-  FSignature := TSepiSignature.CreateConstructing(SepiUnit);
+  if SepiContext is TSepiType then
+  begin
+    SignatureContext := TSepiType(SepiContext);
+
+    if SignatureContext is TSepiInterface then
+      FLinkKind := mlkInterface;
+  end else
+    SignatureContext := nil;
+
+  FSignature := TSepiSignature.CreateConstructing(SepiUnit, SignatureContext);
 end;
 
 {*
@@ -2485,9 +2639,38 @@ end;
 procedure TSepiMethodDeclarationNode.ChildEndParsing(Child: TSepiParseTreeNode);
 begin
   if Child is TSepiIdentifierDeclarationNode then
-    FName := TSepiIdentifierDeclarationNode(Child).Identifier
-  else if Child is TSepiOverloadMarkerNode then
-    FIsOverloaded := True;
+  begin
+    // Method name
+    FName := TSepiIdentifierDeclarationNode(Child).Identifier;
+  end else if Child is TSepiOverloadMarkerNode then
+  begin
+    // Overloaded method - not valid in interface
+    if LinkKind = mlkInterface then
+      Child.MakeError(SIntfMethodCantBeOverloaded)
+    else
+      FIsOverloaded := True;
+  end else if Child is TSepiMethodLinkKindNode then
+  begin
+    // Link kind - not valid in interface
+    if LinkKind = mlkInterface then
+      Child.MakeError(SIntfMethodCantChangeLinkKind)
+    else if LinkKind <> mlkStatic then
+      Child.MakeError(SDuplicatedLinkKind)
+    else
+    begin
+      FLinkKind := TSepiMethodLinkKindNode(Child).LinkKind;
+      FMsgID := TSepiMethodLinkKindNode(Child).MessageID;
+    end;
+  end else if Child is TSepiAbstractMarkerNode then
+  begin
+    // Abstract method - valid only when LinkKind is virtual or dynamic
+    if IsAbstract then
+      Child.MakeError(SDuplicatedAbstractMarker)
+    else if not (LinkKind in [mlkVirtual, mlkDynamic]) then
+      Child.MakeError(SVirtualOrDynamicMethodRequired)
+    else
+      FAbstract := True;
+  end;
 
   inherited;
 end;
@@ -2499,10 +2682,147 @@ procedure TSepiMethodDeclarationNode.EndParsing;
 begin
   Signature.Complete;
 
+  if (not IsOverloaded) and (LinkKind = mlkOverride) and
+    (TSepiClass(SepiContext).LookForMember(Name) is TSepiOverloadedMethod) then
+    FIsOverloaded := True;
+
   if IsOverloaded then
-    TSepiMethod.CreateOverloaded(SepiContext, Name, nil, Signature)
+  begin
+    TSepiMethod.CreateOverloaded(SepiContext, Name, nil, Signature,
+      LinkKind, IsAbstract, MsgID);
+  end else
+  begin
+    TSepiMethod.Create(SepiContext, Name, nil, Signature,
+      LinkKind, IsAbstract, MsgID);
+  end;
+
+  inherited;
+end;
+
+{-------------------------------}
+{ TSepiMethodLinkKindNode class }
+{-------------------------------}
+
+{*
+  Type de liaison
+  @return Type de liaison
+*}
+function TSepiMethodLinkKindNode.GetLinkKind: TMethodLinkKind;
+var
+  OrdLinkKind: Integer;
+begin
+  OrdLinkKind := AnsiIndexText(Children[0].AsText, LinkKindStrings);
+
+  if OrdLinkKind < 0 then
+    Result := mlkStatic
   else
-    TSepiMethod.Create(SepiContext, Name, nil, Signature);
+    Result := TMethodLinkKind(OrdLinkKind);
+end;
+
+{*
+  ID du message intercepté
+  @return ID du message intercepté
+*}
+function TSepiMethodLinkKindNode.GetMessageID: Integer;
+begin
+  if LinkKind <> mlkMessage then
+    Result := 0
+  else
+    Result := (Children[1] as TSepiConstExpressionNode).AsInteger;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiMethodLinkKindNode.ChildBeginParsing(Child: TSepiParseTreeNode);
+begin
+  inherited;
+
+  if Child is TSepiConstExpressionNode then
+    TSepiConstExpressionNode(Child).ValueType := SystemUnit.Integer;
+end;
+
+{-------------------------------------}
+{ TSepiIntfMethodRedirectorNode class }
+{-------------------------------------}
+
+{*
+  Compile l'interface concernée
+  @return Interface concernée
+*}
+function TSepiIntfMethodRedirectorNode.CompileInterface: TSepiInterface;
+begin
+  Result := TSepiInterface(LookForOrError(Children[0], TSepiInterface,
+    SInterfaceTypeRequired));
+
+  if (Result <> nil) and (not SepiClass.ClassImplementsInterface(Result)) then
+  begin
+    Children[0].MakeError(Format(SClassDoesNotImplementIntf,
+      [SepiClass.Name, Result.Name]));
+
+    Result := nil;
+  end;
+end;
+
+{*
+  Compile la méthode d'interface à rediriger
+  @return Méthode d'interface à rediriger
+*}
+function TSepiIntfMethodRedirectorNode.CompileIntfMethod(
+  SepiIntf: TSepiInterface): TSepiMethod;
+var
+  MethodName: string;
+begin
+  MethodName := Children[1].AsText;
+
+  Result := SepiIntf.LookForMember(MethodName) as TSepiMethod;
+  CheckIdentFound(Result, MethodName, Children[1]);
+end;
+
+{*
+  Nom de la méthode destination
+  @return Nom de la méthode destination
+*}
+function TSepiIntfMethodRedirectorNode.GetRedirectorName: string;
+begin
+  Result := Children[2].AsText;
+end;
+
+{*
+  Compile le redirecteur
+*}
+procedure TSepiIntfMethodRedirectorNode.CompileMethodRedirector;
+var
+  SepiIntf: TSepiInterface;
+  IntfMethod: TSepiMethod;
+begin
+  SepiIntf := CompileInterface;
+  if SepiIntf = nil then
+    Exit;
+
+  IntfMethod := CompileIntfMethod(SepiIntf);
+  if IntfMethod = nil then
+    Exit;
+
+  SepiClass.AddIntfMethodRedirector(IntfMethod, GetRedirectorName);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiIntfMethodRedirectorNode.BeginParsing;
+begin
+  inherited;
+
+  FSepiClass := SepiContext as TSepiClass;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiIntfMethodRedirectorNode.EndParsing;
+begin
+  CompileMethodRedirector;
 
   inherited;
 end;
