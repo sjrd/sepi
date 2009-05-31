@@ -320,6 +320,23 @@ type
   end;
 
   {*
+    Noeud valeur ensemble
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiSetValueNode = class(TSepiExpressionNode)
+  private
+    FSetBuilder: ISepiSetBuilder; /// Constructeur d'ensemble
+  protected
+    procedure ChildEndParsing(Child: TSepiParseTreeNode); override;
+
+    property SetBuilder: ISepiSetBuilder read FSetBuilder;
+  public
+    procedure BeginParsing; override;
+    procedure EndParsing; override;
+  end;
+
+  {*
     Noeud représentant une expression d'appel inherited
     @author sjrd
     @version 1.0
@@ -2021,6 +2038,61 @@ begin
 
   ISepiExpressionPart(TSepiNilValue.Create(SepiRoot)).AttachToExpression(
     Expression);
+
+  inherited;
+end;
+
+{-------------------------}
+{ TSepiSetValueNode class }
+{-------------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiSetValueNode.BeginParsing;
+begin
+  inherited;
+
+  SetExpression(MakeExpression);
+  FSetBuilder := TSepiSetBuilder.Create;
+  FSetBuilder.AttachToExpression(Expression);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiSetValueNode.ChildEndParsing(Child: TSepiParseTreeNode);
+var
+  SingleValue, LowerValue, HigherValue: ISepiReadableValue;
+begin
+  if Child.ChildCount = 1 then
+  begin
+    // Single value
+
+    SingleValue := (Child.Children[0] as TSepiExpressionNode).AsReadableValue;
+
+    if SingleValue <> nil then
+      SetBuilder.AddSingle(SingleValue);
+  end else
+  begin
+    // Range
+
+    LowerValue := (Child.Children[0] as TSepiExpressionNode).AsReadableValue;
+    HigherValue := (Child.Children[1] as TSepiExpressionNode).AsReadableValue;
+
+    if (LowerValue <> nil) and (HigherValue <> nil) then
+      SetBuilder.AddRange(LowerValue, HigherValue);
+  end;
+
+  inherited;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiSetValueNode.EndParsing;
+begin
+  SetBuilder.Complete;
 
   inherited;
 end;

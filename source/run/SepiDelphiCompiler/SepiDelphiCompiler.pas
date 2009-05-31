@@ -80,14 +80,6 @@ type
   end;
 
   {*
-    Noeud section uses
-    @author sjrd
-    @version 1.0
-  *}
-  TUsesSectionNode = class(TSepiUsesNode)
-  end;
-
-  {*
     Noeud d'expression d'initialisation
     @author sjrd
     @version 1.0
@@ -221,21 +213,6 @@ type
   *}
   TSingleExprNode = class(TSepiExpressionWithModifiersNode)
   public
-    procedure EndParsing; override;
-  end;
-
-  {*
-    Noeud valeur ensemble
-    @author sjrd
-    @version 1.0
-  *}
-  TSetValueNode = class(TSepiExpressionNode)
-  private
-    FSetBuilder: ISepiSetBuilder; /// Constructeur d'ensemble
-  protected
-    procedure ChildEndParsing(Child: TSepiParseTreeNode); override;
-  public
-    procedure BeginParsing; override;
     procedure EndParsing; override;
   end;
 
@@ -716,7 +693,7 @@ begin
   NonTerminalClasses[ntSource]         := TRootNode;
   NonTerminalClasses[ntInterface]      := TInterfaceNode;
   NonTerminalClasses[ntImplementation] := TImplementationNode;
-  NonTerminalClasses[ntUsesSection]    := TUsesSectionNode;
+  NonTerminalClasses[ntUsesSection]    := TSepiUsesNode;
 
   NonTerminalClasses[ntCommaIdentDeclList] := TSepiIdentifierDeclListNode;
   NonTerminalClasses[ntQualifiedIdent]     := TSepiQualifiedIdentNode;
@@ -756,7 +733,7 @@ begin
   NonTerminalClasses[ntIdentifierSingleValue] := TSepiIdentifierExpressionNode;
   NonTerminalClasses[ntInheritedSingleValue]  := TSepiInheritedExpressionNode;
   NonTerminalClasses[ntNilValue]              := TSepiNilValueNode;
-  NonTerminalClasses[ntSetValue]              := TSetValueNode;
+  NonTerminalClasses[ntSetValue]              := TSepiSetValueNode;
 
   NonTerminalClasses[ntParameters]        := TParametersNode;
   NonTerminalClasses[ntArrayIndices]      := TSepiArrayIndicesModifierNode;
@@ -1405,68 +1382,6 @@ begin
   if Supports(Expression, ISepiCallable, Callable) and
     (not Callable.ParamsCompleted) then
     Callable.CompleteParams;
-
-  inherited;
-end;
-
-{---------------------}
-{ TSetValueNode class }
-{---------------------}
-
-{*
-  [@inheritDoc]
-*}
-procedure TSetValueNode.BeginParsing;
-begin
-  inherited;
-
-  SetExpression(MakeExpression);
-  FSetBuilder := TSepiSetBuilder.Create;
-  FSetBuilder.AttachToExpression(Expression);
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TSetValueNode.ChildEndParsing(Child: TSepiParseTreeNode);
-var
-  Single, Lower, Higher: ISepiExpression;
-  SingleValue, LowerValue, HigherValue: ISepiReadableValue;
-begin
-  if Child.ChildCount = 1 then
-  begin
-    // Single value
-
-    Single := (Child.Children[0] as TSepiExpressionNode).Expression;
-
-    if not Supports(Single, ISepiReadableValue, SingleValue) then
-      Single.MakeError(SReadableValueRequired)
-    else
-      FSetBuilder.AddSingle(SingleValue);
-  end else
-  begin
-    // Range
-
-    Lower := (Child.Children[0] as TSepiExpressionNode).Expression;
-    Higher := (Child.Children[1] as TSepiExpressionNode).Expression;
-
-    if not Supports(Lower, ISepiReadableValue, LowerValue) then
-      Lower.MakeError(SReadableValueRequired)
-    else if not Supports(Higher, ISepiReadableValue, HigherValue) then
-      Higher.MakeError(SReadableValueRequired)
-    else
-      FSetBuilder.AddRange(LowerValue, HigherValue);
-  end;
-
-  inherited;
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TSetValueNode.EndParsing;
-begin
-  FSetBuilder.Complete;
 
   inherited;
 end;
