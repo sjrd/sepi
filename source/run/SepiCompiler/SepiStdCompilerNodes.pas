@@ -494,6 +494,20 @@ type
   end;
 
   {*
+    Noeud représentant un changement de visibilité
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiChangeVisibilityNode = class(TSepiNonTerminal)
+  protected
+    function GetVisibility: TMemberVisibility; virtual;
+  public
+    procedure EndParsing; override;
+
+    property Visibility: TMemberVisibility read GetVisibility;
+  end;
+
+  {*
     Noeud d'un champ d'une classe
     @author sjrd
     @version 1.0
@@ -2573,6 +2587,36 @@ begin
   end;
 
   Result := False;
+end;
+
+{---------------------------------}
+{ TSepiChangeVisibilityNode class }
+{---------------------------------}
+
+{*
+  Nouvelle visibilité
+  @return Nouvelle visibilité
+*}
+function TSepiChangeVisibilityNode.GetVisibility: TMemberVisibility;
+var
+  OrdVisibility: Integer;
+begin
+  OrdVisibility := AnsiIndexText(AsText, VisibilityStrings);
+
+  if OrdVisibility < 0 then
+    Result := mvPublic
+  else
+    Result := TMemberVisibility(OrdVisibility);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiChangeVisibilityNode.EndParsing;
+begin
+  SepiContext.CurrentVisibility := Visibility;
+
+  inherited;
 end;
 
 {---------------------------}

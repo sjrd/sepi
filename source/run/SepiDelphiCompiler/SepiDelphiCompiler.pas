@@ -557,16 +557,6 @@ type
   end;
 
   {*
-    Noeud d'une visibilité
-    @author sjrd
-    @version 1.0
-  *}
-  TVisibilityNode = class(TSepiNonTerminal)
-  public
-    procedure EndParsing; override;
-  end;
-
-  {*
     Noeud paramètre
     @author sjrd
     @version 1.0
@@ -771,7 +761,7 @@ begin
   NonTerminalClasses[ntIntfMethodRedirector] := TSepiIntfMethodRedirectorNode;
   NonTerminalClasses[ntMethodDecl]           := TSepiMethodDeclarationNode;
   NonTerminalClasses[ntPropertyDecl]         := TSepiPropertyNode;
-  NonTerminalClasses[ntVisibility]           := TVisibilityNode;
+  NonTerminalClasses[ntVisibility]           := TSepiChangeVisibilityNode;
 
   NonTerminalClasses[ntMethodNameDeclaration] :=
     TSepiUncheckedIdentifierDeclNode;
@@ -1629,6 +1619,8 @@ begin
 
   if Child is TInitializationExpressionNode then
   begin
+    Assert(ConstVar <> nil);
+
     InitChild := TInitializationExpressionNode(Child);
     InitChild.SetValueTypeAndPtr(ConstVar.VarType, ConstVar.Value);
   end;
@@ -1650,12 +1642,8 @@ begin
   end else if Child is TSepiConstExpressionNode then
   begin
     ReadableValue := TSepiConstExpressionNode(Child).AsReadableValue;
-
-    if ReadableValue = nil then
-      FConstant := TSepiConstant.Create(SepiContext, Name, 0)
-    else
-      FConstant := TSepiConstant.Create(SepiContext, Name,
-        ReadableValue.ValueType, ReadableValue.ConstValuePtr^);
+    FConstant := TSepiConstant.Create(SepiContext, Name,
+      ReadableValue.ValueType, ReadableValue.ConstValuePtr^);
   end;
 
   inherited;
@@ -1989,9 +1977,13 @@ var
 begin
   if ChildCount > 1 then
   begin
-    if not (Children[1] as TSepiConstExpressionNode).CompileConst(
-      MaxLength, SystemUnit.Integer) then
+    MaxLength := (Children[1] as TSepiConstExpressionNode).AsInteger(255);
+
+    if (MaxLength < 0) or (MaxLength > 255) then
+    begin
+      Children[1].MakeError(SBadStringLength);
       MaxLength := 255;
+    end;
 
     SetSepiType(TSepiShortStringType.Create(SepiContext, TypeName, MaxLength));
   end else
@@ -2577,21 +2569,6 @@ procedure TMethodRefTypeNode.EndParsing;
 begin
   Signature.Complete;
   SetSepiType(TSepiMethodRefType.Create(SepiContext, TypeName, Signature));
-
-  inherited;
-end;
-
-{-----------------------}
-{ TVisibilityNode class }
-{-----------------------}
-
-{*
-  [@inheritDoc]
-*}
-procedure TVisibilityNode.EndParsing;
-begin
-  SepiContext.CurrentVisibility :=
-    TMemberVisibility(AnsiIndexText(AsText, VisibilityStrings));
 
   inherited;
 end;

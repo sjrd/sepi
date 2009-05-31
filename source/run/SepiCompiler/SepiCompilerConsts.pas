@@ -89,6 +89,10 @@ resourcestring
   SWritableValueRequired = 'La valeur ne peut être écrite';
   SAddressableValueRequired = 'Valeur adressable requise';
 
+  // Valeurs particulières requise
+  SBadStringLength =
+    'La taille des chaînes doit être comprise entre 0 et 255 inclus';
+
   // Erreurs sur les ensembles
   SUntypedEmptySetNotSupported = 'Ensemble vide non typé non supporté';
   SSetRangeTooWide = 'L''ensemble des valeurs est trop étendu';
