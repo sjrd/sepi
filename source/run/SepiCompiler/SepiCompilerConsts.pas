@@ -128,6 +128,14 @@ resourcestring
 
   // Erreurs sur des classes ou interfaces
   SClassDoesNotImplementIntf = 'La classe %s n''implémente pas l''interface %s';
+  SPropertyNotFoundInBaseClass =
+    'La propriété n''a pas été trouvée dans la classe de base';
+  SFieldOrMethodRequired = 'Champ ou méthode requis';
+  SScalarPropertyRequired = 'Propriété non-tableau requise';
+  SDuplicateDefaultDirective = 'Directive default dupliquée';
+  SArrayPropertyRequired = 'Propriété tableau requise';
+  SDuplicateDefaultProperty = 'Ne peut avoir plusieurs propriétés par défaut';
+  SParametersMismatch = 'Les paramètres ne correspondent pas';
 
   // Erreurs sur les jump spéciaux
   SContinueAllowedOnlyInLoop =

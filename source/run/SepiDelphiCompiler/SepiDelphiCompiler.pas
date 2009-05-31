@@ -580,91 +580,11 @@ type
   end;
 
   {*
-    Noeud liste de membres
-    @author sjrd
-    @version 1.0
-  *}
-  TMemberListNode = class(TSepiNonTerminal)
-  private
-    FOwner: TSepiType;
-  protected
-    procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
-  public
-    property Owner: TSepiType read FOwner write FOwner;
-  end;
-
-  {*
-    Noeud d'un membre d'un type composite
-    @author sjrd
-    @version 1.0
-  *}
-  TMemberNode = class(TSepiNonTerminal)
-  private
-    FOwner: TSepiType; /// Type propriétaire
-  public
-    property Owner: TSepiType read FOwner write FOwner;
-  end;
-
-  {*
-    Noeud d'une propriété
-    @author sjrd
-    @version 1.0
-  *}
-  TPropertyNode = class(TMemberNode)
-  private
-    FName: string; /// Nom de la routine
-
-    FRedefine: Boolean;         /// True si c'est une redéfinition
-    FPrevious: TSepiProperty;   /// Déclaration précédente à redéfinir
-    FSignature: TSepiSignature; /// Signature
-
-    FReadAccess: TSepiMeta;            /// Accesseur en lecture
-    FWriteAccess: TSepiMeta;           /// Accesseur en écriture
-    FIndex: ISepiReadableValue;        /// Index
-    FDefaultValue: ISepiReadableValue; /// Valeur par défaut
-    FNoDefault: Boolean;               /// True s'il y a eu un nodefault
-    FStorage: TSepiPropertyStorage;    /// Spécificateur de stockage
-    FIsDefault: Boolean;               /// True si c'est la propriété par défaut
-
-    function CheckFieldAccess(Node: TSepiParseTreeNode;
-      Field: TSepiField): Boolean;
-    function CheckMethodAccess(Node: TSepiParseTreeNode; Method: TSepiMethod;
-      IsWriteAccess: Boolean): Boolean;
-
-    procedure HandleAccess(Node: TSepiParseTreeNode; IsWriteAccess: Boolean);
-    procedure HandleIndex(Node: TSepiParseTreeNode);
-    procedure HandleDefaultValue(Node: TSepiParseTreeNode);
-    procedure HandleStorage(Node: TSepiParseTreeNode);
-  protected
-    procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
-    procedure ChildEndParsing(Child: TSepiParseTreeNode); override;
-  public
-    destructor Destroy; override;
-
-    procedure BeginParsing; override;
-    procedure EndParsing; override;
-
-    property Name: string read FName;
-
-    property Redefine: Boolean read FRedefine;
-    property Previous: TSepiProperty read FPrevious;
-    property Signature: TSepiSignature read FSignature;
-
-    property ReadAccess: TSepiMeta read FReadAccess;
-    property WriteAccess: TSepiMeta read FWriteAccess;
-    property Index: ISepiReadableValue read FIndex;
-    property DefaultValue: ISepiReadableValue read FDefaultValue;
-    property NoDefault: Boolean read FNoDefault;
-    property Storage: TSepiPropertyStorage read FStorage;
-    property IsDefault: Boolean read FIsDefault;
-  end;
-
-  {*
     Noeud d'une visibilité
     @author sjrd
     @version 1.0
   *}
-  TVisibilityNode = class(TMemberNode)
+  TVisibilityNode = class(TSepiNonTerminal)
   public
     procedure EndParsing; override;
   end;
@@ -690,26 +610,6 @@ type
     property Names: TStringDynArray read FNames;
     property OpenArray: Boolean read FOpenArray;
     property ParamType: TSepiType read FType;
-  end;
-
-  {*
-    Noeud type de retour ou type de la propriété
-    @author sjrd
-    @version 1.0
-  *}
-  TReturnTypeNode = class(TSepiSignatureBuilderNode)
-  public
-    procedure EndParsing; override;
-  end;
-
-  {*
-    Noeud d'une information de propriété
-    @author sjrd
-    @version 1.0
-  *}
-  TPropInfoNode = class(TSepiNonTerminal)
-  protected
-    procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
   end;
 
   {*
@@ -886,16 +786,14 @@ begin
   NonTerminalClasses[ntRecordCaseBlock]    := TSepiRecordContentsNode;
   NonTerminalClasses[ntRecordCaseContents] := TSepiRecordContentsNode;
 
-  NonTerminalClasses[ntClassMemberLists]    := TMemberListNode;
-  NonTerminalClasses[ntInterfaceGUID]       := TInterfaceGUIDNode;
-  NonTerminalClasses[ntInterfaceMemberList] := TMemberListNode;
+  NonTerminalClasses[ntInterfaceGUID] := TInterfaceGUIDNode;
 
   NonTerminalClasses[ntRecordField]          := TSepiRecordFieldNode;
   NonTerminalClasses[ntRecordCaseField]      := TSepiRecordFieldNode;
   NonTerminalClasses[ntField]                := TSepiClassFieldNode;
   NonTerminalClasses[ntIntfMethodRedirector] := TSepiIntfMethodRedirectorNode;
   NonTerminalClasses[ntMethodDecl]           := TSepiMethodDeclarationNode;
-  NonTerminalClasses[ntPropertyDecl]         := TPropertyNode;
+  NonTerminalClasses[ntPropertyDecl]         := TSepiPropertyNode;
   NonTerminalClasses[ntVisibility]           := TVisibilityNode;
 
   NonTerminalClasses[ntMethodNameDeclaration] :=
@@ -910,9 +808,16 @@ begin
   NonTerminalClasses[ntMethodSignature]   := TSepiSignatureBuilderNode;
   NonTerminalClasses[ntPropertySignature] := TSepiSignatureBuilderNode;
   NonTerminalClasses[ntParam]             := TParamNode;
-  NonTerminalClasses[ntReturnType]        := TReturnTypeNode;
-  NonTerminalClasses[ntPropType]          := TReturnTypeNode;
-  NonTerminalClasses[ntPropInfo]          := TPropInfoNode;
+  NonTerminalClasses[ntReturnType]        := TSepiSignatureReturnTypeNode;
+  NonTerminalClasses[ntPropType]          := TSepiSignatureReturnTypeNode;
+
+  NonTerminalClasses[ntRedefineMarker]   := TSepiPropRedefineMarkerNode;
+  NonTerminalClasses[ntPropReadAccess]   := TSepiPropReadAccessNode;
+  NonTerminalClasses[ntPropWriteAccess]  := TSepiPropWriteAccessNode;
+  NonTerminalClasses[ntPropIndex]        := TSepiPropIndexNode;
+  NonTerminalClasses[ntPropDefaultValue] := TSepiPropDefaultValueNode;
+  NonTerminalClasses[ntPropStorage]      := TSepiPropStorageNode;
+  NonTerminalClasses[ntDefaultMarker]    := TSepiPropDefaultMarkerNode;
 
   NonTerminalClasses[ntMethodImpl]     := TMethodImplNode;
   NonTerminalClasses[ntMethodImplDecl] := TMethodImplDeclNode;
@@ -2431,7 +2336,7 @@ begin
 
   if Child.SymbolClass = tkOf then
     FIsMetaClass := True
-  else if Child is TMemberListNode then
+  else if Child.SymbolClass = ntClassMemberLists then
   begin
     Assert((not IsMetaClass) or (not IsForwardClass));
 
@@ -2440,8 +2345,6 @@ begin
       FIsClass := True;
       CreateClass;
     end;
-
-    TMemberListNode(Child).Owner := SepiClass;
   end;
 end;
 
@@ -2590,10 +2493,9 @@ begin
   if Child is TInterfaceGUIDNode then
   begin
     TInterfaceGUIDNode(Child).SetValuePtr(@FGUID);
-  end else if Child is TMemberListNode then
+  end else if Child.SymbolClass = ntInterfaceMemberList then
   begin
     CreateInterface;
-    TMemberListNode(Child).Owner := SepiIntf;
   end;
 end;
 
@@ -2765,363 +2667,6 @@ begin
 end;
 
 {-----------------------}
-{ TMemberListNode class }
-{-----------------------}
-
-{*
-  [@inheritDoc]
-*}
-procedure TMemberListNode.ChildBeginParsing(Child: TSepiParseTreeNode);
-begin
-  inherited;
-
-  if Child is TMemberNode then
-    TMemberNode(Child).Owner := Owner;
-end;
-
-{---------------------}
-{ TPropertyNode class }
-{---------------------}
-
-{*
-  [@inheritDoc]
-*}
-destructor TPropertyNode.Destroy;
-begin
-  FSignature.Free;
-
-  inherited;
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TPropertyNode.BeginParsing;
-begin
-  inherited;
-
-  FSignature := TSepiSignature.CreateConstructing(SepiUnit, Owner);
-  FSignature.Kind := skProperty;
-end;
-
-{*
-  Vérifie la validité d'un accès par champ
-  @param Field   Champ accesseur
-  @return True si l'accès est valide, False sinon
-*}
-function TPropertyNode.CheckFieldAccess(Node: TSepiParseTreeNode;
-  Field: TSepiField): Boolean;
-begin
-  if Signature.ParamCount > 0 then
-  begin
-    Node.MakeError(SParametersMismatch);
-    Result := False;
-  end else if Field.FieldType <> Signature.ReturnType then
-  begin
-    Node.MakeError(Format(STypeMismatch,
-      [Field.FieldType.Name, Signature.ReturnType.Name]));
-    Result := False;
-  end else
-  begin
-    Result := True;
-  end;
-end;
-
-{*
-  Vérifie la validité d'un accès par méthode
-  @param Method              Méthode accesseur
-  @param RequiredSignature   Signature attendue
-  @return True si l'accès est valide, False sinon
-*}
-function TPropertyNode.CheckMethodAccess(Node: TSepiParseTreeNode;
-  Method: TSepiMethod; IsWriteAccess: Boolean): Boolean;
-var
-  ParamCount, I: Integer;
-  Param: TSepiParam;
-begin
-  ParamCount := Signature.ParamCount + Byte(Index <> nil) + Byte(IsWriteAccess);
-
-  if Method.Signature.ParamCount <> ParamCount then
-    Result := False
-  else
-  begin
-    Result := True;
-
-    // Check parameters
-    for I := 0 to Signature.ParamCount-1 do
-    begin
-      if not Method.Signature.Params[I].Equals(Signature.Params[I],
-        pcoCompatibility) then
-      begin
-        Result := False;
-        Break;
-      end;
-    end;
-
-    // Check index
-    if Result and (Index <> nil) then
-    begin
-      Param := Method.Signature.Params[Signature.ParamCount];
-
-      if (Param.Kind in [pkVar, pkOut]) or (Param.ParamType = nil) or
-        (not Param.ParamType.CompatibleWith(Index.ValueType)) then
-        Result := False;
-    end;
-
-    // Check property type
-    if Result then
-    begin
-      if IsWriteAccess then
-      begin
-        Param := Method.Signature.Params[Method.Signature.ParamCount-1];
-
-        if (Param.Kind in [pkVar, pkOut]) or
-          (Param.ParamType <> Signature.ReturnType) then
-          Result := False;
-      end else
-      begin
-        if Method.Signature.ReturnType <> Signature.ReturnType then
-          Result := False;
-      end;
-    end;
-  end;
-
-  if not Result then
-    Node.MakeError(SParametersMismatch);
-end;
-
-{*
-  Gère l'accès en lecture
-  @param Node   Noeud d'informations
-*}
-procedure TPropertyNode.HandleAccess(Node: TSepiParseTreeNode;
-  IsWriteAccess: Boolean);
-var
-  Access: TSepiMeta;
-begin
-  if Owner is TSepiClass then
-    Access := TSepiClass(Owner).LookForMember(Node.AsText)
-  else
-    Access := (Owner as TSepiInterface).LookForMember(Node.AsText);
-
-  if not CheckIdentFound(Access, Node.AsText, Node) then
-    Exit;
-
-  if Access is TSepiField then
-  begin
-    // Field access
-    if not CheckFieldAccess(Node, TSepiField(Access)) then
-      Exit;
-  end else if Access is TSepiMethod then
-  begin
-    // Method access
-    if not CheckMethodAccess(Node, TSepiMethod(Access), IsWriteAccess) then
-      Exit;
-  end else
-  begin
-    // Error
-    Node.MakeError(SFieldOrMethodRequired);
-    Exit;
-  end;
-
-  if IsWriteAccess then
-    FWriteAccess := Access
-  else
-    FReadAccess := Access;
-end;
-
-{*
-  Gère l'index
-  @param Node   Noeud d'informations
-*}
-procedure TPropertyNode.HandleIndex(Node: TSepiParseTreeNode);
-begin
-  FIndex := (Node as TSepiConstExpressionNode).AsValue as ISepiReadableValue;
-
-  if not (Index.ValueType is TSepiOrdType) then
-  begin
-    Node.MakeError(SOrdinalTypeRequired);
-    FIndex := nil;
-  end;
-end;
-
-{*
-  Gère la valeur par défaut
-  @param Node   Noeud d'informations
-*}
-procedure TPropertyNode.HandleDefaultValue(Node: TSepiParseTreeNode);
-begin
-  if Node = nil then
-    FDefaultValue := nil;
-  // TODO Handle default value
-end;
-
-{*
-  Gère le spécificateur de stockage
-  @param Node   Noeud d'informations
-*}
-procedure TPropertyNode.HandleStorage(Node: TSepiParseTreeNode);
-begin
-  // TODO Handle storage
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TPropertyNode.ChildBeginParsing(Child: TSepiParseTreeNode);
-begin
-  inherited;
-
-  if Child is TSepiSignatureBuilderNode then
-    TSepiSignatureBuilderNode(Child).SetSignature(Signature);
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TPropertyNode.ChildEndParsing(Child: TSepiParseTreeNode);
-const
-  IgnoredModifiers: array[0..0] of string = (
-    'deprecated'
-  );
-var
-  Str: string;
-  I: Integer;
-begin
-  if Child is TSepiIdentifierDeclarationNode then
-    FName := TSepiIdentifierDeclarationNode(Child).Identifier;
-
-  case Child.SymbolClass of
-    // Signature
-    ntPropertySignature:
-    begin
-      Signature.Complete;
-    end;
-
-    // Marqueur de redéfinition
-    ntRedefineMarker:
-    begin
-      FRedefine := True;
-
-      if Owner is TSepiClass then
-        FPrevious := TSepiClass(Owner).LookForMember(Name) as TSepiProperty
-      else
-        FPrevious := TSepiInterface(Owner).LookForMember(Name) as TSepiProperty;
-
-      if Previous = nil then
-      begin
-        Child.MakeError(SPropertyNotFoundInBaseClass);
-        Signature.ReturnType := SystemUnit.Integer;
-      end else
-      begin
-        for I := 0 to Previous.Signature.ParamCount-1 do
-          TSepiParam.Clone(Signature, Previous.Signature.Params[I]);
-        Signature.ReturnType := Previous.Signature.ReturnType;
-
-        if Previous.Index <> NoIndex then
-        begin
-          FIndex := TSepiTrueConstValue.MakeOrdinalValue(UnitCompiler,
-            SystemUnit.Integer, Previous.Index);
-        end;
-
-        if Previous.DefaultValue <> NoDefaultValue then
-        begin
-          FDefaultValue := TSepiTrueConstValue.MakeOrdinalValue(UnitCompiler,
-            Signature.ReturnType as TSepiOrdType, Previous.DefaultValue);
-        end;
-      end;
-
-      Signature.Complete;
-    end;
-
-    // Prop-info
-    ntPropInfo:
-    begin
-      case Child.Children[0].SymbolClass of
-        tkRead:      HandleAccess      (Child.Children[1], False);
-        tkWrite:     HandleAccess      (Child.Children[1], True);
-        tkIndex:     HandleIndex       (Child.Children[1]);
-        tkDefault:   HandleDefaultValue(Child.Children[1]);
-        tkNoDefault: HandleDefaultValue(nil);
-        tkStored:    HandleStorage     (Child.Children[1]);
-      end;
-    end;
-
-    // Modificateur
-    ntPropertyModifier:
-    begin
-      Str := Child.Children[0].AsText;
-
-      if LowerCase(Str) = 'default' then
-      begin
-        // default
-        if IsDefault then
-          Child.MakeError(Format(SDuplicateModifier, [Str]))
-        else if (Owner is TSepiClass) and
-          (TSepiClass(Owner).DefaultProperty <> nil) and
-          (TSepiClass(Owner).DefaultProperty.Owner = Owner) then
-          Child.MakeError(SDuplicateDefaultProperty)
-        else if Signature.ParamCount = 0 then
-          Child.MakeError(SArrayPropertyRequired)
-        else
-          FIsDefault := True;
-      end else if AnsiIndexText(Str, IgnoredModifiers) = -1 then
-      begin
-        // Unknown modifier
-        Child.MakeError(Format(SUnknownMethodModifier, [Str]), ekWarning);
-      end;
-    end;
-  end;
-
-  inherited;
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TPropertyNode.EndParsing;
-var
-  IntDefaultValue, AccessIndex: Integer;
-begin
-  if Index = nil then
-    AccessIndex := NoIndex
-  else
-    AccessIndex := TSepiOrdType(Index.ValueType).ValueAsInteger(
-      Index.ConstValuePtr^);
-
-  // Create the property
-  if Owner is TSepiClass then
-  begin
-    if DefaultValue = nil then
-      IntDefaultValue := NoDefaultValue
-    else
-      IntDefaultValue := TSepiOrdType(DefaultValue.ValueType).ValueAsInteger(
-        DefaultValue.ConstValuePtr^);
-
-    // Class property
-    if Redefine then
-    begin
-      // Redefine property
-      TSepiClass(Owner).RedefineProperty(Name, ReadAccess, WriteAccess,
-        IntDefaultValue, Storage);
-    end else
-    begin
-      // New property
-      TSepiClass(Owner).AddProperty(Name, Signature, ReadAccess, WriteAccess,
-        AccessIndex, IntDefaultValue, Storage, IsDefault)
-    end;
-  end else if Owner is TSepiInterface then
-  begin
-    // Interface property
-    TSepiInterface(Owner).AddProperty(Name, Signature, ReadAccess, WriteAccess,
-      AccessIndex, IsDefault);
-  end else
-    Assert(False);
-
-  inherited;
-end;
-
-{-----------------------}
 { TVisibilityNode class }
 {-----------------------}
 
@@ -3130,7 +2675,7 @@ end;
 *}
 procedure TVisibilityNode.EndParsing;
 begin
-  (Owner as TSepiClass).CurrentVisibility :=
+  SepiContext.CurrentVisibility :=
     TMemberVisibility(AnsiIndexText(AsText, VisibilityStrings));
 
   inherited;
@@ -3230,67 +2775,6 @@ begin
     TSepiParam.Create(Signature, Names[I], ParamType, Kind, OpenArray);
 
   inherited;
-end;
-
-{-----------------------}
-{ TReturnTypeNode class }
-{-----------------------}
-
-{*
-  [@inheritDoc]
-*}
-procedure TReturnTypeNode.EndParsing;
-var
-  Kind: TSepiSignatureKind;
-  ReturnType: TSepiType;
-begin
-  Kind := Signature.Kind;
-
-  if Kind in skWithReturnType then
-  begin
-    // Return type required
-    if ChildCount > 0 then
-    begin
-      ReturnType := TSepiType(LookForOrError(Children[0], TSepiType,
-        STypeIdentifierRequired));
-    end else
-    begin
-      MakeError(SReturnTypeRequired);
-      ReturnType := nil;
-    end;
-
-    if ReturnType = nil then
-      Signature.ReturnType := SystemUnit.Integer
-    else
-      Signature.ReturnType := ReturnType;
-  end else
-  begin
-    // Return type forbidden
-    if ChildCount > 0 then
-      MakeError(SReturnTypeForbidden);
-  end;
-
-  inherited;
-end;
-
-{---------------------}
-{ TPropInfoNode class }
-{---------------------}
-
-{*
-  [@inheritDoc]
-*}
-procedure TPropInfoNode.ChildBeginParsing(Child: TSepiParseTreeNode);
-var
-  PropertyType: TSepiType;
-begin
-  inherited;
-
-  if (ChildCount = 2) and (Children[0].SymbolClass = tkDefault) then
-  begin
-    PropertyType := (Parent as TPropertyNode).Signature.ReturnType;
-    (Children[1] as TSepiConstExpressionNode).ValueType := PropertyType;
-  end;
 end;
 
 {-----------------------}

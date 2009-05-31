@@ -571,19 +571,44 @@ ntPropertyNextDecl	PropertyNextDecl	Simplify
 ntRedefineMarker	RedefineMarker
 	@
 
-ntPropInfo	PropInfo
-	'read' QualifiedIdent
-	'write' QualifiedIdent
-	'index' ConstExpression
-	'default' ConstExpression
-	'nodefault'
-	'stored' Expression
+ntPropInfo	PropInfo	Simplify
+	PropReadAccess
+	PropWriteAccess
+	PropIndex
+	PropDefaultValue
+	PropStorage
+	IgnoredPropInfo
+
+ntPropReadAccess	PropReadAccess
+	'read'* QualifiedIdent
+
+ntPropWriteAccess	PropWriteAccess
+	'write'* QualifiedIdent
+
+ntPropIndex	PropIndex
+	'index'* ConstExpression
+
+ntPropDefaultValue	PropDefaultValue
+	'default'* ConstExpression
+	'nodefault'*
+
+ntPropStorage	PropStorage
+	'stored'* Expression
+
+ntIgnoredPropInfo	IgnoredPropInfo
 	'readonly'
 	'writeonly'
 	'dispid' ConstExpression
 
-ntPropertyModifier	PropertyModifier	AsText
-	Identifier
+ntPropertyModifier	PropertyModifier	Simplify
+	DefaultMarker
+	IgnoredPropertyModifier
+
+ntDefaultMarker	DefaultMarker
+	'default'
+
+ntIgnoredPropertyModifier	IgnoredPropertyModifier
+	'deprecated'
 
 ntEventDesc	EventDesc	AsText
 	RoutineKind MethodSignature EventModifiers

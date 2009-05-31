@@ -64,8 +64,8 @@ type
     constructor Create(AOwner: TComponent); override;
   published
     property DropControl: TControl
-      read FDropControl write FDropControl default nil;
-    property OnDrop: TDropImageEvent read FOnDrop write FOnDrop default nil;
+      read FDropControl write FDropControl;
+    property OnDrop: TDropImageEvent read FOnDrop write FOnDrop;
   end;
 
 implementation

@@ -634,6 +634,112 @@ type
   end;
 
   {*
+    Noeud propriété
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiPropertyNode = class(TSepiNonTerminal)
+  private
+    FBuilder: TSepiPropertyBuilder; /// Constructeur de propriété
+  protected
+    procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
+    procedure ChildEndParsing(Child: TSepiParseTreeNode); override;
+  public
+    destructor Destroy; override;
+
+    procedure BeginParsing; override;
+    procedure EndParsing; override;
+
+    property Builder: TSepiPropertyBuilder read FBuilder;
+  end;
+
+  {*
+    Classe de base pour les noeuds qui construisent une propriété
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiPropertyBuilderNode = class(TSepiSignatureBuilderNode)
+  private
+    FBuilder: TSepiPropertyBuilder; /// Noeud propriété
+  protected
+    property Builder: TSepiPropertyBuilder read FBuilder;
+  public
+    procedure SetBuilder(ABuilder: TSepiPropertyBuilder);
+  end;
+
+  {*
+    Noeud marqueur qu'une propriété est redéfinie
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiPropRedefineMarkerNode = class(TSepiPropertyBuilderNode)
+  public
+    procedure EndParsing; override;
+  end;
+
+  {*
+    Noeud accesseur en lecture d'une propriété
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiPropReadAccessNode = class(TSepiPropertyBuilderNode)
+  public
+    procedure EndParsing; override;
+  end;
+
+  {*
+    Noeud accesseur en écriture d'une propriété
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiPropWriteAccessNode = class(TSepiPropertyBuilderNode)
+  public
+    procedure EndParsing; override;
+  end;
+
+  {*
+    Noeud index d'une propriété
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiPropIndexNode = class(TSepiPropertyBuilderNode)
+  public
+    procedure EndParsing; override;
+  end;
+
+  {*
+    Noeud valeur par défaut d'une propriété
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiPropDefaultValueNode = class(TSepiPropertyBuilderNode)
+  protected
+    procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
+  public
+    procedure EndParsing; override;
+  end;
+
+  {*
+    Noeud spécificateur de stockage d'une propriété
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiPropStorageNode = class(TSepiPropertyBuilderNode)
+  public
+    procedure EndParsing; override;
+  end;
+
+  {*
+    Noeud marqueur qu'une propriété est la propriété par défaut
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiPropDefaultMarkerNode = class(TSepiPropertyBuilderNode)
+  public
+    procedure EndParsing; override;
+  end;
+
+  {*
     Noeud redirecteur de méthode d'interface
     Ce type de noeud doit toujours avoir en contexte une classe
     @author sjrd
@@ -1549,7 +1655,9 @@ begin
       ReadableValue.IsConstant;
 
     if not Result then
-      MakeError(SConstExpressionRequired);
+      MakeError(SConstExpressionRequired)
+    else if ValueType <> nil then
+      SetExpression(Value as ISepiExpression);
   end;
 end;
 
@@ -2781,6 +2889,193 @@ begin
 
   if Child is TSepiConstExpressionNode then
     TSepiConstExpressionNode(Child).ValueType := SystemUnit.Integer;
+end;
+
+{-------------------------}
+{ TSepiPropertyNode class }
+{-------------------------}
+
+{*
+  [@inheritDoc]
+*}
+destructor TSepiPropertyNode.Destroy;
+begin
+  FBuilder.Free;
+
+  inherited;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiPropertyNode.BeginParsing;
+begin
+  inherited;
+
+  FBuilder := TSepiPropertyBuilder.Create(SepiContext);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiPropertyNode.ChildBeginParsing(Child: TSepiParseTreeNode);
+begin
+  inherited;
+
+  if Child is TSepiPropertyBuilderNode then
+    TSepiPropertyBuilderNode(Child).SetBuilder(Builder)
+  else if Child is TSepiSignatureBuilderNode then
+    TSepiSignatureBuilderNode(Child).SetSignature(Builder.Signature);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiPropertyNode.ChildEndParsing(Child: TSepiParseTreeNode);
+begin
+  if Child is TSepiIdentifierDeclarationNode then
+    Builder.Name := TSepiIdentifierDeclarationNode(Child).Identifier;
+
+  inherited;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiPropertyNode.EndParsing;
+begin
+  Builder.Build;
+
+  inherited;
+end;
+
+{--------------------------------}
+{ TSepiPropertyBuilderNode class }
+{--------------------------------}
+
+{*
+  Spécifie le constructeur de propriété
+  @param ABuilder   Constructeur de propriété
+*}
+procedure TSepiPropertyBuilderNode.SetBuilder(ABuilder: TSepiPropertyBuilder);
+begin
+  FBuilder := ABuilder;
+  SetSignature(Builder.Signature);
+end;
+
+{-----------------------------------}
+{ TSepiPropRedefineMarkerNode class }
+{-----------------------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiPropRedefineMarkerNode.EndParsing;
+begin
+  Builder.Redefine(Self);
+
+  inherited;
+end;
+
+{-------------------------------}
+{ TSepiPropReadAccessNode class }
+{-------------------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiPropReadAccessNode.EndParsing;
+begin
+  Builder.SetReadAccess(AsText, Self);
+
+  inherited;
+end;
+
+{--------------------------------}
+{ TSepiPropWriteAccessNode class }
+{--------------------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiPropWriteAccessNode.EndParsing;
+begin
+  Builder.SetWriteAccess(AsText, Self);
+
+  inherited;
+end;
+
+{--------------------------}
+{ TSepiPropIndexNode class }
+{--------------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiPropIndexNode.EndParsing;
+begin
+  Builder.SetIndex((Children[0] as TSepiConstExpressionNode).AsReadableValue,
+    Self);
+
+  inherited;
+end;
+
+{---------------------------------}
+{ TSepiPropDefaultValueNode class }
+{---------------------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiPropDefaultValueNode.ChildBeginParsing(
+  Child: TSepiParseTreeNode);
+begin
+  inherited;
+
+  if Child is TSepiConstExpressionNode then
+    TSepiConstExpressionNode(Child).ValueType := Signature.ReturnType;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiPropDefaultValueNode.EndParsing;
+begin
+  if ChildCount = 0 then
+    Builder.SetNoDefault(Self)
+  else
+    Builder.SetDefaultValue(
+      (Children[0] as TSepiConstExpressionNode).AsReadableValue, Self);
+
+  inherited;
+end;
+
+{----------------------------}
+{ TSepiPropStorageNode class }
+{----------------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiPropStorageNode.EndParsing;
+begin
+  // TODO Handle property storage
+
+  inherited;
+end;
+
+{----------------------------------}
+{ TSepiPropDefaultMarkerNode class }
+{----------------------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiPropDefaultMarkerNode.EndParsing;
+begin
+  Builder.SetIsDefault(Self);
+
+  inherited;
 end;
 
 {-------------------------------------}

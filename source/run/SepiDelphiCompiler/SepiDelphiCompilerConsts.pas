@@ -49,12 +49,6 @@ resourcestring
     'Une définition de plusieurs paramètres ne peut pas avoir de valeur par '+
     'défaut';
   SDuplicateModifier = 'Modificateur %s dupliqué';
-  SPropertyNotFoundInBaseClass =
-    'La propriété n''a pas été trouvée dans la classe de base';
-  SFieldOrMethodRequired = 'Champ ou méthode requis';
-  SArrayPropertyRequired = 'Propriété tableau requise';
-  SDuplicateDefaultProperty = 'Ne peut avoir plusieurs propriétés par défaut';
-  SParametersMismatch = 'Les paramètres ne correspondent pas';
   SMethodNotDeclared = 'Méthode %s non déclarée';
   SMethodMustBeOverloaded =
     'La méthode %s doit être marquée avec la directive overload';
