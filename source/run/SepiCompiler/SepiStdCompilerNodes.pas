@@ -487,7 +487,9 @@ type
     procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
     procedure ChildEndParsing(Child: TSepiParseTreeNode); override;
   public
-    function IsDeclared(const Identifier: string): Boolean;
+    function IsDeclared(const Identifier: string): Boolean; virtual;
+
+    procedure GetIdentifierList(out IdentifierList: TStringDynArray);
 
     property IdentifierCount: Integer read FIdentifierCount;
     property Identifiers[Index: Integer]: string read GetIdentifiers;
@@ -580,6 +582,66 @@ type
   end;
 
   {*
+    Noeud paramètre
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiParamNode = class(TSepiSignatureBuilderNode)
+  private
+    FKind: TSepiParamKind;   /// Type de paramètre
+    FNames: TStringDynArray; /// Noms des paramètres
+    FOpenArray: Boolean;     /// True si c'est un tableau ouvert
+    FType: TSepiType;        /// Type du paramètre
+  protected
+    procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
+    procedure ChildEndParsing(Child: TSepiParseTreeNode); override;
+  public
+    procedure EndParsing; override;
+
+    property Kind: TSepiParamKind read FKind;
+    property Names: TStringDynArray read FNames;
+    property OpenArray: Boolean read FOpenArray;
+    property ParamType: TSepiType read FType;
+  end;
+
+  {*
+    Noeud type de paramètre
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiParamKindNode = class(TSepiNonTerminal)
+  protected
+    function GetKind: TSepiParamKind; virtual;
+  public
+    property Kind: TSepiParamKind read GetKind;
+  end;
+
+  {*
+    Noeud nom d'un paramètre
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiParamNameNode = class(TSepiIdentifierDeclarationNode)
+  private
+    FSignature: TSepiSignature; /// Signature
+  protected
+    function IsRedeclared: Boolean; override;
+    procedure MakeErroneousName; override;
+
+    property Signature: TSepiSignature read FSignature;
+  public
+    procedure BeginParsing; override;
+  end;
+
+  {*
+    Noeud marqueur qu'un paramètre est un tableau ouvert
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiParamIsArrayMarkerNode = class(TSepiNonTerminal)
+  end;
+
+  {*
     Noeud représentant le type de retour d'une signature
     @author sjrd
     @version 1.0
@@ -662,6 +724,14 @@ type
     @version 1.0
   *}
   TSepiOverloadMarkerNode = class(TSepiNonTerminal)
+  end;
+
+  {*
+    Marqueur forward
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiForwardMarkerNode = class(TSepiNonTerminal)
   end;
 
   {*
@@ -811,6 +881,18 @@ type
   end;
 
   {*
+    Noeud identifiant un type par son nom
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiTypeNameNode = class(TSepiTypeNode)
+  public
+    procedure EndParsing; override;
+
+    property TypeName: string read GetAsText;
+  end;
+
+  {*
     Noeud représentant une définition de type
     @author sjrd
     @version 1.0
@@ -870,6 +952,59 @@ type
   end;
 
   {*
+    Noeud méthode dans l'implémentation
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiMethodImplementationNode = class(TSepiNonTerminal)
+  private
+    FSepiMethod: TSepiMethod; /// Méthode correspondante
+    FJustDeclared: Boolean;   /// Indique si déclaré dans ce noeud
+  protected
+    procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
+    procedure ChildEndParsing(Child: TSepiParseTreeNode); override;
+  public
+    property SepiMethod: TSepiMethod read FSepiMethod;
+    property JustDeclared: Boolean read FJustDeclared;
+  end;
+
+  {*
+    Noeud signature dans l'implémentation
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiMethodImplHeaderNode = class(TSepiNonTerminal)
+  private
+    FName: string;              /// Nom de la routine
+    FSignature: TSepiSignature; /// Signature
+    FIsOverloaded: Boolean;     /// True si surchargée
+
+    FOverloaded: TSepiOverloadedMethod; /// Méthode surchargée correspondante
+
+    FSepiMethod: TSepiMethod; /// Méthode Sepi
+    FJustDeclared: Boolean;   /// True si la méthode a été déclarée par ce noeud
+  protected
+    procedure DeclareMethod; virtual;
+
+    procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
+    procedure ChildEndParsing(Child: TSepiParseTreeNode); override;
+
+    property Name: string read FName;
+    property Signature: TSepiSignature read FSignature;
+    property IsOverloaded: Boolean read FIsOverloaded;
+
+    property Overloaded: TSepiOverloadedMethod read FOverloaded;
+  public
+    destructor Destroy; override;
+
+    procedure BeginParsing; override;
+    procedure EndParsing; override;
+
+    property SepiMethod: TSepiMethod read FSepiMethod;
+    property JustDeclared: Boolean read FJustDeclared;
+  end;
+
+  {*
     Noeud du corps d'une méthode
     @author sjrd
     @version 1.0
@@ -891,6 +1026,46 @@ type
     procedure SetSepiMethod(ASepiMethod: TSepiMethod);
 
     property SepiMethod: TSepiMethod read FSepiMethod;
+  end;
+
+  {*
+    Noeud représentant le nom d'une variable locale à rechercher
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiLocalVarNameNode = class(TSepiNonTerminal)
+  private
+    FLocalVar: TSepiLocalVar; /// Variable locale
+  protected
+    procedure SetLocalVar(ALocalVar: TSepiLocalVar);
+
+    function GetLocalVarName: string; virtual;
+    function CompileLocalVar: TSepiLocalVar; virtual;
+
+    procedure MakeErroneousLocalVar; virtual;
+  public
+    procedure EndParsing; override;
+
+    property LocalVarName: string read GetLocalVarName;
+    property LocalVar: TSepiLocalVar read FLocalVar;
+  end;
+
+  {*
+    Noeud déclaration de variable locale
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiLocalVarNode = class(TSepiNonTerminal)
+  private
+    FNamesNode: TSepiIdentifierDeclListNode; /// Noeud des noms de variables
+    FVarType: TSepiType;                     /// Type des variables
+  protected
+    procedure ChildEndParsing(Child: TSepiParseTreeNode); override;
+
+    property NamesNode: TSepiIdentifierDeclListNode read FNamesNode;
+    property VarType: TSepiType read FVarType;
+  public
+    procedure EndParsing; override;
   end;
 
   {*
@@ -1016,28 +1191,6 @@ type
     procedure EndParsing; override;
 
     property Instruction: TSepiFor read FInstruction;
-  end;
-
-  {*
-    Noeud représentant le nom d'une variable locale à rechercher
-    @author sjrd
-    @version 1.0
-  *}
-  TSepiLocalVarNameNode = class(TSepiNonTerminal)
-  private
-    FLocalVar: TSepiLocalVar; /// Variable locale
-  protected
-    procedure SetLocalVar(ALocalVar: TSepiLocalVar);
-
-    function GetLocalVarName: string; virtual;
-    function CompileLocalVar: TSepiLocalVar; virtual;
-
-    procedure MakeErroneousLocalVar; virtual;
-  public
-    procedure EndParsing; override;
-
-    property LocalVarName: string read GetLocalVarName;
-    property LocalVar: TSepiLocalVar read FLocalVar;
   end;
 
   {*
@@ -1494,7 +1647,8 @@ procedure TSepiExpressionNode.RequireType(var Value: ISepiValue;
   ValueType: TSepiType; AllowConvertion: Boolean);
 begin
   if not TryAndMatchType(Value, ValueType, AllowConvertion) then
-    MakeError(Format(STypeMismatch, [ValueType.Name, Value.ValueType.Name]));
+    MakeError(Format(STypeMismatch,
+      [ValueType.DisplayName, Value.ValueType.DisplayName]));
 end;
 
 {*
@@ -2493,8 +2647,15 @@ function TSepiIdentifierDeclarationNode.IsRedeclared: Boolean;
 var
   FirstDecl: TSepiMeta;
 begin
-  FirstDecl := SepiContext.GetMeta(Identifier);
-  Result := (FirstDecl <> nil) and (not FirstDecl.IsForward);
+  if (MethodCompiler <> nil) and
+    (MethodCompiler.Locals.GetVarByName(Identifier) <> nil) then
+  begin
+    Result := True;
+  end else
+  begin
+    FirstDecl := SepiContext.GetMeta(Identifier);
+    Result := (FirstDecl <> nil) and (not FirstDecl.IsForward);
+  end;
 end;
 
 {*
@@ -2587,6 +2748,21 @@ begin
   end;
 
   Result := False;
+end;
+
+{*
+  Obtient une liste des identificateurs
+  @param IdentifierList   En sortie : liste des identificateurs
+*}
+procedure TSepiIdentifierDeclListNode.GetIdentifierList(
+  out IdentifierList: TStringDynArray);
+var
+  I: Integer;
+begin
+  SetLength(IdentifierList, IdentifierCount);
+
+  for I := 0 to IdentifierCount-1 do
+    IdentifierList[I] := Identifiers[I];
 end;
 
 {---------------------------------}
@@ -2684,6 +2860,14 @@ begin
   OrdKind := AnsiIndexText(AsText, SignatureKindStrings);
 
   if OrdKind < 0 then
+  begin
+    if (SepiContext is TSepiClass) or (SepiContext is TSepiInterface) then
+      OrdKind := AnsiIndexText('object '+AsText, SignatureKindStrings)
+    else
+      OrdKind := AnsiIndexText('static '+AsText, SignatureKindStrings);
+  end;
+
+  if OrdKind < 0 then
     Result := skStaticProcedure
   else
     Result := TSepiSignatureKind(OrdKind);
@@ -2729,6 +2913,136 @@ begin
     Signature.CallingConvention := CallingConvention;
 
   inherited;
+end;
+
+{----------------------}
+{ TSepiParamNode class }
+{----------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiParamNode.ChildBeginParsing(Child: TSepiParseTreeNode);
+var
+  InitChild: TSepiInitializationExpressionNode;
+begin
+  inherited;
+
+  if Child is TSepiInitializationExpressionNode then
+  begin
+    InitChild := TSepiInitializationExpressionNode(Child);
+
+    if OpenArray then
+    begin
+      Child.MakeError(SOpenArrayParamCantHaveDefaultValue);
+      InitChild.SetValueTypeAndPtr(SystemUnit.Integer);
+    end else if Length(Names) > 1 then
+    begin
+      Child.MakeError(SMultiNameParamCantHaveDefaultValue);
+      InitChild.SetValueTypeAndPtr(SystemUnit.Integer);
+    end else
+    begin
+      InitChild.SetValueTypeAndPtr(ParamType);
+    end;
+  end;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiParamNode.ChildEndParsing(Child: TSepiParseTreeNode);
+begin
+  if Child is TSepiParamKindNode then
+    FKind := TSepiParamKindNode(Child).Kind
+  else if Child is TSepiIdentifierDeclListNode then
+    TSepiIdentifierDeclListNode(Child).GetIdentifierList(FNames)
+  else if Child is TSepiParamIsArrayMarkerNode then
+    FOpenArray := True
+  else if Child is TSepiTypeNode then
+    FType := TSepiTypeNode(Child).SepiType;
+
+  inherited;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiParamNode.EndParsing;
+var
+  I: Integer;
+begin
+  Assert(Length(Names) > 0);
+
+  for I := 0 to Length(Names)-1 do
+    TSepiParam.Create(Signature, Names[I], ParamType, Kind, OpenArray);
+
+  inherited;
+end;
+
+{--------------------------}
+{ TSepiParamKindNode class }
+{--------------------------}
+
+{*
+  Type de paramètre
+  @return Type de paramètre
+*}
+function TSepiParamKindNode.GetKind: TSepiParamKind;
+var
+  OrdKind: Integer;
+begin
+  OrdKind := AnsiIndexText(AsText, ParamKindStrings);
+
+  if OrdKind < 0 then
+    Result := pkValue
+  else
+    Result := TSepiParamKind(OrdKind);
+end;
+
+{--------------------------}
+{ TSepiParamNameNode class }
+{--------------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiParamNameNode.BeginParsing;
+var
+  Node: TSepiNonTerminal;
+begin
+  inherited;
+
+  Node := Self;
+
+  while (Node <> nil) and (not (Node is TSepiSignatureBuilderNode)) do
+    Node := Node.Parent;
+
+  Assert(Node <> nil);
+  FSignature := TSepiSignatureBuilderNode(Node).Signature;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiParamNameNode.IsRedeclared: Boolean;
+begin
+  Result := Signature.GetParam(Identifier) <> nil;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiParamNameNode.MakeErroneousName;
+var
+  I: Integer;
+begin
+  inherited;
+
+  I := 1;
+  while Signature.GetParam('$'+IntToStr(I)) <> nil do
+    Inc(I);
+
+  SetIdentifier('$'+IntToStr(I));
 end;
 
 {------------------------------}
@@ -3311,6 +3625,21 @@ begin
   inherited;
 end;
 
+{-------------------------}
+{ TSepiTypeNameNode class }
+{-------------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiTypeNameNode.EndParsing;
+begin
+  SetSepiType(TSepiType(LookForSelfTextOrError(
+    TSepiType, STypeIdentifierRequired)));
+
+  inherited;
+end;
+
 {-------------------------------}
 { TSepiTypeDefinitionNode class }
 {-------------------------------}
@@ -3441,6 +3770,200 @@ begin
   FAfterField := AAfterField;
 end;
 
+{-------------------------------------}
+{ TSepiMethodImplementationNode class }
+{-------------------------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiMethodImplementationNode.ChildBeginParsing(
+  Child: TSepiParseTreeNode);
+begin
+  inherited;
+
+  if Child is TSepiForwardMarkerNode then
+  begin
+    // Forward marker - must be just declared
+    if not JustDeclared then
+      MakeError(Format(SRedeclaredIdentifier, [SepiMethod.Name]));
+  end else if Child is TSepiMethodBodyNode then
+  begin
+    // Method body - actual implementation
+    TSepiMethodBodyNode(Child).SetSepiMethod(SepiMethod);
+  end;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiMethodImplementationNode.ChildEndParsing(
+  Child: TSepiParseTreeNode);
+begin
+  if Child is TSepiMethodImplHeaderNode then
+  begin
+    FSepiMethod := TSepiMethodImplHeaderNode(Child).SepiMethod;
+    FJustDeclared := TSepiMethodImplHeaderNode(Child).JustDeclared;
+  end;
+
+  inherited;
+end;
+
+{---------------------------------}
+{ TSepiMethodImplHeaderNode class }
+{---------------------------------}
+
+{*
+  [@inheritDoc]
+*}
+destructor TSepiMethodImplHeaderNode.Destroy;
+begin
+  FSignature.Free;
+
+  inherited;
+end;
+
+{*
+  Déclare la méthode (si autorisé)
+*}
+procedure TSepiMethodImplHeaderNode.DeclareMethod;
+begin
+  // Methods must always be declared before being implemented
+  if Pos('.', Name) > 0 then
+  begin
+    MakeError(Format(SMethodNotDeclared, [Name]));
+    Exit;
+  end;
+
+  // If there is an overloaded method, the overload directive must be set
+  if (Overloaded <> nil) and (not IsOverloaded) then
+  begin
+    MakeError(Format(SMethodMustBeOverloaded, [Name]));
+    FIsOverloaded := True;
+  end;
+
+  // Declare the method
+  FJustDeclared := True;
+  if IsOverloaded then
+  begin
+    FSepiMethod := TSepiMethod.CreateOverloaded(SepiContext,
+      Name, nil, Signature);
+  end else
+  begin
+    FSepiMethod := TSepiMethod.Create(SepiContext,
+      Name, nil, Signature);
+  end;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiMethodImplHeaderNode.BeginParsing;
+var
+  SignatureContext: TSepiType;
+begin
+  inherited;
+
+  if SepiContext is TSepiType then
+    SignatureContext := TSepiType(SepiContext)
+  else
+    SignatureContext := nil;
+
+  FSignature := TSepiSignature.CreateConstructing(SepiUnit, SignatureContext);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiMethodImplHeaderNode.ChildBeginParsing(
+  Child: TSepiParseTreeNode);
+begin
+  inherited;
+
+  if Child is TSepiSignatureBuilderNode then
+    TSepiSignatureBuilderNode(Child).SetSignature(Signature);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiMethodImplHeaderNode.ChildEndParsing(Child: TSepiParseTreeNode);
+begin
+  if Child is TSepiQualifiedIdentNode then
+    FName := TSepiQualifiedIdentNode(Child).AsText
+  else if Child is TSepiOverloadMarkerNode then
+    FIsOverloaded := True;
+
+  inherited;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiMethodImplHeaderNode.EndParsing;
+var
+  TempMethod: TSepiMeta;
+begin
+  // Find method
+  TempMethod := SepiContext.GetMeta(Name);
+
+  // Update signature kind for a method implementation
+  if (TempMethod <> nil) and (TempMethod.Owner is TSepiClass) then
+  begin
+    if Signature.Kind = skStaticProcedure then
+      Signature.Kind := skObjectProcedure
+    else if Signature.Kind = skStaticFunction then
+      Signature.Kind := skObjectFunction;
+  end;
+
+  // Handle overloads
+  if TempMethod is TSepiOverloadedMethod then
+  begin
+    FOverloaded := TSepiOverloadedMethod(TempMethod);
+    Signature.Complete;
+    FSepiMethod := Overloaded.FindMethod(Signature);
+  end else if TempMethod is TSepiMethod then
+  begin
+    FSepiMethod := TSepiMethod(TempMethod);
+    Signature.CallingConvention := SepiMethod.Signature.CallingConvention;
+    Signature.Complete;
+
+    // Check signature
+    if IsOverloaded then
+    begin
+      MakeError(Format(SPreviousDeclWasNotOverload, [SepiMethod.Name]));
+      FIsOverloaded := False;
+    end else if not SepiMethod.Signature.Equals(
+      Signature, scoDeclaration) then
+    begin
+      MakeError(Format(SDeclarationDiffersFromPreviousOne, [SepiMethod.Name]));
+    end;
+  end else
+  begin
+    Signature.Complete;
+  end;
+
+  // Declare method if needed
+  if FSepiMethod = nil then
+    DeclareMethod;
+
+  // Check that the method has not already been implemented
+  if SepiMethod <> nil then
+  begin
+    if UnitCompiler.FindMethodCompiler(SepiMethod) <> nil then
+    begin
+      MakeError(Format(SMethodAlreadyImplemented, [SepiMethod.Name]));
+      FSepiMethod := nil;
+    end;
+  end;
+
+  // Ensure SepiMethod <> nil
+  if SepiMethod = nil then
+    FSepiMethod := TSepiMethod.Create(SepiContext, '', nil, Signature);
+
+  inherited;
+end;
+
 {---------------------------}
 { TSepiMethodBodyNode class }
 {---------------------------}
@@ -3507,6 +4030,95 @@ begin
     FCompiler := nil
   else
     FCompiler := UnitCompiler.FindMethodCompiler(SepiMethod, True);
+end;
+
+{-----------------------------}
+{ TSepiLocalVarNameNode class }
+{-----------------------------}
+
+{*
+  Modifie la variable locale
+  @param ALocalVar   Variable locale
+*}
+procedure TSepiLocalVarNameNode.SetLocalVar(ALocalVar: TSepiLocalVar);
+begin
+  FLocalVar := ALocalVar;
+end;
+
+{*
+  Nom de la variable locale
+  @return Nom de la variable locale
+*}
+function TSepiLocalVarNameNode.GetLocalVarName: string;
+begin
+  Result := AsText;
+end;
+
+{*
+  Compile la variable locale
+  @return Variable locale
+*}
+function TSepiLocalVarNameNode.CompileLocalVar: TSepiLocalVar;
+begin
+  Result := MethodCompiler.Locals.GetVarByName(LocalVarName);
+
+  if Result = nil then
+    MakeError(SLocalVarNameRequired);
+end;
+
+{*
+  Construit une variable erronée
+*}
+procedure TSepiLocalVarNameNode.MakeErroneousLocalVar;
+begin
+  SetLocalVar(MethodCompiler.Locals.AddTempVar(SystemUnit.Integer));
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiLocalVarNameNode.EndParsing;
+begin
+  if LocalVar = nil then
+  begin
+    SetLocalVar(CompileLocalVar);
+    if LocalVar = nil then
+      MakeErroneousLocalVar;
+  end;
+
+  inherited;
+end;
+
+{-------------------------}
+{ TSepiLocalVarNode class }
+{-------------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiLocalVarNode.ChildEndParsing(Child: TSepiParseTreeNode);
+begin
+  if Child is TSepiIdentifierDeclListNode then
+    FNamesNode := TSepiIdentifierDeclListNode(Child)
+  else if Child is TSepiTypeNode then
+    FVarType := TSepiTypeNode(Child).SepiType;
+
+  inherited;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiLocalVarNode.EndParsing;
+var
+  I: Integer;
+begin
+  Assert((NamesNode <> nil) and (VarType <> nil));
+
+  for I := 0 to NamesNode.IdentifierCount-1 do
+    MethodCompiler.Locals.AddLocalVar(NamesNode.Identifiers[I], VarType);
+
+  inherited;
 end;
 
 {--------------------------------}
@@ -3761,63 +4373,6 @@ end;
 procedure TSepiForInstructionNode.EndParsing;
 begin
   InstructionList.Add(Instruction);
-
-  inherited;
-end;
-
-{-----------------------------}
-{ TSepiLocalVarNameNode class }
-{-----------------------------}
-
-{*
-  Modifie la variable locale
-  @param ALocalVar   Variable locale
-*}
-procedure TSepiLocalVarNameNode.SetLocalVar(ALocalVar: TSepiLocalVar);
-begin
-  FLocalVar := ALocalVar;
-end;
-
-{*
-  Nom de la variable locale
-  @return Nom de la variable locale
-*}
-function TSepiLocalVarNameNode.GetLocalVarName: string;
-begin
-  Result := AsText;
-end;
-
-{*
-  Compile la variable locale
-  @return Variable locale
-*}
-function TSepiLocalVarNameNode.CompileLocalVar: TSepiLocalVar;
-begin
-  Result := MethodCompiler.Locals.GetVarByName(LocalVarName);
-
-  if Result = nil then
-    MakeError(SLocalVarNameRequired);
-end;
-
-{*
-  Construit une variable erronée
-*}
-procedure TSepiLocalVarNameNode.MakeErroneousLocalVar;
-begin
-  SetLocalVar(MethodCompiler.Locals.AddTempVar(SystemUnit.Integer));
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TSepiLocalVarNameNode.EndParsing;
-begin
-  if LocalVar = nil then
-  begin
-    SetLocalVar(CompileLocalVar);
-    if LocalVar = nil then
-      MakeErroneousLocalVar;
-  end;
 
   inherited;
 end;

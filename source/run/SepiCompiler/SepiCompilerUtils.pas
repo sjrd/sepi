@@ -403,7 +403,7 @@ begin
   end else if Field.FieldType <> Signature.ReturnType then
   begin
     MakeError(Format(STypeMismatch,
-      [Field.FieldType.Name, Signature.ReturnType.Name]));
+      [Field.FieldType.DisplayName, Signature.ReturnType.DisplayName]));
     Result := False;
   end else
   begin

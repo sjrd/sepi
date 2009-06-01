@@ -1047,7 +1047,7 @@ begin
     1, 32, TypeInfo(Byte), True);
   TSepiStaticArrayType.Create(Result, '$11', TypeInfo(Integer),
     0, 259, TypeInfo(Char), True);
-  SepiImportTTextRec(Result);
+  TSepiTypeAlias.Create(Result, 'Text', SepiImportTTextRec(Result));
   TSepiMethodRefType.Create(Result, 'TTextIOFunc',
     'function(var F: TTextRec): Integer');
   TSepiMethodRefType.Create(Result, 'TFileIOFunc',

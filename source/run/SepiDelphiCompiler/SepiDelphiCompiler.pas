@@ -299,26 +299,6 @@ type
   end;
 
   {*
-    Noeud type de routine
-    @author sjrd
-    @version 1.0
-  *}
-  TRoutineKindNode = class(TSepiSignatureKindNode)
-  protected
-    function GetAsText: string; override;
-  end;
-
-  {*
-    Noeud type de méthode
-    @author sjrd
-    @version 1.0
-  *}
-  TMethodKindNode = class(TSepiSignatureKindNode)
-  protected
-    function GetAsText: string; override;
-  end;
-
-  {*
     Noeud descripteur d'un clone de type
     @author sjrd
     @version 1.0
@@ -556,99 +536,6 @@ type
   TOfObjectMarkerNode = class(TSepiNonTerminal)
   end;
 
-  {*
-    Noeud paramètre
-    @author sjrd
-    @version 1.0
-  *}
-  TParamNode = class(TSepiSignatureBuilderNode)
-  private
-    FKind: TSepiParamKind;   /// Type de paramètre
-    FNames: TStringDynArray; /// Noms des paramètres
-    FOpenArray: Boolean;     /// True si c'est un tableau ouvert
-    FType: TSepiType;        /// Type du paramètre
-  protected
-    procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
-    procedure ChildEndParsing(Child: TSepiParseTreeNode); override;
-  public
-    procedure EndParsing; override;
-
-    property Kind: TSepiParamKind read FKind;
-    property Names: TStringDynArray read FNames;
-    property OpenArray: Boolean read FOpenArray;
-    property ParamType: TSepiType read FType;
-  end;
-
-  {*
-    Noeud méthode dans l'implémentation
-    @author sjrd
-    @version 1.0
-  *}
-  TMethodImplNode = class(TSepiNonTerminal)
-  private
-    FName: string;              /// Nom de la routine
-    FSignature: TSepiSignature; /// Signature
-    FIsOverloaded: Boolean;     /// True si surchargée
-
-    FOverloaded: TSepiOverloadedMethod; /// Méthode surchargée correspondante
-    FSepiMethod: TSepiMethod;           /// Méthode correspondante
-    FJustDeclared: Boolean;             /// Indique si déclaré dans ce noeud
-
-    procedure DeclareMethod;
-  protected
-    procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
-    procedure ChildEndParsing(Child: TSepiParseTreeNode); override;
-  public
-    destructor Destroy; override;
-
-    procedure BeginParsing; override;
-
-    property Name: string read FName;
-    property Signature: TSepiSignature read FSignature;
-    property IsOverloaded: Boolean read FIsOverloaded;
-
-    property Overloaded: TSepiOverloadedMethod read FOverloaded;
-    property SepiMethod: TSepiMethod read FSepiMethod;
-  end;
-
-  {*
-    Noeud signature dans l'implémentation
-    @author sjrd
-    @version 1.0
-  *}
-  TMethodImplDeclNode = class(TSepiNonTerminal)
-  private
-    FName: string;              /// Nom de la routine
-    FSignature: TSepiSignature; /// Signature
-    FIsOverloaded: Boolean;     /// True si surchargée
-  protected
-    procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
-    procedure ChildEndParsing(Child: TSepiParseTreeNode); override;
-  public
-    property Name: string read FName;
-    property Signature: TSepiSignature read FSignature write FSignature;
-    property IsOverloaded: Boolean read FIsOverloaded;
-  end;
-
-  {*
-    Noeud déclaration de variable locale
-    @author sjrd
-    @version 1.0
-  *}
-  TLocalVarNode = class(TSepiNonTerminal)
-  private
-    FNames: TStrings;
-    FVarType: TSepiType;
-  protected
-    procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
-    procedure ChildEndParsing(Child: TSepiParseTreeNode); override;
-  public
-    destructor Destroy; override;
-
-    property Names: TStrings read FNames;
-    property VarType: TSepiType read FVarType;
-  end;
-
 function CompileDelphiSource(SepiRoot: TSepiRoot;
   Errors: TSepiCompilerErrorList; SourceFile: TStrings;
   const DestFileName: TFileName): TSepiUnit;
@@ -730,6 +617,8 @@ begin
   NonTerminalClasses[ntFieldSelection]    := TSepiFieldSelectionModifierNode;
   NonTerminalClasses[ntDereference]       := TSepiDereferenceModifierNode;
 
+  NonTerminalClasses[ntTypeName] := TSepiTypeNameNode;
+
   NonTerminalClasses[ntCloneDesc]         := TTypeCloneNode;
   NonTerminalClasses[ntRangeOrEnumDesc]   := TRangeOrEnumTypeNode;
   NonTerminalClasses[ntRangeDesc]         := TRangeTypeNode;
@@ -765,8 +654,8 @@ begin
 
   NonTerminalClasses[ntMethodNameDeclaration] :=
     TSepiUncheckedIdentifierDeclNode;
-  NonTerminalClasses[ntRoutineKind]       := TRoutineKindNode;
-  NonTerminalClasses[ntMethodKind]        := TMethodKindNode;
+  NonTerminalClasses[ntRoutineKind]       := TSepiSignatureKindNode;
+  NonTerminalClasses[ntMethodKind]        := TSepiSignatureKindNode;
   NonTerminalClasses[ntCallingConvention] := TSepiCallingConventionNode;
   NonTerminalClasses[ntMethodLinkKind]    := TSepiMethodLinkKindNode;
   NonTerminalClasses[ntAbstractMarker]    := TSepiAbstractMarkerNode;
@@ -774,7 +663,11 @@ begin
 
   NonTerminalClasses[ntMethodSignature]   := TSepiSignatureBuilderNode;
   NonTerminalClasses[ntPropertySignature] := TSepiSignatureBuilderNode;
-  NonTerminalClasses[ntParam]             := TParamNode;
+  NonTerminalClasses[ntParam]             := TSepiParamNode;
+  NonTerminalClasses[ntParamKind]         := TSepiParamKindNode;
+  NonTerminalClasses[ntParamNameList]     := TSepiIdentifierDeclListNode;
+  NonTerminalClasses[ntParamName]         := TSepiParamNameNode;
+  NonTerminalClasses[ntParamIsArray]      := TSepiParamIsArrayMarkerNode;
   NonTerminalClasses[ntReturnType]        := TSepiSignatureReturnTypeNode;
   NonTerminalClasses[ntPropType]          := TSepiSignatureReturnTypeNode;
 
@@ -786,10 +679,11 @@ begin
   NonTerminalClasses[ntPropStorage]      := TSepiPropStorageNode;
   NonTerminalClasses[ntDefaultMarker]    := TSepiPropDefaultMarkerNode;
 
-  NonTerminalClasses[ntMethodImpl]     := TMethodImplNode;
-  NonTerminalClasses[ntMethodImplDecl] := TMethodImplDeclNode;
-  NonTerminalClasses[ntMethodBody]     := TSepiMethodBodyNode;
-  NonTerminalClasses[ntLocalVar]       := TLocalVarNode;
+  NonTerminalClasses[ntMethodImpl]       := TSepiMethodImplementationNode;
+  NonTerminalClasses[ntMethodImplHeader] := TSepiMethodImplHeaderNode;
+  NonTerminalClasses[ntForwardMarker]    := TSepiForwardMarkerNode;
+  NonTerminalClasses[ntMethodBody]       := TSepiMethodBodyNode;
+  NonTerminalClasses[ntLocalVar]         := TSepiLocalVarNode;
 
   NonTerminalClasses[ntInstructionList]       := TSepiInstructionListNode;
   NonTerminalClasses[ntNoInstruction]         := TSepiNoInstructionNode;
@@ -1710,40 +1604,6 @@ begin
   inherited;
 end;
 
-{------------------------}
-{ TRoutineKindNode class }
-{------------------------}
-
-{*
-  [@inheritDoc]
-*}
-function TRoutineKindNode.GetAsText: string;
-begin
-  Result := inherited GetAsText;
-
-  if AnsiMatchText(Result, ['procedure', 'function']) then
-    Result := 'static '+Result;
-end;
-
-{-----------------------}
-{ TMethodKindNode class }
-{-----------------------}
-
-{*
-  [@inheritDoc]
-*}
-function TMethodKindNode.GetAsText: string;
-begin
-  Result := inherited GetAsText;
-
-  if AnsiMatchText(Result, ['procedure', 'function']) then
-    Result := 'object '+Result;
-end;
-
-{----------------------}
-{ TTypeCloneNode class }
-{----------------------}
-
 {*
   [@inheritDoc]
 *}
@@ -2555,7 +2415,7 @@ begin
       skStaticFunction:
         Signature.Kind := skObjectFunction;
     else
-      Child.MakeError(Format(SDuplicateModifier, [Child.AsText]));
+      Child.MakeError(SDuplicatedOfObjectMarker);
     end;
   end;
 
@@ -2569,366 +2429,6 @@ procedure TMethodRefTypeNode.EndParsing;
 begin
   Signature.Complete;
   SetSepiType(TSepiMethodRefType.Create(SepiContext, TypeName, Signature));
-
-  inherited;
-end;
-
-{------------------}
-{ TParamNode class }
-{------------------}
-
-{*
-  [@inheritDoc]
-*}
-procedure TParamNode.ChildBeginParsing(Child: TSepiParseTreeNode);
-var
-  InitChild: TInitializationExpressionNode;
-begin
-  inherited;
-
-  if Child is TInitializationExpressionNode then
-  begin
-    InitChild := TInitializationExpressionNode(Child);
-
-    if OpenArray then
-    begin
-      Child.MakeError(SOpenArrayParamCantHaveDefaultValue);
-      InitChild.SetValueTypeAndPtr(SystemUnit.Integer);
-    end else if Length(Names) > 1 then
-    begin
-      Child.MakeError(SMultiNameParamCantHaveDefaultValue);
-      InitChild.SetValueTypeAndPtr(SystemUnit.Integer);
-    end else
-    begin
-      InitChild.SetValueTypeAndPtr(ParamType);
-    end;
-  end;
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TParamNode.ChildEndParsing(Child: TSepiParseTreeNode);
-var
-  I: Integer;
-begin
-  case Child.SymbolClass of
-    // Type de paramètre
-    ntParamKind:
-    begin
-      if Child.ChildCount > 0 then
-      begin
-        case Child.Children[0].SymbolClass of
-          tkConst: FKind := pkConst;
-          tkVar:   FKind := pkVar;
-          tkOut:   FKind := pkOut;
-        end;
-      end;
-    end;
-
-    // Noms des paramètres
-    ntParamNameList:
-    begin
-      SetLength(FNames, Child.ChildCount);
-      for I := 0 to Child.ChildCount-1 do
-        FNames[I] := Child.Children[I].AsText;
-    end;
-
-    // Open array
-    ntParamIsArray:
-    begin
-      FOpenArray := True;
-    end;
-
-    // Type du paramètre
-    ntParamType, ntParamArrayType:
-    begin
-      if Child.Children[0].SymbolClass = ntQualifiedIdent then
-      begin
-        FType := TSepiType(LookForOrError(Child.Children[0], TSepiType,
-          STypeIdentifierRequired));
-        if FType = nil then
-          FType := SystemUnit.Integer;
-      end;
-    end;
-  end;
-
-  inherited;
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TParamNode.EndParsing;
-var
-  I: Integer;
-begin
-  for I := 0 to Length(Names)-1 do
-    TSepiParam.Create(Signature, Names[I], ParamType, Kind, OpenArray);
-
-  inherited;
-end;
-
-{-----------------------}
-{ TMethodImplNode class }
-{-----------------------}
-
-{*
-  [@inheritDoc]
-*}
-destructor TMethodImplNode.Destroy;
-begin
-  FSignature.Free;
-
-  inherited;
-end;
-
-{*
-  Déclare la méthode (si autorisé)
-*}
-procedure TMethodImplNode.DeclareMethod;
-begin
-  // Methods must always be declared before being implemented
-  if Pos('.', Name) > 0 then
-  begin
-    MakeError(Format(SMethodNotDeclared, [Name]));
-    Exit;
-  end;
-
-  // If there is an overloaded method, the overload directive must be set
-  if (Overloaded <> nil) and (not IsOverloaded) then
-  begin
-    MakeError(Format(SMethodMustBeOverloaded, [Name]));
-    FIsOverloaded := True;
-  end;
-
-  // Declare the method
-  FJustDeclared := True;
-  if IsOverloaded then
-    FSepiMethod := TSepiMethod.CreateOverloaded(SepiUnit, Name, nil, Signature)
-  else
-    FSepiMethod := TSepiMethod.Create(SepiUnit, Name, nil, Signature);
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TMethodImplNode.BeginParsing;
-begin
-  inherited;
-
-  FSignature := TSepiSignature.CreateConstructing(SepiUnit);
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TMethodImplNode.ChildBeginParsing(Child: TSepiParseTreeNode);
-begin
-  inherited;
-
-  if Child is TMethodImplDeclNode then
-  begin
-    // Signature dans l'implémentation
-    TMethodImplDeclNode(Child).Signature := Signature;
-  end else if Child.SymbolClass = ntForwardMarker then
-  begin
-    // Marqueur forward - ce doit être la première déclaration
-    if not Self.FJustDeclared then
-      MakeError(Format(SRedeclaredIdentifier, [Name]));
-  end else if Child is TSepiMethodBodyNode then
-  begin
-    // Corps de la méthode - implémentation réelle
-    TSepiMethodBodyNode(Child).SetSepiMethod(SepiMethod);
-  end;
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TMethodImplNode.ChildEndParsing(Child: TSepiParseTreeNode);
-var
-  TempMethod: TSepiMeta;
-begin
-  if Child is TMethodImplDeclNode then
-  begin
-    FName := TMethodImplDeclNode(Child).Name;
-    FIsOverloaded := TMethodImplDeclNode(Child).IsOverloaded;
-
-    // Find method
-    TempMethod := SepiUnit.GetMeta(Name);
-
-    // Update signature kind for a method implementation
-    if (TempMethod <> nil) and (TempMethod.Owner is TSepiClass) then
-    begin
-      if Signature.Kind = skStaticProcedure then
-        Signature.Kind := skObjectProcedure
-      else if Signature.Kind = skStaticFunction then
-        Signature.Kind := skObjectFunction;
-    end;
-
-    // Handle overloads
-    if TempMethod is TSepiOverloadedMethod then
-    begin
-      FOverloaded := TSepiOverloadedMethod(TempMethod);
-      Signature.Complete;
-      FSepiMethod := Overloaded.FindMethod(Signature);
-    end else if TempMethod is TSepiMethod then
-    begin
-      FSepiMethod := TSepiMethod(TempMethod);
-      Signature.CallingConvention := SepiMethod.Signature.CallingConvention;
-      Signature.Complete;
-
-      // Check signature
-      if IsOverloaded then
-      begin
-        Child.MakeError(Format(SPreviousDeclWasNotOverload,
-          [SepiMethod.Name]));
-        FIsOverloaded := False;
-      end else if not SepiMethod.Signature.Equals(
-        Signature, scoDeclaration) then
-      begin
-        Child.MakeError(Format(SDeclarationDiffersFromPreviousOne,
-          [SepiMethod.Name]));
-      end;
-    end else
-    begin
-      Signature.Complete;
-    end;
-
-    // Declare method if needed
-    if FSepiMethod = nil then
-      DeclareMethod;
-
-    // Check that the method has not already been implemented
-    if SepiMethod <> nil then
-    begin
-      if UnitCompiler.FindMethodCompiler(SepiMethod) <> nil then
-      begin
-        Child.MakeError(Format(SMethodAlreadyImplemented, [SepiMethod.Name]));
-        FSepiMethod := nil;
-      end;
-    end;
-  end;
-
-  inherited;
-end;
-
-{---------------------------}
-{ TMethodImplDeclNode class }
-{---------------------------}
-
-{*
-  [@inheritDoc]
-*}
-procedure TMethodImplDeclNode.ChildBeginParsing(Child: TSepiParseTreeNode);
-begin
-  inherited;
-
-  if Child is TSepiSignatureBuilderNode then
-    TSepiSignatureBuilderNode(Child).SetSignature(Signature);
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TMethodImplDeclNode.ChildEndParsing(Child: TSepiParseTreeNode);
-const
-  IgnoredModifiers: array[0..3] of string = (
-    'deprecated', 'inline', 'assembler', 'platform'
-  );
-var
-  Str: string;
-  Temp: Integer;
-begin
-  case Child.SymbolClass of
-    // Type de routine/méthode
-    ntMethodKind:
-    begin
-      case Child.Children[0].SymbolClass of
-        tkProcedure:   Signature.Kind := skStaticProcedure;
-        tkFunction:    Signature.Kind := skStaticFunction;
-        tkConstructor: Signature.Kind := skConstructor;
-        tkDestructor:  Signature.Kind := skDestructor;
-      else
-        case Child.Children[1].SymbolClass of
-          tkProcedure: Signature.Kind := skClassProcedure;
-          tkFunction:  Signature.Kind := skClassFunction;
-        end;
-      end;
-    end;
-
-    // Nom de la routine
-    ntQualifiedIdent:
-    begin
-      FName := Child.AsText;
-    end;
-
-    // Modificateur
-    ntRoutineModifier:
-    begin
-      Str := Child.AsText;
-      Temp := AnsiIndexText(Str, CallingConventionStrings);
-      if Temp >= 0 then
-      begin
-        // Calling convention
-        Signature.CallingConvention := TCallingConvention(Temp);
-      end else
-      begin
-        // Other modifier
-        if LowerCase(Str) = 'overload' then
-          FIsOverloaded := True
-        else if AnsiIndexText(Str, IgnoredModifiers) = -1 then
-          Child.MakeError(Format(SUnknownMethodModifier, [Str]), ekWarning);
-      end;
-    end;
-  end;
-
-  inherited;
-end;
-
-{---------------------}
-{ TLocalVarNode class }
-{---------------------}
-
-{*
-  [@inheritDoc]
-*}
-destructor TLocalVarNode.Destroy;
-begin
-  FNames.Free;
-
-  inherited;
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TLocalVarNode.ChildBeginParsing(Child: TSepiParseTreeNode);
-begin
-  inherited;
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TLocalVarNode.ChildEndParsing(Child: TSepiParseTreeNode);
-var
-  I: Integer;
-begin
-  if Child is TSepiIdentifierDeclarationNode then
-  begin
-    if FNames = nil then
-      FNames := TStringList.Create;
-
-    Names.Add(TSepiIdentifierDeclarationNode(Child).Identifier);
-  end else if Child is TSepiTypeNode then
-  begin
-    FVarType := TSepiTypeNode(Child).SepiType;
-
-    for I := 0 to Names.Count-1 do
-      MethodCompiler.Locals.AddLocalVar(Names[I], VarType);
-  end;
 
   inherited;
 end;

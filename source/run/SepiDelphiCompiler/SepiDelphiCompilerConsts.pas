@@ -33,31 +33,9 @@ resourcestring
   SWrongSetCompType =
     'Les éléments d''un ensemble doivent être des ordinaux avec maximum 256 '+
     'valeurs';
-  SUnknownMethodRefModifier =
-    'Modificateur de référence de méthode %s inconnu';
-  SUnknownMethodModifier = 'Modificateur de méthode %s inconnu';
-  SUnknownPropertyModifier = 'Modificateur de propriété %s inconnu';
-  SArrayValueRequired = 'Type tableau requis';
-  SRecordValueRequired = 'Type record requis';
   SElementCountMismatch =
     'Le nombre d''éléments (%1:d) diffère de la déclaration (%0:d)';
-  STypeIdentifierRequired = 'Identificateur de type requis';
   SOneParamRequiredForCast = 'Un paramètre requis pour un transtypage';
-  SOpenArrayParamCantHaveDefaultValue =
-    'Un paramètre tableau ouvert ne peut pas avoir de valeur par défaut';
-  SMultiNameParamCantHaveDefaultValue =
-    'Une définition de plusieurs paramètres ne peut pas avoir de valeur par '+
-    'défaut';
-  SDuplicateModifier = 'Modificateur %s dupliqué';
-  SMethodNotDeclared = 'Méthode %s non déclarée';
-  SMethodMustBeOverloaded =
-    'La méthode %s doit être marquée avec la directive overload';
-  SPreviousDeclWasNotOverload =
-    'La déclaration précédente de %s n''a pas été marquée avec la directive '+
-    'overload';
-  SDeclarationDiffersFromPreviousOne =
-    'La déclaration de %s diffère de la déclaration précédente';
-  SMethodAlreadyImplemented = 'La méthode %s a déjà été implémentée';
 
 implementation
 

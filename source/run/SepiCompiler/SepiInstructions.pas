@@ -337,7 +337,8 @@ begin
   end else
   begin
     (TestValue as ISepiExpression).MakeError(Format(STypeMismatch,
-      [PTypeInfo(TypeInfo(Boolean)).Name, TestValue.ValueType.Name]));
+      [Compiler.SystemUnit.Boolean.DisplayName,
+      TestValue.ValueType.DisplayName]));
     TestIsConst := False;
     TestConstValue := True;
 
@@ -579,14 +580,14 @@ begin
       if StartValue.ValueType <> ControlVar.VarType then
       begin
         (StartValue as ISepiExpression).MakeError(Format(STypeMismatch,
-          [ControlVar.VarType.Name, StartValue.ValueType.Name]));
+          [ControlVar.VarType.DisplayName, StartValue.ValueType.DisplayName]));
         Result := False;
       end;
 
       if EndValue.ValueType <> ControlVar.VarType then
       begin
         (EndValue as ISepiExpression).MakeError(Format(STypeMismatch,
-          [ControlVar.VarType.Name, EndValue.ValueType.Name]));
+          [ControlVar.VarType.DisplayName, EndValue.ValueType.DisplayName]));
         Result := False;
       end;
     end;
@@ -853,7 +854,7 @@ begin
     if Source.ValueType <> Destination.ValueType then
     begin
       (Source as ISepiExpression).MakeError(Format(STypeMismatch,
-        [Destination.ValueType.Name, Source.ValueType.Name]));
+        [Destination.ValueType.DisplayName, Source.ValueType.DisplayName]));
       Exit;
     end;
   end;

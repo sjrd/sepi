@@ -408,6 +408,9 @@ ntTypeDesc	TypeDesc	Simplify
 	DispInterfaceDesc
 	EventDesc
 
+ntTypeName	TypeName
+	QualifiedIdent
+
 ntPackedDesc	PackedDesc	Simplify
 	PackedArrayDesc
 	PackedRecordDesc
@@ -429,7 +432,7 @@ ntTypeModifiers	TypeModifiers
 	(Identifier)*
 
 ntCloneDesc	CloneDesc
-	'type'* QualifiedIdent
+	'type'* TypeName
 
 ntRangeOrEnumDesc	RangeOrEnumDesc	SuccessiveTries
 	EnumDesc
@@ -733,23 +736,23 @@ ntComplexParamType	ComplexParamType	Simplify
 ntParamIsArray	ParamIsArray	AsText
 	'array' 'of'
 
-ntParamArrayType	ParamArrayType
-	QualifiedIdent
-	'const'
+ntParamArrayType	ParamArrayType	Simplify
+	TypeName
+	'const'*
 
-ntParamType	ParamType
-	QualifiedIdent
+ntParamType	ParamType	Simplify
+	TypeName
 
 ntParamDefault	ParamDefault	Simplify
 	'='* InitializationExpression
 
 ntMethodImpl	MethodImpl
-	MethodImplDecl MethodImplementation
+	MethodImplHeader ForwardOrMethodBody
 
-ntMethodImplDecl	MethodImplDecl
+ntMethodImplHeader	MethodImplHeader
 	MethodKind QualifiedIdent MethodSignature (RoutineModifier)* ';'* (RoutineModifier ';'*)*
 
-ntMethodImplementation	MethodImplementation	Simplify
+ntForwardOrMethodBody	ForwardOrMethodBody	Simplify
 	ForwardMarker
 	MethodBody
 
@@ -774,7 +777,7 @@ ntLocalVarSection	LocalVarSection
 	'var'* (LocalVar)+
 
 ntLocalVar	LocalVar
-	IdentifierDecl (','* IdentifierDecl)* ':'* TypeDesc ';'*
+	CommaIdentDeclList ':'* TypeDesc ';'*
 
 ntInstructionList	InstructionList
 	(Instruction ';'*)*

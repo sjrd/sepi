@@ -75,8 +75,9 @@ resourcestring
   // Sorte particulière de type requise
   STypeIdentifierRequired = 'Identificateur de type requis';
   SPointerTypeRequired = 'Type pointeur requis';
-  SOrdinalOrArrayTypeRequired = 'Type ordinal ou tableau requis';
   SArrayTypeRequired = 'Type tableau requis';
+  SRecordTypeRequired = 'Type record requis';
+  SOrdinalOrArrayTypeRequired = 'Type ordinal ou tableau requis';
   SOrdinalTypeRequired = 'Type ordinal requis';
   SClassTypeRequired = 'Type classe requis';
   SInterfaceTypeRequired = 'Type interface requis';
@@ -111,6 +112,7 @@ resourcestring
     'Type de liaison invalide pour une méthode d''interface';
   SDuplicatedLinkKind = 'Directive de type de liaison dupliquée';
   SDuplicatedAbstractMarker = 'Directive abstract dupliquée';
+  SDuplicatedOfObjectMarker = 'Directive of object dupliquée';
   SVirtualOrDynamicMethodRequired = 'Méthod virtuelle ou dynamique requise';
 
   // Erreurs sur les paramètres
@@ -122,9 +124,25 @@ resourcestring
     'Aucune méthode surchargée ne peut être invoquée avec ces paramètres';
   SCallPatternOnlyOnClassMethod =
     'Forme d''appel autorisée uniquement sur les méthodes de classe';
+  SOpenArrayParamCantHaveDefaultValue =
+    'Un paramètre tableau ouvert ne peut pas avoir de valeur par défaut';
+  SMultiNameParamCantHaveDefaultValue =
+    'Une définition de plusieurs paramètres ne peut pas avoir de valeur par '+
+    'défaut';
 
   // Erreurs sur les variables locales
   SLocalVarNameRequired = 'Variable locale requise';
+
+  // Erreurs sur l'implémentation des méthodes
+  SMethodNotDeclared = 'Méthode %s non déclarée';
+  SMethodMustBeOverloaded =
+    'La méthode %s doit être marquée avec la directive overload';
+  SPreviousDeclWasNotOverload =
+    'La déclaration précédente de %s n''a pas été marquée avec la directive '+
+    'overload';
+  SDeclarationDiffersFromPreviousOne =
+    'La déclaration de %s diffère de la déclaration précédente';
+  SMethodAlreadyImplemented = 'La méthode %s a déjà été implémentée';
 
   // Erreurs sur les indices de tableau
   SArrayOrArrayPropRequired = 'Valeur tableau ou propriété tableau requise';

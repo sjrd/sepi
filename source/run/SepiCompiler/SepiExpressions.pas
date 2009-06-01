@@ -1458,7 +1458,8 @@ end;
 function SepiTypeToBaseType(SepiType: TSepiType): TSepiBaseType;
 begin
   if not SepiTypeToBaseType(SepiType, Result) then
-    raise ESepiCompilerError.CreateFmt(STypeIsNotBaseType, [SepiType.Name]);
+    raise ESepiCompilerError.CreateFmt(STypeIsNotBaseType,
+      [SepiType.DisplayName]);
 end;
 
 {*
@@ -1665,7 +1666,8 @@ var
 begin
   if Source.ValueType <> ValueType then
   begin
-    MakeError(Format(STypeMismatch, [Source.ValueType.Name, ValueType.Name]));
+    MakeError(Format(STypeMismatch,
+      [Source.ValueType.DisplayName, ValueType.DisplayName]));
     Exit;
   end;
 
@@ -2699,7 +2701,8 @@ begin
   begin
     if (OpType.Size < ValueType.Size) or (not ForceCast) then
     begin
-      MakeError(Format(SInvalidCast, [OpType.Name, ValueType.Name]));
+      MakeError(Format(SInvalidCast,
+        [OpType.DisplayName, ValueType.DisplayName]));
       Exit;
     end;
   end;
@@ -3460,7 +3463,7 @@ end;
 procedure TSepiBinaryOperation.ErrorTypeMismatch;
 begin
   MakeError(Format(STypeMismatch,
-    [LeftOperand.ValueType.Name, RightOperand.ValueType.Name]));
+    [LeftOperand.ValueType.DisplayName, RightOperand.ValueType.DisplayName]));
 end;
 
 {*
@@ -3919,7 +3922,7 @@ end;
 procedure TSepiSetOperation.ErrorTypeMismatch;
 begin
   MakeError(Format(STypeMismatch,
-    [LeftOperand.ValueType.Name, RightOperand.ValueType.Name]));
+    [LeftOperand.ValueType.DisplayName, RightOperand.ValueType.DisplayName]));
 end;
 
 {*
@@ -4297,7 +4300,8 @@ begin
   end;
 
   if not Result then
-    MakeError(Format(STypeMismatch, [CompType.Name, ACompType.Name]));
+    MakeError(Format(STypeMismatch,
+      [CompType.DisplayName, ACompType.DisplayName]));
 end;
 
 {*
@@ -4420,7 +4424,7 @@ begin
   if (ACompType.MinValue > LowerBound) or
     (ACompType.MaxValue < HigherBound) then
   begin
-    MakeError(Format(SCompTypeTooNarrow, [ACompType.Name]));
+    MakeError(Format(SCompTypeTooNarrow, [ACompType.DisplayName]));
   end else
   begin
     FCompKind := ACompType.Kind;
@@ -5459,7 +5463,8 @@ begin
           end else
           begin
             Error(Format(STypeMismatch,
-              [SignatureParam.ParamType.Name, ParamValue.ValueType.Name]));
+              [SignatureParam.ParamType.DisplayName,
+              ParamValue.ValueType.DisplayName]));
           end;
         end;
       end;
