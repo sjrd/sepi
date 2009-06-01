@@ -209,6 +209,32 @@ type
   end;
 
   {*
+    Noeud représentant un opérateur binaire du style Delphi
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiDelphiLikeBinaryOpNode = class(TSepiBinaryOpNode)
+  protected
+    procedure RequireReadableValue(const Expression: ISepiExpression;
+      out Value: ISepiReadableValue);
+
+    function TryAndHandlePointerArithm(
+      const PtrValue, IntValue: ISepiReadableValue;
+      out Expression: ISepiExpression): Boolean; virtual;
+
+    procedure HandleIntDivIntTrick(
+      var LeftValue, RightValue: ISepiReadableValue); virtual;
+
+    function GetPriority: Integer; override;
+    function GetOperation: TSepiOperation; virtual; abstract;
+  public
+    function MakeOperation(
+      const Left, Right: ISepiExpression): ISepiExpression; override;
+
+    property Operation: TSepiOperation read GetOperation;
+  end;
+
+  {*
     Noeud expression calculé par un arbre d'opérations binaires
     @author sjrd
     @version 1.0
@@ -2017,6 +2043,135 @@ end;
 function TSepiBinaryOpNode.GetDirection: TSepiBinaryOpDirection;
 begin
   Result := bodLeftToRight;
+end;
+
+{-----------------------------------}
+{ TSepiDelphiLikeBinaryOpNode class }
+{-----------------------------------}
+
+{*
+  Requiert une valeur qui peut être lue
+  @param Expression   Expression
+  @param Value        En sortie : l'expression sous forme de valeur lisible
+*}
+procedure TSepiDelphiLikeBinaryOpNode.RequireReadableValue(
+  const Expression: ISepiExpression; out Value: ISepiReadableValue);
+begin
+  if not Supports(Expression, ISepiReadableValue, Value) then
+  begin
+    Expression.MakeError(SReadableValueRequired);
+    Value := TSepiErroneousValue.Create(Expression.SepiRoot);
+    Value.AttachToExpression(TSepiExpression.Create(Expression));
+  end;
+end;
+
+{*
+  Essaie d'appliquer une opération d'arithmétique des pointeurs
+  @param PtrValue     Valeur supposée pointeur
+  @param IntValue     Valeur supposée entière
+  @param Expression   En sortie : résultat, si réussi
+  @return True en cas de succès, False sinon
+*}
+function TSepiDelphiLikeBinaryOpNode.TryAndHandlePointerArithm(
+  const PtrValue, IntValue: ISepiReadableValue;
+  out Expression: ISepiExpression): Boolean;
+var
+  PtrType: TSepiPointerType;
+  TempValue: ISepiReadableValue;
+begin
+  Result := False;
+
+  if not (Operation in [opAdd, opSubtract]) then
+    Exit;
+  if not (PtrValue.ValueType is TSepiPointerType) then
+    Exit;
+  if not (IntValue.ValueType is TSepiIntegerType) then
+    Exit;
+
+  PtrType := TSepiPointerType(PtrValue.ValueType);
+
+  if (not (PtrType.PointTo.Kind in [tkInteger, tkChar])) or
+    (PtrType.PointTo.TypeData.OrdType <> otUByte) then
+    Exit;
+
+  TempValue := TSepiCastOperator.CastValue(SystemUnit.Integer,
+    PtrValue) as ISepiReadableValue;
+  TempValue := TSepiBinaryOperation.MakeOperation(Operation,
+    TempValue, IntValue);
+  TempValue := TSepiCastOperator.CastValue(PtrType,
+    TempValue) as ISepiReadableValue;
+
+  Expression := TempValue as ISepiExpression;
+  Result := True;
+end;
+
+{*
+  Gère le cas spécial du Int/Int avec au moins une constante
+  @param LeftValue    Valeur gauche
+  @param RightValue   Valeur droite
+*}
+procedure TSepiDelphiLikeBinaryOpNode.HandleIntDivIntTrick(
+  var LeftValue, RightValue: ISepiReadableValue);
+var
+  LeftTypeKind, RightTypeKind: TTypeKind;
+begin
+  // Test appliability
+
+  if Operation <> opDivide then
+    Exit;
+
+  LeftTypeKind := LeftValue.ValueType.Kind;
+  RightTypeKind := RightValue.ValueType.Kind;
+
+  if [LeftTypeKind, RightTypeKind] * [tkFloat, tkVariant] <> [] then
+    Exit;
+
+  // Apply the trick
+
+  if LeftValue.IsConstant then
+    LeftValue := TSepiConvertOperation.ConvertValue(
+      SystemUnit.Extended, LeftValue);
+
+  if RightValue.IsConstant then
+    RightValue := TSepiConvertOperation.ConvertValue(
+      SystemUnit.Extended, RightValue);
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiDelphiLikeBinaryOpNode.GetPriority: Integer;
+begin
+  case Operation of
+    opCmpEQ, opCmpLT, opCmpLE, opCmpGT, opCmpGE, opCmpNE: Result := 1;
+    opOr, opAnd, opXor: Result := 2;
+    opAdd, opSubtract: Result := 3;
+  else
+    Result := 4;
+  end;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiDelphiLikeBinaryOpNode.MakeOperation(
+  const Left, Right: ISepiExpression): ISepiExpression;
+var
+  LeftValue, RightValue: ISepiReadableValue;
+begin
+  RequireReadableValue(Left, LeftValue);
+  RequireReadableValue(Right, RightValue);
+
+  if not (TryAndHandlePointerArithm(LeftValue, RightValue, Result) or
+    TryAndHandlePointerArithm(RightValue, LeftValue, Result)) then
+  begin
+    HandleIntDivIntTrick(LeftValue, RightValue);
+
+    Result := TSepiOperator.MakeBinaryOperation(Operation,
+      LeftValue, RightValue) as ISepiExpression;
+  end;
+
+  Result.SourcePos := SourcePos;
 end;
 
 {-------------------------------}

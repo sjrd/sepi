@@ -195,15 +195,9 @@ type
     @author sjrd
     @version 1.0
   *}
-  TBinaryOpNode = class(TSepiBinaryOpNode)
-  private
-    function HandlePointerArithm(
-      var LeftValue, RightValue: ISepiReadableValue): TSepiType;
+  TBinaryOpNode = class(TSepiDelphiLikeBinaryOpNode)
   protected
-    function GetPriority: Integer; override;
-  public
-    function MakeOperation(
-      const Left, Right: ISepiExpression): ISepiExpression; override;
+    function GetOperation: TSepiOperation; override;
   end;
 
   {*
@@ -1107,149 +1101,27 @@ end;
 { TBinaryOpNode class }
 {---------------------}
 
-function TBinaryOpNode.HandlePointerArithm(
-  var LeftValue, RightValue: ISepiReadableValue): TSepiType;
-var
-  LeftType, RightType: TSepiType;
-  IsLeft: Boolean;
-  PointerValue: ISepiReadableValue;
-  PointTo: TSepiType;
-begin
-  Result := nil;
-
-  LeftType := LeftValue.ValueType;
-  RightType := RightValue.ValueType;
-
-  if ((LeftType is TSepiPointerType) and (RightType is TSepiIntegerType)) or
-    ((LeftType is TSepiIntegerType) and (RightType is TSepiPointerType)) then
-  begin
-    IsLeft := LeftType is TSepiPointerType;
-
-    if IsLeft then
-      PointerValue := LeftValue
-    else
-      PointerValue := RightValue;
-
-    PointTo := TSepiPointerType(PointerValue.ValueType).PointTo;
-
-    if (PointTo.Kind in [TypInfo.tkInteger, tkChar]) and
-      (PointTo.TypeData.OrdType = otUByte) then
-    begin
-      Result := PointerValue.ValueType;
-
-      PointerValue := TSepiCastOperator.CastValue(
-        SystemUnit.Integer, PointerValue) as ISepiReadableValue;
-
-      if IsLeft then
-        LeftValue := PointerValue
-      else
-        RightValue := PointerValue;
-    end;
-  end;
-end;
-
 {*
   [@inheritDoc]
 *}
-function TBinaryOpNode.GetPriority: Integer;
-begin
-  case Children[0].SymbolClass of
-    tkEquals, tkLowerThan, tkLowerEq,
-      tkGreaterThan, tkGreaterEq, tkNotEqual: Result := 1;
-    tkOr, tkAnd, tkXor: Result := 2;
-    tkPlus, tkMinus: Result := 3;
-  else
-    Result := 4;
-  end;
-end;
-
-{*
-  [@inheritDoc]
-*}
-function TBinaryOpNode.MakeOperation(
-  const Left, Right: ISepiExpression): ISepiExpression;
+function TBinaryOpNode.GetOperation: TSepiOperation;
+const
+  SymbolClassToOperation: array[tkPlus..tkNotEqual] of TSepiOperation = (
+    opAdd, opSubtract, opMultiply, opDivide, opIntDivide, opModulus,
+    opShiftLeft, opShiftRight, opOr, opAnd, opXor, 0,
+    opCmpLT, opCmpLE, opCmpGT, opCmpGE, opCmpNE
+  );
 var
-  Operation: TSepiOperation;
-  LeftValue, RightValue, Value: ISepiReadableValue;
-  RecastTo: TSepiType;
+  SymbolClass: TSepiSymbolClass;
 begin
-  case Children[0].SymbolClass of
-    tkPlus:        Operation := opAdd;
-    tkMinus:       Operation := opSubtract;
-    tkTimes:       Operation := opMultiply;
-    tkDivide:      Operation := opDivide;
-    tkDiv:         Operation := opIntDivide;
-    tkMod:         Operation := opModulus;
-    tkShl:         Operation := opShiftLeft;
-    tkShr:         Operation := opShiftRight;
-    tkOr:          Operation := opOr;
-    tkAnd:         Operation := opAnd;
-    tkXor:         Operation := opXor;
-    tkEquals:      Operation := opCmpEQ;
-    tkLowerThan:   Operation := opCmpLT;
-    tkLowerEq:     Operation := opCmpLE;
-    tkGreaterThan: Operation := opCmpGT;
-    tkGreaterEq:   Operation := opCmpGE;
-    tkNotEqual:    Operation := opCmpNE;
+  SymbolClass := Children[0].SymbolClass;
+
+  Assert(SymbolClass in ([tkEquals, tkPlus..tkNotEqual]-[tkNot]));
+
+  if SymbolClass = tkEquals then
+    Result := opCmpEQ
   else
-    Assert(False);
-    Operation := 0;
-  end;
-
-  // Check operands
-
-  if not Supports(Left, ISepiReadableValue, LeftValue) then
-  begin
-    Left.MakeError(SReadableValueRequired);
-    LeftValue := nil;
-  end;
-
-  if not Supports(Right, ISepiReadableValue, RightValue) then
-  begin
-    Right.MakeError(SReadableValueRequired);
-    RightValue := nil;
-  end;
-
-  // Handle pointer arithmetic with PChar and PByte
-  if Operation in [opAdd, opSubtract] then
-    RecastTo := HandlePointerArithm(LeftValue, RightValue)
-  else
-    RecastTo := nil;
-
-  if (LeftValue <> nil) and (RightValue <> nil) then
-  begin
-    // Handle Integer / Integer with at least one constant
-    if (Operation = opDivide) and
-      ([LeftValue.ValueType.Kind, RightValue.ValueType.Kind] *
-      [TypInfo.tkFloat, tkVariant] = []) then
-    begin
-      if LeftValue.IsConstant then
-        LeftValue := TSepiConvertOperation.ConvertValue(
-          SystemUnit.Extended, LeftValue);
-      if RightValue.IsConstant then
-        RightValue := TSepiConvertOperation.ConvertValue(
-          SystemUnit.Extended, RightValue);
-    end;
-
-    // Make operation
-    Value := TSepiOperator.MakeBinaryOperation(Operation,
-      LeftValue, RightValue);
-  end else
-  begin
-    // Error cases
-    if LeftValue <> nil then
-      Value := LeftValue
-    else if RightValue <> nil then
-      Value := RightValue
-    else
-      Value := TSepiErroneousValue.Create(SepiRoot);
-  end;
-
-  if RecastTo <> nil then
-    Value := TSepiCastOperator.CastValue(RecastTo, Value) as ISepiReadableValue;
-
-  Result := Value as ISepiExpression;
-  Result.SourcePos := SourcePos;
+    Result := SymbolClassToOperation[SymbolClass];
 end;
 
 {-----------------------}
