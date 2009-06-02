@@ -215,9 +215,6 @@ type
   *}
   TSepiDelphiLikeBinaryOpNode = class(TSepiBinaryOpNode)
   protected
-    procedure RequireReadableValue(const Expression: ISepiExpression;
-      out Value: ISepiReadableValue);
-
     function TryAndHandlePointerArithm(
       const PtrValue, IntValue: ISepiReadableValue;
       out Expression: ISepiExpression): Boolean; virtual;
@@ -258,6 +255,43 @@ type
   public
     function MakeOperation(
       const Operand: ISepiExpression): ISepiExpression; virtual; abstract;
+  end;
+
+  {*
+    Noeud représentant un opérateur unaire du style Delphi
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiDelphiLikeUnaryOpNode = class(TSepiUnaryOpNode)
+  protected
+    function GetOperation: TSepiOperation; virtual; abstract;
+  public
+    function MakeOperation(
+      const Operand: ISepiExpression): ISepiExpression; override;
+
+    property Operation: TSepiOperation read GetOperation;
+  end;
+
+  {*
+    Noeud représentant un opérateur unaire de déréférencement
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiDereferenceOpNode = class(TSepiUnaryOpNode)
+  public
+    function MakeOperation(
+      const Operand: ISepiExpression): ISepiExpression; override;
+  end;
+
+  {*
+    Noeud représentant un opérateur unaire d'adressage
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiAddressOfOpNode = class(TSepiUnaryOpNode)
+  public
+    function MakeOperation(
+      const Operand: ISepiExpression): ISepiExpression; override;
   end;
 
   {*
@@ -422,6 +456,17 @@ type
   end;
 
   {*
+    Noeud modificateur d'expression sur base d'un opérateur unaire
+    Un noeud de ce type doit avoir un unique enfant de type TSepiUnaryOpNode.
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiUnaryOpModifierNode = class(TSepiExpressionModifierNode)
+  protected
+    procedure ChildEndParsing(Child: TSepiParseTreeNode); override;
+  end;
+
+  {*
     Noeud index de tableau ou de propriété tableau
     @author sjrd
     @version 1.0
@@ -444,16 +489,6 @@ type
   TSepiFieldSelectionModifierNode = class(TSepiExpressionModifierNode)
   protected
     function MakeFieldSelection: ISepiExpression; virtual;
-  public
-    procedure EndParsing; override;
-  end;
-
-  {*
-    Noeud déréférencement
-    @author sjrd
-    @version 1.0
-  *}
-  TSepiDereferenceModifierNode = class(TSepiExpressionModifierNode)
   public
     procedure EndParsing; override;
   end;
@@ -1927,99 +1962,6 @@ begin
   Result := Supports(Expression, ISepiValue);
 end;
 
-{-----------------------------}
-{ TSepiBinaryOpTreeNode class }
-{-----------------------------}
-
-{*
-  Trouve l'opérateur majeur d'un sous-arbre
-  L'opérateur majeur est celui de plus basse priorité dans le sous-arbre. En cas
-  d'égalité, c'est celui de droite pour une évaluation left-to-right ; et c'est
-  celui de gauche pour une évaluation right-to-left.
-  @param Lower    Index bas des symboles du sous-arbre
-  @param Higher   Index haut des symboles du sous-arbre
-  @return Index de l'opérateur majeur parmi les enfants de ce noeud
-*}
-function TSepiBinaryOpTreeNode.FindSubTreeOpIndex(
-  Lower, Higher: Integer): Integer;
-var
-  OpIndex: Integer;
-  MinPriority: Integer;
-  OpChild: TSepiBinaryOpNode;
-begin
-  Result := -1;
-  MinPriority := MaxInt;
-
-  OpIndex := Lower+1;
-  while OpIndex < Higher do
-  begin
-    OpChild := Children[OpIndex] as TSepiBinaryOpNode;
-
-    if OpChild.Priority <= MinPriority then
-    begin
-      Result := OpIndex;
-      MinPriority := OpChild.Priority;
-
-      // In right-to-left, priority must strictly decrease to be taken into
-      // account.
-      if OpChild.Direction = bodRightToLeft then
-        Dec(MinPriority);
-    end;
-
-    Inc(OpIndex, 2);
-  end;
-
-  Assert(Result > 0);
-end;
-
-{*
-  Compile un sous-arbre de l'expression
-  @param Lower    Index bas des symboles du sous-arbre
-  @param Higher   Index haut des symboles du sous-arbre
-  @return Expression représentant le sous-arbre
-*}
-function TSepiBinaryOpTreeNode.CompileSubTree(
-  Lower, Higher: Integer): ISepiExpression;
-var
-  OpIndex: Integer;
-  LeftExpression, RightExpression: ISepiExpression;
-begin
-  if Lower = Higher then
-    Result := (Children[Lower] as TSepiExpressionNode).Expression
-  else
-  begin
-    OpIndex := FindSubTreeOpIndex(Lower, Higher);
-
-    LeftExpression := CompileSubTree(Lower, OpIndex-1);
-    RightExpression := CompileSubTree(OpIndex+1, Higher);
-
-    Result := TSepiBinaryOpNode(Children[OpIndex]).MakeOperation(
-      LeftExpression, RightExpression);
-  end;
-end;
-
-{*
-  Compile l'arbre de l'expression
-  @return Expression représentant l'arbre
-*}
-function TSepiBinaryOpTreeNode.CompileTree: ISepiExpression;
-begin
-  Assert(ChildCount mod 2 <> 0);
-
-  Result := CompileSubTree(0, ChildCount-1);
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TSepiBinaryOpTreeNode.EndParsing;
-begin
-  if Expression = nil then
-    SetExpression(CompileTree);
-
-  inherited;
-end;
-
 {-------------------------}
 { TSepiBinaryOpNode class }
 {-------------------------}
@@ -2048,22 +1990,6 @@ end;
 {-----------------------------------}
 { TSepiDelphiLikeBinaryOpNode class }
 {-----------------------------------}
-
-{*
-  Requiert une valeur qui peut être lue
-  @param Expression   Expression
-  @param Value        En sortie : l'expression sous forme de valeur lisible
-*}
-procedure TSepiDelphiLikeBinaryOpNode.RequireReadableValue(
-  const Expression: ISepiExpression; out Value: ISepiReadableValue);
-begin
-  if not Supports(Expression, ISepiReadableValue, Value) then
-  begin
-    Expression.MakeError(SReadableValueRequired);
-    Value := TSepiErroneousValue.Create(Expression.SepiRoot);
-    Value.AttachToExpression(TSepiExpression.Create(Expression));
-  end;
-end;
 
 {*
   Essaie d'appliquer une opération d'arithmétique des pointeurs
@@ -2172,6 +2098,165 @@ begin
   end;
 
   Result.SourcePos := SourcePos;
+end;
+
+{-----------------------------}
+{ TSepiBinaryOpTreeNode class }
+{-----------------------------}
+
+{*
+  Trouve l'opérateur majeur d'un sous-arbre
+  L'opérateur majeur est celui de plus basse priorité dans le sous-arbre. En cas
+  d'égalité, c'est celui de droite pour une évaluation left-to-right ; et c'est
+  celui de gauche pour une évaluation right-to-left.
+  @param Lower    Index bas des symboles du sous-arbre
+  @param Higher   Index haut des symboles du sous-arbre
+  @return Index de l'opérateur majeur parmi les enfants de ce noeud
+*}
+function TSepiBinaryOpTreeNode.FindSubTreeOpIndex(
+  Lower, Higher: Integer): Integer;
+var
+  OpIndex: Integer;
+  MinPriority: Integer;
+  OpChild: TSepiBinaryOpNode;
+begin
+  Result := -1;
+  MinPriority := MaxInt;
+
+  OpIndex := Lower+1;
+  while OpIndex < Higher do
+  begin
+    OpChild := Children[OpIndex] as TSepiBinaryOpNode;
+
+    if OpChild.Priority <= MinPriority then
+    begin
+      Result := OpIndex;
+      MinPriority := OpChild.Priority;
+
+      // In right-to-left, priority must strictly decrease to be taken into
+      // account.
+      if OpChild.Direction = bodRightToLeft then
+        Dec(MinPriority);
+    end;
+
+    Inc(OpIndex, 2);
+  end;
+
+  Assert(Result > 0);
+end;
+
+{*
+  Compile un sous-arbre de l'expression
+  @param Lower    Index bas des symboles du sous-arbre
+  @param Higher   Index haut des symboles du sous-arbre
+  @return Expression représentant le sous-arbre
+*}
+function TSepiBinaryOpTreeNode.CompileSubTree(
+  Lower, Higher: Integer): ISepiExpression;
+var
+  OpIndex: Integer;
+  LeftExpression, RightExpression: ISepiExpression;
+begin
+  if Lower = Higher then
+    Result := (Children[Lower] as TSepiExpressionNode).Expression
+  else
+  begin
+    OpIndex := FindSubTreeOpIndex(Lower, Higher);
+
+    LeftExpression := CompileSubTree(Lower, OpIndex-1);
+    RightExpression := CompileSubTree(OpIndex+1, Higher);
+
+    Result := TSepiBinaryOpNode(Children[OpIndex]).MakeOperation(
+      LeftExpression, RightExpression);
+  end;
+end;
+
+{*
+  Compile l'arbre de l'expression
+  @return Expression représentant l'arbre
+*}
+function TSepiBinaryOpTreeNode.CompileTree: ISepiExpression;
+begin
+  Assert(ChildCount mod 2 <> 0);
+
+  Result := CompileSubTree(0, ChildCount-1);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiBinaryOpTreeNode.EndParsing;
+begin
+  if Expression = nil then
+    SetExpression(CompileTree);
+
+  inherited;
+end;
+
+{----------------------------------}
+{ TSepiDelphiLikeUnaryOpNode class }
+{----------------------------------}
+
+{*
+  [@inheritDoc]
+*}
+function TSepiDelphiLikeUnaryOpNode.MakeOperation(
+  const Operand: ISepiExpression): ISepiExpression;
+var
+  Value: ISepiReadableValue;
+begin
+  RequireReadableValue(Operand, Value);
+
+  if Operation <> opAdd then
+    Value := TSepiOperator.MakeUnaryOperation(Operation, Value);
+
+  Result := Value as ISepiExpression;
+  Result.SourcePos := SourcePos;
+end;
+
+{------------------------------}
+{ TSepiDereferenceOpNode class }
+{------------------------------}
+
+{*
+  [@inheritDoc]
+*}
+function TSepiDereferenceOpNode.MakeOperation(
+  const Operand: ISepiExpression): ISepiExpression;
+var
+  Value: ISepiReadableValue;
+begin
+  if Supports(Operand, ISepiReadableValue, Value) and
+    (Value.ValueType is TSepiPointerType) then
+  begin
+    Result := TSepiDereferenceValue.MakeDereference(Value) as ISepiExpression;
+  end else
+  begin
+    Operand.MakeError(SPointerTypeRequired);
+    Result := nil;
+  end;
+end;
+
+{----------------------------}
+{ TSepiAddressOfOpNode class }
+{----------------------------}
+
+{*
+  [@inheritDoc]
+*}
+function TSepiAddressOfOpNode.MakeOperation(
+  const Operand: ISepiExpression): ISepiExpression;
+var
+  AddrValue: ISepiAddressableValue;
+begin
+  if Supports(Operand, ISepiAddressableValue, AddrValue) then
+  begin
+    Result := TSepiAddressOfValue.MakeAddressOf(AddrValue) as ISepiExpression;
+  end else
+  begin
+    Operand.MakeError(SAddressableValueRequired);
+    Result := nil;
+  end;
 end;
 
 {-------------------------------}
@@ -2579,6 +2664,21 @@ begin
   FBase := ABase;
 end;
 
+{--------------------------------}
+{ TSepiUnaryOpModifierNode class }
+{--------------------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiUnaryOpModifierNode.ChildEndParsing(Child: TSepiParseTreeNode);
+begin
+  if Child is TSepiUnaryOpNode then
+    SetExpression(TSepiUnaryOpNode(Child).MakeOperation(Base));
+
+  inherited;
+end;
+
 {-------------------------------------}
 { TSepiArrayIndicesModifierNode class }
 {-------------------------------------}
@@ -2729,30 +2829,6 @@ begin
   begin
     SetExpression(MakeFieldSelection);
     CheckIdentFound(Expression, Children[0].AsText, Children[0]);
-  end;
-
-  inherited;
-end;
-
-{------------------------------------}
-{ TSepiDereferenceModifierNode class }
-{------------------------------------}
-
-{*
-  [@inheritDoc]
-*}
-procedure TSepiDereferenceModifierNode.EndParsing;
-var
-  Value: ISepiReadableValue;
-begin
-  if Supports(Base, ISepiReadableValue, Value) and
-    (Value.ValueType is TSepiPointerType) then
-  begin
-    SetExpression(TSepiDereferenceValue.MakeDereference(
-      Value) as ISepiExpression);
-  end else
-  begin
-    MakeError(SPointerTypeRequired);
   end;
 
   inherited;

@@ -106,6 +106,9 @@ type
     property IsDefault: Boolean read FIsDefault;
   end;
 
+function RequireReadableValue(const Expression: ISepiExpression;
+  out Value: ISepiReadableValue): Boolean;
+
 function ConstValueAsInt64(const Value: ISepiReadableValue): Int64;
 
 procedure TryAndConvertValues(SystemUnit: TSepiSystemUnit;
@@ -122,6 +125,26 @@ implementation
 {-----------------}
 { Global routines }
 {-----------------}
+
+{*
+  Requiert une valeur qui peut être lue
+  En cas d'erreur, Value est affectée à une valeur erronée
+  @param Expression   Expression
+  @param Value        En sortie : l'expression sous forme de valeur lisible
+  @return True en cas de succès, False sinon
+*}
+function RequireReadableValue(const Expression: ISepiExpression;
+  out Value: ISepiReadableValue): Boolean;
+begin
+  Result := Supports(Expression, ISepiReadableValue, Value);
+
+  if not Result then
+  begin
+    Expression.MakeError(SReadableValueRequired);
+    Value := TSepiErroneousValue.Create(Expression.SepiRoot);
+    Value.AttachToExpression(TSepiExpression.Create(Expression));
+  end;
+end;
 
 {*
   Lit une valeur constante comme un Int64

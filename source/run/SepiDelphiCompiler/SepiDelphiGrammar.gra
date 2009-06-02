@@ -259,15 +259,22 @@ ntSingleExpr	SingleExpr
 
 ntUnaryOpExpr	UnaryOpExpr
 	UnaryOp SingleExpr
+	AddressOfOp SingleExpr
 
 ntParenthesizedExpr	ParenthesizedExpr
 	'('* Expression ')'*
 
 ntNextExpr	NextExpr	Simplify
+	UnaryOpModifier
 	Parameters
 	ArrayIndices
 	FieldSelection
-	Dereference
+
+ntUnaryOpModifier	UnaryOpModifier
+	DereferenceOp
+
+ntDereferenceOp	DereferenceOp
+	'^'
 
 ntParameters	Parameters
 	'('* ExprList ')'*
@@ -283,9 +290,6 @@ ntExprList	ExprList	Simplify
 
 ntFieldSelection	FieldSelection
 	'.'* Identifier
-
-ntDereference	Dereference
-	'^'
 
 ntSingleValue	SingleValue
 	IntegerConst
@@ -359,10 +363,12 @@ ntBinaryOpNoEquals	BinaryOpNoEquals
 	'<>'
 
 ntUnaryOp	UnaryOp
-	'@'
 	'+'
 	'-'
 	'not'
+
+ntAddressOfOp	AddressOfOp
+	'@'
 
 ntConstSection	ConstSection
 	ConstKeyWord* (ConstDecl)+

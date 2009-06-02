@@ -184,10 +184,9 @@ type
     @author sjrd
     @version 1.0
   *}
-  TUnaryOpNode = class(TSepiUnaryOpNode)
-  public
-    function MakeOperation(
-      const Operand: ISepiExpression): ISepiExpression; override;
+  TUnaryOpNode = class(TSepiDelphiLikeUnaryOpNode)
+  protected
+    function GetOperation: TSepiOperation; override;
   end;
 
   {*
@@ -592,6 +591,7 @@ begin
   NonTerminalClasses[ntBinaryOp]         := TBinaryOpNode;
   NonTerminalClasses[ntBinaryOpNoEquals] := TBinaryOpNode;
   NonTerminalClasses[ntUnaryOp]          := TUnaryOpNode;
+  NonTerminalClasses[ntAddressOfOp]      := TSepiAddressOfOpNode;
 
   NonTerminalClasses[ntSingleExpr]        := TSingleExprNode;
   NonTerminalClasses[ntParenthesizedExpr] := TSepiSameAsChildExpressionNode;
@@ -606,10 +606,11 @@ begin
   NonTerminalClasses[ntNilValue]              := TSepiNilValueNode;
   NonTerminalClasses[ntSetValue]              := TSepiSetValueNode;
 
-  NonTerminalClasses[ntParameters]        := TParametersNode;
-  NonTerminalClasses[ntArrayIndices]      := TSepiArrayIndicesModifierNode;
-  NonTerminalClasses[ntFieldSelection]    := TSepiFieldSelectionModifierNode;
-  NonTerminalClasses[ntDereference]       := TSepiDereferenceModifierNode;
+  NonTerminalClasses[ntUnaryOpModifier] := TSepiUnaryOpModifierNode;
+  NonTerminalClasses[ntDereferenceOp]   := TSepiDereferenceOpNode;
+  NonTerminalClasses[ntParameters]      := TParametersNode;
+  NonTerminalClasses[ntArrayIndices]    := TSepiArrayIndicesModifierNode;
+  NonTerminalClasses[ntFieldSelection]  := TSepiFieldSelectionModifierNode;
 
   NonTerminalClasses[ntTypeName] := TSepiTypeNameNode;
 
@@ -1055,46 +1056,16 @@ end;
 {*
   [@inheritDoc]
 *}
-function TUnaryOpNode.MakeOperation(
-  const Operand: ISepiExpression): ISepiExpression;
-var
-  OpValue, Value: ISepiReadableValue;
-  AddrValue: ISepiAddressableValue;
-  Operation: TSepiOperation;
+function TUnaryOpNode.GetOperation: TSepiOperation;
 begin
-  Result := nil;
-
-  if Children[0].SymbolClass = tkAt then
-  begin
-    if not Supports(Operand, ISepiAddressableValue, AddrValue) then
-    begin
-      Operand.MakeError(SAddressableValueRequired);
-      Exit;
-    end;
-
-    Value := TSepiAddressOfValue.MakeAddressOf(AddrValue);
-    Result := Value as ISepiExpression;
-  end else
-  begin
-    if not Supports(Operand, ISepiReadableValue, OpValue) then
-    begin
-      Operand.MakeError(SReadableValueRequired);
-      OpValue := TSepiTrueConstValue.MakeIntegerLiteral(UnitCompiler, 0);
-    end;
-
-    case Children[0].SymbolClass of
-      tkMinus: Operation := opNegate;
-      tkNot:   Operation := opNot;
-    else
-      Result := Operand;
-      Exit;
-    end;
-
-    Value := TSepiOperator.MakeUnaryOperation(Operation, OpValue);
-    Result := Value as ISepiExpression;
+  case Children[0].SymbolClass of
+    tkMinus:
+      Result := opNegate;
+    tkNot:
+      Result := opNot;
+  else
+    Result := opAdd;
   end;
-
-  Result.SourcePos := SourcePos;
 end;
 
 {---------------------}
