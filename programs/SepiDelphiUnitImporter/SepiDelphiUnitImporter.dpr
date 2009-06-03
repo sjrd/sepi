@@ -220,7 +220,7 @@ var
   Errors: TSepiCompilerErrorList;
   SourceFile, DestFile, RCFile: TStrings;
   ResourceFile: TStream;
-  RootNode: TRootNode;
+  RootNode: TDelphiRootNode;
   SepiUnit: TSepiUnit;
   I: Integer;
 begin
@@ -258,7 +258,7 @@ begin
     end;
 
     // Actually compile the source code
-    RootNode := TRootNode.Create(ntSource, SepiRoot, Errors);
+    RootNode := TDelphiRootNode.Create(ntSource, SepiRoot, Errors);
     try
       TSepiDelphiParser.Parse(RootNode, TSepiDelphiLexer.CreateSpecial(Errors,
         SourceFile.Text, Errors.CurrentFileName, True));

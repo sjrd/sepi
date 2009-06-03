@@ -41,7 +41,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TRootNode = class(TSepiParseTreeRootNode)
+  TDelphiRootNode = class(TSepiParseTreeRootNode)
   private
     FMinEnumSize: TSepiMinEnumSize; /// Taille minimale d'énumération
 
@@ -64,7 +64,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TInterfaceNode = class(TSepiNonTerminal)
+  TDelphiInterfaceNode = class(TSepiNonTerminal)
   public
     procedure BeginParsing; override;
   end;
@@ -74,7 +74,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TImplementationNode = class(TSepiNonTerminal)
+  TDelphiImplementationNode = class(TSepiNonTerminal)
   public
     procedure BeginParsing; override;
   end;
@@ -84,7 +84,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TInitializationExpressionNode = class(TSepiInitializationExpressionNode)
+  TDelphiInitializationExpressionNode = class(TSepiInitializationExpressionNode)
   protected
     procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
   public
@@ -98,7 +98,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TArrayInitializationNode = class(TSepiInitializationExpressionNode)
+  TDelphiArrayInitializationNode = class(TSepiInitializationExpressionNode)
   private
     FArrayType: TSepiStaticArrayType; /// Type de valeur comme type tableau
     FElementType: TSepiType;          /// Type des éléments du tableau
@@ -119,7 +119,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TRecordInitializationNode = class(TSepiInitializationExpressionNode)
+  TDelphiRecordInitializationNode = class(TSepiInitializationExpressionNode)
   private
     FRecordType: TSepiRecordType; /// Type de valeur comme type record
   protected
@@ -137,7 +137,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TGUIDInitializationNode = class(TSepiInitializationExpressionNode)
+  TDelphiGUIDInitializationNode = class(TSepiInitializationExpressionNode)
   private
     FRecordType: TSepiRecordType; /// Type de valeur comme type record
   protected
@@ -156,7 +156,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TOtherInitializationNode = class(TSepiInitializationExpressionNode)
+  TDelphiOtherInitializationNode = class(TSepiInitializationExpressionNode)
   protected
     procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
   public
@@ -170,7 +170,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TConstOrTypeNode = class(TSepiConstExpressionNode)
+  TDelphiConstOrTypeNode = class(TSepiConstExpressionNode)
   private
     function GetIsType: Boolean;
   protected
@@ -184,7 +184,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TUnaryOpNode = class(TSepiDelphiLikeUnaryOpNode)
+  TDelphiUnaryOpNode = class(TSepiDelphiLikeUnaryOpNode)
   protected
     function GetOperation: TSepiOperation; override;
   end;
@@ -194,7 +194,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TBinaryOpNode = class(TSepiDelphiLikeBinaryOpNode)
+  TDelphiBinaryOpNode = class(TSepiDelphiLikeBinaryOpNode)
   protected
     function GetOperation: TSepiOperation; override;
   end;
@@ -204,7 +204,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TSingleExprNode = class(TSepiExpressionWithModifiersNode)
+  TDelphiSingleExprNode = class(TSepiExpressionWithModifiersNode)
   public
     procedure EndParsing; override;
   end;
@@ -214,7 +214,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TNextExprNode = class(TSepiExpressionModifierNode)
+  TDelphiNextExprNode = class(TSepiExpressionModifierNode)
   public
     procedure EndParsing; override;
   end;
@@ -224,7 +224,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TParametersNode = class(TNextExprNode)
+  TDelphiParametersNode = class(TDelphiNextExprNode)
   private
     procedure CompileIdentifierTest(
       const PseudoRoutine: ISepiIdentifierTestPseudoRoutine);
@@ -244,7 +244,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TTypeDeclNode = class(TSepiNonTerminal)
+  TDelphiTypeDeclNode = class(TSepiNonTerminal)
   protected
     procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
   end;
@@ -254,7 +254,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TConstantDeclNode = class(TSepiNonTerminal)
+  TDelphiConstantDeclNode = class(TSepiNonTerminal)
   private
     FName: string;            /// Nom de la constante
     FConstType: TSepiType;    /// Type de la constante
@@ -275,7 +275,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TVariableDeclNode = class(TSepiNonTerminal)
+  TDelphiVariableDeclNode = class(TSepiNonTerminal)
   private
     FNames: TStrings;         /// Nom de la variable
     FVarType: TSepiType;      /// Type de la variable
@@ -296,7 +296,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TTypeCloneNode = class(TSepiTypeDefinitionNode)
+  TDelphiTypeCloneNode = class(TSepiTypeDefinitionNode)
   public
     procedure EndParsing; override;
   end;
@@ -304,7 +304,7 @@ type
   {*
     Noeud descripteur d'un type intervalle ou énumération
   *}
-  TRangeOrEnumTypeNode = class(TSepiTypeDefinitionNode)
+  TDelphiRangeOrEnumTypeNode = class(TSepiTypeDefinitionNode)
   protected
     procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
     procedure ChildEndParsing(Child: TSepiParseTreeNode); override;
@@ -315,7 +315,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TRangeTypeNode = class(TSepiTypeDefinitionNode)
+  TDelphiRangeTypeNode = class(TSepiTypeDefinitionNode)
   private
     function MakeType(const TypeName: string; BaseType: TSepiType;
       const LowerValue, HigherValue): TSepiType;
@@ -330,7 +330,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TEnumTypeNode = class(TSepiTypeDefinitionNode)
+  TDelphiEnumTypeNode = class(TSepiTypeDefinitionNode)
   public
     procedure EndParsing; override;
   end;
@@ -340,7 +340,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TSetTypeNode = class(TSepiTypeDefinitionNode)
+  TDelphiSetTypeNode = class(TSepiTypeDefinitionNode)
   protected
     procedure MakeErroneousType; override;
 
@@ -354,7 +354,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TStringTypeNode = class(TSepiTypeDefinitionNode)
+  TDelphiStringTypeNode = class(TSepiTypeDefinitionNode)
   public
     procedure EndParsing; override;
   end;
@@ -364,7 +364,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TPointerTypeNode = class(TSepiTypeDefinitionNode)
+  TDelphiPointerTypeNode = class(TSepiTypeDefinitionNode)
   public
     procedure EndParsing; override;
   end;
@@ -374,7 +374,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TArrayTypeNode = class(TSepiTypeDefinitionNode)
+  TDelphiArrayTypeNode = class(TSepiTypeDefinitionNode)
   private
     function RangeDefinition(const TypeName: string;
       RangeNode: TSepiParseTreeNode;
@@ -391,7 +391,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TPackedArrayTypeNode = class(TArrayTypeNode)
+  TDelphiPackedArrayTypeNode = class(TDelphiArrayTypeNode)
   end;
 
   {*
@@ -399,7 +399,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TRecordTypeNode = class(TSepiTypeDefinitionNode)
+  TDelphiRecordTypeNode = class(TSepiTypeDefinitionNode)
   private
     FIsPacked: Boolean; /// Indique si le record doit être packed
 
@@ -420,7 +420,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TPackedRecordTypeNode = class(TRecordTypeNode)
+  TDelphiPackedRecordTypeNode = class(TDelphiRecordTypeNode)
   public
     constructor Create(AParent: TSepiNonTerminal; AClass: TSepiSymbolClass;
       const ASourcePos: TSepiSourcePosition); override;
@@ -431,7 +431,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TClassTypeNode = class(TSepiTypeDefinitionNode)
+  TDelphiClassTypeNode = class(TSepiTypeDefinitionNode)
   private
     FIsForwardClass: Boolean; /// True si c'est une classe forwardée
     FIsClass: Boolean;        /// True si c'est une classe
@@ -464,7 +464,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TInterfaceTypeNode = class(TSepiTypeDefinitionNode)
+  TDelphiInterfaceTypeNode = class(TSepiTypeDefinitionNode)
   private
     FIsDispIntf: Boolean;        /// True si c'est une dispinterface
     FParentIntf: TSepiInterface; /// Interface parent
@@ -494,7 +494,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TInterfaceGUIDNode = class(TSepiInitializationExpressionNode)
+  TDelphiInterfaceGUIDNode = class(TSepiInitializationExpressionNode)
   protected
     procedure ChildEndParsing(Child: TSepiParseTreeNode); override;
   public
@@ -506,7 +506,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TMethodRefTypeNode = class(TSepiTypeDefinitionNode)
+  TDelphiMethodRefTypeNode = class(TSepiTypeDefinitionNode)
   private
     FSignature: TSepiSignature; /// Signature
   protected
@@ -526,7 +526,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TOfObjectMarkerNode = class(TSepiNonTerminal)
+  TDelphiOfObjectMarkerNode = class(TSepiNonTerminal)
   end;
 
 function CompileDelphiSource(SepiRoot: TSepiRoot;
@@ -552,7 +552,8 @@ function CompileDelphiSource(SepiRoot: TSepiRoot;
   const DestFileName: TFileName): TSepiUnit;
 begin
   Result := SepiCompilerUtils.CompileSepiSource(SepiRoot, Errors, SourceFile,
-    DestFileName, TRootNode, ntSource, TSepiDelphiLexer, TSepiDelphiParser);
+    DestFileName, TDelphiRootNode, ntSource, TSepiDelphiLexer,
+    TSepiDelphiParser);
 end;
 
 {*
@@ -560,40 +561,40 @@ end;
 *}
 procedure InitNonTerminalClasses;
 begin
-  NonTerminalClasses[ntSource]         := TRootNode;
-  NonTerminalClasses[ntInterface]      := TInterfaceNode;
-  NonTerminalClasses[ntImplementation] := TImplementationNode;
+  NonTerminalClasses[ntSource]         := TDelphiRootNode;
+  NonTerminalClasses[ntInterface]      := TDelphiInterfaceNode;
+  NonTerminalClasses[ntImplementation] := TDelphiImplementationNode;
   NonTerminalClasses[ntUsesSection]    := TSepiUsesNode;
 
   NonTerminalClasses[ntCommaIdentDeclList] := TSepiIdentifierDeclListNode;
   NonTerminalClasses[ntQualifiedIdent]     := TSepiQualifiedIdentNode;
   NonTerminalClasses[ntIdentifierDecl]     := TSepiIdentifierDeclarationNode;
 
-  NonTerminalClasses[ntTypeDecl]    := TTypeDeclNode;
-  NonTerminalClasses[ntConstDecl]   := TConstantDeclNode;
-  NonTerminalClasses[ntGlobalVar]   := TVariableDeclNode;
+  NonTerminalClasses[ntTypeDecl]    := TDelphiTypeDeclNode;
+  NonTerminalClasses[ntConstDecl]   := TDelphiConstantDeclNode;
+  NonTerminalClasses[ntGlobalVar]   := TDelphiVariableDeclNode;
   NonTerminalClasses[ntRoutineDecl] := TSepiMethodDeclarationNode;
 
   NonTerminalClasses[ntInitializationExpression] :=
-    TInitializationExpressionNode;
-  NonTerminalClasses[ntArrayInitialization]  := TArrayInitializationNode;
-  NonTerminalClasses[ntRecordInitialization] := TRecordInitializationNode;
-  NonTerminalClasses[ntGUIDInitialization]   := TGUIDInitializationNode;
-  NonTerminalClasses[ntOtherInitialization]  := TOtherInitializationNode;
+    TDelphiInitializationExpressionNode;
+  NonTerminalClasses[ntArrayInitialization]  := TDelphiArrayInitializationNode;
+  NonTerminalClasses[ntRecordInitialization] := TDelphiRecordInitializationNode;
+  NonTerminalClasses[ntGUIDInitialization]   := TDelphiGUIDInitializationNode;
+  NonTerminalClasses[ntOtherInitialization]  := TDelphiOtherInitializationNode;
 
   NonTerminalClasses[ntExpression]              := TSepiBinaryOpTreeNode;
   NonTerminalClasses[ntExpressionNoEquals]      := TSepiBinaryOpTreeNode;
   NonTerminalClasses[ntConstExpression]         := TSepiConstExpressionNode;
   NonTerminalClasses[ntConstExpressionNoEquals] := TSepiConstExpressionNode;
-  NonTerminalClasses[ntConstOrType]             := TConstOrTypeNode;
-  NonTerminalClasses[ntConstOrTypeNoEquals]     := TConstOrTypeNode;
+  NonTerminalClasses[ntConstOrType]             := TDelphiConstOrTypeNode;
+  NonTerminalClasses[ntConstOrTypeNoEquals]     := TDelphiConstOrTypeNode;
 
-  NonTerminalClasses[ntBinaryOp]         := TBinaryOpNode;
-  NonTerminalClasses[ntBinaryOpNoEquals] := TBinaryOpNode;
-  NonTerminalClasses[ntUnaryOp]          := TUnaryOpNode;
+  NonTerminalClasses[ntBinaryOp]         := TDelphiBinaryOpNode;
+  NonTerminalClasses[ntBinaryOpNoEquals] := TDelphiBinaryOpNode;
+  NonTerminalClasses[ntUnaryOp]          := TDelphiUnaryOpNode;
   NonTerminalClasses[ntAddressOfOp]      := TSepiAddressOfOpNode;
 
-  NonTerminalClasses[ntSingleExpr]        := TSingleExprNode;
+  NonTerminalClasses[ntSingleExpr]        := TDelphiSingleExprNode;
   NonTerminalClasses[ntParenthesizedExpr] := TSepiSameAsChildExpressionNode;
   NonTerminalClasses[ntUnaryOpExpr]       := TSepiUnaryOperationNode;
 
@@ -608,36 +609,36 @@ begin
 
   NonTerminalClasses[ntUnaryOpModifier] := TSepiUnaryOpModifierNode;
   NonTerminalClasses[ntDereferenceOp]   := TSepiDereferenceOpNode;
-  NonTerminalClasses[ntParameters]      := TParametersNode;
+  NonTerminalClasses[ntParameters]      := TDelphiParametersNode;
   NonTerminalClasses[ntArrayIndices]    := TSepiArrayIndicesModifierNode;
   NonTerminalClasses[ntFieldSelection]  := TSepiFieldSelectionModifierNode;
 
   NonTerminalClasses[ntTypeName] := TSepiTypeNameNode;
 
-  NonTerminalClasses[ntCloneDesc]         := TTypeCloneNode;
-  NonTerminalClasses[ntRangeOrEnumDesc]   := TRangeOrEnumTypeNode;
-  NonTerminalClasses[ntRangeDesc]         := TRangeTypeNode;
-  NonTerminalClasses[ntEnumDesc]          := TEnumTypeNode;
-  NonTerminalClasses[ntSetDesc]           := TSetTypeNode;
-  NonTerminalClasses[ntStringDesc]        := TStringTypeNode;
-  NonTerminalClasses[ntPointerDesc]       := TPointerTypeNode;
-  NonTerminalClasses[ntArrayDesc]         := TArrayTypeNode;
-  NonTerminalClasses[ntPackedArrayDesc]   := TPackedArrayTypeNode;
-  NonTerminalClasses[ntRecordDesc]        := TRecordTypeNode;
-  NonTerminalClasses[ntPackedRecordDesc]  := TPackedRecordTypeNode;
-  NonTerminalClasses[ntClassDesc]         := TClassTypeNode;
-  NonTerminalClasses[ntInterfaceDesc]     := TInterfaceTypeNode;
-  NonTerminalClasses[ntDispInterfaceDesc] := TInterfaceTypeNode;
-  NonTerminalClasses[ntEventDesc]         := TMethodRefTypeNode;
+  NonTerminalClasses[ntCloneDesc]         := TDelphiTypeCloneNode;
+  NonTerminalClasses[ntRangeOrEnumDesc]   := TDelphiRangeOrEnumTypeNode;
+  NonTerminalClasses[ntRangeDesc]         := TDelphiRangeTypeNode;
+  NonTerminalClasses[ntEnumDesc]          := TDelphiEnumTypeNode;
+  NonTerminalClasses[ntSetDesc]           := TDelphiSetTypeNode;
+  NonTerminalClasses[ntStringDesc]        := TDelphiStringTypeNode;
+  NonTerminalClasses[ntPointerDesc]       := TDelphiPointerTypeNode;
+  NonTerminalClasses[ntArrayDesc]         := TDelphiArrayTypeNode;
+  NonTerminalClasses[ntPackedArrayDesc]   := TDelphiPackedArrayTypeNode;
+  NonTerminalClasses[ntRecordDesc]        := TDelphiRecordTypeNode;
+  NonTerminalClasses[ntPackedRecordDesc]  := TDelphiPackedRecordTypeNode;
+  NonTerminalClasses[ntClassDesc]         := TDelphiClassTypeNode;
+  NonTerminalClasses[ntInterfaceDesc]     := TDelphiInterfaceTypeNode;
+  NonTerminalClasses[ntDispInterfaceDesc] := TDelphiInterfaceTypeNode;
+  NonTerminalClasses[ntEventDesc]         := TDelphiMethodRefTypeNode;
 
   NonTerminalClasses[ntEventModifiers]  := TSepiChildThroughNonTerminal;
-  NonTerminalClasses[ntEventIsOfObject] := TOfObjectMarkerNode;
+  NonTerminalClasses[ntEventIsOfObject] := TDelphiOfObjectMarkerNode;
 
   NonTerminalClasses[ntRecordContents]     := TSepiRecordContentsNode;
   NonTerminalClasses[ntRecordCaseBlock]    := TSepiRecordContentsNode;
   NonTerminalClasses[ntRecordCaseContents] := TSepiRecordContentsNode;
 
-  NonTerminalClasses[ntInterfaceGUID] := TInterfaceGUIDNode;
+  NonTerminalClasses[ntInterfaceGUID] := TDelphiInterfaceGUIDNode;
 
   NonTerminalClasses[ntRecordField]          := TSepiRecordFieldNode;
   NonTerminalClasses[ntRecordCaseField]      := TSepiRecordFieldNode;
@@ -705,13 +706,13 @@ begin
 end;
 
 {-----------------}
-{ TRootNode class }
+{ TDelphiRootNode class }
 {-----------------}
 
 {*
   [@inheritDoc]
 *}
-constructor TRootNode.Create(AClass: TSepiSymbolClass;
+constructor TDelphiRootNode.Create(AClass: TSepiSymbolClass;
   ASepiRoot: TSepiRoot; AErrors: TSepiCompilerErrorList);
 begin
   inherited;
@@ -723,7 +724,7 @@ end;
   Gestionnaire de message CDM_MINENUMSIZE
   @param Msg   Message
 *}
-procedure TRootNode.CDMMinEnumSize(var Msg: TCDMMinEnumSize);
+procedure TDelphiRootNode.CDMMinEnumSize(var Msg: TCDMMinEnumSize);
 begin
   FMinEnumSize := Msg.MinEmumSize;
 end;
@@ -731,7 +732,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TRootNode.ChildEndParsing(Child: TSepiParseTreeNode);
+procedure TDelphiRootNode.ChildEndParsing(Child: TSepiParseTreeNode);
 begin
   if Child.SymbolClass = ntIdentifier then
     SetSepiUnit(TSepiUnit.Create(SepiRoot, Child.AsText, []));
@@ -742,7 +743,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TRootNode.EndParsing;
+procedure TDelphiRootNode.EndParsing;
 begin
   SepiUnit.Complete;
 
@@ -752,43 +753,44 @@ end;
 {*
   [@inheritDoc]
 *}
-function TRootNode.ResolveIdent(const Identifier: string): ISepiExpression;
+function TDelphiRootNode.ResolveIdent(
+  const Identifier: string): ISepiExpression;
 begin
   Result := UnitResolveIdent(UnitCompiler, Identifier);
 end;
 
 {----------------------}
-{ TInterfaceNode class }
+{ TDelphiInterfaceNode class }
 {----------------------}
 
 {*
   [@inheritDoc]
 *}
-procedure TInterfaceNode.BeginParsing;
+procedure TDelphiInterfaceNode.BeginParsing;
 begin
   SepiUnit.CurrentVisibility := mvPublic;
 end;
 
 {---------------------------}
-{ TImplementationNode class }
+{ TDelphiImplementationNode class }
 {---------------------------}
 
 {*
   [@inheritDoc]
 *}
-procedure TImplementationNode.BeginParsing;
+procedure TDelphiImplementationNode.BeginParsing;
 begin
   SepiUnit.CurrentVisibility := mvPrivate;
 end;
 
 {-------------------------------------}
-{ TInitializationExpressionNode class }
+{ TDelphiInitializationExpressionNode class }
 {-------------------------------------}
 
 {*
   [@inheritDoc]
 *}
-procedure TInitializationExpressionNode.BeginParsing;
+procedure TDelphiInitializationExpressionNode.BeginParsing;
 begin
   inherited;
 
@@ -807,7 +809,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TInitializationExpressionNode.ChildBeginParsing(
+procedure TDelphiInitializationExpressionNode.ChildBeginParsing(
   Child: TSepiParseTreeNode);
 var
   InitChild: TSepiInitializationExpressionNode;
@@ -821,20 +823,20 @@ end;
 {*
   [@inheritDoc]
 *}
-function TInitializationExpressionNode.IsValidType(
+function TDelphiInitializationExpressionNode.IsValidType(
   AValueType: TSepiType): Boolean;
 begin
   Result := (AValueType <> nil) and not (AValueType is TSepiDynArrayType);
 end;
 
 {--------------------------------}
-{ TArrayInitializationNode class }
+{ TDelphiArrayInitializationNode class }
 {--------------------------------}
 
 {*
   [@inheritDoc]
 *}
-procedure TArrayInitializationNode.BeginParsing;
+procedure TDelphiArrayInitializationNode.BeginParsing;
 begin
   inherited;
 
@@ -845,7 +847,8 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TArrayInitializationNode.ChildBeginParsing(Child: TSepiParseTreeNode);
+procedure TDelphiArrayInitializationNode.ChildBeginParsing(
+  Child: TSepiParseTreeNode);
 var
   InitChild: TSepiInitializationExpressionNode;
 begin
@@ -865,7 +868,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TArrayInitializationNode.EndParsing;
+procedure TDelphiArrayInitializationNode.EndParsing;
 begin
   if ChildCount <> ArrayType.ArrayLength then
   begin
@@ -879,20 +882,20 @@ end;
 {*
   [@inheritDoc]
 *}
-function TArrayInitializationNode.IsValidType(
+function TDelphiArrayInitializationNode.IsValidType(
   AValueType: TSepiType): Boolean;
 begin
   Result := AValueType is TSepiStaticArrayType;
 end;
 
 {---------------------------------}
-{ TRecordInitializationNode class }
+{ TDelphiRecordInitializationNode class }
 {---------------------------------}
 
 {*
   [@inheritDoc]
 *}
-procedure TRecordInitializationNode.BeginParsing;
+procedure TDelphiRecordInitializationNode.BeginParsing;
 begin
   inherited;
 
@@ -902,7 +905,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TRecordInitializationNode.ChildBeginParsing(
+procedure TDelphiRecordInitializationNode.ChildBeginParsing(
   Child: TSepiParseTreeNode);
 var
   ValueChild: TSepiInitializationExpressionNode;
@@ -930,20 +933,20 @@ end;
 {*
   [@inheritDoc]
 *}
-function TRecordInitializationNode.IsValidType(
+function TDelphiRecordInitializationNode.IsValidType(
   AValueType: TSepiType): Boolean;
 begin
   Result := AValueType is TSepiRecordType;
 end;
 
 {-------------------------------}
-{ TGUIDInitializationNode class }
+{ TDelphiGUIDInitializationNode class }
 {-------------------------------}
 
 {*
   [@inheritDoc]
 *}
-procedure TGUIDInitializationNode.BeginParsing;
+procedure TDelphiGUIDInitializationNode.BeginParsing;
 begin
   inherited;
 
@@ -953,19 +956,20 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TGUIDInitializationNode.ChildBeginParsing(
+procedure TDelphiGUIDInitializationNode.ChildBeginParsing(
   Child: TSepiParseTreeNode);
 begin
   inherited;
 
-  if Child is TRecordInitializationNode then
-    TRecordInitializationNode(Child).SetValueTypeAndPtr(ValueType, ValuePtr);
+  if Child is TDelphiRecordInitializationNode then
+    TDelphiRecordInitializationNode(Child).SetValueTypeAndPtr(
+      ValueType, ValuePtr);
 end;
 
 {*
   [@inheritDoc]
 *}
-procedure TGUIDInitializationNode.ChildEndParsing(
+procedure TDelphiGUIDInitializationNode.ChildEndParsing(
   Child: TSepiParseTreeNode);
 begin
   if Child.SymbolClass = tkStringCst then
@@ -984,20 +988,21 @@ end;
 {*
   [@inheritDoc]
 *}
-function TGUIDInitializationNode.IsValidType(
+function TDelphiGUIDInitializationNode.IsValidType(
   AValueType: TSepiType): Boolean;
 begin
   Result := AValueType = SystemUnit.TGUID;
 end;
 
 {--------------------------------}
-{ TOtherInitializationNode class }
+{ TDelphiOtherInitializationNode class }
 {--------------------------------}
 
 {*
   [@inheritDoc]
 *}
-procedure TOtherInitializationNode.ChildBeginParsing(Child: TSepiParseTreeNode);
+procedure TDelphiOtherInitializationNode.ChildBeginParsing(
+  Child: TSepiParseTreeNode);
 begin
   inherited;
 
@@ -1007,7 +1012,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TOtherInitializationNode.EndParsing;
+procedure TDelphiOtherInitializationNode.EndParsing;
 var
   ReadableValue: ISepiReadableValue;
 begin
@@ -1021,7 +1026,7 @@ end;
 {*
   [@inheritDoc]
 *}
-function TOtherInitializationNode.IsValidType(
+function TDelphiOtherInitializationNode.IsValidType(
   AValueType: TSepiType): Boolean;
 begin
   Result := (AValueType <> nil) and
@@ -1029,14 +1034,14 @@ begin
 end;
 
 {------------------------}
-{ TConstOrTypeNode class }
+{ TDelphiConstOrTypeNode class }
 {------------------------}
 
 {*
   Indique si c'est un type
   @return True si c'est un type, False sinon
 *}
-function TConstOrTypeNode.GetIsType: Boolean;
+function TDelphiConstOrTypeNode.GetIsType: Boolean;
 begin
   Result := Supports(Expression, ISepiTypeExpression);
 end;
@@ -1044,19 +1049,19 @@ end;
 {*
   [@inheritDoc]
 *}
-function TConstOrTypeNode.ValidateExpression: Boolean;
+function TDelphiConstOrTypeNode.ValidateExpression: Boolean;
 begin
   Result := IsType or (inherited ValidateExpression);
 end;
 
 {--------------------}
-{ TUnaryOpNode class }
+{ TDelphiUnaryOpNode class }
 {--------------------}
 
 {*
   [@inheritDoc]
 *}
-function TUnaryOpNode.GetOperation: TSepiOperation;
+function TDelphiUnaryOpNode.GetOperation: TSepiOperation;
 begin
   case Children[0].SymbolClass of
     tkMinus:
@@ -1069,13 +1074,13 @@ begin
 end;
 
 {---------------------}
-{ TBinaryOpNode class }
+{ TDelphiBinaryOpNode class }
 {---------------------}
 
 {*
   [@inheritDoc]
 *}
-function TBinaryOpNode.GetOperation: TSepiOperation;
+function TDelphiBinaryOpNode.GetOperation: TSepiOperation;
 const
   SymbolClassToOperation: array[tkPlus..tkNotEqual] of TSepiOperation = (
     opAdd, opSubtract, opMultiply, opDivide, opIntDivide, opModulus,
@@ -1096,13 +1101,13 @@ begin
 end;
 
 {-----------------------}
-{ TSingleExprNode class }
+{ TDelphiSingleExprNode class }
 {-----------------------}
 
 {*
   [@inheritDoc]
 *}
-procedure TSingleExprNode.EndParsing;
+procedure TDelphiSingleExprNode.EndParsing;
 var
   Callable: ISepiCallable;
 begin
@@ -1114,13 +1119,13 @@ begin
 end;
 
 {---------------------}
-{ TNextExprNode class }
+{ TDelphiNextExprNode class }
 {---------------------}
 
 {*
   [@inheritDoc]
 *}
-procedure TNextExprNode.EndParsing;
+procedure TDelphiNextExprNode.EndParsing;
 var
   ReadableValue: ISepiReadableValue;
 begin
@@ -1138,13 +1143,13 @@ begin
 end;
 
 {-----------------------}
-{ TParametersNode class }
+{ TDelphiParametersNode class }
 {-----------------------}
 
 {*
   Compile une pseudo-routine de test d'identificateur
 *}
-procedure TParametersNode.CompileIdentifierTest(
+procedure TDelphiParametersNode.CompileIdentifierTest(
   const PseudoRoutine: ISepiIdentifierTestPseudoRoutine);
 begin
   PseudoRoutine.Identifier := Children[0].AsText;
@@ -1158,7 +1163,7 @@ end;
   Compile un transtypage ou une conversion
   @param DestType   Type de destination
 *}
-procedure TParametersNode.CompileCastOrConvert(DestType: TSepiType);
+procedure TDelphiParametersNode.CompileCastOrConvert(DestType: TSepiType);
 var
   Source: ISepiValue;
   ReadableSource: ISepiReadableValue;
@@ -1206,7 +1211,7 @@ end;
   @param TypeOperation    Pseudo-routine
   @param TypeExpression   Expression argument
 *}
-procedure TParametersNode.CompileCast(
+procedure TDelphiParametersNode.CompileCast(
   const PseudoRoutine: ISepiCastPseudoRoutine);
 begin
   if ChildCount <> 1 then
@@ -1227,7 +1232,7 @@ end;
   @param TypeOperation    Pseudo-routine
   @param TypeExpression   Expression argument
 *}
-procedure TParametersNode.CompileTypeOperation(
+procedure TDelphiParametersNode.CompileTypeOperation(
   const TypeOperation: ISepiTypeOperationPseudoRoutine;
   const TypeExpression: ISepiTypeExpression);
 begin
@@ -1242,7 +1247,7 @@ end;
   Compile un appel de méthode
   @param Callable   Expression invocable
 *}
-procedure TParametersNode.CompileCall(const Callable: ISepiCallable);
+procedure TDelphiParametersNode.CompileCall(const Callable: ISepiCallable);
 var
   I: Integer;
   Expression: ISepiExpression;
@@ -1265,7 +1270,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TParametersNode.BeginParsing;
+procedure TDelphiParametersNode.BeginParsing;
 var
   Callable: ISepiCallable;
   ReadableValue: ISepiReadableValue;
@@ -1291,7 +1296,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TParametersNode.EndParsing;
+procedure TDelphiParametersNode.EndParsing;
 var
   IdentifierTestPseudoRoutine: ISepiIdentifierTestPseudoRoutine;
   CastPseudoRoutine: ISepiCastPseudoRoutine;
@@ -1326,13 +1331,13 @@ begin
 end;
 
 {---------------------}
-{ TTypeDeclNode class }
+{ TDelphiTypeDeclNode class }
 {---------------------}
 
 {*
   [@inheritDoc]
 *}
-procedure TTypeDeclNode.ChildBeginParsing(Child: TSepiParseTreeNode);
+procedure TDelphiTypeDeclNode.ChildBeginParsing(Child: TSepiParseTreeNode);
 begin
   inherited;
 
@@ -1342,23 +1347,23 @@ begin
 end;
 
 {-------------------------}
-{ TConstantDeclNode class }
+{ TDelphiConstantDeclNode class }
 {-------------------------}
 
 {*
   [@inheritDoc]
 *}
-procedure TConstantDeclNode.ChildBeginParsing(Child: TSepiParseTreeNode);
+procedure TDelphiConstantDeclNode.ChildBeginParsing(Child: TSepiParseTreeNode);
 var
-  InitChild: TInitializationExpressionNode;
+  InitChild: TDelphiInitializationExpressionNode;
 begin
   inherited;
 
-  if Child is TInitializationExpressionNode then
+  if Child is TDelphiInitializationExpressionNode then
   begin
     Assert(ConstVar <> nil);
 
-    InitChild := TInitializationExpressionNode(Child);
+    InitChild := TDelphiInitializationExpressionNode(Child);
     InitChild.SetValueTypeAndPtr(ConstVar.VarType, ConstVar.Value);
   end;
 end;
@@ -1366,7 +1371,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TConstantDeclNode.ChildEndParsing(Child: TSepiParseTreeNode);
+procedure TDelphiConstantDeclNode.ChildEndParsing(Child: TSepiParseTreeNode);
 var
   ReadableValue: ISepiReadableValue;
 begin
@@ -1387,13 +1392,13 @@ begin
 end;
 
 {-------------------------}
-{ TVariableDeclNode class }
+{ TDelphiVariableDeclNode class }
 {-------------------------}
 
 {*
   [@inheritDoc]
 *}
-destructor TVariableDeclNode.Destroy;
+destructor TDelphiVariableDeclNode.Destroy;
 begin
   FNames.Free;
 
@@ -1403,17 +1408,17 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TVariableDeclNode.ChildBeginParsing(Child: TSepiParseTreeNode);
+procedure TDelphiVariableDeclNode.ChildBeginParsing(Child: TSepiParseTreeNode);
 var
-  InitChild: TInitializationExpressionNode;
+  InitChild: TDelphiInitializationExpressionNode;
 begin
   inherited;
 
-  if Child is TInitializationExpressionNode then
+  if Child is TDelphiInitializationExpressionNode then
   begin
     Assert(Variable <> nil);
 
-    InitChild := TInitializationExpressionNode(Child);
+    InitChild := TDelphiInitializationExpressionNode(Child);
     InitChild.SetValueTypeAndPtr(Variable.VarType, Variable.Value);
   end;
 end;
@@ -1421,7 +1426,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TVariableDeclNode.ChildEndParsing(Child: TSepiParseTreeNode);
+procedure TDelphiVariableDeclNode.ChildEndParsing(Child: TSepiParseTreeNode);
 var
   I: Integer;
 begin
@@ -1450,7 +1455,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TTypeCloneNode.EndParsing;
+procedure TDelphiTypeCloneNode.EndParsing;
 var
   OldType: TSepiType;
 begin
@@ -1475,13 +1480,14 @@ begin
 end;
 
 {----------------------------}
-{ TRangeOrEnumTypeNode class }
+{ TDelphiRangeOrEnumTypeNode class }
 {----------------------------}
 
 {*
   [@inheritDoc]
 *}
-procedure TRangeOrEnumTypeNode.ChildBeginParsing(Child: TSepiParseTreeNode);
+procedure TDelphiRangeOrEnumTypeNode.ChildBeginParsing(
+  Child: TSepiParseTreeNode);
 begin
   inherited;
 
@@ -1491,7 +1497,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TRangeOrEnumTypeNode.ChildEndParsing(Child: TSepiParseTreeNode);
+procedure TDelphiRangeOrEnumTypeNode.ChildEndParsing(Child: TSepiParseTreeNode);
 begin
   SetSepiType((Child as TSepiTypeDefinitionNode).SepiType);
 
@@ -1499,7 +1505,7 @@ begin
 end;
 
 {----------------------}
-{ TRangeTypeNode class }
+{ TDelphiRangeTypeNode class }
 {----------------------}
 
 {*
@@ -1509,8 +1515,8 @@ end;
   @param LowerValue    Valeur basse
   @param HigherValue   Valeur haute
 *}
-function TRangeTypeNode.MakeType(const TypeName: string; BaseType: TSepiType;
-  const LowerValue, HigherValue): TSepiType;
+function TDelphiRangeTypeNode.MakeType(const TypeName: string;
+  BaseType: TSepiType; const LowerValue, HigherValue): TSepiType;
 var
   EnumBaseType: TSepiEnumType;
 begin
@@ -1547,7 +1553,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TRangeTypeNode.ChildEndParsing(Child: TSepiParseTreeNode);
+procedure TDelphiRangeTypeNode.ChildEndParsing(Child: TSepiParseTreeNode);
 var
   Expression: ISepiExpression;
   TypeExpression: ISepiTypeExpression;
@@ -1571,7 +1577,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TRangeTypeNode.EndParsing;
+procedure TDelphiRangeTypeNode.EndParsing;
 var
   LowerValue, HigherValue: ISepiReadableValue;
 begin
@@ -1603,13 +1609,13 @@ begin
 end;
 
 {---------------------}
-{ TEnumTypeNode class }
+{ TDelphiEnumTypeNode class }
 {---------------------}
 
 {*
   [@inheritDoc]
 *}
-procedure TEnumTypeNode.EndParsing;
+procedure TDelphiEnumTypeNode.EndParsing;
 var
   I: Integer;
   Values: array of string;
@@ -1620,19 +1626,19 @@ begin
     Values[I] := Children[I].AsText;
 
   SetSepiType(TSepiEnumType.Create(SepiContext, TypeName, Values,
-    (RootNode as TRootNode).MinEnumSize));
+    (RootNode as TDelphiRootNode).MinEnumSize));
 
   inherited;
 end;
 
 {--------------------}
-{ TSetTypeNode class }
+{ TDelphiSetTypeNode class }
 {--------------------}
 
 {*
   [@inheritDoc]
 *}
-procedure TSetTypeNode.MakeErroneousType;
+procedure TDelphiSetTypeNode.MakeErroneousType;
 begin
   SetSepiType(TSepiSetType.Create(SepiContext, TypeName, SystemUnit.Byte));
 end;
@@ -1642,7 +1648,7 @@ end;
   @param CompType   Type de composant à tester
   @return True s'il est valide, False sinon
 *}
-function TSetTypeNode.IsValidCompType(CompType: TSepiType): Boolean;
+function TDelphiSetTypeNode.IsValidCompType(CompType: TSepiType): Boolean;
 begin
   Result := (CompType is TSepiOrdType) and
     (TSepiOrdType(CompType).MaxValue - TSepiOrdType(CompType).MinValue < 256);
@@ -1651,7 +1657,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSetTypeNode.EndParsing;
+procedure TDelphiSetTypeNode.EndParsing;
 var
   CompType: TSepiType;
 begin
@@ -1668,13 +1674,13 @@ begin
 end;
 
 {-----------------------}
-{ TStringTypeNode class }
+{ TDelphiStringTypeNode class }
 {-----------------------}
 
 {*
   [@inheritDoc]
 *}
-procedure TStringTypeNode.EndParsing;
+procedure TDelphiStringTypeNode.EndParsing;
 var
   MaxLength: Integer;
 begin
@@ -1701,13 +1707,13 @@ begin
 end;
 
 {------------------------}
-{ TPointerTypeNode class }
+{ TDelphiPointerTypeNode class }
 {------------------------}
 
 {*
   [@inheritDoc]
 *}
-procedure TPointerTypeNode.EndParsing;
+procedure TDelphiPointerTypeNode.EndParsing;
 var
   PointedName: string;
   PointedType: TSepiType;
@@ -1724,7 +1730,7 @@ begin
 end;
 
 {----------------------}
-{ TArrayTypeNode class }
+{ TDelphiArrayTypeNode class }
 {----------------------}
 
 {*
@@ -1734,7 +1740,7 @@ end;
   @param ElementType   Type des éléments
   @return Type tableau créé
 *}
-function TArrayTypeNode.RangeDefinition(const TypeName: string;
+function TDelphiArrayTypeNode.RangeDefinition(const TypeName: string;
   RangeNode: TSepiParseTreeNode; ElementType: TSepiType): TSepiStaticArrayType;
 var
   LowerValue, HigherValue: ISepiReadableValue;
@@ -1782,7 +1788,7 @@ end;
   @param ElementType   Type des éléments
   @return Type tableau créé
 *}
-function TArrayTypeNode.TypedDefinition(const TypeName: string;
+function TDelphiArrayTypeNode.TypedDefinition(const TypeName: string;
   IndexNode: TSepiConstExpressionNode;
   ElementType: TSepiType): TSepiStaticArrayType;
 var
@@ -1813,7 +1819,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TArrayTypeNode.EndParsing;
+procedure TDelphiArrayTypeNode.EndParsing;
 var
   ElementType: TSepiType;
   I: Integer;
@@ -1856,13 +1862,13 @@ begin
 end;
 
 {-----------------------}
-{ TRecordTypeNode class }
+{ TDelphiRecordTypeNode class }
 {-----------------------}
 
 {*
   [@inheritDoc]
 *}
-function TRecordTypeNode.GetSepiContext: TSepiMeta;
+function TDelphiRecordTypeNode.GetSepiContext: TSepiMeta;
 begin
   if RecordType <> nil then
     Result := RecordType
@@ -1873,7 +1879,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TRecordTypeNode.BeginParsing;
+procedure TDelphiRecordTypeNode.BeginParsing;
 begin
   inherited;
 
@@ -1883,7 +1889,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TRecordTypeNode.EndParsing;
+procedure TDelphiRecordTypeNode.EndParsing;
 begin
   RecordType.Complete;
   SetSepiType(RecordType);
@@ -1892,13 +1898,13 @@ begin
 end;
 
 {-----------------------------}
-{ TPackedRecordTypeNode class }
+{ TDelphiPackedRecordTypeNode class }
 {-----------------------------}
 
 {*
   [@inheritDoc]
 *}
-constructor TPackedRecordTypeNode.Create(AParent: TSepiNonTerminal;
+constructor TDelphiPackedRecordTypeNode.Create(AParent: TSepiNonTerminal;
   AClass: TSepiSymbolClass; const ASourcePos: TSepiSourcePosition);
 begin
   inherited;
@@ -1907,13 +1913,13 @@ begin
 end;
 
 {----------------------}
-{ TClassTypeNode class }
+{ TDelphiClassTypeNode class }
 {----------------------}
 
 {*
   [@inheritDoc]
 *}
-procedure TClassTypeNode.CreateClass(ParentClass: TSepiClass = nil);
+procedure TDelphiClassTypeNode.CreateClass(ParentClass: TSepiClass = nil);
 var
   Context: TSepiMeta;
 begin
@@ -1929,7 +1935,7 @@ end;
 {*
   [@inheritDoc]
 *}
-function TClassTypeNode.GetSepiContext: TSepiMeta;
+function TDelphiClassTypeNode.GetSepiContext: TSepiMeta;
 begin
   if SepiClass <> nil then
     Result := SepiClass
@@ -1940,7 +1946,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TClassTypeNode.ChildBeginParsing(Child: TSepiParseTreeNode);
+procedure TDelphiClassTypeNode.ChildBeginParsing(Child: TSepiParseTreeNode);
 begin
   inherited;
 
@@ -1961,7 +1967,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TClassTypeNode.ChildEndParsing(Child: TSepiParseTreeNode);
+procedure TDelphiClassTypeNode.ChildEndParsing(Child: TSepiParseTreeNode);
 var
   I: Integer;
   ParentClass, ReferencedClass: TSepiClass;
@@ -2008,7 +2014,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TClassTypeNode.EndParsing;
+procedure TDelphiClassTypeNode.EndParsing;
 begin
   if (not IsClass) and (not IsMetaClass) then
   begin
@@ -2032,7 +2038,7 @@ end;
 {*
   [@inheritDoc]
 *}
-function TClassTypeNode.ResolveIdent(
+function TDelphiClassTypeNode.ResolveIdent(
   const Identifier: string): ISepiExpression;
 var
   Meta: TSepiMeta;
@@ -2052,13 +2058,13 @@ begin
 end;
 
 {--------------------------}
-{ TInterfaceTypeNode class }
+{ TDelphiInterfaceTypeNode class }
 {--------------------------}
 
 {*
   [@inheritDoc]
 *}
-procedure TInterfaceTypeNode.CreateInterface;
+procedure TDelphiInterfaceTypeNode.CreateInterface;
 var
   Context: TSepiMeta;
 begin
@@ -2075,7 +2081,7 @@ end;
 {*
   [@inheritDoc]
 *}
-function TInterfaceTypeNode.GetSepiContext: TSepiMeta;
+function TDelphiInterfaceTypeNode.GetSepiContext: TSepiMeta;
 begin
   if SepiIntf <> nil then
     Result := SepiIntf
@@ -2086,7 +2092,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TInterfaceTypeNode.BeginParsing;
+procedure TDelphiInterfaceTypeNode.BeginParsing;
 begin
   inherited;
 
@@ -2096,13 +2102,13 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TInterfaceTypeNode.ChildBeginParsing(Child: TSepiParseTreeNode);
+procedure TDelphiInterfaceTypeNode.ChildBeginParsing(Child: TSepiParseTreeNode);
 begin
   inherited;
 
-  if Child is TInterfaceGUIDNode then
+  if Child is TDelphiInterfaceGUIDNode then
   begin
-    TInterfaceGUIDNode(Child).SetValuePtr(@FGUID);
+    TDelphiInterfaceGUIDNode(Child).SetValuePtr(@FGUID);
   end else if Child.SymbolClass = ntInterfaceMemberList then
   begin
     CreateInterface;
@@ -2112,7 +2118,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TInterfaceTypeNode.ChildEndParsing(Child: TSepiParseTreeNode);
+procedure TDelphiInterfaceTypeNode.ChildEndParsing(Child: TSepiParseTreeNode);
 begin
   if Child.SymbolClass = ntInterfaceHeritage then
   begin
@@ -2129,7 +2135,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TInterfaceTypeNode.EndParsing;
+procedure TDelphiInterfaceTypeNode.EndParsing;
 begin
   if SepiIntf = nil then
   begin
@@ -2149,7 +2155,7 @@ end;
 {*
   [@inheritDoc]
 *}
-function TInterfaceTypeNode.ResolveIdent(
+function TDelphiInterfaceTypeNode.ResolveIdent(
   const Identifier: string): ISepiExpression;
 var
   Meta: TSepiMeta;
@@ -2169,13 +2175,13 @@ begin
 end;
 
 {--------------------------}
-{ TInterfaceGUIDNode class }
+{ TDelphiInterfaceGUIDNode class }
 {--------------------------}
 
 {*
   [@inheritDoc]
 *}
-procedure TInterfaceGUIDNode.ChildEndParsing(Child: TSepiParseTreeNode);
+procedure TDelphiInterfaceGUIDNode.ChildEndParsing(Child: TSepiParseTreeNode);
 var
   ConstExpr: TSepiConstExpressionNode;
   GUIDStr: string;
@@ -2205,19 +2211,19 @@ end;
   Cette méthode doit être appelée exactement une fois, avant BeginParsing.
   @param AValuePtr   Pointeur où stocker le résultat (peut être nil)
 *}
-procedure TInterfaceGUIDNode.SetValuePtr(AValuePtr: PGUID);
+procedure TDelphiInterfaceGUIDNode.SetValuePtr(AValuePtr: PGUID);
 begin
   SetValueTypeAndPtr(SystemUnit.TGUID, AValuePtr);
 end;
 
 {--------------------------}
-{ TMethodRefTypeNode class }
+{ TDelphiMethodRefTypeNode class }
 {--------------------------}
 
 {*
   [@inheritDoc]
 *}
-destructor TMethodRefTypeNode.Destroy;
+destructor TDelphiMethodRefTypeNode.Destroy;
 begin
   FSignature.Free;
 
@@ -2227,7 +2233,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TMethodRefTypeNode.BeginParsing;
+procedure TDelphiMethodRefTypeNode.BeginParsing;
 begin
   inherited;
 
@@ -2237,7 +2243,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TMethodRefTypeNode.ChildBeginParsing(Child: TSepiParseTreeNode);
+procedure TDelphiMethodRefTypeNode.ChildBeginParsing(Child: TSepiParseTreeNode);
 begin
   inherited;
 
@@ -2248,9 +2254,9 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TMethodRefTypeNode.ChildEndParsing(Child: TSepiParseTreeNode);
+procedure TDelphiMethodRefTypeNode.ChildEndParsing(Child: TSepiParseTreeNode);
 begin
-  if Child is TOfObjectMarkerNode then
+  if Child is TDelphiOfObjectMarkerNode then
   begin
     case Signature.Kind of
       skStaticProcedure:
@@ -2268,7 +2274,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TMethodRefTypeNode.EndParsing;
+procedure TDelphiMethodRefTypeNode.EndParsing;
 begin
   Signature.Complete;
   SetSepiType(TSepiMethodRefType.Create(SepiContext, TypeName, Signature));
