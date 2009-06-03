@@ -3566,6 +3566,7 @@ var
 begin
   inherited;
 
+  Stream.ReadBuffer(FIsConst, 1);
   OwningUnit.ReadRef(Stream, FType);
 
   if Assigned(OwningUnit.OnGetVarAddress) then
@@ -3724,6 +3725,7 @@ var
 begin
   inherited;
 
+  Stream.WriteBuffer(FIsConst, 1);
   OwningUnit.WriteRef(Stream, FType);
 
   DataStored := False;
