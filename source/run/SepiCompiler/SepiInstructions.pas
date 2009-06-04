@@ -185,17 +185,17 @@ type
   end;
 
   {*
-    Instruction d'appel de méthode (sans résultat)
+    Instruction d'exécution d'une expression (exécutable)
     @author sjrd
     @version 1.0
   *}
-  TSepiCall = class(TSepiInstruction)
+  TSepiExecuteExpression = class(TSepiInstruction)
   private
-    FCallable: ISepiCallable; /// Invocable
+    FExecutable: ISepiExecutable; /// Invocable
   protected
     procedure CustomCompile; override;
   public
-    property Callable: ISepiCallable read FCallable write FCallable;
+    property Executable: ISepiExecutable read FExecutable write FExecutable;
   end;
 
   {*
@@ -864,19 +864,19 @@ begin
   Instructions.Compile;
 end;
 
-{-----------------}
-{ TSepiCall class }
-{-----------------}
+{------------------------------}
+{ TSepiExecuteExpression class }
+{------------------------------}
 
 {*
   [@inheritDoc]
 *}
-procedure TSepiCall.CustomCompile;
+procedure TSepiExecuteExpression.CustomCompile;
 var
   Instructions: TSepiInstructionList;
 begin
   Instructions := TSepiInstructionList.Create(MethodCompiler);
-  Callable.CompileNoResult(MethodCompiler, Instructions);
+  Executable.CompileExecute(MethodCompiler, Instructions);
   Instructions.Compile;
 end;
 

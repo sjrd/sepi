@@ -69,6 +69,7 @@ resourcestring
     'Appel de type inherited invalide hors d''une méthode d''objet ou de '+
     'classe';
   SCallableRequired = 'Expression invocable requise';
+  SExecutableRequired = 'Expression exécutable requise';
   SMetaRequired = 'Nom d''objet requis';
   SIdentifierRequired = 'Identificateur requis';
 

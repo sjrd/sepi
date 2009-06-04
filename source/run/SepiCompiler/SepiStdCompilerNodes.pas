@@ -408,10 +408,10 @@ type
     function GetMethodName: string; virtual;
     function FindMethod: TSepiMeta; virtual;
 
-    function MakeCallable(SepiMethod: TSepiMeta;
-      const SelfParam: ISepiReadableValue): ISepiCallable; virtual;
+    function MakeMethodCall(SepiMethod: TSepiMeta;
+      const SelfParam: ISepiReadableValue): ISepiWantingParams; virtual;
 
-    function CompileCallable: ISepiCallable; virtual;
+    function CompileMethodCall: ISepiWantingParams; virtual;
   public
     procedure EndParsing; override;
   end;
@@ -1499,7 +1499,8 @@ type
     @author sjrd
     @version 1.0
   *}
-  TSepiCallInstructionNode = class(TSepiCustomExpressionInstructionNode)
+  TSepiExecuteExpressionInstructionNode = class(
+    TSepiCustomExpressionInstructionNode)
   public
     procedure EndParsing; override;
   end;
@@ -2549,12 +2550,13 @@ begin
 end;
 
 {*
-  Construit un callable
+  Construit l'appel de la méthode
   @param SepiMethod   Méthode à appeler
   @param SelfVar      Variable locale Self
+  @return Appel de la méthode, ou nil en cas d'erreur
 *}
-function TSepiInheritedExpressionNode.MakeCallable(SepiMethod: TSepiMeta;
-  const SelfParam: ISepiReadableValue): ISepiCallable;
+function TSepiInheritedExpressionNode.MakeMethodCall(SepiMethod: TSepiMeta;
+  const SelfParam: ISepiReadableValue): ISepiWantingParams;
 const
   ForceStaticCall = True;
   FreeParamIsAlwaysFalse = False;
@@ -2574,10 +2576,10 @@ begin
 end;
 
 {*
-  Compile l'appel inherited comme un callable
-  @return Callable représenté par l'appel inherited (ou nil en cas d'erreur)
+  Compile l'appel inherited comme un wanting-params
+  @return Appel de méthode inherited (ou nil en cas d'erreur)
 *}
-function TSepiInheritedExpressionNode.CompileCallable: ISepiCallable;
+function TSepiInheritedExpressionNode.CompileMethodCall: ISepiWantingParams;
 var
   SepiMethod: TSepiMeta;
   SelfParam: ISepiValue;
@@ -2592,7 +2594,7 @@ begin
     SelfParam := TSepiLocalVarValue.MakeValue(MethodCompiler,
       MethodCompiler.Locals.SelfVar);
 
-    Result := MakeCallable(SepiMethod, SelfParam as ISepiReadableValue);
+    Result := MakeMethodCall(SepiMethod, SelfParam as ISepiReadableValue);
   end;
 end;
 
@@ -2601,14 +2603,14 @@ end;
 *}
 procedure TSepiInheritedExpressionNode.EndParsing;
 var
-  Callable: ISepiCallable;
+  MethodCall: ISepiWantingParams;
 begin
-  Callable := CompileCallable;
+  MethodCall := CompileMethodCall;
 
-  if Callable <> nil then
+  if MethodCall <> nil then
   begin
     SetExpression(MakeExpression);
-    Callable.AttachToExpression(Expression);
+    MethodCall.AttachToExpression(Expression);
   end;
 
   inherited;
@@ -2691,7 +2693,6 @@ procedure TSepiArrayIndicesModifierNode.CompileProperty(
   const Prop: ISepiProperty);
 var
   Count, I: Integer;
-  Value: ISepiValue;
 begin
   if ChildCount < Prop.ParamCount then
     Count := ChildCount
@@ -2699,18 +2700,16 @@ begin
     Count := Prop.ParamCount;
 
   for I := 0 to Count-1 do
-  begin
-    if Supports((Children[I] as TSepiExpressionNode).Expression,
-      ISepiValue, Value) then
-      Prop.Params[I] := Value
-    else
-      Children[I].MakeError(SValueRequired);
-  end;
+    Prop.Params[I] := (Children[I] as TSepiExpressionNode).Expression;
+  for I := Count to Prop.ParamCount-1 do
+    Prop.Params[I] := MakeErroneousValue as ISepiExpression;
 
   if ChildCount < Prop.ParamCount then
     MakeError(SNotEnoughActualParameters)
   else if ChildCount > Prop.ParamCount then
     MakeError(STooManyActualParameters);
+
+  Prop.CompleteParams;
 
   SetExpression(Base);
 end;
@@ -5054,26 +5053,26 @@ begin
   FFirstExpression := AFirstExpression;
 end;
 
-{--------------------------------}
-{ TSepiCallInstructionNode class }
-{--------------------------------}
+{---------------------------------------------}
+{ TSepiExecuteExpressionInstructionNode class }
+{---------------------------------------------}
 
 {*
   [@inheritDoc]
 *}
-procedure TSepiCallInstructionNode.EndParsing;
+procedure TSepiExecuteExpressionInstructionNode.EndParsing;
 var
-  Instruction: TSepiCall;
-  Callable: ISepiCallable;
+  Instruction: TSepiExecuteExpression;
+  Executable: ISepiExecutable;
 begin
-  if Supports(FirstExpression, ISepiCallable, Callable) then
+  if Supports(FirstExpression, ISepiExecutable, Executable) then
   begin
-    Instruction := TSepiCall.Create(MethodCompiler);
-    Instruction.Callable := Callable;
+    Instruction := TSepiExecuteExpression.Create(MethodCompiler);
+    Instruction.Executable := Executable;
     InstructionList.Add(Instruction);
   end else
   begin
-    FirstExpression.MakeError(SCallableRequired);
+    FirstExpression.MakeError(SExecutableRequired);
   end;
 
   inherited;

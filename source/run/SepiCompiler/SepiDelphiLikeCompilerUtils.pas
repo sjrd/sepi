@@ -121,22 +121,20 @@ type
     @version 1.0
   *}
   TSepiSpecialJumpPseudoRoutine = class(TSepiCustomExpressionPart,
-    ISepiCallable)
+    ISepiExecutable)
   private
     FKind: TSepiSpecialJumpKind; /// Type de saut spécial
   protected
     procedure AttachToExpression(const Expression: ISepiExpression); override;
 
     function GetParamCount: Integer;
-    function GetParams(Index: Integer): ISepiValue;
+    function GetParams(Index: Integer): ISepiExpression;
     function GetParamsCompleted: Boolean;
 
-    procedure AddParam(const Value: ISepiValue);
+    procedure AddParam(const Value: ISepiExpression);
     procedure CompleteParams;
 
-    function GetReturnType: TSepiType;
-
-    procedure CompileNoResult(Compiler: TSepiMethodCompiler;
+    procedure CompileExecute(Compiler: TSepiMethodCompiler;
       Instructions: TSepiInstructionList);
   public
     constructor Create(AKind: TSepiSpecialJumpKind);
@@ -617,7 +615,7 @@ var
 begin
   AsExpressionPart := Self;
 
-  Expression.Attach(ISepiCallable, AsExpressionPart);
+  Expression.Attach(ISepiExecutable, AsExpressionPart);
 end;
 
 {*
@@ -631,7 +629,8 @@ end;
 {*
   [@inheritDoc]
 *}
-function TSepiSpecialJumpPseudoRoutine.GetParams(Index: Integer): ISepiValue;
+function TSepiSpecialJumpPseudoRoutine.GetParams(
+  Index: Integer): ISepiExpression;
 begin
   Result := nil;
 end;
@@ -647,7 +646,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiSpecialJumpPseudoRoutine.AddParam(const Value: ISepiValue);
+procedure TSepiSpecialJumpPseudoRoutine.AddParam(const Value: ISepiExpression);
 begin
   raise ESepiCompilerError.Create(SParamsAlreadyCompleted);
 end;
@@ -663,15 +662,7 @@ end;
 {*
   [@inheritDoc]
 *}
-function TSepiSpecialJumpPseudoRoutine.GetReturnType: TSepiType;
-begin
-  Result := nil;
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TSepiSpecialJumpPseudoRoutine.CompileNoResult(
+procedure TSepiSpecialJumpPseudoRoutine.CompileExecute(
   Compiler: TSepiMethodCompiler; Instructions: TSepiInstructionList);
 begin
   case Kind of

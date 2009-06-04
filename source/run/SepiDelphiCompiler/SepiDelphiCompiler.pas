@@ -233,7 +233,7 @@ type
     procedure CompileTypeOperation(
       const TypeOperation: ISepiTypeOperationPseudoRoutine;
       const TypeExpression: ISepiTypeExpression);
-    procedure CompileCall(const Callable: ISepiCallable);
+    procedure CompileParams(const WantingParams: ISepiWantingParams);
   public
     procedure BeginParsing; override;
     procedure EndParsing; override;
@@ -701,7 +701,8 @@ begin
   NonTerminalClasses[ntFinallyClause]         := TSepiFinallyClauseNode;
   NonTerminalClasses[ntRaiseInstruction]      := TSepiRaiseInstructionNode;
   NonTerminalClasses[ntExpressionInstruction] := TSepiExpressionInstructionNode;
-  NonTerminalClasses[ntCallInstruction]       := TSepiCallInstructionNode;
+  NonTerminalClasses[ntCallInstruction] :=
+    TSepiExecuteExpressionInstructionNode;
   NonTerminalClasses[ntAssignmentInstruction] := TSepiAssignmentInstructionNode;
 end;
 
@@ -1109,11 +1110,11 @@ end;
 *}
 procedure TDelphiSingleExprNode.EndParsing;
 var
-  Callable: ISepiCallable;
+  WantingParams: ISepiWantingParams;
 begin
-  if Supports(Expression, ISepiCallable, Callable) and
-    (not Callable.ParamsCompleted) then
-    Callable.CompleteParams;
+  if Supports(Expression, ISepiWantingParams, WantingParams) and
+    (not WantingParams.ParamsCompleted) then
+    WantingParams.CompleteParams;
 
   inherited;
 end;
@@ -1244,26 +1245,19 @@ begin
 end;
 
 {*
-  Compile un appel de méthode
-  @param Callable   Expression invocable
+  Compile les paramètres d'une expression requérant des paramètres
+  @param WantingParams   Expression requérant des paramètres
 *}
-procedure TDelphiParametersNode.CompileCall(const Callable: ISepiCallable);
+procedure TDelphiParametersNode.CompileParams(
+  const WantingParams: ISepiWantingParams);
 var
   I: Integer;
-  Expression: ISepiExpression;
-  Value: ISepiValue;
 begin
   for I := 0 to ChildCount-1 do
-  begin
-    Expression := (Children[I] as TSepiExpressionNode).Expression;
-    if not Supports(Expression, ISepiValue, Value) then
-      Expression.MakeError(SValueRequired)
-    else
-      Callable.AddParam(Value);
-  end;
+    WantingParams.AddParam((Children[I] as TSepiExpressionNode).Expression);
 
-  Callable.CompleteParams;
-  Callable.AttachToExpression(Base);
+  WantingParams.CompleteParams;
+  WantingParams.AttachToExpression(Base);
   SetExpression(Base);
 end;
 
@@ -1272,12 +1266,12 @@ end;
 *}
 procedure TDelphiParametersNode.BeginParsing;
 var
-  Callable: ISepiCallable;
+  WantingParams: ISepiWantingParams;
   ReadableValue: ISepiReadableValue;
 begin
   inherited;
 
-  if Supports(Base, ISepiCallable, Callable) and
+  if Supports(Base, ISepiWantingParams, WantingParams) and
     Supports(Base, ISepiReadableValue, ReadableValue) and
     (ReadableValue.ValueType is TSepiMethodRefType) then
   begin
@@ -1286,7 +1280,7 @@ begin
     Base.Detach(ISepiWritableValue);
     Base.Detach(ISepiAddressableValue);
 
-    Callable.AttachToExpression(Base);
+    WantingParams.AttachToExpression(Base);
   end;
 
   if Supports(Base, ISepiIdentifierTestPseudoRoutine) then
@@ -1302,7 +1296,7 @@ var
   CastPseudoRoutine: ISepiCastPseudoRoutine;
   TypeExpression: ISepiTypeExpression;
   TypeOperation: ISepiTypeOperationPseudoRoutine;
-  Callable: ISepiCallable;
+  WantingParams: ISepiWantingParams;
 begin
   if Supports(Base, ISepiIdentifierTestPseudoRoutine,
     IdentifierTestPseudoRoutine) then
@@ -1316,9 +1310,9 @@ begin
     Supports((Children[0] as TSepiExpressionNode).Expression,
       ISepiTypeExpression, TypeExpression) then
     CompileTypeOperation(TypeOperation, TypeExpression)
-  else if Supports(Base, ISepiCallable, Callable) and
-    (not Callable.ParamsCompleted) then
-    CompileCall(Callable)
+  else if Supports(Base, ISepiWantingParams, WantingParams) and
+    (not WantingParams.ParamsCompleted) then
+    CompileParams(WantingParams)
   else
   begin
     if Supports(Base, ISepiTypeOperationPseudoRoutine) then

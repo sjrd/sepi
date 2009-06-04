@@ -64,6 +64,18 @@ const
 
 type
   {*
+    Expression qui peut être exécutée
+    @author sjrd
+    @version 1.0
+  *}
+  ISepiExecutable = interface(ISepiExpressionPart)
+    ['{5AA4242D-0E43-4938-8BE1-612AC8FCC6C3}']
+
+    procedure CompileExecute(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList);
+  end;
+
+  {*
     Valeur
     @author sjrd
     @version 1.0
@@ -168,39 +180,23 @@ type
   end;
 
   {*
-    Valeur à accès direct (par opposition à une valeur à calculer)
-    @author sjrd
-    @version 1.0
-  *}
-  ISepiDirectValue = interface(ISepiValue)
-    ['{12678933-C5A4-4BBA-9BBF-3E3BF30B4AD5}']
-  end;
-
-  {*
     Expression qui peut être appelée
     @author sjrd
     @version 1.0
   *}
-  ISepiCallable = interface(ISepiExpressionPart)
+  ISepiWantingParams = interface(ISepiExpressionPart)
     ['{CD26F811-9B78-4F42-ACD7-82B1FB93EA3F}']
 
     function GetParamCount: Integer;
-    function GetParams(Index: Integer): ISepiValue;
+    function GetParams(Index: Integer): ISepiExpression;
     function GetParamsCompleted: Boolean;
 
-    procedure AddParam(const Value: ISepiValue);
+    procedure AddParam(const Value: ISepiExpression);
     procedure CompleteParams;
 
-    function GetReturnType: TSepiType;
-
-    procedure CompileNoResult(Compiler: TSepiMethodCompiler;
-      Instructions: TSepiInstructionList);
-
     property ParamCount: Integer read GetParamCount;
-    property Params[Index: Integer]: ISepiValue read GetParams;
+    property Params[Index: Integer]: ISepiExpression read GetParams;
     property ParamsCompleted: Boolean read GetParamsCompleted;
-
-    property ReturnType: TSepiType read GetReturnType;
   end;
 
   {*
@@ -212,14 +208,14 @@ type
     ['{9C5A0B51-BDB2-45FA-B2D4-179763CB7F16}']
 
     function GetParamCount: Integer;
-    function GetParams(Index: Integer): ISepiValue;
-    procedure SetParams(Index: Integer; const Value: ISepiValue);
+    function GetParams(Index: Integer): ISepiExpression;
+    procedure SetParams(Index: Integer; const Value: ISepiExpression);
     function GetParamsCompleted: Boolean;
 
     procedure CompleteParams;
 
     property ParamCount: Integer read GetParamCount;
-    property Params[Index: Integer]: ISepiValue
+    property Params[Index: Integer]: ISepiExpression
       read GetParams write SetParams;
     property ParamsCompleted: Boolean read GetParamsCompleted;
   end;
@@ -307,8 +303,7 @@ type
     @version 1.0
   *}
   TSepiCustomDirectValue = class(TSepiCustomExpressionPart, ISepiValue,
-    ISepiDirectValue, ISepiReadableValue, ISepiWritableValue,
-    ISepiAddressableValue)
+    ISepiReadableValue, ISepiWritableValue, ISepiAddressableValue)
   private
     FValueType: TSepiType; /// Type de la valeur
 
@@ -522,7 +517,7 @@ type
   *}
   TSepiVariableValue = class(TSepiCustomDirectValue)
   private
-    FVariable: TSepiVariable;
+    FVariable: TSepiVariable; /// Variable représentée
   protected
     function CompileAsMemoryRef(Compiler: TSepiMethodCompiler;
       Instructions: TSepiInstructionList;
@@ -545,7 +540,7 @@ type
   *}
   TSepiLocalVarValue = class(TSepiCustomDirectValue)
   private
-    FLocalVar: TSepiLocalVar;
+    FLocalVar: TSepiLocalVar; /// Variable locale représentée
   protected
     function CompileAsMemoryRef(Compiler: TSepiMethodCompiler;
       Instructions: TSepiInstructionList;
@@ -1037,9 +1032,12 @@ type
   protected
     function GetParamCount: Integer;
     procedure SetParamCount(Value: Integer);
-    function GetParams(Index: Integer): ISepiValue;
-    procedure SetParams(Index: Integer; const Value: ISepiValue); virtual;
-    procedure AddParam(const Value: ISepiValue); virtual;
+    function GetParams(Index: Integer): ISepiExpression;
+    procedure SetParams(Index: Integer; const Value: ISepiExpression);
+
+    procedure ClearParams;
+    procedure AddParam(const Value: ISepiExpression);
+    procedure DeleteParam(Index: Integer);
 
     function GetParamsCompleted: Boolean;
 
@@ -1049,7 +1047,8 @@ type
       MakeErrors: Boolean = True): Boolean;
 
     property ParamCount: Integer read GetParamCount;
-    property Params[Index: Integer]: ISepiValue read GetParams write SetParams;
+    property Params[Index: Integer]: ISepiExpression
+      read GetParams write SetParams;
     property ParamsCompleted: Boolean read FParamsCompleted;
   public
     constructor Create(AInitParamCount: Integer = 0);
@@ -1060,8 +1059,8 @@ type
     @author sjrd
     @version 1.0
   *}
-  TSepiCustomCallable = class(TSepiCustomWithParams, ISepiCallable, ISepiValue,
-    ISepiReadableValue)
+  TSepiCustomCallable = class(TSepiCustomWithParams, ISepiWantingParams,
+    ISepiExecutable, ISepiValue, ISepiReadableValue)
   private
     FSignature: TSepiSignature; /// Signature de l'appel
 
@@ -1096,7 +1095,7 @@ type
       Instructions: TSepiInstructionList;
       Destination: TSepiMemoryReference); virtual; abstract;
 
-    procedure CompileNoResult(Compiler: TSepiMethodCompiler;
+    procedure CompileExecute(Compiler: TSepiMethodCompiler;
       Instructions: TSepiInstructionList);
     procedure CompileRead(Compiler: TSepiMethodCompiler;
       Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
@@ -2812,7 +2811,7 @@ var
 begin
   SrcType := Source.ValueType;
 
-  if SrcType = ValueType then
+  if SrcType.Equals(ValueType) then
   begin
     // Pure assignment
     Source.CompileRead(Compiler, Instructions, Destination, TempVars);
@@ -2915,7 +2914,7 @@ var
   DestBase, SrcBase: TSepiBaseType;
 begin
   // Trivial case: types are equal
-  if DestType = SrcType then
+  if DestType.Equals(SrcType) then
   begin
     Result := True;
     Exit;
@@ -5311,9 +5310,9 @@ end;
   @param Index   Index dans le tableau des paramètres
   @return Paramètre à l'index spécifié
 *}
-function TSepiCustomWithParams.GetParams(Index: Integer): ISepiValue;
+function TSepiCustomWithParams.GetParams(Index: Integer): ISepiExpression;
 begin
-  Result := FParams[Index] as ISepiValue;
+  Result := FParams[Index] as ISepiExpression;
 end;
 
 {*
@@ -5322,7 +5321,7 @@ end;
   @param Value   Nouvelle valeur du paramètre
 *}
 procedure TSepiCustomWithParams.SetParams(Index: Integer;
-  const Value: ISepiValue);
+  const Value: ISepiExpression);
 begin
   if ParamsCompleted then
     raise ESepiCompilerError.Create(SParamsAlreadyCompleted);
@@ -5331,15 +5330,38 @@ begin
 end;
 
 {*
+  Efface tous les paramètres
+*}
+procedure TSepiCustomWithParams.ClearParams;
+begin
+  if ParamsCompleted then
+    raise ESepiCompilerError.Create(SParamsAlreadyCompleted);
+
+  FParams.Clear;
+end;
+
+{*
   Ajoute un paramètre
   @param Value   Paramètre à ajouter
 *}
-procedure TSepiCustomWithParams.AddParam(const Value: ISepiValue);
+procedure TSepiCustomWithParams.AddParam(const Value: ISepiExpression);
 begin
   if ParamsCompleted then
     raise ESepiCompilerError.Create(SParamsAlreadyCompleted);
 
   FParams.Add(Value);
+end;
+
+{*
+  Supprime un paramètre
+  @param Index   Index du paramètre à supprimer
+*}
+procedure TSepiCustomWithParams.DeleteParam(Index: Integer);
+begin
+  if ParamsCompleted then
+    raise ESepiCompilerError.Create(SParamsAlreadyCompleted);
+
+  FParams.Delete(Index);
 end;
 
 {*
@@ -5350,13 +5372,15 @@ end;
 procedure TSepiCustomWithParams.CompleteParams;
 var
   I: Integer;
+  ParamValue: ISepiValue;
 begin
   if FParamsCompleted then
     Exit;
 
   FParamsCompleted := True;
   for I := 0 to ParamCount-1 do
-    Params[I].Finalize;
+    if Supports(Params[I], ISepiValue, ParamValue) then
+      ParamValue.Finalize;
 end;
 
 {*
@@ -5370,8 +5394,8 @@ var
   MinParamCount, I: Integer;
   NotEnoughParams, TooManyParams: Boolean;
   SignatureParam: TSepiParam;
-  ParamValue: ISepiValue;
   ParamExpression: ISepiExpression;
+  ParamValue: ISepiValue;
 
   procedure Error(const Msg: string);
   begin
@@ -5410,13 +5434,17 @@ begin
     for I := 0 to MinParamCount-1 do
     begin
       SignatureParam := Signature.Params[I];
-      ParamValue := Params[I];
-      ParamExpression := ParamValue as ISepiExpression;
+      ParamExpression := Params[I];
 
       if SignatureParam.OpenArray then
-        raise EAssertionFailed.Create('Open arrays not supported yet');
-
-      if SignatureParam.ParamType = nil then
+      begin
+        // TODO Handle open arrays
+        Error('Open arrays not supported yet');
+      end else if not Supports(ParamExpression, ISepiValue, ParamValue) then
+      begin
+        // Value required
+        Error(SValueRequired);
+      end else if SignatureParam.ParamType = nil then
       begin
         // Untyped parameter: actual parameter must be addressable
         if not Supports(ParamValue, ISepiAddressableValue) then
@@ -5432,35 +5460,24 @@ begin
           Continue;
         end;
 
-        // If by reference, must also be writable and addressable
         if SignatureParam.ByRef then
         begin
+          // If by reference, must also be writable and addressable ...
           if (not Supports(ParamValue, ISepiWritableValue)) or
             (not Supports(ParamValue, ISepiAddressableValue)) then
           begin
             Error(SVarValueRequired);
-            Continue;
-          end;
-        end;
-
-        // Types must be compatible
-        if ParamValue.ValueType <> SignatureParam.ParamType then
-        begin
-          if TSepiConvertOperation.ConvertionExists(SignatureParam.ParamType,
-            ParamValue.ValueType) then
-          begin
-            { Even if a convertion exists, var and out parameters must have
-              exactly the same type as in declaration. }
-            if SignatureParam.ByRef then
-              Error(SVarParamTypeMustBeStrictlyEqual)
-            else
-            begin
-              // Make the conversion now, no need to wait
-              ParamValue := TSepiConvertOperation.ConvertValue(
-                SignatureParam.ParamType, ParamValue as ISepiReadableValue);
-              FParams[I] := ParamValue;
-            end;
           end else
+          // ... and their types must be strictly equal
+          if not ParamValue.ValueType.Equals(SignatureParam.ParamType) then
+          begin
+            Error(SVarParamTypeMustBeStrictlyEqual);
+          end;
+        end else
+        begin
+          // Otherwise, types must be compatible
+          if not TSepiConvertOperation.ConvertionExists(
+            SignatureParam.ParamType, ParamValue.ValueType) then
           begin
             Error(Format(STypeMismatch,
               [SignatureParam.ParamType.DisplayName,
@@ -5544,6 +5561,12 @@ begin
 
         if Supports(ParamValue, ISepiReadableValue, ReadableParam) then
         begin
+          if not ReadableParam.ValueType.Equals(SignatureParam.ParamType) then
+          begin
+            ReadableParam := TSepiConvertOperation.ConvertValue(
+              SignatureParam.ParamType, ReadableParam);
+          end;
+
           ReadableParam.CompileRead(Compiler, Instructions, ParamMemory,
             TempVars);
         end else
@@ -5604,8 +5627,12 @@ end;
 function TSepiCustomCallable.QueryInterface(const IID: TGUID;
   out Obj): HResult;
 begin
-  if (SameGUID(IID, ISepiValue) or SameGUID(IID, ISepiReadableValue)) and
-    (ReturnType = nil) then
+  if SameGUID(IID, ISepiWantingParams) and ParamsCompleted then
+    Result := E_NOINTERFACE
+  else if SameGUID(IID, ISepiExecutable) and (not ParamsCompleted) then
+    Result := E_NOINTERFACE
+  else if (SameGUID(IID, ISepiValue) or SameGUID(IID, ISepiReadableValue)) and
+    ((not ParamsCompleted) or (ReturnType = nil)) then
     Result := E_NOINTERFACE
   else
     Result := inherited QueryInterface(IID, Obj);
@@ -5621,12 +5648,17 @@ var
 begin
   AsExpressionPart := Self;
 
-  Expression.Attach(ISepiCallable, AsExpressionPart);
-
-  if ReturnType <> nil then
+  if not ParamsCompleted then
+    Expression.Attach(ISepiWantingParams, AsExpressionPart)
+  else
   begin
-    Expression.Attach(ISepiValue, AsExpressionPart);
-    Expression.Attach(ISepiReadableValue, AsExpressionPart);
+    Expression.Attach(ISepiExecutable, AsExpressionPart);
+
+    if ReturnType <> nil then
+    begin
+      Expression.Attach(ISepiValue, AsExpressionPart);
+      Expression.Attach(ISepiReadableValue, AsExpressionPart);
+    end;
   end;
 end;
 
@@ -5715,7 +5747,7 @@ var
   InstrParamMemory: TSepiMemoryReference;
 begin
   // If parameters are not valid, don't try anything
-  if not Self.MatchesSignature(Signature) then
+  if not MatchesSignature(Signature) then
     Exit;
 
   // Prepare parameters
@@ -5752,7 +5784,7 @@ begin
       end else
       begin
         if SignatureParam.HiddenKind in [hpNormal, hpOpenArrayHighValue] then
-          ParamValue := Params[RealParamIndex]
+          ParamValue := Params[RealParamIndex] as ISepiValue
         else if SignatureParam.HiddenKind in [hpSelf, hpAlloc] then
           ParamValue := SelfValue
         else
@@ -5774,7 +5806,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiCustomCallable.CompileNoResult(Compiler: TSepiMethodCompiler;
+procedure TSepiCustomCallable.CompileExecute(Compiler: TSepiMethodCompiler;
   Instructions: TSepiInstructionList);
 var
   DestTempVar: TSepiLocalVar;
@@ -5810,6 +5842,8 @@ procedure TSepiCustomCallable.CompileRead(Compiler: TSepiMethodCompiler;
   Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
   TempVars: TSepiTempVarsLifeManager);
 begin
+  Assert(ReturnType <> nil);
+
   NeedDestination(Destination, ReturnType, Compiler, TempVars,
     Instructions.GetCurrentEndRef);
 
@@ -5825,6 +5859,7 @@ end;
   @param AMethod            Méthode à appeler
   @param ASelfValue         Valeur Self (défaut = nil)
   @param AForceStaticCall   Force un appel statique (défaut = False)
+  @param AFreeParamValue    Valeur à donner au paramètre $Free (défaut = False)
 *}
 constructor TSepiMethodCall.Create(AMethod: TSepiMethod;
   const ASelfValue: ISepiReadableValue = nil;
@@ -5844,6 +5879,7 @@ end;
   @param AOverloadedMethod   Méthode surchargée à appeler
   @param ASelfValue          Valeur Self (défaut = nil)
   @param AForceStaticCall    Force un appel statique (défaut = False)
+  @param AFreeParamValue     Valeur à donner au paramètre $Free (défaut = False)
 *}
 constructor TSepiMethodCall.Create(AOverloadedMethod: TSepiOverloadedMethod;
   const ASelfValue: ISepiReadableValue = nil;
@@ -5925,16 +5961,20 @@ begin
       begin
         FMethod := AMethod;
         SetSignature(AMethod.Signature);
-        Exit;
+        Break;
       end;
     end;
 
-    MakeError(SNoMatchingOverloadedMethod);
+    if Method = nil then
+      MakeError(SNoMatchingOverloadedMethod);
   end;
 
   if SelfValue <> nil then
     SelfValue.Finalize;
   CheckSelfValueType;
+
+  if Expression <> nil then
+    AttachToExpression(Expression);
 end;
 
 {*
@@ -5974,8 +6014,9 @@ end;
 {--------------------------}
 
 {*
-  Crée une expression d'invocation de méthode
+  Crée une expression d'invocation de référence méthode
   @param AMethodRefValue   Référence de méthode
+  @param AComplete         Si True, complète immédiatement
 *}
 constructor TSepiMethodRefCall.Create(
   const AMethodRefValue: ISepiReadableValue = nil; AComplete: Boolean = False);
@@ -6006,7 +6047,8 @@ procedure TSepiMethodRefCall.CompleteParams;
 begin
   inherited;
 
-  MatchesSignature(Signature);
+  if MatchesSignature(Signature) and (Expression <> nil) then
+    AttachToExpression(Expression);
 end;
 
 {*
@@ -6102,11 +6144,13 @@ end;
 *}
 function TSepiPropertyValue.QueryInterface(const IID: TGUID; out Obj): HResult;
 begin
-  if SameGUID(IID, ISepiReadableValue) and
-    (FProperty.ReadAccess.Kind = pakNone) then
+  if SameGUID(IID, ISepiValue) and (not ParamsCompleted) then
+    Result := E_NOINTERFACE
+  else if SameGUID(IID, ISepiReadableValue) and
+    ((not ParamsCompleted) or (FProperty.ReadAccess.Kind = pakNone)) then
     Result := E_NOINTERFACE
   else if SameGUID(IID, ISepiWritableValue) and
-    (FProperty.WriteAccess.Kind = pakNone) then
+    ((not ParamsCompleted) or (FProperty.WriteAccess.Kind = pakNone)) then
     Result := E_NOINTERFACE
   else
     Result := inherited QueryInterface(IID, Obj);
@@ -6123,12 +6167,16 @@ begin
   AsExpressionPart := Self;
 
   Expression.Attach(ISepiProperty, AsExpressionPart);
-  Expression.Attach(ISepiValue, AsExpressionPart);
 
-  if FProperty.ReadAccess.Kind <> pakNone then
-    Expression.Attach(ISepiReadableValue, AsExpressionPart);
-  if FProperty.WriteAccess.Kind <> pakNone then
-    Expression.Attach(ISepiWritableValue, AsExpressionPart);
+  if ParamsCompleted then
+  begin
+    Expression.Attach(ISepiValue, AsExpressionPart);
+
+    if FProperty.ReadAccess.Kind <> pakNone then
+      Expression.Attach(ISepiReadableValue, AsExpressionPart);
+    if FProperty.WriteAccess.Kind <> pakNone then
+      Expression.Attach(ISepiWritableValue, AsExpressionPart);
+  end;
 end;
 
 {*
@@ -6166,10 +6214,23 @@ end;
   [@inheritDoc]
 *}
 procedure TSepiPropertyValue.CompleteParams;
+var
+  I: Integer;
+  AllParamsAssigned: Boolean;
 begin
   inherited;
 
-  MatchesSignature(FProperty.Signature);
+  AllParamsAssigned := True;
+  for I := 0 to ParamCount-1 do
+    if Params[I] = nil then
+      AllParamsAssigned := False;
+
+  if AllParamsAssigned then
+  begin
+    if MatchesSignature(FProperty.Signature) and (Expression <> nil) then
+      AttachToExpression(Expression);
+  end else
+    MakeError(SNotEnoughActualParameters);
 end;
 
 {*
@@ -6179,34 +6240,38 @@ procedure TSepiPropertyValue.CompileRead(Compiler: TSepiMethodCompiler;
   Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
   TempVars: TSepiTempVarsLifeManager);
 var
+  RightExpression: ISepiExpression;
   RightValue: ISepiReadableValue;
   Method: TSepiMethod;
-  Callable: ISepiCallable;
+  MethodCall: ISepiWantingParams;
   I: Integer;
   IndexValue: ISepiReadableValue;
 begin
+  RightExpression := TSepiExpression.Create(Expression);
+
   if FProperty.ReadAccess.Kind = pakField then
   begin
     RightValue := TSepiObjectFieldValue.Create(ObjectValue,
       FProperty.ReadAccess.Field);
+    RightValue.AttachToExpression(RightExpression);
   end else
   begin
     Method := FProperty.ReadAccess.Method;
-    Callable := TSepiMethodCall.Create(Method, ObjectValue);
+    MethodCall := TSepiMethodCall.Create(Method, ObjectValue);
+    MethodCall.AttachToExpression(RightExpression);
 
     for I := 0 to ParamCount-1 do
-      Callable.AddParam(Params[I]);
+      MethodCall.AddParam(Params[I]);
 
     IndexValue := MakeIndexValue(Compiler, Method);
     if IndexValue <> nil then
-      Callable.AddParam(IndexValue);
+      MethodCall.AddParam(IndexValue as ISepiExpression);
 
-    Callable.CompleteParams;
+    MethodCall.CompleteParams;
 
-    RightValue := Callable as ISepiReadableValue;
+    RightValue := MethodCall as ISepiReadableValue;
   end;
 
-  RightValue.AttachToExpression(TSepiExpression.Create(Expression));
   RightValue.CompileRead(Compiler, Instructions, Destination, TempVars);
 end;
 
@@ -6218,7 +6283,7 @@ procedure TSepiPropertyValue.CompileWrite(Compiler: TSepiMethodCompiler;
 var
   LeftValue: ISepiWritableValue;
   Method: TSepiMethod;
-  Callable: ISepiCallable;
+  MethodCall: ISepiWantingParams;
   I: Integer;
   IndexValue: ISepiReadableValue;
 begin
@@ -6231,21 +6296,21 @@ begin
   end else
   begin
     Method := FProperty.WriteAccess.Method;
-    Callable := TSepiMethodCall.Create(Method, ObjectValue);
-    Callable.AttachToExpression(TSepiExpression.Create(Expression));
+    MethodCall := TSepiMethodCall.Create(Method, ObjectValue);
+    MethodCall.AttachToExpression(TSepiExpression.Create(Expression));
 
     for I := 0 to ParamCount-1 do
-      Callable.AddParam(Params[I]);
+      MethodCall.AddParam(Params[I]);
 
     IndexValue := MakeIndexValue(Compiler, Method);
     if IndexValue <> nil then
-      Callable.AddParam(IndexValue);
+      MethodCall.AddParam(IndexValue as ISepiExpression);
 
-    Callable.AddParam(Source);
+    MethodCall.AddParam(Source as ISepiExpression);
 
-    Callable.CompleteParams;
-    Callable.AttachToExpression(Callable as ISepiExpression);
-    Callable.CompileNoResult(Compiler, Instructions);
+    MethodCall.CompleteParams;
+
+    (MethodCall as ISepiExecutable).CompileExecute(Compiler, Instructions);
   end;
 end;
 
