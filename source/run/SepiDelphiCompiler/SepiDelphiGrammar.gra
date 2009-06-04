@@ -868,14 +868,10 @@ ntRaiseInstruction	RaiseInstruction
 	'raise'* (Expression)?
 
 ntExpressionInstruction	ExpressionInstruction
-	Expression NextExpressionInstruction
+	ExecutableExpression
 
-ntNextExpressionInstruction	NextExpressionInstruction	Simplify
-	CallInstruction
-	AssignmentInstruction
+ntExecutableExpression	ExecutableExpression
+	Expression (AssignmentOp Expression)?
 
-ntCallInstruction	CallInstruction
-	@
-
-ntAssignmentInstruction	AssignmentInstruction
-	':='* Expression
+ntAssignmentOp	AssignmentOp
+	':='

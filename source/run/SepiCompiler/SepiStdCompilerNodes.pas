@@ -232,6 +232,19 @@ type
   end;
 
   {*
+    Noeud représentant un opérateur binaire d'assignation
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiAssignmentOpNode = class(TSepiBinaryOpNode)
+  protected
+    function GetPriority: Integer; override;
+  public
+    function MakeOperation(
+      const Left, Right: ISepiExpression): ISepiExpression; override;
+  end;
+
+  {*
     Noeud expression calculé par un arbre d'opérations binaires
     @author sjrd
     @version 1.0
@@ -1467,52 +1480,13 @@ type
   end;
 
   {*
-    Instruction dont le premier enfant est une Expression
-    Une telle instruction ne prévoit rien en soi, mais son second enfant doit
-    être une instance de TSepiCustomExpressionInstructionNode. La propriété
-    FirstExpression de cette instance est renseignée avec l'expression du
-    premier enfant de TSepiExpressionInstructionNode.
+    Instruction d'exécution d'une expression (exécutable)
     @author sjrd
     @version 1.0
   *}
-  TSepiExpressionInstructionNode = class(TSepiInstructionNode)
+  TSepiExecuteExpressionInstructionNode = class(TSepiInstructionNode)
   protected
-    procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
-  end;
-
-  {*
-    Classe de base pour les instructions avec une Expression en premier enfant
-    @author sjrd
-    @version 1.0
-  *}
-  TSepiCustomExpressionInstructionNode = class(TSepiInstructionNode)
-  private
-    FFirstExpression: ISepiExpression; /// Première expression
-  protected
-    property FirstExpression: ISepiExpression read FFirstExpression;
-  public
-    procedure SetFirstExpression(const AFirstExpression: ISepiExpression);
-  end;
-
-  {*
-    Instruction d'invocation de méthode
-    @author sjrd
-    @version 1.0
-  *}
-  TSepiExecuteExpressionInstructionNode = class(
-    TSepiCustomExpressionInstructionNode)
-  public
-    procedure EndParsing; override;
-  end;
-
-  {*
-    Instruction d'assignation
-    @author sjrd
-    @version 1.0
-  *}
-  TSepiAssignmentInstructionNode = class(TSepiCustomExpressionInstructionNode)
-  public
-    procedure EndParsing; override;
+    procedure ChildEndParsing(Child: TSepiParseTreeNode); override;
   end;
 
 implementation
@@ -2098,6 +2072,42 @@ begin
       LeftValue, RightValue) as ISepiExpression;
   end;
 
+  Result.SourcePos := SourcePos;
+end;
+
+{-----------------------------}
+{ TSepiAssignmentOpNode class }
+{-----------------------------}
+
+{*
+  [@inheritDoc]
+*}
+function TSepiAssignmentOpNode.GetPriority: Integer;
+begin
+  Result := 0;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiAssignmentOpNode.MakeOperation(
+  const Left, Right: ISepiExpression): ISepiExpression;
+var
+  LeftValue: ISepiWritableValue;
+  RightValue: ISepiReadableValue;
+begin
+  RequireWritableValue(Left, LeftValue);
+  RequireReadableValue(Right, RightValue);
+
+  if LeftValue = nil then
+  begin
+    Result := TSepiErroneousValue.Create(
+      RightValue.ValueType) as ISepiExpression;
+    Exit;
+  end;
+
+  Result := TSepiAssignmentOperation.MakeOperation(
+    LeftValue, RightValue) as ISepiExpression;
   Result.SourcePos := SourcePos;
 end;
 
@@ -5014,45 +5024,6 @@ begin
   inherited;
 end;
 
-{--------------------------------------}
-{ TSepiExpressionInstructionNode class }
-{--------------------------------------}
-
-{*
-  [@inheritDoc]
-*}
-procedure TSepiExpressionInstructionNode.ChildBeginParsing(
-  Child: TSepiParseTreeNode);
-var
-  ExprInstrNode: TSepiCustomExpressionInstructionNode;
-begin
-  inherited;
-
-  if Child is TSepiCustomExpressionInstructionNode then
-  begin
-    ExprInstrNode := TSepiCustomExpressionInstructionNode(Child);
-
-    ExprInstrNode.SetFirstExpression(
-      (Children[0] as TSepiExpressionNode).Expression);
-    ExprInstrNode.InstructionList := InstructionList;
-  end;
-end;
-
-{--------------------------------------------}
-{ TSepiCustomExpressionInstructionNode class }
-{--------------------------------------------}
-
-{*
-  Spécifie la première expression
-  Cette méthode doit être appelée une fois avant BeginParsing.
-  @param AFirstExpression   Première expression
-*}
-procedure TSepiCustomExpressionInstructionNode.SetFirstExpression(
-  const AFirstExpression: ISepiExpression);
-begin
-  FFirstExpression := AFirstExpression;
-end;
-
 {---------------------------------------------}
 { TSepiExecuteExpressionInstructionNode class }
 {---------------------------------------------}
@@ -5060,53 +5031,23 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiExecuteExpressionInstructionNode.EndParsing;
+procedure TSepiExecuteExpressionInstructionNode.ChildEndParsing(
+  Child: TSepiParseTreeNode);
 var
-  Instruction: TSepiExecuteExpression;
+  Expression: ISepiExpression;
   Executable: ISepiExecutable;
+  Instruction: TSepiExecuteExpression;
 begin
-  if Supports(FirstExpression, ISepiExecutable, Executable) then
+  Expression := (Child as TSepiExpressionNode).Expression;
+
+  if Supports(Expression, ISepiExecutable, Executable) then
   begin
     Instruction := TSepiExecuteExpression.Create(MethodCompiler);
     Instruction.Executable := Executable;
     InstructionList.Add(Instruction);
   end else
   begin
-    FirstExpression.MakeError(SExecutableRequired);
-  end;
-
-  inherited;
-end;
-
-{--------------------------------------}
-{ TSepiAssignmentInstructionNode class }
-{--------------------------------------}
-
-{*
-  [@inheritDoc]
-*}
-procedure TSepiAssignmentInstructionNode.EndParsing;
-var
-  Instruction: TSepiAssignment;
-  DestValue: ISepiWritableValue;
-  SourceValue: ISepiReadableValue;
-begin
-  if not Supports(FirstExpression, ISepiWritableValue, DestValue) then
-  begin
-    FirstExpression.MakeError(SWritableValueRequired);
-    (Children[0] as TSepiExpressionNode).AsReadableValue;
-  end else
-  begin
-    SourceValue := (Children[0] as TSepiExpressionNode).AsReadableValue(
-      DestValue.ValueType);
-
-    if SourceValue <> nil then
-    begin
-      Instruction := TSepiAssignment.Create(MethodCompiler);
-      Instruction.Destination := DestValue;
-      Instruction.Source := SourceValue;
-      InstructionList.Add(Instruction);
-    end;
+    Expression.MakeError(SExecutableRequired);
   end;
 
   inherited;

@@ -730,6 +730,39 @@ type
   end;
 
   {*
+    Opération d'assignation
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiAssignmentOperation = class(TSepiCustomExpressionPart, ISepiExecutable)
+  private
+    FDestination: ISepiWritableValue; /// Destination
+    FSource: ISepiReadableValue;      /// Source
+
+    /// Si True, l'opérande source est automatiquement converti
+    FAutoConvert: Boolean;
+  protected
+    procedure AttachToExpression(const Expression: ISepiExpression); override;
+
+    procedure CompileExecute(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList);
+  public
+    constructor Create(AAutoConvert: Boolean = True);
+
+    procedure Complete;
+
+    class function MakeOperation(const Destination: ISepiWritableValue;
+      const Source: ISepiReadableValue;
+      AutoConvert: Boolean = True): ISepiExecutable;
+
+    property Destination: ISepiWritableValue
+      read FDestination write FDestination;
+    property Source: ISepiReadableValue read FSource write FSource;
+
+    property AutoConvert: Boolean read FAutoConvert write FAutoConvert;
+  end;
+
+  {*
     Opération sur des ensembles
     Bien que syntaxiquement, cette classe implémente les interfaces
     ISepiTypeForceableValue et ISepiTypeForceableSetValue, ces deux interfaces
@@ -1663,7 +1696,7 @@ var
   Destination, TempDest: TSepiMemoryReference;
   MoveInstr: TSepiAsmMove;
 begin
-  if Source.ValueType <> ValueType then
+  if not Source.ValueType.Equals(ValueType) then
   begin
     MakeError(Format(STypeMismatch,
       [Source.ValueType.DisplayName, ValueType.DisplayName]));
@@ -3698,6 +3731,95 @@ begin
   BinaryOp.LeftOperand := LeftOperand;
   BinaryOp.RightOperand := RightOperand;
   BinaryOp.Complete;
+end;
+
+{--------------------------------}
+{ TSepiAssignmentOperation class }
+{--------------------------------}
+
+{*
+  Crée une opération d'assignation
+  @param AAutoConvert   Si True, l'opérande source est automatiquement converti
+*}
+constructor TSepiAssignmentOperation.Create(AAutoConvert: Boolean = True);
+begin
+  inherited Create;
+
+  FAutoConvert := AAutoConvert;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiAssignmentOperation.AttachToExpression(
+  const Expression: ISepiExpression);
+var
+  AsExpressionPart: ISepiExpressionPart;
+begin
+  AsExpressionPart := Self;
+
+  Expression.Attach(ISepiExecutable, AsExpressionPart);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiAssignmentOperation.CompileExecute(Compiler: TSepiMethodCompiler;
+  Instructions: TSepiInstructionList);
+begin
+  Destination.CompileWrite(Compiler, Instructions, Source);
+end;
+
+{*
+  Complète l'opération
+*}
+procedure TSepiAssignmentOperation.Complete;
+begin
+  Destination.Finalize;
+
+  if AutoConvert then
+  begin
+    if not Source.ValueType.Equals(Destination.ValueType) then
+      Source := TSepiConvertOperation.ConvertValue(
+        Destination.ValueType, Source);
+
+    Source.Finalize;
+  end else
+  begin
+    Source.Finalize;
+
+    if not Source.ValueType.Equals(Destination.ValueType) then
+    begin
+      (Source as ISepiExpression).MakeError(Format(STypeMismatch,
+        [Destination.ValueType.DisplayName, Source.ValueType.DisplayName]));
+
+      Source := TSepiErroneousValue.Create(Destination.ValueType);
+      Source.AttachToExpression(TSepiExpression.Create(
+        Source as ISepiExpression));
+    end;
+  end;
+end;
+
+{*
+  Construit une opération d'assignation
+  @param Destination   Destination
+  @param Source        Source
+  @param AutoConvert   Si True, l'opérande source est automatiquement converti
+  @return Expression exécutable représentant l'opération
+*}
+class function TSepiAssignmentOperation.MakeOperation(
+  const Destination: ISepiWritableValue; const Source: ISepiReadableValue;
+  AutoConvert: Boolean): ISepiExecutable;
+var
+  Assignment: TSepiAssignmentOperation;
+begin
+  Assignment := TSepiAssignmentOperation.Create(AutoConvert);
+  Result := Assignment;
+  Result.AttachToExpression(
+    TSepiExpression.Create(Destination as ISepiExpression));
+  Assignment.Destination := Destination;
+  Assignment.Source := Source;
+  Assignment.Complete;
 end;
 
 {-------------------------}

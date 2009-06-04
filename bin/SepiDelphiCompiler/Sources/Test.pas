@@ -99,7 +99,7 @@ begin
 
       I := Random(3);
       if I = 0 then
-        raise Exception.Create('Exception now!')
+        raise EAbort.Create('Exception now!')
       else if I = 1 then
         StrToInt('I am not an Integer!')
       else

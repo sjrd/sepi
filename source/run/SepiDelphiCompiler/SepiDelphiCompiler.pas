@@ -700,15 +700,16 @@ begin
   NonTerminalClasses[ntMultiOnElseClause]     := TSepiMultiOnElseClauseNode;
   NonTerminalClasses[ntFinallyClause]         := TSepiFinallyClauseNode;
   NonTerminalClasses[ntRaiseInstruction]      := TSepiRaiseInstructionNode;
-  NonTerminalClasses[ntExpressionInstruction] := TSepiExpressionInstructionNode;
-  NonTerminalClasses[ntCallInstruction] :=
+
+  NonTerminalClasses[ntExpressionInstruction] :=
     TSepiExecuteExpressionInstructionNode;
-  NonTerminalClasses[ntAssignmentInstruction] := TSepiAssignmentInstructionNode;
+  NonTerminalClasses[ntExecutableExpression] := TSepiBinaryOpTreeNode;
+  NonTerminalClasses[ntAssignmentOp]         := TSepiAssignmentOpNode;
 end;
 
-{-----------------}
+{-----------------------}
 { TDelphiRootNode class }
-{-----------------}
+{-----------------------}
 
 {*
   [@inheritDoc]
@@ -760,9 +761,9 @@ begin
   Result := UnitResolveIdent(UnitCompiler, Identifier);
 end;
 
-{----------------------}
+{----------------------------}
 { TDelphiInterfaceNode class }
-{----------------------}
+{----------------------------}
 
 {*
   [@inheritDoc]
@@ -772,9 +773,9 @@ begin
   SepiUnit.CurrentVisibility := mvPublic;
 end;
 
-{---------------------------}
+{---------------------------------}
 { TDelphiImplementationNode class }
-{---------------------------}
+{---------------------------------}
 
 {*
   [@inheritDoc]
@@ -784,9 +785,9 @@ begin
   SepiUnit.CurrentVisibility := mvPrivate;
 end;
 
-{-------------------------------------}
+{-------------------------------------------}
 { TDelphiInitializationExpressionNode class }
-{-------------------------------------}
+{-------------------------------------------}
 
 {*
   [@inheritDoc]
@@ -830,9 +831,9 @@ begin
   Result := (AValueType <> nil) and not (AValueType is TSepiDynArrayType);
 end;
 
-{--------------------------------}
+{--------------------------------------}
 { TDelphiArrayInitializationNode class }
-{--------------------------------}
+{--------------------------------------}
 
 {*
   [@inheritDoc]
@@ -889,9 +890,9 @@ begin
   Result := AValueType is TSepiStaticArrayType;
 end;
 
-{---------------------------------}
+{---------------------------------------}
 { TDelphiRecordInitializationNode class }
-{---------------------------------}
+{---------------------------------------}
 
 {*
   [@inheritDoc]
@@ -940,9 +941,9 @@ begin
   Result := AValueType is TSepiRecordType;
 end;
 
-{-------------------------------}
+{-------------------------------------}
 { TDelphiGUIDInitializationNode class }
-{-------------------------------}
+{-------------------------------------}
 
 {*
   [@inheritDoc]
@@ -995,9 +996,9 @@ begin
   Result := AValueType = SystemUnit.TGUID;
 end;
 
-{--------------------------------}
+{--------------------------------------}
 { TDelphiOtherInitializationNode class }
-{--------------------------------}
+{--------------------------------------}
 
 {*
   [@inheritDoc]
@@ -1034,9 +1035,9 @@ begin
     not ((AValueType is TSepiArrayType) or (AValueType is TSepiRecordType));
 end;
 
-{------------------------}
+{------------------------------}
 { TDelphiConstOrTypeNode class }
-{------------------------}
+{------------------------------}
 
 {*
   Indique si c'est un type
@@ -1055,9 +1056,9 @@ begin
   Result := IsType or (inherited ValidateExpression);
 end;
 
-{--------------------}
+{--------------------------}
 { TDelphiUnaryOpNode class }
-{--------------------}
+{--------------------------}
 
 {*
   [@inheritDoc]
@@ -1074,9 +1075,9 @@ begin
   end;
 end;
 
-{---------------------}
+{---------------------------}
 { TDelphiBinaryOpNode class }
-{---------------------}
+{---------------------------}
 
 {*
   [@inheritDoc]
@@ -1101,9 +1102,9 @@ begin
     Result := SymbolClassToOperation[SymbolClass];
 end;
 
-{-----------------------}
+{-----------------------------}
 { TDelphiSingleExprNode class }
-{-----------------------}
+{-----------------------------}
 
 {*
   [@inheritDoc]
@@ -1119,9 +1120,9 @@ begin
   inherited;
 end;
 
-{---------------------}
+{---------------------------}
 { TDelphiNextExprNode class }
-{---------------------}
+{---------------------------}
 
 {*
   [@inheritDoc]
@@ -1143,9 +1144,9 @@ begin
   inherited;
 end;
 
-{-----------------------}
+{-----------------------------}
 { TDelphiParametersNode class }
-{-----------------------}
+{-----------------------------}
 
 {*
   Compile une pseudo-routine de test d'identificateur
@@ -1324,9 +1325,9 @@ begin
   inherited;
 end;
 
-{---------------------}
+{---------------------------}
 { TDelphiTypeDeclNode class }
-{---------------------}
+{---------------------------}
 
 {*
   [@inheritDoc]
@@ -1340,9 +1341,9 @@ begin
       (Children[0] as TSepiIdentifierDeclarationNode).Identifier);
 end;
 
-{-------------------------}
+{-------------------------------}
 { TDelphiConstantDeclNode class }
-{-------------------------}
+{-------------------------------}
 
 {*
   [@inheritDoc]
@@ -1385,9 +1386,9 @@ begin
   inherited;
 end;
 
-{-------------------------}
+{-------------------------------}
 { TDelphiVariableDeclNode class }
-{-------------------------}
+{-------------------------------}
 
 {*
   [@inheritDoc]
@@ -1473,9 +1474,9 @@ begin
   inherited;
 end;
 
-{----------------------------}
+{----------------------------------}
 { TDelphiRangeOrEnumTypeNode class }
-{----------------------------}
+{----------------------------------}
 
 {*
   [@inheritDoc]
@@ -1498,9 +1499,9 @@ begin
   inherited;
 end;
 
-{----------------------}
+{----------------------------}
 { TDelphiRangeTypeNode class }
-{----------------------}
+{----------------------------}
 
 {*
   Construit le type
@@ -1602,9 +1603,9 @@ begin
   inherited;
 end;
 
-{---------------------}
+{---------------------------}
 { TDelphiEnumTypeNode class }
-{---------------------}
+{---------------------------}
 
 {*
   [@inheritDoc]
@@ -1625,9 +1626,9 @@ begin
   inherited;
 end;
 
-{--------------------}
+{--------------------------}
 { TDelphiSetTypeNode class }
-{--------------------}
+{--------------------------}
 
 {*
   [@inheritDoc]
@@ -1667,9 +1668,9 @@ begin
   inherited;
 end;
 
-{-----------------------}
+{-----------------------------}
 { TDelphiStringTypeNode class }
-{-----------------------}
+{-----------------------------}
 
 {*
   [@inheritDoc]
@@ -1700,9 +1701,9 @@ begin
   inherited;
 end;
 
-{------------------------}
+{------------------------------}
 { TDelphiPointerTypeNode class }
-{------------------------}
+{------------------------------}
 
 {*
   [@inheritDoc]
@@ -1723,9 +1724,9 @@ begin
   inherited;
 end;
 
-{----------------------}
+{----------------------------}
 { TDelphiArrayTypeNode class }
-{----------------------}
+{----------------------------}
 
 {*
   Crée un tableau statique d'après une définition par intervalle
@@ -1855,9 +1856,9 @@ begin
   inherited;
 end;
 
-{-----------------------}
+{-----------------------------}
 { TDelphiRecordTypeNode class }
-{-----------------------}
+{-----------------------------}
 
 {*
   [@inheritDoc]
@@ -1891,9 +1892,9 @@ begin
   inherited;
 end;
 
-{-----------------------------}
+{-----------------------------------}
 { TDelphiPackedRecordTypeNode class }
-{-----------------------------}
+{-----------------------------------}
 
 {*
   [@inheritDoc]
@@ -1906,9 +1907,9 @@ begin
   IsPacked := True;
 end;
 
-{----------------------}
+{----------------------------}
 { TDelphiClassTypeNode class }
-{----------------------}
+{----------------------------}
 
 {*
   [@inheritDoc]
@@ -2051,9 +2052,9 @@ begin
   Result := inherited ResolveIdent(Identifier);
 end;
 
-{--------------------------}
+{--------------------------------}
 { TDelphiInterfaceTypeNode class }
-{--------------------------}
+{--------------------------------}
 
 {*
   [@inheritDoc]
@@ -2168,9 +2169,9 @@ begin
   Result := inherited ResolveIdent(Identifier);
 end;
 
-{--------------------------}
+{--------------------------------}
 { TDelphiInterfaceGUIDNode class }
-{--------------------------}
+{--------------------------------}
 
 {*
   [@inheritDoc]
@@ -2210,9 +2211,9 @@ begin
   SetValueTypeAndPtr(SystemUnit.TGUID, AValuePtr);
 end;
 
-{--------------------------}
+{--------------------------------}
 { TDelphiMethodRefTypeNode class }
-{--------------------------}
+{--------------------------------}
 
 {*
   [@inheritDoc]

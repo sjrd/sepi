@@ -108,6 +108,8 @@ type
 
 function RequireReadableValue(const Expression: ISepiExpression;
   out Value: ISepiReadableValue): Boolean;
+function RequireWritableValue(const Expression: ISepiExpression;
+  out Value: ISepiWritableValue): Boolean;
 
 function ConstValueAsInt64(const Value: ISepiReadableValue): Int64;
 
@@ -144,6 +146,22 @@ begin
     Value := TSepiErroneousValue.Create(Expression.SepiRoot);
     Value.AttachToExpression(TSepiExpression.Create(Expression));
   end;
+end;
+
+{*
+  Requiert une valeur qui peut être écrite
+  En cas d'erreur, Value est affectée à nil
+  @param Expression   Expression
+  @param Value        En sortie : l'expression sous forme de valeur à écrire
+  @return True en cas de succès, False sinon
+*}
+function RequireWritableValue(const Expression: ISepiExpression;
+  out Value: ISepiWritableValue): Boolean;
+begin
+  Result := Supports(Expression, ISepiWritableValue, Value);
+
+  if not Result then
+    Expression.MakeError(SReadableValueRequired);
 end;
 
 {*
