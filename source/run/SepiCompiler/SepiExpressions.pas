@@ -1942,33 +1942,36 @@ end;
 constructor TSepiTrueConstValue.Create(SepiRoot: TSepiRoot;
   Value: Int64);
 var
-  ATypeInfo: PTypeInfo;
+  SystemUnit: TSepiSystemUnit;
+  ValueType: TSepiType;
 begin
+  SystemUnit := SepiRoot.SystemUnit as TSepiSystemUnit;
+
   if (Value < Int64(-MaxInt-1)) or (Value > Int64(MaxInt)) then
-    ATypeInfo := TypeInfo(Int64)
+    ValueType := SystemUnit.Int64
   else if Value < 0 then
   begin
     case IntegerSize(Value) of
-      1: ATypeInfo := TypeInfo(Shortint);
-      2: ATypeInfo := TypeInfo(Smallint);
-      4: ATypeInfo := TypeInfo(Longint);
+      1: ValueType := SystemUnit.Shortint;
+      2: ValueType := SystemUnit.Smallint;
+      4: ValueType := SystemUnit.Longint;
     else
       Assert(False);
-      ATypeInfo := TypeInfo(Int64);
+      ValueType := SystemUnit.Int64;
     end;
   end else
   begin
     case CardinalSize(Value) of
-      1: ATypeInfo := TypeInfo(Byte);
-      2: ATypeInfo := TypeInfo(Word);
-      4: ATypeInfo := TypeInfo(LongWord);
+      1: ValueType := SystemUnit.Byte;
+      2: ValueType := SystemUnit.Word;
+      4: ValueType := SystemUnit.LongWord;
     else
       Assert(False);
-      ATypeInfo := TypeInfo(Int64);
+      ValueType := SystemUnit.Int64;
     end;
   end;
 
-  Create(SepiRoot.FindType(ATypeInfo));
+  Create(ValueType);
 
   Int64(ConstValuePtr^) := Value;
 end;
@@ -1981,7 +1984,7 @@ end;
 constructor TSepiTrueConstValue.Create(SepiRoot: TSepiRoot;
   Value: Extended);
 begin
-  Create(SepiRoot.FindType(TypeInfo(Extended)));
+  Create((SepiRoot.SystemUnit as TSepiSystemUnit).Extended);
 
   Extended(ConstValuePtr^) := Value;
 end;
@@ -1994,7 +1997,7 @@ end;
 constructor TSepiTrueConstValue.Create(SepiRoot: TSepiRoot;
   Value: AnsiChar);
 begin
-  Create(SepiRoot.FindType(TypeInfo(AnsiChar)));
+  Create((SepiRoot.SystemUnit as TSepiSystemUnit).AnsiChar);
 
   AnsiChar(ConstValuePtr^) := Value;
 end;
@@ -2007,7 +2010,7 @@ end;
 constructor TSepiTrueConstValue.Create(SepiRoot: TSepiRoot;
   Value: WideChar);
 begin
-  Create(SepiRoot.FindType(TypeInfo(WideChar)));
+  Create((SepiRoot.SystemUnit as TSepiSystemUnit).WideChar);
 
   WideChar(ConstValuePtr^) := Value;
 end;
@@ -2020,7 +2023,7 @@ end;
 constructor TSepiTrueConstValue.Create(SepiRoot: TSepiRoot;
   const Value: AnsiString);
 begin
-  Create(SepiRoot.FindType(TypeInfo(AnsiString)));
+  Create((SepiRoot.SystemUnit as TSepiSystemUnit).AnsiString);
 
   AnsiString(ConstValuePtr^) := Value;
 end;
@@ -2033,7 +2036,7 @@ end;
 constructor TSepiTrueConstValue.Create(SepiRoot: TSepiRoot;
   const Value: WideString);
 begin
-  Create(SepiRoot.FindType(TypeInfo(WideString)));
+  Create((SepiRoot.SystemUnit as TSepiSystemUnit).WideString);
 
   WideString(ConstValuePtr^) := Value;
 end;
@@ -2566,7 +2569,7 @@ end;
 procedure TSepiCastOperator.HandleOrdChr;
 var
   OpType: TSepiType;
-  DestTypeInfo: PTypeInfo;
+  SystemUnit: TSepiSystemUnit;
 begin
   if not (IsOrd or IsChr) then
     Exit;
@@ -2579,30 +2582,29 @@ begin
     Exit;
   end;
 
+  SystemUnit := UnitCompiler.SystemUnit;
+
   if IsChr then
   begin
     FForceCast := True;
 
     if OpType.Size = 1 then
-      DestTypeInfo := TypeInfo(AnsiChar)
+      SetValueType(SystemUnit.AnsiChar)
     else
-      DestTypeInfo := TypeInfo(WideChar);
+      SetValueType(SystemUnit.WideChar);
   end else
   begin
     case TSepiOrdType(OpType).TypeData.OrdType of
-      otSByte: DestTypeInfo := TypeInfo(Shortint);
-      otUByte: DestTypeInfo := TypeInfo(Byte);
-      otSWord: DestTypeInfo := TypeInfo(Smallint);
-      otUWord: DestTypeInfo := TypeInfo(Word);
-      otSLong: DestTypeInfo := TypeInfo(Longint);
-      otULong: DestTypeInfo := TypeInfo(LongWord);
+      otSByte: SetValueType(SystemUnit.Shortint);
+      otUByte: SetValueType(SystemUnit.Byte);
+      otSWord: SetValueType(SystemUnit.Smallint);
+      otUWord: SetValueType(SystemUnit.Word);
+      otSLong: SetValueType(SystemUnit.Longint);
+      otULong: SetValueType(SystemUnit.LongWord);
     else
       Assert(False);
-      DestTypeInfo := nil;
     end;
   end;
-
-  SetValueType(SepiRoot.FindType(DestTypeInfo));
 end;
 
 {*
@@ -3074,7 +3076,7 @@ procedure TSepiUnaryOperation.CheckType;
 begin
   if Operation = opNot then
   begin
-    if not ((ValueType is TSepiIntegerType) or
+    if not ((ValueType is TSepiIntegerType) or (ValueType is TSepiInt64Type) or
       (ValueType is TSepiBooleanType)) then
     begin
       ErrorTypeNotApplicable;
@@ -4361,7 +4363,7 @@ begin
   if FCompKind = tkUnknown then
   begin
     MakeError(SUntypedEmptySetNotSupported);
-    SetCompType(TypeInfo(Byte));
+    SetCompType(UnitCompiler.SystemUnit.Byte);
   end;
 
   Complete;
@@ -4661,9 +4663,9 @@ begin
     // Range is too wide
     MakeError(SSetRangeTooWide);
     if FCompKind = tkChar then
-      SetCompType(TypeInfo(AnsiChar))
+      SetCompType(UnitCompiler.SystemUnit.AnsiChar)
     else
-      SetCompType(TypeInfo(Byte));
+      SetCompType(UnitCompiler.SystemUnit.Byte);
   end else
   begin
     // OK, that's good
@@ -4678,9 +4680,9 @@ begin
       begin
         // Canonical byte- or char-set
         if FCompKind = tkChar then
-          SetCompType(TypeInfo(AnsiChar))
+          SetCompType(UnitCompiler.SystemUnit.AnsiChar)
         else
-          SetCompType(TypeInfo(Byte));
+          SetCompType(UnitCompiler.SystemUnit.Byte);
       end else
       begin
         // Build a dedicated comp type
@@ -4973,7 +4975,7 @@ begin
 
     if Operation in opComparisonOps then
       Result := TSepiTrueConstValue.MakeOrdinalValue(Expression.UnitCompiler,
-        Expression.SepiRoot.FindType(TypeInfo(Boolean)) as TSepiOrdType, 1)
+        Expression.UnitCompiler.SystemUnit.Boolean, 1)
     else
       Result := TSepiTrueConstValue.MakeIntegerLiteral(
         Expression.UnitCompiler, 0);
