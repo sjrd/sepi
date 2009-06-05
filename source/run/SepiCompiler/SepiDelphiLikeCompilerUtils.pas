@@ -77,8 +77,6 @@ type
 
     procedure CompleteParams; override;
 
-    procedure Finalize;
-
     function GetValueType: TSepiType;
 
     function GetIsConstant: Boolean;
@@ -109,8 +107,6 @@ type
     procedure AttachToExpression(const Expression: ISepiExpression); override;
 
     procedure CompleteParams; override;
-
-    procedure Finalize;
 
     function GetValueType: TSepiType;
 
@@ -633,14 +629,6 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiTypeOperationPseudoRoutine.Finalize;
-begin
-  FTypeOpValue.Finalize;
-end;
-
-{*
-  [@inheritDoc]
-*}
 function TSepiTypeOperationPseudoRoutine.GetValueType: TSepiType;
 begin
   Result := FTypeOpValue.ValueType;
@@ -783,14 +771,6 @@ begin
 
   if Expression <> nil then
     AttachToExpression(Expression);
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TSepiCastPseudoRoutine.Finalize;
-begin
-  FCastOpValue.Finalize;
 end;
 
 {*

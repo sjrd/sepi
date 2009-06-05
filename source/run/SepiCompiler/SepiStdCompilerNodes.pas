@@ -1667,8 +1667,6 @@ begin
     ((Value.ValueType <> nil) and ValueType.Equals(Value.ValueType)) or
     TryAndForceType(Value, ValueType);
 
-  Value.Finalize;
-
   if (not Result) and AllowConvertion then
     Result := TryAndConvert(Value, ValueType);
 end;
@@ -1869,9 +1867,6 @@ begin
     Result := False
   else
   begin
-    if ValueType = nil then
-      Value.Finalize;
-
     Result := Supports(Value, ISepiReadableValue, ReadableValue) and
       ReadableValue.IsConstant;
 
@@ -2473,7 +2468,7 @@ begin
   inherited;
 
   SetExpression(MakeExpression);
-  FSetBuilder := TSepiSetBuilder.Create;
+  FSetBuilder := TSepiSetBuilder.Create(UnitCompiler);
   FSetBuilder.AttachToExpression(Expression);
 end;
 

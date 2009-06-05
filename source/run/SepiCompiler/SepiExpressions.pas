@@ -83,8 +83,6 @@ type
   ISepiValue = interface(ISepiExpressionPart)
     ['{20D185F7-7022-4B7F-9F94-2EDEBF2EFB1E}']
 
-    procedure Finalize;
-
     function GetValueType: TSepiType;
 
     property ValueType: TSepiType read GetValueType;
@@ -318,8 +316,6 @@ type
 
     procedure AttachToExpression(const Expression: ISepiExpression); override;
 
-    procedure Finalize; virtual;
-
     function GetValueType: TSepiType;
     procedure SetValueType(AType: TSepiType);
     function GetAddressType: TSepiType;
@@ -367,8 +363,6 @@ type
     FConstValuePtr: Pointer; /// Pointeur sur la valeur constante
   protected
     procedure AttachToExpression(const Expression: ISepiExpression); override;
-
-    procedure Finalize; virtual;
 
     function GetValueType: TSepiType;
     procedure SetValueType(AType: TSepiType);
@@ -802,8 +796,6 @@ type
     function QueryInterface(const IID: TGUID;
       out Obj): HResult; override; stdcall;
 
-    procedure Finalize; override;
-
     procedure ErrorTypeMismatch;
 
     function GetOpCode(SelfOp: Boolean): TSepiOpCode;
@@ -879,8 +871,6 @@ type
   protected
     procedure AttachToExpression(const Expression: ISepiExpression); override;
 
-    procedure Finalize; override;
-
     procedure SetValueType(AType: TSepiType); reintroduce;
 
     function AddType(ACompType: TSepiOrdType): Boolean;
@@ -906,7 +896,7 @@ type
       Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
       TempVars: TSepiTempVarsLifeManager); override;
   public
-    constructor Create;
+    constructor Create(UnitCompiler: TSepiUnitCompiler);
     destructor Destroy; override;
 
     property IsEmpty: Boolean read GetIsEmpty;
@@ -1110,8 +1100,6 @@ type
     procedure SetSignature(ASignature: TSepiSignature;
       APrepareParams: Boolean = False);
 
-    procedure Finalize; virtual;
-
     function GetReturnType: TSepiType; virtual;
     function GetValueType: TSepiType;
 
@@ -1227,8 +1215,6 @@ type
 
     procedure AttachToExpression(const Expression: ISepiExpression); override;
 
-    procedure Finalize; virtual;
-
     function GetValueType: TSepiType;
 
     function GetIsConstant: Boolean;
@@ -1294,8 +1280,6 @@ type
     FValueType: TSepiType; /// Type de valeur
   protected
     procedure AttachToExpression(const Expression: ISepiExpression); override;
-
-    procedure Finalize; virtual;
 
     function GetValueType: TSepiType;
 
@@ -1631,13 +1615,6 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiCustomDirectValue.Finalize;
-begin
-end;
-
-{*
-  [@inheritDoc]
-*}
 function TSepiCustomDirectValue.GetValueType: TSepiType;
 begin
   Result := FValueType;
@@ -1797,13 +1774,6 @@ begin
 end;
 
 {*
-  [@inheritDoc]
-*}
-procedure TSepiCustomComputedValue.Finalize;
-begin
-end;
-
-{*
   Type de valeur
   @return Type de valeur
 *}
@@ -1814,10 +1784,18 @@ end;
 
 {*
   Renseigne le type de valeur
+  Si la constante avait déjà été allouée, et que AType n'est pas égal (au sens
+  de Equals) à l'ancien type de valeur, alors elle est désallouée.
   @param AType   Type de valeur
 *}
 procedure TSepiCustomComputedValue.SetValueType(AType: TSepiType);
 begin
+  if (ConstValuePtr <> nil) and (not AType.Equals(ValueType)) then
+  begin
+    ValueType.DisposeValue(ConstValuePtr);
+    FConstValuePtr := nil;
+  end;
+
   FValueType := AType;
 end;
 
@@ -1846,7 +1824,7 @@ begin
 end;
 
 {*
-  Alloue la constante et devient par là un ISepiConstantValue
+  Alloue la constante
   La constante est initialisée à 0
 *}
 procedure TSepiCustomComputedValue.AllocateConstant;
@@ -2716,8 +2694,7 @@ begin
       TypeForceableOp.ForceType(ValueType);
   end;
 
-  // Finalize operand
-  Operand.Finalize;
+  // Get operand type
   OpType := Operand.ValueType;
 
   // Handle Ord or Chr cast - exit if failed
@@ -3175,8 +3152,6 @@ begin
   Assert(Expression <> nil);
   Assert(Operand <> nil);
 
-  Operand.Finalize;
-
   if (Operation = opNegate) and (Operand.ValueType is TSepiIntegerType) and
     (not TSepiIntegerType(Operand.ValueType).Signed) then
   begin
@@ -3609,9 +3584,6 @@ begin
 
   TSepiOperator.ForceOneToAnother(LeftOperand, RightOperand);
 
-  LeftOperand.Finalize;
-  RightOperand.Finalize;
-
   CheckTypes;
   CollapseConsts;
 end;
@@ -3777,20 +3749,13 @@ end;
 *}
 procedure TSepiAssignmentOperation.Complete;
 begin
-  Destination.Finalize;
-
-  if AutoConvert then
+  if not Source.ValueType.Equals(Destination.ValueType) then
   begin
-    if not Source.ValueType.Equals(Destination.ValueType) then
+    if AutoConvert then
+    begin
       Source := TSepiConvertOperation.ConvertValue(
         Destination.ValueType, Source);
-
-    Source.Finalize;
-  end else
-  begin
-    Source.Finalize;
-
-    if not Source.ValueType.Equals(Destination.ValueType) then
+    end else
     begin
       (Source as ISepiExpression).MakeError(Format(STypeMismatch,
         [Destination.ValueType.DisplayName, Source.ValueType.DisplayName]));
@@ -3898,6 +3863,8 @@ var
   LeftOp, RightOp: Pointer;
   BoolResult: PBoolean;
 begin
+  if ConstValuePtr <> nil then
+    Exit;
   if (not LeftOperand.IsConstant) or (not RightOperand.IsConstant) then
     Exit;
 
@@ -4030,18 +3997,6 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiSetOperation.Finalize;
-begin
-  LeftOperand.Finalize;
-  RightOperand.Finalize;
-
-  if ConstValuePtr = nil then
-    CollapseConsts;
-end;
-
-{*
-  [@inheritDoc]
-*}
 procedure TSepiSetOperation.ErrorTypeMismatch;
 begin
   MakeError(Format(STypeMismatch,
@@ -4115,6 +4070,8 @@ begin
   RightForceable.ForceCompType(ACompType);
 
   SetValueType(LeftForceable.ValueType);
+
+  CollapseConsts;
 end;
 
 {*
@@ -4128,6 +4085,8 @@ begin
   RightForceable.ForceType(AValueType);
 
   SetValueType(LeftForceable.ValueType);
+
+  CollapseConsts;
 end;
 
 {*
@@ -4202,6 +4161,8 @@ begin
 
   ForceTypesTogether;
   CheckTypes;
+
+  CollapseConsts;
 end;
 
 {*
@@ -4228,7 +4189,7 @@ end;
 {*
   [@inheritDoc]
 *}
-constructor TSepiSetBuilder.Create;
+constructor TSepiSetBuilder.Create(UnitCompiler: TSepiUnitCompiler);
 begin
   inherited Create;
 
@@ -4240,6 +4201,8 @@ begin
 
   FLowerBound := MaxInt;
   FHigherBound := -MaxInt-1;
+
+  inherited SetValueType(UnitCompiler.GetEmptySetType);
 end;
 
 {*
@@ -4337,7 +4300,8 @@ end;
 *}
 procedure TSepiSetBuilder.CollapseConsts;
 begin
-  if (Length(FSingles) > 0) or (Length(FRanges) > 0) then
+  if (ConstValuePtr <> nil) or (Length(FSingles) > 0) or
+    (Length(FRanges) > 0) then
     Exit;
 
   AllocateConstant;
@@ -4352,24 +4316,6 @@ begin
   inherited;
 
   Expression.Attach(ISepiSetBuilder, ISepiSetBuilder(Self));
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TSepiSetBuilder.Finalize;
-begin
-  // Untyped empty set are not supported
-  if FCompKind = tkUnknown then
-  begin
-    MakeError(SUntypedEmptySetNotSupported);
-    SetCompType(UnitCompiler.SystemUnit.Byte);
-  end;
-
-  Complete;
-
-  if ConstValuePtr = nil then
-    CollapseConsts;
 end;
 
 {*
@@ -4475,7 +4421,7 @@ begin
       if Value.IsConstant then
       begin
         // Add constant value
-        Self.AddConstInterval(Value, Value);
+        AddConstInterval(Value, Value);
       end else
       begin
         // Add variable value
@@ -4630,8 +4576,10 @@ end;
 procedure TSepiSetBuilder.ForceCompType(ACompType: TSepiOrdType);
 begin
   if CanForceCompType(ACompType) then
-    SetCompType(ACompType as TSepiOrdType)
-  else
+  begin
+    SetCompType(ACompType as TSepiOrdType);
+    Complete;
+  end else
     Assert(False);
 end;
 
@@ -4644,8 +4592,10 @@ end;
 procedure TSepiSetBuilder.ForceType(AValueType: TSepiType);
 begin
   if CanForceType(AValueType) then
-    SetSetType(AValueType as TSepiSetType)
-  else
+  begin
+    SetSetType(AValueType as TSepiSetType);
+    CollapseConsts;
+  end else
     Assert(False);
 end;
 
@@ -4657,6 +4607,7 @@ begin
   if FCompKind = tkUnknown then
   begin
     // Empty set - can't do anything
+    AllocateConstant;
     Exit;
   end else if FHigherBound - FLowerBound >= 256 then
   begin
@@ -4713,6 +4664,9 @@ begin
   // Build the set type
   if (FSetType = nil) or (FSetType.CompType <> CompType) then
     SetSetType(UnitCompiler.MakeSetType(CompType));
+
+  // Collapse constants
+  CollapseConsts;
 end;
 
 {*
@@ -5003,8 +4957,6 @@ procedure TSepiAddressOfValue.Complete;
 begin
   Assert(Operand <> nil);
 
-  Operand.Finalize;
-
   SetValueType(Operand.AddressType);
 end;
 
@@ -5076,8 +5028,6 @@ var
   OpType: TSepiType;
 begin
   Assert(Operand <> nil);
-
-  Operand.Finalize;
 
   OpType := Operand.ValueType;
   if OpType is TSepiPointerType then
@@ -5215,9 +5165,6 @@ begin
   Assert(ArrayValue <> nil);
   Assert(IndexValue <> nil);
 
-  ArrayValue.Finalize;
-  IndexValue.Finalize;
-
   // Fetch types
   FArrayType := ArrayValue.ValueType as TSepiArrayType;
   FIndexType := ArrayType.IndexType;
@@ -5277,8 +5224,6 @@ begin
 
   FRecordValue := ARecordValue;
   FField := AField;
-
-  RecordValue.Finalize;
 
   Assert(Field.Owner = RecordValue.ValueType);
   Assert(Field.Owner is TSepiRecordType);
@@ -5350,8 +5295,6 @@ begin
 
   FObjectValue := AObjectValue;
   FField := AField;
-
-  ObjectValue.Finalize;
 
   Assert((Field.Owner is TSepiClass) and (ObjectValue.ValueType is TSepiClass));
   Assert(TSepiClass(ObjectValue.ValueType).ClassInheritsFrom(
@@ -5494,17 +5437,11 @@ end;
   paramètre.
 *}
 procedure TSepiCustomWithParams.CompleteParams;
-var
-  I: Integer;
-  ParamValue: ISepiValue;
 begin
   if FParamsCompleted then
     Exit;
 
   FParamsCompleted := True;
-  for I := 0 to ParamCount-1 do
-    if Supports(Params[I], ISepiValue, ParamValue) then
-      ParamValue.Finalize;
 end;
 
 {*
@@ -5804,13 +5741,6 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiCustomCallable.Finalize;
-begin
-end;
-
-{*
-  [@inheritDoc]
-*}
 function TSepiCustomCallable.GetReturnType: TSepiType;
 begin
   if Signature = nil then
@@ -6093,8 +6023,6 @@ begin
       MakeError(SNoMatchingOverloadedMethod);
   end;
 
-  if SelfValue <> nil then
-    SelfValue.Finalize;
   CheckSelfValueType;
 
   if Expression <> nil then
@@ -6160,7 +6088,6 @@ end;
 *}
 procedure TSepiMethodRefCall.Complete;
 begin
-  MethodRefValue.Finalize;
   SetSignature((MethodRefValue.ValueType as TSepiMethodRefType).Signature);
 end;
 
@@ -6234,8 +6161,6 @@ begin
   FObjectValue := AObjectValue;
   FProperty := AProperty;
 
-  ObjectValue.Finalize;
-
   SetParamCount(FProperty.Signature.ParamCount);
   if FProperty.Signature.ParamCount = 0 then
     CompleteParams;
@@ -6301,13 +6226,6 @@ begin
     if FProperty.WriteAccess.Kind <> pakNone then
       Expression.Attach(ISepiWritableValue, AsExpressionPart);
   end;
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TSepiPropertyValue.Finalize;
-begin
 end;
 
 {*
@@ -6640,13 +6558,6 @@ begin
   AsExpressionPart := Self;
   Expression.Attach(ISepiValue, AsExpressionPart);
   Expression.Attach(ISepiReadableValue, AsExpressionPart);
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TSepiNilValue.Finalize;
-begin
 end;
 
 {*

@@ -1330,6 +1330,14 @@ begin
   end else if Child is TSepiConstExpressionNode then
   begin
     ReadableValue := TSepiConstExpressionNode(Child).AsReadableValue;
+
+    if ReadableValue.ValueType is TSepiCompilerTransientType then
+    begin
+      Child.MakeError(SCompilerTransientTypeForbidden);
+      ReadableValue := TSepiErroneousValue.Create(SepiRoot);
+      ReadableValue.AttachToExpression(MakeExpression);
+    end;
+
     FConstant := TSepiConstant.Create(SepiContext, Name,
       ReadableValue.ValueType, ReadableValue.ConstValuePtr^);
   end;

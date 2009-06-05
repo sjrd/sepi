@@ -3,7 +3,7 @@ unit SepiCompilerUtils;
 interface
 
 uses
-  SysUtils, Classes, SepiReflectionCore, SepiOrdTypes, SepiMembers,
+  SysUtils, Classes, TypInfo, SepiReflectionCore, SepiOrdTypes, SepiMembers,
   SepiSystemUnit,
   SepiExpressions, SepiParseTrees, SepiLexerUtils, SepiParserUtils,
   SepiCompilerErrors, SepiCompiler, SepiCompilerConsts;
@@ -104,6 +104,30 @@ type
     property DefaultValue: Integer read FDefaultValue;
     property Storage: TSepiPropertyStorage read FStorage;
     property IsDefault: Boolean read FIsDefault;
+  end;
+
+  {*
+    Type transient utilisé par un compilateur
+    Toute tentative de charger ou sauvegarder une instance de
+    TSepiCompilerTransientType déclenchera une exception EAssertionFailed.
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiCompilerTransientType = class(TSepiType)
+  protected
+    procedure Save(Stream: TStream); override;
+  public
+    constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
+    constructor Create(AOwner: TSepiMeta; const AName: string;
+      AKind: TTypeKind = tkUnknown);
+  end;
+
+  {*
+    Type transient ensemble vide
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiEmptySetType = class(TSepiCompilerTransientType)
   end;
 
 function RequireReadableValue(const Expression: ISepiExpression;
@@ -769,6 +793,40 @@ procedure TSepiPropertyBuilder.Build;
 begin
   TSepiProperty.Create(Owner, Name, Signature, ReadAccess, WriteAccess,
     Index, DefaultValue, Storage, IsDefault);
+end;
+
+{----------------------------------}
+{ TSepiCompilerTransientType class }
+{----------------------------------}
+
+{*
+  [@inheritDoc]
+*}
+constructor TSepiCompilerTransientType.Load(AOwner: TSepiMeta; Stream: TStream);
+begin
+  raise EAssertionFailed.Create('Can''t load instance of '+ClassName);
+end;
+
+{*
+  Crée un type transient du compilateur
+  @param AOwner   Propriétaire du type
+  @param AName    Nom du type
+  @param AKind    Type de type (tkUnknown par défaut)
+*}
+constructor TSepiCompilerTransientType.Create(AOwner: TSepiMeta;
+  const AName: string; AKind: TTypeKind = tkUnknown);
+begin
+  inherited Create(AOwner, AName, AKind);
+
+  FSize := 4;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiCompilerTransientType.Save(Stream: TStream);
+begin
+  raise EAssertionFailed.Create('Can''t save instance of '+ClassName);
 end;
 
 end.

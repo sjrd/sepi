@@ -643,6 +643,7 @@ type
 
     function GetPointerType(PointTo: TSepiType): TSepiPointerType;
     function GetMetaClass(SepiClass: TSepiClass): TSepiMetaClass;
+    function GetEmptySetType: TSepiType;
     
     function MakeSetType(CompType: TSepiOrdType): TSepiSetType;
 
@@ -805,6 +806,9 @@ function CardinalSize(Value: Cardinal;
   ZeroGivesZero: Boolean = False): Integer;
 
 implementation
+
+uses
+  SepiCompilerUtils;
 
 const
   /// Ensemble des opérations qui ont un argument mémoire
@@ -2578,7 +2582,7 @@ var
 begin
   if PointTo = nil then
   begin
-    Result := SepiUnit.Root.FindType('System.Pointer') as TSepiPointerType;
+    Result := SystemUnit.Pointer;
     Exit;
   end;
 
@@ -2614,6 +2618,20 @@ begin
   if Result = nil then
     Result := TSepiMetaClass.Create(FCompileTimeTypes,
       MetaClassName, SepiClass);
+end;
+
+{*
+  Obtient un type d'ensemble vide qui ne durera que la compilation
+  @return Type ensemble vide
+*}
+function TSepiUnitCompiler.GetEmptySetType: TSepiType;
+const
+  EmptySetTypeName = '$EmptySet';
+begin
+  NeedCompileTimeTypes;
+  Result := FCompileTimeTypes.GetMeta(EmptySetTypeName) as TSepiType;
+  if Result = nil then
+    Result := TSepiEmptySetType.Create(FCompileTimeTypes, EmptySetTypeName);
 end;
 
 {*

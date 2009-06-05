@@ -379,8 +379,6 @@ var
   TestJumpInstr: TSepiAsmCondJump;
   JumpInstr: TSepiAsmJump;
 begin
-  TestValue.Finalize;
-
   TestMemory := nil;
   try
     // Test the value
@@ -464,8 +462,6 @@ var
   TestJumpInstr: TSepiAsmCondJump;
   JumpInstr: TSepiAsmJump;
 begin
-  TestValue.Finalize;
-
   TestMemory := nil;
   try
     // First create the test-jump instr: we will need a reference to it
@@ -634,9 +630,6 @@ var
   IncDecInstr: TSepiAsmOperation;
   JumpInstr: TSepiAsmJump;
 begin
-  StartValue.Finalize;
-  EndValue.Finalize;
-
   if ControlVar.IsLifeHandled then
     ControlVar.Life.AddInstrInterval(BeforeRef, AfterRef);
 
@@ -838,20 +831,13 @@ procedure TSepiAssignment.CustomCompile;
 var
   Instructions: TSepiInstructionList;
 begin
-  Destination.Finalize;
-
-  if AutoConvert then
+  if not Source.ValueType.Equals(Destination.ValueType) then
   begin
-    if Source.ValueType <> Destination.ValueType then
+    if AutoConvert then
+    begin
       Source := TSepiConvertOperation.ConvertValue(
         Destination.ValueType, Source);
-
-    Source.Finalize;
-  end else
-  begin
-    Source.Finalize;
-
-    if Source.ValueType <> Destination.ValueType then
+    end else
     begin
       (Source as ISepiExpression).MakeError(Format(STypeMismatch,
         [Destination.ValueType.DisplayName, Source.ValueType.DisplayName]));
@@ -894,8 +880,6 @@ var
   RaiseInstr: TSepiAsmRaise;
   TempVars: TSepiTempVarsLifeManager;
 begin
-  ExceptionValue.Finalize;
-
   if not (ExceptionValue.ValueType is TSepiClass) then
   begin
     (ExceptionValue as ISepiExpression).MakeError(SClassTypeRequired);
