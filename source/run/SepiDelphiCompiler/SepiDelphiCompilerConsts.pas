@@ -35,7 +35,6 @@ resourcestring
     'valeurs';
   SElementCountMismatch =
     'Le nombre d''éléments (%1:d) diffère de la déclaration (%0:d)';
-  SOneParamRequiredForCast = 'Un paramètre requis pour un transtypage';
 
 implementation
 

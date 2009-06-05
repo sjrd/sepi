@@ -229,10 +229,6 @@ type
     procedure CompileIdentifierTest(
       const PseudoRoutine: ISepiIdentifierTestPseudoRoutine);
     procedure CompileCastOrConvert(DestType: TSepiType);
-    procedure CompileCast(const PseudoRoutine: ISepiCastPseudoRoutine);
-    procedure CompileTypeOperation(
-      const TypeOperation: ISepiTypeOperationPseudoRoutine;
-      const TypeExpression: ISepiTypeExpression);
     procedure CompileParams(const WantingParams: ISepiWantingParams);
   public
     procedure BeginParsing; override;
@@ -1171,11 +1167,14 @@ var
   ReadableSource: ISepiReadableValue;
   SourceType: TSepiType;
 begin
-  if ChildCount <> 1 then
-    MakeError(SOneParamRequiredForCast);
-
-  if ChildCount = 0 then
+  if ChildCount < 1 then
+  begin
+    MakeError(SNotEnoughActualParameters);
     Exit;
+  end;
+
+  if ChildCount > 1 then
+    MakeError(STooManyActualParameters);
 
   if not Supports((Children[0] as TSepiExpressionNode).Expression,
     ISepiValue, Source) then
@@ -1197,7 +1196,8 @@ begin
   begin
     if (SourceType <> nil) and (SourceType.Size <> DestType.Size) and
       ((DestType is TSepiPointerType) or (DestType is TSepiClass)) and
-      (SourceType is TSepiIntegerType) and (ReadableSource <> nil) then
+      ((SourceType is TSepiIntegerType) or (SourceType is TSepiInt64Type)) and
+      (ReadableSource <> nil) then
     begin
       Source := TSepiConvertOperation.ConvertValue(
         SystemUnit.Integer, ReadableSource);
@@ -1206,43 +1206,6 @@ begin
     SetExpression(TSepiCastOperator.CastValue(
       DestType, Source) as ISepiExpression);
   end;
-end;
-
-{*
-  Compile un appel de pseudo-routine dont l'argument est un type
-  @param TypeOperation    Pseudo-routine
-  @param TypeExpression   Expression argument
-*}
-procedure TDelphiParametersNode.CompileCast(
-  const PseudoRoutine: ISepiCastPseudoRoutine);
-begin
-  if ChildCount <> 1 then
-    MakeError(SOneParamRequiredForCast);
-
-  if ChildCount = 0 then
-    Exit;
-
-  PseudoRoutine.Operand := (Children[0] as TSepiExpressionNode).AsValue;
-  PseudoRoutine.Complete;
-
-  SetExpression(Base);
-  PseudoRoutine.AttachToExpression(Expression);
-end;
-
-{*
-  Compile un appel de pseudo-routine dont l'argument est un type
-  @param TypeOperation    Pseudo-routine
-  @param TypeExpression   Expression argument
-*}
-procedure TDelphiParametersNode.CompileTypeOperation(
-  const TypeOperation: ISepiTypeOperationPseudoRoutine;
-  const TypeExpression: ISepiTypeExpression);
-begin
-  TypeOperation.Operand := TypeExpression;
-  TypeOperation.Complete;
-
-  SetExpression(Base);
-  TypeOperation.AttachToExpression(Expression);
 end;
 
 {*
@@ -1294,32 +1257,20 @@ end;
 procedure TDelphiParametersNode.EndParsing;
 var
   IdentifierTestPseudoRoutine: ISepiIdentifierTestPseudoRoutine;
-  CastPseudoRoutine: ISepiCastPseudoRoutine;
   TypeExpression: ISepiTypeExpression;
-  TypeOperation: ISepiTypeOperationPseudoRoutine;
   WantingParams: ISepiWantingParams;
 begin
   if Supports(Base, ISepiIdentifierTestPseudoRoutine,
     IdentifierTestPseudoRoutine) then
     CompileIdentifierTest(IdentifierTestPseudoRoutine)
-  else if Supports(Base, ISepiCastPseudoRoutine, CastPseudoRoutine) then
-    CompileCast(CastPseudoRoutine)
   else if Supports(Base, ISepiTypeExpression, TypeExpression) then
     CompileCastOrConvert(TypeExpression.ExprType)
-  else if Supports(Base, ISepiTypeOperationPseudoRoutine, TypeOperation) and
-    (ChildCount = 1) and
-    Supports((Children[0] as TSepiExpressionNode).Expression,
-      ISepiTypeExpression, TypeExpression) then
-    CompileTypeOperation(TypeOperation, TypeExpression)
   else if Supports(Base, ISepiWantingParams, WantingParams) and
     (not WantingParams.ParamsCompleted) then
     CompileParams(WantingParams)
   else
   begin
-    if Supports(Base, ISepiTypeOperationPseudoRoutine) then
-      Children[0].MakeError(STypeIdentifierRequired)
-    else
-      Base.MakeError(SCallableRequired);
+    Base.MakeError(SCallableRequired);
   end;
 
   inherited;

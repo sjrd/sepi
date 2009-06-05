@@ -27,30 +27,15 @@ unit SepiDelphiLikeCompilerUtils;
 interface
 
 uses
-  Windows, SysUtils, StrUtils, TypInfo, SepiReflectionCore, SepiMembers,
-  SepiCompiler, SepiExpressions, SepiInstructions, SepiCompilerConsts;
+  Windows, SysUtils, StrUtils, TypInfo, ScUtils, SepiReflectionCore,
+  SepiMembers, SepiSystemUnit, SepiCompiler, SepiExpressions, SepiInstructions,
+  SepiCompilerConsts;
 
 type
   {*
     Type de saut spécial existant en Delphi
   *}
   TSepiSpecialJumpKind = (sjkContinue, sjkBreak, sjkExit);
-
-  {*
-    Pseudo-routine d'opération sur un type
-    @author sjrd
-    @version 1.0
-  *}
-  ISepiTypeOperationPseudoRoutine = interface(ISepiReadableValue)
-    ['{B2E927FC-5C5D-4E60-8A73-A5B5FF1FCBB3}']
-
-    function GetOperand: ISepiTypeExpression;
-    procedure SetOperand(const Value: ISepiTypeExpression);
-
-    procedure Complete;
-
-    property Operand: ISepiTypeExpression read GetOperand write SetOperand;
-  end;
 
   {*
     Pseudo-routine de test d'identificateur
@@ -73,33 +58,38 @@ type
   end;
 
   {*
-    Pseudo-routine de transtypage
-    @author sjrd
-    @version 1.0
-  *}
-  ISepiCastPseudoRoutine = interface(ISepiValue)
-    ['{48556A76-A490-4F37-98C5-0930D931D4E1}']
-
-    function GetOperand: ISepiValue;
-    procedure SetOperand(const Value: ISepiValue);
-
-    procedure Complete;
-
-    property Operand: ISepiValue read GetOperand write SetOperand;
-  end;
-
-  {*
     Pseudo-routine d'opération sur un type
     @author sjrd
     @version 1.0
   *}
-  TSepiTypeOperationPseudoRoutine = class(TSepiTypeOperationValue,
-    ISepiTypeOperationPseudoRoutine)
+  TSepiTypeOperationPseudoRoutine = class(TSepiCustomWithParams,
+    ISepiWantingParams, ISepiValue, ISepiReadableValue)
+  private
+    FTypeOperation: TSepiTypeOperationValue; /// Opération sous-jacente
+    FTypeOpValue: ISepiReadableValue;        /// Valeur opération
   protected
+    function QueryInterface(const IID: TGUID;
+      out Obj): HResult; override; stdcall;
+
     procedure AttachToExpression(const Expression: ISepiExpression); override;
 
-    function GetOperand: ISepiTypeExpression;
-    procedure SetOperand(const Value: ISepiTypeExpression);
+    function MakeTypeExpression(SepiType: TSepiType): ISepiTypeExpression;
+
+    procedure CompleteParams; override;
+
+    procedure Finalize;
+
+    function GetValueType: TSepiType;
+
+    function GetIsConstant: Boolean;
+    function GetConstValuePtr: Pointer;
+
+    procedure CompileRead(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
+      TempVars: TSepiTempVarsLifeManager);
+  public
+    constructor Create(AOperation: TSepiTypeOperation;
+      ANilIfNoTypeInfo: Boolean = False);
   end;
 
   {*
@@ -107,12 +97,33 @@ type
     @author sjrd
     @version 1.0
   *}
-  TSepiCastPseudoRoutine = class(TSepiCastOperator, ISepiCastPseudoRoutine)
+  TSepiCastPseudoRoutine = class(TSepiCustomWithParams,
+    ISepiWantingParams, ISepiValue, ISepiReadableValue)
+  private
+    FCastOperator: TSepiCastOperator; /// Opération sous-jacente
+    FCastOpValue: ISepiReadableValue; /// Valeur opération
   protected
+    function QueryInterface(const IID: TGUID;
+      out Obj): HResult; override; stdcall;
+
     procedure AttachToExpression(const Expression: ISepiExpression); override;
 
-    function GetOperand: ISepiValue;
-    procedure SetOperand(const Value: ISepiValue);
+    procedure CompleteParams; override;
+
+    procedure Finalize;
+
+    function GetValueType: TSepiType;
+
+    function GetIsConstant: Boolean;
+    function GetConstValuePtr: Pointer;
+
+    procedure CompileRead(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
+      TempVars: TSepiTempVarsLifeManager);
+  public
+    constructor Create(DestType: TSepiType);
+    constructor CreateOrd;
+    constructor CreateChr;
   end;
 
   {*
@@ -126,13 +137,6 @@ type
     FKind: TSepiSpecialJumpKind; /// Type de saut spécial
   protected
     procedure AttachToExpression(const Expression: ISepiExpression); override;
-
-    function GetParamCount: Integer;
-    function GetParams(Index: Integer): ISepiExpression;
-    function GetParamsCompleted: Boolean;
-
-    procedure AddParam(const Value: ISepiExpression);
-    procedure CompleteParams;
 
     procedure CompileExecute(Compiler: TSepiMethodCompiler;
       Instructions: TSepiInstructionList);
@@ -525,6 +529,36 @@ end;
 {---------------------------------------}
 
 {*
+  Crée une pseudo-routine opération sur un type
+  @param AOperation         Opération
+  @param ANilIfNoTypeInfo   Si True, TypeInfo peut renvoyer nil
+*}
+constructor TSepiTypeOperationPseudoRoutine.Create(
+  AOperation: TSepiTypeOperation; ANilIfNoTypeInfo: Boolean = False);
+begin
+  inherited Create;
+
+  FTypeOperation := TSepiTypeOperationValue.Create(AOperation,
+    ANilIfNoTypeInfo);
+  FTypeOpValue := FTypeOperation;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiTypeOperationPseudoRoutine.QueryInterface(const IID: TGUID;
+  out Obj): HResult;
+begin
+  if SameGUID(IID, ISepiWantingParams) and ParamsCompleted then
+    Result := E_NOINTERFACE
+  else if (SameGUID(IID, ISepiValue) or SameGUID(IID, ISepiReadableValue)) and
+    (not ParamsCompleted) then
+    Result := E_NOINTERFACE
+  else
+    Result := inherited QueryInterface(IID, Obj);
+end;
+
+{*
   [@inheritDoc]
 *}
 procedure TSepiTypeOperationPseudoRoutine.AttachToExpression(
@@ -533,32 +567,163 @@ var
   AsExpressionPart: ISepiExpressionPart;
 begin
   AsExpressionPart := Self;
-  Expression.Attach(ISepiTypeOperationPseudoRoutine, AsExpressionPart);
 
-  if Operand <> nil then
-    inherited;
+  if not ParamsCompleted then
+    Expression.Attach(ISepiWantingParams, AsExpressionPart)
+  else
+  begin
+    Expression.Attach(ISepiValue, AsExpressionPart);
+    Expression.Attach(ISepiReadableValue, AsExpressionPart);
+  end;
+end;
+
+{*
+  Construit une expression pour un type
+  @param SepiType   Type
+  @return Expression représentant le type
+*}
+function TSepiTypeOperationPseudoRoutine.MakeTypeExpression(
+  SepiType: TSepiType): ISepiTypeExpression;
+begin
+  Result := TSepiTypeExpression.Create(SepiType);
+  Result.AttachToExpression(TSepiExpression.Create(Expression));
 end;
 
 {*
   [@inheritDoc]
 *}
-function TSepiTypeOperationPseudoRoutine.GetOperand: ISepiTypeExpression;
+procedure TSepiTypeOperationPseudoRoutine.CompleteParams;
+var
+  Param: ISepiExpression;
+  TypeExpression: ISepiTypeExpression;
+  Value: ISepiValue;
 begin
-  Result := Operand;
+  inherited;
+
+  FTypeOpValue.AttachToExpression(TSepiExpression.Create(Expression));
+
+  if ParamCount < 1 then
+  begin
+    MakeError(SNotEnoughActualParameters);
+  end else
+  begin
+    Param := Params[0];
+
+    if Supports(Param, ISepiTypeExpression, TypeExpression) then
+      FTypeOperation.Operand := TypeExpression
+    else if Supports(Param, ISepiValue, Value) then
+      FTypeOperation.Operand := MakeTypeExpression(Value.ValueType)
+    else
+      Param.MakeError(STypeIdentifierRequired);
+
+    if ParamCount > 1 then
+      MakeError(STooManyActualParameters);
+  end;
+
+  if FTypeOperation.Operand = nil then
+    FTypeOperation.Operand := MakeTypeExpression(
+      (SepiRoot.SystemUnit as TSepiSystemUnit).Integer);
+
+  FTypeOperation.Complete;
+
+  if Expression <> nil then
+    AttachToExpression(Expression);
 end;
 
 {*
   [@inheritDoc]
 *}
-procedure TSepiTypeOperationPseudoRoutine.SetOperand(
-  const Value: ISepiTypeExpression);
+procedure TSepiTypeOperationPseudoRoutine.Finalize;
 begin
-  Operand := Value;
+  FTypeOpValue.Finalize;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiTypeOperationPseudoRoutine.GetValueType: TSepiType;
+begin
+  Result := FTypeOpValue.ValueType;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiTypeOperationPseudoRoutine.GetIsConstant: Boolean;
+begin
+  Result := FTypeOpValue.IsConstant;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiTypeOperationPseudoRoutine.GetConstValuePtr: Pointer;
+begin
+  Result := FTypeOpValue.ConstValuePtr;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiTypeOperationPseudoRoutine.CompileRead(
+  Compiler: TSepiMethodCompiler; Instructions: TSepiInstructionList;
+  var Destination: TSepiMemoryReference; TempVars: TSepiTempVarsLifeManager);
+begin
+  FTypeOpValue.CompileRead(Compiler, Instructions, Destination, TempVars);
 end;
 
 {------------------------------}
 { TSepiCastPseudoRoutine class }
 {------------------------------}
+
+{*
+  Crée une pseudo-routine opérateur de transtypage
+  @param ADestType   Type de destination
+*}
+constructor TSepiCastPseudoRoutine.Create(DestType: TSepiType);
+begin
+  inherited Create;
+
+  FCastOperator := TSepiCastOperator.Create(DestType);
+  FCastOpValue := FCastOperator;
+end;
+
+{*
+  Crée une pseudo-routine opérateur de transtypage Ord
+*}
+constructor TSepiCastPseudoRoutine.CreateOrd;
+begin
+  inherited Create;
+
+  FCastOperator := TSepiCastOperator.CreateOrd;
+  FCastOpValue := FCastOperator;
+end;
+
+{*
+  Crée une pseudo-routine opérateur de transtypage Chr
+*}
+constructor TSepiCastPseudoRoutine.CreateChr;
+begin
+  inherited Create;
+
+  FCastOperator := TSepiCastOperator.CreateChr;
+  FCastOpValue := FCastOperator;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiCastPseudoRoutine.QueryInterface(const IID: TGUID;
+  out Obj): HResult;
+begin
+  if SameGUID(IID, ISepiWantingParams) and ParamsCompleted then
+    Result := E_NOINTERFACE
+  else if (SameGUID(IID, ISepiValue) or SameGUID(IID, ISepiReadableValue)) and
+    (not ParamsCompleted) then
+    Result := E_NOINTERFACE
+  else
+    Result := inherited QueryInterface(IID, Obj);
+end;
 
 {*
   [@inheritDoc]
@@ -569,26 +734,97 @@ var
   AsExpressionPart: ISepiExpressionPart;
 begin
   AsExpressionPart := Self;
-  Expression.Attach(ISepiCastPseudoRoutine, AsExpressionPart);
 
-  if Operand <> nil then
-    inherited;
+  if not ParamsCompleted then
+    Expression.Attach(ISepiWantingParams, AsExpressionPart)
+  else
+  begin
+    Expression.Attach(ISepiValue, AsExpressionPart);
+    Expression.Attach(ISepiReadableValue, AsExpressionPart);
+  end;
 end;
 
 {*
   [@inheritDoc]
 *}
-function TSepiCastPseudoRoutine.GetOperand: ISepiValue;
+procedure TSepiCastPseudoRoutine.CompleteParams;
+var
+  Param: ISepiExpression;
+  Value: ISepiValue;
 begin
-  Result := Operand;
+  inherited;
+
+  FCastOpValue.AttachToExpression(TSepiExpression.Create(Expression));
+
+  if ParamCount < 1 then
+  begin
+    MakeError(SNotEnoughActualParameters);
+  end else
+  begin
+    Param := Params[0];
+
+    if Supports(Param, ISepiValue, Value) then
+      FCastOperator.Operand := Value
+    else
+      Param.MakeError(SValueRequired);
+
+    if ParamCount > 1 then
+      MakeError(STooManyActualParameters);
+  end;
+
+  if FCastOperator.Operand = nil then
+  begin
+    FCastOperator.Operand := TSepiErroneousValue.Create(SepiRoot);
+    FCastOperator.Operand.AttachToExpression(
+      TSepiExpression.Create(Expression));
+  end;
+
+  FCastOperator.Complete;
+
+  if Expression <> nil then
+    AttachToExpression(Expression);
 end;
 
 {*
   [@inheritDoc]
 *}
-procedure TSepiCastPseudoRoutine.SetOperand(const Value: ISepiValue);
+procedure TSepiCastPseudoRoutine.Finalize;
 begin
-  Operand := Value;
+  FCastOpValue.Finalize;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiCastPseudoRoutine.GetValueType: TSepiType;
+begin
+  Result := FCastOpValue.ValueType;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiCastPseudoRoutine.GetIsConstant: Boolean;
+begin
+  Result := FCastOpValue.IsConstant;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiCastPseudoRoutine.GetConstValuePtr: Pointer;
+begin
+  Result := FCastOpValue.ConstValuePtr;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiCastPseudoRoutine.CompileRead(
+  Compiler: TSepiMethodCompiler; Instructions: TSepiInstructionList;
+  var Destination: TSepiMemoryReference; TempVars: TSepiTempVarsLifeManager);
+begin
+  FCastOpValue.CompileRead(Compiler, Instructions, Destination, TempVars);
 end;
 
 {-------------------------------------}
@@ -616,47 +852,6 @@ begin
   AsExpressionPart := Self;
 
   Expression.Attach(ISepiExecutable, AsExpressionPart);
-end;
-
-{*
-  [@inheritDoc]
-*}
-function TSepiSpecialJumpPseudoRoutine.GetParamCount: Integer;
-begin
-  Result := 0;
-end;
-
-{*
-  [@inheritDoc]
-*}
-function TSepiSpecialJumpPseudoRoutine.GetParams(
-  Index: Integer): ISepiExpression;
-begin
-  Result := nil;
-end;
-
-{*
-  [@inheritDoc]
-*}
-function TSepiSpecialJumpPseudoRoutine.GetParamsCompleted: Boolean;
-begin
-  Result := True;
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TSepiSpecialJumpPseudoRoutine.AddParam(const Value: ISepiExpression);
-begin
-  raise ESepiCompilerError.Create(SParamsAlreadyCompleted);
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TSepiSpecialJumpPseudoRoutine.CompleteParams;
-begin
-  // Nothing to do
 end;
 
 {*
