@@ -2900,7 +2900,8 @@ begin
 
   if not ConvertionExists(ValueType, Source) then
   begin
-    MakeError(Format(STypeMismatch, [ValueType, Source.ValueType]));
+    MakeError(Format(STypeMismatch,
+      [ValueType.DisplayName, Source.ValueType.DisplayName]));
     Exit;
   end;
 
@@ -3003,10 +3004,11 @@ var
   ConvertOp: TSepiConvertOperation;
 begin
   ConvertOp := TSepiConvertOperation.Create(DestType, Value);
-  ConvertOp.Complete;
-  Result := ConvertOp;
 
+  Result := ConvertOp;
   Result.AttachToExpression(TSepiExpression.Create(Value as ISepiExpression));
+
+  ConvertOp.Complete;
 end;
 
 {-------------------------------------}

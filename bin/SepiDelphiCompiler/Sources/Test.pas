@@ -36,18 +36,30 @@ end;
 type
   TShorterInt = 0..15;
 
-procedure Main;
+var
+  IsFirstTitle: Boolean = True;
+
+procedure WriteTitle(const Title: string);
+begin
+  if not IsFirstTitle then
+    WriteLn('');
+
+  WriteLn(Title);
+  WriteLn(StringOfChar('-', 10));
+  WriteLn('');
+
+  IsFirstTitle := False;
+end;
+
+procedure TestSets;
 const
   ShorterConst: TShorterInt = 5;
   EmptySet: TSysCharSet = [];
 var
-  Strings: TStrings;
-  I: Integer;
-  Tab: array[0..10] of Integer;
   C, D: Char;
   ShorterVar: TShorterInt;
 begin
-  Randomize;
+  WriteTitle('Test set construction and operations');
 
   ShorterVar := 10;
 
@@ -55,11 +67,21 @@ begin
   D := 'D';
   WriteLn(CharSetToStr(SwitchChars + [C, 'A'..D] - ['B', 'Q'] * ['B'..'E'] +
     [Chr(ShorterConst)..Chr(ShorterVar)] + EmptySet + (['Z']-[])));
+end;
+
+procedure TestChangeGlobalVar;
+begin
+  WriteTitle('Test changing a global variable');
 
   DecimalSeparator := ',';
   WriteLn(FloatToStr(3.1416));
   DecimalSeparator := '.';
   WriteLn(FloatToStr(2.1416));
+end;
+
+procedure TestIfCompilerDirective;
+begin
+  WriteTitle('Test {$IF} compiler directive');
 
   {$IF RTLVersion > 15}
     WriteLn('RTLVersion > 15');
@@ -69,13 +91,48 @@ begin
     WriteLn('3+5 = 6');
   {$IFEND}
 
-  {$IF Declared(ShorterVar) and not Defined(SOMETHING)}
+  {$IF Declared(TestSets) and not Defined(SOMETHING)}
     WriteLn('Cool! This beast is working!');
   {$IFEND}
 
   {$IF Defined(MSWINDOWS)}
     WriteLn('Compiled for Windows');
   {$IFEND}
+end;
+
+procedure TestMethodRef;
+type
+  TStringEvent = procedure(const Str: string) of object;
+var
+  Strings: TStrings;
+  Add: TStringEvent;
+  I: Integer;
+begin
+  WriteTitle('Test method references');
+
+  Strings := TStringList.Create;
+  try
+    TMethod(Add).Code := nil;
+    TMethod(Add).Data := Pointer(Strings);
+
+    for I := 1 to 3 do
+      if @Add <> nil then
+        Add(IntToStr(I));
+
+    for I := 0 to Strings.Count-1 do
+      WriteLn(Strings[I]);
+  finally
+    Strings.Free;
+  end;
+end;
+
+procedure TestExceptionsAndClassDef;
+var
+  Strings: TStrings;
+  I: Integer;
+  Tab: array[0..10] of Integer;
+begin
+  WriteTitle('Test using a Sepi-defined class and raising exceptions');
 
   Strings := TPrintOnAddStrings.Create;
   try
@@ -119,6 +176,17 @@ begin
   end;
   
   WriteLn('Will appear only if that was a EConvertError, which was catched');
+end;
+
+procedure Main;
+begin
+  Randomize;
+
+  TestSets;
+  TestChangeGlobalVar;
+  TestIfCompilerDirective;
+  TestMethodRef;
+  TestExceptionsAndClassDef;
 end;
 
 end.

@@ -3463,13 +3463,18 @@ end;
 *}
 constructor TSepiConstant.Create(AOwner: TSepiMeta;
   const AName: string; const AValue: Variant; AType: TSepiType);
-const
-  TrueConst: Boolean = True;
+var
+  BoolValue: LongWord;
 begin
-  if (AType is TSepiBooleanType) and
-    (TSepiBooleanType(AType).BooleanKind = bkBoolean) then
-    Create(AOwner, AName, AType, TrueConst)
-  else
+  if AType is TSepiBooleanType then
+  begin
+    if TVarData(AValue).VBoolean then
+      BoolValue := 1
+    else
+      BoolValue := 0;
+
+    Create(AOwner, AName, AType, BoolValue);
+  end else
     Create(AOwner, AName, AType, TVarData(AValue).VAny);
 end;
 

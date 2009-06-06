@@ -480,6 +480,35 @@ type
   end;
 
   {*
+    Noeud paramètres réels
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiParametersNode = class(TSepiExpressionModifierNode)
+  protected
+    procedure CompileParams(const WantingParams: ISepiWantingParams); virtual;
+
+    procedure Compile; virtual;
+  public
+    procedure EndParsing; override;
+  end;
+
+  {*
+    Noeud paramètres réels de style Delphi
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiDelphiLikeParametersNode = class(TSepiParametersNode)
+  protected
+    procedure CompileIdentifierTest(
+      const PseudoRoutine: ISepiIdentifierTestPseudoRoutine);
+
+    procedure Compile; override;
+  public
+    procedure BeginParsing; override;
+  end;
+
+  {*
     Noeud index de tableau ou de propriété tableau
     @author sjrd
     @version 1.0
@@ -2253,9 +2282,15 @@ end;
 function TSepiAddressOfOpNode.MakeOperation(
   const Operand: ISepiExpression): ISepiExpression;
 var
+  MethodRefValue: ISepiReadableValue;
   AddrValue: ISepiAddressableValue;
 begin
-  if Supports(Operand, ISepiAddressableValue, AddrValue) then
+  if Supports(Operand, ISepiReadableValue, MethodRefValue) and
+    (MethodRefValue.ValueType is TSepiMethodRefType) then
+  begin
+    Result := TSepiCastOperator.CastValue(SystemUnit.Pointer,
+      MethodRefValue, True) as ISepiExpression;
+  end else if Supports(Operand, ISepiAddressableValue, AddrValue) then
   begin
     Result := TSepiAddressOfValue.MakeAddressOf(AddrValue) as ISepiExpression;
   end else
@@ -2684,6 +2719,117 @@ begin
     SetExpression(TSepiUnaryOpNode(Child).MakeOperation(Base));
 
   inherited;
+end;
+
+{---------------------------}
+{ TSepiParametersNode class }
+{---------------------------}
+
+{*
+  Compile les paramètres d'une expression requérant des paramètres
+  @param WantingParams   Expression requérant des paramètres
+*}
+procedure TSepiParametersNode.CompileParams(
+  const WantingParams: ISepiWantingParams);
+var
+  I: Integer;
+begin
+  SetExpression(Base);
+
+  for I := 0 to ChildCount-1 do
+    WantingParams.AddParam((Children[I] as TSepiExpressionNode).Expression);
+
+  WantingParams.CompleteParams;
+  Expression.Detach(ISepiWantingParams);
+  WantingParams.AttachToExpression(Expression);
+end;
+
+{*
+  Compile les paramètres
+*}
+procedure TSepiParametersNode.Compile;
+var
+  WantingParams: ISepiWantingParams;
+begin
+  if Supports(Base, ISepiWantingParams, WantingParams) then
+    CompileParams(WantingParams)
+  else
+    Base.MakeError(SCallableRequired);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiParametersNode.EndParsing;
+begin
+  Compile;
+
+  inherited;
+end;
+
+{-------------------------------------}
+{ TSepiDelphiLikeParametersNode class }
+{-------------------------------------}
+
+{*
+  Compile une pseudo-routine de test d'identificateur
+  @param PseudoRoutine   Pseudo-routine à compiler
+*}
+procedure TSepiDelphiLikeParametersNode.CompileIdentifierTest(
+  const PseudoRoutine: ISepiIdentifierTestPseudoRoutine);
+begin
+  Assert(ChildCount = 1);
+
+  PseudoRoutine.Identifier := Children[0].AsText;
+  PseudoRoutine.Complete;
+
+  SetExpression(Base);
+  Expression.Detach(ISepiIdentifierTestPseudoRoutine);
+  PseudoRoutine.AttachToExpression(Expression);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiDelphiLikeParametersNode.Compile;
+var
+  IdentTestPseudoRoutine: ISepiIdentifierTestPseudoRoutine;
+begin
+  if Supports(Base, ISepiIdentifierTestPseudoRoutine,
+    IdentTestPseudoRoutine) then
+    CompileIdentifierTest(IdentTestPseudoRoutine)
+  else
+    inherited;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiDelphiLikeParametersNode.BeginParsing;
+var
+  MethodRefValue: ISepiReadableValue;
+  TypeExpression: ISepiTypeExpression;
+begin
+  inherited;
+
+  // Method ref call
+  if Supports(Base, ISepiReadableValue, MethodRefValue) and
+    (MethodRefValue.ValueType is TSepiMethodRefType) then
+  begin
+    SetBase(TSepiExpression.Create(Base));
+
+    ISepiExpressionPart(TSepiMethodRefCall.Create(
+      MethodRefValue, True)).AttachToExpression(Base);
+  end;
+
+  // Cast or convert from the type name
+  if Supports(Base, ISepiTypeExpression, TypeExpression) then
+  begin
+    SetBase(TSepiExpression.Create(Base));
+
+    ISepiExpressionPart(TSepiCastOrConvertPseudoRoutine.Create(
+      TypeExpression.ExprType)).AttachToExpression(Base);
+  end;
 end;
 
 {-------------------------------------}

@@ -277,7 +277,11 @@ ntDereferenceOp	DereferenceOp
 	'^'
 
 ntParameters	Parameters
-	'('* ExprList ')'*
+	'('* ExprListOrEmpty ')'*
+
+ntExprListOrEmpty	ExprListOrEmpty	Simplify
+	ExprList
+	@
 
 ntIdentTestParam	IdentTestParam
 	'('* Identifier ')'*

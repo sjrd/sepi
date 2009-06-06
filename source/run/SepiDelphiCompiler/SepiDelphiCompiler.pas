@@ -210,28 +210,13 @@ type
   end;
 
   {*
-    Classe de base pour les noeuds qui suivent une expression single
-    @author sjrd
-    @version 1.0
-  *}
-  TDelphiNextExprNode = class(TSepiExpressionModifierNode)
-  public
-    procedure EndParsing; override;
-  end;
-
-  {*
     Noeud paramètres réels
     @author sjrd
     @version 1.0
   *}
-  TDelphiParametersNode = class(TDelphiNextExprNode)
-  private
-    procedure CompileIdentifierTest(
-      const PseudoRoutine: ISepiIdentifierTestPseudoRoutine);
-    procedure CompileParams(const WantingParams: ISepiWantingParams);
+  TDelphiParametersNode = class(TSepiDelphiLikeParametersNode)
   public
     procedure BeginParsing; override;
-    procedure EndParsing; override;
   end;
 
   {*
@@ -1115,119 +1100,19 @@ begin
   inherited;
 end;
 
-{---------------------------}
-{ TDelphiNextExprNode class }
-{---------------------------}
-
-{*
-  [@inheritDoc]
-*}
-procedure TDelphiNextExprNode.EndParsing;
-var
-  ReadableValue: ISepiReadableValue;
-begin
-  if Supports(Expression, ISepiReadableValue, ReadableValue) then
-  begin
-    if ReadableValue.ValueType is TSepiMethodRefType then
-    begin
-      ISepiExpressionPart(TSepiMethodRefCall.Create(
-        ReadableValue, True)).AttachToExpression(Expression);
-      ReadableValue.AttachToExpression(Expression);
-    end;
-  end;
-
-  inherited;
-end;
-
 {-----------------------------}
 { TDelphiParametersNode class }
 {-----------------------------}
 
 {*
-  Compile une pseudo-routine de test d'identificateur
-*}
-procedure TDelphiParametersNode.CompileIdentifierTest(
-  const PseudoRoutine: ISepiIdentifierTestPseudoRoutine);
-begin
-  PseudoRoutine.Identifier := Children[0].AsText;
-  PseudoRoutine.Complete;
-
-  SetExpression(Base);
-  PseudoRoutine.AttachToExpression(Expression);
-end;
-
-{*
-  Compile les paramètres d'une expression requérant des paramètres
-  @param WantingParams   Expression requérant des paramètres
-*}
-procedure TDelphiParametersNode.CompileParams(
-  const WantingParams: ISepiWantingParams);
-var
-  I: Integer;
-begin
-  for I := 0 to ChildCount-1 do
-    WantingParams.AddParam((Children[I] as TSepiExpressionNode).Expression);
-
-  WantingParams.CompleteParams;
-  WantingParams.AttachToExpression(Base);
-  SetExpression(Base);
-end;
-
-{*
   [@inheritDoc]
 *}
 procedure TDelphiParametersNode.BeginParsing;
-var
-  WantingParams: ISepiWantingParams;
-  ReadableValue: ISepiReadableValue;
-  TypeExpression: ISepiTypeExpression;
 begin
   inherited;
-
-  if Supports(Base, ISepiWantingParams, WantingParams) and
-    Supports(Base, ISepiReadableValue, ReadableValue) and
-    (ReadableValue.ValueType is TSepiMethodRefType) then
-  begin
-    Base.Detach(ISepiValue);
-    Base.Detach(ISepiReadableValue);
-    Base.Detach(ISepiWritableValue);
-    Base.Detach(ISepiAddressableValue);
-
-    WantingParams.AttachToExpression(Base);
-  end;
-
-  if Supports(Base, ISepiTypeExpression, TypeExpression) then
-  begin
-    ISepiExpressionPart(TSepiCastOrConvertPseudoRoutine.Create(
-      TypeExpression.ExprType)).AttachToExpression(Base);
-
-    Base.Detach(ISepiTypeExpression);
-  end;
 
   if Supports(Base, ISepiIdentifierTestPseudoRoutine) then
     SetSymbolClass(ntIdentTestParam);
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TDelphiParametersNode.EndParsing;
-var
-  IdentifierTestPseudoRoutine: ISepiIdentifierTestPseudoRoutine;
-  WantingParams: ISepiWantingParams;
-begin
-  if Supports(Base, ISepiIdentifierTestPseudoRoutine,
-    IdentifierTestPseudoRoutine) then
-    CompileIdentifierTest(IdentifierTestPseudoRoutine)
-  else if Supports(Base, ISepiWantingParams, WantingParams) and
-    (not WantingParams.ParamsCompleted) then
-    CompileParams(WantingParams)
-  else
-  begin
-    Base.MakeError(SCallableRequired);
-  end;
-
-  inherited;
 end;
 
 {---------------------------}
