@@ -28,8 +28,8 @@ interface
 
 uses
   Windows, SysUtils, StrUtils, TypInfo, ScUtils, SepiReflectionCore,
-  SepiMembers, SepiSystemUnit, SepiCompiler, SepiExpressions, SepiInstructions,
-  SepiCompilerConsts;
+  SepiOrdTypes, SepiMembers, SepiSystemUnit, SepiCompiler, SepiExpressions,
+  SepiInstructions, SepiCompilerConsts;
 
 type
   {*
@@ -58,26 +58,23 @@ type
   end;
 
   {*
-    Pseudo-routine d'opération sur un type
+    Pseudo-routine compilée en une valeur
     @author sjrd
     @version 1.0
   *}
-  TSepiTypeOperationPseudoRoutine = class(TSepiCustomWithParams,
-    ISepiWantingParams, ISepiValue, ISepiReadableValue)
+  TSepiValueBackedPseudoRoutine = class(TSepiCustomWithParams,
+    ISepiWantingParams, ISepiValue, ISepiReadableValue, ISepiWritableValue,
+    ISepiAddressableValue)
   private
-    FTypeOperation: TSepiTypeOperationValue; /// Opération sous-jacente
-    FTypeOpValue: ISepiReadableValue;        /// Valeur opération
+    FBackingValue: ISepiValue; /// Valeur implémentant la pseudo-routine
   protected
     function QueryInterface(const IID: TGUID;
       out Obj): HResult; override; stdcall;
 
     procedure AttachToExpression(const Expression: ISepiExpression); override;
 
-    function MakeTypeExpression(SepiType: TSepiType): ISepiTypeExpression;
-
-    procedure CompleteParams; override;
-
     function GetValueType: TSepiType;
+    function GetAddressType: TSepiType;
 
     function GetIsConstant: Boolean;
     function GetConstValuePtr: Pointer;
@@ -85,6 +82,43 @@ type
     procedure CompileRead(Compiler: TSepiMethodCompiler;
       Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
       TempVars: TSepiTempVarsLifeManager);
+
+    procedure CompileWrite(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList; Source: ISepiReadableValue);
+
+    procedure CompileLoadAddress(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
+      TempVars: TSepiTempVarsLifeManager);
+
+    property BackingValue: ISepiValue read FBackingValue write FBackingValue;
+  end;
+
+  {*
+    Pseudo-routine avec exactement un paramètre, et compilée en une valeur
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiOneParamValueBackedPseudoRoutine = class(TSepiValueBackedPseudoRoutine)
+  private
+    function GetOperand: ISepiExpression;
+  protected
+    procedure CompleteParams; override;
+
+    property Operand: ISepiExpression read GetOperand;
+  end;
+
+  {*
+    Pseudo-routine d'opération sur un type
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiTypeOperationPseudoRoutine = class(TSepiOneParamValueBackedPseudoRoutine)
+  private
+    FTypeOperation: TSepiTypeOperationValue; /// Opération sous-jacente
+  protected
+    function MakeTypeExpression(SepiType: TSepiType): ISepiTypeExpression;
+
+    procedure CompleteParams; override;
   public
     constructor Create(AOperation: TSepiTypeOperation;
       ANilIfNoTypeInfo: Boolean = False);
@@ -95,31 +129,33 @@ type
     @author sjrd
     @version 1.0
   *}
-  TSepiCastPseudoRoutine = class(TSepiCustomWithParams,
-    ISepiWantingParams, ISepiValue, ISepiReadableValue)
+  TSepiCastPseudoRoutine = class(TSepiOneParamValueBackedPseudoRoutine)
   private
     FCastOperator: TSepiCastOperator; /// Opération sous-jacente
-    FCastOpValue: ISepiReadableValue; /// Valeur opération
   protected
-    function QueryInterface(const IID: TGUID;
-      out Obj): HResult; override; stdcall;
-
-    procedure AttachToExpression(const Expression: ISepiExpression); override;
-
     procedure CompleteParams; override;
-
-    function GetValueType: TSepiType;
-
-    function GetIsConstant: Boolean;
-    function GetConstValuePtr: Pointer;
-
-    procedure CompileRead(Compiler: TSepiMethodCompiler;
-      Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
-      TempVars: TSepiTempVarsLifeManager);
   public
     constructor Create(DestType: TSepiType);
     constructor CreateOrd;
     constructor CreateChr;
+  end;
+
+  {*
+    Pseudo-routine de transtypage ou de conversion
+    Lorsque la conversion est possible, elle est utilisée. Sinon un transtypage
+    est utilisé.
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiCastOrConvertPseudoRoutine = class(TSepiOneParamValueBackedPseudoRoutine)
+  private
+    FDestType: TSepiType; /// Type de destination
+  protected
+    procedure CompleteParams; override;
+  public
+    constructor Create(ADestType: TSepiType);
+
+    property DestType: TSepiType read FDestType;
   end;
 
   {*
@@ -520,6 +556,149 @@ begin
     Result := nil;
 end;
 
+{-------------------------------------}
+{ TSepiValueBackedPseudoRoutine class }
+{-------------------------------------}
+
+{*
+  [@inheritDoc]
+*}
+function TSepiValueBackedPseudoRoutine.QueryInterface(const IID: TGUID;
+  out Obj): HResult;
+begin
+  if SameGUID(IID, ISepiWantingParams) and ParamsCompleted then
+    Result := E_NOINTERFACE
+  else if (SameGUID(IID, ISepiValue) or SameGUID(IID, ISepiReadableValue) or
+    SameGUID(IID, ISepiWritableValue) or
+    SameGUID(IID, ISepiAddressableValue)) and
+    (not Supports(BackingValue, IID)) then
+    Result := E_NOINTERFACE
+  else
+    Result := inherited QueryInterface(IID, Obj);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiValueBackedPseudoRoutine.AttachToExpression(
+  const Expression: ISepiExpression);
+var
+  AsExpressionPart: ISepiExpressionPart;
+begin
+  AsExpressionPart := Self;
+
+  if not ParamsCompleted then
+    Expression.Attach(ISepiWantingParams, AsExpressionPart);
+
+  if BackingValue <> nil then
+  begin
+    Expression.Attach(ISepiValue, AsExpressionPart);
+
+    if Supports(BackingValue, ISepiReadableValue) then
+      Expression.Attach(ISepiReadableValue, AsExpressionPart);
+
+    if Supports(BackingValue, ISepiWritableValue) then
+      Expression.Attach(ISepiWritableValue, AsExpressionPart);
+
+    if Supports(BackingValue, ISepiAddressableValue) then
+      Expression.Attach(ISepiAddressableValue, AsExpressionPart);
+  end;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiValueBackedPseudoRoutine.GetValueType: TSepiType;
+begin
+  Result := BackingValue.ValueType;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiValueBackedPseudoRoutine.GetAddressType: TSepiType;
+begin
+  Result := (BackingValue as ISepiAddressableValue).AddressType;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiValueBackedPseudoRoutine.GetIsConstant: Boolean;
+begin
+  Result := (BackingValue as ISepiReadableValue).IsConstant;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiValueBackedPseudoRoutine.GetConstValuePtr: Pointer;
+begin
+  Result := (BackingValue as ISepiReadableValue).ConstValuePtr;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiValueBackedPseudoRoutine.CompileRead(
+  Compiler: TSepiMethodCompiler; Instructions: TSepiInstructionList;
+  var Destination: TSepiMemoryReference; TempVars: TSepiTempVarsLifeManager);
+begin
+  (BackingValue as ISepiReadableValue).CompileRead(Compiler, Instructions,
+    Destination, TempVars);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiValueBackedPseudoRoutine.CompileWrite(
+  Compiler: TSepiMethodCompiler; Instructions: TSepiInstructionList;
+  Source: ISepiReadableValue);
+begin
+  (BackingValue as ISepiWritableValue).CompileWrite(Compiler, Instructions,
+    Source);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiValueBackedPseudoRoutine.CompileLoadAddress(
+  Compiler: TSepiMethodCompiler; Instructions: TSepiInstructionList;
+  var Destination: TSepiMemoryReference; TempVars: TSepiTempVarsLifeManager);
+begin
+  (BackingValue as ISepiAddressableValue).CompileLoadAddress(Compiler,
+    Instructions, Destination, TempVars);
+end;
+
+{---------------------------------------------}
+{ TSepiOneParamValueBackedPseudoRoutine class }
+{---------------------------------------------}
+
+{*
+  Opérande de la pseudo-routine
+  @return Le premier paramètre s'il y en a, ou nil s'il n'y a aucun paramètre
+*}
+function TSepiOneParamValueBackedPseudoRoutine.GetOperand: ISepiExpression;
+begin
+  if ParamCount = 0 then
+    Result := nil
+  else
+    Result := Params[0];
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiOneParamValueBackedPseudoRoutine.CompleteParams;
+begin
+  inherited;
+
+  if ParamCount < 1 then
+    MakeError(SNotEnoughActualParameters)
+  else if ParamCount > 1 then
+    MakeError(STooManyActualParameters);
+end;
+
 {---------------------------------------}
 { TSepiTypeOperationPseudoRoutine class }
 {---------------------------------------}
@@ -536,41 +715,6 @@ begin
 
   FTypeOperation := TSepiTypeOperationValue.Create(AOperation,
     ANilIfNoTypeInfo);
-  FTypeOpValue := FTypeOperation;
-end;
-
-{*
-  [@inheritDoc]
-*}
-function TSepiTypeOperationPseudoRoutine.QueryInterface(const IID: TGUID;
-  out Obj): HResult;
-begin
-  if SameGUID(IID, ISepiWantingParams) and ParamsCompleted then
-    Result := E_NOINTERFACE
-  else if (SameGUID(IID, ISepiValue) or SameGUID(IID, ISepiReadableValue)) and
-    (not ParamsCompleted) then
-    Result := E_NOINTERFACE
-  else
-    Result := inherited QueryInterface(IID, Obj);
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TSepiTypeOperationPseudoRoutine.AttachToExpression(
-  const Expression: ISepiExpression);
-var
-  AsExpressionPart: ISepiExpressionPart;
-begin
-  AsExpressionPart := Self;
-
-  if not ParamsCompleted then
-    Expression.Attach(ISepiWantingParams, AsExpressionPart)
-  else
-  begin
-    Expression.Attach(ISepiValue, AsExpressionPart);
-    Expression.Attach(ISepiReadableValue, AsExpressionPart);
-  end;
 end;
 
 {*
@@ -596,24 +740,18 @@ var
 begin
   inherited;
 
-  FTypeOpValue.AttachToExpression(TSepiExpression.Create(Expression));
+  BackingValue := FTypeOperation;
+  BackingValue.AttachToExpression(TSepiExpression.Create(Expression));
 
-  if ParamCount < 1 then
+  Param := Operand;
+  if Param <> nil then
   begin
-    MakeError(SNotEnoughActualParameters);
-  end else
-  begin
-    Param := Params[0];
-
     if Supports(Param, ISepiTypeExpression, TypeExpression) then
       FTypeOperation.Operand := TypeExpression
     else if Supports(Param, ISepiValue, Value) then
       FTypeOperation.Operand := MakeTypeExpression(Value.ValueType)
     else
       Param.MakeError(STypeIdentifierRequired);
-
-    if ParamCount > 1 then
-      MakeError(STooManyActualParameters);
   end;
 
   if FTypeOperation.Operand = nil then
@@ -622,42 +760,7 @@ begin
 
   FTypeOperation.Complete;
 
-  if Expression <> nil then
-    AttachToExpression(Expression);
-end;
-
-{*
-  [@inheritDoc]
-*}
-function TSepiTypeOperationPseudoRoutine.GetValueType: TSepiType;
-begin
-  Result := FTypeOpValue.ValueType;
-end;
-
-{*
-  [@inheritDoc]
-*}
-function TSepiTypeOperationPseudoRoutine.GetIsConstant: Boolean;
-begin
-  Result := FTypeOpValue.IsConstant;
-end;
-
-{*
-  [@inheritDoc]
-*}
-function TSepiTypeOperationPseudoRoutine.GetConstValuePtr: Pointer;
-begin
-  Result := FTypeOpValue.ConstValuePtr;
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TSepiTypeOperationPseudoRoutine.CompileRead(
-  Compiler: TSepiMethodCompiler; Instructions: TSepiInstructionList;
-  var Destination: TSepiMemoryReference; TempVars: TSepiTempVarsLifeManager);
-begin
-  FTypeOpValue.CompileRead(Compiler, Instructions, Destination, TempVars);
+  AttachToExpression(Expression);
 end;
 
 {------------------------------}
@@ -673,7 +776,6 @@ begin
   inherited Create;
 
   FCastOperator := TSepiCastOperator.Create(DestType);
-  FCastOpValue := FCastOperator;
 end;
 
 {*
@@ -684,7 +786,6 @@ begin
   inherited Create;
 
   FCastOperator := TSepiCastOperator.CreateOrd;
-  FCastOpValue := FCastOperator;
 end;
 
 {*
@@ -695,41 +796,6 @@ begin
   inherited Create;
 
   FCastOperator := TSepiCastOperator.CreateChr;
-  FCastOpValue := FCastOperator;
-end;
-
-{*
-  [@inheritDoc]
-*}
-function TSepiCastPseudoRoutine.QueryInterface(const IID: TGUID;
-  out Obj): HResult;
-begin
-  if SameGUID(IID, ISepiWantingParams) and ParamsCompleted then
-    Result := E_NOINTERFACE
-  else if (SameGUID(IID, ISepiValue) or SameGUID(IID, ISepiReadableValue)) and
-    (not ParamsCompleted) then
-    Result := E_NOINTERFACE
-  else
-    Result := inherited QueryInterface(IID, Obj);
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TSepiCastPseudoRoutine.AttachToExpression(
-  const Expression: ISepiExpression);
-var
-  AsExpressionPart: ISepiExpressionPart;
-begin
-  AsExpressionPart := Self;
-
-  if not ParamsCompleted then
-    Expression.Attach(ISepiWantingParams, AsExpressionPart)
-  else
-  begin
-    Expression.Attach(ISepiValue, AsExpressionPart);
-    Expression.Attach(ISepiReadableValue, AsExpressionPart);
-  end;
 end;
 
 {*
@@ -742,22 +808,16 @@ var
 begin
   inherited;
 
-  FCastOpValue.AttachToExpression(TSepiExpression.Create(Expression));
+  BackingValue := FCastOperator;
+  BackingValue.AttachToExpression(TSepiExpression.Create(Expression));
 
-  if ParamCount < 1 then
+  Param := Operand;
+  if Param <> nil then
   begin
-    MakeError(SNotEnoughActualParameters);
-  end else
-  begin
-    Param := Params[0];
-
     if Supports(Param, ISepiValue, Value) then
       FCastOperator.Operand := Value
     else
       Param.MakeError(SValueRequired);
-
-    if ParamCount > 1 then
-      MakeError(STooManyActualParameters);
   end;
 
   if FCastOperator.Operand = nil then
@@ -769,42 +829,77 @@ begin
 
   FCastOperator.Complete;
 
-  if Expression <> nil then
-    AttachToExpression(Expression);
+  AttachToExpression(Expression);
+end;
+
+{---------------------------------------}
+{ TSepiCastOrConvertPseudoRoutine class }
+{---------------------------------------}
+
+{*
+  Crée une pseudo-routine de transtypage ou conversion
+  @param ADestType   Type de destination
+*}
+constructor TSepiCastOrConvertPseudoRoutine.Create(ADestType: TSepiType);
+begin
+  inherited Create;
+
+  FDestType := ADestType;
 end;
 
 {*
   [@inheritDoc]
 *}
-function TSepiCastPseudoRoutine.GetValueType: TSepiType;
+procedure TSepiCastOrConvertPseudoRoutine.CompleteParams;
+var
+  Source: ISepiValue;
+  ReadableSource: ISepiReadableValue;
+  SourceType: TSepiType;
 begin
-  Result := FCastOpValue.ValueType;
-end;
+  inherited;
 
-{*
-  [@inheritDoc]
-*}
-function TSepiCastPseudoRoutine.GetIsConstant: Boolean;
-begin
-  Result := FCastOpValue.IsConstant;
-end;
+  if not Supports(Operand, ISepiValue, Source) then
+  begin
+    // Complete failure because operand is not a value
+    if Operand <> nil then
+      Operand.MakeError(SValueRequired);
 
-{*
-  [@inheritDoc]
-*}
-function TSepiCastPseudoRoutine.GetConstValuePtr: Pointer;
-begin
-  Result := FCastOpValue.ConstValuePtr;
-end;
+    BackingValue := TSepiErroneousValue.Create(DestType);
+    BackingValue.AttachToExpression(TSepiExpression.Create(Expression));
+  end else
+  begin
+    // OK, we have a value source to work on
+    if not Supports(Source, ISepiReadableValue, ReadableSource) then
+      ReadableSource := nil;
+    SourceType := Source.ValueType;
 
-{*
-  [@inheritDoc]
-*}
-procedure TSepiCastPseudoRoutine.CompileRead(
-  Compiler: TSepiMethodCompiler; Instructions: TSepiInstructionList;
-  var Destination: TSepiMemoryReference; TempVars: TSepiTempVarsLifeManager);
-begin
-  FCastOpValue.CompileRead(Compiler, Instructions, Destination, TempVars);
+    if (ReadableSource <> nil) and
+      TSepiConvertOperation.ConvertionExists(DestType, ReadableSource) then
+    begin
+      // Convertion is possible
+      BackingValue := TSepiConvertOperation.ConvertValue(
+        DestType, ReadableSource);
+    end else
+    begin
+      // No convertion possible : cast
+
+      { Integer type to Pointer/Class type cast may first convert the integer
+        value to have a size equal to SizeOf(Pointer). }
+      if (SourceType <> nil) and (SourceType.Size <> DestType.Size) and
+        ((DestType is TSepiPointerType) or (DestType is TSepiClass)) and
+        ((SourceType is TSepiIntegerType) or (SourceType is TSepiInt64Type)) and
+        (ReadableSource <> nil) then
+      begin
+        Source := TSepiConvertOperation.ConvertValue(
+          UnitCompiler.SystemUnit.Integer, ReadableSource);
+      end;
+
+      // Make cast
+      BackingValue := TSepiCastOperator.CastValue(DestType, Source);
+    end;
+  end;
+
+  AttachToExpression(Expression);
 end;
 
 {-------------------------------------}

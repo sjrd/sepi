@@ -228,7 +228,6 @@ type
   private
     procedure CompileIdentifierTest(
       const PseudoRoutine: ISepiIdentifierTestPseudoRoutine);
-    procedure CompileCastOrConvert(DestType: TSepiType);
     procedure CompileParams(const WantingParams: ISepiWantingParams);
   public
     procedure BeginParsing; override;
@@ -1158,57 +1157,6 @@ begin
 end;
 
 {*
-  Compile un transtypage ou une conversion
-  @param DestType   Type de destination
-*}
-procedure TDelphiParametersNode.CompileCastOrConvert(DestType: TSepiType);
-var
-  Source: ISepiValue;
-  ReadableSource: ISepiReadableValue;
-  SourceType: TSepiType;
-begin
-  if ChildCount < 1 then
-  begin
-    MakeError(SNotEnoughActualParameters);
-    Exit;
-  end;
-
-  if ChildCount > 1 then
-    MakeError(STooManyActualParameters);
-
-  if not Supports((Children[0] as TSepiExpressionNode).Expression,
-    ISepiValue, Source) then
-  begin
-    Children[0].MakeError(SValueRequired);
-    Exit;
-  end;
-
-  if not Supports(Source, ISepiReadableValue, ReadableSource) then
-    ReadableSource := nil;
-  SourceType := Source.ValueType;
-
-  if (ReadableSource <> nil) and
-    TSepiConvertOperation.ConvertionExists(DestType, SourceType) then
-  begin
-    SetExpression(TSepiConvertOperation.ConvertValue(
-      DestType, ReadableSource) as ISepiExpression);
-  end else
-  begin
-    if (SourceType <> nil) and (SourceType.Size <> DestType.Size) and
-      ((DestType is TSepiPointerType) or (DestType is TSepiClass)) and
-      ((SourceType is TSepiIntegerType) or (SourceType is TSepiInt64Type)) and
-      (ReadableSource <> nil) then
-    begin
-      Source := TSepiConvertOperation.ConvertValue(
-        SystemUnit.Integer, ReadableSource);
-    end;
-
-    SetExpression(TSepiCastOperator.CastValue(
-      DestType, Source) as ISepiExpression);
-  end;
-end;
-
-{*
   Compile les paramètres d'une expression requérant des paramètres
   @param WantingParams   Expression requérant des paramètres
 *}
@@ -1232,6 +1180,7 @@ procedure TDelphiParametersNode.BeginParsing;
 var
   WantingParams: ISepiWantingParams;
   ReadableValue: ISepiReadableValue;
+  TypeExpression: ISepiTypeExpression;
 begin
   inherited;
 
@@ -1247,6 +1196,14 @@ begin
     WantingParams.AttachToExpression(Base);
   end;
 
+  if Supports(Base, ISepiTypeExpression, TypeExpression) then
+  begin
+    ISepiExpressionPart(TSepiCastOrConvertPseudoRoutine.Create(
+      TypeExpression.ExprType)).AttachToExpression(Base);
+
+    Base.Detach(ISepiTypeExpression);
+  end;
+
   if Supports(Base, ISepiIdentifierTestPseudoRoutine) then
     SetSymbolClass(ntIdentTestParam);
 end;
@@ -1257,14 +1214,11 @@ end;
 procedure TDelphiParametersNode.EndParsing;
 var
   IdentifierTestPseudoRoutine: ISepiIdentifierTestPseudoRoutine;
-  TypeExpression: ISepiTypeExpression;
   WantingParams: ISepiWantingParams;
 begin
   if Supports(Base, ISepiIdentifierTestPseudoRoutine,
     IdentifierTestPseudoRoutine) then
     CompileIdentifierTest(IdentifierTestPseudoRoutine)
-  else if Supports(Base, ISepiTypeExpression, TypeExpression) then
-    CompileCastOrConvert(TypeExpression.ExprType)
   else if Supports(Base, ISepiWantingParams, WantingParams) and
     (not WantingParams.ParamsCompleted) then
     CompileParams(WantingParams)
