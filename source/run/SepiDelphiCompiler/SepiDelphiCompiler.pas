@@ -583,7 +583,9 @@ begin
   NonTerminalClasses[ntFloatConst]            := TSepiConstFloatNode;
   NonTerminalClasses[ntStringConst]           := TSepiConstStringNode;
   NonTerminalClasses[ntIdentifierSingleValue] := TSepiIdentifierExpressionNode;
-  NonTerminalClasses[ntInheritedSingleValue]  := TSepiInheritedExpressionNode;
+  NonTerminalClasses[ntInheritedExpression]   := TSepiInheritedExpressionNode;
+  NonTerminalClasses[ntPureInheritedExpression] :=
+    TSepiPureInheritedExpressionNode;
   NonTerminalClasses[ntNilValue]              := TSepiNilValueNode;
   NonTerminalClasses[ntSetValue]              := TSepiSetValueNode;
 

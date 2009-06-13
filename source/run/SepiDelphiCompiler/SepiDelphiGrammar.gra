@@ -300,7 +300,7 @@ ntSingleValue	SingleValue
 	FloatConst
 	StringConst
 	IdentifierSingleValue
-	InheritedSingleValue
+	'inherited'* InheritedSingleValue
 	NilValue
 	'['* SetValue ']'*
 
@@ -316,8 +316,15 @@ ntStringConst	StringConst
 ntIdentifierSingleValue	IdentifierSingleValue
 	Identifier
 
-ntInheritedSingleValue	InheritedSingleValue
-	'inherited'* Identifier
+ntInheritedSingleValue	InheritedSingleValue	Simplify
+	1 InheritedExpression
+	0 PureInheritedExpression
+
+ntInheritedExpression	InheritedExpression
+	Identifier
+
+ntPureInheritedExpression	PureInheritedExpression
+	@
 
 ntNilValue	NilValue
 	'nil'

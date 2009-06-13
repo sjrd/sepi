@@ -116,7 +116,8 @@ resourcestring
   SDuplicatedLinkKind = 'Directive de type de liaison dupliquée';
   SDuplicatedAbstractMarker = 'Directive abstract dupliquée';
   SDuplicatedOfObjectMarker = 'Directive of object dupliquée';
-  SVirtualOrDynamicMethodRequired = 'Méthod virtuelle ou dynamique requise';
+  SVirtualOrDynamicMethodRequired = 'Méthode virtuelle ou dynamique requise';
+  SMethodNotFoundInBaseClass = 'Méthode non trouvée dans la classe de base';
 
   // Erreurs sur les paramètres
   SVarParamTypeMustBeStrictlyEqual =

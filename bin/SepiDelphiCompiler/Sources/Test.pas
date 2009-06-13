@@ -21,7 +21,7 @@ end;
 
 function TPrintOnAddStrings.Add(const Str: string): Integer;
 begin
-  Result := inherited Add(Str);
+  inherited;
   WriteLn(Str);
 end;
 

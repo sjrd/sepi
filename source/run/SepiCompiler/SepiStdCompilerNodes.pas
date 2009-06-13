@@ -430,6 +430,16 @@ type
   end;
 
   {*
+    Noeud représentant une expression d'appel inherited pur
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiPureInheritedExpressionNode = class(TSepiExpressionNode)
+  public
+    procedure EndParsing; override;
+  end;
+
+  {*
     Noeud représentant une expression avec des modificateurs
     Le premier enfant d'un noeud de ce type est une expression classique, de
     type TSepiExpressionNode. Les suivants sont des "modifieurs", de type
@@ -2652,6 +2662,22 @@ begin
     SetExpression(MakeExpression);
     MethodCall.AttachToExpression(Expression);
   end;
+
+  inherited;
+end;
+
+{----------------------------------------}
+{ TSepiPureInheritedExpressionNode class }
+{----------------------------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiPureInheritedExpressionNode.EndParsing;
+begin
+  SetExpression(MakeExpression);
+  ISepiExpressionPart(TSepiPureInheritedCall.Create).AttachToExpression(
+    Expression);
 
   inherited;
 end;

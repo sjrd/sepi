@@ -328,7 +328,8 @@ end;
 
 procedure PrintMetaInfo(Output: TOutputWriter; Meta: TSepiMeta);
 begin
-  Output.WriteLn(Meta.Name + ': ' + Meta.ClassName);
+  Output.Write(Meta.Name + ': ' + Meta.ClassName + ' - ');
+  Output.WriteLn(VisibilityStrings[Meta.Visibility]);
 
   if Meta is TSepiType then
     PrintTypeInfo(Output, TSepiType(Meta))

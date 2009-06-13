@@ -757,6 +757,19 @@ type
   end;
 
   {*
+    Appel inherited pur (même nom de méthode et mêmes paramètres)
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiPureInheritedCall = class(TSepiCustomExpressionPart, ISepiExecutable)
+  protected
+    procedure AttachToExpression(const Expression: ISepiExpression); override;
+
+    procedure CompileExecute(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList);
+  end;
+
+  {*
     Opération sur des ensembles
     Bien que syntaxiquement, cette classe implémente les interfaces
     ISepiTypeForceableValue et ISepiTypeForceableSetValue, ces deux interfaces
@@ -3388,7 +3401,7 @@ begin
   RightType := RightOperand.ValueType;
 
   // If no auto-convertion, types must be strictly equal
-  if (not AutoConvert) and (LeftType <> RightType) then
+  if (not AutoConvert) and (not LeftType.Equals(RightType)) then
     ErrorTypeMismatch;
 
   // Non-base types must be checked first, and then cast to a base type
@@ -3789,6 +3802,86 @@ begin
   Assignment.Destination := Destination;
   Assignment.Source := Source;
   Assignment.Complete;
+end;
+
+{------------------------------}
+{ TSepiPureInheritedCall class }
+{------------------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiPureInheritedCall.AttachToExpression(
+  const Expression: ISepiExpression);
+var
+  AsExpressionPart: ISepiExpressionPart;
+begin
+  AsExpressionPart := Self;
+
+  Expression.Attach(ISepiExecutable, AsExpressionPart);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiPureInheritedCall.CompileExecute(Compiler: TSepiMethodCompiler;
+  Instructions: TSepiInstructionList);
+const
+  ForceStaticCall = True;
+var
+  InheritedMethod: TSepiMethod;
+  SelfParam, ParamValue: ISepiValue;
+  WantingParams: ISepiWantingParams;
+  Signature: TSepiSignature;
+  I: Integer;
+  CallValue: ISepiReadableValue;
+  ResultValue: ISepiWritableValue;
+  Executable: ISepiExecutable;
+begin
+  if not (Compiler.SepiMethod.Owner is TSepiClass) then
+  begin
+    MakeError(SInheritNeedClassOrObjectMethod);
+    Exit;
+  end;
+
+  InheritedMethod := Compiler.SepiMethod.InheritedMethod;
+
+  if InheritedMethod = nil then
+  begin
+    MakeError(SMethodNotFoundInBaseClass);
+    Exit;
+  end;
+
+  SelfParam := TSepiLocalVarValue.MakeValue(Compiler,
+    Compiler.Locals.SelfVar);
+
+  WantingParams := TSepiMethodCall.Create(InheritedMethod,
+    SelfParam as ISepiReadableValue, ForceStaticCall);
+  WantingParams.AttachToExpression(TSepiExpression.Create(Compiler));
+
+  Signature := Compiler.SepiMethod.Signature;
+  for I := 0 to Signature.ParamCount-1 do
+  begin
+    ParamValue := TSepiLocalVarValue.MakeValue(Compiler,
+      Compiler.Locals.GetVarByName(Signature.Params[I].Name));
+    WantingParams.AddParam(ParamValue as ISepiExpression);
+  end;
+
+  WantingParams.CompleteParams;
+
+  if Signature.ReturnType <> nil then
+  begin
+    CallValue := WantingParams as ISepiReadableValue;
+    ResultValue := TSepiLocalVarValue.MakeValue(Compiler,
+      Compiler.Locals.ResultVar) as ISepiWritableValue;
+    Executable := TSepiAssignmentOperation.MakeOperation(
+      ResultValue, CallValue) as ISepiExecutable;
+  end else
+  begin
+    Executable := WantingParams as ISepiExecutable;
+  end;
+
+  Executable.CompileExecute(Compiler, Instructions);
 end;
 
 {-------------------------}
@@ -5540,7 +5633,7 @@ begin
         begin
           // Otherwise, types must be compatible
           if not TSepiConvertOperation.ConvertionExists(
-            SignatureParam.ParamType, ParamValue.ValueType) then
+            SignatureParam.ParamType, ParamValue as ISepiReadableValue) then
           begin
             Error(Format(STypeMismatch,
               [SignatureParam.ParamType.DisplayName,
