@@ -833,6 +833,8 @@ end;
 *}
 procedure SepiRegisterImportedUnit(const UnitName: string;
   ImportFunc: TSepiImportUnitFunc);
+var
+  Index: Integer;
 begin
   if not Assigned(SepiImportedUnits) then
   begin
@@ -844,7 +846,12 @@ begin
     end;
   end;
 
-  SepiImportedUnits.AddObject(UnitName, TObject(@ImportFunc));
+  Index := SepiImportedUnits.IndexOf(UnitName);
+
+  if Index < 0 then
+    SepiImportedUnits.AddObject(UnitName, TObject(@ImportFunc))
+  else
+    SepiImportedUnits.Objects[Index] := TObject(@ImportFunc);
 end;
 
 {*
