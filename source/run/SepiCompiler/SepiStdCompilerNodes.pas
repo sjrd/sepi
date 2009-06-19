@@ -2135,8 +2135,7 @@ begin
 
   if LeftValue = nil then
   begin
-    Result := TSepiErroneousValue.Create(
-      RightValue.ValueType) as ISepiExpression;
+    Result := RightValue as ISepiExpression;
     Exit;
   end;
 
