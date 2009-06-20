@@ -126,6 +126,35 @@ begin
   end;
 end;
 
+procedure TestIsAs;
+var
+  Strings: TStrings;
+begin
+  Strings := TStringList.Create;
+  try
+    if Strings is TStringList then
+      WriteLn('Strings is TStringList')
+    else
+      WriteLn('Strings is not TStringList');
+
+    (Strings as TStringList).CaseSensitive := True;
+
+    if Strings is TList then
+      WriteLn('Strings is TList')
+    else
+      WriteLn('Strings is not TList');
+
+    try
+      (Strings as TList).Add(nil);
+    except
+      on Error: EInvalidCast do
+        WriteLn('Error when (Strings as TList): '+Error.Message);
+    end;
+  finally
+    Strings.Free;
+  end;
+end;
+
 procedure TestExceptionsAndClassDef;
 var
   Strings: TStrings;
@@ -186,6 +215,7 @@ begin
   TestChangeGlobalVar;
   TestIfCompilerDirective;
   TestMethodRef;
+  TestIsAs;
   TestExceptionsAndClassDef;
 end;
 

@@ -82,6 +82,7 @@ resourcestring
   SOrdinalTypeRequired = 'Type ordinal requis';
   SClassTypeRequired = 'Type classe requis';
   SInterfaceTypeRequired = 'Type interface requis';
+  SMetaClassTypeRequired = 'Type méta-classe requis';
   SCompilerTransientTypeForbidden =
     'Type de valeur spécial du compilateur non autorisé ici';
 

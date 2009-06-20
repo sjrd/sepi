@@ -232,6 +232,32 @@ type
   end;
 
   {*
+    Noeud représentant un opérateur is
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiIsOperationNode = class(TSepiBinaryOpNode)
+  protected
+    function GetPriority: Integer; override;
+  public
+    function MakeOperation(
+      const Left, Right: ISepiExpression): ISepiExpression; override;
+  end;
+
+  {*
+    Noeud représentant un opérateur as
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiAsOperationNode = class(TSepiBinaryOpNode)
+  protected
+    function GetPriority: Integer; override;
+  public
+    function MakeOperation(
+      const Left, Right: ISepiExpression): ISepiExpression; override;
+  end;
+
+  {*
     Noeud représentant un opérateur binaire d'assignation
     @author sjrd
     @version 1.0
@@ -2106,6 +2132,62 @@ begin
       LeftValue, RightValue) as ISepiExpression;
   end;
 
+  Result.SourcePos := SourcePos;
+end;
+
+{----------------------------}
+{ TSepiIsOperationNode class }
+{----------------------------}
+
+{*
+  [@inheritDoc]
+*}
+function TSepiIsOperationNode.GetPriority: Integer;
+begin
+  Result := 2;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiIsOperationNode.MakeOperation(
+  const Left, Right: ISepiExpression): ISepiExpression;
+var
+  LeftValue, RightValue: ISepiReadableValue;
+begin
+  RequireReadableValue(Left, LeftValue);
+  RequireReadableValue(Right, RightValue);
+
+  Result := TSepiIsOperation.MakeOperation(LeftValue,
+    RightValue) as ISepiExpression;
+  Result.SourcePos := SourcePos;
+end;
+
+{----------------------------}
+{ TSepiAsOperationNode class }
+{----------------------------}
+
+{*
+  [@inheritDoc]
+*}
+function TSepiAsOperationNode.GetPriority: Integer;
+begin
+  Result := 2;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiAsOperationNode.MakeOperation(
+  const Left, Right: ISepiExpression): ISepiExpression;
+var
+  LeftValue, RightValue: ISepiReadableValue;
+begin
+  RequireReadableValue(Left, LeftValue);
+  RequireReadableValue(Right, RightValue);
+
+  Result := TSepiAsOperation.MakeOperation(LeftValue,
+    RightValue) as ISepiExpression;
   Result.SourcePos := SourcePos;
 end;
 

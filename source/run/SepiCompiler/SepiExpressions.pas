@@ -724,6 +724,61 @@ type
   end;
 
   {*
+    Classe de base pour les opérations is et as
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiIsAsOperation = class(TSepiCustomComputedValue)
+  private
+    FObjectOperand: ISepiReadableValue; /// Opérande objet
+    FClassOperand: ISepiReadableValue;  /// Opérande classe
+
+    procedure CheckTypes;
+  protected
+    procedure UpdateValueType; virtual;
+  public
+    constructor Create; virtual;
+
+    procedure Complete;
+
+    class function MakeOperation(const ObjectOperand: ISepiReadableValue;
+      const ClassOperand: ISepiReadableValue): ISepiReadableValue;
+
+    property ObjectOperand: ISepiReadableValue
+      read FObjectOperand write FObjectOperand;
+    property ClassOperand: ISepiReadableValue
+      read FClassOperand write FClassOperand;
+  end;
+
+  {*
+    Opération is
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiIsOperation = class(TSepiIsAsOperation)
+  protected
+    procedure UpdateValueType; override;
+
+    procedure CompileCompute(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
+      TempVars: TSepiTempVarsLifeManager); override;
+  end;
+
+  {*
+    Opération as
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiAsOperation = class(TSepiIsAsOperation)
+  protected
+    procedure UpdateValueType; override;
+
+    procedure CompileCompute(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
+      TempVars: TSepiTempVarsLifeManager); override;
+  end;
+
+  {*
     Opération d'assignation
     @author sjrd
     @version 1.0
@@ -3720,6 +3775,199 @@ begin
   BinaryOp.LeftOperand := LeftOperand;
   BinaryOp.RightOperand := RightOperand;
   BinaryOp.Complete;
+end;
+
+{--------------------------}
+{ TSepiIsAsOperation class }
+{--------------------------}
+
+{*
+  Crée une opération is ou as
+*}
+constructor TSepiIsAsOperation.Create;
+begin
+  inherited Create;
+end;
+
+{*
+  Vérifie le type des opérandes
+*}
+procedure TSepiIsAsOperation.CheckTypes;
+var
+  ObjectType, ClassType: TSepiType;
+  TempExpression: ISepiExpression;
+begin
+  ObjectType := ObjectOperand.ValueType;
+  ClassType := ClassOperand.ValueType;
+
+  if not (ObjectType is TSepiClass) then
+  begin
+    TempExpression := ObjectOperand as ISepiExpression;
+
+    TempExpression.MakeError(SClassTypeRequired);
+    ObjectOperand := TSepiErroneousValue.Create(
+      UnitCompiler.SystemUnit.TObject);
+    ObjectOperand.AttachToExpression(TSepiExpression.Create(TempExpression));
+  end;
+
+  if not (ClassType is TSepiMetaClass) then
+  begin
+    TempExpression := ClassOperand as ISepiExpression;
+
+    TempExpression.MakeError(SMetaClassTypeRequired);
+    ClassOperand := TSepiErroneousValue.Create(
+      UnitCompiler.SystemUnit.TClass);
+    ClassOperand.AttachToExpression(TSepiExpression.Create(TempExpression));
+  end;
+end;
+
+{*
+  Met à jour le type de valeur suite à la complétion de l'opération
+*}
+procedure TSepiIsAsOperation.UpdateValueType;
+begin
+end;
+
+{*
+  Complète l'opération
+  L'opération doit avoir été attachée à une expression auparavant, pour pouvoir
+  bénéficier du contexte de celle-ci.
+*}
+procedure TSepiIsAsOperation.Complete;
+begin
+  Assert(Expression <> nil);
+  Assert((ObjectOperand <> nil) and (ClassOperand <> nil));
+
+  CheckTypes;
+  UpdateValueType;
+end;
+
+{*
+  Construit une opération binaire
+  @param LeftOperand    Opérande de gauche
+  @param RightOperand   Opérande de droite
+  @return Valeur représentant l'opération
+*}
+class function TSepiIsAsOperation.MakeOperation(const ObjectOperand,
+  ClassOperand: ISepiReadableValue): ISepiReadableValue;
+var
+  Operation: TSepiIsAsOperation;
+begin
+  Operation := Create;
+  Result := Operation;
+  Result.AttachToExpression(
+    TSepiExpression.Create(ObjectOperand as ISepiExpression));
+  Operation.ObjectOperand := ObjectOperand;
+  Operation.ClassOperand := ClassOperand;
+  Operation.Complete;
+end;
+
+{------------------------}
+{ TSepiIsOperation class }
+{------------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiIsOperation.UpdateValueType;
+begin
+  SetValueType(UnitCompiler.SystemUnit.Boolean);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiIsOperation.CompileCompute(Compiler: TSepiMethodCompiler;
+  Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
+  TempVars: TSepiTempVarsLifeManager);
+var
+  ObjectMemory, ClassMemory: TSepiMemoryReference;
+  SrcTempVars: TSepiTempVarsLifeManager;
+  Instruction: TSepiAsmIsClass;
+begin
+  ObjectMemory := nil;
+  ClassMemory := nil;
+  try
+    // Read operands
+    SrcTempVars := TSepiTempVarsLifeManager.Create;
+    try
+      ObjectOperand.CompileRead(Compiler, Instructions, ObjectMemory,
+        SrcTempVars);
+      ClassOperand.CompileRead(Compiler, Instructions, ClassMemory,
+        SrcTempVars);
+    finally
+      SrcTempVars.EndAllLifes(Instructions.GetCurrentEndRef);
+      SrcTempVars.Free;
+    end;
+
+    // Make instruction
+    Instruction := TSepiAsmIsClass.Create(Compiler);
+    Instruction.SourcePos := Expression.SourcePos;
+
+    NeedDestination(Destination, ValueType, Compiler, TempVars,
+      Instruction.AfterRef);
+
+    Instruction.Destination.Assign(Destination);
+    Instruction.MemObject.Assign(ObjectMemory);
+    Instruction.MemClass.Assign(ClassMemory);
+
+    Instructions.Add(Instruction);
+  finally
+    ObjectMemory.Free;
+    ClassMemory.Free;
+  end;
+end;
+
+{------------------------}
+{ TSepiAsOperation class }
+{------------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiAsOperation.UpdateValueType;
+begin
+  SetValueType((ClassOperand.ValueType as TSepiMetaClass).SepiClass);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiAsOperation.CompileCompute(Compiler: TSepiMethodCompiler;
+  Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
+  TempVars: TSepiTempVarsLifeManager);
+var
+  ClassMemory: TSepiMemoryReference;
+  SrcTempVars: TSepiTempVarsLifeManager;
+  Instruction: TSepiAsmAsClass;
+begin
+  // Never write into actual destination before the as test is done
+  Destination := nil;
+
+  ClassMemory := nil;
+  try
+    // Read operands
+    SrcTempVars := TSepiTempVarsLifeManager.Create;
+    try
+      ObjectOperand.CompileRead(Compiler, Instructions, Destination, TempVars);
+      ClassOperand.CompileRead(Compiler, Instructions, ClassMemory,
+        SrcTempVars);
+    finally
+      SrcTempVars.EndAllLifes(Instructions.GetCurrentEndRef);
+      SrcTempVars.Free;
+    end;
+
+    // Make instruction
+    Instruction := TSepiAsmAsClass.Create(Compiler);
+    Instruction.SourcePos := Expression.SourcePos;
+
+    Instruction.MemObject.Assign(Destination);
+    Instruction.MemClass.Assign(ClassMemory);
+
+    Instructions.Add(Instruction);
+  finally
+    ClassMemory.Free;
+  end;
 end;
 
 {--------------------------------}

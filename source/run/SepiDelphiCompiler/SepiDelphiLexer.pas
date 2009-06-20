@@ -41,7 +41,7 @@ resourcestring
 
 const
   FirstTerminal = 0;
-  LastTerminal = 111;
+  LastTerminal = 113;
 
   tkEof = SepiLexerUtils.tkEof; /// Fin de fichier
 
@@ -113,60 +113,62 @@ const
   tkGreaterThan = 61; // >
   tkGreaterEq = 62;   // >=
   tkNotEqual = 63;    // <>
+  tkIs = 64;          // is
+  tkAs = 65;          // as
 
-  tkRegister = 64;  // register
-  tkCDecl = 65;     // cdecl
-  tkPascal = 66;    // pascal
-  tkStdCall = 67;   // stdcall
-  tkSafeCall = 68;  // safecall
-  tkAssembler = 69; // assembler
+  tkRegister = 66;  // register
+  tkCDecl = 67;     // cdecl
+  tkPascal = 68;    // pascal
+  tkStdCall = 69;   // stdcall
+  tkSafeCall = 70;  // safecall
+  tkAssembler = 71; // assembler
 
-  tkName = 70;      // name
-  tkIndex = 71;     // index
-  tkRead = 72;      // read
-  tkWrite = 73;     // write
-  tkDefault = 74;   // default
-  tkNoDefault = 75; // nodefault
-  tkStored = 76;    // stored
-  tkDispID = 77;    // dispid
-  tkReadOnly = 78;  // readonly
-  tkWriteOnly = 79; // writeonly
-  tkString = 80;    // string
+  tkName = 72;      // name
+  tkIndex = 73;     // index
+  tkRead = 74;      // read
+  tkWrite = 75;     // write
+  tkDefault = 76;   // default
+  tkNoDefault = 77; // nodefault
+  tkStored = 78;    // stored
+  tkDispID = 79;    // dispid
+  tkReadOnly = 80;  // readonly
+  tkWriteOnly = 81; // writeonly
+  tkString = 82;    // string
 
-  tkDeprecated = 81;  // deprecated
-  tkPlatform = 82;    // platform
+  tkDeprecated = 83;  // deprecated
+  tkPlatform = 84;    // platform
 
-  tkOverload = 83;    // overload
-  tkVirtual = 84;     // virtual
-  tkDynamic = 85;     // dynamic
-  tkMessage = 86;     // message
-  tkOverride = 87;    // override
-  tkAbstract = 88;    // abstract
-  tkStatic = 89;      // static
-  tkReintroduce = 90; // reintroduce
-  tkInline = 91;      // inline
+  tkOverload = 85;    // overload
+  tkVirtual = 86;     // virtual
+  tkDynamic = 87;     // dynamic
+  tkMessage = 88;     // message
+  tkOverride = 89;    // override
+  tkAbstract = 90;    // abstract
+  tkStatic = 91;      // static
+  tkReintroduce = 92; // reintroduce
+  tkInline = 93;      // inline
 
-  tkImplementation = 92; // implementation
-  tkForward = 93;        // forward
-  tkInitialization = 94; // initialization
-  tkFinalization = 95;   // finalization
+  tkImplementation = 94; // implementation
+  tkForward = 95;        // forward
+  tkInitialization = 96; // initialization
+  tkFinalization = 97;   // finalization
 
-  tkIf = 96;         // if
-  tkThen = 97;       // then
-  tkElse = 98;       // else
-  tkWhile = 99;      // while
-  tkDo = 100;        // do
-  tkRepeat = 101;    // repeat
-  tkUntil = 102;     // until
-  tkFor = 103;       // for
-  tkTo = 104;        // to
-  tkDownTo = 105;    // downto
-  tkTry = 106;       // try
-  tkExcept = 107;    // except
-  tkOn = 108;        // on
-  tkFinally = 109;   // finally
-  tkRaise = 110;     // raise
-  tkInherited = 111; // inherited
+  tkIf = 98;         // if
+  tkThen = 99;       // then
+  tkElse = 100;      // else
+  tkWhile = 101;     // while
+  tkDo = 102;        // do
+  tkRepeat = 103;    // repeat
+  tkUntil = 104;     // until
+  tkFor = 105;       // for
+  tkTo = 106;        // to
+  tkDownTo = 107;    // downto
+  tkTry = 108;       // try
+  tkExcept = 109;    // except
+  tkOn = 110;        // on
+  tkFinally = 111;   // finally
+  tkRaise = 112;     // raise
+  tkInherited = 113; // inherited
 
   tkPreProcessor = -1; // pre-processor instruction
 
@@ -721,6 +723,7 @@ begin
     'a' : if Key = 'abstract'       then SymbolClass := tkAbstract else
           if Key = 'and'            then SymbolClass := tkAnd else
           if Key = 'array'          then SymbolClass := tkArray else
+          if Key = 'as'             then SymbolClass := tkAs else
           if Key = 'assembler'      then SymbolClass := tkAssembler;
     'b' : if Key = 'begin'          then SymbolClass := tkBegin;
     'c' : if Key = 'case'           then SymbolClass := tkCase else
@@ -749,7 +752,8 @@ begin
           if Key = 'inline'         then SymbolClass := tkInline else
           if Key = 'index'          then SymbolClass := tkIndex else
           if Key = 'inherited'      then SymbolClass := tkInherited else
-          if Key = 'interface'      then SymbolClass := tkInterface;
+          if Key = 'interface'      then SymbolClass := tkInterface else
+          if Key = 'is'             then SymbolClass := tkIs;
     'm' : if Key = 'message'        then SymbolClass := tkMessage else
           if Key = 'mod'            then SymbolClass := tkMod;
     'n' : if Key = 'name'           then SymbolClass := tkName else

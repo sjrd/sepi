@@ -569,10 +569,12 @@ begin
   NonTerminalClasses[ntConstOrType]             := TDelphiConstOrTypeNode;
   NonTerminalClasses[ntConstOrTypeNoEquals]     := TDelphiConstOrTypeNode;
 
-  NonTerminalClasses[ntBinaryOp]         := TDelphiBinaryOpNode;
-  NonTerminalClasses[ntBinaryOpNoEquals] := TDelphiBinaryOpNode;
-  NonTerminalClasses[ntUnaryOp]          := TDelphiUnaryOpNode;
-  NonTerminalClasses[ntAddressOfOp]      := TSepiAddressOfOpNode;
+  NonTerminalClasses[ntArithmeticLogicOp]         := TDelphiBinaryOpNode;
+  NonTerminalClasses[ntArithmeticLogicOpNoEquals] := TDelphiBinaryOpNode;
+  NonTerminalClasses[ntIsOperation]               := TSepiIsOperationNode;
+  NonTerminalClasses[ntAsOperation]               := TSepiAsOperationNode;
+  NonTerminalClasses[ntUnaryOp]                   := TDelphiUnaryOpNode;
+  NonTerminalClasses[ntAddressOfOp]               := TSepiAddressOfOpNode;
 
   NonTerminalClasses[ntSingleExpr]        := TDelphiSingleExprNode;
   NonTerminalClasses[ntParenthesizedExpr] := TSepiSameAsChildExpressionNode;

@@ -71,6 +71,8 @@ tkLowerEq	<=
 tkGreaterThan	>
 tkGreaterEq	>=
 tkNotEqual	<>
+tkIs	is
+tkAs	as
 
 tkRegister	register
 tkCDecl	cdecl
@@ -336,7 +338,17 @@ ntSetValue	SetValue
 ntSetRange	SetRange
 	Expression ('..'* Expression)?
 
-ntBinaryOp	BinaryOp
+ntBinaryOp	BinaryOp	Simplify
+	ArithmeticLogicOp
+	IsOperation
+	AsOperation
+
+ntBinaryOpNoEquals	BinaryOpNoEquals	Simplify
+	ArithmeticLogicOpNoEquals
+	IsOperation
+	AsOperation
+
+ntArithmeticLogicOp	ArithmeticLogicOp
 	'+'
 	'-'
 	'*'
@@ -355,7 +367,7 @@ ntBinaryOp	BinaryOp
 	'>='
 	'<>'
 
-ntBinaryOpNoEquals	BinaryOpNoEquals
+ntArithmeticLogicOpNoEquals	ArithmeticLogicOpNoEquals
 	'+'
 	'-'
 	'*'
@@ -372,6 +384,12 @@ ntBinaryOpNoEquals	BinaryOpNoEquals
 	'>'
 	'>='
 	'<>'
+
+ntIsOperation	IsOperation
+	'is'
+
+ntAsOperation	AsOperation
+	'as'
 
 ntUnaryOp	UnaryOp
 	'+'
