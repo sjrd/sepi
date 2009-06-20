@@ -115,5 +115,7 @@ initialization
   InitVarAddresses;
 
   SepiRegisterImportedUnit('(#UnitName2#)', ImportUnit);
+finalization
+  SepiUnregisterImportedUnit('(#UnitName2#)');
 end.
 
