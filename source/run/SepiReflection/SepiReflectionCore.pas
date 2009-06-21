@@ -406,6 +406,9 @@ type
     function FindType(TypeInfo: PTypeInfo): TSepiType; overload;
     function FindType(const TypeName: string): TSepiType; overload;
 
+    function GetClass(DelphiClass: TClass): TSepiType;
+    function FindClass(DelphiClass: TClass): TSepiType;
+
     property UnitCount: Integer read GetUnitCount;
     property Units[Index: Integer]: TSepiUnit read GetUnits;
 
@@ -563,6 +566,9 @@ type
     procedure ReadRef(Stream: TStream; out Ref);
     procedure AddRef(Ref: TSepiMeta);
     procedure WriteRef(Stream: TStream; Ref: TSepiMeta);
+
+    function GetClass(DelphiClass: TClass): TSepiType;
+    function FindClass(DelphiClass: TClass): TSepiType;
 
     property CurrentVisibility: TMemberVisibility
       read FCurrentVisibility write SetCurrentVisibility;
@@ -2312,6 +2318,63 @@ begin
   end;
 end;
 
+{*
+  Trouve une classe enregistrée à partir de la classe Delphi
+  Le résultat peut toujours être *transtypé* en TSepiClass.
+  Renvoie nil si non trouvé.
+  @param DelphiClass   Classe Delphi recherchée
+  @return Le type correspondant à la classe donnée (garanti être TSepiClass)
+*}
+function TSepiRoot.GetClass(DelphiClass: TClass): TSepiType;
+var
+  ClassInfo: PTypeInfo;
+  ClassUnitName: string;
+  SepiUnit: TSepiUnit;
+  I: Integer;
+begin
+  // Try and look directly into the unit name given by TypeInfo
+  ClassInfo := DelphiClass.ClassInfo;
+  if ClassInfo <> nil then
+  begin
+    ClassUnitName := GetTypeData(ClassInfo).UnitName;
+    SepiUnit := GetMeta(ClassUnitName) as TSepiUnit;
+
+    if SepiUnit <> nil then
+    begin
+      Result := SepiUnit.GetClass(DelphiClass);
+      if Result <> nil then
+        Exit;
+    end;
+  end;
+
+  // Search the entire unit list
+  for I := 0 to UnitCount-1 do
+  begin
+    Result := Units[I].GetClass(DelphiClass);
+    if Result <> nil then
+      Exit;
+  end;
+
+  // Not found
+  Result := nil;
+end;
+
+{*
+  Trouve une classe enregistrée à partir de la classe Delphi
+  Le résultat peut toujours être *transtypé* en TSepiClass.
+  @param DelphiClass   Classe Delphi recherchée
+  @return Le type correspondant à la classe donnée (garanti être TSepiClass)
+  @throw ESepiMetaNotFoundError Aucune classe enregistrée correspondant
+*}
+function TSepiRoot.FindClass(DelphiClass: TClass): TSepiType;
+begin
+  Result := GetClass(DelphiClass);
+
+  if Result = nil then
+    raise ESepiMetaNotFoundError.CreateFmt(SSepiObjectNotFound,
+      [DelphiClass.ClassName]);
+end;
+
 {---------------------}
 { TSepiRootFork class }
 {---------------------}
@@ -3346,6 +3409,43 @@ begin
     Stream.WriteBuffer(UnitIndex, 2);
     Stream.WriteBuffer(RefIndex, 4);
   end;
+end;
+
+{*
+  Trouve une classe enregistrée à partir de la classe Delphi dans cette unité
+  Le résultat peut toujours être *transtypé* en TSepiClass.
+  Renvoie nil si non trouvé
+  @param DelphiClass   Classe Delphi recherchée
+  @return Le type correspondant à la classe donnée (garanti être TSepiClass)
+*}
+function TSepiUnit.GetClass(DelphiClass: TClass): TSepiType;
+var
+  Meta: TSepiMeta;
+begin
+  Result := nil;
+
+  Meta := GetMeta(DelphiClass.ClassName);
+  if not (Meta is TSepiClass) then
+    Exit;
+
+  if TSepiClass(Meta).DelphiClass = DelphiClass then
+    Result := TSepiClass(Meta);
+end;
+
+{*
+  Trouve une classe enregistrée à partir de la classe Delphi dans cette unité
+  Le résultat peut toujours être *transtypé* en TSepiClass.
+  @param DelphiClass   Classe Delphi recherchée
+  @return Le type correspondant à la classe donnée (garanti être TSepiClass)
+  @throw ESepiMetaNotFoundError Aucune classe enregistrée correspondant
+*}
+function TSepiUnit.FindClass(DelphiClass: TClass): TSepiType;
+begin
+  Result := GetClass(DelphiClass);
+
+  if Result = nil then
+    raise ESepiMetaNotFoundError.CreateFmt(SSepiObjectNotFound,
+      [DelphiClass.ClassName]);
 end;
 
 {-----------------------}
