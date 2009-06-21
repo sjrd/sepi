@@ -111,20 +111,20 @@ type
 
     function LookFor(Node: TSepiParseTreeNode): TSepiComponent; overload;
     function LookFor(Node: TSepiParseTreeNode;
-      RequiredClass: SepiReflectionCore.TSepiComponentClass): TSepiComponent; overload;
+      RequiredClass: TSepiComponentClass): TSepiComponent; overload;
 
     function LookForSelfText: TSepiComponent; overload;
     function LookForSelfText(
-      RequiredClass: SepiReflectionCore.TSepiComponentClass): TSepiComponent; overload;
+      RequiredClass: TSepiComponentClass): TSepiComponent; overload;
 
     function LookForOrError(Node: TSepiParseTreeNode): TSepiComponent; overload;
     function LookForOrError(Node: TSepiParseTreeNode;
-      RequiredClass: SepiReflectionCore.TSepiComponentClass;
+      RequiredClass: TSepiComponentClass;
       const BadClassErrorMsg: string): TSepiComponent; overload;
 
     function LookForSelfTextOrError: TSepiComponent; overload;
     function LookForSelfTextOrError(
-      RequiredClass: SepiReflectionCore.TSepiComponentClass;
+      RequiredClass: TSepiComponentClass;
       const BadClassErrorMsg: string): TSepiComponent; overload;
 
     procedure MakeError(const ErrorMsg: string;
@@ -679,7 +679,7 @@ end;
   @return Component trouvé, ou nil si non trouvé ou pas de la bonne classe
 *}
 function TSepiParseTreeNode.LookFor(Node: TSepiParseTreeNode;
-  RequiredClass: SepiReflectionCore.TSepiComponentClass): TSepiComponent;
+  RequiredClass: TSepiComponentClass): TSepiComponent;
 begin
   Result := LookFor(Node);
 
@@ -703,7 +703,7 @@ end;
   @return Component trouvé, ou nil si non trouvé ou pas de la bonne classe
 *}
 function TSepiParseTreeNode.LookForSelfText(
-  RequiredClass: SepiReflectionCore.TSepiComponentClass): TSepiComponent;
+  RequiredClass: TSepiComponentClass): TSepiComponent;
 begin
   Result := LookFor(Self, RequiredClass);
 end;
@@ -730,7 +730,7 @@ end;
   @return Component trouvé, ou nil si non trouvé ou pas de la bonne classe
 *}
 function TSepiParseTreeNode.LookForOrError(Node: TSepiParseTreeNode;
-  RequiredClass: SepiReflectionCore.TSepiComponentClass;
+  RequiredClass: TSepiComponentClass;
   const BadClassErrorMsg: string): TSepiComponent;
 begin
   Result := LookForOrError(Node);
@@ -762,7 +762,7 @@ end;
   @return Component trouvé, ou nil si non trouvé ou pas de la bonne classe
 *}
 function TSepiParseTreeNode.LookForSelfTextOrError(
-  RequiredClass: SepiReflectionCore.TSepiComponentClass;
+  RequiredClass: TSepiComponentClass;
   const BadClassErrorMsg: string): TSepiComponent;
 begin
   Result := LookForOrError(Self, RequiredClass, BadClassErrorMsg);

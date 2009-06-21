@@ -489,8 +489,8 @@ begin
     ImportInterfaceType(PSCompiler, TSepiInterface(SepiType))
   else if SepiType is TSepiClass then
     ImportForwardType(PSCompiler, TSepiClass(SepiType))
-  else if SepiType is TSepiComponentClass then
-    ImportComponentClass(PSCompiler, TSepiComponentClass(SepiType))
+  else if SepiType is TSepiMetaClass then
+    ImportComponentClass(PSCompiler, TSepiMetaClass(SepiType))
 
   else if SepiType is TSepiMethodRefType then
     ImportMethodRefType(PSCompiler, TSepiMethodRefType(SepiType));

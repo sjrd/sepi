@@ -3295,7 +3295,7 @@ begin
   { Pointers/classes/interfaces/meta-classes are always compatible for
     equality test. }
   if (LeftType is TSepiPointerType) or (LeftType is TSepiClass) or
-    (LeftType is TSepiInterface) or (LeftType is TSepiComponentClass) then
+    (LeftType is TSepiInterface) or (LeftType is TSepiMetaClass) then
     // OK
   else if LeftType is TSepiEnumType then
   begin
@@ -3810,11 +3810,11 @@ begin
     ObjectOperand.AttachToExpression(TSepiExpression.Create(TempExpression));
   end;
 
-  if not (ClassType is TSepiComponentClass) then
+  if not (ClassType is TSepiMetaClass) then
   begin
     TempExpression := ClassOperand as ISepiExpression;
 
-    TempExpression.MakeError(SComponentClassTypeRequired);
+    TempExpression.MakeError(SMetaClassTypeRequired);
     ClassOperand := TSepiErroneousValue.Create(
       UnitCompiler.SystemUnit.TClass);
     ClassOperand.AttachToExpression(TSepiExpression.Create(TempExpression));
@@ -5995,12 +5995,12 @@ begin
         InstrParamMemory.Assign(ParamMemory);
       end;
 
-      // Paramètre $Alloc - True ssi SelfValue.ValueType is TSepiComponentClass
+      // Paramètre $Alloc - True ssi SelfValue.ValueType is TSepiMetaClass
       hpAlloc:
       begin
         Assert(ParamValue <> nil);
 
-        AllocParamValue := ParamValue.ValueType is TSepiComponentClass;
+        AllocParamValue := ParamValue.ValueType is TSepiMetaClass;
 
         InstrParamMemory.SetSpace(msConstant);
         InstrParamMemory.SetConstant(AllocParamValue);
@@ -6302,7 +6302,7 @@ begin
     Exit;
 
   // Can''t call an object method on a class value
-  if SelfValue.ValueType is TSepiComponentClass then
+  if SelfValue.ValueType is TSepiMetaClass then
   begin
     if not (Signature.Kind in skValidOnClass) then
     begin
@@ -6330,7 +6330,7 @@ begin
   if Signature = nil then
     Result := nil
   else if (Signature.Kind = skConstructor) and (SelfValue <> nil) and
-    (SelfValue.ValueType is TSepiComponentClass) then
+    (SelfValue.ValueType is TSepiMetaClass) then
     Result := TSepiMetaClass(SelfValue.ValueType).SepiClass
   else
     Result := Signature.ReturnType;
@@ -6946,7 +6946,7 @@ function TSepiNilValue.CanForceType(AValueType: TSepiType;
   Explicit: Boolean = False): Boolean;
 begin
   Result := (AValueType is TSepiPointerType) or (AValueType is TSepiClass) or
-    (AValueType is TSepiComponentClass) or (AValueType is TSepiInterface) or
+    (AValueType is TSepiMetaClass) or (AValueType is TSepiInterface) or
     (AValueType is TSepiStringType) or (AValueType is TSepiDynArrayType) or
     (AValueType is TSepiMethodRefType);
 end;

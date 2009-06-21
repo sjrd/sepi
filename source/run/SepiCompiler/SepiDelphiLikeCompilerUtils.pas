@@ -543,7 +543,7 @@ begin
   if Supports(BaseExpression, ISepiReadableValue, ReadableValue) then
   begin
     if (ReadableValue.ValueType is TSepiClass) or
-      (ReadableValue.ValueType is TSepiComponentClass) or
+      (ReadableValue.ValueType is TSepiMetaClass) or
       (ReadableValue.ValueType is TSepiInterface) then
     begin
       if ClassIntfMemberSelection(SepiContext, ReadableValue,
