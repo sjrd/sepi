@@ -48,8 +48,8 @@ type
     @version 1.0
   *}
   TSepiUsesNode = class(TSepiNonTerminal)
-  private
-    function IsRedeclared(const UnitName: string): Boolean;
+  protected
+    function IsRedeclared(const UnitName: string): Boolean; virtual;
   protected
     procedure ChildEndParsing(Child: TSepiParseTreeNode); override;
   end;
