@@ -16,7 +16,7 @@ type
   *}
   TSepiMemberBuilder = class(TObject)
   private
-    FOwner: TSepiMeta; /// Propriétaire du membre à construire
+    FOwner: TSepiComponent; /// Propriétaire du membre à construire
 
     FOwnerType: TSepiType;         /// Type propriétaire (si applicable)
     FOwnerRecord: TSepiRecordType; /// Record propriétaire (si applicable)
@@ -30,22 +30,22 @@ type
     procedure MakeError(const ErrorMsg: string;
       Kind: TSepiErrorKind = ekError);
 
-    function LookForMember(const MemberName: string): TSepiMeta;
-    function LookForMemberOrError(const MemberName: string): TSepiMeta;
+    function LookForMember(const MemberName: string): TSepiComponent;
+    function LookForMemberOrError(const MemberName: string): TSepiComponent;
 
     property OwnerType: TSepiType read FOwnerType;
     property OwnerRecord: TSepiRecordType read FOwnerRecord;
     property OwnerClass: TSepiClass read FOwnerClass;
     property OwnerIntf: TSepiInterface read FOwnerIntf;
   public
-    constructor Create(AOwner: TSepiMeta);
+    constructor Create(AOwner: TSepiComponent);
 
     {*
       Construit le membre
     *}
     procedure Build; virtual; abstract;
 
-    property Owner: TSepiMeta read FOwner;
+    property Owner: TSepiComponent read FOwner;
     property Name: string read FName write FName;
 
     property CurrentNode: TSepiParseTreeNode
@@ -60,8 +60,8 @@ type
   TSepiPropertyBuilder = class(TSepiMemberBuilder)
   private
     FSignature: TSepiSignature;     /// Signature
-    FReadAccess: TSepiMeta;         /// Accesseur en lecture
-    FWriteAccess: TSepiMeta;        /// Accesseur en écriture
+    FReadAccess: TSepiComponent;         /// Accesseur en lecture
+    FWriteAccess: TSepiComponent;        /// Accesseur en écriture
     FIndex: Integer;                /// Index
     FIndexType: TSepiOrdType;       /// Type de l'index
     FDefaultValue: Integer;         /// Valeur par défaut
@@ -71,12 +71,12 @@ type
     function ValidateFieldAccess(Field: TSepiField): Boolean;
     function ValidateMethodAccess(Method: TSepiMethod;
       IsWriteAccess: Boolean): Boolean;
-    function ValidateAccess(Access: TSepiMeta; IsWriteAccess: Boolean): Boolean;
+    function ValidateAccess(Access: TSepiComponent; IsWriteAccess: Boolean): Boolean;
 
     function IsTypeValidForDefault(PropType: TSepiType): Boolean;
     function CheckDefaultAllowed: Boolean;
   public
-    constructor Create(AOwner: TSepiMeta);
+    constructor Create(AOwner: TSepiComponent);
     destructor Destroy; override;
 
     function Redefine(Node: TSepiParseTreeNode): Boolean;
@@ -97,8 +97,8 @@ type
     procedure Build; override;
 
     property Signature: TSepiSignature read FSignature;
-    property ReadAccess: TSepiMeta read FReadAccess;
-    property WriteAccess: TSepiMeta read FWriteAccess;
+    property ReadAccess: TSepiComponent read FReadAccess;
+    property WriteAccess: TSepiComponent read FWriteAccess;
     property Index: Integer read FIndex;
     property IndexType: TSepiOrdType read FIndexType;
     property DefaultValue: Integer read FDefaultValue;
@@ -117,8 +117,8 @@ type
   protected
     procedure Save(Stream: TStream); override;
   public
-    constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
-    constructor Create(AOwner: TSepiMeta; const AName: string;
+    constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
+    constructor Create(AOwner: TSepiComponent; const AName: string;
       AKind: TTypeKind = tkUnknown);
   end;
 
@@ -363,7 +363,7 @@ end;
   Crée un nouveau constructeur de membre
   @param AOwner   Propriétaire du membre à construire
 *}
-constructor TSepiMemberBuilder.Create(AOwner: TSepiMeta);
+constructor TSepiMemberBuilder.Create(AOwner: TSepiComponent);
 begin
   inherited Create;
 
@@ -398,10 +398,10 @@ end;
   @param MemberName   Nom du membre
   @return Membre recherché, ou nil si non trouvé
 *}
-function TSepiMemberBuilder.LookForMember(const MemberName: string): TSepiMeta;
+function TSepiMemberBuilder.LookForMember(const MemberName: string): TSepiComponent;
 begin
   if OwnerRecord <> nil then
-    Result := OwnerRecord.GetMeta(MemberName)
+    Result := OwnerRecord.GetComponent(MemberName)
   else if OwnerClass <> nil then
     Result := OwnerClass.LookForMember(MemberName)
   else if OwnerIntf <> nil then
@@ -417,7 +417,7 @@ end;
   @return Membre recherché, ou nil si non trouvé
 *}
 function TSepiMemberBuilder.LookForMemberOrError(
-  const MemberName: string): TSepiMeta;
+  const MemberName: string): TSepiComponent;
 begin
   Result := LookForMember(MemberName);
   CheckIdentFound(Result, MemberName, CurrentNode);
@@ -431,7 +431,7 @@ end;
   Crée un nouveau constructeur de propriété
   @param AOwner   Propriétaire du membre à construire
 *}
-constructor TSepiPropertyBuilder.Create(AOwner: TSepiMeta);
+constructor TSepiPropertyBuilder.Create(AOwner: TSepiComponent);
 begin
   inherited Create(AOwner);
 
@@ -555,7 +555,7 @@ end;
   @param IsWriteAccess   Indique si c'est l'accès en écriture
   @return True si l'accesseur est valide, False sinon
 *}
-function TSepiPropertyBuilder.ValidateAccess(Access: TSepiMeta;
+function TSepiPropertyBuilder.ValidateAccess(Access: TSepiComponent;
   IsWriteAccess: Boolean): Boolean;
 begin
   if Access = nil then
@@ -612,14 +612,14 @@ end;
 *}
 function TSepiPropertyBuilder.Redefine(Node: TSepiParseTreeNode): Boolean;
 var
-  PreviousMeta: TSepiMeta;
+  PreviousComponent: TSepiComponent;
   Previous: TSepiProperty;
   I: Integer;
 begin
   CurrentNode := Node;
 
-  PreviousMeta := LookForMember(Name);
-  if not (PreviousMeta is TSepiProperty) then
+  PreviousComponent := LookForMember(Name);
+  if not (PreviousComponent is TSepiProperty) then
   begin
     MakeError(SPropertyNotFoundInBaseClass);
     Signature.ReturnType := Node.SystemUnit.Integer;
@@ -627,14 +627,14 @@ begin
     Exit;
   end;
 
-  Previous := TSepiProperty(PreviousMeta);
+  Previous := TSepiProperty(PreviousComponent);
 
   for I := 0 to Previous.Signature.ParamCount-1 do
     TSepiParam.Clone(Signature, Previous.Signature.Params[I]);
   Signature.ReturnType := Previous.Signature.ReturnType;
 
-  FReadAccess := Previous.ReadAccess.Meta;
-  FWriteAccess := Previous.WriteAccess.Meta;
+  FReadAccess := Previous.ReadAccess.Component;
+  FWriteAccess := Previous.WriteAccess.Component;
   FIndex := Previous.Index;
   FDefaultValue := Previous.DefaultValue;
   FStorage := Previous.Storage;
@@ -652,7 +652,7 @@ end;
 function TSepiPropertyBuilder.SetReadAccess(const ReadAccessName: string;
   Node: TSepiParseTreeNode): Boolean;
 var
-  Access: TSepiMeta;
+  Access: TSepiComponent;
 begin
   CurrentNode := Node;
 
@@ -672,7 +672,7 @@ end;
 function TSepiPropertyBuilder.SetWriteAccess(const WriteAccessName: string;
   Node: TSepiParseTreeNode): Boolean;
 var
-  Access: TSepiMeta;
+  Access: TSepiComponent;
 begin
   CurrentNode := Node;
 
@@ -802,7 +802,7 @@ end;
 {*
   [@inheritDoc]
 *}
-constructor TSepiCompilerTransientType.Load(AOwner: TSepiMeta; Stream: TStream);
+constructor TSepiCompilerTransientType.Load(AOwner: TSepiComponent; Stream: TStream);
 begin
   raise EAssertionFailed.Create('Can''t load instance of '+ClassName);
 end;
@@ -813,7 +813,7 @@ end;
   @param AName    Nom du type
   @param AKind    Type de type (tkUnknown par défaut)
 *}
-constructor TSepiCompilerTransientType.Create(AOwner: TSepiMeta;
+constructor TSepiCompilerTransientType.Create(AOwner: TSepiComponent;
   const AName: string; AKind: TTypeKind = tkUnknown);
 begin
   inherited Create(AOwner, AName, AKind);

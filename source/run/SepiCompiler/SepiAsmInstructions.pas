@@ -178,8 +178,8 @@ type
     destructor Destroy; override;
 
     procedure Prepare(Signature: TSepiSignature); overload; virtual;
-    procedure Prepare(Meta: TSepiMeta); overload;
-    procedure Prepare(const MetaName: string); overload;
+    procedure Prepare(Component: TSepiComponent); overload;
+    procedure Prepare(const ComponentName: string); overload;
 
     procedure Make; override;
 
@@ -419,7 +419,7 @@ type
       AOpCode: TSepiOpCode);
     destructor Destroy; override;
 
-    procedure SetReference(Reference: TSepiMeta); overload;
+    procedure SetReference(Reference: TSepiComponent); overload;
     procedure SetReference(const RefName: string); overload;
 
     procedure Make; override;
@@ -1067,7 +1067,7 @@ end;
   Tableau des références mémoires des paramètres préparés indexés par leurs noms
   @param Name   Nom du paramètre
   @return Référence mémoire du paramètre
-  @throws ESepiMetaNotFoundError Le paramètre n'a pas été trouvé
+  @throws ESepiComponentNotFoundError Le paramètre n'a pas été trouvé
 *}
 function TSepiAsmCallParams.GetParamByName(
   const Name: string): TSepiMemoryReference;
@@ -1083,7 +1083,7 @@ begin
     end;
   end;
 
-  raise ESepiMetaNotFoundError.CreateResFmt(@SSepiObjectNotFound, [Name]);
+  raise ESepiComponentNotFoundError.CreateFmt(SSepiComponentNotFound, [Name]);
 end;
 
 {*
@@ -1245,34 +1245,34 @@ end;
 
 {*
   Prépare les paramètres en fonction de la signature d'un meta
-  @param Meta   Méthode ou type référence de méthode
+  @param Component   Méthode ou type référence de méthode
 *}
-procedure TSepiAsmCall.Prepare(Meta: TSepiMeta);
+procedure TSepiAsmCall.Prepare(Component: TSepiComponent);
 begin
-  if Meta is TSepiMethod then
-    Prepare(TSepiMethod(Meta).Signature)
-  else if Meta is TSepiMethodRefType then
-    Prepare(TSepiMethodRefType(Meta).Signature)
+  if Component is TSepiMethod then
+    Prepare(TSepiMethod(Component).Signature)
+  else if Component is TSepiMethodRefType then
+    Prepare(TSepiMethodRefType(Component).Signature)
   else
     raise ESepiCompilerError.CreateResFmt(@SObjectMustHaveASignature,
-      [Meta.GetFullName]);
+      [Component.GetFullName]);
 end;
 
 {*
   Prépare les paramètres en fonction de la signature d'un meta
   @param Signature   Signature
 *}
-procedure TSepiAsmCall.Prepare(const MetaName: string);
+procedure TSepiAsmCall.Prepare(const ComponentName: string);
 var
-  Meta: TSepiMeta;
+  Component: TSepiComponent;
 begin
-  Meta := MethodCompiler.SepiMethod.LookFor(MetaName);
+  Component := MethodCompiler.SepiMethod.LookFor(ComponentName);
 
-  if Meta = nil then
-    raise ESepiMetaNotFoundError.CreateResFmt(@SSepiObjectNotFound,
-      [MetaName]);
+  if Component = nil then
+    raise ESepiComponentNotFoundError.CreateFmt(
+      SSepiComponentNotFound, [ComponentName]);
 
-  Prepare(Meta);
+  Prepare(Component);
 end;
 
 {*
@@ -1410,8 +1410,8 @@ begin
   Method := MethodCompiler.SepiMethod.LookFor(MethodName) as TSepiMethod;
 
   if Method = nil then
-    raise ESepiMetaNotFoundError.CreateResFmt(@SSepiObjectNotFound,
-      [MethodName]);
+    raise ESepiComponentNotFoundError.CreateFmt(
+      SSepiComponentNotFound, [MethodName]);
 
   SetMethod(Method, PrepareParams);
 end;
@@ -2003,7 +2003,7 @@ end;
   Assigne la référence
   @param Reference   Référence
 *}
-procedure TSepiAsmGetRunInfo.SetReference(Reference: TSepiMeta);
+procedure TSepiAsmGetRunInfo.SetReference(Reference: TSepiComponent);
 begin
   FReference := MethodCompiler.UnitCompiler.MakeReference(Reference);
 end;
@@ -2446,8 +2446,8 @@ begin
   SepiClass := MethodCompiler.SepiMethod.LookFor(ClassName) as TSepiClass;
 
   if SepiClass = nil then
-    raise ESepiMetaNotFoundError.CreateResFmt(@SSepiObjectNotFound,
-      [ClassName]);
+    raise ESepiComponentNotFoundError.CreateFmt(
+      SSepiComponentNotFound, [ClassName]);
 
   Result := AddOnClause(SepiClass);
 end;

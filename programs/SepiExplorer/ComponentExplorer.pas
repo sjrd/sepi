@@ -9,7 +9,7 @@ public domain.
   @author sjrd
   @version 1.0
 *}
-unit MetaExplorer;
+unit ComponentExplorer;
 
 interface
 
@@ -27,22 +27,22 @@ type
     @author sjrd
     @version 1.0
   *}
-  TFrameMetaExplorer = class(TFrame)
+  TFrameComponentExplorer = class(TFrame)
     MemoInfo: TMemo;
   private
     /// Événement déclenché pour demander la méthode run-time d'une méthode Sepi
     FOnGetRuntimeMethod: TGetRuntimeMethodEvent;
 
-    FSepiMeta: TSepiMeta; /// Le meta affiché
+    FSepiComponent: TSepiComponent; /// Le meta affiché
 
     procedure PrintMethodCode(Strings: TStrings; SepiMethod: TSepiMethod);
 
-    procedure SetSepiMeta(Value: TSepiMeta);
+    procedure SetSepiComponent(Value: TSepiComponent);
   public
     property OnGetRuntimeMethod: TGetRuntimeMethodEvent
       read FOnGetRuntimeMethod write FOnGetRuntimeMethod;
 
-    property SepiMeta: TSepiMeta read FSepiMeta write SetSepiMeta;
+    property SepiComponent: TSepiComponent read FSepiComponent write SetSepiComponent;
   end;
 
 implementation
@@ -50,7 +50,7 @@ implementation
 {$R *.dfm}
 
 {--------------------------}
-{ TFrameMetaExplorer class }
+{ TFrameComponentExplorer class }
 {--------------------------}
 
 {*
@@ -58,7 +58,7 @@ implementation
   @param Strings      Liste de chaînes destination
   @param SepiMethod   Méthode dont afficher le code
 *}
-procedure TFrameMetaExplorer.PrintMethodCode(Strings: TStrings;
+procedure TFrameComponentExplorer.PrintMethodCode(Strings: TStrings;
   SepiMethod: TSepiMethod);
 var
   Method: TSepiRuntimeMethod;
@@ -105,27 +105,27 @@ end;
   Modifie le meta affiché
   @param Value   Nouveau meta à afficher
 *}
-procedure TFrameMetaExplorer.SetSepiMeta(Value: TSepiMeta);
+procedure TFrameComponentExplorer.SetSepiComponent(Value: TSepiComponent);
 var
   Output: TOutputWriter;
 begin
-  FSepiMeta := Value;
+  FSepiComponent := Value;
 
   MemoInfo.Lines.BeginUpdate;
   try
     MemoInfo.Lines.Clear;
 
-    if SepiMeta <> nil then
+    if SepiComponent <> nil then
     begin
       Output := TOutputWriter.Create(MemoInfo.Lines);
       try
-        PrintMetaInfo(Output, SepiMeta);
+        PrintComponentInfo(Output, SepiComponent);
       finally
         Output.Free;
       end;
 
-      if SepiMeta is TSepiMethod then
-        PrintMethodCode(MemoInfo.Lines, TSepiMethod(SepiMeta));
+      if SepiComponent is TSepiMethod then
+        PrintMethodCode(MemoInfo.Lines, TSepiMethod(SepiComponent));
     end;
   finally
     MemoInfo.Lines.EndUpdate;

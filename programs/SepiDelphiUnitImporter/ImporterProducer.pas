@@ -56,7 +56,7 @@ type
     function Produce: string;
 
     procedure RequireUnit(const UnitName: string);
-    function IdentifierFor(ForMeta, FromMeta: TSepiMeta): string;
+    function IdentifierFor(ForComponent, FromComponent: TSepiComponent): string;
 
     procedure HandleType(Template: TTemplate; SepiType: TSepiType);
     procedure HandleRoutine(Template: TTemplate; Routine: TSepiMethod);
@@ -76,7 +76,7 @@ type
     function NextMethodID: Integer;
     function NextVariableID: Integer;
 
-    function MakeSignature(Signature: TSepiSignature; From: TSepiMeta;
+    function MakeSignature(Signature: TSepiSignature; From: TSepiComponent;
       const MethodName: string = ''): string;
   public
     constructor Create(ASepiUnit: TSepiUnit;
@@ -242,7 +242,7 @@ function TSepiImporterProducer.Produce: string;
 var
   Template: TTemplate;
   I: Integer;
-  Meta: TSepiMeta;
+  Component: TSepiComponent;
 begin
   Template := TTemplate.Create(TemplateDir+MainTemplateFileName);
   try
@@ -266,15 +266,15 @@ begin
     // Iterate through each unit member
     for I := 0 to SepiUnit.ChildCount-1 do
     begin
-      Meta := SepiUnit.Children[I];
+      Component := SepiUnit.Children[I];
 
-      // Produce meta importer
-      if Meta is TSepiType then
-        HandleType(Template, TSepiType(Meta))
-      else if Meta is TSepiMethod then
-        HandleRoutine(Template, TSepiMethod(Meta))
-      else if Meta is TSepiVariable then
-        HandleVariable(Template, TSepiVariable(Meta));
+      // Produce Component importer
+      if Component is TSepiType then
+        HandleType(Template, TSepiType(Component))
+      else if Component is TSepiMethod then
+        HandleRoutine(Template, TSepiMethod(Component))
+      else if Component is TSepiVariable then
+        HandleVariable(Template, TSepiVariable(Component));
     end;
 
     // Finalize template
@@ -318,17 +318,17 @@ begin
 end;
 
 {*
-  Produit un identificateur pour un meta donné à partir d'un autre meta
+  Produit un identificateur pour un composant donné depuis un autre composant
   En plus de cela, cette méthode ajoute les uses nécessaires.
-  @param ForMeta    Meta destination
-  @param FromMeta   Meta à partir duquel le référencer
-  @return Identificateur pour ce meta
+  @param ForComponent    Composant destination
+  @param FromComponent   Composant à partir duquel le référencer
+  @return Identificateur pour ce composant
 *}
 function TSepiImporterProducer.IdentifierFor(
-  ForMeta, FromMeta: TSepiMeta): string;
+  ForComponent, FromComponent: TSepiComponent): string;
 begin
-  Result := ForMeta.GetShorterNameFrom(FromMeta);
-  RequireUnit(ForMeta.OwningUnit.Name);
+  Result := ForComponent.GetShorterNameFrom(FromComponent);
+  RequireUnit(ForComponent.OwningUnit.Name);
 end;
 
 {*
@@ -442,7 +442,7 @@ const
     '  TSepiImports%s.InitMethodAddresses;'+CRLF;
 var
   I: Integer;
-  Meta: TSepiMeta;
+  Component: TSepiComponent;
   DeclTemplate, ImplTemplate: TTemplate;
 begin
   // If returns False, no import must be done for this class
@@ -480,10 +480,10 @@ begin
       // Members
       for I := 0 to ChildCount-1 do
       begin
-        Meta := Children[I];
-        if (Meta is TSepiMethod) and (Meta.Tag >= 0) then
+        Component := Children[I];
+        if (Component is TSepiMethod) and (Component.Tag >= 0) then
           HandleMethod(DeclTemplate, ImplTemplate,
-            SepiClass, TSepiMethod(Meta));
+            SepiClass, TSepiMethod(Component));
       end;
     finally
       if Assigned(ImplTemplate) then
@@ -509,7 +509,7 @@ const
   DontGetCode = -1;
 var
   I, J: Integer;
-  Meta: TSepiMeta;
+  Component: TSepiComponent;
   Method: TSepiMethod;
   Prop: TSepiProperty;
 begin
@@ -520,10 +520,10 @@ begin
     // Initialize tags
     for I := 0 to ChildCount-1 do
     begin
-      Meta := Children[I];
-      if Meta is TSepiMethod then
+      Component := Children[I];
+      if Component is TSepiMethod then
       begin
-        Method := TSepiMethod(Meta);
+        Method := TSepiMethod(Component);
         with Method do
         begin
           Tag := DontGetCode;
@@ -546,17 +546,17 @@ begin
             // Private method
             for J := 0 to SepiClass.ChildCount-1 do
             begin
-              Meta := SepiClass.Children[J];
-              if not (Meta is TSepiProperty) then
+              Component := SepiClass.Children[J];
+              if not (Component is TSepiProperty) then
                 Continue;
-              Prop := TSepiProperty(Meta);
+              Prop := TSepiProperty(Component);
               if Prop.Visibility in [mvStrictPrivate, mvPrivate] then
                 Continue;
               if Prop.Index <> NoIndex then
                 Continue;
 
-              if (Prop.ReadAccess.Meta = Method) or
-                (Prop.WriteAccess.Meta = Method) then
+              if (Prop.ReadAccess.Component = Method) or
+                (Prop.WriteAccess.Component = Method) then
               begin
                 Tag := NextMethodID;
                 Result := True;
@@ -654,11 +654,11 @@ begin
         if Prop.Index <> NoIndex then
           Continue;
 
-        if Prop.ReadAccess.Meta = Method then
+        if Prop.ReadAccess.Component = Method then
         begin
           IsReadAccess := True;
           Break;
-        end else if Prop.WriteAccess.Meta = Method then
+        end else if Prop.WriteAccess.Component = Method then
         begin
           IsReadAccess := False;
           Break;
@@ -808,12 +808,12 @@ end;
 {*
   Produit une représentation chaîne d'une signature
   @param Signature    Signature
-  @param From         Meta depuis lequel on regarde
+  @param From         Component depuis lequel on regarde
   @param MethodName   Nom de la méthode (défaut = '')
   @return Représentation chaîne de la signature
 *}
 function TSepiImporterProducer.MakeSignature(Signature: TSepiSignature;
-  From: TSepiMeta; const MethodName: string = ''): string;
+  From: TSepiComponent; const MethodName: string = ''): string;
 var
   I, Index: Integer;
   Param: TSepiParam;

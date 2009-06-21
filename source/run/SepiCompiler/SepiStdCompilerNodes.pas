@@ -134,7 +134,7 @@ type
       AllowConvertion: Boolean = True): ISepiValue;
     function AsReadableValue(ValueType: TSepiType = nil;
       AllowConvertion: Boolean = True): ISepiReadableValue;
-    function AsMeta: TSepiMeta;
+    function AsComponent: TSepiComponent;
     function AsType: TSepiType;
 
     property Expression: ISepiExpression read FExpression;
@@ -445,9 +445,9 @@ type
     function RequireClassOrObjectMethod: Boolean;
 
     function GetMethodName: string; virtual;
-    function FindMethod: TSepiMeta; virtual;
+    function FindMethod: TSepiComponent; virtual;
 
-    function MakeMethodCall(SepiMethod: TSepiMeta;
+    function MakeMethodCall(SepiMethod: TSepiComponent;
       const SelfParam: ISepiReadableValue): ISepiWantingParams; virtual;
 
     function CompileMethodCall: ISepiWantingParams; virtual;
@@ -1156,7 +1156,7 @@ type
     procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
 
     function GetMethodCompiler: TSepiMethodCompiler; override;
-    function GetSepiContext: TSepiMeta; override;
+    function GetSepiContext: TSepiComponent; override;
   public
     function ResolveIdent(const Identifier: string): ISepiExpression; override;
 
@@ -1872,14 +1872,14 @@ end;
 
 {*
   Lit l'expression en tant que meta
-  @return Meta représenté par l'expression (ou nil en cas d'erreur)
+  @return Component représenté par l'expression (ou nil en cas d'erreur)
 *}
-function TSepiExpressionNode.AsMeta: TSepiMeta;
+function TSepiExpressionNode.AsComponent: TSepiComponent;
 var
-  MetaExpression: ISepiMetaExpression;
+  ComponentExpression: ISepiComponentExpression;
 begin
-  if AsExpressionPart(ISepiMetaExpression, MetaExpression, SMetaRequired) then
-    Result := MetaExpression.Meta
+  if AsExpressionPart(ISepiComponentExpression, ComponentExpression, SComponentRequired) then
+    Result := ComponentExpression.Component
   else
     Result := nil;
 end;
@@ -2667,7 +2667,7 @@ end;
   Trouve la méthode héritée à appeler
   @return Méthode à appeler (TSepiMethod et TSepiOverloadedMethod sont valides)
 *}
-function TSepiInheritedExpressionNode.FindMethod: TSepiMeta;
+function TSepiInheritedExpressionNode.FindMethod: TSepiComponent;
 var
   CurrentClass, ParentClass: TSepiClass;
 begin
@@ -2686,7 +2686,7 @@ end;
   @param SelfVar      Variable locale Self
   @return Appel de la méthode, ou nil en cas d'erreur
 *}
-function TSepiInheritedExpressionNode.MakeMethodCall(SepiMethod: TSepiMeta;
+function TSepiInheritedExpressionNode.MakeMethodCall(SepiMethod: TSepiComponent;
   const SelfParam: ISepiReadableValue): ISepiWantingParams;
 const
   ForceStaticCall = True;
@@ -2712,7 +2712,7 @@ end;
 *}
 function TSepiInheritedExpressionNode.CompileMethodCall: ISepiWantingParams;
 var
-  SepiMethod: TSepiMeta;
+  SepiMethod: TSepiComponent;
   SelfParam: ISepiValue;
 begin
   if not RequireClassOrObjectMethod then
@@ -3133,7 +3133,7 @@ end;
 *}
 function TSepiIdentifierDeclarationNode.IsRedeclared: Boolean;
 var
-  FirstDecl: TSepiMeta;
+  FirstDecl: TSepiComponent;
 begin
   if (MethodCompiler <> nil) and
     (MethodCompiler.Locals.GetVarByName(Identifier) <> nil) then
@@ -3141,7 +3141,7 @@ begin
     Result := True;
   end else
   begin
-    FirstDecl := SepiContext.GetMeta(Identifier);
+    FirstDecl := SepiContext.GetComponent(Identifier);
     Result := (FirstDecl <> nil) and (not FirstDecl.IsForward);
   end;
 end;
@@ -4390,10 +4390,10 @@ end;
 *}
 procedure TSepiMethodImplHeaderNode.EndParsing;
 var
-  TempMethod: TSepiMeta;
+  TempMethod: TSepiComponent;
 begin
   // Find method
-  TempMethod := SepiContext.GetMeta(Name);
+  TempMethod := SepiContext.GetComponent(Name);
 
   // Update signature kind for a method implementation
   if (TempMethod <> nil) and (TempMethod.Owner is TSepiClass) then
@@ -4467,7 +4467,7 @@ end;
 {*
   [@inheritDoc]
 *}
-function TSepiMethodBodyNode.GetSepiContext: TSepiMeta;
+function TSepiMethodBodyNode.GetSepiContext: TSepiComponent;
 begin
   if FCompiler <> nil then
     Result := FCompiler.LocalNamespace

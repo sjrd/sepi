@@ -27,10 +27,10 @@ unit SepiReflectionConsts;
 interface
 
 resourcestring
-  SSepiMetaAlreadyCreated = 'Le meta de nom ''%s'' a déjà été créé';
-  SSepiMetaAlreadyExists = 'Un meta de  nom ''%s'' existe déjà';
-  SSepiMetaAlreadyAssigned = 'L''objet meta à la position %d est déjà assigné';
-  SSepiObjectNotFound = 'Objet %s non trouvé';
+  SSepiComponentAlreadyCreated = 'Le meta de nom ''%s'' a déjà été créé';
+  SSepiComponentAlreadyExists = 'Un meta de  nom ''%s'' existe déjà';
+  SSepiComponentAlreadyAssigned = 'L''objet meta à la position %d est déjà assigné';
+  SSepiComponentNotFound = 'Composant %s non trouvé';
   SSepiUnitNotFound = 'Impossible de trouver l''unité %s';
   SSepiCantSaveLazyLoadUnit =
     'Impossible d''enregistrer une unité en mode lazy-load';

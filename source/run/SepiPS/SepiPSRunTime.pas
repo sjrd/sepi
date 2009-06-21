@@ -316,7 +316,7 @@ var
   Root: TSepiRoot;
   Decl, ClassName, MethodName: string;
   IsWriteAccess: Boolean;
-  MetaClass, Meta: TSepiMeta;
+  ComponentClass, Component: TSepiComponent;
   Pos: Integer;
 begin
   Result := False;
@@ -336,56 +336,56 @@ begin
     SetLength(MethodName, Length(MethodName)-1);
 
   // Find the class item
-  MetaClass := Root.GetType(ClassName);
-  if MetaClass = nil then
+  ComponentClass := Root.GetType(ClassName);
+  if ComponentClass = nil then
     Exit;
-  Meta := MetaClass.GetMeta(MethodName);
+  Component := ComponentClass.GetComponent(MethodName);
 
   // Handle overloaded method
-  if Meta = nil then
+  if Component = nil then
   begin
     Pos := RightPos('_', MethodName);
     if Pos > 0 then
     begin
       MethodName[Pos] := '$';
-      Meta := MetaClass.GetMeta(MethodName);
+      Component := ComponentClass.GetComponent(MethodName);
     end;
 
-    if Meta = nil then
+    if Component = nil then
       Exit;
   end;
 
   // Map properties to their accessor
-  if Meta is TSepiProperty then
+  if Component is TSepiProperty then
   begin
     if IsWriteAccess then
-      Meta := TSepiProperty(Meta).WriteAccess.Meta
+      Component := TSepiProperty(Component).WriteAccess.Component
     else
-      Meta := TSepiProperty(Meta).ReadAccess.Meta;
+      Component := TSepiProperty(Component).ReadAccess.Component;
 
-    if Meta = nil then
+    if Component = nil then
       Exit;
   end;
 
   // Replace an overloaded method by its first real method
-  if Meta is TSepiOverloadedMethod then
-    Meta := TSepiOverloadedMethod(Meta).Methods[0];
+  if Component is TSepiOverloadedMethod then
+    Component := TSepiOverloadedMethod(Component).Methods[0];
 
   // Set the proper calling handler
-  if Meta is TSepiMethod then
+  if Component is TSepiMethod then
   begin
     Method.ProcPtr := @ClassCallProcMethod;
     IsWriteAccess := False;
   end else
   begin
-    Assert(Meta is TSepiField);
+    Assert(Component is TSepiField);
     Method.ProcPtr := @ClassCallProcField;
   end;
 
   // Update method descriptor
-  Method.Name := Meta.Name;
+  Method.Name := Component.Name;
   Method.Decl := Decl; // Signature
-  Method.Ext1 := Meta;
+  Method.Ext1 := Component;
   Method.Ext2 := Pointer(IsWriteAccess);
   Result := True;
 end;
@@ -440,7 +440,7 @@ procedure SepiImportUnitInPSExecuter(SepiUnit: TSepiUnit;
   PSExecuter: TPSExec);
 var
   I: Integer;
-  Child: TSepiMeta;
+  Child: TSepiComponent;
 begin
   for I := 0 to SepiUnit.ChildCount-1 do
   begin
@@ -474,7 +474,7 @@ procedure SepiRegisterProcsInPSExecuter(SepiUnit: TSepiUnit;
   PSExecuter: TPSExec);
 var
   I: Integer;
-  Child: TSepiMeta;
+  Child: TSepiComponent;
 begin
   for I := 0 to SepiUnit.ChildCount-1 do
   begin
@@ -493,7 +493,7 @@ procedure SepiRegisterVarsInPSExecuter(SepiUnit: TSepiUnit;
   PSExecuter: TPSExec);
 var
   I: Integer;
-  Child: TSepiMeta;
+  Child: TSepiComponent;
 begin
   for I := 0 to SepiUnit.ChildCount-1 do
   begin

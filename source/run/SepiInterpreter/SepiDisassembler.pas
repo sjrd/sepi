@@ -888,13 +888,13 @@ end;
 *}
 function TSepiDisassembler.ReadRef: string;
 var
-  Meta: TSepiMeta;
+  Component: TSepiComponent;
   Ref: Integer;
 begin
   if Assigned(RuntimeUnit) then
   begin
-    RuntimeUnit.ReadRef(Instructions, Meta);
-    Result := Meta.GetFullName;
+    RuntimeUnit.ReadRef(Instructions, Component);
+    Result := Component.GetFullName;
   end else
   begin
     Instructions.ReadBuffer(Ref, 4);

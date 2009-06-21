@@ -26,24 +26,26 @@ unit SepiReflectionCore;
 
 interface
 
+{$ASSERTIONS ON}
+
 uses
   Types, Windows, SysUtils, Classes, Contnrs, RTLConsts, IniFiles, TypInfo,
   Variants, StrUtils, ScUtils, ScStrUtils, ScSyncObjs, ScCompilerMagic,
   ScSerializer, ScTypInfo, SepiCore, SepiReflectionConsts;
 
 type
-  TSepiMeta = class;
+  TSepiComponent = class;
   TSepiRoot = class;
   TSepiUnit = class;
   TSepiAsynchronousRootManager = class;
 
   {*
-    État d'un meta
+    État d'un composant
   *}
-  TSepiMetaState = (msNormal, msConstructing, msLoading, msDestroying);
+  TSepiComponentState = (msNormal, msConstructing, msLoading, msDestroying);
 
   {*
-    Visibilité d'un membre d'une classe, d'un objet, ou d'une unité
+    Visibilité d'un composant
   *}
   TMemberVisibility = (mvStrictPrivate, mvPrivate, mvStrictProtected,
     mvProtected, mvPublic, mvPublished);
@@ -90,25 +92,26 @@ type
     var VarAddress: Pointer) of object;
 
   {*
-    Déclenchée si l'on tente de recréer un meta (second appel au constructeur)
+    Déclenchée si l'on tente de recréer un composant
+    (second appel au constructeur)
     @author sjrd
     @version 1.0
   *}
-  ESepiMetaAlreadyCreated = class(ESepiError);
+  ESepiComponentAlreadyCreated = class(ESepiError);
 
   {*
-    Déclenchée lorsque la recherche d'un meta s'est soldée par un échec
+    Déclenchée lorsque la recherche d'un composant s'est soldée par un échec
     @author sjrd
     @version 1.0
   *}
-  ESepiMetaNotFoundError = class(ESepiError);
+  ESepiComponentNotFoundError = class(ESepiError);
 
   {*
     Déclenchée lorsque la recherche d'une unité s'est soldée par un échec
     @author sjrd
     @version 1.0
   *}
-  ESepiUnitNotFoundError = class(ESepiMetaNotFoundError);
+  ESepiUnitNotFoundError = class(ESepiComponentNotFoundError);
 
   {*
     Déclenchée si l'on tente de créer une constante avec un mauvais type
@@ -125,54 +128,54 @@ type
   ESepiAlreadyCompleted = class(ESepiError);
 
   {*
-    Liste de meta
+    Liste de composants Sepi
     @author sjrd
     @version 1.0
   *}
-  TSepiMetaList = class(THashedStringList)
+  TSepiComponentList = class(THashedStringList)
   private
-    function GetMetas(Index: Integer): TSepiMeta;
-    procedure SetMetas(Index: Integer; Value: TSepiMeta);
-    function GetMetaFromName(const Name: string): TSepiMeta;
-    procedure SetMetaFromName(const Name: string; Value: TSepiMeta);
+    function GetComponents(Index: Integer): TSepiComponent;
+    procedure SetComponents(Index: Integer; Value: TSepiComponent);
+    function GetComponentFromName(const Name: string): TSepiComponent;
+    procedure SetComponentFromName(const Name: string; Value: TSepiComponent);
   protected
     procedure InsertItem(Index: Integer; const S: string;
       AObject: TObject); override;
   public
     constructor Create;
 
-    function AddMeta(Meta: TSepiMeta): Integer;
-    function IndexOfMeta(Meta: TSepiMeta): Integer;
-    function Remove(Meta: TSepiMeta): Integer;
+    function AddComponent(Component: TSepiComponent): Integer;
+    function IndexOfComponent(Component: TSepiComponent): Integer;
+    function Remove(Component: TSepiComponent): Integer;
 
-    property Metas[Index: Integer]: TSepiMeta
-      read GetMetas write SetMetas; default;
-    property MetaFromName[const Name: string]: TSepiMeta
-      read GetMetaFromName write SetMetaFromName;
+    property Components[Index: Integer]: TSepiComponent
+      read GetComponents write SetComponents; default;
+    property ComponentFromName[const Name: string]: TSepiComponent
+      read GetComponentFromName write SetComponentFromName;
   end;
 
   {*
-    Meta générique
-    Les meta sont les informations statiques qui représentent les unités
-    compilées.
+    Composant Sepi
+    Les composants Sepi forment un arbre (dont la racine est de type TSepiRoot)
+    de tous les éléments de réflexion connus de Sepi.
     @author sjrd
     @version 1.0
   *}
-  TSepiMeta = class
+  TSepiComponent = class
   private
-    /// True tant que le meta n'a pas été construit
+    /// True tant que le composant n'a pas été construit
     FIsForward: Boolean;
-    FState: TSepiMetaState;         /// État
-    FOwner: TSepiMeta;              /// Propriétaire
+    FState: TSepiComponentState;    /// État
+    FOwner: TSepiComponent;         /// Propriétaire
     FRoot: TSepiRoot;               /// Racine
     FOwningUnit: TSepiUnit;         /// Unité contenante
     FName: string;                  /// Nom
     FVisibility: TMemberVisibility; /// Visibilité
-    /// Visibilité courante des enfants
+    /// Visibilité avec laquelle les enfants de ce composant seront créés
     FCurrentVisibility: TMemberVisibility;
     FTag: Integer;                  /// Tag
     FForwards: TStrings;            /// Liste des enfants forwards
-    FChildren: TSepiMetaList;       /// Liste des enfants
+    FChildren: TSepiComponentList;  /// Liste des enfants
     FUnnamedChildCount: Integer;    /// Nombre d'enfants créés anonymes
     FObjResources: TObjectList;     /// Liste des ressources objet
     FPtrResources: TList;           /// Liste des ressources pointeur
@@ -180,25 +183,25 @@ type
     function GetWasForward: Boolean;
 
     function GetChildCount: Integer;
-    function GetChildren(Index: Integer): TSepiMeta;
+    function GetChildren(Index: Integer): TSepiComponent;
 
-    function GetChildByName(const ChildName: string): TSepiMeta;
+    function GetChildByName(const ChildName: string): TSepiComponent;
   protected
-    procedure AddChild(Child: TSepiMeta); virtual;
-    procedure RemoveChild(Child: TSepiMeta); virtual;
-    procedure ReAddChild(Child: TSepiMeta); virtual;
+    procedure AddChild(Child: TSepiComponent); virtual;
+    procedure RemoveChild(Child: TSepiComponent); virtual;
+    procedure ReAddChild(Child: TSepiComponent); virtual;
 
     procedure LoadForwards(Stream: TStream); virtual;
-    function LoadChild(Stream: TStream): TSepiMeta; virtual;
+    function LoadChild(Stream: TStream): TSepiComponent; virtual;
     procedure SaveForwards(Stream: TStream); virtual;
-    procedure SaveChild(Stream: TStream; Child: TSepiMeta); virtual;
+    procedure SaveChild(Stream: TStream; Child: TSepiComponent); virtual;
 
     procedure LoadChildren(Stream: TStream); virtual;
     procedure SaveChildren(Stream: TStream); virtual;
 
     procedure AddForward(const ChildName: string; Child: TObject);
-    procedure ChildAdded(Child: TSepiMeta); virtual;
-    procedure ChildRemoving(Child: TSepiMeta); virtual;
+    procedure ChildAdded(Child: TSepiComponent); virtual;
+    procedure ChildRemoving(Child: TSepiComponent); virtual;
 
     procedure Loaded; virtual;
 
@@ -207,17 +210,17 @@ type
 
     procedure Destroying; virtual;
 
-    function InternalGetMeta(const Name: string): TSepiMeta; virtual;
+    function InternalGetComponent(const Name: string): TSepiComponent; virtual;
 
     function InternalLookFor(const Name: string; FromUnit: TSepiUnit;
-      FromClass: TSepiMeta = nil): TSepiMeta; virtual;
+      FromClass: TSepiComponent = nil): TSepiComponent; virtual;
 
     function GetDisplayName: string; virtual;
 
-    property State: TSepiMetaState read FState;
+    property State: TSepiComponentState read FState;
   public
-    constructor Load(AOwner: TSepiMeta; Stream: TStream); virtual;
-    constructor Create(AOwner: TSepiMeta; const AName: string);
+    constructor Load(AOwner: TSepiComponent; Stream: TStream); virtual;
+    constructor Create(AOwner: TSepiComponent; const AName: string);
     destructor Destroy; override;
     procedure AfterConstruction; override;
     procedure BeforeDestruction; override;
@@ -225,15 +228,15 @@ type
     class function NewInstance: TObject; override;
 
     function GetFullName: string;
-    function GetShorterNameFrom(From: TSepiMeta): string;
-    function GetMeta(const Name: string): TSepiMeta;
-    function FindMeta(const Name: string): TSepiMeta;
+    function GetShorterNameFrom(From: TSepiComponent): string;
+    function GetComponent(const Name: string): TSepiComponent;
+    function FindComponent(const Name: string): TSepiComponent;
 
     function IsVisibleFrom(FromUnit: TSepiUnit;
-      FromClass: TSepiMeta = nil): Boolean;
+      FromClass: TSepiComponent = nil): Boolean;
     function LookFor(const Name: string; FromUnit: TSepiUnit;
-      FromClass: TSepiMeta = nil): TSepiMeta; overload;
-    function LookFor(const Name: string): TSepiMeta; overload;
+      FromClass: TSepiComponent = nil): TSepiComponent; overload;
+    function LookFor(const Name: string): TSepiComponent; overload;
 
     function MakeUnnamedChildName: string;
 
@@ -244,7 +247,7 @@ type
 
     property IsForward: Boolean read FIsForward;
     property WasForward: Boolean read GetWasForward;
-    property Owner: TSepiMeta read FOwner;
+    property Owner: TSepiComponent read FOwner;
     property Root: TSepiRoot read FRoot;
     property OwningUnit: TSepiUnit read FOwningUnit;
     property Name: string read FName;
@@ -255,15 +258,15 @@ type
     property Tag: Integer read FTag write FTag;
 
     property ChildCount: Integer read GetChildCount;
-    property Children[Index: Integer]: TSepiMeta read GetChildren;
-    property ChildByName[const ChildName: string]: TSepiMeta
+    property Children[Index: Integer]: TSepiComponent read GetChildren;
+    property ChildByName[const ChildName: string]: TSepiComponent
       read GetChildByName; default;
   end;
 
   {*
-    Classe de TSepiMeta
+    Classe de TSepiComponent
   *}
-  TSepiMetaClass = class of TSepiMeta;
+  TSepiComponentClass = class of TSepiComponent;
 
   {*
     Comportement d'un type lorsqu'il est passé en paramètre
@@ -298,7 +301,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TSepiType = class(TSepiMeta)
+  TSepiType = class(TSepiComponent)
   private
     FKind: TTypeKind;         /// Type de type
     FNative: Boolean;         /// Indique si le type est un type natif Delphi
@@ -327,18 +330,18 @@ type
 
     property TypeInfoRef: PPTypeInfo read FTypeInfoRef;
   public
-    constructor RegisterTypeInfo(AOwner: TSepiMeta;
+    constructor RegisterTypeInfo(AOwner: TSepiComponent;
       ATypeInfo: PTypeInfo); virtual;
-    constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
-    constructor Create(AOwner: TSepiMeta; const AName: string;
+    constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
+    constructor Create(AOwner: TSepiComponent; const AName: string;
       AKind: TTypeKind);
-    constructor Clone(AOwner: TSepiMeta; const AName: string;
+    constructor Clone(AOwner: TSepiComponent; const AName: string;
       Source: TSepiType); virtual;
     destructor Destroy; override;
 
     class function NewInstance: TObject; override;
 
-    class function LoadFromTypeInfo(AOwner: TSepiMeta;
+    class function LoadFromTypeInfo(AOwner: TSepiComponent;
       ATypeInfo: PTypeInfo): TSepiType;
 
     procedure AlignOffset(var Offset: Integer);
@@ -376,7 +379,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TSepiRoot = class(TSepiMeta)
+  TSepiRoot = class(TSepiComponent)
   private
     FSearchOrder: TObjectList;       /// Ordre de recherche
     FOnLoadUnit: TSepiLoadUnitEvent; /// Déclenché au chargement d'une unité
@@ -384,12 +387,12 @@ type
     function GetUnitCount: Integer;
     function GetUnits(Index: Integer): TSepiUnit;
   protected
-    procedure AddChild(Child: TSepiMeta); override;
-    procedure RemoveChild(Child: TSepiMeta); override;
-    procedure ReAddChild(Child: TSepiMeta); override;
+    procedure AddChild(Child: TSepiComponent); override;
+    procedure RemoveChild(Child: TSepiComponent); override;
+    procedure ReAddChild(Child: TSepiComponent); override;
 
     function InternalLookFor(const Name: string; FromUnit: TSepiUnit;
-      FromClass: TSepiMeta = nil): TSepiMeta; override;
+      FromClass: TSepiComponent = nil): TSepiComponent; override;
 
     function IncUnitRefCount(SepiUnit: TSepiUnit): Integer; virtual;
     function DecUnitRefCount(SepiUnit: TSepiUnit): Integer; virtual;
@@ -430,8 +433,8 @@ type
     FForeignRefCounts: TStrings; /// Ref-counts des unités étrangères
     FDestroying: Boolean;        /// True lorsqu'en destruction
   protected
-    procedure AddChild(Child: TSepiMeta); override;
-    procedure RemoveChild(Child: TSepiMeta); override;
+    procedure AddChild(Child: TSepiComponent); override;
+    procedure RemoveChild(Child: TSepiComponent); override;
 
     function IncUnitRefCount(SepiUnit: TSepiUnit): Integer; override;
     function DecUnitRefCount(SepiUnit: TSepiUnit): Integer; override;
@@ -477,7 +480,7 @@ type
   *}
   TSepiLazyLoadData = class(TObject)
   private
-    FOwner: TSepiMeta; /// Propriétaire des enfants chargés
+    FOwner: TSepiComponent; /// Propriétaire des enfants chargés
     FStream: TStream;  /// Flux où charger les enfants
 
     FChildrenNames: TStrings;                       /// Noms des enfants
@@ -489,19 +492,19 @@ type
     function GetChildData(const Name: string): TSepiLazyLoadChildData;
     function CanLoad(const Data: TSepiLazyLoadChildData): Boolean;
     procedure InternalLoadChild(const Data: TSepiLazyLoadChildData;
-      var Child: TSepiMeta);
+      var Child: TSepiComponent);
     procedure RetryForwards;
   public
-    constructor Create(AOwner: TSepiMeta; AStream: TStream);
+    constructor Create(AOwner: TSepiComponent; AStream: TStream);
     destructor Destroy; override;
 
     procedure LoadFromStream(SkipChildrenInfo: Boolean);
     function ChildExists(const Name: string): Boolean;
-    function LoadChild(const Name: string): TSepiMeta;
+    function LoadChild(const Name: string): TSepiComponent;
 
-    class procedure SaveToStream(Owner: TSepiMeta; Stream: TStream);
+    class procedure SaveToStream(Owner: TSepiComponent; Stream: TStream);
 
-    property Owner: TSepiMeta read FOwner;
+    property Owner: TSepiComponent read FOwner;
     property Stream: TStream read FStream;
   end;
 
@@ -510,7 +513,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TSepiUnit = class(TSepiMeta)
+  TSepiUnit = class(TSepiComponent)
   private
     /// Déclenché pour chaque méthode au chargement, pour obtenir son code
     FOnGetMethodCode: TGetMethodCodeEvent;
@@ -530,7 +533,7 @@ type
 
     function AddUses(AUnit: TSepiUnit): Integer;
 
-    function LazyLoadChild(const Name: string): TSepiMeta;
+    function LazyLoadChild(const Name: string): TSepiComponent;
 
     procedure SetCurrentVisibility(Value: TMemberVisibility);
 
@@ -542,13 +545,13 @@ type
 
     procedure Save(Stream: TStream); override;
 
-    function InternalGetMeta(const Name: string): TSepiMeta; override;
+    function InternalGetComponent(const Name: string): TSepiComponent; override;
 
     function InternalLookFor(const Name: string; FromUnit: TSepiUnit;
-      FromClass: TSepiMeta = nil): TSepiMeta; override;
+      FromClass: TSepiComponent = nil): TSepiComponent; override;
   public
-    constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
-    constructor Create(AOwner: TSepiMeta; const AName: string;
+    constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
+    constructor Create(AOwner: TSepiComponent; const AName: string;
       const AUses: array of string);
     destructor Destroy; override;
 
@@ -557,15 +560,15 @@ type
     procedure Complete;
 
     procedure SaveToStream(Stream: TStream);
-    class function LoadFromStream(AOwner: TSepiMeta; Stream: TStream;
+    class function LoadFromStream(AOwner: TSepiComponent; Stream: TStream;
       ALazyLoad: Boolean = False;
       const AOnGetMethodCode: TGetMethodCodeEvent = nil;
       const AOnGetTypeInfo: TGetTypeInfoEvent = nil;
       const AOnGetVarAddress: TGetVarAddressEvent = nil): TSepiUnit;
 
     procedure ReadRef(Stream: TStream; out Ref);
-    procedure AddRef(Ref: TSepiMeta);
-    procedure WriteRef(Stream: TStream; Ref: TSepiMeta);
+    procedure AddRef(Ref: TSepiComponent);
+    procedure WriteRef(Stream: TStream; Ref: TSepiComponent);
 
     function GetClass(DelphiClass: TClass): TSepiType;
     function FindClass(DelphiClass: TClass): TSepiType;
@@ -588,19 +591,19 @@ type
     @author sjrd
     @version 1.0
   *}
-  TSepiTypeAlias = class(TSepiMeta)
+  TSepiTypeAlias = class(TSepiComponent)
   private
     FDest: TSepiType; /// Type destination
   protected
     procedure ListReferences; override;
     procedure Save(Stream: TStream); override;
   public
-    constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
-    constructor Create(AOwner: TSepiMeta; const AName: string;
+    constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
+    constructor Create(AOwner: TSepiComponent; const AName: string;
       ADest: TSepiType); overload;
-    constructor Create(AOwner: TSepiMeta; const AName: string;
+    constructor Create(AOwner: TSepiComponent; const AName: string;
       ADest: PTypeInfo); overload;
-    constructor Create(AOwner: TSepiMeta;
+    constructor Create(AOwner: TSepiComponent;
       const AName, ADest: string); overload;
 
     property Dest: TSepiType read FDest;
@@ -611,7 +614,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TSepiConstant = class(TSepiMeta)
+  TSepiConstant = class(TSepiComponent)
   private
     FType: TSepiType;   /// Type de la constante
     FValuePtr: Pointer; /// Pointeur sur la valeur
@@ -619,16 +622,16 @@ type
     procedure ListReferences; override;
     procedure Save(Stream: TStream); override;
   public
-    constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
-    constructor Create(AOwner: TSepiMeta; const AName: string;
+    constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
+    constructor Create(AOwner: TSepiComponent; const AName: string;
       AType: TSepiType); overload;
-    constructor Create(AOwner: TSepiMeta; const AName: string;
+    constructor Create(AOwner: TSepiComponent; const AName: string;
       AType: TSepiType; const AValue); overload;
-    constructor Create(AOwner: TSepiMeta; const AName: string;
+    constructor Create(AOwner: TSepiComponent; const AName: string;
       const AValue: Variant; AType: TSepiType); overload;
-    constructor Create(AOwner: TSepiMeta; const AName: string;
+    constructor Create(AOwner: TSepiComponent; const AName: string;
       const AValue: Variant; ATypeInfo: PTypeInfo = nil); overload;
-    constructor Create(AOwner: TSepiMeta; const AName: string;
+    constructor Create(AOwner: TSepiComponent; const AName: string;
       const AValue: Variant; const ATypeName: string); overload;
     destructor Destroy; override;
 
@@ -641,7 +644,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TSepiVariable = class(TSepiMeta)
+  TSepiVariable = class(TSepiComponent)
   private
     FIsConst: Boolean;  /// Indique si la variable est une constante typée
     FType: TSepiType;   /// Type de la constante
@@ -653,22 +656,22 @@ type
 
     procedure Destroying; override;
   public
-    constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
+    constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
 
-    constructor Create(AOwner: TSepiMeta; const AName: string;
+    constructor Create(AOwner: TSepiComponent; const AName: string;
       const AValue; AType: TSepiType; AIsConst: Boolean = False); overload;
-    constructor Create(AOwner: TSepiMeta; const AName: string;
+    constructor Create(AOwner: TSepiComponent; const AName: string;
       const AValue; ATypeInfo: PTypeInfo;
       AIsConst: Boolean = False); overload;
-    constructor Create(AOwner: TSepiMeta; const AName: string;
+    constructor Create(AOwner: TSepiComponent; const AName: string;
       const AValue; const ATypeName: string;
       AIsConst: Boolean = False); overload;
 
-    constructor Create(AOwner: TSepiMeta; const AName: string;
+    constructor Create(AOwner: TSepiComponent; const AName: string;
       AType: TSepiType; AIsConst: Boolean = False); overload;
-    constructor Create(AOwner: TSepiMeta; const AName: string;
+    constructor Create(AOwner: TSepiComponent; const AName: string;
       ATypeInfo: PTypeInfo; AIsConst: Boolean = False); overload;
-    constructor Create(AOwner: TSepiMeta; const AName: string;
+    constructor Create(AOwner: TSepiComponent; const AName: string;
       const ATypeName: string; AIsConst: Boolean = False); overload;
 
     destructor Destroy; override;
@@ -686,23 +689,23 @@ type
     @author sjrd
     @version 1.0
   *}
-  TSepiNamespace = class(TSepiMeta)
+  TSepiNamespace = class(TSepiComponent)
   private
-    FVirtualOwner: TSepiMeta; /// Propriétaire virtuel
+    FVirtualOwner: TSepiComponent; /// Propriétaire virtuel
   protected
     procedure ListReferences; override;
     procedure Save(Stream: TStream); override;
 
     function InternalLookFor(const Name: string; FromUnit: TSepiUnit;
-      FromClass: TSepiMeta = nil): TSepiMeta; override;
+      FromClass: TSepiComponent = nil): TSepiComponent; override;
   public
-    constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
-    constructor Create(AOwner: TSepiMeta; const AName: string;
-      AVirtualOwner: TSepiMeta = nil);
+    constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
+    constructor Create(AOwner: TSepiComponent; const AName: string;
+      AVirtualOwner: TSepiComponent = nil);
 
     procedure Complete;
 
-    property VirtualOwner: TSepiMeta read FVirtualOwner;
+    property VirtualOwner: TSepiComponent read FVirtualOwner;
   end;
 
   {*
@@ -737,7 +740,7 @@ type
   TSepiAsynchronousRootManager = class(TScTaskQueue)
   private
     FOwnsRoot: Boolean; /// Indique si l'on possède la racine
-    FRoot: TSepiRoot;   /// Meta-racine gérée
+    FRoot: TSepiRoot;   /// Component-racine gérée
   public
     constructor Create(ARoot: TSepiRoot = nil);
     destructor Destroy; override;
@@ -753,7 +756,8 @@ type
   *}
   TSepiImportUnitFunc = function(Root: TSepiRoot): TSepiUnit;
 
-procedure SepiRegisterMetaClasses(const MetaClasses: array of TSepiMetaClass);
+procedure SepiRegisterComponentClasses(
+  const ComponentClasses: array of TSepiComponentClass);
 
 procedure SepiRegisterImportedUnit(const UnitName: string;
   ImportFunc: TSepiImportUnitFunc);
@@ -781,21 +785,22 @@ uses
   SepiOrdTypes, SepiStrTypes, SepiArrayTypes, SepiMembers, SepiImportsSystem;
 
 var
-  SepiMetaClasses: TStrings = nil;
+  SepiComponentClasses: TStrings = nil;
   SepiImportedUnits: TStrings = nil;
 
 {*
-  Recense des classes de meta
-  @param MetaClasses   Classes de meta à recenser
+  Recense des classes de composants Sepi
+  @param ComponentClasses   Classes de composants à recenser
 *}
-procedure SepiRegisterMetaClasses(const MetaClasses: array of TSepiMetaClass);
+procedure SepiRegisterComponentClasses(
+  const ComponentClasses: array of TSepiComponentClass);
 var
   I: Integer;
 begin
-  if not Assigned(SepiMetaClasses) then
+  if not Assigned(SepiComponentClasses) then
   begin
-    SepiMetaClasses := TStringList.Create;
-    with TStringList(SepiMetaClasses) do
+    SepiComponentClasses := TStringList.Create;
+    with TStringList(SepiComponentClasses) do
     begin
       CaseSensitive := False;
       Sorted := True;
@@ -803,33 +808,34 @@ begin
     end;
   end;
 
-  for I := Low(MetaClasses) to High(MetaClasses) do
+  for I := Low(ComponentClasses) to High(ComponentClasses) do
   begin
-    SepiMetaClasses.AddObject(
-      MetaClasses[I].ClassName, TObject(MetaClasses[I]));
+    SepiComponentClasses.AddObject(
+      ComponentClasses[I].ClassName, TObject(ComponentClasses[I]));
   end;
 end;
 
 {*
-  Cherche une classe de meta par son nom
+  Cherche une classe de composant par son nom
   La classe recherchée doit avoir été recensée au préalable avec
-  SepiRegisterMetaClasses.
-  @param MetaClassName   Nom de la classe de meta
-  @return La classe de meta dont le nom correspond
+  SepiRegisterComponentClasses.
+  @param ComponentClassName   Nom de la classe de composant
+  @return La classe de composant dont le nom correspond
   @throws EClassNotFound La classe recherchée n'existe pas
 *}
-function SepiFindMetaClass(const MetaClassName: string): TSepiMetaClass;
+function SepiFindComponentClass(
+  const ComponentClassName: string): TSepiComponentClass;
 var
   Index: Integer;
 begin
-  if not Assigned(SepiMetaClasses) then
+  if not Assigned(SepiComponentClasses) then
     Index := -1
   else
-    Index := SepiMetaClasses.IndexOf(MetaClassName);
+    Index := SepiComponentClasses.IndexOf(ComponentClassName);
   if Index < 0 then
-    raise EClassNotFound.CreateFmt(SClassNotFound, [MetaClassName]);
+    raise EClassNotFound.CreateFmt(SClassNotFound, [ComponentClassName]);
 
-  Result := TSepiMetaClass(SepiMetaClasses.Objects[Index]);
+  Result := TSepiComponentClass(SepiComponentClasses.Objects[Index]);
 end;
 
 {*
@@ -898,49 +904,51 @@ begin
   end;
 end;
 
-{----------------------}
-{ Classe TSepiMetaList }
-{----------------------}
+{---------------------------}
+{ Classe TSepiComponentList }
+{---------------------------}
 
 {*
-  Crée une instance de TSepiMetaList
+  Crée une instance de TSepiComponentList
 *}
-constructor TSepiMetaList.Create;
+constructor TSepiComponentList.Create;
 begin
   inherited;
   CaseSensitive := False;
 end;
 
 {*
-  Liste zero-based des metas
-  @param Index   Index du meta à obtenir
-  @return Meta à l'index spécifié
+  Liste zero-based des composants
+  @param Index   Index du composant à obtenir
+  @return Composant à l'index spécifié
 *}
-function TSepiMetaList.GetMetas(Index: Integer): TSepiMeta;
+function TSepiComponentList.GetComponents(Index: Integer): TSepiComponent;
 begin
-  Result := TSepiMeta(Objects[Index]);
+  Result := TSepiComponent(Objects[Index]);
 end;
 
 {*
-  Assigne la référence à un meta
-  Un meta ne peut pas être modifé une fois assigné, il ne peut donc être assigné
-  qu'une et une seule fois.
+  Assigne la référence à un composant
+  Un composant ne peut pas être modifé une fois assigné, il ne peut donc être
+  assigné qu'une et une seule fois.
   @param Index   Index du meta à modifier
-  @param Value   Référence au nouveau meta
+  @param Value   Référence au nouveau composant
 *}
-procedure TSepiMetaList.SetMetas(Index: Integer; Value: TSepiMeta);
+procedure TSepiComponentList.SetComponents(Index: Integer;
+  Value: TSepiComponent);
 begin
   if Assigned(Objects[Index]) then
-    Error(@SSepiMetaAlreadyAssigned, Index);
+    Error(@SSepiComponentAlreadyAssigned, Index);
   Objects[Index] := Value;
 end;
 
 {*
-  Liste des metas indexée par leurs noms
-  @param Name   Nom d'un meta
-  @return Le meta dont le nom a été spécifié, ou nil s'il n'existe pas
+  Liste des composants indexée par leurs noms
+  @param Name   Nom d'un composant
+  @return Le composant dont le nom a été spécifié, ou nil s'il n'existe pas
 *}
-function TSepiMetaList.GetMetaFromName(const Name: string): TSepiMeta;
+function TSepiComponentList.GetComponentFromName(
+  const Name: string): TSepiComponent;
 var
   Index: Integer;
 begin
@@ -948,18 +956,18 @@ begin
   if Index < 0 then
     Result := nil
   else
-    Result := TSepiMeta(Objects[Index]);
+    Result := TSepiComponent(Objects[Index]);
 end;
 
 {*
-  Assigne ou ajoute un meta par son nom
-  Un meta ne peut pas être modifé une fois assigné, il ne peut donc être assigné
-  qu'une et une seule fois.
-  @param Name    Nom du meta
-  @param Value   Référence au meta
+  Assigne ou ajoute un composant par son nom
+  Un composant ne peut pas être modifé une fois assigné, il ne peut donc être
+  assigné qu'une et une seule fois.
+  @param Name    Nom du composant
+  @param Value   Référence au composant
 *}
-procedure TSepiMetaList.SetMetaFromName(const Name: string;
-  Value: TSepiMeta);
+procedure TSepiComponentList.SetComponentFromName(const Name: string;
+  Value: TSepiComponent);
 var
   Index: Integer;
 begin
@@ -967,65 +975,66 @@ begin
   if Index < 0 then
     AddObject(Name, Value)
   else
-    Metas[Index] := Value;
+    Components[Index] := Value;
 end;
 
 {*
-  Ajoute un élément dans la liste de metas
+  Ajoute un élément dans la liste de composants
   @param Index     Index où ajouter l'élément
   @param S         Chaîne à ajouter
   @param AObject   Objet à ajouter
 *}
-procedure TSepiMetaList.InsertItem(Index: Integer; const S: string;
+procedure TSepiComponentList.InsertItem(Index: Integer; const S: string;
   AObject: TObject);
 begin
   if IndexOf(S) >= 0 then
-    raise EListError.CreateFmt(SSepiMetaAlreadyExists, [S]);
+    raise EListError.CreateFmt(SSepiComponentAlreadyExists, [S]);
   inherited;
 end;
 
 {*
-  Ajoute un meta
-  @param Meta   Meta à ajouter
-  @return Index du meta nouvellement ajouté
+  Ajoute un composant
+  @param Component   Composant à ajouter
+  @return Index du composant nouvellement ajouté
 *}
-function TSepiMetaList.AddMeta(Meta: TSepiMeta): Integer;
+function TSepiComponentList.AddComponent(Component: TSepiComponent): Integer;
 begin
-  Result := AddObject(Meta.Name, Meta);
+  Result := AddObject(Component.Name, Component);
 end;
 
 {*
-  Cherche un meta dans la liste
-  @param Meta   Meta à chercher
-  @return L'index du meta dans la liste, ou nil s'il n'existe pas
+  Cherche un composant dans la liste
+  @param Component   Composant à chercher
+  @return L'index du composant dans la liste, ou nil s'il n'existe pas
 *}
-function TSepiMetaList.IndexOfMeta(Meta: TSepiMeta): Integer;
+function TSepiComponentList.IndexOfComponent(
+  Component: TSepiComponent): Integer;
 begin
-  Result := IndexOf(Meta.Name);
+  Result := IndexOf(Component.Name);
 end;
 
 {*
-  Supprime un meta de la liste
-  @param Meta   Meta à supprimer
-  @return L'index auquel se trouvait le meta
+  Supprime un composant de la liste
+  @param Component   Composant à supprimer
+  @return L'index auquel se trouvait le composant
 *}
-function TSepiMetaList.Remove(Meta: TSepiMeta): Integer;
+function TSepiComponentList.Remove(Component: TSepiComponent): Integer;
 begin
-  Result := IndexOfMeta(Meta);
+  Result := IndexOfComponent(Component);
   if Result >= 0 then
     Delete(Result);
 end;
 
-{------------------}
-{ Classe TSepiMeta }
-{------------------}
+{-----------------------}
+{ Classe TSepiComponent }
+{-----------------------}
 
 {*
-  Charge un meta depuis un flux
-  @param AOwner   Propriétaire du meta
-  @param Stream   Flux depuis lequel charger le meta
+  Charge un composant depuis un flux
+  @param AOwner   Propriétaire du composant
+  @param Stream   Flux depuis lequel charger le composant
 *}
-constructor TSepiMeta.Load(AOwner: TSepiMeta; Stream: TStream);
+constructor TSepiComponent.Load(AOwner: TSepiComponent; Stream: TStream);
 begin
   Create(AOwner, ReadStrFromStream(Stream));
   Stream.ReadBuffer(FVisibility, 1);
@@ -1034,14 +1043,15 @@ begin
 end;
 
 {*
-  Crée un nouveau meta
-  @param AOwner   Propriétaire du meta
-  @param AName    Nom du meta
+  Crée un nouveau composant
+  @param AOwner   Propriétaire du composant
+  @param AName    Nom du composant
 *}
-constructor TSepiMeta.Create(AOwner: TSepiMeta; const AName: string);
+constructor TSepiComponent.Create(AOwner: TSepiComponent; const AName: string);
 begin
   if not IsForward then
-    raise ESepiMetaAlreadyCreated.CreateFmt(SSepiMetaAlreadyCreated, [Name]);
+    raise ESepiComponentAlreadyCreated.CreateFmt(
+      SSepiComponentAlreadyCreated, [Name]);
 
   inherited Create;
 
@@ -1062,7 +1072,7 @@ begin
   FCurrentVisibility := mvPublic;
   FTag := 0;
   FForwards := THashedStringList.Create;
-  FChildren := TSepiMetaList.Create;
+  FChildren := TSepiComponentList.Create;
   FObjResources := TObjectList.Create;
   FPtrResources := TList.Create;
 
@@ -1079,9 +1089,9 @@ begin
 end;
 
 {*
-  Détruit l'instance
+  [@inheritDoc]
 *}
-destructor TSepiMeta.Destroy;
+destructor TSepiComponent.Destroy;
 var
   I: Integer;
 begin
@@ -1094,35 +1104,38 @@ begin
       FreeMem(FPtrResources[I]);
     FPtrResources.Free;
   end;
+
   FObjResources.Free;
 
   if Assigned(FChildren) then
   begin
-    for I := 0 to FChildren.Count-1 do
+    for I := FChildren.Count-1 downto 0 do
       FChildren.Objects[I].Free;
     FChildren.Free;
   end;
+
   FForwards.Free;
 
   if Assigned(FOwner) then
     FOwner.RemoveChild(Self);
-  inherited Destroy;
+
+  inherited;
 end;
 
 {*
-  True si le meta a été créé forward, False sinon
-  @return True si le meta a été créé forward, False sinon
+  Indique si le composant a été créé forward
+  @return True si le composant a été créé forward, False sinon
 *}
-function TSepiMeta.GetWasForward: Boolean;
+function TSepiComponent.GetWasForward: Boolean;
 begin
-  Result := FOwner.FForwards.IndexOfObject(Self) >= 0;
+  Result := (FOwner <> nil) and (FOwner.FForwards.IndexOfObject(Self) >= 0);
 end;
 
 {*
   Nombre d'enfants
   @return Nombre d'enfants
 *}
-function TSepiMeta.GetChildCount: Integer;
+function TSepiComponent.GetChildCount: Integer;
 begin
   Result := FChildren.Count;
 end;
@@ -1132,23 +1145,25 @@ end;
   @param Index   Index de l'enfant à récupérer
   @return Enfant à l'index spécifié
 *}
-function TSepiMeta.GetChildren(Index: Integer): TSepiMeta;
+function TSepiComponent.GetChildren(Index: Integer): TSepiComponent;
 begin
-  Result := TSepiMeta(FChildren[Index]);
+  Result := TSepiComponent(FChildren[Index]);
 end;
 
 {*
   Tableau des enfants indexés par leurs noms
-  À l'inverse de la fonction FindMeta, les noms composés ne sont pas acceptés.
+  À l'inverse de la fonction FindComponent, les noms composés ne sont pas
+  acceptés.
   @param ChildName   Nom de l'enfant recherché
   @return Enfant dont le nom est ChildName
-  @throws ESepiMetaNotFoundError L'enfant n'a pas été trouvé
+  @throws ESepiComponentNotFoundError L'enfant n'a pas été trouvé
 *}
-function TSepiMeta.GetChildByName(const ChildName: string): TSepiMeta;
+function TSepiComponent.GetChildByName(const ChildName: string): TSepiComponent;
 begin
-  Result := FChildren.MetaFromName[ChildName];
+  Result := FChildren.ComponentFromName[ChildName];
   if Result = nil then
-    raise ESepiMetaNotFoundError.CreateFmt(SSepiObjectNotFound, [ChildName]);
+    raise ESepiComponentNotFoundError.CreateFmt(
+      SSepiComponentNotFound, [ChildName]);
 end;
 
 {*
@@ -1157,9 +1172,9 @@ end;
   appelée ailleurs.
   @param Child   Enfant à ajouter
 *}
-procedure TSepiMeta.AddChild(Child: TSepiMeta);
+procedure TSepiComponent.AddChild(Child: TSepiComponent);
 begin
-  FChildren.AddMeta(Child);
+  FChildren.AddComponent(Child);
 end;
 
 {*
@@ -1168,7 +1183,7 @@ end;
   être appelée ailleurs.
   @param Child   Enfant à supprimer
 *}
-procedure TSepiMeta.RemoveChild(Child: TSepiMeta);
+procedure TSepiComponent.RemoveChild(Child: TSepiComponent);
 var
   Index: Integer;
 begin
@@ -1183,17 +1198,17 @@ begin
 end;
 
 {*
-  Ajoute de nouveau un meta à la liste des enfants
+  Ajoute de nouveau un composant à la liste des enfants
   Cela a pour effet de replacer Child à la fin de la liste des enfants ajoutés
   jusque là. Les types composites se servent de cette méthode pour se replacer
   derrière les types anonymes qu'ils ont créés.
   @param Child   Enfant concerné
 *}
-procedure TSepiMeta.ReAddChild(Child: TSepiMeta);
+procedure TSepiComponent.ReAddChild(Child: TSepiComponent);
 var
   Index: Integer;
 begin
-  Index := FChildren.IndexOfMeta(Child);
+  Index := FChildren.IndexOfComponent(Child);
   if Index >= 0 then
     FChildren.Move(Index, FChildren.Count-1);
 end;
@@ -1202,7 +1217,7 @@ end;
   Charge les forwards depuis un flux
   @param Stream   Flux source
 *}
-procedure TSepiMeta.LoadForwards(Stream: TStream);
+procedure TSepiComponent.LoadForwards(Stream: TStream);
 var
   Count, I: Integer;
   ForwardChild: TObject;
@@ -1210,7 +1225,7 @@ begin
   Stream.ReadBuffer(Count, 4);
   for I := 0 to Count-1 do
   begin
-    ForwardChild := SepiFindMetaClass(ReadStrFromStream(Stream)).NewInstance;
+    ForwardChild := SepiFindComponentClass(ReadStrFromStream(Stream)).NewInstance;
     AddForward(ReadStrFromStream(Stream), ForwardChild);
   end;
 end;
@@ -1220,7 +1235,7 @@ end;
   @param Stream   Flux source
   @return Enfant chargé
 *}
-function TSepiMeta.LoadChild(Stream: TStream): TSepiMeta;
+function TSepiComponent.LoadChild(Stream: TStream): TSepiComponent;
 var
   IsForward: Boolean;
   Name, ClassName: string;
@@ -1230,7 +1245,7 @@ begin
   if IsForward then
   begin
     Name := ReadStrFromStream(Stream);
-    Result := GetMeta(Name);
+    Result := GetComponent(Name);
   end else
     Result := nil;
 
@@ -1239,14 +1254,14 @@ begin
   if Result <> nil then
     Result.Load(Self, Stream)
   else
-    Result := SepiFindMetaClass(ClassName).Load(Self, Stream);
+    Result := SepiFindComponentClass(ClassName).Load(Self, Stream);
 end;
 
 {*
   Enregistre les forwards dans un flux
   @param Stream   Flux destination
 *}
-procedure TSepiMeta.SaveForwards(Stream: TStream);
+procedure TSepiComponent.SaveForwards(Stream: TStream);
 var
   Count, I: Integer;
 begin
@@ -1264,7 +1279,7 @@ end;
   @param Stream   Flux destination
   @param Child    Enfant à enregistrer
 *}
-procedure TSepiMeta.SaveChild(Stream: TStream; Child: TSepiMeta);
+procedure TSepiComponent.SaveChild(Stream: TStream; Child: TSepiComponent);
 var
   IsForward: Boolean;
 begin
@@ -1282,7 +1297,7 @@ end;
   Charge les enfants depuis un flux
   @param Stream   Flux depuis lequel charger les enfants
 *}
-procedure TSepiMeta.LoadChildren(Stream: TStream);
+procedure TSepiComponent.LoadChildren(Stream: TStream);
 var
   Count, I: Integer;
 begin
@@ -1297,7 +1312,7 @@ end;
   Enregistre les enfants dans un flux
   @param Stream   Flux dans lequel enregistrer les enfants
 *}
-procedure TSepiMeta.SaveChildren(Stream: TStream);
+procedure TSepiComponent.SaveChildren(Stream: TStream);
 var
   Count, I: Integer;
 begin
@@ -1314,10 +1329,10 @@ end;
   @param ChildName   Nom de l'enfant
   @param Child       Enfant à ajouter
 *}
-procedure TSepiMeta.AddForward(const ChildName: string; Child: TObject);
+procedure TSepiComponent.AddForward(const ChildName: string; Child: TObject);
 begin
-  (Child as TSepiMeta).Visibility := CurrentVisibility;
-  TSepiMeta(Child).FName := ChildName;
+  (Child as TSepiComponent).Visibility := CurrentVisibility;
+  TSepiComponent(Child).FName := ChildName;
   FForwards.AddObject(ChildName, Child);
 end;
 
@@ -1325,7 +1340,7 @@ end;
   Appelé lorsqu'un enfant vient d'être ajouté
   @param Child   Enfant qui vient d'être ajouté
 *}
-procedure TSepiMeta.ChildAdded(Child: TSepiMeta);
+procedure TSepiComponent.ChildAdded(Child: TSepiComponent);
 begin
 end;
 
@@ -1333,14 +1348,14 @@ end;
   Appelé lorsqu'un enfant va être supprimé
   @param Child   Enfant sur le point d'être supprimé
 *}
-procedure TSepiMeta.ChildRemoving(Child: TSepiMeta);
+procedure TSepiComponent.ChildRemoving(Child: TSepiComponent);
 begin
 end;
 
 {*
   Appelé lorsque l'unité contenante est complètement chargée/créée
 *}
-procedure TSepiMeta.Loaded;
+procedure TSepiComponent.Loaded;
 var
   I: Integer;
 begin
@@ -1350,7 +1365,7 @@ begin
 
   // Forward declarations which have not been created yet
   for I := 0 to FForwards.Count-1 do
-    with TSepiMeta(FForwards.Objects[I]) do
+    with TSepiComponent(FForwards.Objects[I]) do
       if IsForward then
         Loaded;
 
@@ -1361,7 +1376,7 @@ end;
 {*
   Liste les références auprès de l'unité contenante, pour préparer la sauvegarde
 *}
-procedure TSepiMeta.ListReferences;
+procedure TSepiComponent.ListReferences;
 var
   I: Integer;
 begin
@@ -1370,10 +1385,10 @@ begin
 end;
 
 {*
-  Enregistre le meta dans un flux
-  @param Stream   Flux dans lequel enregistrer le meta
+  Enregistre le composant dans un flux
+  @param Stream   Flux dans lequel enregistrer le composant
 *}
-procedure TSepiMeta.Save(Stream: TStream);
+procedure TSepiComponent.Save(Stream: TStream);
 begin
   WriteStrToStream(Stream, Name);
   Stream.WriteBuffer(FVisibility, 1);
@@ -1383,7 +1398,7 @@ end;
 {*
   Appelé lorsque l'environnement Sepi est sur le point d'être détruit
 *}
-procedure TSepiMeta.Destroying;
+procedure TSepiComponent.Destroying;
 var
   I: Integer;
 begin
@@ -1395,9 +1410,9 @@ begin
 end;
 
 {*
-  Appelé juste après l'exécution du dernier constructeur
+  [@inheritDoc]
 *}
-procedure TSepiMeta.AfterConstruction;
+procedure TSepiComponent.AfterConstruction;
 begin
   inherited;
   if Assigned(Owner) then
@@ -1405,9 +1420,9 @@ begin
 end;
 
 {*
-  Appelé juste avant l'exécution du premier destructeur
+  [@inheritDoc]
 *}
-procedure TSepiMeta.BeforeDestruction;
+procedure TSepiComponent.BeforeDestruction;
 begin
   if FState <> msDestroying then
     Destroying;
@@ -1419,25 +1434,26 @@ begin
 end;
 
 {*
-  Cherche un meta enfant
-  InternalGetMeta ne doit pas être appelée directement : passez par GetMeta.
-  GetMeta n'appelle InternalGetMeta qu'avec un nom non-composé (sans .). De
-  plus, si InternalGetMeta renvoie un TSepiTypeAlias, GetMeta se chargera de le
-  "déréférencer".
-  @param Name   Nom du meta à trouver
-  @return Le meta correspondant, ou nil s'il n'a pas été trouvé
+  Cherche un composant enfant
+  InternalGetComponent ne doit pas être appelée directement : passez par
+  GetComponent. GetComponent n'appelle InternalGetComponent qu'avec un nom
+  non-composé (sans .). De plus, si InternalGetComponent renvoie un
+  TSepiTypeAlias, GetComponent se chargera de le "déréférencer".
+  @param Name   Nom du composant à trouver
+  @return Le composant correspondant, ou nil s'il n'a pas été trouvé
 *}
-function TSepiMeta.InternalGetMeta(const Name: string): TSepiMeta;
+function TSepiComponent.InternalGetComponent(
+  const Name: string): TSepiComponent;
 var
   Index: Integer;
 begin
-  Result := FChildren.MetaFromName[Name];
+  Result := FChildren.ComponentFromName[Name];
 
   if Result = nil then
   begin
     Index := FForwards.IndexOf(Name);
     if Index >= 0 then
-      Result := TSepiMeta(FForwards.Objects[Index]);
+      Result := TSepiComponent(FForwards.Objects[Index]);
   end;
 end;
 
@@ -1451,11 +1467,11 @@ end;
   @param FromClass   Classe depuis laquelle on recherche (défaut = nil)
   @return Le meta recherché, ou nil si non trouvé
 *}
-function TSepiMeta.InternalLookFor(const Name: string; FromUnit: TSepiUnit;
-  FromClass: TSepiMeta = nil): TSepiMeta;
+function TSepiComponent.InternalLookFor(const Name: string; FromUnit: TSepiUnit;
+  FromClass: TSepiComponent = nil): TSepiComponent;
 begin
   // Basic search
-  Result := GetMeta(Name);
+  Result := GetComponent(Name);
 
   // Check for visibility
   if (Result <> nil) and (not Result.IsVisibleFrom(FromUnit, FromClass)) then
@@ -1470,26 +1486,25 @@ end;
   Nom destiné à l'affichage
   @return Nom destiné à l'affichage
 *}
-function TSepiMeta.GetDisplayName: string;
+function TSepiComponent.GetDisplayName: string;
 begin
   Result := Name;
 end;
 
 {*
-  Crée une nouvelle instance de TSepiMeta
-  @return Instance créée
+  [@inheritDoc]
 *}
-class function TSepiMeta.NewInstance: TObject;
+class function TSepiComponent.NewInstance: TObject;
 begin
   Result := inherited NewInstance;
-  TSepiMeta(Result).FIsForward := True;
+  TSepiComponent(Result).FIsForward := True;
 end;
 
 {*
-  Nom qualifié du meta, depuis l'unité contenante
-  @return Nom qualifié du meta
+  Nom qualifié du composant, depuis l'unité contenante
+  @return Nom qualifié du composant
 *}
-function TSepiMeta.GetFullName: string;
+function TSepiComponent.GetFullName: string;
 begin
   if Assigned(FOwner) and (FOwner.Name <> '') then
     Result := FOwner.GetFullName+'.'+Name
@@ -1498,13 +1513,13 @@ begin
 end;
 
 {*
-  Obtient le nom le plus court possible pour être référencé depuis un autre meta
-  @param From   Meta depuis lequel être référencé
+  Nom le plus court possible pour être référencé depuis un autre composant
+  @param From   Composant depuis lequel être référencé
   @return Nom le plus court possible, ou une chaîne vide si aucun n'est possible
 *}
-function TSepiMeta.GetShorterNameFrom(From: TSepiMeta): string;
+function TSepiComponent.GetShorterNameFrom(From: TSepiComponent): string;
 var
-  Current: TSepiMeta;
+  Current: TSepiComponent;
 begin
   Current := Self;
   Result := Name;
@@ -1528,48 +1543,48 @@ begin
 end;
 
 {*
-  Cherche un meta enfant
-  @param Name   Nom du meta à trouver
-  @return Le meta correspondant, ou nil s'il n'a pas été trouvé
+  Cherche un composant enfant
+  @param Name   Nom du composant à trouver
+  @return Le composant correspondant, ou nil s'il n'a pas été trouvé
 *}
-function TSepiMeta.GetMeta(const Name: string): TSepiMeta;
+function TSepiComponent.GetComponent(const Name: string): TSepiComponent;
 var
-  MetaName, Field: string;
+  ComponentName, Field: string;
 begin
-  if not SplitToken(Name, '.', MetaName, Field) then
+  if not SplitToken(Name, '.', ComponentName, Field) then
     Field := '';
 
-  Result := InternalGetMeta(MetaName);
+  Result := InternalGetComponent(ComponentName);
 
   if not Assigned(Result) then
     Exit;
   while Result is TSepiTypeAlias do
     Result := TSepiTypeAlias(Result).Dest;
   if Field <> '' then
-    Result := Result.GetMeta(Field);
+    Result := Result.GetComponent(Field);
 end;
 
 {*
-  Cherche un meta enfant
-  @param Name   Nom du meta à trouver
-  @return Le meta correspondant
-  @throws ESepiMetaNotFoundError Le meta n'a pas été trouvé
+  Cherche un composant enfant
+  @param Name   Nom du composant à trouver
+  @return Le composant correspondant
+  @throws ESepiComponentNotFoundError Le composant n'a pas été trouvé
 *}
-function TSepiMeta.FindMeta(const Name: string): TSepiMeta;
+function TSepiComponent.FindComponent(const Name: string): TSepiComponent;
 begin
-  Result := GetMeta(Name);
+  Result := GetComponent(Name);
   if (Result = nil) and (Name <> '') then
-    raise ESepiMetaNotFoundError.CreateFmt(SSepiObjectNotFound, [Name]);
+    raise ESepiComponentNotFoundError.CreateFmt(SSepiComponentNotFound, [Name]);
 end;
 
 {*
-  Teste si ce meta est visible depuis un endroit donné du programme
+  Teste si ce composant est visible depuis un endroit donné du programme
   @param FromUnit    Unité depuis laquelle on regarde
   @param FromClass   Classe depuis laquelle on regarde (défaut = nil)
   @return True si le meta est visible, False sinon
 *}
-function TSepiMeta.IsVisibleFrom(FromUnit: TSepiUnit;
-  FromClass: TSepiMeta = nil): Boolean;
+function TSepiComponent.IsVisibleFrom(FromUnit: TSepiUnit;
+  FromClass: TSepiComponent = nil): Boolean;
 begin
   Result := True;
 
@@ -1591,19 +1606,19 @@ begin
 end;
 
 {*
-  Recherche un meta à partir de son nom
-  LookFor, au contraire de GetMeta/FindMeta, tient compte des héritages, des
-  visibilités, des uses, etc.
+  Recherche un composant à partir de son nom
+  LookFor, au contraire de GetComponent/FindComponent, tient compte des
+  héritages, des visibilités, des uses, etc.
   Si Name est un nom composé, la première partie est recherchée selon
-  l'algorithme LookFor, et les suivantes selon l'algorithme GetMeta.
+  l'algorithme LookFor, et les suivantes selon l'algorithme GetComponent.
   Le paramètre FromClass doit être de type TSepiClass.
-  @param Name        Nom du meta recherché
+  @param Name        Nom du composant recherché
   @param FromUnit    Unité depuis laquelle on recherche
   @param FromClass   Classe depuis laquelle on recherche (défaut = nil)
-  @return Le meta recherché, ou nil si non trouvé
+  @return Le composant recherché, ou nil si non trouvé
 *}
-function TSepiMeta.LookFor(const Name: string; FromUnit: TSepiUnit;
-  FromClass: TSepiMeta = nil): TSepiMeta;
+function TSepiComponent.LookFor(const Name: string; FromUnit: TSepiUnit;
+  FromClass: TSepiComponent = nil): TSepiComponent;
 var
   FirstName, ChildName: string;
 begin
@@ -1612,17 +1627,17 @@ begin
 
   Result := InternalLookFor(FirstName, FromUnit, FromClass as TSepiClass);
   if (Result <> nil) and (ChildName <> '') then
-    Result := Result.GetMeta(ChildName);
+    Result := Result.GetComponent(ChildName);
 end;
 
 {*
-  Recherche un meta à partir de son nom
+  Recherche un composant à partir de son nom
   Cette version de LookFor détermine les FromUnit et FromClass qui
-  correspondent à ce meta.
+  correspondent à ce composant.
 *}
-function TSepiMeta.LookFor(const Name: string): TSepiMeta;
+function TSepiComponent.LookFor(const Name: string): TSepiComponent;
 var
-  FromClass: TSepiMeta;
+  FromClass: TSepiComponent;
 begin
   FromClass := Self;
   while (FromClass <> nil) and (not (FromClass is TSepiClass)) do
@@ -1635,54 +1650,54 @@ end;
   Construit un nom pour un enfant créé anonyme
   @return Nom pour l'enfant
 *}
-function TSepiMeta.MakeUnnamedChildName: string;
+function TSepiComponent.MakeUnnamedChildName: string;
 begin
   Inc(FUnnamedChildCount);
   Result := '$' + IntToStr(FUnnamedChildCount);
 end;
 
 {*
-  Ajoute un objet aux ressources du meta
-  Tous les objets ajoutés aux ressources du meta seront libérés lorsque le meta
-  sera libéré lui-même.
+  Ajoute un objet aux ressources du composant
+  Tous les objets ajoutés aux ressources du meta seront libérés lorsque le
+  composant sera libéré lui-même.
   @param Obj   Objet à ajouter aux ressources
 *}
-procedure TSepiMeta.AddObjResource(Obj: TObject);
+procedure TSepiComponent.AddObjResource(Obj: TObject);
 begin
   FObjResources.Add(Obj);
 end;
 
 {*
   S'approprie une ressource objet
-  L'objet est ajouté aux ressources objet du meta, puis le paramètre Obj est
-  mis à nil, afin qu'un Free ultérieur sur celui-ci ne fasse plus rien.
+  L'objet est ajouté aux ressources objet du composant, puis le paramètre Obj
+  est mis à nil, afin qu'un Free ultérieur sur celui-ci ne fasse plus rien.
   @param Obj   Objet à ajouter aux ressources
 *}
-procedure TSepiMeta.AcquireObjResource(var Obj);
+procedure TSepiComponent.AcquireObjResource(var Obj);
 begin
   AddObjResource(TObject(Obj));
   TObject(Obj) := nil;
 end;
 
 {*
-  Ajoute un pointeur aux ressources du meta
-  Tous les pointeurs ajoutés aux ressources du meta seront libérés lorsque le
-  meta sera libéré lui-même.
+  Ajoute un pointeur aux ressources du composant
+  Tous les pointeurs ajoutés aux ressources du composant seront libérés lorsque
+  le composant sera libéré lui-même.
   @param Ptr   Pointeur à ajouter aux ressources
 *}
-procedure TSepiMeta.AddPtrResource(Ptr: Pointer);
+procedure TSepiComponent.AddPtrResource(Ptr: Pointer);
 begin
   FPtrResources.Add(Ptr);
 end;
 
 {*
   S'approprie une ressource pointeur
-  Le pointeur est ajouté aux ressources pointeur du meta, puis le paramètre
+  Le pointeur est ajouté aux ressources pointeur du composant, puis le paramètre
   Ptr est mis à nil, afin que le code appelant puisse tester l'égalité à nil
   avant de le libérer lui-même.
   @param Ptr   Pointeur à ajouter aux ressources
 *}
-procedure TSepiMeta.AcquirePtrResource(var Ptr);
+procedure TSepiComponent.AcquirePtrResource(var Ptr);
 begin
   AddPtrResource(Pointer(Ptr));
   Pointer(Ptr) := nil;
@@ -1697,7 +1712,7 @@ end;
   @param AOwner      Propriétaire du type
   @param ATypeInfo   RTTI du type à recenser
 *}
-constructor TSepiType.RegisterTypeInfo(AOwner: TSepiMeta;
+constructor TSepiType.RegisterTypeInfo(AOwner: TSepiComponent;
   ATypeInfo: PTypeInfo);
 begin
   inherited Create(AOwner, AnsiReplaceStr(ATypeInfo.Name, '.', '$$'));
@@ -1717,7 +1732,7 @@ end;
   @param AOwner   Propriétaire du type
   @param Stream   Flux depuis lequel charger le type
 *}
-constructor TSepiType.Load(AOwner: TSepiMeta; Stream: TStream);
+constructor TSepiType.Load(AOwner: TSepiComponent; Stream: TStream);
 begin
   inherited;
 
@@ -1748,7 +1763,7 @@ end;
   @param AName    Nom du type
   @param AKind    Type de type
 *}
-constructor TSepiType.Create(AOwner: TSepiMeta; const AName: string;
+constructor TSepiType.Create(AOwner: TSepiComponent; const AName: string;
   AKind: TTypeKind);
 begin
   inherited Create(AOwner, AName);
@@ -1770,7 +1785,7 @@ end;
   @param AName    Nom du type
   @param Source   Type à cloner
 *}
-constructor TSepiType.Clone(AOwner: TSepiMeta; const AName: string;
+constructor TSepiType.Clone(AOwner: TSepiComponent; const AName: string;
   Source: TSepiType);
 begin
   raise ESepiError.CreateFmt(SCantCloneType, [Source.Name]);
@@ -1887,8 +1902,7 @@ begin
 end;
 
 {*
-  Crée une nouvelle instance de TSepiType
-  @return Instance créée
+  [@inheritDoc]
 *}
 class function TSepiType.NewInstance: TObject;
 begin
@@ -1902,7 +1916,7 @@ end;
   @param ATypeInfo   RTTI du type à recenser
   @return Type nouvellement créé
 *}
-class function TSepiType.LoadFromTypeInfo(AOwner: TSepiMeta;
+class function TSepiType.LoadFromTypeInfo(AOwner: TSepiComponent;
   ATypeInfo: PTypeInfo): TSepiType;
 const
   TypeClasses: array[TTypeKind] of TSepiTypeClass = (
@@ -2067,7 +2081,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiRoot.AddChild(Child: TSepiMeta);
+procedure TSepiRoot.AddChild(Child: TSepiComponent);
 var
   CurrentUnit: TSepiUnit;
   I: Integer;
@@ -2089,7 +2103,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiRoot.RemoveChild(Child: TSepiMeta);
+procedure TSepiRoot.RemoveChild(Child: TSepiComponent);
 begin
   FSearchOrder.Remove(Child);
   inherited;
@@ -2098,7 +2112,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiRoot.ReAddChild(Child: TSepiMeta);
+procedure TSepiRoot.ReAddChild(Child: TSepiComponent);
 var
   Index: Integer;
 begin
@@ -2113,7 +2127,7 @@ end;
   [@inheritDoc]
 *}
 function TSepiRoot.InternalLookFor(const Name: string; FromUnit: TSepiUnit;
-  FromClass: TSepiMeta = nil): TSepiMeta;
+  FromClass: TSepiComponent = nil): TSepiComponent;
 var
   I: Integer;
 begin
@@ -2170,7 +2184,7 @@ function TSepiRoot.LoadUnit(const UnitName: string): TSepiUnit;
 var
   ImportFunc: TSepiImportUnitFunc;
 begin
-  Result := TSepiUnit(GetMeta(UnitName));
+  Result := TSepiUnit(GetComponent(UnitName));
 
   if Result = nil then
   begin
@@ -2199,7 +2213,7 @@ begin
   if State = msDestroying then
     Exit;
 
-  SepiUnit := TSepiUnit(GetMeta(UnitName));
+  SepiUnit := TSepiUnit(GetComponent(UnitName));
   if SepiUnit = nil then
     raise ESepiUnitNotFoundError.CreateFmt(SSepiUnitNotFound, [UnitName]);
 
@@ -2219,7 +2233,7 @@ function TSepiRoot.GetType(TypeInfo: PTypeInfo): TSepiType;
 var
   TypeName: string;
   I: Integer;
-  Meta: TSepiMeta;
+  Component: TSepiComponent;
   First: TSepiType;
 begin
   if TypeInfo = nil then
@@ -2233,18 +2247,18 @@ begin
   TypeName := AnsiReplaceStr(TypeInfo.Name, '.', '$$');
   for I := 0 to FSearchOrder.Count-1 do
   begin
-    Meta := TSepiMeta(FSearchOrder[I]).GetMeta(TypeName);
+    Component := TSepiComponent(FSearchOrder[I]).GetComponent(TypeName);
 
-    if Meta is TSepiType then
+    if Component is TSepiType then
     begin
-      if TSepiType(Meta).TypeInfo = TypeInfo then
+      if TSepiType(Component).TypeInfo = TypeInfo then
       begin
-        Result := TSepiType(Meta);
+        Result := TSepiType(Component);
         Exit;
       end else
       begin
         if First = nil then
-          First := TSepiType(Meta);
+          First := TSepiType(Component);
       end;
     end;
   end;
@@ -2260,7 +2274,7 @@ end;
 function TSepiRoot.GetType(const TypeName: string): TSepiType;
 var
   I: Integer;
-  Meta: TSepiMeta;
+  Component: TSepiComponent;
 begin
   if TypeName = '' then
   begin
@@ -2270,10 +2284,10 @@ begin
 
   for I := 0 to FSearchOrder.Count-1 do
   begin
-    Meta := TSepiMeta(FSearchOrder[I]).GetMeta(TypeName);
-    if Meta is TSepiType then
+    Component := TSepiComponent(FSearchOrder[I]).GetComponent(TypeName);
+    if Component is TSepiType then
     begin
-      Result := TSepiType(Meta);
+      Result := TSepiType(Component);
       Exit;
     end;
   end;
@@ -2285,7 +2299,7 @@ end;
   Trouve un type enregistré à partir de ses informations de type
   @param TypeInfo   Informations de type du type recherché
   @return Le type correspondant aux informations de type données
-  @throw ESepiMetaNotFoundError Aucun type enregistré correspondant
+  @throw ESepiComponentNotFoundError Aucun type enregistré correspondant
 *}
 function TSepiRoot.FindType(TypeInfo: PTypeInfo): TSepiType;
 begin
@@ -2295,8 +2309,8 @@ begin
   begin
     Result := GetType(TypeInfo);
     if Result = nil then
-      raise ESepiMetaNotFoundError.CreateFmt(SSepiObjectNotFound,
-        [TypeInfo.Name]);
+      raise ESepiComponentNotFoundError.CreateFmt(
+        SSepiComponentNotFound, [TypeInfo.Name]);
   end;
 end;
 
@@ -2304,7 +2318,7 @@ end;
   Trouve un type enregistré à partir de son nom
   @param TypeName   Nom du type recherché
   @return Le type correspondant au nom donné
-  @throw ESepiMetaNotFoundError Aucun type enregistré correspondant
+  @throw ESepiComponentNotFoundError Aucun type enregistré correspondant
 *}
 function TSepiRoot.FindType(const TypeName: string): TSepiType;
 begin
@@ -2314,7 +2328,8 @@ begin
   begin
     Result := GetType(TypeName);
     if Result = nil then
-      raise ESepiMetaNotFoundError.CreateFmt(SSepiObjectNotFound, [TypeName]);
+      raise ESepiComponentNotFoundError.CreateFmt(
+        SSepiComponentNotFound, [TypeName]);
   end;
 end;
 
@@ -2337,7 +2352,7 @@ begin
   if ClassInfo <> nil then
   begin
     ClassUnitName := GetTypeData(ClassInfo).UnitName;
-    SepiUnit := GetMeta(ClassUnitName) as TSepiUnit;
+    SepiUnit := GetComponent(ClassUnitName) as TSepiUnit;
 
     if SepiUnit <> nil then
     begin
@@ -2364,15 +2379,15 @@ end;
   Le résultat peut toujours être *transtypé* en TSepiClass.
   @param DelphiClass   Classe Delphi recherchée
   @return Le type correspondant à la classe donnée (garanti être TSepiClass)
-  @throw ESepiMetaNotFoundError Aucune classe enregistrée correspondant
+  @throw ESepiComponentNotFoundError Aucune classe enregistrée correspondant
 *}
 function TSepiRoot.FindClass(DelphiClass: TClass): TSepiType;
 begin
   Result := GetClass(DelphiClass);
 
   if Result = nil then
-    raise ESepiMetaNotFoundError.CreateFmt(SSepiObjectNotFound,
-      [DelphiClass.ClassName]);
+    raise ESepiComponentNotFoundError.CreateFmt(
+      SSepiComponentNotFound, [DelphiClass.ClassName]);
 end;
 
 {---------------------}
@@ -2404,7 +2419,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiRootFork.AddChild(Child: TSepiMeta);
+procedure TSepiRootFork.AddChild(Child: TSepiComponent);
 begin
   inherited;
 
@@ -2414,7 +2429,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiRootFork.RemoveChild(Child: TSepiMeta);
+procedure TSepiRootFork.RemoveChild(Child: TSepiComponent);
 begin
   FForeignRefCounts.Delete(FForeignRefCounts.IndexOf(Child.Name));
 
@@ -2491,11 +2506,9 @@ begin
 
     if SepiUnit.Owner = Self then
     begin
-      OutputDebugString(PChar('Freeing own unit: '+SepiUnit.Name));
       SepiUnit.Free;
     end else
     begin
-      OutputDebugString(PChar('Unloading foreign unit: '+SepiUnit.Name));
       ChildRemoving(SepiUnit);
       RemoveChild(SepiUnit);
 
@@ -2513,7 +2526,7 @@ function TSepiRootFork.LoadUnit(const UnitName: string): TSepiUnit;
 var
   ImportFunc: TSepiImportUnitFunc;
 begin
-  Result := TSepiUnit(GetMeta(UnitName));
+  Result := TSepiUnit(GetComponent(UnitName));
 
   if Result = nil then
   begin
@@ -2522,11 +2535,10 @@ begin
     // For imported units, check the original root directly
     if Assigned(ImportFunc) then
     begin
-      Result := (OriginalRoot.GetMeta(UnitName) as TSepiUnit);
+      Result := (OriginalRoot.GetComponent(UnitName) as TSepiUnit);
 
       if Result <> nil then
       begin
-        OutputDebugString(PChar('Loading foreing unit: '+UnitName));
         OriginalRoot.LoadUnit(UnitName);
         AddChild(Result);
         ChildAdded(Result);
@@ -2541,11 +2553,10 @@ begin
     // If we didn't find anything, check the original root
     if Result = nil then
     begin
-      Result := (OriginalRoot.GetMeta(UnitName) as TSepiUnit);
+      Result := (OriginalRoot.GetComponent(UnitName) as TSepiUnit);
 
       if Result <> nil then
       begin
-        OutputDebugString(PChar('Loading foreign unit: '+UnitName));
         OriginalRoot.LoadUnit(UnitName);
         AddChild(Result);
         ChildAdded(Result);
@@ -2571,7 +2582,7 @@ begin
   if FDestroying or (State = msDestroying) then
     Exit;
 
-  SepiUnit := TSepiUnit(GetMeta(UnitName));
+  SepiUnit := TSepiUnit(GetComponent(UnitName));
   if SepiUnit = nil then
     raise ESepiUnitNotFoundError.CreateFmt(SSepiUnitNotFound, [UnitName]);
 
@@ -2598,7 +2609,7 @@ end;
   @param AOwner    Propriétaire des enfants à charger
   @param AStream   Flux depuis lequel charger les enfants
 *}
-constructor TSepiLazyLoadData.Create(AOwner: TSepiMeta; AStream: TStream);
+constructor TSepiLazyLoadData.Create(AOwner: TSepiComponent; AStream: TStream);
 begin
   inherited Create;
 
@@ -2626,7 +2637,7 @@ end;
   Récupère les informations de lazy-load pour un enfant
   @param Name   Nom de l'enfant à charger
   @param Data   En sortie : données sur cet enfant
-  @raise ESepiMetaNotFoundError Aucun enfant de ce nom trouvé
+  @raise ESepiComponentNotFoundError Aucun enfant de ce nom trouvé
 *}
 function TSepiLazyLoadData.GetChildData(
   const Name: string): TSepiLazyLoadChildData;
@@ -2635,7 +2646,7 @@ var
 begin
   Index := FChildrenNames.IndexOf(Name);
   if Index < 0 then
-    raise ESepiMetaNotFoundError.CreateFmt(SSepiObjectNotFound, [Name]);
+    raise ESepiComponentNotFoundError.CreateFmt(SSepiComponentNotFound, [Name]);
 
   Result := FChildrenData[Index];
 end;
@@ -2672,12 +2683,12 @@ end;
   @param Child   En entrée et/ou en sortie : l'enfant à charger
 *}
 procedure TSepiLazyLoadData.InternalLoadChild(
-  const Data: TSepiLazyLoadChildData; var Child: TSepiMeta);
+  const Data: TSepiLazyLoadChildData; var Child: TSepiComponent);
 var
   ClassOrIntf: Boolean;
   OldPosition: Int64;
   IsForward: Boolean;
-  MetaClassName: string;
+  ComponentClassName: string;
 begin
   ClassOrIntf := Data.Kind in [ckClass, ckInterface];
   if ClassOrIntf then
@@ -2693,10 +2704,10 @@ begin
         ReadStrFromStream(Stream);
 
       // Load child
-      MetaClassName := ReadStrFromStream(Stream);
+      ComponentClassName := ReadStrFromStream(Stream);
       if Child = nil then
       begin
-        Child := SepiFindMetaClass(MetaClassName).Load(Owner, Stream);
+        Child := SepiFindComponentClass(ComponentClassName).Load(Owner, Stream);
       end else
       begin
         FForwardClassIntfChildren.Remove(Child);
@@ -2722,14 +2733,14 @@ end;
 procedure TSepiLazyLoadData.RetryForwards;
 var
   I: Integer;
-  Child: TSepiMeta;
+  Child: TSepiComponent;
   Data: TSepiLazyLoadChildData;
 begin
   { Looking downwards is more efficient, because we expect recent demands to
     be easier to satisfy. }
   for I := FForwardClassIntfChildren.Count-1 downto 0 do
   begin
-    Child := TSepiMeta(FForwardClassIntfChildren[I]);
+    Child := TSepiComponent(FForwardClassIntfChildren[I]);
     Data := GetChildData(Child.Name);
 
     if CanLoad(Data) then
@@ -2783,7 +2794,7 @@ end;
   @param Name   Nom de l'enfant à charger
   @return Enfant chargé
 *}
-function TSepiLazyLoadData.LoadChild(const Name: string): TSepiMeta;
+function TSepiLazyLoadData.LoadChild(const Name: string): TSepiComponent;
 var
   Data: TSepiLazyLoadChildData;
 begin
@@ -2881,7 +2892,7 @@ end;
   @param Position   Position dans le flux
   @param Data       En sortie : données pour cet enfant
 *}
-procedure MakeLazyLoadChildData(Child: TSepiMeta; Position: Int64;
+procedure MakeLazyLoadChildData(Child: TSepiComponent; Position: Int64;
   out Data: TSepiLazyLoadChildData);
 begin
   Data.Name := Child.Name;
@@ -2903,16 +2914,16 @@ end;
 
 {*
   Enregistre les données d'un meta dans un flux
-  @param Owner    Meta propriétaire
+  @param Owner    Component propriétaire
   @param Stream   Flux de destination
 *}
-class procedure TSepiLazyLoadData.SaveToStream(Owner: TSepiMeta;
+class procedure TSepiLazyLoadData.SaveToStream(Owner: TSepiComponent;
   Stream: TStream);
 var
   Count, I: Integer;
   TempStream: TMemoryStream;
   ChildrenData: TSepiLazyLoadChildrenData;
-  Child: TSepiMeta;
+  Child: TSepiComponent;
   ChildrenDataLength: Int64;
 begin
   Count := Owner.ChildCount;
@@ -2954,7 +2965,7 @@ end;
 {*
   Charge une unité depuis un flux
 *}
-constructor TSepiUnit.Load(AOwner: TSepiMeta; Stream: TStream);
+constructor TSepiUnit.Load(AOwner: TSepiComponent; Stream: TStream);
 var
   UsesCount, RefCount, I, J: Integer;
   Str: string;
@@ -3007,7 +3018,7 @@ end;
   @param AOwner   Propriétaire de l'unité (la racine)
   @param AName    Nom de l'unité
 *}
-constructor TSepiUnit.Create(AOwner: TSepiMeta; const AName: string;
+constructor TSepiUnit.Create(AOwner: TSepiComponent; const AName: string;
   const AUses: array of string);
 begin
   Assert(AOwner is TSepiRoot);
@@ -3082,7 +3093,7 @@ end;
   @param Name   Nom de l'enfant
   @return Enfant chargé, ou nil si n'existe pas
 *}
-function TSepiUnit.LazyLoadChild(const Name: string): TSepiMeta;
+function TSepiUnit.LazyLoadChild(const Name: string): TSepiComponent;
 begin
   Assert(LazyLoad);
   if FLazyLoadData.ChildExists(Name) then
@@ -3094,9 +3105,9 @@ end;
 {*
   [@inheritDoc]
 *}
-function TSepiUnit.InternalGetMeta(const Name: string): TSepiMeta;
+function TSepiUnit.InternalGetComponent(const Name: string): TSepiComponent;
 begin
-  Result := inherited InternalGetMeta(Name);
+  Result := inherited InternalGetComponent(Name);
 
   if LazyLoad and (Result = nil) then
     Result := LazyLoadChild(Name);
@@ -3212,12 +3223,12 @@ end;
   [@inheritDoc]
 *}
 function TSepiUnit.InternalLookFor(const Name: string; FromUnit: TSepiUnit;
-  FromClass: TSepiMeta = nil): TSepiMeta;
+  FromClass: TSepiComponent = nil): TSepiComponent;
 var
   I: Integer;
 begin
   // Basic search
-  Result := GetMeta(Name);
+  Result := GetComponent(Name);
   if (Result <> nil) and (not Result.IsVisibleFrom(FromUnit, FromClass)) then
     Result := nil;
   if Result <> nil then
@@ -3300,7 +3311,7 @@ end;
   @param AOnGetTypeInfo     Méthode de call-back pour récupérer les RTTI d'un
                             type
 *}
-class function TSepiUnit.LoadFromStream(AOwner: TSepiMeta; Stream: TStream;
+class function TSepiUnit.LoadFromStream(AOwner: TSepiComponent; Stream: TStream;
   ALazyLoad: Boolean = False;
   const AOnGetMethodCode: TGetMethodCodeEvent = nil;
   const AOnGetTypeInfo: TGetTypeInfoEvent = nil;
@@ -3326,7 +3337,7 @@ end;
   contenus dans cette unité. À tout autre moment, c'est la violation d'accès
   assurée.
   @param Stream   Flux dans lequel écrire la référence
-  @param Ref      Variable de type TSepiMeta où stocker la référence lue
+  @param Ref      Variable de type TSepiComponent où stocker la référence lue
 *}
 procedure TSepiUnit.ReadRef(Stream: TStream; out Ref);
 var
@@ -3351,10 +3362,10 @@ begin
   if TObject(Ref) = nil then
   begin
     if UnitIndex = 0 then // local reference
-      TObject(Ref) := FindMeta(RefList[RefIndex])
+      TObject(Ref) := FindComponent(RefList[RefIndex])
     else // remote reference
       TObject(Ref) := TSepiUnit(FUsesList.Objects[UnitIndex-1])
-        .FindMeta(RefList[RefIndex]);
+        .FindComponent(RefList[RefIndex]);
     RefList.Objects[RefIndex] := TObject(Ref);
   end;
 end;
@@ -3362,11 +3373,11 @@ end;
 {*
   Ajoute une référence qui va devoir être enregistrée
   Cette méthode ne peut être appelée que depuis la méthode ListReferences des
-  metas contenus dans cette unité. À tout autre moment, c'est la violation
+  composants contenus dans cette unité. À tout autre moment, c'est la violation
   d'accès assurée.
   @param Ref   Référence à ajouter
 *}
-procedure TSepiUnit.AddRef(Ref: TSepiMeta);
+procedure TSepiUnit.AddRef(Ref: TSepiComponent);
 var
   UnitIndex: Integer;
   RefList: TStrings;
@@ -3386,13 +3397,13 @@ end;
   Écrit une référence dans un flux
   Toute référence à écrire doit être ajoutée au moyen de la méthode AddRef dans
   la méthode ListReferences de son référenceur.
-  Cette méthode ne peut être appelée que depuis la méthode Save des metas
+  Cette méthode ne peut être appelée que depuis la méthode Save des composants
   contenus dans cette unité. À tout autre moment, c'est la violation d'accès
   assurée.
   @param Stream   Flux dans lequel écrire la référence
   @param Ref      Référence à écrire
 *}
-procedure TSepiUnit.WriteRef(Stream: TStream; Ref: TSepiMeta);
+procedure TSepiUnit.WriteRef(Stream: TStream; Ref: TSepiComponent);
 var
   UnitIndex, RefIndex: Integer;
 begin
@@ -3420,16 +3431,16 @@ end;
 *}
 function TSepiUnit.GetClass(DelphiClass: TClass): TSepiType;
 var
-  Meta: TSepiMeta;
+  Component: TSepiComponent;
 begin
   Result := nil;
 
-  Meta := GetMeta(DelphiClass.ClassName);
-  if not (Meta is TSepiClass) then
+  Component := GetComponent(DelphiClass.ClassName);
+  if not (Component is TSepiClass) then
     Exit;
 
-  if TSepiClass(Meta).DelphiClass = DelphiClass then
-    Result := TSepiClass(Meta);
+  if TSepiClass(Component).DelphiClass = DelphiClass then
+    Result := TSepiClass(Component);
 end;
 
 {*
@@ -3437,15 +3448,15 @@ end;
   Le résultat peut toujours être *transtypé* en TSepiClass.
   @param DelphiClass   Classe Delphi recherchée
   @return Le type correspondant à la classe donnée (garanti être TSepiClass)
-  @throw ESepiMetaNotFoundError Aucune classe enregistrée correspondant
+  @throw ESepiComponentNotFoundError Aucune classe enregistrée correspondant
 *}
 function TSepiUnit.FindClass(DelphiClass: TClass): TSepiType;
 begin
   Result := GetClass(DelphiClass);
 
   if Result = nil then
-    raise ESepiMetaNotFoundError.CreateFmt(SSepiObjectNotFound,
-      [DelphiClass.ClassName]);
+    raise ESepiComponentNotFoundError.CreateFmt(
+      SSepiComponentNotFound, [DelphiClass.ClassName]);
 end;
 
 {-----------------------}
@@ -3455,7 +3466,7 @@ end;
 {*
   Charge un alias de type depuis un flux
 *}
-constructor TSepiTypeAlias.Load(AOwner: TSepiMeta; Stream: TStream);
+constructor TSepiTypeAlias.Load(AOwner: TSepiComponent; Stream: TStream);
 begin
   inherited;
   OwningUnit.ReadRef(Stream, FDest);
@@ -3467,7 +3478,7 @@ end;
   @param AName    Nom de l'alias de type
   @param ADest    Destination de l'alias
 *}
-constructor TSepiTypeAlias.Create(AOwner: TSepiMeta; const AName: string;
+constructor TSepiTypeAlias.Create(AOwner: TSepiComponent; const AName: string;
   ADest: TSepiType);
 begin
   inherited Create(AOwner, AName);
@@ -3480,7 +3491,7 @@ end;
   @param AName    Nom de l'alias de type
   @param ADest    RTTI de la destination de l'alias
 *}
-constructor TSepiTypeAlias.Create(AOwner: TSepiMeta; const AName: string;
+constructor TSepiTypeAlias.Create(AOwner: TSepiComponent; const AName: string;
   ADest: PTypeInfo);
 begin
   Create(AOwner, AName, AOwner.Root.FindType(ADest));
@@ -3492,7 +3503,7 @@ end;
   @param AName    Nom de l'alias de type
   @param ADest    Nom de la destination de l'alias
 *}
-constructor TSepiTypeAlias.Create(AOwner: TSepiMeta;
+constructor TSepiTypeAlias.Create(AOwner: TSepiComponent;
   const AName, ADest: string);
 begin
   Create(AOwner, AName, AOwner.Root.FindType(ADest));
@@ -3523,7 +3534,7 @@ end;
 {*
   Charge une constante depuis un flux
 *}
-constructor TSepiConstant.Load(AOwner: TSepiMeta; Stream: TStream);
+constructor TSepiConstant.Load(AOwner: TSepiComponent; Stream: TStream);
 begin
   inherited;
 
@@ -3539,7 +3550,7 @@ end;
   @param AName    Nom de la constante
   @param AType    Type de la constante
 *}
-constructor TSepiConstant.Create(AOwner: TSepiMeta;
+constructor TSepiConstant.Create(AOwner: TSepiComponent;
   const AName: string; AType: TSepiType);
 begin
   inherited Create(AOwner, AName);
@@ -3554,7 +3565,7 @@ end;
   @param AName    Nom de la constante
   @param AType    Type de la constante
 *}
-constructor TSepiConstant.Create(AOwner: TSepiMeta;
+constructor TSepiConstant.Create(AOwner: TSepiComponent;
   const AName: string; AType: TSepiType; const AValue);
 begin
   Create(AOwner, AName, AType);
@@ -3568,7 +3579,7 @@ end;
   @param AValue   Valeur de la constante
   @param AType    Type de la constante
 *}
-constructor TSepiConstant.Create(AOwner: TSepiMeta;
+constructor TSepiConstant.Create(AOwner: TSepiComponent;
   const AName: string; const AValue: Variant; AType: TSepiType);
 var
   BoolValue: LongWord;
@@ -3592,7 +3603,7 @@ end;
   @param AValue      Valeur de la constante
   @param ATypeInfo   RTTI du type de la constante (déterminé par VType si nil)
 *}
-constructor TSepiConstant.Create(AOwner: TSepiMeta;
+constructor TSepiConstant.Create(AOwner: TSepiComponent;
   const AName: string; const AValue: Variant; ATypeInfo: PTypeInfo = nil);
 begin
   if ATypeInfo = nil then
@@ -3629,7 +3640,7 @@ end;
   @param AValue      Valeur de la constante
   @param ATypeName   Nom du type de la constante
 *}
-constructor TSepiConstant.Create(AOwner: TSepiMeta;
+constructor TSepiConstant.Create(AOwner: TSepiComponent;
   const AName: string; const AValue: Variant; const ATypeName: string);
 begin
   Create(AOwner, AName, AValue, AOwner.Root.FindType(ATypeName));
@@ -3671,7 +3682,7 @@ end;
 {*
   Charge une variable ou une constante typée depuis un flux
 *}
-constructor TSepiVariable.Load(AOwner: TSepiMeta; Stream: TStream);
+constructor TSepiVariable.Load(AOwner: TSepiComponent; Stream: TStream);
 var
   DataStored: Boolean;
   DummyValue: Pointer;
@@ -3722,7 +3733,7 @@ end;
   @param AType      Type de la variable
   @param AIsConst   Indique si c'est une constante typée
 *}
-constructor TSepiVariable.Create(AOwner: TSepiMeta; const AName: string;
+constructor TSepiVariable.Create(AOwner: TSepiComponent; const AName: string;
   const AValue; AType: TSepiType; AIsConst: Boolean = False);
 begin
   inherited Create(AOwner, AName);
@@ -3741,7 +3752,7 @@ end;
   @param ATypeInfo   RTTI du type de la variable
   @param AIsConst    Indique si c'est une constante typée
 *}
-constructor TSepiVariable.Create(AOwner: TSepiMeta; const AName: string;
+constructor TSepiVariable.Create(AOwner: TSepiComponent; const AName: string;
   const AValue; ATypeInfo: PTypeInfo; AIsConst: Boolean = False);
 begin
   Create(AOwner, AName, AValue, AOwner.Root.FindType(ATypeInfo), AIsConst);
@@ -3755,7 +3766,7 @@ end;
   @param ATypeName   Nom du type de la variable
   @param AIsConst    Indique si c'est une constante typée
 *}
-constructor TSepiVariable.Create(AOwner: TSepiMeta; const AName: string;
+constructor TSepiVariable.Create(AOwner: TSepiComponent; const AName: string;
   const AValue; const ATypeName: string; AIsConst: Boolean = False);
 begin
   Create(AOwner, AName, AValue, AOwner.Root.FindType(ATypeName), AIsConst);
@@ -3768,7 +3779,7 @@ end;
   @param AType      Type de la variable
   @param AIsConst   Indique si c'est une constante typée
 *}
-constructor TSepiVariable.Create(AOwner: TSepiMeta; const AName: string;
+constructor TSepiVariable.Create(AOwner: TSepiComponent; const AName: string;
   AType: TSepiType; AIsConst: Boolean = False);
 begin
   inherited Create(AOwner, AName);
@@ -3788,7 +3799,7 @@ end;
   @param ATypeInfo   RTTI du type de la variable
   @param AIsConst    Indique si c'est une constante typée
 *}
-constructor TSepiVariable.Create(AOwner: TSepiMeta; const AName: string;
+constructor TSepiVariable.Create(AOwner: TSepiComponent; const AName: string;
   ATypeInfo: PTypeInfo; AIsConst: Boolean = False);
 begin
   Create(AOwner, AName, AOwner.Root.FindType(ATypeInfo), AIsConst);
@@ -3801,7 +3812,7 @@ end;
   @param ATypeName   Nom du type de la variable
   @param AIsConst    Indique si c'est une constante typée
 *}
-constructor TSepiVariable.Create(AOwner: TSepiMeta; const AName: string;
+constructor TSepiVariable.Create(AOwner: TSepiComponent; const AName: string;
   const ATypeName: string; AIsConst: Boolean = False);
 begin
   Create(AOwner, AName, AOwner.Root.FindType(ATypeName), AIsConst);
@@ -3873,7 +3884,7 @@ end;
 {*
   [@inheritDoc]
 *}
-constructor TSepiNamespace.Load(AOwner: TSepiMeta; Stream: TStream);
+constructor TSepiNamespace.Load(AOwner: TSepiComponent; Stream: TStream);
 begin
   inherited;
 
@@ -3887,8 +3898,8 @@ end;
   @param AName           Nom de l'espace de noms
   @param AVirtualOwner   Propriétaire virtuel (défaut = nil, utilise Owner)
 *}
-constructor TSepiNamespace.Create(AOwner: TSepiMeta; const AName: string;
-  AVirtualOwner: TSepiMeta);
+constructor TSepiNamespace.Create(AOwner: TSepiComponent; const AName: string;
+  AVirtualOwner: TSepiComponent);
 begin
   inherited Create(AOwner, AName);
 
@@ -3920,14 +3931,14 @@ end;
   [@inheritDoc]
 *}
 function TSepiNamespace.InternalLookFor(const Name: string; FromUnit: TSepiUnit;
-  FromClass: TSepiMeta): TSepiMeta;
+  FromClass: TSepiComponent): TSepiComponent;
 begin
   if VirtualOwner = nil then
     Result := inherited InternalLookFor(Name, FromUnit, FromClass)
   else
   begin
     // Basic search
-    Result := GetMeta(Name);
+    Result := GetComponent(Name);
 
     // Check for visibility
     if (Result <> nil) and (not Result.IsVisibleFrom(FromUnit, FromClass)) then
@@ -4045,11 +4056,11 @@ begin
 end;
 
 initialization
-  SepiRegisterMetaClasses([
+  SepiRegisterComponentClasses([
     TSepiUnit, TSepiTypeAlias, TSepiConstant, TSepiVariable, TSepiNamespace
   ]);
 finalization
-  SepiMetaClasses.Free;
+  SepiComponentClasses.Free;
   SepiImportedUnits.Free;
 end.
 

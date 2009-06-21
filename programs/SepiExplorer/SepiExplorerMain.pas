@@ -17,7 +17,7 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ActnList, ImgList, Menus, VirtualTrees, SdDialogs,
   SepiReflectionCore, SepiMembers, SepiRuntime, ExplorerOptions, ExplorerConsts,
-  ExtCtrls, MetaExplorer;
+  ExtCtrls, ComponentExplorer;
 
 type
   {*
@@ -40,7 +40,7 @@ type
     BigMenuOptions: TMenuItem;
     MenuEditBrowsingPath: TMenuItem;
     SplitterLeft: TSplitter;
-    MetaExplorer: TFrameMetaExplorer;
+    ComponentExplorer: TFrameComponentExplorer;
     procedure TreeViewChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure ActionEditBrowsingPathExecute(Sender: TObject);
     procedure TreeViewInitChildren(Sender: TBaseVirtualTree; Node: PVirtualNode;
@@ -63,13 +63,13 @@ type
     function RootLoadUnit(Sender: TSepiRoot;
       const UnitName: string): TSepiUnit;
 
-    function GetNodeMeta(Node: PVirtualNode): TSepiMeta;
+    function GetNodeComponent(Node: PVirtualNode): TSepiComponent;
 
     function GetRuntimeMethod(SepiMethod: TSepiMethod): TSepiRuntimeMethod;
 
     procedure LoadUnit(const UnitName: string);
   public
-    function FindMetaNode(Meta: TSepiMeta): PVirtualNode;
+    function FindComponentNode(Component: TSepiComponent): PVirtualNode;
 
     property Options: TExplorerOptions read FOptions;
     property SepiRoot: TSepiRoot read FSepiRoot;
@@ -84,7 +84,7 @@ implementation
 {$R *.dfm}
 
 type
-  PNodeData = ^TSepiMeta;
+  PNodeData = ^TSepiComponent;
 
 {---------------------}
 { TExplorerForm class }
@@ -103,7 +103,7 @@ begin
   FSepiRoot.OnLoadUnit := RootLoadUnit;
   FRuntimeUnits := TStringList.Create;
 
-  MetaExplorer.OnGetRuntimeMethod := GetRuntimeMethod;
+  ComponentExplorer.OnGetRuntimeMethod := GetRuntimeMethod;
 
   // Load all units passed on the command line
   for I := 1 to ParamCount do
@@ -177,9 +177,9 @@ end;
 {*
   Obtient le meta représenté par un noeud donné
   @param Node   Noeud de l'arbre
-  @return Meta représenté par ce noeud
+  @return Component représenté par ce noeud
 *}
-function TExplorerForm.GetNodeMeta(Node: PVirtualNode): TSepiMeta;
+function TExplorerForm.GetNodeComponent(Node: PVirtualNode): TSepiComponent;
 begin
   Result := PNodeData(TreeView.GetNodeData(Node))^;
 end;
@@ -216,13 +216,13 @@ end;
 {*
   Trouve le noeud de l'arbre correspondant à un meta donné
   Il n'y a aucun test de vérification d'erreur
-  @param Meta   Meta recherché
+  @param Component   Component recherché
   @return Noeud correspondant
 *}
-function TExplorerForm.FindMetaNode(Meta: TSepiMeta): PVirtualNode;
+function TExplorerForm.FindComponentNode(Component: TSepiComponent): PVirtualNode;
 begin
-  Result := PVirtualNode(Meta.Tag);
-  Assert(GetNodeMeta(Result) = Meta);
+  Result := PVirtualNode(Component.Tag);
+  Assert(GetNodeComponent(Result) = Component);
 end;
 
 {*
@@ -248,23 +248,23 @@ procedure TExplorerForm.TreeViewInitNode(Sender: TBaseVirtualTree;
   ParentNode, Node: PVirtualNode; var InitialStates: TVirtualNodeInitStates);
 var
   Index: Integer;
-  Parent: TSepiMeta;
-  Meta: TSepiMeta;
+  Parent: TSepiComponent;
+  Component: TSepiComponent;
 begin
   if ParentNode = nil then
     Parent := SepiRoot
   else
-    Parent := GetNodeMeta(ParentNode);
+    Parent := GetNodeComponent(ParentNode);
 
   Index := Node.Index;
-  Meta := Parent.Children[Index];
-  PNodeData(Sender.GetNodeData(Node))^ := Meta;
-  Meta.Tag := Integer(Node);
+  Component := Parent.Children[Index];
+  PNodeData(Sender.GetNodeData(Node))^ := Component;
+  Component.Tag := Integer(Node);
 
-  if Meta.ChildCount > 0 then
+  if Component.ChildCount > 0 then
     Include(Node.States, vsHasChildren);
 
-  if Pos('$', Meta.Name) > 0 then
+  if Pos('$', Component.Name) > 0 then
     Exclude(Node.States, vsVisible);
 end;
 
@@ -274,7 +274,7 @@ end;
 procedure TExplorerForm.TreeViewInitChildren(Sender: TBaseVirtualTree;
   Node: PVirtualNode; var ChildCount: Cardinal);
 begin
-  ChildCount := GetNodeMeta(Node).ChildCount;
+  ChildCount := GetNodeComponent(Node).ChildCount;
 end;
 
 {*
@@ -284,10 +284,10 @@ procedure TExplorerForm.TreeViewGetText(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType;
   var CellText: WideString);
 var
-  Meta: TSepiMeta;
+  Component: TSepiComponent;
 begin
-  Meta := GetNodeMeta(Node);
-  CellText := Meta.Name;
+  Component := GetNodeComponent(Node);
+  CellText := Component.Name;
 end;
 
 {*
@@ -297,9 +297,9 @@ procedure TExplorerForm.TreeViewChange(Sender: TBaseVirtualTree;
   Node: PVirtualNode);
 begin
   if Node = nil then
-    MetaExplorer.SepiMeta := nil
+    ComponentExplorer.SepiComponent := nil
   else
-    MetaExplorer.SepiMeta := GetNodeMeta(Node);
+    ComponentExplorer.SepiComponent := GetNodeComponent(Node);
 end;
 
 {*

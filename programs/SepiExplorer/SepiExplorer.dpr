@@ -16,7 +16,7 @@ uses
   SepiExplorerMain in 'SepiExplorerMain.pas' {ExplorerForm},
   ExplorerOptions in 'ExplorerOptions.pas',
   ExplorerConsts in 'ExplorerConsts.pas',
-  MetaExplorer in 'MetaExplorer.pas' {FrameMetaExplorer: TFrame},
+  ComponentExplorer in 'ComponentExplorer.pas' {FrameComponentExplorer: TFrame},
   TypesInfo in 'TypesInfo.pas',
   MembersInfo in 'MembersInfo.pas';
 

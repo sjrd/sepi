@@ -1,4 +1,4 @@
-object FrameMetaExplorer: TFrameMetaExplorer
+object FrameComponentExplorer: TFrameComponentExplorer
   Left = 0
   Top = 0
   Width = 313

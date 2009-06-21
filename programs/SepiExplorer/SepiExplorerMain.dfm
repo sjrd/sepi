@@ -43,7 +43,7 @@ object ExplorerForm: TExplorerForm
     OnInitNode = TreeViewInitNode
     Columns = <>
   end
-  inline MetaExplorer: TFrameMetaExplorer
+  inline ComponentExplorer: TFrameComponentExplorer
     Left = 292
     Top = 0
     Width = 307

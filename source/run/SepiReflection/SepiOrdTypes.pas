@@ -83,12 +83,12 @@ type
 
     function GetDescription: string; override;
   public
-    constructor RegisterTypeInfo(AOwner: TSepiMeta;
+    constructor RegisterTypeInfo(AOwner: TSepiComponent;
       ATypeInfo: PTypeInfo); override;
-    constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
-    constructor Create(AOwner: TSepiMeta; const AName: string;
+    constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
+    constructor Create(AOwner: TSepiComponent; const AName: string;
       AMinValue: Longint = -MaxInt-1; AMaxValue: Longint = MaxInt);
-    constructor Clone(AOwner: TSepiMeta; const AName: string;
+    constructor Clone(AOwner: TSepiComponent; const AName: string;
       Source: TSepiType); override;
 
     function InRange(Value: Longint): Boolean;
@@ -116,13 +116,13 @@ type
 
     function GetDescription: string; override;
   public
-    constructor RegisterTypeInfo(AOwner: TSepiMeta;
+    constructor RegisterTypeInfo(AOwner: TSepiComponent;
       ATypeInfo: PTypeInfo); override;
-    constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
-    constructor Create(AOwner: TSepiMeta; const AName: string;
+    constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
+    constructor Create(AOwner: TSepiComponent; const AName: string;
       AMinValue: WideChar = #0; AMaxValue: WideChar = #255;
       AForceUnicode: Boolean = False);
-    constructor Clone(AOwner: TSepiMeta; const AName: string;
+    constructor Clone(AOwner: TSepiComponent; const AName: string;
       Source: TSepiType); override;
 
     function InRange(Value: WideChar): Boolean;
@@ -151,12 +151,12 @@ type
 
     function GetDescription: string; override;
   public
-    constructor RegisterTypeInfo(AOwner: TSepiMeta;
+    constructor RegisterTypeInfo(AOwner: TSepiComponent;
       ATypeInfo: PTypeInfo); override;
-    constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
-    constructor Create(AOwner: TSepiMeta; const AName: string;
+    constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
+    constructor Create(AOwner: TSepiComponent; const AName: string;
       AMinValue: Int64 = MinInt64; AMaxValue: Int64 = MaxInt64);
-    constructor Clone(AOwner: TSepiMeta; const AName: string;
+    constructor Clone(AOwner: TSepiComponent; const AName: string;
       Source: TSepiType); override;
 
     function InRange(Value: Int64): Boolean;
@@ -182,12 +182,12 @@ type
 
     function GetAlignment: Integer; override;
   public
-    constructor RegisterTypeInfo(AOwner: TSepiMeta;
+    constructor RegisterTypeInfo(AOwner: TSepiComponent;
       ATypeInfo: PTypeInfo); override;
-    constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
-    constructor Create(AOwner: TSepiMeta; const AName: string;
+    constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
+    constructor Create(AOwner: TSepiComponent; const AName: string;
       AFloatType: TFloatType = ftDouble);
-    constructor Clone(AOwner: TSepiMeta; const AName: string;
+    constructor Clone(AOwner: TSepiComponent; const AName: string;
       Source: TSepiType); override;
 
     function Equals(Other: TSepiType): Boolean; override;
@@ -214,10 +214,10 @@ type
 
     procedure ExtractTypeData; override;
   public
-    constructor RegisterTypeInfo(AOwner: TSepiMeta;
+    constructor RegisterTypeInfo(AOwner: TSepiComponent;
       ATypeInfo: PTypeInfo); override;
-    constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
-    constructor Clone(AOwner: TSepiMeta; const AName: string;
+    constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
+    constructor Clone(AOwner: TSepiComponent; const AName: string;
       Source: TSepiType); override;
 
     property BooleanKind: TBooleanKind read FBooleanKind;
@@ -247,15 +247,15 @@ type
 
     function GetDescription: string; override;
   public
-    constructor RegisterTypeInfo(AOwner: TSepiMeta;
+    constructor RegisterTypeInfo(AOwner: TSepiComponent;
       ATypeInfo: PTypeInfo); override;
-    constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
-    constructor Create(AOwner: TSepiMeta; const AName: string;
+    constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
+    constructor Create(AOwner: TSepiComponent; const AName: string;
       const AValues: array of string;
       AMinEnumSize: TSepiMinEnumSize = mesByte); overload;
-    constructor Create(AOwner: TSepiMeta; const AName: string;
+    constructor Create(AOwner: TSepiComponent; const AName: string;
       ABaseType: TSepiEnumType; AMinValue, AMaxValue: Integer); overload;
-    constructor Clone(AOwner: TSepiMeta; const AName: string;
+    constructor Clone(AOwner: TSepiComponent; const AName: string;
       Source: TSepiType); override;
 
     function Equals(Other: TSepiType): Boolean; override;
@@ -285,14 +285,14 @@ type
 
     function GetDescription: string; override;
   public
-    constructor RegisterTypeInfo(AOwner: TSepiMeta;
+    constructor RegisterTypeInfo(AOwner: TSepiComponent;
       ATypeInfo: PTypeInfo); override;
-    constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
-    constructor Create(AOwner: TSepiMeta; const AName: string;
+    constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
+    constructor Create(AOwner: TSepiComponent; const AName: string;
       ACompType: TSepiOrdType); overload;
-    constructor Create(AOwner: TSepiMeta; const AName: string;
+    constructor Create(AOwner: TSepiComponent; const AName: string;
       ACompType: PTypeInfo); overload;
-    constructor Clone(AOwner: TSepiMeta; const AName: string;
+    constructor Clone(AOwner: TSepiComponent; const AName: string;
       Source: TSepiType); override;
 
     function Equals(Other: TSepiType): Boolean; override;
@@ -307,7 +307,7 @@ type
     @version 1.0
   *}
   TSepiForwardPointerInfo = record
-    Owner: TSepiMeta;
+    Owner: TSepiComponent;
     Name: string;
     PointToTypeInfo: PTypeInfo;
     PointToName: string;
@@ -333,14 +333,14 @@ type
 
     function GetDescription: string; override;
   public
-    constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
-    constructor Create(AOwner: TSepiMeta; const AName: string;
+    constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
+    constructor Create(AOwner: TSepiComponent; const AName: string;
       APointTo: TSepiType; AIsNative: Boolean = False); overload;
-    constructor Create(AOwner: TSepiMeta; const AName: string;
+    constructor Create(AOwner: TSepiComponent; const AName: string;
       APointTo: PTypeInfo; AIsNative: Boolean = False); overload;
-    constructor Create(AOwner: TSepiMeta; const AName, APointTo: string;
+    constructor Create(AOwner: TSepiComponent; const AName, APointTo: string;
       AIsNative: Boolean = False); overload;
-    constructor Clone(AOwner: TSepiMeta; const AName: string;
+    constructor Clone(AOwner: TSepiComponent; const AName: string;
       Source: TSepiType); override;
 
     class function NewInstance: TObject; override;
@@ -438,7 +438,7 @@ end;
 {*
   Recense un type entier natif
 *}
-constructor TSepiIntegerType.RegisterTypeInfo(AOwner: TSepiMeta;
+constructor TSepiIntegerType.RegisterTypeInfo(AOwner: TSepiComponent;
   ATypeInfo: PTypeInfo);
 begin
   inherited;
@@ -448,7 +448,7 @@ end;
 {*
   Charge un type entier depuis un flux
 *}
-constructor TSepiIntegerType.Load(AOwner: TSepiMeta; Stream: TStream);
+constructor TSepiIntegerType.Load(AOwner: TSepiComponent; Stream: TStream);
 begin
   inherited;
 
@@ -470,7 +470,7 @@ end;
   @param AMaxValue   Valeur maximale
   @param ASigned     Indique si l'entier est signé ou non
 *}
-constructor TSepiIntegerType.Create(AOwner: TSepiMeta; const AName: string;
+constructor TSepiIntegerType.Create(AOwner: TSepiComponent; const AName: string;
   AMinValue: Longint = -MaxInt-1; AMaxValue: Longint = MaxInt);
 begin
   inherited Create(AOwner, AName, tkInteger);
@@ -506,7 +506,7 @@ end;
 {*
   [@inheritDoc]
 *}
-constructor TSepiIntegerType.Clone(AOwner: TSepiMeta; const AName: string;
+constructor TSepiIntegerType.Clone(AOwner: TSepiComponent; const AName: string;
   Source: TSepiType);
 begin
   with Source as TSepiIntegerType do
@@ -569,7 +569,7 @@ end;
 {*
   Recense un type caractère natif
 *}
-constructor TSepiCharType.RegisterTypeInfo(AOwner: TSepiMeta;
+constructor TSepiCharType.RegisterTypeInfo(AOwner: TSepiComponent;
   ATypeInfo: PTypeInfo);
 begin
   inherited;
@@ -579,7 +579,7 @@ end;
 {*
   Charge un type caractère depuis un flux
 *}
-constructor TSepiCharType.Load(AOwner: TSepiMeta; Stream: TStream);
+constructor TSepiCharType.Load(AOwner: TSepiComponent; Stream: TStream);
 begin
   inherited;
 
@@ -601,7 +601,7 @@ end;
   @param AMaxValue       Valeur maximale
   @param AForceUnicode   Positionné à True, force l'utilisation d'Unicode
 *}
-constructor TSepiCharType.Create(AOwner: TSepiMeta; const AName: string;
+constructor TSepiCharType.Create(AOwner: TSepiComponent; const AName: string;
   AMinValue: WideChar = #0; AMaxValue: WideChar = #255;
   AForceUnicode: Boolean = False);
 var
@@ -629,7 +629,7 @@ end;
 {*
   [@inheritDoc]
 *}
-constructor TSepiCharType.Clone(AOwner: TSepiMeta; const AName: string;
+constructor TSepiCharType.Clone(AOwner: TSepiComponent; const AName: string;
   Source: TSepiType);
 begin
   with Source as TSepiCharType do
@@ -706,7 +706,7 @@ end;
 {*
   Recense un type entier 64 bits natif
 *}
-constructor TSepiInt64Type.RegisterTypeInfo(AOwner: TSepiMeta;
+constructor TSepiInt64Type.RegisterTypeInfo(AOwner: TSepiComponent;
   ATypeInfo: PTypeInfo);
 begin
   inherited;
@@ -716,7 +716,7 @@ end;
 {*
   Charge un type entier 64 bits depuis un flux
 *}
-constructor TSepiInt64Type.Load(AOwner: TSepiMeta; Stream: TStream);
+constructor TSepiInt64Type.Load(AOwner: TSepiComponent; Stream: TStream);
 begin
   inherited;
 
@@ -737,7 +737,7 @@ end;
   @param AMinValue   Valeur minimale
   @param AMaxValue   Valeur maximale
 *}
-constructor TSepiInt64Type.Create(AOwner: TSepiMeta; const AName: string;
+constructor TSepiInt64Type.Create(AOwner: TSepiComponent; const AName: string;
   AMinValue: Int64 = MinInt64; AMaxValue: Int64 = MaxInt64);
 begin
   inherited Create(AOwner, AName, tkInt64);
@@ -753,7 +753,7 @@ end;
 {*
   [@inheritDoc]
 *}
-constructor TSepiInt64Type.Clone(AOwner: TSepiMeta; const AName: string;
+constructor TSepiInt64Type.Clone(AOwner: TSepiComponent; const AName: string;
   Source: TSepiType);
 begin
   with Source as TSepiInt64Type do
@@ -821,7 +821,7 @@ end;
 {*
   Recense un type flottant natif
 *}
-constructor TSepiFloatType.RegisterTypeInfo(AOwner: TSepiMeta;
+constructor TSepiFloatType.RegisterTypeInfo(AOwner: TSepiComponent;
   ATypeInfo: PTypeInfo);
 begin
   inherited;
@@ -831,7 +831,7 @@ end;
 {*
   Charge un type flottant depuis un flux
 *}
-constructor TSepiFloatType.Load(AOwner: TSepiMeta; Stream: TStream);
+constructor TSepiFloatType.Load(AOwner: TSepiComponent; Stream: TStream);
 begin
   inherited;
 
@@ -851,7 +851,7 @@ end;
   @param AName        Nom du type
   @param AFloatType   Type de flottant
 *}
-constructor TSepiFloatType.Create(AOwner: TSepiMeta; const AName: string;
+constructor TSepiFloatType.Create(AOwner: TSepiComponent; const AName: string;
   AFloatType: TFloatType = ftDouble);
 begin
   inherited Create(AOwner, AName, tkFloat);
@@ -865,7 +865,7 @@ end;
 {*
   [@inheritDoc]
 *}
-constructor TSepiFloatType.Clone(AOwner: TSepiMeta; const AName: string;
+constructor TSepiFloatType.Clone(AOwner: TSepiComponent; const AName: string;
   Source: TSepiType);
 begin
   Create(AOwner, AName, (Source as TSepiFloatType).FloatType);
@@ -960,7 +960,7 @@ end;
 {*
   Recense un type booléen natif
 *}
-constructor TSepiBooleanType.RegisterTypeInfo(AOwner: TSepiMeta;
+constructor TSepiBooleanType.RegisterTypeInfo(AOwner: TSepiComponent;
   ATypeInfo: PTypeInfo);
 begin
   inherited;
@@ -970,7 +970,7 @@ end;
 {*
   Charge un type booléen depuis un flux
 *}
-constructor TSepiBooleanType.Load(AOwner: TSepiMeta; Stream: TStream);
+constructor TSepiBooleanType.Load(AOwner: TSepiComponent; Stream: TStream);
 begin
   inherited;
 
@@ -984,7 +984,7 @@ end;
 {*
   [@inheritDoc]
 *}
-constructor TSepiBooleanType.Clone(AOwner: TSepiMeta; const AName: string;
+constructor TSepiBooleanType.Clone(AOwner: TSepiComponent; const AName: string;
   Source: TSepiType);
 begin
   inherited Create(AOwner, AName, tkEnumeration);
@@ -1071,7 +1071,7 @@ end;
 {*
   Recense un type énuméré natif
 *}
-constructor TSepiEnumType.RegisterTypeInfo(AOwner: TSepiMeta;
+constructor TSepiEnumType.RegisterTypeInfo(AOwner: TSepiComponent;
   ATypeInfo: PTypeInfo);
 begin
   inherited;
@@ -1083,7 +1083,7 @@ end;
 {*
   Charge un type énuméré depuis un flux
 *}
-constructor TSepiEnumType.Load(AOwner: TSepiMeta; Stream: TStream);
+constructor TSepiEnumType.Load(AOwner: TSepiComponent; Stream: TStream);
 begin
   inherited;
 
@@ -1109,7 +1109,7 @@ end;
   @param AValues        Noms des éléments de l'énumération
   @param AMinimumSize   Taille minimale (pour compatibilité avec C/C++)
 *}
-constructor TSepiEnumType.Create(AOwner: TSepiMeta; const AName: string;
+constructor TSepiEnumType.Create(AOwner: TSepiComponent; const AName: string;
   const AValues: array of string; AMinEnumSize: TSepiMinEnumSize = mesByte);
 var
   I, Len: Integer;
@@ -1186,7 +1186,7 @@ end;
   @param AMinValue   Valeur minimale
   @param AMaxValue   Valeur maximale
 *}
-constructor TSepiEnumType.Create(AOwner: TSepiMeta; const AName: string;
+constructor TSepiEnumType.Create(AOwner: TSepiComponent; const AName: string;
   ABaseType: TSepiEnumType; AMinValue, AMaxValue: Integer);
 var
   OwningUnitName: ShortString;
@@ -1217,7 +1217,7 @@ end;
 {*
   [@inheritDoc]
 *}
-constructor TSepiEnumType.Clone(AOwner: TSepiMeta; const AName: string;
+constructor TSepiEnumType.Clone(AOwner: TSepiComponent; const AName: string;
   Source: TSepiType);
 begin
   with Source as TSepiEnumType do
@@ -1350,7 +1350,7 @@ end;
 {*
   Recense un type ensemble natif
 *}
-constructor TSepiSetType.RegisterTypeInfo(AOwner: TSepiMeta;
+constructor TSepiSetType.RegisterTypeInfo(AOwner: TSepiComponent;
   ATypeInfo: PTypeInfo);
 begin
   with GetTypeData(ATypeInfo)^ do
@@ -1367,7 +1367,7 @@ end;
 {*
   Charge un type ensemble depuis un flux
 *}
-constructor TSepiSetType.Load(AOwner: TSepiMeta; Stream: TStream);
+constructor TSepiSetType.Load(AOwner: TSepiComponent; Stream: TStream);
 begin
   inherited;
 
@@ -1391,7 +1391,7 @@ end;
   @param AName       Nom du type
   @param ACompType   Type des éléments de l'ensemble
 *}
-constructor TSepiSetType.Create(AOwner: TSepiMeta; const AName: string;
+constructor TSepiSetType.Create(AOwner: TSepiComponent; const AName: string;
   ACompType: TSepiOrdType);
 begin
   inherited Create(AOwner, AName, tkSet);
@@ -1419,7 +1419,7 @@ end;
   @param AName       Nom du type
   @param ACompType   RTTI du type des éléments de l'ensemble
 *}
-constructor TSepiSetType.Create(AOwner: TSepiMeta; const AName: string;
+constructor TSepiSetType.Create(AOwner: TSepiComponent; const AName: string;
   ACompType: PTypeInfo);
 begin
   Create(AOwner, AName,
@@ -1429,7 +1429,7 @@ end;
 {*
   [@inheritDoc]
 *}
-constructor TSepiSetType.Clone(AOwner: TSepiMeta; const AName: string;
+constructor TSepiSetType.Clone(AOwner: TSepiComponent; const AName: string;
   Source: TSepiType);
 begin
   Create(AOwner, AName, (Source as TSepiSetType).CompType);
@@ -1525,7 +1525,7 @@ end;
 {*
   Charge un type pointeur depuis un flux
 *}
-constructor TSepiPointerType.Load(AOwner: TSepiMeta; Stream: TStream);
+constructor TSepiPointerType.Load(AOwner: TSepiComponent; Stream: TStream);
 begin
   inherited;
 
@@ -1539,7 +1539,7 @@ end;
   @param AName      Nom du type
   @param APointTo   Type vers lequel pointe le pointeur
 *}
-constructor TSepiPointerType.Create(AOwner: TSepiMeta; const AName: string;
+constructor TSepiPointerType.Create(AOwner: TSepiComponent; const AName: string;
   APointTo: TSepiType; AIsNative: Boolean = False);
 begin
   inherited Create(AOwner, AName, tkUnknown);
@@ -1557,7 +1557,7 @@ end;
   @param AName      Nom du type
   @param APointTo   RTTI tu type vers lequel pointe le pointeur
 *}
-constructor TSepiPointerType.Create(AOwner: TSepiMeta; const AName: string;
+constructor TSepiPointerType.Create(AOwner: TSepiComponent; const AName: string;
   APointTo: PTypeInfo; AIsNative: Boolean = False);
 var
   APointToType: TSepiType;
@@ -1587,7 +1587,7 @@ end;
   @param AName      Nom du type
   @param APointTo   Nom tu type vers lequel pointe le pointeur
 *}
-constructor TSepiPointerType.Create(AOwner: TSepiMeta;
+constructor TSepiPointerType.Create(AOwner: TSepiComponent;
   const AName, APointTo: string; AIsNative: Boolean = False);
 var
   APointToType: TSepiType;
@@ -1615,7 +1615,7 @@ end;
 {*
   [@inheritDoc]
 *}
-constructor TSepiPointerType.Clone(AOwner: TSepiMeta; const AName: string;
+constructor TSepiPointerType.Clone(AOwner: TSepiComponent; const AName: string;
   Source: TSepiType);
 begin
   if not Source.IsForward then
@@ -1710,7 +1710,7 @@ begin
 end;
 
 initialization
-  SepiRegisterMetaClasses([
+  SepiRegisterComponentClasses([
     TSepiIntegerType, TSepiCharType, TSepiInt64Type, TSepiFloatType,
     TSepiBooleanType, TSepiEnumType, TSepiSetType, TSepiPointerType
   ]);

@@ -85,7 +85,7 @@ type
     procedure AncestorChanged; virtual;
 
     function GetMethodCompiler: TSepiMethodCompiler; virtual;
-    function GetSepiContext: TSepiMeta; virtual;
+    function GetSepiContext: TSepiComponent; virtual;
 
     {*
       Version texte du contenu du symbole grammatical
@@ -109,23 +109,23 @@ type
 
     function ResolveIdentOrError(Node: TSepiParseTreeNode): ISepiExpression;
 
-    function LookFor(Node: TSepiParseTreeNode): TSepiMeta; overload;
+    function LookFor(Node: TSepiParseTreeNode): TSepiComponent; overload;
     function LookFor(Node: TSepiParseTreeNode;
-      RequiredClass: SepiReflectionCore.TSepiMetaClass): TSepiMeta; overload;
+      RequiredClass: SepiReflectionCore.TSepiComponentClass): TSepiComponent; overload;
 
-    function LookForSelfText: TSepiMeta; overload;
+    function LookForSelfText: TSepiComponent; overload;
     function LookForSelfText(
-      RequiredClass: SepiReflectionCore.TSepiMetaClass): TSepiMeta; overload;
+      RequiredClass: SepiReflectionCore.TSepiComponentClass): TSepiComponent; overload;
 
-    function LookForOrError(Node: TSepiParseTreeNode): TSepiMeta; overload;
+    function LookForOrError(Node: TSepiParseTreeNode): TSepiComponent; overload;
     function LookForOrError(Node: TSepiParseTreeNode;
-      RequiredClass: SepiReflectionCore.TSepiMetaClass;
-      const BadClassErrorMsg: string): TSepiMeta; overload;
+      RequiredClass: SepiReflectionCore.TSepiComponentClass;
+      const BadClassErrorMsg: string): TSepiComponent; overload;
 
-    function LookForSelfTextOrError: TSepiMeta; overload;
+    function LookForSelfTextOrError: TSepiComponent; overload;
     function LookForSelfTextOrError(
-      RequiredClass: SepiReflectionCore.TSepiMetaClass;
-      const BadClassErrorMsg: string): TSepiMeta; overload;
+      RequiredClass: SepiReflectionCore.TSepiComponentClass;
+      const BadClassErrorMsg: string): TSepiComponent; overload;
 
     procedure MakeError(const ErrorMsg: string;
       Kind: TSepiErrorKind = ekError);
@@ -152,7 +152,7 @@ type
     property MethodCompiler: TSepiMethodCompiler read GetMethodCompiler;
     property SepiRoot: TSepiRoot read GetSepiRoot;
     property SepiUnit: TSepiUnit read GetSepiUnit;
-    property SepiContext: TSepiMeta read GetSepiContext;
+    property SepiContext: TSepiComponent read GetSepiContext;
     property SystemUnit: TSepiSystemUnit read GetSystemUnit;
 
     property AsText: string read GetAsText;
@@ -274,7 +274,7 @@ type
 
 function CheckIdentFound(const Expression: ISepiExpression;
   const Identifier: string; Node: TSepiParseTreeNode): Boolean; overload;
-function CheckIdentFound(Meta: TSepiMeta;
+function CheckIdentFound(Component: TSepiComponent;
   const Identifier: string; Node: TSepiParseTreeNode): Boolean; overload;
 
 function CheckTypeMatch(AssignedType, ExpressionType: TSepiType;
@@ -303,15 +303,15 @@ end;
 
 {*
   Vérifie qu'un identificateur a bien été trouvé, et produit une erreur sinon
-  @param Meta         Meta à vérifier
+  @param Component         Component à vérifier
   @param Identifier   Identificateur, pour le message d'erreur
   @param Node         Symbole de grammaire, pour la position
   @return True si l'identificateur a été trouvé, False sinon
 *}
-function CheckIdentFound(Meta: TSepiMeta;
+function CheckIdentFound(Component: TSepiComponent;
   const Identifier: string; Node: TSepiParseTreeNode): Boolean; overload;
 begin
-  Result := Meta <> nil;
+  Result := Component <> nil;
   if not Result then
     Node.MakeError(Format(SIdentifierNotFound, [Identifier]));
 end;
@@ -548,7 +548,7 @@ end;
   noeud parent.
   @return Contexte Sepi
 *}
-function TSepiParseTreeNode.GetSepiContext: TSepiMeta;
+function TSepiParseTreeNode.GetSepiContext: TSepiComponent;
 begin
   if Parent <> nil then
     Result := Parent.SepiContext
@@ -665,9 +665,9 @@ end;
 {*
   Recherche un meta dans le contexte de ce noeud
   @param Node   Noeud dont le texte est le nom du meta à rechercher
-  @return Meta trouvé, ou nil si non trouvé
+  @return Component trouvé, ou nil si non trouvé
 *}
-function TSepiParseTreeNode.LookFor(Node: TSepiParseTreeNode): TSepiMeta;
+function TSepiParseTreeNode.LookFor(Node: TSepiParseTreeNode): TSepiComponent;
 begin
   Result := SepiContext.LookFor(Node.AsText);
 end;
@@ -676,10 +676,10 @@ end;
   Recherche un meta d'un type particulier dans le contexte de ce noeud
   @param Node            Noeud dont le texte est le nom du meta à rechercher
   @param RequiredClass   Classe de meta requise
-  @return Meta trouvé, ou nil si non trouvé ou pas de la bonne classe
+  @return Component trouvé, ou nil si non trouvé ou pas de la bonne classe
 *}
 function TSepiParseTreeNode.LookFor(Node: TSepiParseTreeNode;
-  RequiredClass: SepiReflectionCore.TSepiMetaClass): TSepiMeta;
+  RequiredClass: SepiReflectionCore.TSepiComponentClass): TSepiComponent;
 begin
   Result := LookFor(Node);
 
@@ -690,9 +690,9 @@ end;
 {*
   Recherche un meta dont le nom est le texte de ce noeud
   @param Node   Noeud dont le texte est le nom du meta à rechercher
-  @return Meta trouvé, ou nil si non trouvé
+  @return Component trouvé, ou nil si non trouvé
 *}
-function TSepiParseTreeNode.LookForSelfText: TSepiMeta;
+function TSepiParseTreeNode.LookForSelfText: TSepiComponent;
 begin
   Result := LookFor(Self);
 end;
@@ -700,10 +700,10 @@ end;
 {*
   Recherche un meta d'un type particulier dont le nom est le texte de ce noeud
   @param RequiredClass   Classe de meta requise
-  @return Meta trouvé, ou nil si non trouvé ou pas de la bonne classe
+  @return Component trouvé, ou nil si non trouvé ou pas de la bonne classe
 *}
 function TSepiParseTreeNode.LookForSelfText(
-  RequiredClass: SepiReflectionCore.TSepiMetaClass): TSepiMeta;
+  RequiredClass: SepiReflectionCore.TSepiComponentClass): TSepiComponent;
 begin
   Result := LookFor(Self, RequiredClass);
 end;
@@ -712,9 +712,9 @@ end;
   Recherche un meta dans le contexte de ce noeud
   Émet un message d'erreur si le meta n'a pas été trouvé.
   @param Node   Noeud dont le texte est le nom du meta à rechercher
-  @return Meta trouvé, ou nil si non trouvé
+  @return Component trouvé, ou nil si non trouvé
 *}
-function TSepiParseTreeNode.LookForOrError(Node: TSepiParseTreeNode): TSepiMeta;
+function TSepiParseTreeNode.LookForOrError(Node: TSepiParseTreeNode): TSepiComponent;
 begin
   Result := LookFor(Node);
   CheckIdentFound(Result, Node.AsText, Node);
@@ -727,11 +727,11 @@ end;
   @param Node               Noeud dont le texte est le nom du meta à rechercher
   @param RequiredClass      Classe de meta requise
   @param BadClassErrorMsg   Message d'erreur si mauvaise classe de meta
-  @return Meta trouvé, ou nil si non trouvé ou pas de la bonne classe
+  @return Component trouvé, ou nil si non trouvé ou pas de la bonne classe
 *}
 function TSepiParseTreeNode.LookForOrError(Node: TSepiParseTreeNode;
-  RequiredClass: SepiReflectionCore.TSepiMetaClass;
-  const BadClassErrorMsg: string): TSepiMeta;
+  RequiredClass: SepiReflectionCore.TSepiComponentClass;
+  const BadClassErrorMsg: string): TSepiComponent;
 begin
   Result := LookForOrError(Node);
 
@@ -746,9 +746,9 @@ end;
   Recherche un meta dont le nom est le texte de ce noeud
   Émet un message d'erreur si le meta n'a pas été trouvé.
   @param Node   Noeud dont le texte est le nom du meta à rechercher
-  @return Meta trouvé, ou nil si non trouvé
+  @return Component trouvé, ou nil si non trouvé
 *}
-function TSepiParseTreeNode.LookForSelfTextOrError: TSepiMeta;
+function TSepiParseTreeNode.LookForSelfTextOrError: TSepiComponent;
 begin
   Result := LookForOrError(Self);
 end;
@@ -759,11 +759,11 @@ end;
   type requis.
   @param RequiredClass      Classe de meta requise
   @param BadClassErrorMsg   Message d'erreur si mauvaise classe de meta
-  @return Meta trouvé, ou nil si non trouvé ou pas de la bonne classe
+  @return Component trouvé, ou nil si non trouvé ou pas de la bonne classe
 *}
 function TSepiParseTreeNode.LookForSelfTextOrError(
-  RequiredClass: SepiReflectionCore.TSepiMetaClass;
-  const BadClassErrorMsg: string): TSepiMeta;
+  RequiredClass: SepiReflectionCore.TSepiComponentClass;
+  const BadClassErrorMsg: string): TSepiComponent;
 begin
   Result := LookForOrError(Self, RequiredClass, BadClassErrorMsg);
 end;

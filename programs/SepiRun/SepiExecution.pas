@@ -164,7 +164,7 @@ begin
     SepiRoot.OnLoadUnit := LoadUnit;
 
     SepiUnit := SepiRoot.LoadUnit(UnitName);
-    MainMethod := SepiUnit.FindMeta(MainMethodName) as TSepiMethod;
+    MainMethod := SepiUnit.FindComponent(MainMethodName) as TSepiMethod;
     EntryPoint := TProcedure(MainMethod.Code);
     EntryPoint;
   finally

@@ -385,7 +385,7 @@ type
 
     FRecordType: TSepiRecordType; /// Type record
   protected
-    function GetSepiContext: TSepiMeta; override;
+    function GetSepiContext: TSepiComponent; override;
 
     property IsPacked: Boolean read FIsPacked write FIsPacked;
   public
@@ -418,14 +418,14 @@ type
     FIsMetaClass: Boolean;    /// True si c'est une meta-classe
 
     FSepiClass: TSepiClass;         /// Classe Sepi compilée
-    FSepiMetaClass: TSepiMetaClass; /// Meta-classe compilée
+    FSepiMetaClass: TSepiMetaClass; /// Component-classe compilée
 
     procedure CreateClass(ParentClass: TSepiClass = nil);
   protected
     procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
     procedure ChildEndParsing(Child: TSepiParseTreeNode); override;
 
-    function GetSepiContext: TSepiMeta; override;
+    function GetSepiContext: TSepiComponent; override;
   public
     procedure EndParsing; override;
 
@@ -456,7 +456,7 @@ type
     procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
     procedure ChildEndParsing(Child: TSepiParseTreeNode); override;
 
-    function GetSepiContext: TSepiMeta; override;
+    function GetSepiContext: TSepiComponent; override;
   public
     procedure BeginParsing; override;
     procedure EndParsing; override;
@@ -905,7 +905,7 @@ begin
 
   ValueChild := TSepiInitializationExpressionNode(Child);
   FieldName := Children[ChildCount-2].AsText;
-  Field := RecordType.GetMeta(FieldName) as TSepiField;
+  Field := RecordType.GetComponent(FieldName) as TSepiField;
 
   if not CheckIdentFound(Field, FieldName, Children[ChildCount-2]) then
     ValueChild.SetValueTypeAndPtr(SystemUnit.Integer)
@@ -1665,7 +1665,7 @@ end;
 {*
   [@inheritDoc]
 *}
-function TDelphiRecordTypeNode.GetSepiContext: TSepiMeta;
+function TDelphiRecordTypeNode.GetSepiContext: TSepiComponent;
 begin
   if RecordType <> nil then
     Result := RecordType
@@ -1718,10 +1718,10 @@ end;
 *}
 procedure TDelphiClassTypeNode.CreateClass(ParentClass: TSepiClass = nil);
 var
-  Context: TSepiMeta;
+  Context: TSepiComponent;
 begin
   Context := SepiContext; // Save context before FSepiClass is set
-  FSepiClass := Context.GetMeta(TypeName) as TSepiClass;
+  FSepiClass := Context.GetComponent(TypeName) as TSepiClass;
 
   if FSepiClass <> nil then
     FSepiClass.Create(Context, TypeName, ParentClass)
@@ -1732,7 +1732,7 @@ end;
 {*
   [@inheritDoc]
 *}
-function TDelphiClassTypeNode.GetSepiContext: TSepiMeta;
+function TDelphiClassTypeNode.GetSepiContext: TSepiComponent;
 begin
   if SepiClass <> nil then
     Result := SepiClass
@@ -1838,15 +1838,15 @@ end;
 function TDelphiClassTypeNode.ResolveIdent(
   const Identifier: string): ISepiExpression;
 var
-  Meta: TSepiMeta;
+  Component: TSepiComponent;
 begin
   if SepiClass <> nil then
   begin
-    Meta := SepiContext.LookFor(Identifier);
-    if Meta <> nil then
+    Component := SepiContext.LookFor(Identifier);
+    if Component <> nil then
     begin
       Result := MakeExpression;
-      AddMetaToExpression(Result, Meta);
+      AddComponentToExpression(Result, Component);
       Exit;
     end;
   end;
@@ -1863,10 +1863,10 @@ end;
 *}
 procedure TDelphiInterfaceTypeNode.CreateInterface;
 var
-  Context: TSepiMeta;
+  Context: TSepiComponent;
 begin
   Context := SepiContext; // Save context before FSepiIntf is set
-  FSepiIntf := Context.GetMeta(TypeName) as TSepiInterface;
+  FSepiIntf := Context.GetComponent(TypeName) as TSepiInterface;
 
   if FSepiIntf <> nil then
     FSepiIntf.Create(Context, TypeName, ParentIntf, GUID, IsDispIntf)
@@ -1878,7 +1878,7 @@ end;
 {*
   [@inheritDoc]
 *}
-function TDelphiInterfaceTypeNode.GetSepiContext: TSepiMeta;
+function TDelphiInterfaceTypeNode.GetSepiContext: TSepiComponent;
 begin
   if SepiIntf <> nil then
     Result := SepiIntf
@@ -1955,15 +1955,15 @@ end;
 function TDelphiInterfaceTypeNode.ResolveIdent(
   const Identifier: string): ISepiExpression;
 var
-  Meta: TSepiMeta;
+  Component: TSepiComponent;
 begin
   if SepiIntf <> nil then
   begin
-    Meta := SepiContext.LookFor(Identifier);
-    if Meta <> nil then
+    Component := SepiContext.LookFor(Identifier);
+    if Component <> nil then
     begin
       Result := MakeExpression;
-      AddMetaToExpression(Result, Meta);
+      AddComponentToExpression(Result, Component);
       Exit;
     end;
   end;

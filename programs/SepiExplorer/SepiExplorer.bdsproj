@@ -161,15 +161,7 @@
 			<VersionInfoKeys Name="OriginalFilename">FunLabyCore.bpl</VersionInfoKeys>
 			<VersionInfoKeys Name="ProductName">FunLabyrinthe</VersionInfoKeys>
 			<VersionInfoKeys Name="ProductVersion">5.0</VersionInfoKeys>
-		</VersionInfoKeys>  
-    
-    
-    
-    
-    
-    
-    
-    <Excluded_Packages>
+		</VersionInfoKeys>  <Excluded_Packages>
       <Excluded_Packages Name="C:\Program Files\RemObjects Software\Pascal Script for Delphi\Dcu\D9\PascalScript_Core_D9.bpl">RemObjects Pascal Script - Core Package</Excluded_Packages>
       <Excluded_Packages Name="C:\DOCUME~1\Sepi\MESDOC~1\PROJET~1\Bpl\JclUsesExpert90.bpl">JCL Uses Wizard</Excluded_Packages>
     </Excluded_Packages>

@@ -56,7 +56,7 @@ type
   private
     FMethods: TObjectList;           /// Méthodes
     FSepiUnit: TSepiUnit;            /// Unité Sepi
-    FReferences: array of TSepiMeta; /// Références internes
+    FReferences: array of TSepiComponent; /// Références internes
 
     FOnDebug: TSepiDebugEvent; /// Evénément de débogage
 
@@ -423,7 +423,7 @@ begin
   Stream.ReadBuffer(Count, SizeOf(Integer));
   SetLength(FReferences, Count);
   for I := 0 to Count-1 do
-    FReferences[I] := SepiRoot.FindMeta(ReadStrFromStream(Stream));
+    FReferences[I] := SepiRoot.FindComponent(ReadStrFromStream(Stream));
 
   // Read locals information
   for I := 0 to FMethods.Count-1 do
@@ -462,7 +462,7 @@ end;
   Cherche une méthode d'exécution depuis son nom
   @param QName   Nom complètement qualifié de la méthode
   @return Méthode d'exécution correspondante
-  @throws ESepiMetaNotFoundError La méthode n'a pas été trouvée
+  @throws ESepiComponentNotFoundError La méthode n'a pas été trouvée
 *}
 function TSepiRuntimeUnit.FindMethod(const QName: string): TSepiRuntimeMethod;
 var
@@ -475,7 +475,7 @@ begin
       Exit;
   end;
 
-  raise ESepiMetaNotFoundError.CreateFmt(SSepiObjectNotFound, [QName]);
+  raise ESepiComponentNotFoundError.CreateFmt(SSepiComponentNotFound, [QName]);
 end;
 
 {*
@@ -538,7 +538,7 @@ var
   Index: Integer;
 begin
   Stream.ReadBuffer(Index, 4);
-  TSepiMeta(Ref) := FReferences[Index];
+  TSepiComponent(Ref) := FReferences[Index];
 end;
 
 {--------------------------}

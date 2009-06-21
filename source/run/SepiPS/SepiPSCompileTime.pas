@@ -381,7 +381,7 @@ procedure ImportRecordType(PSCompiler: TPSPascalCompiler;
   RecordType: TSepiRecordType);
 var
   I: Integer;
-  Child: TSepiMeta;
+  Child: TSepiComponent;
 begin
   with RecordType, TPSRecordType(PSCompiler.AddType(Name, btRecord)) do
   begin
@@ -414,13 +414,13 @@ end;
 {*
   Importe une meta-classe
   @param PSCompiler   Compilateur Pascal Script
-  @param MetaClass    Meta-classe à importer
+  @param ComponentClass    Component-classe à importer
 *}
-procedure ImportMetaClass(PSCompiler: TPSPascalCompiler;
-  MetaClass: TSepiMetaClass);
+procedure ImportComponentClass(PSCompiler: TPSPascalCompiler;
+  ComponentClass: TSepiComponentClass);
 begin
   // Pascal Script doesn't support meta-classes: we use integers instead
-  PSCompiler.AddType(MetaClass.Name, btU32);
+  PSCompiler.AddType(ComponentClass.Name, btU32);
 end;
 
 {*
@@ -489,8 +489,8 @@ begin
     ImportInterfaceType(PSCompiler, TSepiInterface(SepiType))
   else if SepiType is TSepiClass then
     ImportForwardType(PSCompiler, TSepiClass(SepiType))
-  else if SepiType is TSepiMetaClass then
-    ImportMetaClass(PSCompiler, TSepiMetaClass(SepiType))
+  else if SepiType is TSepiComponentClass then
+    ImportComponentClass(PSCompiler, TSepiComponentClass(SepiType))
 
   else if SepiType is TSepiMethodRefType then
     ImportMethodRefType(PSCompiler, TSepiMethodRefType(SepiType));
@@ -625,7 +625,7 @@ var
   ParentIntf: TPSInterface;
   PSType: TPSInterfaceType;
   I: Integer;
-  Child: TSepiMeta;
+  Child: TSepiComponent;
   StrSignature: string;
 begin
   Result := PSCompiler.FindInterface(SepiIntf.Name);
@@ -675,7 +675,7 @@ var
   ParentClass: TPSCompileTimeClass;
   PSType: TPSClassType;
   I, J: Integer;
-  Child: TSepiMeta;
+  Child: TSepiComponent;
   Access: TPSPropType;
   StrSignature, PSName, SecondName, StrPropType: string;
 begin
@@ -769,7 +769,7 @@ procedure SepiImportUnitInPSCompiler(SepiUnit: TSepiUnit;
   PSCompiler: TPSPascalCompiler);
 var
   I: Integer;
-  Child: TSepiMeta;
+  Child: TSepiComponent;
   PSType: TPSType;
 begin
   Child := nil;

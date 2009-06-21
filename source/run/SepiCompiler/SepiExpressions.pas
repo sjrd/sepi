@@ -237,12 +237,12 @@ type
     @author sjrd
     @version 1.0
   *}
-  ISepiMetaExpression = interface(ISepiExpressionPart)
+  ISepiComponentExpression = interface(ISepiExpressionPart)
     ['{444E8E70-1173-44E5-AA91-5B28629A9AA4}']
 
-    function GetMeta: TSepiMeta;
+    function GetComponent: TSepiComponent;
 
-    property Meta: TSepiMeta read GetMeta;
+    property Component: TSepiComponent read GetComponent;
   end;
 
   {*
@@ -1370,17 +1370,17 @@ type
     @author sjrd
     @version 1.0
   *}
-  TSepiMetaExpression = class(TSepiCustomExpressionPart, ISepiMetaExpression)
+  TSepiComponentExpression = class(TSepiCustomExpressionPart, ISepiComponentExpression)
   private
-    FMeta: TSepiMeta; /// Meta
+    FComponent: TSepiComponent; /// Component
   protected
     procedure AttachToExpression(const Expression: ISepiExpression); override;
 
-    function GetMeta: TSepiMeta;
+    function GetComponent: TSepiComponent;
   public
-    constructor Create(AMeta: TSepiMeta);
+    constructor Create(AComponent: TSepiComponent);
 
-    property Meta: TSepiMeta read FMeta;
+    property Component: TSepiComponent read FComponent;
   end;
 
   {*
@@ -3295,7 +3295,7 @@ begin
   { Pointers/classes/interfaces/meta-classes are always compatible for
     equality test. }
   if (LeftType is TSepiPointerType) or (LeftType is TSepiClass) or
-    (LeftType is TSepiInterface) or (LeftType is TSepiMetaClass) then
+    (LeftType is TSepiInterface) or (LeftType is TSepiComponentClass) then
     // OK
   else if LeftType is TSepiEnumType then
   begin
@@ -3810,11 +3810,11 @@ begin
     ObjectOperand.AttachToExpression(TSepiExpression.Create(TempExpression));
   end;
 
-  if not (ClassType is TSepiMetaClass) then
+  if not (ClassType is TSepiComponentClass) then
   begin
     TempExpression := ClassOperand as ISepiExpression;
 
-    TempExpression.MakeError(SMetaClassTypeRequired);
+    TempExpression.MakeError(SComponentClassTypeRequired);
     ClassOperand := TSepiErroneousValue.Create(
       UnitCompiler.SystemUnit.TClass);
     ClassOperand.AttachToExpression(TSepiExpression.Create(TempExpression));
@@ -5995,12 +5995,12 @@ begin
         InstrParamMemory.Assign(ParamMemory);
       end;
 
-      // Paramètre $Alloc - True ssi SelfValue.ValueType is TSepiMetaClass
+      // Paramètre $Alloc - True ssi SelfValue.ValueType is TSepiComponentClass
       hpAlloc:
       begin
         Assert(ParamValue <> nil);
 
-        AllocParamValue := ParamValue.ValueType is TSepiMetaClass;
+        AllocParamValue := ParamValue.ValueType is TSepiComponentClass;
 
         InstrParamMemory.SetSpace(msConstant);
         InstrParamMemory.SetConstant(AllocParamValue);
@@ -6302,7 +6302,7 @@ begin
     Exit;
 
   // Can''t call an object method on a class value
-  if SelfValue.ValueType is TSepiMetaClass then
+  if SelfValue.ValueType is TSepiComponentClass then
   begin
     if not (Signature.Kind in skValidOnClass) then
     begin
@@ -6330,7 +6330,7 @@ begin
   if Signature = nil then
     Result := nil
   else if (Signature.Kind = skConstructor) and (SelfValue <> nil) and
-    (SelfValue.ValueType is TSepiMetaClass) then
+    (SelfValue.ValueType is TSepiComponentClass) then
     Result := TSepiMetaClass(SelfValue.ValueType).SepiClass
   else
     Result := Signature.ReturnType;
@@ -6946,7 +6946,7 @@ function TSepiNilValue.CanForceType(AValueType: TSepiType;
   Explicit: Boolean = False): Boolean;
 begin
   Result := (AValueType is TSepiPointerType) or (AValueType is TSepiClass) or
-    (AValueType is TSepiMetaClass) or (AValueType is TSepiInterface) or
+    (AValueType is TSepiComponentClass) or (AValueType is TSepiInterface) or
     (AValueType is TSepiStringType) or (AValueType is TSepiDynArrayType) or
     (AValueType is TSepiMethodRefType);
 end;
@@ -6963,39 +6963,39 @@ begin
 end;
 
 {---------------------------}
-{ TSepiMetaExpression class }
+{ TSepiComponentExpression class }
 {---------------------------}
 
 {*
   Crée une expression représentant un meta
-  @param AMeta   Meta représenté
+  @param AComponent   Component représenté
 *}
-constructor TSepiMetaExpression.Create(AMeta: TSepiMeta);
+constructor TSepiComponentExpression.Create(AComponent: TSepiComponent);
 begin
   inherited Create;
 
-  FMeta := AMeta;
+  FComponent := AComponent;
 end;
 
 {*
   [@inheritDoc]
 *}
-procedure TSepiMetaExpression.AttachToExpression(
+procedure TSepiComponentExpression.AttachToExpression(
   const Expression: ISepiExpression);
 var
   AsExpressionPart: ISepiExpressionPart;
 begin
   AsExpressionPart := Self;
-  Expression.Attach(ISepiMetaExpression, AsExpressionPart);
+  Expression.Attach(ISepiComponentExpression, AsExpressionPart);
 end;
 
 {*
-  Meta
-  @return Meta
+  Component
+  @return Component
 *}
-function TSepiMetaExpression.GetMeta: TSepiMeta;
+function TSepiComponentExpression.GetComponent: TSepiComponent;
 begin
-  Result := FMeta;
+  Result := FComponent;
 end;
 
 {---------------------------}

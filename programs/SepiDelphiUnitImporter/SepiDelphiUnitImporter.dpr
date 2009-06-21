@@ -278,7 +278,7 @@ begin
     // Destroy compile-time types (TSepiRuntimeUnit won't do it for us here)
     for I := 0 to SepiUnit.ChildCount-1 do
     begin
-      if SepiUnit.Children[I].ClassType = TSepiMeta then
+      if SepiUnit.Children[I].ClassType = TSepiComponent then
       begin
         SepiUnit.Children[I].Free;
         Break;

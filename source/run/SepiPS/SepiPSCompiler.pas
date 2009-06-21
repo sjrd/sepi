@@ -92,7 +92,7 @@ begin
     end else
     begin
       Context.SepiUnit.MoreUses([UnitName]);
-      SepiUnit := Context.Root.FindMeta(UnitName) as TSepiUnit;
+      SepiUnit := Context.Root.FindComponent(UnitName) as TSepiUnit;
       SepiImportUnitInPSCompiler(SepiUnit, Sender);
     end;
   except
@@ -240,7 +240,7 @@ function ScriptOnExportCheck(Context: PCompilingContext;
   Sender: TPSPascalCompiler; Proc: TPSInternalProcedure;
   const ProcDecl: string): Boolean;
 var
-  Meta: TSepiMeta;
+  Component: TSepiComponent;
   ClassName, MethodName: string;
 begin
   if AnsiSameText(Proc.Name, '!MAIN') then
@@ -250,21 +250,21 @@ begin
   with Context^ do
   begin
     // Search for a matching routine/method in Sepi
-    Meta := SepiUnit.GetMeta(Proc.OriginalName);
+    Component := SepiUnit.GetComponent(Proc.OriginalName);
 
-    if (Meta = nil) and
+    if (Component = nil) and
       SplitToken(Proc.OriginalName, '_', ClassName, MethodName) then
     begin
-      Meta := SepiUnit.GetMeta(ClassName);
-      if Meta is TSepiClass then
+      Component := SepiUnit.GetComponent(ClassName);
+      if Component is TSepiClass then
       begin
-        Meta := Meta.GetMeta(MethodName);
+        Component := Component.GetComponent(MethodName);
         Proc.OriginalName := ClassName + '.' + MethodName;
       end;
     end;
 
     // A match that isn't a method is a duplicate identifier
-    if (Meta <> nil) and (not (Meta is TSepiMethod)) then
+    if (Component <> nil) and (not (Component is TSepiMethod)) then
     begin
       Sender.MakeError(SepiUnit.Name, ecDuplicateIdentifier,
         Proc.OriginalName);
@@ -272,9 +272,9 @@ begin
     end;
 
     // Check the export or export an unexisting
-    if Meta <> nil then
+    if Component <> nil then
     begin
-      Result := CheckExport(Root, Proc, TSepiMethod(Meta));
+      Result := CheckExport(Root, Proc, TSepiMethod(Component));
       if not Result then
         Sender.MakeError(SepiUnit.Name, ecCustomError,
           sDeclDiffersFromPrevious);

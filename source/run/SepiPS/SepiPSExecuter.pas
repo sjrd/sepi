@@ -52,7 +52,7 @@ begin
     Root.OnLoadUnit := TSepiLoadUnitEvent(Method);
 
     SepiUnit := Root.LoadUnit(UnitName);
-    SepiMainProc := SepiUnit.GetMeta('$MAIN') as TSepiMethod;
+    SepiMainProc := SepiUnit.GetComponent('$MAIN') as TSepiMethod;
 
     if SepiMainProc = nil then
       WriteLn('There is no main proc in this unit')

@@ -70,7 +70,7 @@ resourcestring
     'classe';
   SCallableRequired = 'Expression invocable requise';
   SExecutableRequired = 'Expression exécutable requise';
-  SMetaRequired = 'Nom d''objet requis';
+  SComponentRequired = 'Nom d''objet requis';
   SIdentifierRequired = 'Identificateur requis';
 
   // Sorte particulière de type requise
@@ -82,7 +82,7 @@ resourcestring
   SOrdinalTypeRequired = 'Type ordinal requis';
   SClassTypeRequired = 'Type classe requis';
   SInterfaceTypeRequired = 'Type interface requis';
-  SMetaClassTypeRequired = 'Type méta-classe requis';
+  SComponentClassTypeRequired = 'Type méta-classe requis';
   SCompilerTransientTypeForbidden =
     'Type de valeur spécial du compilateur non autorisé ici';
 

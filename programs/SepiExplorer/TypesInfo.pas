@@ -21,7 +21,7 @@ procedure PrintTypeInfo(Output: TOutputWriter; SepiType: TSepiType);
 procedure PrintConstInfo(Output: TOutputWriter; Constant: TSepiConstant);
 procedure PrintVarInfo(Output: TOutputWriter; Variable: TSepiVariable);
 
-procedure PrintMetaInfo(Output: TOutputWriter; Meta: TSepiMeta);
+procedure PrintComponentInfo(Output: TOutputWriter; Component: TSepiComponent);
 
 implementation
 
@@ -125,7 +125,7 @@ end;
 procedure PrintInterfaceInfo(Output: TOutputWriter; IntfType: TSepiInterface);
 var
   I: Integer;
-  Meta: TSepiMeta;
+  Component: TSepiComponent;
 begin
   if IntfType.IsDispInterface then
     Output.WriteLn('dispinterface')
@@ -138,11 +138,11 @@ begin
 
   for I := 0 to IntfType.ChildCount-1 do
   begin
-    Meta := IntfType.Children[I];
-    if Meta is TSepiMethod then
-      PrintMethodInfo(Output, TSepiMethod(Meta))
-    else if Meta is TSepiProperty then
-      PrintPropertyInfo(Output, TSepiProperty(Meta));
+    Component := IntfType.Children[I];
+    if Component is TSepiMethod then
+      PrintMethodInfo(Output, TSepiMethod(Component))
+    else if Component is TSepiProperty then
+      PrintPropertyInfo(Output, TSepiProperty(Component));
   end;
 
   Output.WriteLn('end;');
@@ -152,7 +152,7 @@ procedure PrintClassInfo(Output: TOutputWriter; SepiClass: TSepiClass);
 var
   OldVisib: TMemberVisibility;
   I: Integer;
-  Meta: TSepiMeta;
+  Component: TSepiComponent;
 begin
   if SepiClass.Parent = nil then
     Output.WriteLn('class')
@@ -167,21 +167,21 @@ begin
 
   for I := 0 to SepiClass.ChildCount-1 do
   begin
-    Meta := SepiClass.Children[I];
-    if Meta.Visibility <> OldVisib then
+    Component := SepiClass.Children[I];
+    if Component.Visibility <> OldVisib then
     begin
       Output.WriteLn(LowerCase(Copy(
-        GetEnumName(TypeInfo(TMemberVisibility), Integer(Meta.Visibility)),
+        GetEnumName(TypeInfo(TMemberVisibility), Integer(Component.Visibility)),
         3, MaxInt)));
-      OldVisib := Meta.Visibility;
+      OldVisib := Component.Visibility;
     end;
 
-    if Meta is TSepiField then
-      PrintFieldInfo(Output, TSepiField(Meta))
-    else if Meta is TSepiMethod then
-      PrintMethodInfo(Output, TSepiMethod(Meta))
-    else if Meta is TSepiProperty then
-      PrintPropertyInfo(Output, TSepiProperty(Meta));
+    if Component is TSepiField then
+      PrintFieldInfo(Output, TSepiField(Component))
+    else if Component is TSepiMethod then
+      PrintMethodInfo(Output, TSepiMethod(Component))
+    else if Component is TSepiProperty then
+      PrintPropertyInfo(Output, TSepiProperty(Component));
   end;
 
   Output.WriteLn('end;');
@@ -326,25 +326,25 @@ begin
   end;
 end;
 
-procedure PrintMetaInfo(Output: TOutputWriter; Meta: TSepiMeta);
+procedure PrintComponentInfo(Output: TOutputWriter; Component: TSepiComponent);
 begin
-  Output.Write(Meta.Name + ': ' + Meta.ClassName + ' - ');
-  Output.WriteLn(VisibilityStrings[Meta.Visibility]);
+  Output.Write(Component.Name + ': ' + Component.ClassName + ' - ');
+  Output.WriteLn(VisibilityStrings[Component.Visibility]);
 
-  if Meta is TSepiType then
-    PrintTypeInfo(Output, TSepiType(Meta))
-  else if Meta is TSepiTypeAlias then
-    Output.WriteLn('-> ' + TSepiTypeAlias(Meta).Dest.Name)
-  else if Meta is TSepiConstant then
-    PrintConstInfo(Output, TSepiConstant(Meta))
-  else if Meta is TSepiVariable then
-    PrintVarInfo(Output, TSepiVariable(Meta))
-  else if Meta is TSepiField then
-    PrintFieldInfo(Output, TSepiField(Meta))
-  else if Meta is TSepiMethod then
-    PrintMethodInfo(Output, TSepiMethod(Meta))
-  else if Meta is TSepiProperty then
-    PrintPropertyInfo(Output, TSepiProperty(Meta));
+  if Component is TSepiType then
+    PrintTypeInfo(Output, TSepiType(Component))
+  else if Component is TSepiTypeAlias then
+    Output.WriteLn('-> ' + TSepiTypeAlias(Component).Dest.Name)
+  else if Component is TSepiConstant then
+    PrintConstInfo(Output, TSepiConstant(Component))
+  else if Component is TSepiVariable then
+    PrintVarInfo(Output, TSepiVariable(Component))
+  else if Component is TSepiField then
+    PrintFieldInfo(Output, TSepiField(Component))
+  else if Component is TSepiMethod then
+    PrintMethodInfo(Output, TSepiMethod(Component))
+  else if Component is TSepiProperty then
+    PrintPropertyInfo(Output, TSepiProperty(Component));
 end;
 
 end.

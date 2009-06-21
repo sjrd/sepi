@@ -109,10 +109,10 @@ type
 
     FRemainingUnknownTypeCount: Integer; /// Nombre de types encore inconnus
   protected
-    procedure ChildAdded(Child: TSepiMeta); override;
+    procedure ChildAdded(Child: TSepiComponent); override;
   public
-    constructor Load(AOwner: TSepiMeta; Stream: TStream); override;
-    constructor Create(AOwner: TSepiMeta);
+    constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
+    constructor Create(AOwner: TSepiComponent);
 
     property Types: TSepiSystemTypes read FTypes;
 
@@ -245,7 +245,7 @@ const // don't localize
 {*
   [@inheritDoc]
 *}
-constructor TSepiSystemUnit.Load(AOwner: TSepiMeta; Stream: TStream);
+constructor TSepiSystemUnit.Load(AOwner: TSepiComponent; Stream: TStream);
 begin
   Assert(False, 'No support for loading the System unit at the moment');
   inherited;
@@ -257,7 +257,7 @@ end;
   Crée l'unité System
   @param AOwner   Propriétaire de l'unité
 *}
-constructor TSepiSystemUnit.Create(AOwner: TSepiMeta);
+constructor TSepiSystemUnit.Create(AOwner: TSepiComponent);
 begin
   inherited Create(AOwner, SystemUnitName, []);
 
@@ -267,7 +267,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiSystemUnit.ChildAdded(Child: TSepiMeta);
+procedure TSepiSystemUnit.ChildAdded(Child: TSepiComponent);
 type
   TTypeArray = packed array[0..SystemTypeCount-1] of TSepiType;
 var

@@ -97,7 +97,7 @@ end;
 procedure LinkPSToSepiClass(SepiClass: TSepiClass; PSExecuter: TPSExec);
 var
   I: Integer;
-  Child: TSepiMeta;
+  Child: TSepiComponent;
 begin
   for I := 0 to SepiClass.ChildCount-1 do
   begin
@@ -116,7 +116,7 @@ end;
 procedure LinkPSToSepi(SepiUnit: TSepiUnit; PSExecuter: TPSExec);
 var
   I: Integer;
-  Child: TSepiMeta;
+  Child: TSepiComponent;
 begin
   for I := 0 to SepiUnit.ChildCount-1 do
   begin

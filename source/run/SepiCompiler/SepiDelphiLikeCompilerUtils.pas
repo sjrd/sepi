@@ -194,8 +194,8 @@ const
     'Continue', 'Break', 'Exit'
   );
 
-procedure AddMetaToExpression(const Expression: ISepiExpression;
-  Meta: TSepiMeta);
+procedure AddComponentToExpression(const Expression: ISepiExpression;
+  Component: TSepiComponent);
 function AddPseudoRoutineToExpression(const Expression: ISepiExpression;
   const Identifier: string): Boolean;
 
@@ -204,61 +204,61 @@ function UnitResolveIdent(UnitCompiler: TSepiUnitCompiler;
 function MethodResolveIdent(Compiler: TSepiMethodCompiler;
   const Identifier: string): ISepiExpression;
 
-function FieldSelection(SepiContext: TSepiMeta;
+function FieldSelection(SepiContext: TSepiComponent;
   const BaseExpression: ISepiExpression;
   const FieldName: string): ISepiExpression;
 
 implementation
 
 {*
-  Ajoute un meta à une expression selon les mêmes règles qu'en Delphi
+  Ajoute un composant à une expression selon les mêmes règles qu'en Delphi
   @param Expression   Expression
-  @param Meta         Meta (peut être nil)
+  @param Component    Component (peut être nil)
 *}
-procedure AddMetaToExpression(const Expression: ISepiExpression;
-  Meta: TSepiMeta);
+procedure AddComponentToExpression(const Expression: ISepiExpression;
+  Component: TSepiComponent);
 var
   MetaClassValue: TSepiMetaClassValue;
 begin
-  if Meta = nil then
+  if Component = nil then
     Exit;
 
   // Simply the meta
   ISepiExpressionPart(
-    TSepiMetaExpression.Create(Meta)).AttachToExpression(Expression);
+    TSepiComponentExpression.Create(Component)).AttachToExpression(Expression);
 
-  if Meta is TSepiType then
+  if Component is TSepiType then
   begin
     // Type
     ISepiExpressionPart(TSepiTypeExpression.Create(
-      TSepiType(Meta))).AttachToExpression(Expression);
+      TSepiType(Component))).AttachToExpression(Expression);
 
-    if Meta is TSepiClass then
+    if Component is TSepiClass then
     begin
-      MetaClassValue := TSepiMetaClassValue.Create(TSepiClass(Meta));
+      MetaClassValue := TSepiMetaClassValue.Create(TSepiClass(Component));
       ISepiExpressionPart(MetaClassValue).AttachToExpression(Expression);
       MetaClassValue.Complete;
     end;
-  end else if Meta is TSepiConstant then
+  end else if Component is TSepiConstant then
   begin
     // Constant
     ISepiExpressionPart(TSepiTrueConstValue.Create(
-      TSepiConstant(Meta))).AttachToExpression(Expression);
-  end else if Meta is TSepiVariable then
+      TSepiConstant(Component))).AttachToExpression(Expression);
+  end else if Component is TSepiVariable then
   begin
     // Variable
     ISepiExpressionPart(TSepiVariableValue.Create(
-      TSepiVariable(Meta))).AttachToExpression(Expression);
-  end else if Meta is TSepiMethod then
+      TSepiVariable(Component))).AttachToExpression(Expression);
+  end else if Component is TSepiMethod then
   begin
     // Method
     ISepiExpressionPart(TSepiMethodCall.Create(
-      TSepiMethod(Meta))).AttachToExpression(Expression);
-  end else if Meta is TSepiOverloadedMethod then
+      TSepiMethod(Component))).AttachToExpression(Expression);
+  end else if Component is TSepiOverloadedMethod then
   begin
     // Method
     ISepiExpressionPart(TSepiMethodCall.Create(
-      TSepiOverloadedMethod(Meta))).AttachToExpression(Expression);
+      TSepiOverloadedMethod(Component))).AttachToExpression(Expression);
   end;
 end;
 
@@ -321,15 +321,15 @@ end;
 function UnitResolveIdent(UnitCompiler: TSepiUnitCompiler;
   const Identifier: string): ISepiExpression;
 var
-  Meta: TSepiMeta;
+  Component: TSepiComponent;
 begin
   Result := TSepiExpression.Create(UnitCompiler);
 
-  // Meta
-  Meta := UnitCompiler.SepiUnit.LookFor(Identifier);
-  if Meta <> nil then
+  // Component
+  Component := UnitCompiler.SepiUnit.LookFor(Identifier);
+  if Component <> nil then
   begin
-    AddMetaToExpression(Result, Meta);
+    AddComponentToExpression(Result, Component);
     Exit;
   end;
 
@@ -350,7 +350,7 @@ function MethodResolveIdent(Compiler: TSepiMethodCompiler;
   const Identifier: string): ISepiExpression;
 var
   LocalVar: TSepiLocalVar;
-  MetaOwner, Meta: TSepiMeta;
+  ComponentOwner, Component: TSepiComponent;
   SelfExpression, FieldExpression: ISepiExpression;
 begin
   Result := TSepiExpression.Create(Compiler);
@@ -364,17 +364,17 @@ begin
     Exit;
   end;
 
-  // Meta
+  // Component
   if Compiler.HasLocalNamespace then
-    MetaOwner := Compiler.LocalNamespace
+    ComponentOwner := Compiler.LocalNamespace
   else
-    MetaOwner := Compiler.SepiMethod;
-  Meta := MetaOwner.LookFor(Identifier);
+    ComponentOwner := Compiler.SepiMethod;
+  Component := ComponentOwner.LookFor(Identifier);
 
-  // Meta in the method itself
-  if (Meta <> nil) and (Meta.Owner = MetaOwner) then
+  // Component in the method itself
+  if (Component <> nil) and (Component.Owner = ComponentOwner) then
   begin
-    AddMetaToExpression(Result, Meta);
+    AddComponentToExpression(Result, Component);
     Exit;
   end;
 
@@ -395,10 +395,10 @@ begin
     end;
   end;
 
-  // Meta out of the method itself
-  if Meta <> nil then
+  // Component out of the method itself
+  if Component <> nil then
   begin
-    AddMetaToExpression(Result, Meta);
+    AddComponentToExpression(Result, Component);
     Exit;
   end;
 
@@ -417,7 +417,7 @@ end;
   @param Expression    Expression destination
   @return True si réussi, False sinon
 *}
-function ClassIntfMemberSelection(SepiContext: TSepiMeta;
+function ClassIntfMemberSelection(SepiContext: TSepiComponent;
   const BaseValue: ISepiReadableValue; const FieldName: string;
   const Expression: ISepiExpression): Boolean;
 const
@@ -426,8 +426,8 @@ const
 var
   Value: ISepiReadableValue;
   ContainerType: TSepiType;
-  FromClass: TSepiMeta;
-  Member: TSepiMeta;
+  FromClass: TSepiComponent;
+  Member: TSepiComponent;
 begin
   Result := False;
   Value := BaseValue;
@@ -498,27 +498,27 @@ end;
   @param FieldName        Nom du champ
   @return Expression représentant le champ sélectionné (ou nil si inexistant)
 *}
-function FieldSelection(SepiContext: TSepiMeta;
+function FieldSelection(SepiContext: TSepiComponent;
   const BaseExpression: ISepiExpression;
   const FieldName: string): ISepiExpression;
 var
   CancelResult: Boolean;
-  MetaExpression: ISepiMetaExpression;
-  Meta: TSepiMeta;
+  ComponentExpression: ISepiComponentExpression;
+  Component: TSepiComponent;
   Value: ISepiValue;
   ReadableValue: ISepiReadableValue;
 begin
   Result := TSepiExpression.Create(BaseExpression);
   CancelResult := True;
 
-  // Meta child
-  if Supports(BaseExpression, ISepiMetaExpression, MetaExpression) then
+  // Component child
+  if Supports(BaseExpression, ISepiComponentExpression, ComponentExpression) then
   begin
-    Meta := MetaExpression.Meta.GetMeta(FieldName);
+    Component := ComponentExpression.Component.GetComponent(FieldName);
 
-    if Meta <> nil then
+    if Component <> nil then
     begin
-      AddMetaToExpression(Result, Meta);
+      AddComponentToExpression(Result, Component);
       CancelResult := False;
     end;
   end;
@@ -528,12 +528,12 @@ begin
   begin
     if Value.ValueType is TSepiRecordType then
     begin
-      Meta := TSepiRecordType(Value.ValueType).GetMeta(FieldName);
+      Component := TSepiRecordType(Value.ValueType).GetComponent(FieldName);
 
-      if Meta is TSepiField then
+      if Component is TSepiField then
       begin
         ISepiExpressionPart(TSepiRecordFieldValue.Create(
-          Value, TSepiField(Meta))).AttachToExpression(Result);
+          Value, TSepiField(Component))).AttachToExpression(Result);
         CancelResult := False;
       end;
     end;
@@ -543,7 +543,7 @@ begin
   if Supports(BaseExpression, ISepiReadableValue, ReadableValue) then
   begin
     if (ReadableValue.ValueType is TSepiClass) or
-      (ReadableValue.ValueType is TSepiMetaClass) or
+      (ReadableValue.ValueType is TSepiComponentClass) or
       (ReadableValue.ValueType is TSepiInterface) then
     begin
       if ClassIntfMemberSelection(SepiContext, ReadableValue,

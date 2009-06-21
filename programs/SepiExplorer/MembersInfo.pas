@@ -205,9 +205,9 @@ begin
   Output.Write(': ' + Prop.PropType.DisplayName);
 
   if Prop.ReadAccess.Kind <> pakNone then
-    Output.Write(' read ' + Prop.ReadAccess.Meta.Name);
+    Output.Write(' read ' + Prop.ReadAccess.Component.Name);
   if Prop.WriteAccess.Kind <> pakNone then
-    Output.Write(' write ' + Prop.WriteAccess.Meta.Name);
+    Output.Write(' write ' + Prop.WriteAccess.Component.Name);
   if Prop.Index <> NoIndex then
     Output.Write(' index ' + IntToStr(Prop.Index));
   if Prop.DefaultValue <> NoDefaultValue then

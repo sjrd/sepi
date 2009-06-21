@@ -627,7 +627,7 @@ type
 
     FSystemUnit: TSepiSystemUnit; /// Unité System
 
-    FCompileTimeTypes: TSepiMeta; /// Types durant le temps de la compilation
+    FCompileTimeTypes: TSepiComponent; /// Types durant le temps de la compilation
     FErroneousType: TSepiType;    /// Type erroné
 
     FReferences: TObjectList; /// Références
@@ -653,7 +653,7 @@ type
     function FindMethodCompiler(SepiMethod: TSepiMethod;
       AllowCreate: Boolean = False): TSepiMethodCompiler;
 
-    function MakeReference(Meta: TSepiMeta): Integer;
+    function MakeReference(Component: TSepiComponent): Integer;
 
     procedure WriteToStream(Stream: TStream);
 
@@ -2362,7 +2362,7 @@ end;
   Cherche un objet à partir de son nom
   LookFor cherche parmi les variables locales, puis les paramètres, et enfin
   essaie la méthode LookFor de la méthode Sepi correspondante. Le résultat peut
-  être de type TSepiMeta ou TSepiParam.
+  être de type TSepiComponent ou TSepiParam.
   @param Name   Nom de l'objet recherché
   @return Objet recherché, ou nil si non trouvé
 *}
@@ -2548,7 +2548,7 @@ const
   CompileTimeTypesName = '$CompileTimeTypes';
 begin
   if FCompileTimeTypes = nil then
-    FCompileTimeTypes := TSepiMeta.Create(SepiUnit, CompileTimeTypesName);
+    FCompileTimeTypes := TSepiComponent.Create(SepiUnit, CompileTimeTypesName);
 end;
 
 {*
@@ -2592,7 +2592,7 @@ begin
       PointerTypeName[I] := '$';
 
   NeedCompileTimeTypes;
-  Result := FCompileTimeTypes.GetMeta(PointerTypeName) as TSepiPointerType;
+  Result := FCompileTimeTypes.GetComponent(PointerTypeName) as TSepiPointerType;
   if Result = nil then
     Result := TSepiPointerType.Create(FCompileTimeTypes,
       PointerTypeName, PointTo);
@@ -2614,7 +2614,7 @@ begin
       MetaClassName[I] := '$';
 
   NeedCompileTimeTypes;
-  Result := FCompileTimeTypes.GetMeta(MetaClassName) as TSepiMetaClass;
+  Result := FCompileTimeTypes.GetComponent(MetaClassName) as TSepiMetaClass;
   if Result = nil then
     Result := TSepiMetaClass.Create(FCompileTimeTypes,
       MetaClassName, SepiClass);
@@ -2629,7 +2629,7 @@ const
   EmptySetTypeName = '$EmptySet';
 begin
   NeedCompileTimeTypes;
-  Result := FCompileTimeTypes.GetMeta(EmptySetTypeName) as TSepiType;
+  Result := FCompileTimeTypes.GetComponent(EmptySetTypeName) as TSepiType;
   if Result = nil then
     Result := TSepiEmptySetType.Create(FCompileTimeTypes, EmptySetTypeName);
 end;
@@ -2642,7 +2642,7 @@ end;
 function TSepiUnitCompiler.MakeSetType(CompType: TSepiOrdType): TSepiSetType;
 var
   I: Integer;
-  Child: TSepiMeta absolute Result;
+  Child: TSepiComponent absolute Result;
 begin
   for I := 0 to SepiUnit.ChildCount-1 do
   begin
@@ -2706,14 +2706,14 @@ end;
 
 {*
   Construit un numéro de référence à un meta Sepi
-  @param Meta   Meta pour lequel construire un numéro de référence
+  @param Component   Component pour lequel construire un numéro de référence
   @return Numéro de référence du meta
 *}
-function TSepiUnitCompiler.MakeReference(Meta: TSepiMeta): Integer;
+function TSepiUnitCompiler.MakeReference(Component: TSepiComponent): Integer;
 begin
-  Result := FReferences.IndexOf(Meta);
+  Result := FReferences.IndexOf(Component);
   if Result < 0 then
-    Result := FReferences.Add(Meta);
+    Result := FReferences.Add(Component);
 end;
 
 {*
@@ -2744,7 +2744,7 @@ begin
   Count := FReferences.Count;
   Stream.WriteBuffer(Count, 4);
   for I := 0 to Count-1 do
-    WriteStrToStream(Stream, TSepiMeta(FReferences[I]).GetFullName);
+    WriteStrToStream(Stream, TSepiComponent(FReferences[I]).GetFullName);
 
   // Write locals information
   for I := 0 to MethodCount-1 do
@@ -2986,7 +2986,8 @@ begin
   else if Obj is TSepiVariable then
     SetSpace(TSepiVariable(Obj))
   else
-    raise ESepiMetaNotFoundError.CreateResFmt(@SSepiObjectNotFound, [Name]);
+    raise ESepiComponentNotFoundError.CreateFmt(
+      SSepiComponentNotFound, [Name]);
 end;
 
 {*
