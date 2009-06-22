@@ -1225,7 +1225,7 @@ begin
       FType := AType;
     end;
     hpOpenArrayHighValue: FType :=
-      (Owner.Root.SystemUnit as TSepiSystemUnit).Smallint;
+      (Owner.Root.SystemUnit as TSepiSystemUnit).Integer;
   else
     FType := (Owner.Root.SystemUnit as TSepiSystemUnit).Boolean;
   end;
