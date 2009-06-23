@@ -28,7 +28,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, StrUtils, Registry, SepiCompilerErrors,
-  ImporterConsts;
+  ImporterConsts, ScUtils;
 
 type
   EBDSVersionNotInstalled = class(Exception);

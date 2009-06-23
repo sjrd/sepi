@@ -1,0 +1,81 @@
+package SepiWinTypesImport110;
+
+{$R *.res}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO ON}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION ON}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES OFF}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DESCRIPTION 'Sepi importer for types in Windows standart units'}
+{$RUNONLY}
+{$IMPLICITBUILD OFF}
+
+requires
+  rtl,
+  SepiReflection110;
+
+contains
+  SepiImportsWinTypes in '..\..\source\run\SepiWinTypesImport\SepiImportsWinTypes.pas',
+  SepiImportsAccCtrl in '..\..\source\run\SepiWinTypesImport\SepiImportsAccCtrl.pas',
+  SepiImportsAclAPI in '..\..\source\run\SepiWinTypesImport\SepiImportsAclAPI.pas',
+  SepiImportsActiveX in '..\..\source\run\SepiWinTypesImport\SepiImportsActiveX.pas',
+  SepiImportsAspTlb in '..\..\source\run\SepiWinTypesImport\SepiImportsAspTlb.pas',
+  SepiImportsCOMAdmin in '..\..\source\run\SepiWinTypesImport\SepiImportsCOMAdmin.pas',
+  SepiImportsCommCtrl in '..\..\source\run\SepiWinTypesImport\SepiImportsCommCtrl.pas',
+  SepiImportsCommDlg in '..\..\source\run\SepiWinTypesImport\SepiImportsCommDlg.pas',
+  SepiImportsComObj in '..\..\source\run\SepiWinTypesImport\SepiImportsComObj.pas',
+  SepiImportsComSvcs in '..\..\source\run\SepiWinTypesImport\SepiImportsComSvcs.pas',
+  SepiImportsCpl in '..\..\source\run\SepiWinTypesImport\SepiImportsCpl.pas',
+  SepiImportsDDEml in '..\..\source\run\SepiWinTypesImport\SepiImportsDDEml.pas',
+  SepiImportsDlgs in '..\..\source\run\SepiWinTypesImport\SepiImportsDlgs.pas',
+  SepiImportsFlatSB in '..\..\source\run\SepiWinTypesImport\SepiImportsFlatSB.pas',
+  SepiImportsImageHlp in '..\..\source\run\SepiWinTypesImport\SepiImportsImageHlp.pas',
+  SepiImportsImm in '..\..\source\run\SepiWinTypesImport\SepiImportsImm.pas',
+  SepiImportsIsapi2 in '..\..\source\run\SepiWinTypesImport\SepiImportsIsapi2.pas',
+  SepiImportsIsapi in '..\..\source\run\SepiWinTypesImport\SepiImportsIsapi.pas',
+  SepiImportsLZExpand in '..\..\source\run\SepiWinTypesImport\SepiImportsLZExpand.pas',
+  SepiImportsMapi in '..\..\source\run\SepiWinTypesImport\SepiImportsMapi.pas',
+  SepiImportsMessages in '..\..\source\run\SepiWinTypesImport\SepiImportsMessages.pas',
+  SepiImportsMMSystem in '..\..\source\run\SepiWinTypesImport\SepiImportsMMSystem.pas',
+  SepiImportsmsxml in '..\..\source\run\SepiWinTypesImport\SepiImportsmsxml.pas',
+  SepiImportsMtx in '..\..\source\run\SepiWinTypesImport\SepiImportsMtx.pas',
+  SepiImportsMultiMon in '..\..\source\run\SepiWinTypesImport\SepiImportsMultiMon.pas',
+  SepiImportsNb30 in '..\..\source\run\SepiWinTypesImport\SepiImportsNb30.pas',
+  SepiImportsNs30Fix in '..\..\source\run\SepiWinTypesImport\SepiImportsNs30Fix.pas',
+  SepiImportsNs35Fix in '..\..\source\run\SepiWinTypesImport\SepiImportsNs35Fix.pas',
+  SepiImportsNs36Fix in '..\..\source\run\SepiWinTypesImport\SepiImportsNs36Fix.pas',
+  SepiImportsNsapi in '..\..\source\run\SepiWinTypesImport\SepiImportsNsapi.pas',
+  SepiImportsOpenGL in '..\..\source\run\SepiWinTypesImport\SepiImportsOpenGL.pas',
+  SepiImportsPenWin in '..\..\source\run\SepiWinTypesImport\SepiImportsPenWin.pas',
+  SepiImportsPsAPI in '..\..\source\run\SepiWinTypesImport\SepiImportsPsAPI.pas',
+  SepiImportsRegStr in '..\..\source\run\SepiWinTypesImport\SepiImportsRegStr.pas',
+  SepiImportsRichEdit in '..\..\source\run\SepiWinTypesImport\SepiImportsRichEdit.pas',
+  SepiImportsShellAPI in '..\..\source\run\SepiWinTypesImport\SepiImportsShellAPI.pas',
+  SepiImportsSHFolder in '..\..\source\run\SepiWinTypesImport\SepiImportsSHFolder.pas',
+  SepiImportsShlObj in '..\..\source\run\SepiWinTypesImport\SepiImportsShlObj.pas',
+  SepiImportsTlHelp32 in '..\..\source\run\SepiWinTypesImport\SepiImportsTlHelp32.pas',
+  SepiImportsUrlMon in '..\..\source\run\SepiWinTypesImport\SepiImportsUrlMon.pas',
+  SepiImportsUxTheme in '..\..\source\run\SepiWinTypesImport\SepiImportsUxTheme.pas',
+  SepiImportsWinInet in '..\..\source\run\SepiWinTypesImport\SepiImportsWinInet.pas',
+  SepiImportsWinSock in '..\..\source\run\SepiWinTypesImport\SepiImportsWinSock.pas',
+  SepiImportsWinSpool in '..\..\source\run\SepiWinTypesImport\SepiImportsWinSpool.pas',
+  SepiImportsWinSvc in '..\..\source\run\SepiWinTypesImport\SepiImportsWinSvc.pas';
+
+end.
+

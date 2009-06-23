@@ -1,0 +1,44 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ProjectGuid>{f41b483a-da67-4d6f-8f86-8f541e03ef32}</ProjectGuid>
+  </PropertyGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <Projects Include="programs\SepiDelphiUnitImporter\SepiDelphiUnitImporter.dproj" />
+    <Projects Include="programs\SepiParserGenerator\SepiParserGenerator.dproj" />
+  </ItemGroup>
+  <ProjectExtensions>
+    <Borland.Personality>Default.Personality</Borland.Personality>
+    <Borland.ProjectType />
+    <BorlandProject>
+<BorlandProject xmlns=""><Default.Personality></Default.Personality></BorlandProject></BorlandProject>
+  </ProjectExtensions>
+  <Target Name="SepiDelphiUnitImporter">
+    <MSBuild Projects="programs\SepiDelphiUnitImporter\SepiDelphiUnitImporter.dproj" Targets="" />
+  </Target>
+  <Target Name="SepiDelphiUnitImporter:Clean">
+    <MSBuild Projects="programs\SepiDelphiUnitImporter\SepiDelphiUnitImporter.dproj" Targets="Clean" />
+  </Target>
+  <Target Name="SepiDelphiUnitImporter:Make">
+    <MSBuild Projects="programs\SepiDelphiUnitImporter\SepiDelphiUnitImporter.dproj" Targets="Make" />
+  </Target>
+  <Target Name="SepiParserGenerator">
+    <MSBuild Projects="programs\SepiParserGenerator\SepiParserGenerator.dproj" Targets="" />
+  </Target>
+  <Target Name="SepiParserGenerator:Clean">
+    <MSBuild Projects="programs\SepiParserGenerator\SepiParserGenerator.dproj" Targets="Clean" />
+  </Target>
+  <Target Name="SepiParserGenerator:Make">
+    <MSBuild Projects="programs\SepiParserGenerator\SepiParserGenerator.dproj" Targets="Make" />
+  </Target>
+  <Target Name="Build">
+    <CallTarget Targets="SepiDelphiUnitImporter;SepiParserGenerator" />
+  </Target>
+  <Target Name="Clean">
+    <CallTarget Targets="SepiDelphiUnitImporter:Clean;SepiParserGenerator:Clean" />
+  </Target>
+  <Target Name="Make">
+    <CallTarget Targets="SepiDelphiUnitImporter:Make;SepiParserGenerator:Make" />
+  </Target>
+  <Import Condition="Exists('$(MSBuildBinPath)\Borland.Group.Targets')" Project="$(MSBuildBinPath)\Borland.Group.Targets" />
+</Project>

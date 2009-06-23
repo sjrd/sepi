@@ -47,10 +47,10 @@ uses
   SepiDelphiLexer,
   SepiDelphiParser,
   SepiDelphiCompiler,
-  ImporterContext in 'ImporterContext.pas',
   ImporterConsts in 'ImporterConsts.pas',
-  ImporterProducer in 'ImporterProducer.pas',
+  ImporterContext in 'ImporterContext.pas',
   ImporterOptions in 'ImporterOptions.pas',
+  ImporterProducer in 'ImporterProducer.pas',
   ImporterTemplates in 'ImporterTemplates.pas';
 
 procedure ErrorAdded(Self, Sender: TObject; Error: TSepiCompilerError);
@@ -433,9 +433,10 @@ begin
         Context.OutputDir := Context.ReplaceMacros(Options.OutputDir);
         Context.ResourcesDir := Context.ReplaceMacros(Options.ResourcesDir);
 
-        Context.BDSBrowsingPath := Dir + PathSep + Context.BDSBrowsingPath;
+        Context.BDSBrowsingPath := Dir+'OvldSource\'+Context.BDSVersion+'\' +
+          PathSep + Context.BDSBrowsingPath;
         Context.SepiBrowsingPath :=
-          Dir + PathSep + Options.CacheDir + PathSep + Options.OutputDir;
+          Options.CacheDir + PathSep + Options.OutputDir;
 
         Context.ProduceLazyLoad := Options.ProduceLazyLoad;
         Context.ExcludeRoutines := Options.ExcludeRoutines;

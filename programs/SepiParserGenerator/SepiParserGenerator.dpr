@@ -34,9 +34,9 @@ uses
   ScConsoleUtils,
   ScDelphiLanguage,
   SepiCompilerErrors,
-  SepiLL1Grammars in 'SepiLL1Grammars.pas',
+  GeneratorOptions in 'GeneratorOptions.pas',
   GeneratorUtils in 'GeneratorUtils.pas',
-  GeneratorOptions in 'GeneratorOptions.pas';
+  SepiLL1Grammars in 'SepiLL1Grammars.pas';
 
 resourcestring
   SSourceFileDoesntExist = 'Le fichier source %s n''existe pas';

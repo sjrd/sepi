@@ -7,7 +7,7 @@ WinSvc.pas
 AccCtrl.pas
 AclAPI.pas
 COMAdmin.pas
-OvldSource\CommCtrl.pas
+CommCtrl.pas
 Cpl.pas
 DDEml.pas
 Dlgs.pas
@@ -18,7 +18,7 @@ Isapi.pas
 Isapi2.pas
 LZExpand.pas
 Mapi.pas
-OvldSource\MMSystem.pas
+MMSystem.pas
 msxml.pas
 Mtx.pas
 MultiMon.pas

@@ -81,7 +81,7 @@ begin
 
   // Default values
 
-  FBDSVersion := '3.0';
+  FBDSVersion := '5.0';
 
   FCacheDir := Dir+DefaultCacheDir;
   FOutputDir := Dir+DefaultOutputDir;

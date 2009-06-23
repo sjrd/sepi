@@ -1,0 +1,42 @@
+package SepiSDLImport110;
+
+{$R *.res}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO ON}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION ON}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES OFF}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DESCRIPTION 'Sepi importer for SDL units'}
+{$RUNONLY}
+{$IMPLICITBUILD OFF}
+
+requires
+  rtl,
+  vcl,
+  SepiReflection110;
+
+contains
+  SepiImportsSdAbout in '..\..\source\run\SepiSDLImport\SepiImportsSdAbout.pas',
+  SepiImportsSdDialogs in '..\..\source\run\SepiSDLImport\SepiImportsSdDialogs.pas',
+  SepiImportsSDL in '..\..\source\run\SepiSDLImport\SepiImportsSDL.pas',
+  SepiImportsSdNumber in '..\..\source\run\SepiSDLImport\SepiImportsSdNumber.pas',
+  SepiImportsSdPassword in '..\..\source\run\SepiSDLImport\SepiImportsSdPassword.pas';
+
+end.
+

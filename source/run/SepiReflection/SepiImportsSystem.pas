@@ -734,6 +734,9 @@ begin
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(Byte));
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(Word));
   TSepiTypeAlias.Create(Result, 'LongWord', TypeInfo(LongWord));
+  {$IF DECLARED(UInt64)}
+  TSepiType.LoadFromTypeInfo(Result, TypeInfo(UInt64));
+  {$IFEND}
 
   // Character types
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(Char));

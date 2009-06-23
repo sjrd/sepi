@@ -41,7 +41,7 @@ resourcestring
 
 const
   FirstTerminal = 0;
-  LastTerminal = 113;
+  LastTerminal = 114;
 
   tkEof = SepiLexerUtils.tkEof; /// Fin de fichier
 
@@ -86,89 +86,90 @@ const
   tkProtected = 36;     // protected
   tkPublic = 37;        // public
   tkPublished = 38;     // published
-  tkBegin = 39;         // begin
-  tkEnd = 40;           // end
-  tkNil = 41;           // nil
+  tkStrict = 39;        // strict
+  tkBegin = 40;         // begin
+  tkEnd = 41;           // end
+  tkNil = 42;           // nil
 
-  tkProcedure = 42;   // procedure
-  tkFunction = 43;    // function
-  tkProperty = 44;    // property
-  tkConstructor = 45; // constructor
-  tkDestructor = 46;  // destructor
+  tkProcedure = 43;   // procedure
+  tkFunction = 44;    // function
+  tkProperty = 45;    // property
+  tkConstructor = 46; // constructor
+  tkDestructor = 47;  // destructor
 
-  tkPlus = 47;        // +
-  tkMinus = 48;       // -
-  tkTimes = 49;       // *
-  tkDivide = 50;      // /
-  tkDiv = 51;         // div
-  tkMod = 52;         // mod
-  tkShl = 53;         // shl
-  tkShr = 54;         // shr
-  tkOr = 55;          // or
-  tkAnd = 56;         // and
-  tkXor = 57;         // xor
-  tkNot = 58;         // not
-  tkLowerThan = 59;   // <
-  tkLowerEq = 60;     // <=
-  tkGreaterThan = 61; // >
-  tkGreaterEq = 62;   // >=
-  tkNotEqual = 63;    // <>
-  tkIs = 64;          // is
-  tkAs = 65;          // as
+  tkPlus = 48;        // +
+  tkMinus = 49;       // -
+  tkTimes = 50;       // *
+  tkDivide = 51;      // /
+  tkDiv = 52;         // div
+  tkMod = 53;         // mod
+  tkShl = 54;         // shl
+  tkShr = 55;         // shr
+  tkOr = 56;          // or
+  tkAnd = 57;         // and
+  tkXor = 58;         // xor
+  tkNot = 59;         // not
+  tkLowerThan = 60;   // <
+  tkLowerEq = 61;     // <=
+  tkGreaterThan = 62; // >
+  tkGreaterEq = 63;   // >=
+  tkNotEqual = 64;    // <>
+  tkIs = 65;          // is
+  tkAs = 66;          // as
 
-  tkRegister = 66;  // register
-  tkCDecl = 67;     // cdecl
-  tkPascal = 68;    // pascal
-  tkStdCall = 69;   // stdcall
-  tkSafeCall = 70;  // safecall
-  tkAssembler = 71; // assembler
+  tkRegister = 67;  // register
+  tkCDecl = 68;     // cdecl
+  tkPascal = 69;    // pascal
+  tkStdCall = 70;   // stdcall
+  tkSafeCall = 71;  // safecall
+  tkAssembler = 72; // assembler
 
-  tkName = 72;      // name
-  tkIndex = 73;     // index
-  tkRead = 74;      // read
-  tkWrite = 75;     // write
-  tkDefault = 76;   // default
-  tkNoDefault = 77; // nodefault
-  tkStored = 78;    // stored
-  tkDispID = 79;    // dispid
-  tkReadOnly = 80;  // readonly
-  tkWriteOnly = 81; // writeonly
-  tkString = 82;    // string
+  tkName = 73;      // name
+  tkIndex = 74;     // index
+  tkRead = 75;      // read
+  tkWrite = 76;     // write
+  tkDefault = 77;   // default
+  tkNoDefault = 78; // nodefault
+  tkStored = 79;    // stored
+  tkDispID = 80;    // dispid
+  tkReadOnly = 81;  // readonly
+  tkWriteOnly = 82; // writeonly
+  tkString = 83;    // string
 
-  tkDeprecated = 83;  // deprecated
-  tkPlatform = 84;    // platform
+  tkDeprecated = 84;  // deprecated
+  tkPlatform = 85;    // platform
 
-  tkOverload = 85;    // overload
-  tkVirtual = 86;     // virtual
-  tkDynamic = 87;     // dynamic
-  tkMessage = 88;     // message
-  tkOverride = 89;    // override
-  tkAbstract = 90;    // abstract
-  tkStatic = 91;      // static
-  tkReintroduce = 92; // reintroduce
-  tkInline = 93;      // inline
+  tkOverload = 86;    // overload
+  tkVirtual = 87;     // virtual
+  tkDynamic = 88;     // dynamic
+  tkMessage = 89;     // message
+  tkOverride = 90;    // override
+  tkAbstract = 91;    // abstract
+  tkStatic = 92;      // static
+  tkReintroduce = 93; // reintroduce
+  tkInline = 94;      // inline
 
-  tkImplementation = 94; // implementation
-  tkForward = 95;        // forward
-  tkInitialization = 96; // initialization
-  tkFinalization = 97;   // finalization
+  tkImplementation = 95; // implementation
+  tkForward = 96;        // forward
+  tkInitialization = 97; // initialization
+  tkFinalization = 98;   // finalization
 
-  tkIf = 98;         // if
-  tkThen = 99;       // then
-  tkElse = 100;      // else
-  tkWhile = 101;     // while
-  tkDo = 102;        // do
-  tkRepeat = 103;    // repeat
-  tkUntil = 104;     // until
-  tkFor = 105;       // for
-  tkTo = 106;        // to
-  tkDownTo = 107;    // downto
-  tkTry = 108;       // try
-  tkExcept = 109;    // except
-  tkOn = 110;        // on
-  tkFinally = 111;   // finally
-  tkRaise = 112;     // raise
-  tkInherited = 113; // inherited
+  tkIf = 99;         // if
+  tkThen = 100;      // then
+  tkElse = 101;      // else
+  tkWhile = 102;     // while
+  tkDo = 103;        // do
+  tkRepeat = 104;    // repeat
+  tkUntil = 105;     // until
+  tkFor = 106;       // for
+  tkTo = 107;        // to
+  tkDownTo = 108;    // downto
+  tkTry = 109;       // try
+  tkExcept = 110;    // except
+  tkOn = 111;        // on
+  tkFinally = 112;   // finally
+  tkRaise = 113;     // raise
+  tkInherited = 114; // inherited
 
   tkPreProcessor = -1; // pre-processor instruction
 
@@ -791,6 +792,7 @@ begin
           if Key = 'shl'            then SymbolClass := tkShl else
           if Key = 'shr'            then SymbolClass := tkShr else
           if Key = 'static'         then SymbolClass := tkStatic else
+          if Key = 'strict'         then SymbolClass := tkStrict else
           if Key = 'string'         then SymbolClass := tkString;
     't' : if Key = 'then'           then SymbolClass := tkThen else
           if Key = 'to'             then SymbolClass := tkTo else

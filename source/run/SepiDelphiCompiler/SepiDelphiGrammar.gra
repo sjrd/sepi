@@ -44,6 +44,7 @@ tkPrivate	private
 tkProtected	protected
 tkPublic	public
 tkPublished	published
+tkStrict	strict
 tkBegin	begin
 tkEnd	end
 tkNil	nil
@@ -550,6 +551,11 @@ ntVisibility	Visibility
 	'protected'
 	'public'
 	'published'
+	'strict' StrictVisibility
+
+ntStrictVisibility	StrictVisibility	Simplify
+	'private'
+	'protected'
 
 ntClassMemberList	ClassMemberList	Simplify
 	(Field)* (ClassMethodProp)*

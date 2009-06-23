@@ -1,0 +1,54 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ProjectGuid>{b67043be-9dd7-46dd-b41e-7ca8ec379b2e}</ProjectGuid>
+  </PropertyGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <Projects Include="programs\SepiDelphiCompiler\SDC.dproj" />
+    <Projects Include="programs\SepiExplorer\SepiExplorer.dproj" />
+    <Projects Include="programs\SepiRun\Sepi.dproj" />
+  </ItemGroup>
+  <ProjectExtensions>
+    <Borland.Personality>Default.Personality</Borland.Personality>
+    <Borland.ProjectType />
+    <BorlandProject>
+  <BorlandProject xmlns=""> <Default.Personality> </Default.Personality> </BorlandProject></BorlandProject>
+  </ProjectExtensions>
+  <Target Name="SDC">
+    <MSBuild Projects="programs\SepiDelphiCompiler\SDC.dproj" Targets="" />
+  </Target>
+  <Target Name="SDC:Clean">
+    <MSBuild Projects="programs\SepiDelphiCompiler\SDC.dproj" Targets="Clean" />
+  </Target>
+  <Target Name="SDC:Make">
+    <MSBuild Projects="programs\SepiDelphiCompiler\SDC.dproj" Targets="Make" />
+  </Target>
+  <Target Name="Sepi">
+    <MSBuild Projects="programs\SepiRun\Sepi.dproj" Targets="" />
+  </Target>
+  <Target Name="Sepi:Clean">
+    <MSBuild Projects="programs\SepiRun\Sepi.dproj" Targets="Clean" />
+  </Target>
+  <Target Name="Sepi:Make">
+    <MSBuild Projects="programs\SepiRun\Sepi.dproj" Targets="Make" />
+  </Target>
+  <Target Name="SepiExplorer">
+    <MSBuild Projects="programs\SepiExplorer\SepiExplorer.dproj" Targets="" />
+  </Target>
+  <Target Name="SepiExplorer:Clean">
+    <MSBuild Projects="programs\SepiExplorer\SepiExplorer.dproj" Targets="Clean" />
+  </Target>
+  <Target Name="SepiExplorer:Make">
+    <MSBuild Projects="programs\SepiExplorer\SepiExplorer.dproj" Targets="Make" />
+  </Target>
+  <Target Name="Build">
+    <CallTarget Targets="SDC;Sepi;SepiExplorer" />
+  </Target>
+  <Target Name="Clean">
+    <CallTarget Targets="SDC:Clean;Sepi:Clean;SepiExplorer:Clean" />
+  </Target>
+  <Target Name="Make">
+    <CallTarget Targets="SDC:Make;Sepi:Make;SepiExplorer:Make" />
+  </Target>
+  <Import Condition="Exists('$(MSBuildBinPath)\Borland.Group.Targets')" Project="$(MSBuildBinPath)\Borland.Group.Targets" />
+</Project>

@@ -8,6 +8,7 @@ uses
   SepiImportsComCtrls,
   SepiImportsControls,
   SepiImportsDialogs,
+  SepiImportsGraphUtil,
   SepiImportsExtCtrls,
   SepiImportsForms,
   SepiImportsGraphics,
