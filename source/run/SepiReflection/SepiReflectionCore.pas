@@ -35,6 +35,7 @@ uses
 
 type
   TSepiComponent = class;
+  TSepiContainerType = class;
   TSepiRoot = class;
   TSepiUnit = class;
   TSepiAsynchronousRootManager = class;
@@ -213,7 +214,7 @@ type
     function InternalGetComponent(const Name: string): TSepiComponent; virtual;
 
     function InternalLookFor(const Name: string; FromUnit: TSepiUnit;
-      FromClass: TSepiComponent = nil): TSepiComponent; virtual;
+      FromContainer: TSepiContainerType = nil): TSepiComponent; virtual;
 
     function GetDisplayName: string; virtual;
 
@@ -233,9 +234,9 @@ type
     function FindComponent(const Name: string): TSepiComponent;
 
     function IsVisibleFrom(FromUnit: TSepiUnit;
-      FromClass: TSepiComponent = nil): Boolean;
+      FromContainer: TSepiComponent = nil): Boolean;
     function LookFor(const Name: string; FromUnit: TSepiUnit;
-      FromClass: TSepiComponent = nil): TSepiComponent; overload;
+      FromContainer: TSepiContainerType = nil): TSepiComponent; overload;
     function LookFor(const Name: string): TSepiComponent; overload;
 
     function MakeUnnamedChildName: string;
@@ -375,6 +376,30 @@ type
   TSepiTypeClass = class of TSepiType;
 
   {*
+    Membre d'un type conteneur
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiMember = class(TSepiComponent)
+  private
+    function GetContainer: TSepiContainerType;
+  public
+    property Container: TSepiContainerType read GetContainer;
+  end;
+
+  {*
+    Type conteneur
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiContainerType = class(TSepiType)
+  public
+    function LookForMember(const MemberName: string; FromUnit: TSepiUnit;
+      FromContainer: TSepiContainerType = nil): TSepiMember; overload; virtual;
+    function LookForMember(const MemberName: string): TSepiMember; overload;
+  end;
+
+  {*
     Racine de l'arbre de réflexion
     @author sjrd
     @version 1.0
@@ -392,7 +417,7 @@ type
     procedure ReAddChild(Child: TSepiComponent); override;
 
     function InternalLookFor(const Name: string; FromUnit: TSepiUnit;
-      FromClass: TSepiComponent = nil): TSepiComponent; override;
+      FromContainer: TSepiContainerType = nil): TSepiComponent; override;
 
     function IncUnitRefCount(SepiUnit: TSepiUnit): Integer; virtual;
     function DecUnitRefCount(SepiUnit: TSepiUnit): Integer; virtual;
@@ -548,7 +573,7 @@ type
     function InternalGetComponent(const Name: string): TSepiComponent; override;
 
     function InternalLookFor(const Name: string; FromUnit: TSepiUnit;
-      FromClass: TSepiComponent = nil): TSepiComponent; override;
+      FromContainer: TSepiContainerType = nil): TSepiComponent; override;
   public
     constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
     constructor Create(AOwner: TSepiComponent; const AName: string;
@@ -697,7 +722,7 @@ type
     procedure Save(Stream: TStream); override;
 
     function InternalLookFor(const Name: string; FromUnit: TSepiUnit;
-      FromClass: TSepiComponent = nil): TSepiComponent; override;
+      FromContainer: TSepiContainerType = nil): TSepiComponent; override;
   public
     constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
     constructor Create(AOwner: TSepiComponent; const AName: string;
@@ -1462,24 +1487,25 @@ end;
   InternalLookFor ne doit pas être appelée directement : passez par LookFor.
   LookFor n'appelle InternalLookFor qu'avec un nom non-composé (sans .), et un
   paramètre FromClass qui est toujours de type TSepiClass.
-  @param Name        Nom du meta recherché
-  @param FromUnit    Unité depuis laquelle on recherche
-  @param FromClass   Classe depuis laquelle on recherche (défaut = nil)
+  @param Name            Nom du meta recherché
+  @param FromUnit        Unité depuis laquelle on recherche
+  @param FromContainer   Classe depuis laquelle on recherche (défaut = nil)
   @return Le meta recherché, ou nil si non trouvé
 *}
 function TSepiComponent.InternalLookFor(const Name: string; FromUnit: TSepiUnit;
-  FromClass: TSepiComponent = nil): TSepiComponent;
+  FromContainer: TSepiContainerType = nil): TSepiComponent;
 begin
   // Basic search
   Result := GetComponent(Name);
 
   // Check for visibility
-  if (Result <> nil) and (not Result.IsVisibleFrom(FromUnit, FromClass)) then
+  if (Result <> nil) and
+    (not Result.IsVisibleFrom(FromUnit, FromContainer)) then
     Result := nil;
 
   // If not found, continue search a level up
   if (Result = nil) and (Owner <> nil) then
-    Result := Owner.InternalLookFor(Name, FromUnit, FromClass);
+    Result := Owner.InternalLookFor(Name, FromUnit, FromContainer);
 end;
 
 {*
@@ -1579,12 +1605,12 @@ end;
 
 {*
   Teste si ce composant est visible depuis un endroit donné du programme
-  @param FromUnit    Unité depuis laquelle on regarde
-  @param FromClass   Classe depuis laquelle on regarde (défaut = nil)
+  @param FromUnit        Unité depuis laquelle on regarde
+  @param FromContainer   Conteneur depuis lequel on regarde (défaut = nil)
   @return True si le meta est visible, False sinon
 *}
 function TSepiComponent.IsVisibleFrom(FromUnit: TSepiUnit;
-  FromClass: TSepiComponent = nil): Boolean;
+  FromContainer: TSepiComponent = nil): Boolean;
 begin
   Result := True;
 
@@ -1592,13 +1618,13 @@ begin
     Exit;
   if (Visibility in [mvPrivate, mvProtected]) and (FromUnit = OwningUnit) then
     Exit;
-  if FromClass = Owner then
+  if FromContainer = Owner then
     Exit;
 
   if Visibility in [mvStrictProtected, mvProtected] then
   begin
-    if (FromClass is TSepiClass) and (Owner is TSepiClass) and
-      TSepiClass(FromClass).ClassInheritsFrom(TSepiClass(Owner)) then
+    if (FromContainer is TSepiClass) and (Owner is TSepiClass) and
+      TSepiClass(FromContainer).ClassInheritsFrom(TSepiClass(Owner)) then
       Exit;
   end;
 
@@ -1612,38 +1638,39 @@ end;
   Si Name est un nom composé, la première partie est recherchée selon
   l'algorithme LookFor, et les suivantes selon l'algorithme GetComponent.
   Le paramètre FromClass doit être de type TSepiClass.
-  @param Name        Nom du composant recherché
-  @param FromUnit    Unité depuis laquelle on recherche
-  @param FromClass   Classe depuis laquelle on recherche (défaut = nil)
+  @param Name            Nom du composant recherché
+  @param FromUnit        Unité depuis laquelle on recherche
+  @param FromContainer   Conteneur depuis lequel on regarde (défaut = nil)
   @return Le composant recherché, ou nil si non trouvé
 *}
 function TSepiComponent.LookFor(const Name: string; FromUnit: TSepiUnit;
-  FromClass: TSepiComponent = nil): TSepiComponent;
+  FromContainer: TSepiContainerType = nil): TSepiComponent;
 var
   FirstName, ChildName: string;
 begin
   if not SplitToken(Name, '.', FirstName, ChildName) then
     ChildName := '';
 
-  Result := InternalLookFor(FirstName, FromUnit, FromClass as TSepiClass);
+  Result := InternalLookFor(FirstName, FromUnit, FromContainer);
   if (Result <> nil) and (ChildName <> '') then
     Result := Result.GetComponent(ChildName);
 end;
 
 {*
   Recherche un composant à partir de son nom
-  Cette version de LookFor détermine les FromUnit et FromClass qui
+  Cette version de LookFor détermine les FromUnit et FromContainer qui
   correspondent à ce composant.
 *}
 function TSepiComponent.LookFor(const Name: string): TSepiComponent;
 var
-  FromClass: TSepiComponent;
+  FromContainer: TSepiComponent;
 begin
-  FromClass := Self;
-  while (FromClass <> nil) and (not (FromClass is TSepiClass)) do
-    FromClass := FromClass.Owner;
+  FromContainer := Self;
+  while (FromContainer <> nil) and
+    (not (FromContainer is TSepiContainerType)) do
+    FromContainer := FromContainer.Owner;
 
-  Result := LookFor(Name, OwningUnit, FromClass);
+  Result := LookFor(Name, OwningUnit, TSepiContainerType(FromContainer));
 end;
 
 {*
@@ -2032,6 +2059,67 @@ begin
   Result := AType.FKind = FKind;
 end;
 
+{-------------------}
+{ TSepiMember class }
+{-------------------}
+
+{*
+  Conteneur de ce membre
+  Pour les instances de TSepiMethodBase, GetContainer peut renvoyer nil, si
+  elles sont contenues dans une unité.
+  @return Conteneur de ce membre
+*}
+function TSepiMember.GetContainer: TSepiContainerType;
+begin
+  if Owner is TSepiContainerType then
+    Result := TSepiContainerType(Owner)
+  else
+    Result := nil;
+end;
+
+{--------------------------}
+{ TSepiContainerType class }
+{--------------------------}
+
+{*
+  Recherche un membre dans ce conteneur, en tenant compte des visibilités
+  @param MemberName      Nom du membre recherché
+  @param FromUnit        Unité d'où l'on cherche
+  @param FromContainer   Conteneur d'où l'on cherche (peut être nil)
+  @return Le membre correspondant, ou nil si non trouvé
+*}
+function TSepiContainerType.LookForMember(const MemberName: string;
+  FromUnit: TSepiUnit; FromContainer: TSepiContainerType = nil): TSepiMember;
+var
+  Component: TSepiComponent;
+begin
+  if MemberName = '' then
+  begin
+    Result := nil;
+    Exit;
+  end;
+
+  Component := GetComponent(MemberName);
+
+  if not (Component is TSepiMember) then
+    Result := nil
+  else if (not Component.IsVisibleFrom(FromUnit, FromContainer)) then
+    Result := nil
+  else
+    Result := TSepiMember(Component);
+end;
+
+{*
+  Recherche un membre dans ce conteneur depuis celui-ci
+  @param MemberName   Nom du membre recherché
+  @return Le membre correspondant, ou nil si non trouvé
+*}
+function TSepiContainerType.LookForMember(
+  const MemberName: string): TSepiMember;
+begin
+  Result := LookForMember(MemberName, OwningUnit, Self);
+end;
+
 {------------------}
 { Classe TSepiRoot }
 {------------------}
@@ -2127,19 +2215,19 @@ end;
   [@inheritDoc]
 *}
 function TSepiRoot.InternalLookFor(const Name: string; FromUnit: TSepiUnit;
-  FromClass: TSepiComponent = nil): TSepiComponent;
+  FromContainer: TSepiContainerType = nil): TSepiComponent;
 var
   I: Integer;
 begin
   // Search in root
-  Result := inherited InternalLookFor(Name, FromUnit, FromClass);
+  Result := inherited InternalLookFor(Name, FromUnit, FromContainer);
   if Result <> nil then
     Exit;
 
   // Search in FromUnit
   if FromUnit <> nil then
   begin
-    Result := FromUnit.InternalLookFor(Name, FromUnit, FromClass);
+    Result := FromUnit.InternalLookFor(Name, FromUnit, FromContainer);
     if Result <> nil then
       Exit;
   end;
@@ -2149,7 +2237,7 @@ begin
   begin
     if Children[I] = FromUnit then
       Continue;
-    Result := Children[I].InternalLookFor(Name, FromUnit, FromClass);
+    Result := Children[I].InternalLookFor(Name, FromUnit, FromContainer);
     if Result <> nil then
       Exit;
   end;
@@ -3223,13 +3311,14 @@ end;
   [@inheritDoc]
 *}
 function TSepiUnit.InternalLookFor(const Name: string; FromUnit: TSepiUnit;
-  FromClass: TSepiComponent = nil): TSepiComponent;
+  FromContainer: TSepiContainerType = nil): TSepiComponent;
 var
   I: Integer;
 begin
   // Basic search
   Result := GetComponent(Name);
-  if (Result <> nil) and (not Result.IsVisibleFrom(FromUnit, FromClass)) then
+  if (Result <> nil) and
+    (not Result.IsVisibleFrom(FromUnit, FromContainer)) then
     Result := nil;
   if Result <> nil then
     Exit;
@@ -3256,7 +3345,7 @@ begin
     Exit;
   for I := UsedUnitCount-1 downto 0 do
   begin
-    Result := UsedUnits[I].InternalLookFor(Name, FromUnit, FromClass);
+    Result := UsedUnits[I].InternalLookFor(Name, FromUnit, FromContainer);
     if Result <> nil then
       Exit;
   end;
@@ -3931,22 +4020,23 @@ end;
   [@inheritDoc]
 *}
 function TSepiNamespace.InternalLookFor(const Name: string; FromUnit: TSepiUnit;
-  FromClass: TSepiComponent): TSepiComponent;
+  FromContainer: TSepiContainerType): TSepiComponent;
 begin
   if VirtualOwner = nil then
-    Result := inherited InternalLookFor(Name, FromUnit, FromClass)
+    Result := inherited InternalLookFor(Name, FromUnit, FromContainer)
   else
   begin
     // Basic search
     Result := GetComponent(Name);
 
     // Check for visibility
-    if (Result <> nil) and (not Result.IsVisibleFrom(FromUnit, FromClass)) then
+    if (Result <> nil) and
+      (not Result.IsVisibleFrom(FromUnit, FromContainer)) then
       Result := nil;
 
     // If not found, continue search in the virtual owner
     if Result = nil then
-      Result := VirtualOwner.InternalLookFor(Name, FromUnit, FromClass);
+      Result := VirtualOwner.InternalLookFor(Name, FromUnit, FromContainer);
   end;
 end;
 

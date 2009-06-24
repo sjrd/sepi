@@ -158,6 +158,8 @@ resourcestring
   SPropertyNotFoundInBaseClass =
     'La propriété n''a pas été trouvée dans la classe de base';
   SFieldOrMethodRequired = 'Champ ou méthode requis';
+  SFieldRequired = 'Champ requis';
+  SRecordFieldRequired = 'Champ de type record requis';
   SScalarPropertyRequired = 'Propriété non-tableau requise';
   SDuplicateDefaultDirective = 'Directive default dupliquée';
   SArrayPropertyRequired = 'Propriété tableau requise';

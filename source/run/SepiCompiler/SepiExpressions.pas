@@ -273,6 +273,7 @@ type
     FSepiRoot: TSepiRoot;                 /// Racine Sepi
     FUnitCompiler: TSepiUnitCompiler;     /// Compilateur d'unité
     FMethodCompiler: TSepiMethodCompiler; /// Compilateur de méthode
+    FLanguageRules: TSepiLanguageRules;   /// Règles du langage utilisé
 
     function GetExpression: ISepiExpression;
   protected
@@ -289,6 +290,7 @@ type
     property SepiRoot: TSepiRoot read FSepiRoot;
     property UnitCompiler: TSepiUnitCompiler read FUnitCompiler;
     property MethodCompiler: TSepiMethodCompiler read FMethodCompiler;
+    property LanguageRules: TSepiLanguageRules read FLanguageRules;
   end;
 
   {*
@@ -1609,6 +1611,7 @@ begin
     FSepiRoot := ExprController.SepiRoot;
     FUnitCompiler := ExprController.UnitCompiler;
     FMethodCompiler := ExprController.MethodCompiler;
+    FLanguageRules := ExprController.LanguageRules;
   end;
 end;
 
@@ -1625,6 +1628,7 @@ begin
     FSepiRoot := nil;
     FUnitCompiler := nil;
     FMethodCompiler := nil;
+    FLanguageRules := nil;
   end;
 end;
 

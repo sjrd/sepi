@@ -192,7 +192,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TSepiField = class(TSepiComponent)
+  TSepiField = class(TSepiMember)
   private
     FType: TSepiType; /// Type du champ
     FOffset: Integer; /// Offset
@@ -383,11 +383,19 @@ type
   end;
 
   {*
+    Classe de base pour les classes TSepiMethod et TSepiOverloadedMethod
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiMethodBase = class(TSepiMember)
+  end;
+
+  {*
     Méthode ou routine
     @author sjrd
     @version 1.0
   *}
-  TSepiMethod = class(TSepiComponent)
+  TSepiMethod = class(TSepiMethodBase)
   private
     FCode: Pointer;               /// Adresse de code natif
     FCodeJumper: TJmpInstruction; /// Jumper sur le code, si non native
@@ -473,7 +481,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TSepiOverloadedMethod = class(TSepiComponent)
+  TSepiOverloadedMethod = class(TSepiMethodBase)
   private
     FMethods: TObjectList; /// Liste des méthodes de même nom
 
@@ -529,7 +537,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TSepiProperty = class(TSepiComponent)
+  TSepiProperty = class(TSepiMember)
   private
     FSignature: TSepiSignature; /// Signature
 
@@ -597,7 +605,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TSepiRecordType = class(TSepiType)
+  TSepiRecordType = class(TSepiContainerType)
   private
     FPacked: Boolean;    /// Indique si le record est packed
     FAlignment: Integer; /// Alignement
@@ -651,11 +659,34 @@ type
   end;
 
   {*
+    Type conteneur qui peut être hérité
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiInheritableContainerType = class(TSepiContainerType)
+  protected
+    function InternalLookFor(const Name: string; FromUnit: TSepiUnit;
+      FromContainer: TSepiContainerType = nil): TSepiComponent; override;
+
+    function GetParentContainer:
+      TSepiInheritableContainerType; virtual; abstract;
+  public
+    function LookForMember(const MemberName: string; FromUnit: TSepiUnit;
+      FromContainer: TSepiContainerType = nil): TSepiMember; override;
+
+    function ContainerInheritsFrom(
+      Ancestor: TSepiInheritableContainerType): Boolean;
+
+    property ParentContainer: TSepiInheritableContainerType
+      read GetParentContainer;
+  end;
+
+  {*
     Interface
     @author sjrd
     @version 1.0
   *}
-  TSepiInterface = class(TSepiType)
+  TSepiInterface = class(TSepiInheritableContainerType)
   private
     FParent: TSepiInterface; /// Interface parent (ou nil - IInterface)
     FCompleted: Boolean;
@@ -673,10 +704,8 @@ type
     procedure ListReferences; override;
     procedure Save(Stream: TStream); override;
 
-    function InternalLookFor(const Name: string; FromUnit: TSepiUnit;
-      FromClass: TSepiComponent = nil): TSepiComponent; override;
-
     function GetDescription: string; override;
+    function GetParentContainer: TSepiInheritableContainerType; override;
   public
     constructor RegisterTypeInfo(AOwner: TSepiComponent;
       ATypeInfo: PTypeInfo); override;
@@ -714,8 +743,6 @@ type
     function Equals(Other: TSepiType): Boolean; override;
 
     function IntfInheritsFrom(AParent: TSepiInterface): Boolean;
-
-    function LookForMember(const MemberName: string): TSepiComponent;
 
     property Parent: TSepiInterface read FParent;
     property Completed: Boolean read FCompleted;
@@ -758,7 +785,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TSepiClass = class(TSepiType)
+  TSepiClass = class(TSepiInheritableContainerType)
   private
     FDelphiClass: TClass; /// Classe Delphi
     FParent: TSepiClass;  /// Classe parent (nil si n'existe pas - TObject)
@@ -798,10 +825,8 @@ type
     procedure ListReferences; override;
     procedure Save(Stream: TStream); override;
 
-    function InternalLookFor(const Name: string; FromUnit: TSepiUnit;
-      FromClass: TSepiComponent = nil): TSepiComponent; override;
-
     function GetDescription: string; override;
+    function GetParentContainer: TSepiInheritableContainerType; override;
 
     function FindIntfMethodImpl(IntfMethod: TSepiMethod;
       FromClass: TSepiClass): TSepiMethod;
@@ -891,10 +916,6 @@ type
 
     function ClassInheritsFrom(AParent: TSepiClass): Boolean;
     function ClassImplementsInterface(AInterface: TSepiInterface): Boolean;
-
-    function LookForMember(const MemberName: string; FromUnit: TSepiUnit;
-      FromClass: TSepiClass = nil): TSepiComponent; overload;
-    function LookForMember(const MemberName: string): TSepiComponent; overload;
 
     property DelphiClass: TClass read FDelphiClass;
     property Parent: TSepiClass read FParent;
@@ -3294,6 +3315,65 @@ begin
   Result := Self = AType;
 end;
 
+{-------------------------------------}
+{ TSepiInheritableContainerType class }
+{-------------------------------------}
+
+{*
+  [@inheritDoc]
+*}
+function TSepiInheritableContainerType.InternalLookFor(const Name: string;
+  FromUnit: TSepiUnit; FromContainer: TSepiContainerType = nil): TSepiComponent;
+var
+  Ancestor: TSepiInheritableContainerType;
+begin
+  // Look in the hierarchy first
+  Ancestor := Self;
+  while (Ancestor <> nil) do
+  begin
+    Result := Ancestor.GetComponent(Name);
+    if (Result <> nil) and Result.IsVisibleFrom(FromUnit, FromContainer) then
+      Exit;
+    Ancestor := Ancestor.ParentContainer;
+  end;
+
+  // If not found, continue search a level up
+  if Owner = nil then
+    Result := nil
+  else
+    Result := TSepiInheritableContainerType(Owner).InternalLookFor(
+      Name, FromUnit, FromContainer);
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiInheritableContainerType.LookForMember(const MemberName: string;
+  FromUnit: TSepiUnit; FromContainer: TSepiContainerType = nil): TSepiMember;
+begin
+  Result := inherited LookForMember(MemberName, FromUnit, FromContainer);
+
+  if (Result = nil) and (ParentContainer <> nil) then
+    Result := ParentContainer.LookForMember(MemberName, FromUnit,
+      FromContainer);
+end;
+
+{*
+  Teste si ce conteneur hérite d'un conteneur donné
+  @param Ancestor   Ancêtre à tester
+  @return True si ce conteneur hérite de Ancestor, False sinon
+*}
+function TSepiInheritableContainerType.ContainerInheritsFrom(
+  Ancestor: TSepiInheritableContainerType): Boolean;
+begin
+  if Ancestor = Self then
+    Result := True
+  else if ParentContainer = nil then
+    Result := False
+  else
+    Result := ParentContainer.ContainerInheritsFrom(Ancestor);
+end;
+
 {-----------------------}
 { Classe TSepiInterface }
 {-----------------------}
@@ -3461,23 +3541,17 @@ end;
 {*
   [@inheritDoc]
 *}
-function TSepiInterface.InternalLookFor(const Name: string;
-  FromUnit: TSepiUnit; FromClass: TSepiComponent = nil): TSepiComponent;
+function TSepiInterface.GetDescription: string;
 begin
-  // Look for a member first
-  Result := LookForMember(Name);
-
-  // If not found, continue search a level up
-  if (Result = nil) and (Owner <> nil) then
-    Result := TSepiInterface(Owner).InternalLookFor(Name, FromUnit, FromClass);
+  Result := 'interface';
 end;
 
 {*
   [@inheritDoc]
 *}
-function TSepiInterface.GetDescription: string;
+function TSepiInterface.GetParentContainer: TSepiInheritableContainerType;
 begin
-  Result := 'interface';
+  Result := Parent;
 end;
 
 {*
@@ -3631,24 +3705,6 @@ function TSepiInterface.IntfInheritsFrom(AParent: TSepiInterface): Boolean;
 begin
   Result := (AParent = Self) or
     (Assigned(FParent) and FParent.IntfInheritsFrom(AParent));
-end;
-
-{*
-  Recherche un membre dans l'interface
-  @param MemberName   Nom du membre recherché
-  @return Le membre correspondant, ou nil si non trouvé
-*}
-function TSepiInterface.LookForMember(const MemberName: string): TSepiComponent;
-begin
-  if MemberName = '' then
-  begin
-    Result := nil;
-    Exit;
-  end;
-
-  Result := GetComponent(MemberName);
-  if (Result = nil) and (Parent <> nil) then
-    Result := Parent.LookForMember(MemberName);
 end;
 
 {-------------------}
@@ -4346,7 +4402,8 @@ begin
   if Child is TSepiField then
   begin
     with TSepiField(Child) do
-      FInstSize := Offset + FieldType.Size;
+      if Offset + FieldType.Size > FInstSize then
+        FInstSize := Offset + FieldType.Size;
   end else if Child is TSepiProperty then
   begin
     if TSepiProperty(Child).IsDefault then
@@ -4388,23 +4445,17 @@ end;
 {*
   [@inheritDoc]
 *}
-function TSepiClass.InternalLookFor(const Name: string; FromUnit: TSepiUnit;
-  FromClass: TSepiComponent = nil): TSepiComponent;
+function TSepiClass.GetDescription: string;
 begin
-  // Look for a member first
-  Result := LookForMember(Name, FromUnit, TSepiClass(FromClass));
-
-  // If not found, continue search a level up
-  if (Result = nil) and (Owner <> nil) then
-    Result := TSepiClass(Owner).InternalLookFor(Name, FromUnit, FromClass);
+  Result := 'class';
 end;
 
 {*
   [@inheritDoc]
 *}
-function TSepiClass.GetDescription: string;
+function TSepiClass.GetParentContainer: TSepiInheritableContainerType;
 begin
-  Result := 'class';
+  Result := Parent;
 end;
 
 {*
@@ -4844,41 +4895,6 @@ begin
     Result := False
   else
     Result := Parent.ClassImplementsInterface(AInterface);
-end;
-
-{*
-  Recherche un membre dans la classe, en tenant compte des visibilités
-  @param MemberName   Nom du membre recherché
-  @param FromUnit     Unité d'où l'on cherche
-  @param FromClass    Classe d'où l'on cherche (ou nil si pas de classe)
-  @return Le membre correspondant, ou nil si non trouvé
-*}
-function TSepiClass.LookForMember(const MemberName: string;
-  FromUnit: TSepiUnit; FromClass: TSepiClass = nil): TSepiComponent;
-begin
-  if MemberName = '' then
-  begin
-    Result := nil;
-    Exit;
-  end;
-
-  Result := GetComponent(MemberName);
-
-  if (Result <> nil) and (not Result.IsVisibleFrom(FromUnit, FromClass)) then
-    Result := nil;
-
-  if (Result = nil) and (Parent <> nil) then
-    Result := Parent.LookForMember(MemberName, FromUnit, FromClass);
-end;
-
-{*
-  Recherche un membre dans la classe depuis cette classe
-  @param MemberName   Nom du membre recherché
-  @return Le membre correspondant, ou nil si non trouvé
-*}
-function TSepiClass.LookForMember(const MemberName: string): TSepiComponent;
-begin
-  Result := LookForMember(MemberName, OwningUnit, Self);
 end;
 
 {-----------------------}

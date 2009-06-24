@@ -69,6 +69,7 @@ type
     function GetUnitCompiler: TSepiUnitCompiler;
     function GetSepiRoot: TSepiRoot;
     function GetSepiUnit: TSepiUnit;
+    function GetLanguageRules: TSepiLanguageRules;
     function GetSystemUnit: TSepiSystemUnit;
   protected
     procedure SetSymbolClass(Value: TSepiSymbolClass);
@@ -153,6 +154,7 @@ type
     property SepiRoot: TSepiRoot read GetSepiRoot;
     property SepiUnit: TSepiUnit read GetSepiUnit;
     property SepiContext: TSepiComponent read GetSepiContext;
+    property LanguageRules: TSepiLanguageRules read GetLanguageRules;
     property SystemUnit: TSepiSystemUnit read GetSystemUnit;
 
     property AsText: string read GetAsText;
@@ -231,7 +233,8 @@ type
     FErrors: TSepiCompilerErrorList; /// Gestionnaire d'erreurs de compilation
   protected
     procedure SetUnitCompiler(AUnitCompiler: TSepiUnitCompiler);
-    procedure SetSepiUnit(ASepiUnit: TSepiUnit);
+    procedure SetSepiUnit(ASepiUnit: TSepiUnit;
+      LanguageRulesClass: TSepiLanguageRulesClass);
   public
     constructor Create(AClass: TSepiSymbolClass; ASepiRoot: TSepiRoot;
       AErrors: TSepiCompilerErrorList); virtual;
@@ -427,6 +430,18 @@ function TSepiParseTreeNode.GetSepiUnit: TSepiUnit;
 begin
   if RootNode <> nil then
     Result := RootNode.SepiUnit
+  else
+    Result := nil;
+end;
+
+{*
+  Règles du langage utilisé
+  @return Règles du langage utilisé, si rattaché à un noeud racine, nil sinon
+*}
+function TSepiParseTreeNode.GetLanguageRules: TSepiLanguageRules;
+begin
+  if RootNode <> nil then
+    Result := RootNode.UnitCompiler.LanguageRules
   else
     Result := nil;
 end;
@@ -1012,9 +1027,11 @@ end;
   Renseigne l'unité Sepi, et crée un compilateur d'unité
   @param ASepiUnit   Unité Sepi à compiler
 *}
-procedure TSepiParseTreeRootNode.SetSepiUnit(ASepiUnit: TSepiUnit);
+procedure TSepiParseTreeRootNode.SetSepiUnit(ASepiUnit: TSepiUnit;
+  LanguageRulesClass: TSepiLanguageRulesClass);
 begin
-  FUnitCompiler := TSepiUnitCompiler.Create(Errors, ASepiUnit);
+  FUnitCompiler := TSepiUnitCompiler.Create(Errors, ASepiUnit,
+    LanguageRulesClass);
   FSepiUnit := ASepiUnit;
 end;
 

@@ -3074,7 +3074,7 @@ end;
 
 function TSepiFieldSelectionModifierNode.MakeFieldSelection: ISepiExpression;
 begin
-  Result := FieldSelection(SepiContext, Base, Children[0].AsText);
+  Result := LanguageRules.FieldSelection(SepiContext, Base, Children[0].AsText);
 end;
 
 {*
@@ -4481,7 +4481,7 @@ end;
 function TSepiMethodBodyNode.ResolveIdent(
   const Identifier: string): ISepiExpression;
 begin
-  Result := MethodResolveIdent(MethodCompiler, Identifier);
+  Result := LanguageRules.ResolveIdentInMethod(MethodCompiler, Identifier);
 end;
 
 {*

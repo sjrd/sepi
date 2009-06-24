@@ -3,8 +3,8 @@ unit SepiCompilerUtils;
 interface
 
 uses
-  SysUtils, Classes, TypInfo, SepiReflectionCore, SepiOrdTypes, SepiMembers,
-  SepiSystemUnit,
+  SysUtils, Classes, StrUtils, TypInfo, ScStrUtils,
+  SepiReflectionCore, SepiOrdTypes, SepiMembers, SepiSystemUnit,
   SepiExpressions, SepiParseTrees, SepiLexerUtils, SepiParserUtils,
   SepiCompilerErrors, SepiCompiler, SepiCompilerConsts;
 
@@ -18,10 +18,10 @@ type
   private
     FOwner: TSepiComponent; /// Propriétaire du membre à construire
 
-    FOwnerType: TSepiType;         /// Type propriétaire (si applicable)
-    FOwnerRecord: TSepiRecordType; /// Record propriétaire (si applicable)
-    FOwnerClass: TSepiClass;       /// Classe propriétaire (si applicable)
-    FOwnerIntf: TSepiInterface;    /// Interface propriétaire (si applicable)
+    FOwnerType: TSepiContainerType; /// Type propriétaire (si applicable)
+    FOwnerRecord: TSepiRecordType;  /// Record propriétaire (si applicable)
+    FOwnerClass: TSepiClass;        /// Classe propriétaire (si applicable)
+    FOwnerIntf: TSepiInterface;     /// Interface propriétaire (si applicable)
 
     FName: string; /// Nom du membre à construire
 
@@ -30,10 +30,10 @@ type
     procedure MakeError(const ErrorMsg: string;
       Kind: TSepiErrorKind = ekError);
 
-    function LookForMember(const MemberName: string): TSepiComponent;
-    function LookForMemberOrError(const MemberName: string): TSepiComponent;
+    function LookForMember(const MemberName: string): TSepiMember;
+    function LookForMemberOrError(const MemberName: string): TSepiMember;
 
-    property OwnerType: TSepiType read FOwnerType;
+    property OwnerType: TSepiContainerType read FOwnerType;
     property OwnerRecord: TSepiRecordType read FOwnerRecord;
     property OwnerClass: TSepiClass read FOwnerClass;
     property OwnerIntf: TSepiInterface read FOwnerIntf;
@@ -60,13 +60,15 @@ type
   TSepiPropertyBuilder = class(TSepiMemberBuilder)
   private
     FSignature: TSepiSignature;     /// Signature
-    FReadAccess: TSepiComponent;         /// Accesseur en lecture
-    FWriteAccess: TSepiComponent;        /// Accesseur en écriture
+    FReadAccess: TSepiComponent;    /// Accesseur en lecture
+    FWriteAccess: TSepiComponent;   /// Accesseur en écriture
     FIndex: Integer;                /// Index
     FIndexType: TSepiOrdType;       /// Type de l'index
     FDefaultValue: Integer;         /// Valeur par défaut
     FStorage: TSepiPropertyStorage; /// Spécificateur de stockage
     FIsDefault: Boolean;            /// True si c'est la propriété par défaut
+
+    function LookForAccessOrError(const AccessName: string): TSepiMember;
 
     function ValidateFieldAccess(Field: TSepiField): Boolean;
     function ValidateMethodAccess(Method: TSepiMethod;
@@ -369,9 +371,9 @@ begin
 
   FOwner := AOwner;
 
-  if Owner is TSepiType then
+  if Owner is TSepiContainerType then
   begin
-    FOwnerType := TSepiType(Owner);
+    FOwnerType := TSepiContainerType(Owner);
 
     if Owner is TSepiRecordType then
       FOwnerRecord := TSepiRecordType(Owner)
@@ -398,14 +400,11 @@ end;
   @param MemberName   Nom du membre
   @return Membre recherché, ou nil si non trouvé
 *}
-function TSepiMemberBuilder.LookForMember(const MemberName: string): TSepiComponent;
+function TSepiMemberBuilder.LookForMember(
+  const MemberName: string): TSepiMember;
 begin
-  if OwnerRecord <> nil then
-    Result := OwnerRecord.GetComponent(MemberName)
-  else if OwnerClass <> nil then
-    Result := OwnerClass.LookForMember(MemberName)
-  else if OwnerIntf <> nil then
-    Result := OwnerIntf.LookForMember(MemberName)
+  if OwnerType <> nil then
+    Result := OwnerType.LookForMember(MemberName)
   else
     Result := nil;
 end;
@@ -417,7 +416,7 @@ end;
   @return Membre recherché, ou nil si non trouvé
 *}
 function TSepiMemberBuilder.LookForMemberOrError(
-  const MemberName: string): TSepiComponent;
+  const MemberName: string): TSepiMember;
 begin
   Result := LookForMember(MemberName);
   CheckIdentFound(Result, MemberName, CurrentNode);
@@ -452,6 +451,73 @@ begin
   FSignature.Free;
 
   inherited;
+end;
+
+{*
+  Cherche un membre accesseur du type englobant d'après son nom
+  En cas d'erreur, produit un message d'erreur.
+  @param MemberName   Nom du membre
+  @return Membre recherché, ou nil si non trouvé
+*}
+function TSepiPropertyBuilder.LookForAccessOrError(
+  const AccessName: string): TSepiMember;
+var
+  MemberName, SubFieldName, Temp: string;
+  Offset: Integer;
+  OldVisibility: TMemberVisibility;
+begin
+  if not SplitToken(AccessName, '.', MemberName, SubFieldName) then
+    SubFieldName := '';
+
+  Result := LookForMemberOrError(MemberName);
+  if SubFieldName = '' then
+    Exit;
+
+  Offset := 0;
+  while SubFieldName <> '' do
+  begin
+    // Must be a record field
+    if (not (Result is TSepiField)) or
+      (not (TSepiField(Result).FieldType is TSepiRecordType)) then
+    begin
+      MakeError(SRecordFieldRequired);
+      Result := nil;
+      Exit;
+    end;
+
+    // Update offset
+    Inc(Offset, TSepiField(Result).Offset);
+
+    // Go to next sub field
+    Temp := SubFieldName;
+    if not SplitToken(Temp, '.', MemberName, SubFieldName) then
+      SubFieldName := '';
+
+    Result := TSepiRecordType(TSepiField(Result).FieldType).LookForMember(
+      MemberName);
+
+    if not CheckIdentFound(Result, MemberName, CurrentNode) then
+      Exit;
+  end;
+
+  if not (Result is TSepiField) then
+  begin
+    MakeError(SFieldRequired);
+    Result := nil;
+    Exit;
+  end;
+
+  Inc(Offset, TSepiField(Result).Offset);
+
+  OldVisibility := OwnerType.CurrentVisibility;
+  try
+    OwnerType.CurrentVisibility := mvStrictPrivate;
+    Result := TSepiField.Create(OwnerType,
+      AnsiReplaceStr(AccessName, '.', '$'), TSepiField(Result).FieldType,
+      Offset);
+  finally
+    OwnerType.CurrentVisibility := OldVisibility;
+  end;
 end;
 
 {*
@@ -656,7 +722,7 @@ var
 begin
   CurrentNode := Node;
 
-  Access := LookForMemberOrError(ReadAccessName);
+  Access := LookForAccessOrError(ReadAccessName);
   Result := ValidateAccess(Access, False);
 
   if Result then
@@ -676,7 +742,7 @@ var
 begin
   CurrentNode := Node;
 
-  Access := LookForMemberOrError(WriteAccessName);
+  Access := LookForAccessOrError(WriteAccessName);
   Result := ValidateAccess(Access, True);
 
   if Result then

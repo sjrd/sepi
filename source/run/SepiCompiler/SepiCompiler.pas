@@ -411,7 +411,59 @@ type
   end;
 
   {*
+    Règles sémantiques d'un langage
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiLanguageRules = class(TObject)
+  private
+    FUnitCompiler: TSepiUnitCompiler; /// Compilateur d'unité
+    FSepiRoot: TSepiRoot;             /// Racine Sepi
+    FSystemUnit: TSepiSystemUnit;     /// Unité System
+  public
+    constructor Create(AUnitCompiler: TSepiUnitCompiler); virtual;
+
+    {*
+      Résoud un identificateur
+      @param Context      Contexte dans lequel rechercher l'identificateur
+      @param Identifier   Identificateur recherché
+      @return Expression représentant l'identificateur, ou nil si non trouvé
+    *}
+    function ResolveIdent(Context: TSepiComponent;
+      const Identifier: string): ISepiExpression; virtual; abstract;
+
+    {*
+      Résoud un identificateur dans le contexte d'une méthode
+      @param Compiler     Compilateur de la méthode
+      @param Identifier   Identificateur recherché
+      @return Expression représentant l'identificateur, ou nil si non trouvé
+    *}
+    function ResolveIdentInMethod(Compiler: TSepiMethodCompiler;
+      const Identifier: string): ISepiExpression; virtual; abstract;
+
+    {*
+      Sélection de champ d'une expression
+      @param Context          Contexte Sepi depuis lequel chercher
+      @param BaseExpression   Expression de base
+      @param FieldName        Nom du champ
+      @return Expression représentant le champ sélectionné (nil si inexistant)
+    *}
+    function FieldSelection(Context: TSepiComponent;
+      const BaseExpression: ISepiExpression;
+      const FieldName: string): ISepiExpression; virtual; abstract;
+
+    property UnitCompiler: TSepiUnitCompiler read FUnitCompiler;
+    property SepiRoot: TSepiRoot read FSepiRoot;
+    property SystemUnit: TSepiSystemUnit read FSystemUnit;
+  end;
+
+  /// Classe de TSepiLanguageRules
+  TSepiLanguageRulesClass = class of TSepiLanguageRules;
+
+  {*
     Partie liable dynamiquement à une expression Sepi
+    @author sjrd
+    @version 1.0
   *}
   ISepiExpressionPart = interface(IDynamicallyLinkable)
     ['{2BBD5F29-1EDF-4C3F-A114-3820BAFB355A}']
@@ -422,10 +474,10 @@ type
   {*
     Expression Sepi
     Dans Sepi, une expression peut avoir différents types en même temps. Elle
-    peut à la fois être un meta et l'appel à une méthode, par exemple.
+    peut à la fois être un composant et l'appel à une méthode, par exemple.
     Les expressions Sepi sont donc des contrôleurs d'interfaces dynamiques, et
     il est possible de leur attacher/détacher toute interface implémentant
-    IDynamicLinkable.
+    ISepiExpressionPart.
     @author sjrd
     @version 1.0
   *}
@@ -449,6 +501,12 @@ type
       @return Compilateur de méthode
     *}
     function GetMethodCompiler: TSepiMethodCompiler;
+
+    {*
+      Règles du langage utilisé
+      @return Règles du langage utilisé
+    *}
+    function GetLanguageRules: TSepiLanguageRules;
 
     {*
       Position dans le source
@@ -485,6 +543,7 @@ type
     property SepiRoot: TSepiRoot read GetSepiRoot;
     property UnitCompiler: TSepiUnitCompiler read GetUnitCompiler;
     property MethodCompiler: TSepiMethodCompiler read GetMethodCompiler;
+    property LanguageRules: TSepiLanguageRules read GetLanguageRules;
 
     property SourcePos: TSepiSourcePosition
       read GetSourcePos write SetSourcePos;
@@ -508,12 +567,14 @@ type
     FSepiRoot: TSepiRoot;                 /// Racine Sepi
     FUnitCompiler: TSepiUnitCompiler;     /// Compilateur d'unité
     FMethodCompiler: TSepiMethodCompiler; /// Compilateur de méthode
+    FLanguageRules: TSepiLanguageRules;   /// Règles du langage utilisé
 
     FSourcePos: TSepiSourcePosition; /// Position dans le source
   protected
     function GetSepiRoot: TSepiRoot;
     function GetUnitCompiler: TSepiUnitCompiler;
     function GetMethodCompiler: TSepiMethodCompiler;
+    function GetLanguageRules: TSepiLanguageRules;
 
     function GetSourcePos: TSepiSourcePosition;
     procedure SetSourcePos(const Value: TSepiSourcePosition);
@@ -530,6 +591,7 @@ type
     property SepiRoot: TSepiRoot read FSepiRoot;
     property UnitCompiler: TSepiUnitCompiler read FUnitCompiler;
     property MethodCompiler: TSepiMethodCompiler read FMethodCompiler;
+    property LanguageRules: TSepiLanguageRules read FLanguageRules;
 
     property SourcePos: TSepiSourcePosition read FSourcePos write FSourcePos;
   end;
@@ -585,7 +647,7 @@ type
 
     function LabelExists(const LabelName: string): Boolean;
     function FindLabel(const LabelName: string;
-      Create: Boolean = False): TSepiNamedLabel;
+      AllowCreate: Boolean = False): TSepiNamedLabel;
 
     procedure EnterLoop(ContinueRef, BreakRef: TSepiInstructionRef);
     procedure LeaveLoop;
@@ -623,12 +685,15 @@ type
     FErrors: TSepiCompilerErrorList; /// Erreurs
 
     FSepiUnit: TSepiUnit;  /// Unité Sepi
+    FSepiRoot: TSepiRoot;  /// Racine Sepi
     FMethods: TObjectList; /// Compilateurs de méthodes
+
+    FLanguageRules: TSepiLanguageRules; /// Règles du langage utilisé
 
     FSystemUnit: TSepiSystemUnit; /// Unité System
 
-    FCompileTimeTypes: TSepiComponent; /// Types durant le temps de la compilation
-    FErroneousType: TSepiType;    /// Type erroné
+    FCompileTimeTypes: TSepiComponent; /// Types de compilation
+    FErroneousType: TSepiType;         /// Type erroné
 
     FReferences: TObjectList; /// Références
 
@@ -638,7 +703,7 @@ type
     function GetMethods(Index: Integer): TSepiMethodCompiler;
   public
     constructor Create(AErrors: TSepiCompilerErrorList;
-      ASepiUnit: TSepiUnit);
+      ASepiUnit: TSepiUnit; ALanguageRulesClass: TSepiLanguageRulesClass);
     destructor Destroy; override;
 
     function GetPointerType(PointTo: TSepiType): TSepiPointerType;
@@ -660,6 +725,9 @@ type
     property Errors: TSepiCompilerErrorList read FErrors;
 
     property SepiUnit: TSepiUnit read FSepiUnit;
+    property SepiRoot: TSepiRoot read FSepiRoot;
+
+    property LanguageRules: TSepiLanguageRules read FLanguageRules;
 
     property SystemUnit: TSepiSystemUnit read FSystemUnit;
 
@@ -2083,6 +2151,23 @@ begin
   Result := nil;
 end;
 
+{--------------------------}
+{ TSepiLanguageRules class }
+{--------------------------}
+
+{*
+  Crée de nouvelles règles de langage
+  @param AUnitCompiler   Compilateur d'unité
+*}
+constructor TSepiLanguageRules.Create(AUnitCompiler: TSepiUnitCompiler);
+begin
+  inherited Create;
+
+  FUnitCompiler := AUnitCompiler;
+  FSepiRoot := AUnitCompiler.SepiRoot;
+  FSystemUnit := AUnitCompiler.SystemUnit;
+end;
+
 {-----------------------}
 { TSepiExpression class }
 {-----------------------}
@@ -2096,7 +2181,8 @@ begin
   inherited Create;
 
   FUnitCompiler := AUnitCompiler;
-  FSepiRoot := UnitCompiler.SepiUnit.Root;
+  FSepiRoot := UnitCompiler.SepiRoot;
+  FLanguageRules := UnitCompiler.LanguageRules;
 end;
 
 {*
@@ -2109,7 +2195,8 @@ begin
 
   FMethodCompiler := AMethodCompiler;
   FUnitCompiler := MethodCompiler.UnitCompiler;
-  FSepiRoot := UnitCompiler.SepiUnit.Root;
+  FSepiRoot := UnitCompiler.SepiRoot;
+  FLanguageRules := UnitCompiler.LanguageRules;
 end;
 
 {*
@@ -2123,6 +2210,7 @@ begin
   FMethodCompiler := Context.MethodCompiler;
   FUnitCompiler := Context.UnitCompiler;
   FSepiRoot := Context.SepiRoot;
+  FLanguageRules := Context.LanguageRules;
 
   FSourcePos := Context.SourcePos;
 end;
@@ -2152,6 +2240,15 @@ end;
 function TSepiExpression.GetMethodCompiler: TSepiMethodCompiler;
 begin
   Result := FMethodCompiler;
+end;
+
+{*
+  Règles du langage utilisé
+  @return Règles du langage utilisé
+*}
+function TSepiExpression.GetLanguageRules: TSepiLanguageRules;
+begin
+  Result := FLanguageRules;
 end;
 
 {*
@@ -2400,7 +2497,7 @@ end;
   @throws ESepiLabelError Le label n'a pas été trouvé
 *}
 function TSepiMethodCompiler.FindLabel(
-  const LabelName: string; Create: Boolean = False): TSepiNamedLabel;
+  const LabelName: string; AllowCreate: Boolean = False): TSepiNamedLabel;
 var
   Index: Integer;
 begin
@@ -2408,7 +2505,7 @@ begin
 
   if Index >= 0 then
     Result := TSepiNamedLabel(FNamedLabels.Objects[Index])
-  else if Create then
+  else if AllowCreate then
     Result := TSepiNamedLabel.Create(Self, LabelName)
   else
     raise ESepiLabelError.CreateResFmt(@SLabelNotFound, [LabelName]);
@@ -2517,16 +2614,19 @@ end;
   @param ASepiUnit   Unité Sepi à assembler
 *}
 constructor TSepiUnitCompiler.Create(AErrors: TSepiCompilerErrorList;
-  ASepiUnit: TSepiUnit);
+  ASepiUnit: TSepiUnit; ALanguageRulesClass: TSepiLanguageRulesClass);
 begin
   inherited Create;
 
   FErrors := AErrors;
 
   FSepiUnit := ASepiUnit;
-  FSystemUnit := FSepiUnit.Root.SystemUnit as TSepiSystemUnit;
+  FSepiRoot := FSepiUnit.Root;
+  FSystemUnit := FSepiRoot.SystemUnit as TSepiSystemUnit;
   FMethods := TObjectList.Create;
   FReferences := TObjectList.Create(False);
+
+  FLanguageRules := ALanguageRulesClass.Create(Self);
 end;
 
 {*
@@ -2535,6 +2635,7 @@ end;
 destructor TSepiUnitCompiler.Destroy;
 begin
   FReferences.Free;
+  FLanguageRules.Free;
   FMethods.Free;
 
   inherited;

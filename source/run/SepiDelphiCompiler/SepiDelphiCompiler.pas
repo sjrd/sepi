@@ -721,7 +721,8 @@ end;
 procedure TDelphiRootNode.ChildEndParsing(Child: TSepiParseTreeNode);
 begin
   if Child.SymbolClass = ntIdentifier then
-    SetSepiUnit(TSepiUnit.Create(SepiRoot, Child.AsText, []));
+    SetSepiUnit(TSepiUnit.Create(SepiRoot, Child.AsText, []),
+      TSepiDelphiLanguageRules);
 
   inherited;
 end;
@@ -742,7 +743,7 @@ end;
 function TDelphiRootNode.ResolveIdent(
   const Identifier: string): ISepiExpression;
 begin
-  Result := UnitResolveIdent(UnitCompiler, Identifier);
+  Result := LanguageRules.ResolveIdent(SepiContext, Identifier);
 end;
 
 {----------------------------}
@@ -1837,21 +1838,11 @@ end;
 *}
 function TDelphiClassTypeNode.ResolveIdent(
   const Identifier: string): ISepiExpression;
-var
-  Component: TSepiComponent;
 begin
   if SepiClass <> nil then
-  begin
-    Component := SepiContext.LookFor(Identifier);
-    if Component <> nil then
-    begin
-      Result := MakeExpression;
-      AddComponentToExpression(Result, Component);
-      Exit;
-    end;
-  end;
-
-  Result := inherited ResolveIdent(Identifier);
+    Result := LanguageRules.ResolveIdent(SepiContext, Identifier)
+  else
+    Result := inherited ResolveIdent(Identifier);
 end;
 
 {--------------------------------}
@@ -1954,21 +1945,11 @@ end;
 *}
 function TDelphiInterfaceTypeNode.ResolveIdent(
   const Identifier: string): ISepiExpression;
-var
-  Component: TSepiComponent;
 begin
   if SepiIntf <> nil then
-  begin
-    Component := SepiContext.LookFor(Identifier);
-    if Component <> nil then
-    begin
-      Result := MakeExpression;
-      AddComponentToExpression(Result, Component);
-      Exit;
-    end;
-  end;
-
-  Result := inherited ResolveIdent(Identifier);
+    Result := LanguageRules.ResolveIdent(SepiContext, Identifier)
+  else
+    Result := inherited ResolveIdent(Identifier);
 end;
 
 {--------------------------------}
