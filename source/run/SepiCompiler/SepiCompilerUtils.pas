@@ -60,8 +60,8 @@ type
   TSepiPropertyBuilder = class(TSepiMemberBuilder)
   private
     FSignature: TSepiSignature;     /// Signature
-    FReadAccess: TSepiComponent;    /// Accesseur en lecture
-    FWriteAccess: TSepiComponent;   /// Accesseur en écriture
+    FReadAccess: TSepiMember;       /// Accesseur en lecture
+    FWriteAccess: TSepiMember;      /// Accesseur en écriture
     FIndex: Integer;                /// Index
     FIndexType: TSepiOrdType;       /// Type de l'index
     FDefaultValue: Integer;         /// Valeur par défaut
@@ -73,7 +73,8 @@ type
     function ValidateFieldAccess(Field: TSepiField): Boolean;
     function ValidateMethodAccess(Method: TSepiMethod;
       IsWriteAccess: Boolean): Boolean;
-    function ValidateAccess(Access: TSepiComponent; IsWriteAccess: Boolean): Boolean;
+    function ValidateAccess(Access: TSepiMember;
+      IsWriteAccess: Boolean): Boolean;
 
     function IsTypeValidForDefault(PropType: TSepiType): Boolean;
     function CheckDefaultAllowed: Boolean;
@@ -99,8 +100,8 @@ type
     procedure Build; override;
 
     property Signature: TSepiSignature read FSignature;
-    property ReadAccess: TSepiComponent read FReadAccess;
-    property WriteAccess: TSepiComponent read FWriteAccess;
+    property ReadAccess: TSepiMember read FReadAccess;
+    property WriteAccess: TSepiMember read FWriteAccess;
     property Index: Integer read FIndex;
     property IndexType: TSepiOrdType read FIndexType;
     property DefaultValue: Integer read FDefaultValue;
@@ -466,8 +467,7 @@ var
   Offset: Integer;
   OldVisibility: TMemberVisibility;
 begin
-  if not SplitToken(AccessName, '.', MemberName, SubFieldName) then
-    SubFieldName := '';
+  SplitToken(AccessName, '.', MemberName, SubFieldName);
 
   Result := LookForMemberOrError(MemberName);
   if SubFieldName = '' then
@@ -490,8 +490,7 @@ begin
 
     // Go to next sub field
     Temp := SubFieldName;
-    if not SplitToken(Temp, '.', MemberName, SubFieldName) then
-      SubFieldName := '';
+    SplitToken(Temp, '.', MemberName, SubFieldName);
 
     Result := TSepiRecordType(TSepiField(Result).FieldType).LookForMember(
       MemberName);
@@ -621,7 +620,7 @@ end;
   @param IsWriteAccess   Indique si c'est l'accès en écriture
   @return True si l'accesseur est valide, False sinon
 *}
-function TSepiPropertyBuilder.ValidateAccess(Access: TSepiComponent;
+function TSepiPropertyBuilder.ValidateAccess(Access: TSepiMember;
   IsWriteAccess: Boolean): Boolean;
 begin
   if Access = nil then
@@ -678,14 +677,14 @@ end;
 *}
 function TSepiPropertyBuilder.Redefine(Node: TSepiParseTreeNode): Boolean;
 var
-  PreviousComponent: TSepiComponent;
+  PreviousMember: TSepiMember;
   Previous: TSepiProperty;
   I: Integer;
 begin
   CurrentNode := Node;
 
-  PreviousComponent := LookForMember(Name);
-  if not (PreviousComponent is TSepiProperty) then
+  PreviousMember := LookForMember(Name);
+  if not (PreviousMember is TSepiProperty) then
   begin
     MakeError(SPropertyNotFoundInBaseClass);
     Signature.ReturnType := Node.SystemUnit.Integer;
@@ -693,7 +692,7 @@ begin
     Exit;
   end;
 
-  Previous := TSepiProperty(PreviousComponent);
+  Previous := TSepiProperty(PreviousMember);
 
   for I := 0 to Previous.Signature.ParamCount-1 do
     TSepiParam.Clone(Signature, Previous.Signature.Params[I]);
@@ -718,7 +717,7 @@ end;
 function TSepiPropertyBuilder.SetReadAccess(const ReadAccessName: string;
   Node: TSepiParseTreeNode): Boolean;
 var
-  Access: TSepiComponent;
+  Access: TSepiMember;
 begin
   CurrentNode := Node;
 
@@ -738,7 +737,7 @@ end;
 function TSepiPropertyBuilder.SetWriteAccess(const WriteAccessName: string;
   Node: TSepiParseTreeNode): Boolean;
 var
-  Access: TSepiComponent;
+  Access: TSepiMember;
 begin
   CurrentNode := Node;
 

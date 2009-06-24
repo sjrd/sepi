@@ -381,8 +381,7 @@ var
   CommandIdx: Integer;
 begin
   Instr := Lexer.CurTerminal.Representation;
-  if not SplitToken(Instr, ' ', Command, Param) then
-    Param := '';
+  SplitToken(Instr, ' ', Command, Param);
 
   if (Length(Command) >= 2) and (Command[1] in ['A'..'Z']) and
     (Command[2] in ['+', '-', '0'..'9']) then
@@ -511,10 +510,8 @@ begin
   Remaining := Toggles;
   while Remaining <> '' do
   begin
-    if SplitToken(Remaining, ',', Toggle, Temp) then
-      Remaining := Temp
-    else
-      Remaining := '';
+    SplitToken(Remaining, ',', Toggle, Temp);
+    Remaining := Temp;
 
     Toggle := Trim(Toggle);
     if Length(Toggle) = 2 then

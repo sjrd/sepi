@@ -1223,14 +1223,10 @@ type
       Instructions: TSepiInstructionList;
       Destination: TSepiMemoryReference); override;
   public
-    constructor Create(AMethod: TSepiMethod;
+    constructor Create(AMethod: TSepiMethodBase;
       const ASelfValue: ISepiReadableValue = nil;
       AForceStaticCall: Boolean = False;
-      AFreeParamValue: Boolean = False); overload;
-    constructor Create(AOverloadedMethod: TSepiOverloadedMethod;
-      const ASelfValue: ISepiReadableValue = nil;
-      AForceStaticCall: Boolean = False;
-      AFreeParamValue: Boolean = False); overload;
+      AFreeParamValue: Boolean = False);
 
     property Method: TSepiMethod read FMethod;
     property OverloadedMethod: TSepiOverloadedMethod read FOverloadedMethod;
@@ -6262,33 +6258,20 @@ end;
   @param AForceStaticCall   Force un appel statique (défaut = False)
   @param AFreeParamValue    Valeur à donner au paramètre $Free (défaut = False)
 *}
-constructor TSepiMethodCall.Create(AMethod: TSepiMethod;
+constructor TSepiMethodCall.Create(AMethod: TSepiMethodBase;
   const ASelfValue: ISepiReadableValue = nil;
   AForceStaticCall: Boolean = False; AFreeParamValue: Boolean = False);
 begin
-  inherited Create(AMethod.Signature);
+  if AMethod is TSepiMethod then
+  begin
+    inherited Create(TSepiMethod(AMethod).Signature);
+    FMethod := TSepiMethod(AMethod);
+  end else
+  begin
+    inherited Create;
+    FOverloadedMethod := AMethod as TSepiOverloadedMethod;
+  end;
 
-  FMethod := AMethod;
-  FSelfValue := ASelfValue;
-  FForceStaticCall := AForceStaticCall;
-
-  FFreeParamValue := AFreeParamValue;
-end;
-
-{*
-  Crée une expression d'invocation de méthode surchargée
-  @param AOverloadedMethod   Méthode surchargée à appeler
-  @param ASelfValue          Valeur Self (défaut = nil)
-  @param AForceStaticCall    Force un appel statique (défaut = False)
-  @param AFreeParamValue     Valeur à donner au paramètre $Free (défaut = False)
-*}
-constructor TSepiMethodCall.Create(AOverloadedMethod: TSepiOverloadedMethod;
-  const ASelfValue: ISepiReadableValue = nil;
-  AForceStaticCall: Boolean = False; AFreeParamValue: Boolean = False);
-begin
-  inherited Create;
-
-  FOverloadedMethod := AOverloadedMethod;
   FSelfValue := ASelfValue;
   FForceStaticCall := AForceStaticCall;
 

@@ -445,9 +445,9 @@ type
     function RequireClassOrObjectMethod: Boolean;
 
     function GetMethodName: string; virtual;
-    function FindMethod: TSepiComponent; virtual;
+    function FindMethod: TSepiMethodBase; virtual;
 
-    function MakeMethodCall(SepiMethod: TSepiComponent;
+    function MakeMethodCall(SepiMethod: TSepiMethodBase;
       const SelfParam: ISepiReadableValue): ISepiWantingParams; virtual;
 
     function CompileMethodCall: ISepiWantingParams; virtual;
@@ -2665,19 +2665,26 @@ end;
 
 {*
   Trouve la méthode héritée à appeler
-  @return Méthode à appeler (TSepiMethod et TSepiOverloadedMethod sont valides)
+  @return Méthode à appeler, ou nil en cas d'erreur
 *}
-function TSepiInheritedExpressionNode.FindMethod: TSepiComponent;
+function TSepiInheritedExpressionNode.FindMethod: TSepiMethodBase;
 var
   CurrentClass, ParentClass: TSepiClass;
+  Member: TSepiMember;
 begin
+  Result := nil;
+
   CurrentClass := MethodCompiler.SepiMethod.Owner as TSepiClass;
   ParentClass := CurrentClass.Parent;
 
-  Result := ParentClass.LookForMember(GetMethodName,
-    CurrentClass.OwningUnit, CurrentClass);
+  Member := ParentClass.LookForMember(GetMethodName, CurrentClass);
+  if not CheckIdentFound(Member, GetMethodName, Self) then
+    Exit;
 
-  CheckIdentFound(Result, GetMethodName, Self);
+  if Member is TSepiMethodBase then
+    Result := TSepiMethodBase(Member)
+  else
+    MakeError(SMethodRequired);
 end;
 
 {*
@@ -2686,24 +2693,15 @@ end;
   @param SelfVar      Variable locale Self
   @return Appel de la méthode, ou nil en cas d'erreur
 *}
-function TSepiInheritedExpressionNode.MakeMethodCall(SepiMethod: TSepiComponent;
+function TSepiInheritedExpressionNode.MakeMethodCall(
+  SepiMethod: TSepiMethodBase;
   const SelfParam: ISepiReadableValue): ISepiWantingParams;
 const
   ForceStaticCall = True;
   FreeParamIsAlwaysFalse = False;
 begin
-  if SepiMethod is TSepiMethod then
-  begin
-    Result := TSepiMethodCall.Create(TSepiMethod(SepiMethod),
-      SelfParam, ForceStaticCall, FreeParamIsAlwaysFalse);
-  end else if SepiMethod is TSepiOverloadedMethod then
-  begin
-    Result := TSepiMethodCall.Create(TSepiOverloadedMethod(SepiMethod),
-      SelfParam, ForceStaticCall, FreeParamIsAlwaysFalse);
-  end else
-  begin
-    MakeError(SMethodRequired);
-  end;
+  Result := TSepiMethodCall.Create(SepiMethod, SelfParam,
+    ForceStaticCall, FreeParamIsAlwaysFalse);
 end;
 
 {*
@@ -2712,7 +2710,7 @@ end;
 *}
 function TSepiInheritedExpressionNode.CompileMethodCall: ISepiWantingParams;
 var
-  SepiMethod: TSepiComponent;
+  SepiMethod: TSepiMethodBase;
   SelfParam: ISepiValue;
 begin
   if not RequireClassOrObjectMethod then

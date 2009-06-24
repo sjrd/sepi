@@ -190,9 +190,13 @@ type
     function AddPseudoRoutineToExpression(const Expression: ISepiExpression;
       const Identifier: string): Boolean; virtual;
 
-    function ClassIntfMemberSelection(Context: TSepiComponent;
-      const BaseValue: ISepiReadableValue; const FieldName: string;
-      const Expression: ISepiExpression): Boolean; virtual;
+    function AddClassIntfMemberToExpression(const Expression: ISepiExpression;
+      Context: TSepiComponent; const BaseValue: ISepiReadableValue;
+      Member: TSepiMember): Boolean; virtual;
+
+    function ClassIntfMemberSelection(const Expression: ISepiExpression;
+      Context: TSepiComponent; const BaseValue: ISepiReadableValue;
+      const FieldName: string): Boolean; virtual;
   public
     function ResolveIdent(Context: TSepiComponent;
       const Identifier: string): ISepiExpression; override;
@@ -326,6 +330,44 @@ begin
 end;
 
 {*
+  Ajoute un membre d'une classe ou d'une interface à une expression
+  @param Expression   Expression
+  @param BaseValue    Valeur classe ou interface de base
+  @param Member       Membre à ajouter
+  @return True si réussi, False sinon
+*}
+function TSepiDelphiLanguageRules.AddClassIntfMemberToExpression(
+  const Expression: ISepiExpression; Context: TSepiComponent;
+  const BaseValue: ISepiReadableValue; Member: TSepiMember): Boolean;
+begin
+  Result := False;
+
+  if Member is TSepiField then
+  begin
+    // Field
+    ISepiExpressionPart(TSepiObjectFieldValue.Create(
+      BaseValue, TSepiField(Member))).AttachToExpression(Expression);
+
+    Result := True;
+  end else if Member is TSepiMethodBase then
+  begin
+    // Method
+    ISepiExpressionPart(TSepiMethodCall.Create(TSepiMethodBase(Member),
+      BaseValue)).AttachToExpression(Expression);
+
+    Result := True;
+  end else if Member is TSepiProperty then
+  begin
+    // Property
+    Assert(Member is TSepiProperty);
+    ISepiExpressionPart(TSepiPropertyValue.Create(BaseValue,
+      TSepiProperty(Member))).AttachToExpression(Expression);
+
+    Result := True;
+  end;
+end;
+
+{*
   Sélection de champ d'une valeur classe, meta-classe ou interface
   @param Context       Contexte Sepi depuis lequel chercher
   @param BaseValue     Valeur de base
@@ -334,77 +376,31 @@ end;
   @return True si réussi, False sinon
 *}
 function TSepiDelphiLanguageRules.ClassIntfMemberSelection(
-  Context: TSepiComponent; const BaseValue: ISepiReadableValue;
-  const FieldName: string; const Expression: ISepiExpression): Boolean;
+  const Expression: ISepiExpression; Context: TSepiComponent;
+  const BaseValue: ISepiReadableValue; const FieldName: string): Boolean;
 const
   mkClassMethods = [mkClassProcedure, mkClassFunction];
   mkConstrClassMethods = [mkConstructor] + mkClassMethods;
 var
-  Value: ISepiReadableValue;
-  ContainerType: TSepiType;
-  FromClass: TSepiComponent;
-  Member: TSepiComponent;
+  ContainerType: TSepiContainerType;
+  Member: TSepiMember;
 begin
   Result := False;
-  Value := BaseValue;
 
   // Fetch container type
-  ContainerType := Value.ValueType;
-  if ContainerType is TSepiMetaClass then
-    ContainerType := TSepiMetaClass(ContainerType).SepiClass;
+  if BaseValue.ValueType is TSepiMetaClass then
+    ContainerType := TSepiMetaClass(BaseValue.ValueType).SepiClass
+  else
+    ContainerType := BaseValue.ValueType as TSepiContainerType;
 
   // Fetch member
-  if ContainerType is TSepiClass then
-  begin
-    // Set FromClass
-    FromClass := Context;
-    while (FromClass <> nil) and (not (FromClass is TSepiClass)) do
-      FromClass := FromClass.Owner;
-
-    Member := TSepiClass(ContainerType).LookForMember(
-      FieldName, Context.OwningUnit, TSepiClass(FromClass));
-  end else if ContainerType is TSepiInterface then
-  begin
-    Member := TSepiInterface(ContainerType).LookForMember(FieldName);
-  end else
-  begin
-    Assert(False);
-    Member := nil;
-  end;
-
-  // Exit if no member found, or if it is not a member
+  Member := ContainerType.LookForMember(FieldName, Context);
   if Member = nil then
     Exit;
-  if (not (Member is TSepiField)) and (not (Member is TSepiMethod)) and
-    (not (Member is TSepiOverloadedMethod)) and
-    (not (Member is TSepiProperty)) then
-    Exit;
 
-  // OK
-  if Member is TSepiField then
-  begin
-    // Field
-    ISepiExpressionPart(TSepiObjectFieldValue.Create(
-      Value, TSepiField(Member))).AttachToExpression(Expression);
-  end else if Member is TSepiMethod then
-  begin
-    // Method
-    ISepiExpressionPart(TSepiMethodCall.Create(TSepiMethod(Member),
-      Value)).AttachToExpression(Expression);
-  end else if Member is TSepiOverloadedMethod then
-  begin
-    // Overloaded method
-    ISepiExpressionPart(TSepiMethodCall.Create(TSepiOverloadedMethod(Member),
-      Value)).AttachToExpression(Expression);
-  end else
-  begin
-    // Property
-    Assert(Member is TSepiProperty);
-    ISepiExpressionPart(TSepiPropertyValue.Create(Value,
-      TSepiProperty(Member))).AttachToExpression(Expression);
-  end;
-
-  Result := True;
+  // Add the member to the expression
+  Result := AddClassIntfMemberToExpression(Expression, Context, BaseValue,
+    Member);
 end;
 
 {*
@@ -550,8 +546,8 @@ begin
       (ReadableValue.ValueType is TSepiMetaClass) or
       (ReadableValue.ValueType is TSepiInterface) then
     begin
-      if ClassIntfMemberSelection(Context, ReadableValue,
-        FieldName, Result) then
+      if ClassIntfMemberSelection(Result, Context, ReadableValue,
+        FieldName) then
         CancelResult := False;
     end;
   end;

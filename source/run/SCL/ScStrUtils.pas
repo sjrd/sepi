@@ -236,7 +236,7 @@ end;
   @param S          Chaîne à découper
   @param Token      Délimiteur
   @param LeftStr    Sous-chaîne de gauche (ou S si non trouvé)
-  @param RightStr   Sous-chaîne de droite (ou S si non trouvé)
+  @param RightStr   Sous-chaîne de droite (ou une chaîne vide si non trouvé)
   @return True si la chaîne a été séparée, False si Token n'est pas trouvé
 *}
 function SplitToken(const S: string; Token: Char;
@@ -261,9 +261,9 @@ begin
     RightStr := Copy(S, I, MaxInt);
   end else
   begin
-    // Non trouvé : LeftStr = RightStr = S
+    // Non trouvé : LeftStr = S et RightStr = ''
     LeftStr := S;
-    RightStr := S;
+    RightStr := '';
   end;
 end;
 

@@ -511,11 +511,11 @@ type
     @version 1.0
   *}
   TSepiPropertyAccess = record
-    Kind: TPropertyAccessKind;              /// Type d'accès
+    Kind: TPropertyAccessKind;           /// Type d'accès
     case TPropertyAccessKind of
-      pakNone: (Component: TSepiComponent); /// Component d'accès (neutre)
-      pakField: (Field: TSepiField);        /// Champ d'accès
-      pakMethod: (Method: TSepiMethod);     /// Méthode d'accès
+      pakNone: (Component: TSepiMember); /// Component d'accès (neutre)
+      pakField: (Field: TSepiField);     /// Champ d'accès
+      pakMethod: (Method: TSepiMethod);  /// Méthode d'accès
   end;
 
   {*
@@ -524,12 +524,12 @@ type
     @version 1.0
   *}
   TSepiPropertyStorage = record
-    Kind: TPropertyStorageKind;                 /// Type de stockage
-    Stored: Boolean;                            /// Constante de stockage
+    Kind: TPropertyStorageKind;              /// Type de stockage
+    Stored: Boolean;                         /// Constante de stockage
     case TPropertyStorageKind of
-      pskConstant: (Component: TSepiComponent); /// Composant de stockage
-      pskField: (Field: TSepiField);            /// Champ de stockage
-      pskMethod: (Method: TSepiMethod);         /// Méthode de stockage
+      pskConstant: (Component: TSepiMember); /// Membre de stockage
+      pskField: (Field: TSepiField);         /// Champ de stockage
+      pskMethod: (Method: TSepiMethod);      /// Méthode de stockage
   end;
 
   {*
@@ -562,7 +562,7 @@ type
     constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
 
     constructor Create(AOwner: TSepiComponent; const AName: string;
-      ASignature: TSepiSignature; AReadAccess, AWriteAccess: TSepiComponent;
+      ASignature: TSepiSignature; AReadAccess, AWriteAccess: TSepiMember;
       AIndex, ADefaultValue: Integer; const AStorage: TSepiPropertyStorage;
       AIsDefault: Boolean); overload;
 
@@ -575,7 +575,7 @@ type
       AIsDefault: Boolean); overload;
 
     constructor Redefine(AOwner: TSepiComponent; const AName: string;
-      AReadAccess, AWriteAccess: TSepiComponent; ADefaultValue: Integer;
+      AReadAccess, AWriteAccess: TSepiMember; ADefaultValue: Integer;
       const AStorage: TSepiPropertyStorage); overload;
 
     constructor Redefine(AOwner: TSepiComponent; const AName: string;
@@ -665,14 +665,14 @@ type
   *}
   TSepiInheritableContainerType = class(TSepiContainerType)
   protected
-    function InternalLookFor(const Name: string; FromUnit: TSepiUnit;
-      FromContainer: TSepiContainerType = nil): TSepiComponent; override;
+    function InternalLookFor(const Name: string;
+      FromComponent: TSepiComponent): TSepiComponent; override;
 
     function GetParentContainer:
       TSepiInheritableContainerType; virtual; abstract;
   public
-    function LookForMember(const MemberName: string; FromUnit: TSepiUnit;
-      FromContainer: TSepiContainerType = nil): TSepiMember; override;
+    function LookForMember(const MemberName: string;
+      FromComponent: TSepiComponent): TSepiMember; override;
 
     function ContainerInheritsFrom(
       Ancestor: TSepiInheritableContainerType): Boolean;
@@ -728,7 +728,7 @@ type
       overload;
 
     function AddProperty(const AName: string; ASignature: TSepiSignature;
-      AReadAccess, AWriteAccess: TSepiComponent; AIndex: Integer;
+      AReadAccess, AWriteAccess: TSepiMember; AIndex: Integer;
       AIsDefault: Boolean): TSepiProperty; overload;
     function AddProperty(
       const AName, ASignature, AReadAccess, AWriteAccess: string;
@@ -884,7 +884,7 @@ type
       ACallingConvention: TCallingConvention): TSepiMethod; overload;
 
     function AddProperty(const AName: string; ASignature: TSepiSignature;
-      AReadAccess, AWriteAccess: TSepiComponent; AIndex, ADefaultValue: Integer;
+      AReadAccess, AWriteAccess: TSepiMember; AIndex, ADefaultValue: Integer;
       const AStorage: TSepiPropertyStorage;
       AIsDefault: Boolean): TSepiProperty; overload;
     function AddProperty(
@@ -897,7 +897,7 @@ type
       AIsDefault: Boolean): TSepiProperty; overload;
 
     function RedefineProperty(const AName: string;
-      AReadAccess, AWriteAccess: TSepiComponent; ADefaultValue: Integer;
+      AReadAccess, AWriteAccess: TSepiMember; ADefaultValue: Integer;
       const AStorage: TSepiPropertyStorage): TSepiProperty; overload;
     function RedefineProperty(const AName: string;
       const AReadAccess: string = ''; const AWriteAccess: string = '';
@@ -1147,7 +1147,7 @@ begin
   end else
   begin
     Storage.Stored := False;
-    Storage.Component := Owner.LookForMember(AStorage, Owner.OwningUnit, Owner);
+    Storage.Component := Owner.LookForMember(AStorage);
 
     if Storage.Component is TSepiField then
       Storage.Kind := pskField
@@ -1339,8 +1339,7 @@ var
   AOpenArray: Boolean;
   AType: TSepiType;
 begin
-  if not SplitToken(Definition, ':', NamePart, TypePart) then
-    TypePart := '';
+  SplitToken(Definition, ':', NamePart, TypePart);
   TypePart := GetFirstToken(TypePart, '=');
 
   // Name part - before the colon (:)
@@ -1352,9 +1351,12 @@ begin
       AKind := pkValue;
       NamePart2 := KindStr + ' ' + NamePart2;
     end;
+    NamePart := NamePart2;
   end else
+  begin
     AKind := pkValue;
-  NamePart := NamePart2;
+    NamePart := KindStr;
+  end;
 
   // Type part - after the colon (:)
   TypePart := Trim(TypePart);
@@ -2315,8 +2317,7 @@ begin
     if FLinkKind <> mlkMessage then
     begin
       // Looking for the inherited method
-      Component := OwningClass.Parent.LookForMember(RealName,
-        OwningUnit, OwningClass);
+      Component := OwningClass.Parent.LookForMember(RealName, OwningClass);
       if Component is TSepiMethod then
       begin
         if Signature.CheckInherited(TSepiMethod(Component).Signature) then
@@ -2690,7 +2691,7 @@ end;
   @param AIsDefault      Indique si c'est la propriété tableau par défaut
 *}
 constructor TSepiProperty.Create(AOwner: TSepiComponent; const AName: string;
-  ASignature: TSepiSignature; AReadAccess, AWriteAccess: TSepiComponent;
+  ASignature: TSepiSignature; AReadAccess, AWriteAccess: TSepiMember;
   AIndex, ADefaultValue: Integer; const AStorage: TSepiPropertyStorage;
   AIsDefault: Boolean);
 begin
@@ -2729,13 +2730,9 @@ constructor TSepiProperty.Create(AOwner: TSepiComponent;
   AIndex: Integer = NoIndex; ADefaultValue: Integer = NoDefaultValue;
   const AStorage: string = ''; AIsDefault: Boolean = False);
 
-  function FindAccess(const AAccess: string): TSepiComponent;
+  function FindAccess(const AAccess: string): TSepiMember;
   begin
-    if Owner is TSepiClass then
-      Result := TSepiClass(Owner).LookForMember(
-        AAccess, OwningUnit, TSepiClass(Owner))
-    else
-      Result := TSepiInterface(Owner).LookForMember(AAccess);
+    Result := (Owner as TSepiContainerType).LookForMember(AAccess);
   end;
 
 begin
@@ -2783,13 +2780,13 @@ end;
   @param AStorage       Spécificateur de stockage
 *}
 constructor TSepiProperty.Redefine(AOwner: TSepiComponent; const AName: string;
-  AReadAccess, AWriteAccess: TSepiComponent; ADefaultValue: Integer;
+  AReadAccess, AWriteAccess: TSepiMember; ADefaultValue: Integer;
   const AStorage: TSepiPropertyStorage);
 var
   Previous: TSepiProperty;
 begin
   Previous := (AOwner as TSepiClass).Parent.LookForMember(
-    AName, AOwner.OwningUnit, TSepiClass(AOwner)) as TSepiProperty;
+    AName, AOwner) as TSepiProperty;
 
   inherited Create(AOwner, AName);
 
@@ -2821,33 +2818,29 @@ constructor TSepiProperty.Redefine(AOwner: TSepiComponent;
   const AName: string; const AReadAccess: string = '';
   const AWriteAccess: string = ''; const AStorage: string = '');
 var
+  AContainer: TSepiInheritableContainerType;
   Previous: TSepiProperty;
-  BReadAccess, BWriteAccess: TSepiComponent;
+  BReadAccess, BWriteAccess: TSepiMember;
   BStorage: TSepiPropertyStorage;
 begin
-  Previous := (AOwner as TSepiClass).Parent.LookForMember(
-    AName, AOwner.OwningUnit, TSepiClass(AOwner)) as TSepiProperty;
+  AContainer := AOwner as TSepiInheritableContainerType;
+  Previous := AContainer.ParentContainer.LookForMember(
+    AName, AOwner) as TSepiProperty;
 
   if AReadAccess = '' then
     BReadAccess := Previous.ReadAccess.Component
   else
-  begin
-    BReadAccess := TSepiClass(Owner).LookForMember(
-      AReadAccess, OwningUnit, TSepiClass(Owner));
-  end;
+    BReadAccess := AContainer.LookForMember(AReadAccess);
 
   if AWriteAccess = '' then
     BWriteAccess := Previous.WriteAccess.Component
   else
-  begin
-    BWriteAccess := TSepiClass(Owner).LookForMember(
-      AWriteAccess, OwningUnit, TSepiClass(Owner));
-  end;
+    BWriteAccess := AContainer.LookForMember(AWriteAccess);
 
   if AStorage = '' then
     BStorage := Previous.Storage
   else
-    MakePropertyStorage(BStorage, AStorage, TSepiClass(Owner));
+    MakePropertyStorage(BStorage, AStorage, AOwner as TSepiClass);
 
   Redefine(AOwner, AName, BReadAccess, BWriteAccess,
     Previous.DefaultValue, BStorage);
@@ -3323,7 +3316,7 @@ end;
   [@inheritDoc]
 *}
 function TSepiInheritableContainerType.InternalLookFor(const Name: string;
-  FromUnit: TSepiUnit; FromContainer: TSepiContainerType = nil): TSepiComponent;
+  FromComponent: TSepiComponent): TSepiComponent;
 var
   Ancestor: TSepiInheritableContainerType;
 begin
@@ -3332,7 +3325,7 @@ begin
   while (Ancestor <> nil) do
   begin
     Result := Ancestor.GetComponent(Name);
-    if (Result <> nil) and Result.IsVisibleFrom(FromUnit, FromContainer) then
+    if (Result <> nil) and Result.IsVisibleFrom(FromComponent) then
       Exit;
     Ancestor := Ancestor.ParentContainer;
   end;
@@ -3342,20 +3335,19 @@ begin
     Result := nil
   else
     Result := TSepiInheritableContainerType(Owner).InternalLookFor(
-      Name, FromUnit, FromContainer);
+      Name, FromComponent);
 end;
 
 {*
   [@inheritDoc]
 *}
 function TSepiInheritableContainerType.LookForMember(const MemberName: string;
-  FromUnit: TSepiUnit; FromContainer: TSepiContainerType = nil): TSepiMember;
+  FromComponent: TSepiComponent): TSepiMember;
 begin
-  Result := inherited LookForMember(MemberName, FromUnit, FromContainer);
+  Result := inherited LookForMember(MemberName, FromComponent);
 
   if (Result = nil) and (ParentContainer <> nil) then
-    Result := ParentContainer.LookForMember(MemberName, FromUnit,
-      FromContainer);
+    Result := ParentContainer.LookForMember(MemberName, FromComponent);
 end;
 
 {*
@@ -3637,7 +3629,7 @@ end;
   @param AIsDefault      Indique si c'est la propriété tableau par défaut
 *}
 function TSepiInterface.AddProperty(const AName: string;
-  ASignature: TSepiSignature; AReadAccess, AWriteAccess: TSepiComponent;
+  ASignature: TSepiSignature; AReadAccess, AWriteAccess: TSepiMember;
   AIndex: Integer; AIsDefault: Boolean): TSepiProperty;
 const
   AStorage: TSepiPropertyStorage = (
@@ -4724,7 +4716,7 @@ end;
   @param AIsDefault      Indique si c'est la propriété tableau par défaut
 *}
 function TSepiClass.AddProperty(const AName: string; ASignature: TSepiSignature;
-  AReadAccess, AWriteAccess: TSepiComponent; AIndex, ADefaultValue: Integer;
+  AReadAccess, AWriteAccess: TSepiMember; AIndex, ADefaultValue: Integer;
   const AStorage: TSepiPropertyStorage; AIsDefault: Boolean): TSepiProperty;
 begin
   Result := TSepiProperty.Create(Self, AName, ASignature, AReadAccess,
@@ -4776,7 +4768,7 @@ end;
   @param AStorage        Spécificateur de stockage
 *}
 function TSepiClass.RedefineProperty(const AName: string; AReadAccess,
-  AWriteAccess: TSepiComponent; ADefaultValue: Integer;
+  AWriteAccess: TSepiMember; ADefaultValue: Integer;
   const AStorage: TSepiPropertyStorage): TSepiProperty;
 begin
   Result := TSepiProperty.Redefine(Self, AName, AReadAccess, AWriteAccess,

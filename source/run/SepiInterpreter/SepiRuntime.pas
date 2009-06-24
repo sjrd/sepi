@@ -491,7 +491,8 @@ var
   Method: TSepiRuntimeMethod;
 begin
   SepiMethod := Sender as TSepiMethod;
-  SplitToken(SepiMethod.GetFullName, '.', UnitName, MethodName);
+  if not SplitToken(SepiMethod.GetFullName, '.', UnitName, MethodName) then
+    MethodName := UnitName;
   Method := FindMethod(MethodName);
 
   Method.SetSepiMethod(SepiMethod);
