@@ -52,6 +52,9 @@ uses
   Windows, SysUtils, Classes;
 
 const
+  /// Taille minimale d'allocation en une fois de la pile
+  MinAllocStackBy = $2000; // > 4096, current buffer size in RTL
+
   /// Taille de pile par défaut
   DefaultStackSize = $10000;
 
@@ -60,8 +63,6 @@ resourcestring
     'Opération invalide lorsque la coroutine est en exécution';
   SCoroutInvalidOpWhileNotRunning =
     'Opération invalide lorsque la coroutine n''est pas en exécution';
-  SCoroutBadStackSize =
-    'Taille de pile incorrecte (%d) : doit être multiple de la taille de page';
   SCoroutTerminating =
     'La coroutine est en train de se terminer';
   SCoroutTerminated =
@@ -126,10 +127,12 @@ type
     cet état, une exception de type ECoroutineTerminating assure que celle-ci
     se termine immédiatement.
 
-    La taille de pile doit être un multiple de la taille de page du système (en
-    général 4096) et être supérieure ou égale à 2 fois cette valeur. Toutefois,
-    cela reste peu, et une taille recommandée est donnée par DefaultStackSize.
-    Vous ne devriez en changer que si celle par défaut ne vous convient pas.
+    La taille de pile doit être un multiple strict (2 fois ou plus) de la plus
+    grande valeur entre a) la taille de page du système (en général 4096) et
+    b) MinAllocStackBy.
+    Toutefois, cela reste peu, et une taille recommandée est donnée par
+    DefaultStackSize. Vous ne devriez en changer que si celle par défaut ne
+    vous convient pas.
 
     @author sjrd, sur une idée de Bart van der Werf
     @version 1.0
@@ -353,12 +356,21 @@ end;
 *}
 constructor TCustomCoroutine.Create(ALoop: TCoroutineLoop = clNoLoop;
   StackSize: Cardinal = DefaultStackSize);
+var
+  AllocStackBy: Cardinal;
 begin
   inherited Create;
 
-  // Check stack size
-  if (StackSize < 2*PageSize) or (StackSize mod PageSize <> 0) then
-    Error(@SCoroutBadStackSize, StackSize);
+  // Compute AllocStackBy
+  AllocStackBy := PageSize;
+  if AllocStackBy < MinAllocStackBy then
+    AllocStackBy := MinAllocStackBy;
+
+  // Adapt stack size
+  if StackSize < 2*AllocStackBy then
+    StackSize := 2*AllocStackBy
+  else if StackSize mod AllocStackBy <> 0 then
+    StackSize := StackSize - (StackSize mod AllocStackBy) + AllocStackBy;
 
   // Reserve stack address space
   FStackSize := StackSize;
@@ -368,11 +380,11 @@ begin
   FStack := Pointer(Cardinal(FStackBuffer) + FStackSize);
 
   // Allocate base stack
-  if not Assigned(VirtualAlloc(Pointer(Cardinal(FStack) - PageSize),
-    PageSize, MEM_COMMIT, PAGE_READWRITE)) then
+  if not Assigned(VirtualAlloc(Pointer(Cardinal(FStack) - AllocStackBy),
+    AllocStackBy, MEM_COMMIT, PAGE_READWRITE)) then
     RaiseLastOSError;
-  if not Assigned(VirtualAlloc(Pointer(Cardinal(FStack) - 2*PageSize),
-    PageSize, MEM_COMMIT, PAGE_READWRITE or PAGE_GUARD)) then
+  if not Assigned(VirtualAlloc(Pointer(Cardinal(FStack) - 2*AllocStackBy),
+    AllocStackBy, MEM_COMMIT, PAGE_READWRITE or PAGE_GUARD)) then
     RaiseLastOSError;
 
   // Set up configuration
