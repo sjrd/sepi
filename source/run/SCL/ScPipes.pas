@@ -109,10 +109,9 @@ type
     property Coroutine: TCoroutine read FCoroutine;
   public
     constructor Create(ATransformMethod: TTransformStreamMethod;
-      AInput: TStream; AOwnsInput: Boolean = False;
-      AStackSize: Cardinal = DefaultStackSize); overload;
-    constructor Create(AInput: TStream = nil; AOwnsInput: Boolean = False;
-      AStackSize: Cardinal = DefaultStackSize); overload;
+      AInput: TStream; AOwnsInput: Boolean = False); overload;
+    constructor Create(AInput: TStream = nil;
+      AOwnsInput: Boolean = False); overload;
     destructor Destroy; override;
 
     function Read(var Buffer; Count: Longint): Longint; override;
@@ -173,14 +172,10 @@ procedure CopyStream(Source, Dest: TStream);
 
 function MakeCoroutineTransformStream(Input: TStream;
   const Transformations: array of TTransformStreamMethod;
-  const StackSizes: array of Cardinal; FreeInput: Boolean = True): TStream;
+  FreeInput: Boolean = True): TStream;
 procedure MultiCoroutineTransformStream(Input, Output: TStream;
   const Transformations: array of TTransformStreamMethod;
-  const StackSizes: array of Cardinal; FreeInput: Boolean = False); overload;
-procedure MultiCoroutineTransformStream(Input, Output: TStream;
-  const Transformations: array of TTransformStreamMethod;
-  StackSize: Cardinal = DefaultStackSize;
-  FreeInput: Boolean = False); overload;
+  FreeInput: Boolean = False);
 
 function MakeThreadTransformStream(Input: TStream;
   const Transformations: array of TTransformStreamMethod;
@@ -238,24 +233,22 @@ end;
   identiques.
   @param Input             Flux d'entrée de la première transformation
   @param Transformations   Tableau de transformations à appliquer
-  @param StackSizes        Tailles de pile pour chaque transformation
   @param FreeInput         True libère le flux d'entrée, même en cas d'exception
   @return Flux de transformations multiples
 *}
 function MakeCoroutineTransformStream(Input: TStream;
   const Transformations: array of TTransformStreamMethod;
-  const StackSizes: array of Cardinal; FreeInput: Boolean = True): TStream;
+  FreeInput: Boolean = True): TStream;
 var
   I, Count: Integer;
 begin
   try
     Count := Length(Transformations);
-    Assert(Length(StackSizes) = Count);
 
     for I := 0 to Count-1 do
     begin
       Input := TCoroutineTransformationStream.Create(
-        Transformations[I], Input, FreeInput, StackSizes[I]);
+        Transformations[I], Input, FreeInput);
       FreeInput := True;
     end;
 
@@ -274,44 +267,21 @@ end;
   @param Input             Flux d'entrée de la première transformation
   @param Ouput             Flux de sortie de la dernière transformation
   @param Transformations   Tableau de transformations à appliquer
-  @param StackSizes        Tailles de pile pour chaque transformation
   @param FreeInput         True libère le flux d'entrée, même en cas d'exception
 *}
 procedure MultiCoroutineTransformStream(Input, Output: TStream;
   const Transformations: array of TTransformStreamMethod;
-  const StackSizes: array of Cardinal; FreeInput: Boolean = False);
+  FreeInput: Boolean = False);
 var
   Transformed: TStream;
 begin
   Transformed := MakeCoroutineTransformStream(
-    Input, Transformations, StackSizes, FreeInput);
+    Input, Transformations, FreeInput);
   try
     CopyStream(Transformed, Output);
   finally
     Transformed.Free;
   end;
-end;
-
-{*
-  Transforme plusieurs fois un flux en contrôlant le flot avec des coroutines
-  @param Input             Flux d'entrée de la première transformation
-  @param Ouput             Flux de sortie de la dernière transformation
-  @param Transformations   Tableau de transformations à appliquer
-  @param StackSize         Taille de pile pour toutes les transformations
-  @param FreeInput         True libère le flux d'entrée, même en cas d'exception
-*}
-procedure MultiCoroutineTransformStream(Input, Output: TStream;
-  const Transformations: array of TTransformStreamMethod;
-  StackSize: Cardinal = DefaultStackSize; FreeInput: Boolean = False);
-var
-  StackSizes: array of Cardinal;
-  I: Integer;
-begin
-  SetLength(StackSizes, Length(Transformations));
-  for I := 0 to Length(StackSizes)-1 do
-    StackSizes[I] := StackSize;
-  MultiCoroutineTransformStream(
-    Input, Output, Transformations, StackSizes, FreeInput);
 end;
 
 {*
@@ -513,15 +483,14 @@ end;
   @param ATransformMethod   Méthode de transformation du flux
   @param AInput             Flux entrant
   @param AOwnsInput         True libère le flux d'entrée lors de la destruction
-  @param AStackSize         Taille de la pile (défaut = DefaultStackSize)
 *}
 constructor TCoroutineTransformationStream.Create(
   ATransformMethod: TTransformStreamMethod; AInput: TStream;
-  AOwnsInput: Boolean = False; AStackSize: Cardinal = DefaultStackSize);
+  AOwnsInput: Boolean = False);
 begin
   inherited Create(ATransformMethod, AInput, AOwnsInput);
 
-  FCoroutine := TCoroutine.Create(PrivTransformStream, clNoLoop, AStackSize);
+  FCoroutine := TCoroutine.Create(PrivTransformStream, clNoLoop);
 
   FBuffer := nil;
   FBufferSize := 0;
@@ -534,12 +503,11 @@ end;
   transformation.
   @param AInput       Flux entrant
   @param AOwnsInput   True libère le flux d'entrée lors de la destruction
-  @param AStackSize   Taille de la pile (défaut = DefaultStackSize)
 *}
 constructor TCoroutineTransformationStream.Create(AInput: TStream = nil;
-  AOwnsInput: Boolean = False; AStackSize: Cardinal = DefaultStackSize);
+  AOwnsInput: Boolean = False);
 begin
-  Create(TTransformStreamMethod(nil), AInput, AOwnsInput, AStackSize);
+  Create(TTransformStreamMethod(nil), AInput, AOwnsInput);
 end;
 
 {*

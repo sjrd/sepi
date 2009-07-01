@@ -39,9 +39,7 @@ statement from your version.
   dont on surcharge TThread pour avoir une coroutine concrète. TCoroutine est
   une implémentation de celle-ci qui prend une méthode en paramètre, et exécute
   celle-ci comme coroutine.
-  Cette unité a besoin d'un test sous Windows 95/98/Me pour l'agrandissement de
-  la pile, car PAGE_GUARD n'est pas supporté dans ces versions.
-  @author sjrd, sur une idée de Bart van der Werf
+  @author sjrd
   @version 1.0
 *}
 unit ScCoroutines;
@@ -49,16 +47,11 @@ unit ScCoroutines;
 interface
 
 uses
-  Windows, SysUtils, Classes;
-
-const
-  /// Taille minimale d'allocation en une fois de la pile
-  MinAllocStackBy = $2000; // > 4096, current buffer size in RTL
-
-  /// Taille de pile par défaut
-  DefaultStackSize = $10000;
+  Windows, SysUtils, Classes, SyncObjs, ScClasses;
 
 resourcestring
+  SCoroutInternalError =
+    'Erreur interne de la coroutine';
   SCoroutInvalidOpWhileRunning =
     'Opération invalide lorsque la coroutine est en exécution';
   SCoroutInvalidOpWhileNotRunning =
@@ -72,21 +65,6 @@ resourcestring
 
 type
   TCoroutine = class;
-
-  PTIB = ^TTIB;
-  TTIB = packed record
-    SEH: Pointer;
-    StackTop: Pointer;
-    StackBottom: Pointer;
-  end;
-
-  TRunningFrame = record
-    SEH: Pointer;
-    StackTop: Pointer;
-    StackBottom: Pointer;
-    StackPtr: Pointer;
-    InstructionPtr: Pointer;
-  end;
 
   {*
     Type de boucle de coroutine
@@ -127,38 +105,30 @@ type
     cet état, une exception de type ECoroutineTerminating assure que celle-ci
     se termine immédiatement.
 
-    La taille de pile doit être un multiple strict (2 fois ou plus) de la plus
-    grande valeur entre a) la taille de page du système (en général 4096) et
-    b) MinAllocStackBy.
-    Toutefois, cela reste peu, et une taille recommandée est donnée par
-    DefaultStackSize. Vous ne devriez en changer que si celle par défaut ne
-    vous convient pas.
-
-    @author sjrd, sur une idée de Bart van der Werf
+    @author sjrd
     @version 1.0
   *}
   TCustomCoroutine = class(TObject)
   private
-    FStackSize: Cardinal;  /// Taille maximale de la pile
-    FStackBuffer: Pointer; /// Pile virtuelle totale
-    FStack: Pointer;       /// Début de la pile de la coroutine
-
     FLoop: TCoroutineLoop; /// Type de boucle de la coroutine
 
     FCoroutineRunning: Boolean; /// True si la coroutine est cours d'exécution
     FTerminating: Boolean;      /// True si la coroutine doit se terminer
     FTerminated: Boolean;       /// True si la coroutine est terminée
 
-    FCoroutineFrame: TRunningFrame; /// Cadre d'exécution de la coroutine
-    FCallerFrame: TRunningFrame;    /// Cadre d'exécution de l'appelant
+    FCoroutineThread: TMethodThread; /// Thread qui exécute la coroutine
+    FInvokeEvent: TEvent;            /// Événement déclenché sur Invoke
+    FYieldEvent: TEvent;             /// Événement déclenché sur Yield
 
     FExceptObject: TObject;  /// Objet exception déclenchée par la coroutine
     FExceptAddress: Pointer; /// Adresse de déclenchement de l'exception
 
+    procedure WaitForNoResult(Event: TEvent);
     procedure InitCoroutine;
-    procedure Main;
-    procedure SwitchRunningFrame;
-    procedure Terminate;
+    procedure Main(Thread: TMethodThread);
+    procedure EnterCoroutine;
+    procedure LeaveCoroutine;
+    procedure Terminate(Sender: TObject);
   protected
     procedure Invoke;
     procedure Yield;
@@ -176,8 +146,7 @@ type
     property Terminating: Boolean read FTerminating;
     property Terminated: Boolean read FTerminated;
   public
-    constructor Create(ALoop: TCoroutineLoop = clNoLoop;
-      StackSize: Cardinal = DefaultStackSize);
+    constructor Create(ALoop: TCoroutineLoop = clNoLoop);
     destructor Destroy; override;
 
     procedure BeforeDestruction; override;
@@ -199,8 +168,7 @@ type
     procedure Execute; override;
   public
     constructor Create(AExecuteMethod: TCoroutineMethod;
-      ALoop: TCoroutineLoop = clNoLoop;
-      StackSize: Cardinal = DefaultStackSize);
+      ALoop: TCoroutineLoop = clNoLoop);
 
     procedure Invoke;
     procedure Yield;
@@ -229,122 +197,6 @@ type
 
 implementation
 
-var
-  PageSize: Cardinal = 4096;
-  Default8087CWAddress: PWord;
-
-{-----------------}
-{ Global routines }
-{-----------------}
-
-{*
-  Initialise les variables globales
-*}
-procedure InitGlobalVars;
-var
-  SystemInfo: TSystemInfo;
-begin
-  GetSystemInfo(SystemInfo);
-  PageSize := SystemInfo.dwPageSize;
-  Default8087CWAddress := @Default8087CWAddress;
-end;
-
-{------------------------------------}
-{ Global routines used by TCoroutine }
-{------------------------------------}
-
-{*
-  Restaure un état serein d'exécution de code Delphi et trouve le TIB
-  @return Adresse linéaire du TIB
-*}
-function CleanUpAndGetTIB: PTIB;
-const
-  TIBSelfPointer = $18;
-asm
-        // Clear Direction flag
-        CLD
-
-        // Reinitialize the FPU - see System._FpuInit
-        FNINIT
-        FWAIT
-        MOV     EAX,Default8087CWAddress
-        FLDCW   [EAX]
-
-        // Get TIB
-        MOV     EAX,TIBSelfPointer
-        MOV     EAX,FS:[EAX]
-end;
-
-{*
-  Pop tous les registres de la pile
-  PopRegisters est utilisée comme point de retour dans SaveRunningFrame.
-*}
-procedure PopRegisters;
-asm
-        POPAD
-end;
-
-{*
-  Sauvegarde le cadre d'exécution courant
-  @param TIB     Pointeur sur le TIB
-  @param Frame   Où stocker le cadre d'exécution
-  @return Pointeur sur le TIB
-*}
-function SaveRunningFrame(TIB: PTIB; var Frame: TRunningFrame): PTIB;
-asm
-        { ->    EAX     Pointer to TIB
-                EDX     Pointer to frame
-          <-    EAX     Pointer to TIB   }
-
-        // TIB
-        MOV     ECX,[EAX].TTIB.SEH
-        MOV     [EDX].TRunningFrame.SEH,ECX
-        MOV     ECX,[EAX].TTIB.StackTop
-        MOV     [EDX].TRunningFrame.StackTop,ECX
-        MOV     ECX,[EAX].TTIB.StackBottom
-        MOV     [EDX].TRunningFrame.StackBottom,ECX
-
-        // ESP
-        LEA     ECX,[ESP+4] // +4 because of return address
-        MOV     [EDX].TRunningFrame.StackPtr,ECX
-
-        // Return address
-        MOV     [EDX].TRunningFrame.InstructionPtr,OFFSET PopRegisters
-end;
-
-{*
-  Met en place un cadre d'exécution
-  Cette procédure ne retourne jamais : elle continue l'exécution à
-  l'instruction pointée par Frame.InstructionPtr.
-  @param TIB     Pointeur sur le TIB
-  @param Frame   Informations sur le cadre à mettre en place
-*}
-procedure SetupRunningFrame(TIB: PTIB; const Frame: TRunningFrame);
-asm
-        { Make sure you do a *JMP* to this procedure, not a *CALL*, because it
-          won't get back and musn't get the return address in the stack. }
-
-        { ->    EAX     Pointer to TIB
-                EDX     Pointer to frame
-                EBX     Value for EAX just before the jump }
-
-        // TIB
-        MOV     ECX,[EDX].TRunningFrame.SEH
-        MOV     [EAX].TTIB.SEH,ECX
-        MOV     ECX,[EDX].TRunningFrame.StackBottom
-        MOV     [EAX].TTIB.StackBottom,ECX
-        MOV     ECX,[EDX].TRunningFrame.StackTop
-        MOV     [EAX].TTIB.StackTop,ECX
-
-        // ESP
-        MOV     ESP,[EDX].TRunningFrame.StackPtr
-
-        // Jump to the instruction
-        MOV     EAX,EBX
-        MOV     ECX,[EDX].TRunningFrame.InstructionPtr
-        JMP     ECX
-end;
-
 {------------------------}
 { TCustomCoroutine class }
 {------------------------}
@@ -354,38 +206,9 @@ end;
   @param ALoop       Type de boucle de la coroutine (défaut : clNoLoop)
   @param StackSize   Taille de la pile (défaut : DefaultStackSize)
 *}
-constructor TCustomCoroutine.Create(ALoop: TCoroutineLoop = clNoLoop;
-  StackSize: Cardinal = DefaultStackSize);
-var
-  AllocStackBy: Cardinal;
+constructor TCustomCoroutine.Create(ALoop: TCoroutineLoop = clNoLoop);
 begin
   inherited Create;
-
-  // Compute AllocStackBy
-  AllocStackBy := PageSize;
-  if AllocStackBy < MinAllocStackBy then
-    AllocStackBy := MinAllocStackBy;
-
-  // Adapt stack size
-  if StackSize < 2*AllocStackBy then
-    StackSize := 2*AllocStackBy
-  else if StackSize mod AllocStackBy <> 0 then
-    StackSize := StackSize - (StackSize mod AllocStackBy) + AllocStackBy;
-
-  // Reserve stack address space
-  FStackSize := StackSize;
-  FStackBuffer := VirtualAlloc(nil, FStackSize, MEM_RESERVE, PAGE_READWRITE);
-  if not Assigned(FStackBuffer) then
-    RaiseLastOSError;
-  FStack := Pointer(Cardinal(FStackBuffer) + FStackSize);
-
-  // Allocate base stack
-  if not Assigned(VirtualAlloc(Pointer(Cardinal(FStack) - AllocStackBy),
-    AllocStackBy, MEM_COMMIT, PAGE_READWRITE)) then
-    RaiseLastOSError;
-  if not Assigned(VirtualAlloc(Pointer(Cardinal(FStack) - 2*AllocStackBy),
-    AllocStackBy, MEM_COMMIT, PAGE_READWRITE or PAGE_GUARD)) then
-    RaiseLastOSError;
 
   // Set up configuration
   FLoop := ALoop;
@@ -394,6 +217,10 @@ begin
   FCoroutineRunning := False;
   FTerminating := False;
   FTerminated := False;
+
+  // Create thread and events
+  FInvokeEvent := TEvent.Create(nil, False, False, '');
+  FYieldEvent := TEvent.Create(nil, False, False, '');
 
   // Initialize coroutine
   InitCoroutine;
@@ -404,12 +231,24 @@ end;
 *}
 destructor TCustomCoroutine.Destroy;
 begin
-  // Release stack address space
-  if Assigned(FStackBuffer) then
-    if not VirtualFree(FStackBuffer, 0, MEM_RELEASE) then
-      RaiseLastOSError;
+  // Release thread and events
+  FCoroutineThread.Free;
+  FYieldEvent.Free;
+  FInvokeEvent.Free;
 
   inherited;
+end;
+
+{*
+  Attend un événement, sans résultat
+  En cas d'erreur, déclenche une exception au lieu de renvoyer un résultat.
+  @param Event   Événement à attendre
+  @throws ECoroutineError Erreur lors de l'attente
+*}
+procedure TCustomCoroutine.WaitForNoResult(Event: TEvent);
+begin
+  if Event.WaitFor(INFINITE) <> wrSignaled then
+    Error(@SCoroutInternalError);
 end;
 
 {*
@@ -417,25 +256,25 @@ end;
 *}
 procedure TCustomCoroutine.InitCoroutine;
 begin
-  with FCoroutineFrame do
-  begin
-    SEH := nil;
-    StackTop := FStack;
-    StackBottom := FStackBuffer;
-    StackPtr := FStack;
-    InstructionPtr := @TCustomCoroutine.Main;
-  end;
-
+  FreeAndNil(FCoroutineThread);
   FExceptObject := nil;
+
+  FInvokeEvent.ResetEvent;
+  FYieldEvent.ResetEvent;
+
+  FCoroutineThread := TMethodThread.Create(Main);
+  FCoroutineThread.OnDoTerminate := Terminate;
 end;
 
 {*
   Méthode principale de la coroutine
 *}
-procedure TCustomCoroutine.Main;
+procedure TCustomCoroutine.Main(Thread: TMethodThread);
 begin
-  if not Terminating then
   try
+    WaitForNoResult(FInvokeEvent);
+
+    if not Terminating then
     repeat
       Execute;
       if (Loop = clNextInvoke) and (not Terminating) then
@@ -445,58 +284,36 @@ begin
     FExceptObject := AcquireExceptionObject;
     FExceptAddress := ExceptAddr;
   end;
-
-  Terminate;
 end;
 
 {*
-  Switche entre les deux cadres d'exécution (appelant-coroutine et vice versa)
+  Entre dans la coroutine
 *}
-procedure TCustomCoroutine.SwitchRunningFrame;
-asm
-        { ->    EAX     Self }
+procedure TCustomCoroutine.EnterCoroutine;
+begin
+  FCoroutineRunning := True;
+  FInvokeEvent.SetEvent;
+  WaitForNoResult(FYieldEvent);
+end;
 
-        // Save all registers
-        PUSHAD
-        MOV     EBX,EAX
-
-        // Get CoroutineRunning value into CF then switch it
-        BTC     WORD PTR [EBX].TCoroutine.FCoroutineRunning,0
-
-        // Get frame addresses
-        LEA     ESI,[EBX].TCoroutine.FCoroutineFrame
-        LEA     EDI,[EBX].TCoroutine.FCallerFrame
-        JC      @@running // from BTC
-        XCHG    ESI,EDI
-@@running:
-
-        // Clean up and get TIB
-        CALL    CleanUpAndGetTIB
-
-        // Save current running frame
-        MOV     EDX,ESI
-        CALL    SaveRunningFrame
-
-        // Set up new running frame
-        MOV     EDX,EDI
-        JMP     SetupRunningFrame
+{*
+  Sort la coroutine
+*}
+procedure TCustomCoroutine.LeaveCoroutine;
+begin
+  FCoroutineRunning := False;
+  FYieldEvent.SetEvent;
+  WaitForNoResult(FInvokeEvent);
 end;
 
 {*
   Termine la coroutine
 *}
-procedure TCustomCoroutine.Terminate;
-asm
-        { ->    EAX     Self }
-
-        // Update state
-        MOV     [EAX].TCoroutine.FTerminated,1
-        MOV     [EAX].TCoroutine.FCoroutineRunning,0
-
-        // Go back to caller running frame
-        LEA     EDX,[EAX].TCoroutine.FCallerFrame
-        CALL    CleanUpAndGetTIB
-        JMP     SetupRunningFrame
+procedure TCustomCoroutine.Terminate(Sender: TObject);
+begin
+  FTerminated := True;
+  FCoroutineRunning := False;
+  FYieldEvent.SetEvent;
 end;
 
 {*
@@ -511,25 +328,11 @@ begin
   if Terminated then
     Error(@SCoroutTerminated);
 
-  // Enter the coroutine
-  SwitchRunningFrame;
+  EnterCoroutine;
 
   if Assigned(FExceptObject) then
   begin
-    {$WARN SYMBOL_DEPRECATED OFF} // EStackOverflow is deprecated
-    if FExceptObject is EStackOverflow then
-    try
-      // Reset guard in our stack - in case of upcoming call to Reset
-      if not Assigned(VirtualAlloc(FStackBuffer, PageSize, MEM_COMMIT,
-        PAGE_READWRITE or PAGE_GUARD)) then
-        RaiseLastOSError;
-    except
-      FExceptObject.Free;
-      raise;
-    end;
-    {$WARN SYMBOL_DEPRECATED ON}
-
-    // Re-raise exception
+    // Re-raise exception in the caller thread
     TempError := FExceptObject;
     FExceptObject := nil;
     raise TempError at FExceptAddress;
@@ -546,7 +349,7 @@ begin
   if Terminating then
     raise ECoroutineTerminating.CreateRes(@SCoroutTerminating);
 
-  SwitchRunningFrame;
+  LeaveCoroutine;
 end;
 
 {*
@@ -584,7 +387,7 @@ begin
 
   if not Terminated then
   begin
-    SwitchRunningFrame;
+    EnterCoroutine;
     if Assigned(FExceptObject) then
       FExceptObject.Free;
   end;
@@ -626,12 +429,11 @@ end;
   Crée une coroutine
   @param AExecuteMethod   Méthode contenu de la coroutine
   @param ALoop            Type de boucle de la coroutine (défaut : clNoLoop)
-  @param StackSize        Taille de la pile (défaut : DefaultStackSize)
 *}
 constructor TCoroutine.Create(AExecuteMethod: TCoroutineMethod;
-  ALoop: TCoroutineLoop = clNoLoop; StackSize: Cardinal = DefaultStackSize);
+  ALoop: TCoroutineLoop = clNoLoop);
 begin
-  inherited Create(ALoop, StackSize);
+  inherited Create(ALoop);
   FExecuteMethod := AExecuteMethod;
 end;
 
@@ -682,7 +484,5 @@ begin
   Result := not Terminated;
 end;
 
-initialization
-  InitGlobalVars;
 end.
 
