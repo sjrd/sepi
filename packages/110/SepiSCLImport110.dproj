@@ -54,8 +54,7 @@
     <DelphiCompile Include="SepiSCLImport110.dpk">
       <MainSource>MainSource</MainSource>
     </DelphiCompile>
-    <DCCReference Include="..\..\programs\SepiParserGenerator\rtl.dcp" />
-    <DCCReference Include="..\..\programs\SepiParserGenerator\SepiReflection110.dcp" />
+    <DCCReference Include="..\..\source\run\SepiSCLImport\rtl.dcp" />
     <DCCReference Include="..\..\source\run\SepiSCLImport\SepiImportsScClasses.pas" />
     <DCCReference Include="..\..\source\run\SepiSCLImport\SepiImportsScCompilerMagic.pas" />
     <DCCReference Include="..\..\source\run\SepiSCLImport\SepiImportsScConsoleUtils.pas" />
@@ -78,6 +77,8 @@
     <DCCReference Include="..\..\source\run\SepiSCLImport\SepiImportsScTypInfo.pas" />
     <DCCReference Include="..\..\source\run\SepiSCLImport\SepiImportsScUtils.pas" />
     <DCCReference Include="..\..\source\run\SepiSCLImport\SepiImportsScWindows.pas" />
+    <DCCReference Include="..\..\source\run\SepiSCLImport\SepiImportsScXML.pas" />
     <DCCReference Include="..\..\source\run\SepiSCLImport\SepiImportsScZLib.pas" />
+    <DCCReference Include="..\..\source\run\SepiSCLImport\SepiReflection110.dcp" />
   </ItemGroup>
 </Project>

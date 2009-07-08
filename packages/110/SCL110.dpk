@@ -4,17 +4,17 @@ package SCL110;
 {$ALIGN 8}
 {$ASSERTIONS ON}
 {$BOOLEVAL OFF}
-{$DEBUGINFO OFF}
+{$DEBUGINFO ON}
 {$EXTENDEDSYNTAX ON}
 {$IMPORTEDDATA ON}
 {$IOCHECKS ON}
-{$LOCALSYMBOLS OFF}
+{$LOCALSYMBOLS ON}
 {$LONGSTRINGS ON}
 {$OPENSTRINGS ON}
 {$OPTIMIZATION ON}
 {$OVERFLOWCHECKS OFF}
 {$RANGECHECKS OFF}
-{$REFERENCEINFO OFF}
+{$REFERENCEINFO ON}
 {$SAFEDIVIDE OFF}
 {$STACKFRAMES OFF}
 {$TYPEDADDRESS OFF}
@@ -54,7 +54,8 @@ contains
   ScSyncObjs in '..\..\source\run\SCL\ScSyncObjs.pas',
   ScTypInfo in '..\..\source\run\SCL\ScTypInfo.pas',
   ScUtils in '..\..\source\run\SCL\ScUtils.pas',
-  ScWindows in '..\..\source\run\SCL\ScWindows.pas';
+  ScWindows in '..\..\source\run\SCL\ScWindows.pas',
+  ScXML in '..\..\source\run\SCL\ScXML.pas';
 
 end.
 

@@ -53,7 +53,8 @@ contains
   SepiImportsScSyncObjs in '..\..\source\run\SepiSCLImport\SepiImportsScSyncObjs.pas',
   SepiImportsScTypInfo in '..\..\source\run\SepiSCLImport\SepiImportsScTypInfo.pas',
   SepiImportsScUtils in '..\..\source\run\SepiSCLImport\SepiImportsScUtils.pas',
-  SepiImportsScWindows in '..\..\source\run\SepiSCLImport\SepiImportsScWindows.pas';
+  SepiImportsScWindows in '..\..\source\run\SepiSCLImport\SepiImportsScWindows.pas',
+  SepiImportsScXML in '..\..\source\run\SepiSCLImport\SepiImportsScXML.pas';
 
 end.
 

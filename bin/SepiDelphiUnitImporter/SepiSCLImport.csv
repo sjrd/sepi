@@ -20,3 +20,4 @@ ScTypInfo.pas
 ScSerializer.pas
 ScWindows.pas
 ScZLib.pas
+ScXML.pas

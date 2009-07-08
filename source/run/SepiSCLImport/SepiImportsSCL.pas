@@ -24,7 +24,8 @@ uses
   SepiImportsScTypInfo,
   SepiImportsScUtils,
   SepiImportsScWindows,
-  SepiImportsScZLib;
+  SepiImportsScZLib,
+  SepiImportsScXML;
 
 implementation
 

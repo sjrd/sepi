@@ -10,9 +10,6 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <Version>7.0</Version>
-    <DCC_DebugInformation>False</DCC_DebugInformation>
-    <DCC_LocalDebugSymbols>False</DCC_LocalDebugSymbols>
-    <DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
     <DCC_Define>RELEASE</DCC_Define>
     <DCC_DcuOutput>.\..\..\dcu\</DCC_DcuOutput>
     <DCC_ObjOutput>.\..\..\dcu\</DCC_ObjOutput>
@@ -54,6 +51,8 @@
     <DelphiCompile Include="SCL110.dpk">
       <MainSource>MainSource</MainSource>
     </DelphiCompile>
+    <DCCReference Include="..\..\..\FunLabyrinthe\UnitPackages\FunLabyBase\rtl.dcp" />
+    <DCCReference Include="..\..\..\FunLabyrinthe\UnitPackages\FunLabyBase\vcl.dcp" />
     <DCCReference Include="..\..\source\run\SCL\ScClasses.pas" />
     <DCCReference Include="..\..\source\run\SCL\ScCompilerMagic.pas" />
     <DCCReference Include="..\..\source\run\SCL\ScConsoleUtils.pas" />
@@ -76,8 +75,7 @@
     <DCCReference Include="..\..\source\run\SCL\ScTypInfo.pas" />
     <DCCReference Include="..\..\source\run\SCL\ScUtils.pas" />
     <DCCReference Include="..\..\source\run\SCL\ScWindows.pas" />
+    <DCCReference Include="..\..\source\run\SCL\ScXML.pas" />
     <DCCReference Include="..\..\source\run\SCL\ScZLib.pas" />
-    <DCCReference Include="C:\Documents and Settings\All Users\Documents\RAD Studio\5.0\Dcp\rtl.dcp" />
-    <DCCReference Include="C:\Documents and Settings\All Users\Documents\RAD Studio\5.0\Dcp\vcl.dcp" />
   </ItemGroup>
 </Project>

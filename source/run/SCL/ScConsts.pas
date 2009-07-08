@@ -92,6 +92,9 @@ resourcestring
   SAlreadyHasController = 'Cet objet a déjà un contrôleur';
   SHasNoController = 'Cet objet n''a pas de contrôleur';
 
+  // XML errors
+  SCantLoadXMLDocument = 'Erreur lors du chargement du document XML';
+
   // Maths errors
   sScErrorMaths = 'Erreur de mathématiques :'+#10;
   sScErrorDegree = 'Erreur avec le degré %s';

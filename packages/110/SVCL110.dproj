@@ -10,9 +10,6 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <Version>7.0</Version>
-    <DCC_DebugInformation>False</DCC_DebugInformation>
-    <DCC_LocalDebugSymbols>False</DCC_LocalDebugSymbols>
-    <DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
     <DCC_Define>RELEASE</DCC_Define>
     <DCC_SYMBOL_PLATFORM>False</DCC_SYMBOL_PLATFORM>
     <DCC_UNIT_PLATFORM>False</DCC_UNIT_PLATFORM>
@@ -54,11 +51,11 @@
     <DelphiCompile Include="SVCL110.dpk">
       <MainSource>MainSource</MainSource>
     </DelphiCompile>
+    <DCCReference Include="..\..\..\FunLabyrinthe\UnitPackages\FunLabyBase\rtl.dcp" />
+    <DCCReference Include="..\..\..\FunLabyrinthe\UnitPackages\FunLabyBase\SCL110.dcp" />
+    <DCCReference Include="..\..\..\FunLabyrinthe\UnitPackages\FunLabyBase\vcl.dcp" />
     <DCCReference Include="..\..\source\run\SVCL\SvEdits.pas" />
     <DCCReference Include="..\..\source\run\SVCL\SvImages.pas" />
     <DCCReference Include="..\..\source\run\SVCL\SvLabels.pas" />
-    <DCCReference Include="C:\Documents and Settings\All Users\Documents\RAD Studio\5.0\Dcp\rtl.dcp" />
-    <DCCReference Include="C:\Documents and Settings\All Users\Documents\RAD Studio\5.0\Dcp\SCL110.dcp" />
-    <DCCReference Include="C:\Documents and Settings\All Users\Documents\RAD Studio\5.0\Dcp\vcl.dcp" />
   </ItemGroup>
 </Project>
