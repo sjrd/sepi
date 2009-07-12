@@ -417,12 +417,19 @@ begin
     case ReadCommand(Param) of
       ppIfDef, ppIfNDef, ppIf:
         Inc(Depth);
-      ppElse, ppEndIf, ppIfEnd:
+      ppEndIf, ppIfEnd:
         Dec(Depth);
+      ppElse:
+      begin
+        { $ELSE decrements Depth and immediately increments it.  Therefore, it
+          has no effect; unlesse Depth reaches 0 at this time. }
+        if Depth = 1 then
+          Break;
+      end;
       ppElseIf:
       begin
         { $ELSEIF decrements Depth and immediately increments it.  Therefore,
-          it has no effect; unless Depth reaches 0 à this time and we are
+          it has no effect; unless Depth reaches 0 at this time and we are
           asked to StopOnElseIf. }
         if (Depth = 1) and StopOnElseIf then
           Break;

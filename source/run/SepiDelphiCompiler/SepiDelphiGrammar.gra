@@ -222,7 +222,11 @@ ntRecordInitializationExpression	RecordInitializationExpression
 	RecordInitialization
 
 ntRecordInitialization	RecordInitialization
-	'('* Identifier ':'* InitializationExpression (';'* Identifier ':'* InitializationExpression)* ')'*
+	'('* Identifier ':'* InitializationExpression RecordInitEx ')'*
+
+ntRecordInitEx	RecordInitEx	Simplify
+	';'* (Identifier ':'* InitializationExpression RecordInitEx)?
+	@
 
 ntGUIDInitializationExpression	GUIDInitializationExpression
 	GUIDInitialization
