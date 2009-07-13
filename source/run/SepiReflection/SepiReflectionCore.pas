@@ -235,7 +235,7 @@ type
 
     function FindContainer: TSepiContainerType;
 
-    function IsVisibleFrom(FromComponent: TSepiComponent): Boolean;
+    function IsVisibleFrom(FromComponent: TSepiComponent): Boolean; virtual;
 
     function LookFor(const Name: string;
       FromComponent: TSepiComponent): TSepiComponent; overload;

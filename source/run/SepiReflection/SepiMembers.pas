@@ -495,6 +495,8 @@ type
     constructor Create(AOwner: TSepiComponent; const AName: string);
     destructor Destroy; override;
 
+    function IsVisibleFrom(FromComponent: TSepiComponent): Boolean; override;
+
     function FindMethod(ASignature: TSepiSignature;
       Options: TSepiSignatureCompareOptions = scoAll): TSepiMethod; overload;
     function FindMethod(
@@ -2612,6 +2614,21 @@ function TSepiOverloadedMethod.GetMethods(
   Index: Integer): TSepiMethod;
 begin
   Result := TSepiMethod(FMethods[Index]);
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiOverloadedMethod.IsVisibleFrom(
+  FromComponent: TSepiComponent): Boolean;
+var
+  I: Integer;
+begin
+  Result := True;
+  for I := 0 to MethodCount-1 do
+    if Methods[I].IsVisibleFrom(FromComponent) then
+      Exit;
+  Result := False;
 end;
 
 {*

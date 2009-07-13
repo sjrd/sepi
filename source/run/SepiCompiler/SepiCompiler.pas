@@ -2814,7 +2814,10 @@ function TSepiUnitCompiler.MakeReference(Component: TSepiComponent): Integer;
 begin
   Result := FReferences.IndexOf(Component);
   if Result < 0 then
+  begin
     Result := FReferences.Add(Component);
+    SepiUnit.MoreUses([Component.OwningUnit.Name]);
+  end;
 end;
 
 {*
