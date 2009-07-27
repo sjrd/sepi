@@ -55,6 +55,49 @@ type
     @version 1.0
   *}
   TSepiLexerBookmark = class(TObject)
+  end;
+
+  {*
+    Classe de base pour les analyseurs lexicaux Sepi
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiCustomLexer = class(TObject)
+  private
+    FErrors: TSepiCompilerErrorList; /// Erreurs de compilation
+
+    FContext: TSepiNonTerminal; /// Contexte courant (peut être nil)
+  protected
+    procedure MakeError(const ErrorMsg: string;
+      Kind: TSepiErrorKind = ekError);
+
+    function GetCurrentPos: TSepiSourcePosition; virtual; abstract;
+    function GetCurTerminal: TSepiTerminal; virtual; abstract;
+    procedure SetContext(Value: TSepiNonTerminal); virtual;
+  public
+    constructor Create(AErrors: TSepiCompilerErrorList; const ACode: string;
+      const AFileName: TFileName = ''); virtual;
+
+    procedure NextTerminal; virtual; abstract;
+
+    function MakeBookmark: TSepiLexerBookmark; virtual;
+    procedure ResetToBookmark(Bookmark: TSepiLexerBookmark;
+      FreeBookmark: Boolean = True); virtual;
+
+    property Errors: TSepiCompilerErrorList read FErrors;
+
+    property CurrentPos: TSepiSourcePosition read GetCurrentPos;
+    property CurTerminal: TSepiTerminal read GetCurTerminal;
+
+    property Context: TSepiNonTerminal read FContext write SetContext;
+  end;
+
+  {*
+    Bookmark pour TSepiBaseLexer
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiBaseLexerBookmark = class(TSepiLexerBookmark)
   private
     FCursor: Integer;                 /// Index courant dans le source
     FCurrentPos: TSepiSourcePosition; /// Position courante
@@ -73,23 +116,20 @@ type
   end;
 
   {*
-    Classe de base pour les analyseurs lexicaux Sepi
+    Classe de base pour les analyseurs lexicaux Sepi de base (non composites)
     @author sjrd
     @version 1.0
   *}
-  TSepiCustomLexer = class(TObject)
+  TSepiBaseLexer = class(TSepiCustomLexer)
   private
-    FErrors: TSepiCompilerErrorList;  /// Erreurs de compilation
     FCode: string;                    /// Code source à analyser
     FCursor: Integer;                 /// Index courant dans le source
     FCurrentPos: TSepiSourcePosition; /// Position courante
     FNextPos: TSepiSourcePosition;    /// Prochaine position
     FCurTerminal: TSepiTerminal;      /// Dernier terminal analysé
-
-    FContext: TSepiNonTerminal; /// Contexte courant (peut être nil)
   protected
-    procedure MakeError(const ErrorMsg: string;
-      Kind: TSepiErrorKind = ekError);
+    function GetCurrentPos: TSepiSourcePosition; override;
+    function GetCurTerminal: TSepiTerminal; override;
 
     procedure TerminalParsed(SymbolClass: TSepiSymbolClass;
       const Representation: string);
@@ -101,24 +141,18 @@ type
       var SymbolClass: TSepiSymbolClass); virtual;
   public
     constructor Create(AErrors: TSepiCompilerErrorList; const ACode: string;
-      const AFileName: TFileName = ''); virtual;
+      const AFileName: TFileName = ''); override;
     destructor Destroy; override;
 
-    procedure NextTerminal; virtual; abstract;
+    function MakeBookmark: TSepiLexerBookmark; override;
+    procedure ResetToBookmark(ABookmark: TSepiLexerBookmark;
+      FreeBookmark: Boolean = True); override;
 
-    function MakeBookmark: TSepiLexerBookmark;
-    procedure ResetToBookmark(Bookmark: TSepiLexerBookmark;
-      FreeBookmark: Boolean = True);
-
-    property Errors: TSepiCompilerErrorList read FErrors;
     property Code: string read FCode;
-
     property Cursor: Integer read FCursor;
+
     property CurrentPos: TSepiSourcePosition read FCurrentPos;
-
     property CurTerminal: TSepiTerminal read FCurTerminal;
-
-    property Context: TSepiNonTerminal read FContext write FContext;
   end;
 
   /// Classe de TSepiCustomLexerClass
@@ -129,7 +163,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TSepiCustomManualLexer = class(TSepiCustomLexer)
+  TSepiCustomManualLexer = class(TSepiBaseLexer)
   protected
     /// Tableau des fonctions d'analyse indexé par les caractères de début
     LexingFuncs: array[#0..#255] of TSepiLexingFunc;
@@ -151,40 +185,6 @@ const
 
 implementation
 
-{--------------------------}
-{ TSepiLexerBookmark class }
-{--------------------------}
-
-{*
-  Crée un marque-page
-  @param ACursor        Index courant dans le source
-  @param ACurrentPos    Position courante
-  @param ANextPos       Prochaine position
-  @param ACurTerminal   Dernier terminal analysé
-*}
-constructor TSepiLexerBookmark.Create(ACursor: Integer;
-  const ACurrentPos, ANextPos: TSepiSourcePosition;
-  ACurTerminal: TSepiTerminal);
-begin
-  inherited Create;
-
-  FCursor := ACursor;
-  FCurrentPos := ACurrentPos;
-  FNextPos := ANextPos;
-
-  FCurTerminal := TSepiTerminal.Clone(ACurTerminal);
-end;
-
-{*
-  [@inheritDoc]
-*}
-destructor TSepiLexerBookmark.Destroy;
-begin
-  FCurTerminal.Free;
-
-  inherited;
-end;
-
 {------------------------}
 { TSepiCustomLexer class }
 {------------------------}
@@ -201,6 +201,97 @@ begin
   inherited Create;
 
   FErrors := AErrors;
+end;
+
+{*
+  Produit une erreur
+  @param ErrorMsg   Message d'erreur
+  @param Kind       Type d'erreur (défaut = Erreur)
+*}
+procedure TSepiCustomLexer.MakeError(const ErrorMsg: string;
+  Kind: TSepiErrorKind = ekError);
+begin
+  Errors.MakeError(ErrorMsg, Kind, CurrentPos);
+end;
+
+{*
+  Modifie le noeud contexte courant
+  @param Value   Nouveau noeud contexte
+*}
+procedure TSepiCustomLexer.SetContext(Value: TSepiNonTerminal);
+begin
+  FContext := Value;
+end;
+
+{*
+  Construit un marque-page à la position courante
+  @return Le marque-page construit
+*}
+function TSepiCustomLexer.MakeBookmark: TSepiLexerBookmark;
+begin
+  Result := TSepiLexerBookmark.Create;
+end;
+
+{*
+  Retourne dans le code source à la position d'un marque-page
+  @param Bookmark       Marque-page
+  @param FreeBookmark   Si True, le marque-page est ensuite détruit
+*}
+procedure TSepiCustomLexer.ResetToBookmark(Bookmark: TSepiLexerBookmark;
+  FreeBookmark: Boolean = True);
+begin
+  if FreeBookmark then
+    Bookmark.Free;
+end;
+
+{------------------------------}
+{ TSepiBaseLexerBookmark class }
+{------------------------------}
+
+{*
+  Crée un marque-page
+  @param ACursor        Index courant dans le source
+  @param ACurrentPos    Position courante
+  @param ANextPos       Prochaine position
+  @param ACurTerminal   Dernier terminal analysé
+*}
+constructor TSepiBaseLexerBookmark.Create(ACursor: Integer;
+  const ACurrentPos, ANextPos: TSepiSourcePosition;
+  ACurTerminal: TSepiTerminal);
+begin
+  inherited Create;
+
+  FCursor := ACursor;
+  FCurrentPos := ACurrentPos;
+  FNextPos := ANextPos;
+
+  FCurTerminal := TSepiTerminal.Clone(ACurTerminal);
+end;
+
+{*
+  [@inheritDoc]
+*}
+destructor TSepiBaseLexerBookmark.Destroy;
+begin
+  FCurTerminal.Free;
+
+  inherited;
+end;
+
+{----------------------}
+{ TSepiBaseLexer class }
+{----------------------}
+
+{*
+  Crée un analyseur lexical
+  @param AErrors     Erreurs de compilation
+  @param ACode       Code source à analyser
+  @param AFileName   Nom du fichier source
+*}
+constructor TSepiBaseLexer.Create(AErrors: TSepiCompilerErrorList;
+  const ACode: string; const AFileName: TFileName = '');
+begin
+  inherited;
 
   FCode := ACode + #0;
   FCursor := 1;
@@ -220,7 +311,7 @@ end;
 {*
   [@inheritDoc]
 *}
-destructor TSepiCustomLexer.Destroy;
+destructor TSepiBaseLexer.Destroy;
 begin
   FreeAndNil(FCurTerminal);
 
@@ -228,22 +319,11 @@ begin
 end;
 
 {*
-  Produit une erreur
-  @param ErrorMsg   Message d'erreur
-  @param Kind       Type d'erreur (défaut = Erreur)
-*}
-procedure TSepiCustomLexer.MakeError(const ErrorMsg: string;
-  Kind: TSepiErrorKind = ekError);
-begin
-  Errors.MakeError(ErrorMsg, Kind, CurrentPos);
-end;
-
-{*
   Indique qu'un terminal a été analysé
   @param SymbolClass      Class de symbole
   @param Representation   Représentation du terminal
 *}
-procedure TSepiCustomLexer.TerminalParsed(SymbolClass: TSepiSymbolClass;
+procedure TSepiBaseLexer.TerminalParsed(SymbolClass: TSepiSymbolClass;
   const Representation: string);
 begin
   FreeAndNil(FCurTerminal);
@@ -256,7 +336,7 @@ end;
 {*
   Indique qu'aucun terminal n'a été analysé
 *}
-procedure TSepiCustomLexer.NoTerminalParsed;
+procedure TSepiBaseLexer.NoTerminalParsed;
 begin
   FCurrentPos := FNextPos;
 end;
@@ -265,7 +345,7 @@ end;
   Avance le curseur
   @param Amount   Nombre de caractères à passer (défaut = 1)
 *}
-procedure TSepiCustomLexer.CursorForward(Amount: Integer = 1);
+procedure TSepiBaseLexer.CursorForward(Amount: Integer = 1);
 var
   I: Integer;
 begin
@@ -291,29 +371,46 @@ end;
   @param Key           Mot-clef éventuel à identifier
   @param SymbolClass   À modifier selon la classe du mot-clef
 *}
-procedure TSepiCustomLexer.IdentifyKeyword(const Key: string;
+procedure TSepiBaseLexer.IdentifyKeyword(const Key: string;
   var SymbolClass: TSepiSymbolClass);
 begin
 end;
 
 {*
-  Construit un marque-page à la position courante
-  @return Le marque-page construit
+  [@inheritDoc]
 *}
-function TSepiCustomLexer.MakeBookmark: TSepiLexerBookmark;
+function TSepiBaseLexer.GetCurrentPos: TSepiSourcePosition;
 begin
-  Result := TSepiLexerBookmark.Create(FCursor, FCurrentPos, FNextPos,
+  Result := FCurrentPos;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiBaseLexer.GetCurTerminal: TSepiTerminal;
+begin
+  Result := FCurTerminal;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiBaseLexer.MakeBookmark: TSepiLexerBookmark;
+begin
+  Result := TSepiBaseLexerBookmark.Create(FCursor, FCurrentPos, FNextPos,
     FCurTerminal);
 end;
 
 {*
-  Retourne dans le code source à la position d'un marque-page
-  @param Bookmark       Marque-page
-  @param FreeBookmark   Si True, le marque-page est ensuite détruit
+  [@inheritDoc]
 *}
-procedure TSepiCustomLexer.ResetToBookmark(Bookmark: TSepiLexerBookmark;
+procedure TSepiBaseLexer.ResetToBookmark(ABookmark: TSepiLexerBookmark;
   FreeBookmark: Boolean = True);
+var
+  Bookmark: TSepiBaseLexerBookmark;
 begin
+  Bookmark := ABookmark as TSepiBaseLexerBookmark;
+
   FCursor := Bookmark.Cursor;
   FCurrentPos := Bookmark.CurrentPos;
   FNextPos := Bookmark.NextPos;
@@ -321,8 +418,7 @@ begin
   FreeAndNil(FCurTerminal);
   FCurTerminal := TSepiTerminal.Clone(Bookmark.CurTerminal);
 
-  if FreeBookmark then
-    Bookmark.Free;
+  inherited;
 end;
 
 {------------------------------}
