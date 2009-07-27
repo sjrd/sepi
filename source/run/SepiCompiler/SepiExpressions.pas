@@ -2915,6 +2915,12 @@ begin
 
     // Pure assignment
     Source.CompileRead(Compiler, Instructions, Destination, TempVars);
+  end else if SrcType is TSepiMetaClass then
+  begin
+    Assert(ValueType is TSepiMetaClass);
+
+    // Pure assignment
+    Source.CompileRead(Compiler, Instructions, Destination, TempVars);
   end else
   begin
     DestBase := SepiTypeToBaseType(ValueType);
@@ -3018,6 +3024,14 @@ begin
     if DestType is TSepiInterface then
       Result := TSepiInterface(SrcType).IntfInheritsFrom(
         TSepiInterface(DestType))
+    else
+      Result := False;
+
+    Exit;
+  end else if SrcType is TSepiMetaClass then
+  begin
+    if DestType is TSepiMetaClass then
+      Result := DestType.CompatibleWith(SrcType)
     else
       Result := False;
 
