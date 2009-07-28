@@ -29,18 +29,20 @@ interface
 {$D-,L-}
 
 uses
-  SysUtils, Classes, SepiCore, SepiCompilerErrors, SepiParseTrees,
+  SysUtils, Classes, ScUtils, SepiCore, SepiCompilerErrors, SepiParseTrees,
   SepiCompilerConsts;
 
 const
-  tkEof = 0; /// Lexème fin de fichier
+  tkEof = 0;     /// Lexème fin de fichier
+  tkBlank = 1;   /// Lexème blanc
+  tkComment = 2; /// Lexème commentaire
 
 type
   {*
     Fonction d'analyse d'un terminal
     @return True si un véritable terminal a été analysé, False sinon
   *}
-  TSepiLexingFunc = function: Boolean of object;
+  TSepiLexingProc = procedure of object;
 
   {*
     Erreur d'analyse lexicale
@@ -66,7 +68,11 @@ type
   private
     FErrors: TSepiCompilerErrorList; /// Erreurs de compilation
 
+    FExcludedTokens: TSysByteSet; /// Types de lexèmes à exclure complètement
+
     FContext: TSepiNonTerminal; /// Contexte courant (peut être nil)
+
+    procedure SetExcludedTokens(const Value: TSysByteSet);
   protected
     procedure MakeError(const ErrorMsg: string;
       Kind: TSepiErrorKind = ekError);
@@ -74,17 +80,22 @@ type
     function GetCurrentPos: TSepiSourcePosition; virtual; abstract;
     function GetCurTerminal: TSepiTerminal; virtual; abstract;
     procedure SetContext(Value: TSepiNonTerminal); virtual;
+
+    procedure DoNextTerminal; virtual; abstract;
   public
     constructor Create(AErrors: TSepiCompilerErrorList; const ACode: string;
       const AFileName: TFileName = ''); virtual;
 
-    procedure NextTerminal; virtual; abstract;
+    procedure NextTerminal;
 
     function MakeBookmark: TSepiLexerBookmark; virtual;
     procedure ResetToBookmark(Bookmark: TSepiLexerBookmark;
       FreeBookmark: Boolean = True); virtual;
 
     property Errors: TSepiCompilerErrorList read FErrors;
+
+    property ExcludedTokens: TSysByteSet
+      read FExcludedTokens write SetExcludedTokens;
 
     property CurrentPos: TSepiSourcePosition read GetCurrentPos;
     property CurTerminal: TSepiTerminal read GetCurTerminal;
@@ -133,7 +144,6 @@ type
 
     procedure TerminalParsed(SymbolClass: TSepiSymbolClass;
       const Representation: string);
-    procedure NoTerminalParsed;
 
     procedure CursorForward(Amount: Integer = 1);
 
@@ -166,18 +176,18 @@ type
   TSepiCustomManualLexer = class(TSepiBaseLexer)
   protected
     /// Tableau des fonctions d'analyse indexé par les caractères de début
-    LexingFuncs: array[#0..#255] of TSepiLexingFunc;
+    LexingProcs: array[#0..#255] of TSepiLexingProc;
 
-    procedure InitLexingFuncs; virtual;
+    procedure DoNextTerminal; override;
 
-    function ActionUnknown: Boolean;
-    function ActionEof: Boolean;
-    function ActionBlank: Boolean;
+    procedure InitLexingProcs; virtual;
+
+    procedure ActionUnknown;
+    procedure ActionEof;
+    procedure ActionBlank;
   public
     constructor Create(AErrors: TSepiCompilerErrorList; const ACode: string;
       const AFileName: TFileName = ''); override;
-
-    procedure NextTerminal; override;
   end;
 
 const
@@ -201,6 +211,17 @@ begin
   inherited Create;
 
   FErrors := AErrors;
+  FExcludedTokens := [tkBlank, tkComment];
+end;
+
+{*
+  Modifie les types de lexèmes à exclure complètement
+  @param Value   Nouvel ensemble de lexèmes à exclure (tkEof non pris en compte)
+*}
+procedure TSepiCustomLexer.SetExcludedTokens(const Value: TSysByteSet);
+begin
+  FExcludedTokens := Value;
+  Exclude(FExcludedTokens, tkEof);
 end;
 
 {*
@@ -221,6 +242,16 @@ end;
 procedure TSepiCustomLexer.SetContext(Value: TSepiNonTerminal);
 begin
   FContext := Value;
+end;
+
+{*
+  Passe au lexème suivant
+*}
+procedure TSepiCustomLexer.NextTerminal;
+begin
+  repeat
+    DoNextTerminal;
+  until not (CurTerminal.SymbolClass in ExcludedTokens);
 end;
 
 {*
@@ -303,7 +334,7 @@ begin
   FNextPos.Line := 1;
   FNextPos.Col := 1;
 
-  NoTerminalParsed;
+  FCurrentPos := FNextPos;
 
   FCurTerminal := nil;
 end;
@@ -330,14 +361,6 @@ begin
 
   FCurTerminal := TSepiTerminal.Create(SymbolClass, CurrentPos,
     Representation);
-  FCurrentPos := FNextPos;
-end;
-
-{*
-  Indique qu'aucun terminal n'a été analysé
-*}
-procedure TSepiBaseLexer.NoTerminalParsed;
-begin
   FCurrentPos := FNextPos;
 end;
 
@@ -433,24 +456,32 @@ constructor TSepiCustomManualLexer.Create(AErrors: TSepiCompilerErrorList;
 begin
   inherited;
 
-  InitLexingFuncs;
+  InitLexingProcs;
 end;
 
 {*
-  Initialise le tableau LexingFuncs
+  [@inheritDoc]
 *}
-procedure TSepiCustomManualLexer.InitLexingFuncs;
+procedure TSepiCustomManualLexer.DoNextTerminal;
+begin
+  LexingProcs[Code[Cursor]];
+end;
+
+{*
+  Initialise le tableau LexingProcs
+*}
+procedure TSepiCustomManualLexer.InitLexingProcs;
 var
   C: Char;
 begin
   for C := #0 to #255 do
   begin
     if C = #0 then
-      LexingFuncs[C] := ActionEof
+      LexingProcs[C] := ActionEof
     else if C in BlankChars then
-      LexingFuncs[C] := ActionBlank
+      LexingProcs[C] := ActionBlank
     else
-      LexingFuncs[C] := ActionUnknown;
+      LexingProcs[C] := ActionUnknown;
   end;
 end;
 
@@ -459,41 +490,30 @@ end;
   @return Ne retourne jamais
   @raise ESepiLexicalError
 *}
-function TSepiCustomManualLexer.ActionUnknown: Boolean;
+procedure TSepiCustomManualLexer.ActionUnknown;
 begin
   MakeError(Format(SBadSourceCharacter, [Code[Cursor]]), ekFatalError);
-  Result := False;
 end;
 
 {*
   Analise un caractère de fin de fichier
   @return True - la fin de fichier est bien réelle
 *}
-function TSepiCustomManualLexer.ActionEof: Boolean;
+procedure TSepiCustomManualLexer.ActionEof;
 begin
   TerminalParsed(tkEof, SEndOfFile);
-  Result := True;
 end;
 
 {*
   Analise un blanc
   @return False - les blancs ne sont pas de véritables lexèmes
 *}
-function TSepiCustomManualLexer.ActionBlank: Boolean;
+procedure TSepiCustomManualLexer.ActionBlank;
 begin
   while Code[Cursor] in BlankChars do
     CursorForward;
 
-  NoTerminalParsed;
-  Result := False;
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TSepiCustomManualLexer.NextTerminal;
-begin
-  while not LexingFuncs[Code[Cursor]] do;
+  TerminalParsed(tkBlank, ' ');
 end;
 
 end.

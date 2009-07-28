@@ -41,137 +41,139 @@ resourcestring
 
 const
   FirstTerminal = 0;
-  LastTerminal = 114;
+  LastTerminal = 117;
 
-  tkEof = SepiLexerUtils.tkEof; /// Fin de fichier
+  tkEof = SepiLexerUtils.tkEof;         /// Fin de fichier
+  tkBlank = SepiLexerUtils.tkBlank;     /// Lexème blanc
+  tkComment = SepiLexerUtils.tkComment; /// Lexème commentaire
 
-  tkIdentifier = 1; // Identificateur
-  tkInteger = 2;    // Nombre entier
-  tkFloat = 3;      // Nombre en virgule flottante
-  tkStringCst = 4;  // Chaîne de caractères
+  tkIdentifier = 3; // Identificateur
+  tkInteger = 4;    // Nombre entier
+  tkFloat = 5;      // Nombre en virgule flottante
+  tkStringCst = 6;  // Chaîne de caractères
 
-  tkOpenBracket = 5;    // (
-  tkCloseBracket = 6;   // )
-  tkOpenSqBracket = 7;  // [
-  tkCloseSqBracket = 8; // ]
-  tkEquals = 9;         // =
-  tkComma = 10;         // ,
-  tkColon = 11;         // :
-  tkSemiColon = 12;     // ;
-  tkDot = 13;           // .
-  tkRange = 14;         // ..
-  tkHat = 15;           // ^
-  tkAt = 16;            // @
-  tkAssign = 17;        // :=
+  tkOpenBracket = 7;     // (
+  tkCloseBracket = 8;    // )
+  tkOpenSqBracket = 9;   // [
+  tkCloseSqBracket = 10; // ]
+  tkEquals = 11;         // =
+  tkComma = 12;          // ,
+  tkColon = 13;          // :
+  tkSemiColon = 14;      // ;
+  tkDot = 15;            // .
+  tkRange = 16;          // ..
+  tkHat = 17;            // ^
+  tkAt = 18;             // @
+  tkAssign = 19;         // :=
 
-  tkUnit = 18;           // unit
-  tkUses = 19;           // uses
-  tkType = 20;           // type
-  tkConst = 21;          // const
-  tkResourceString = 22; // resourcestring
-  tkVar = 23;            // var
-  tkOut = 24;            // out
+  tkUnit = 20;           // unit
+  tkUses = 21;           // uses
+  tkType = 22;           // type
+  tkConst = 23;          // const
+  tkResourceString = 24; // resourcestring
+  tkVar = 25;            // var
+  tkOut = 26;            // out
 
-  tkArray = 25;         // array
-  tkSet = 26;           // set
-  tkOf = 27;            // of
-  tkObject = 28;        // object
-  tkPacked = 29;        // packed
-  tkRecord = 30;        // record
-  tkCase = 31;          // case
-  tkInterface = 32;     // interface
-  tkDispInterface = 33; // dispinterface
-  tkClass = 34;         // class
-  tkPrivate = 35;       // private
-  tkProtected = 36;     // protected
-  tkPublic = 37;        // public
-  tkPublished = 38;     // published
-  tkStrict = 39;        // strict
-  tkBegin = 40;         // begin
-  tkEnd = 41;           // end
-  tkNil = 42;           // nil
+  tkArray = 27;         // array
+  tkSet = 28;           // set
+  tkOf = 29;            // of
+  tkObject = 30;        // object
+  tkPacked = 31;        // packed
+  tkRecord = 32;        // record
+  tkCase = 33;          // case
+  tkInterface = 34;     // interface
+  tkDispInterface = 35; // dispinterface
+  tkClass = 36;         // class
+  tkPrivate = 37;       // private
+  tkProtected = 38;     // protected
+  tkPublic = 39;        // public
+  tkPublished = 40;     // published
+  tkStrict = 41;        // strict
+  tkBegin = 42;         // begin
+  tkEnd = 43;           // end
+  tkNil = 44;           // nil
 
-  tkProcedure = 43;   // procedure
-  tkFunction = 44;    // function
-  tkProperty = 45;    // property
-  tkConstructor = 46; // constructor
-  tkDestructor = 47;  // destructor
+  tkProcedure = 45;   // procedure
+  tkFunction = 46;    // function
+  tkProperty = 47;    // property
+  tkConstructor = 48; // constructor
+  tkDestructor = 49;  // destructor
 
-  tkPlus = 48;        // +
-  tkMinus = 49;       // -
-  tkTimes = 50;       // *
-  tkDivide = 51;      // /
-  tkDiv = 52;         // div
-  tkMod = 53;         // mod
-  tkShl = 54;         // shl
-  tkShr = 55;         // shr
-  tkOr = 56;          // or
-  tkAnd = 57;         // and
-  tkXor = 58;         // xor
-  tkNot = 59;         // not
-  tkLowerThan = 60;   // <
-  tkLowerEq = 61;     // <=
-  tkGreaterThan = 62; // >
-  tkGreaterEq = 63;   // >=
-  tkNotEqual = 64;    // <>
-  tkIs = 65;          // is
-  tkAs = 66;          // as
+  tkPlus = 50;        // +
+  tkMinus = 51;       // -
+  tkTimes = 52;       // *
+  tkDivide = 53;      // /
+  tkDiv = 54;         // div
+  tkMod = 55;         // mod
+  tkShl = 56;         // shl
+  tkShr = 57;         // shr
+  tkOr = 58;          // or
+  tkAnd = 59;         // and
+  tkXor = 60;         // xor
+  tkNot = 61;         // not
+  tkLowerThan = 62;   // <
+  tkLowerEq = 63;     // <=
+  tkGreaterThan = 64; // >
+  tkGreaterEq = 65;   // >=
+  tkNotEqual = 66;    // <>
+  tkIs = 67;          // is
+  tkAs = 68;          // as
 
-  tkRegister = 67;  // register
-  tkCDecl = 68;     // cdecl
-  tkPascal = 69;    // pascal
-  tkStdCall = 70;   // stdcall
-  tkSafeCall = 71;  // safecall
-  tkAssembler = 72; // assembler
+  tkRegister = 69;  // register
+  tkCDecl = 70;     // cdecl
+  tkPascal = 71;    // pascal
+  tkStdCall = 72;   // stdcall
+  tkSafeCall = 73;  // safecall
+  tkAssembler = 74; // assembler
 
-  tkName = 73;      // name
-  tkIndex = 74;     // index
-  tkRead = 75;      // read
-  tkWrite = 76;     // write
-  tkDefault = 77;   // default
-  tkNoDefault = 78; // nodefault
-  tkStored = 79;    // stored
-  tkDispID = 80;    // dispid
-  tkReadOnly = 81;  // readonly
-  tkWriteOnly = 82; // writeonly
-  tkString = 83;    // string
+  tkName = 75;      // name
+  tkIndex = 76;     // index
+  tkRead = 77;      // read
+  tkWrite = 78;     // write
+  tkDefault = 79;   // default
+  tkNoDefault = 80; // nodefault
+  tkStored = 81;    // stored
+  tkDispID = 82;    // dispid
+  tkReadOnly = 83;  // readonly
+  tkWriteOnly = 84; // writeonly
+  tkString = 85;    // string
 
-  tkDeprecated = 84;  // deprecated
-  tkPlatform = 85;    // platform
+  tkDeprecated = 86;  // deprecated
+  tkPlatform = 87;    // platform
 
-  tkOverload = 86;    // overload
-  tkVirtual = 87;     // virtual
-  tkDynamic = 88;     // dynamic
-  tkMessage = 89;     // message
-  tkOverride = 90;    // override
-  tkAbstract = 91;    // abstract
-  tkStatic = 92;      // static
-  tkReintroduce = 93; // reintroduce
-  tkInline = 94;      // inline
+  tkOverload = 88;    // overload
+  tkVirtual = 89;     // virtual
+  tkDynamic = 90;     // dynamic
+  tkMessage = 91;     // message
+  tkOverride = 92;    // override
+  tkAbstract = 93;    // abstract
+  tkStatic = 94;      // static
+  tkReintroduce = 95; // reintroduce
+  tkInline = 96;      // inline
 
-  tkImplementation = 95; // implementation
-  tkForward = 96;        // forward
-  tkInitialization = 97; // initialization
-  tkFinalization = 98;   // finalization
+  tkImplementation = 97; // implementation
+  tkForward = 98;        // forward
+  tkInitialization = 99; // initialization
+  tkFinalization = 100;  // finalization
 
-  tkIf = 99;         // if
-  tkThen = 100;      // then
-  tkElse = 101;      // else
-  tkWhile = 102;     // while
-  tkDo = 103;        // do
-  tkRepeat = 104;    // repeat
-  tkUntil = 105;     // until
-  tkFor = 106;       // for
-  tkTo = 107;        // to
-  tkDownTo = 108;    // downto
-  tkTry = 109;       // try
-  tkExcept = 110;    // except
-  tkOn = 111;        // on
-  tkFinally = 112;   // finally
-  tkRaise = 113;     // raise
-  tkInherited = 114; // inherited
+  tkIf = 101;        // if
+  tkThen = 102;      // then
+  tkElse = 103;      // else
+  tkWhile = 104;     // while
+  tkDo = 105;        // do
+  tkRepeat = 106;    // repeat
+  tkUntil = 107;     // until
+  tkFor = 108;       // for
+  tkTo = 109;        // to
+  tkDownTo = 110;    // downto
+  tkTry = 111;       // try
+  tkExcept = 112;    // except
+  tkOn = 113;        // on
+  tkFinally = 114;   // finally
+  tkRaise = 115;     // raise
+  tkInherited = 116; // inherited
 
-  tkPreProcessor = -1; // pre-processor instruction
+  tkPreProcessor = 117; // pre-processor instruction
 
 const
   /// ID message Directive du Compilateur : $MINEMUMSIZE ou $Z
@@ -285,14 +287,16 @@ type
     procedure IdentifyKeyword(const OrigKey: string;
       var SymbolClass: TSepiSymbolClass); override;
 
-    procedure InitLexingFuncs; override;
+    procedure DoNextTerminal; override;
 
-    function ActionSymbol: Boolean;
-    function ActionIdentifier: Boolean;
-    function ActionNumber: Boolean;
-    function ActionString: Boolean;
-    function ActionSingleLineComment: Boolean;
-    function ActionMultiLineComment: Boolean;
+    procedure InitLexingProcs; override;
+
+    procedure ActionSymbol;
+    procedure ActionIdentifier;
+    procedure ActionNumber;
+    procedure ActionString;
+    procedure ActionSingleLineComment;
+    procedure ActionMultiLineComment;
 
     procedure NextPreProc;
 
@@ -304,8 +308,6 @@ type
       const ACode: string; const AFileName: TFileName;
       AInterfaceOnly: Boolean); virtual;
     destructor Destroy; override;
-
-    procedure NextTerminal; override;
 
     property InterfaceOnly: Boolean read FInterfaceOnly;
   end;
@@ -820,7 +822,20 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiDelphiLexer.InitLexingFuncs;
+procedure TSepiDelphiLexer.DoNextTerminal;
+begin
+  repeat
+    inherited;
+
+    if CurTerminal.SymbolClass = tkPreProcessor then
+      PreProcessor.PreProc;
+  until CurTerminal.SymbolClass <> tkPreProcessor;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiDelphiLexer.InitLexingProcs;
 var
   C: Char;
 begin
@@ -831,15 +846,15 @@ begin
     case C of
       '(', ')', '[', ']', '=', ',', ':', ';', '.',
         '^', '@', '+', '-', '*', '/', '<', '>':
-        LexingFuncs[C] := ActionSymbol;
+        LexingProcs[C] := ActionSymbol;
       'a'..'z', 'A'..'Z', '_', '&':
-        LexingFuncs[C] := ActionIdentifier;
+        LexingProcs[C] := ActionIdentifier;
       '0'..'9', '$':
-        LexingFuncs[C] := ActionNumber;
+        LexingProcs[C] := ActionNumber;
       '''', '#':
-        LexingFuncs[C] := ActionString;
+        LexingProcs[C] := ActionString;
       '{':
-        LexingFuncs[C] := ActionMultiLineComment;
+        LexingProcs[C] := ActionMultiLineComment;
     end;
   end;
 end;
@@ -848,7 +863,7 @@ end;
   Analyse un symbole ou un commentaire
   @return True pour un symbole, False pour un commentaire
 *}
-function TSepiDelphiLexer.ActionSymbol: Boolean;
+procedure TSepiDelphiLexer.ActionSymbol;
 var
   Repr: string;
   SymbolClass: TSepiSymbolClass;
@@ -859,7 +874,7 @@ begin
       case Code[Cursor+1] of
         '*':
         begin
-          Result := ActionMultiLineComment;
+          ActionMultiLineComment;
           Exit;
         end;
       else
@@ -968,7 +983,7 @@ begin
       case Code[Cursor+1] of
         '/':
         begin
-          Result := ActionSingleLineComment;
+          ActionSingleLineComment;
           Exit;
         end;
       else
@@ -1015,19 +1030,17 @@ begin
     end;
   else
     Assert(False);
-    Result := False;
     Exit;
   end;
 
   TerminalParsed(SymbolClass, Repr);
-  Result := True;
 end;
 
 {*
   Analyse un identificateur
   @return True
 *}
-function TSepiDelphiLexer.ActionIdentifier: Boolean;
+procedure TSepiDelphiLexer.ActionIdentifier;
 var
   ForceIdent: Boolean;
   BeginPos: Integer;
@@ -1050,14 +1063,13 @@ begin
     IdentifyKeyword(Repr, SymbolClass);
 
   TerminalParsed(SymbolClass, Repr);
-  Result := True;
 end;
 
 {*
   Analyse un nombre
   @return True
 *}
-function TSepiDelphiLexer.ActionNumber: Boolean;
+procedure TSepiDelphiLexer.ActionNumber;
 var
   BeginPos: Integer;
   SymbolClass: TSepiSymbolClass;
@@ -1096,14 +1108,13 @@ begin
   end;
 
   TerminalParsed(SymbolClass, Copy(Code, BeginPos, Cursor-BeginPos));
-  Result := True;
 end;
 
 {*
   Analyse une chaîne de caractères
   @return True
 *}
-function TSepiDelphiLexer.ActionString: Boolean;
+procedure TSepiDelphiLexer.ActionString;
 var
   BeginPos: Integer;
 begin
@@ -1138,27 +1149,28 @@ begin
   end;
 
   TerminalParsed(tkStringCst, Copy(Code, BeginPos, Cursor-BeginPos));
-  Result := True;
 end;
 
 {*
   Analyse un commentaire sur une ligne
   @return False
 *}
-function TSepiDelphiLexer.ActionSingleLineComment: Boolean;
+procedure TSepiDelphiLexer.ActionSingleLineComment;
+var
+  BeginPos: Integer;
 begin
+  BeginPos := Cursor;
   while not (Code[Cursor] in [#0, #13, #10]) do
     CursorForward;
 
-  NoTerminalParsed;
-  Result := False;
+  TerminalParsed(tkComment, Copy(Code, BeginPos, Cursor-BeginPos));
 end;
 
 {*
   Analyse un commentaire sur plusieurs lignes
   @return True pour une instruction du pré-processuer, False sinon
 *}
-function TSepiDelphiLexer.ActionMultiLineComment: Boolean;
+procedure TSepiDelphiLexer.ActionMultiLineComment;
 var
   BeginPos: Integer;
   Text: string;
@@ -1191,12 +1203,10 @@ begin
   begin
     // Pre-processor instruction
     TerminalParsed(tkPreProcessor, Copy(Text, 2, MaxInt));
-    Result := True;
   end else
   begin
     // Pure comment
-    NoTerminalParsed;
-    Result := False;
+    TerminalParsed(tkComment, Copy(Code, BeginPos, Cursor-BeginPos));
   end;
 end;
 
@@ -1205,25 +1215,12 @@ end;
 *}
 procedure TSepiDelphiLexer.NextPreProc;
 begin
-  while (not LexingFuncs[Code[Cursor]]) or
-    (CurTerminal.SymbolClass <> tkPreProcessor) do
-  begin
+  repeat
+    inherited DoNextTerminal;
+
     if CurTerminal.SymbolClass = tkEof then
       MakeError(SPreProcReachedEndOfFile, ekFatalError);
-  end;
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TSepiDelphiLexer.NextTerminal;
-begin
-  repeat
-    while not LexingFuncs[Code[Cursor]] do;
-
-    if CurTerminal.SymbolClass = tkPreProcessor then
-      PreProcessor.PreProc;
-  until CurTerminal.SymbolClass <> tkPreProcessor;
+  until CurTerminal.SymbolClass = tkPreProcessor;
 end;
 
 initialization

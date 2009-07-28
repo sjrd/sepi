@@ -3,6 +3,8 @@ Ce fichier décrit la grammaire du langage Delphi.
 #####
 
 tkEof	Fin de fichier
+tkBlank Blanc
+tkComment   Commentaire
 tkIdentifier	Identificateur
 tkInteger	Nombre entier
 tkFloat	Nombre en virgule flottante
@@ -128,6 +130,8 @@ tkOn	on
 tkFinally	finally
 tkRaise	raise
 tkInherited	inherited
+
+tkPreProcessor  Directive de compilation
 
 #####
 
