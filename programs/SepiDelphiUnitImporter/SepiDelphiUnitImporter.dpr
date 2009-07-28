@@ -44,6 +44,7 @@ uses
   SepiCompilerErrors,
   SepiParseTrees,
   SepiDisassembler,
+  SepiLexerUtils,
   SepiDelphiLexer,
   SepiDelphiParser,
   SepiDelphiCompiler,
@@ -145,6 +146,34 @@ begin
 end;
 
 {*
+  Gestionnaire d'événement OnNeedFile des analyseurs lexicaux
+  @param Context    Contexte de compilation
+  @param Sender     Analyseur syntaxique qui a besoin d'un fichier
+  @param FileName   Nom du fichier recherché
+*}
+procedure LexerNeedFile(Context: TImporterContext; Sender: TSepiCustomLexer;
+  var FileName: TFileName);
+var
+  TestFileName: TFileName;
+begin
+  if FileExists(FileName) then
+    Exit;
+
+  TestFileName := IncludeTrailingPathDelimiter(
+    ExtractFileDir(Sender.CurrentPos.FileName)) + FileName;
+
+  if FileExists(TestFileName) then
+  begin
+    FileName := TestFileName;
+    Exit;
+  end;
+
+  TestFileName := Context.SearchSepiFile(FileName);
+  if TestFileName <> '' then
+    FileName := TestFileName;
+end;
+
+{*
   Trouve le noeud le plus à droite d'un sous-arbre syntaxique
   @param Root   Racine du sous-arbre
   @return Noeud le plus à droite du sous-arbre
@@ -221,6 +250,7 @@ var
   SourceFile, DestFile, RCFile: TStrings;
   ResourceFile: TStream;
   RootNode: TDelphiRootNode;
+  Lexer: TSepiDelphiLexer;
   SepiUnit: TSepiUnit;
   I: Integer;
 begin
@@ -237,7 +267,7 @@ begin
     RCFile := TStringList.Create;
 
     // Update current file name
-    Errors.CurrentFileName := ExtractFileName(FileNames.Source);
+    Errors.CurrentFileName := FileNames.Source;
 
     // Create source file stream (PAS file)
     try
@@ -260,8 +290,13 @@ begin
     // Actually compile the source code
     RootNode := TDelphiRootNode.Create(ntSource, SepiRoot, Errors);
     try
-      TSepiDelphiParser.Parse(RootNode, TSepiDelphiLexer.CreateSpecial(Errors,
-        SourceFile.Text, Errors.CurrentFileName, True));
+      Lexer := TSepiDelphiInterfaceLexer.Create(Errors, SourceFile.Text,
+        Errors.CurrentFileName);
+
+      Lexer.OnNeedFile := TSepiLexerNeedFileEvent(MakeMethod(
+        @LexerNeedFile, Context));
+
+      TSepiDelphiParser.Parse(RootNode, Lexer);
     except
       on Error: ESepiCompilerFatalError do
         raise;

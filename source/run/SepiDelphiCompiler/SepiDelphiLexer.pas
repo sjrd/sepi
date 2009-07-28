@@ -29,9 +29,10 @@ interface
 {$D-,L-}
 
 uses
-  Windows, Classes, SysUtils, StrUtils, ScStrUtils, SepiCompilerErrors,
-  SepiParseTrees, SepiLexerUtils, SepiCompilerConsts, SepiExpressions,
-  SepiCompiler, SepiDelphiLikeCompilerUtils, SepiOrdTypes, SepiStdCompilerNodes;
+  Windows, Classes, SysUtils, StrUtils, ScStrUtils, ScDelphiLanguage,
+  SepiCompilerErrors, SepiParseTrees, SepiLexerUtils, SepiCompilerConsts,
+  SepiExpressions, SepiCompiler, SepiDelphiLikeCompilerUtils, SepiOrdTypes,
+  SepiStdCompilerNodes;
 
 resourcestring
   SIFInstrNotSupported =
@@ -180,6 +181,7 @@ const
   CDM_MINENUMSIZE = 1;
 
 type
+  TSepiDelphiBaseLexer = class;
   TSepiDelphiLexer = class;
 
   {*
@@ -199,36 +201,9 @@ type
     ppUnknown, ppToggles,
     ppDefine, ppUndef,
     ppIfDef, ppIfNDef, ppIf, ppElse, ppElseIf, ppEndIf, ppIfEnd,
-    ppMinEnumSize
+    ppMinEnumSize,
+    ppInclude
   );
-
-  {*
-    Pré-processeur
-    @author sjrd
-    @version 1.0
-  *}
-  TPreProcessor = class(TObject)
-  private
-    FLexer: TSepiDelphiLexer; /// Analyseur propriétaire
-    FDefines: TStrings;       /// Liste des defines
-
-    function ReadCommand(out Param: string): TPreProcInstruction;
-    procedure Skip(StopOnElseIf: Boolean = False);
-    function EvalCondition(const Condition: string): Boolean;
-
-    procedure MinEnumSize(const Param: string);
-
-    procedure HandleToggle(Toggle, Value: Char);
-    procedure HandleToggles(const Toggles: string);
-  public
-    constructor Create(ALexer: TSepiDelphiLexer);
-    destructor Destroy; override;
-
-    procedure PreProc;
-
-    property Lexer: TSepiDelphiLexer read FLexer;
-    property Defines: TStrings read FDefines;
-  end;
 
   {*
     Noeud condition d'une instruction du pré-processeur $IF
@@ -237,11 +212,11 @@ type
   *}
   TPreProcIfConditionNode = class(TSepiHiddenNonTerminal)
   private
-    FPreProcessor: TPreProcessor; /// Pré-processeur propriétaire
+    FLexer: TSepiDelphiLexer; /// Analyseur propriétaire
   public
     function ResolveIdent(const Identifier: string): ISepiExpression; override;
 
-    property PreProcessor: TPreProcessor read FPreProcessor;
+    property Lexer: TSepiDelphiLexer read FLexer;
   end;
 
   {*
@@ -252,9 +227,9 @@ type
   TSepiDefinedDeclaredPseudoRoutine = class(TSepiCustomComputedValue,
     ISepiIdentifierTestPseudoRoutine)
   private
-    FPreProcessor: TPreProcessor; /// Pré-processeur du contexte
-    FIsDeclared: Boolean;         /// False pour Defined ; True pour Declared
-    FIdentifier: string;          /// Identificateur à tester
+    FLexer: TSepiDelphiLexer; /// Analyseur du contexte
+    FIsDeclared: Boolean;     /// False pour Defined ; True pour Declared
+    FIdentifier: string;      /// Identificateur à tester
   protected
     procedure AttachToExpression(const Expression: ISepiExpression); override;
 
@@ -265,29 +240,24 @@ type
     function GetIdentifier: string;
     procedure SetIdentifier(const Value: string);
   public
-    constructor Create(APreProcessor: TPreProcessor; AIsDeclared: Boolean);
+    constructor Create(ALexer: TSepiDelphiLexer; AIsDeclared: Boolean);
 
     procedure Complete;
 
-    property PreProcessor: TPreProcessor read FPreProcessor;
+    property Lexer: TSepiDelphiLexer read FLexer;
     property IsDeclared: Boolean read FIsDeclared;
     property Identifier: string read FIdentifier write FIdentifier;
   end;
 
   {*
-    Analyseur lexical pour le langage Delphi
+    Analyseur lexical de base pour le langage Delphi
     @author sjrd
     @version 1.0
   *}
-  TSepiDelphiLexer = class(TSepiCustomManualLexer)
-  private
-    FPreProcessor: TPreProcessor; /// Pré-processeur
-    FInterfaceOnly: Boolean;      /// Considérer 'implementation' comme Eof
+  TSepiDelphiBaseLexer = class(TSepiCustomManualLexer)
   protected
     procedure IdentifyKeyword(const OrigKey: string;
       var SymbolClass: TSepiSymbolClass); override;
-
-    procedure DoNextTerminal; override;
 
     procedure InitLexingProcs; override;
 
@@ -297,19 +267,59 @@ type
     procedure ActionString;
     procedure ActionSingleLineComment;
     procedure ActionMultiLineComment;
+  end;
 
-    procedure NextPreProc;
+  {*
+    Analyseur lexical de base pour le langage Delphi
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiDelphiLexer = class(TSepiCustomCompositeLexer)
+  private
+    FDefines: TStrings; /// Liste des defines
 
-    property PreProcessor: TPreProcessor read FPreProcessor;
+    function ReadCommand(out Param: string): TPreProcInstruction;
+    procedure Skip(StopOnElseIf: Boolean = False);
+    function EvalCondition(const Condition: string): Boolean;
+
+    procedure DoMinEnumSize(const Param: string);
+
+    procedure DoInclude(const Param: string);
+
+    procedure HandleToggle(Toggle, Value: Char);
+    procedure HandleToggles(const Toggles: string);
+
+    procedure PreProc;
+  protected
+    procedure DoNextTerminal; override;
   public
     constructor Create(AErrors: TSepiCompilerErrorList; const ACode: string;
       const AFileName: TFileName = ''); override;
-    constructor CreateSpecial(AErrors: TSepiCompilerErrorList;
-      const ACode: string; const AFileName: TFileName;
-      AInterfaceOnly: Boolean); virtual;
     destructor Destroy; override;
 
-    property InterfaceOnly: Boolean read FInterfaceOnly;
+    property Defines: TStrings read FDefines;
+  end;
+
+  {*
+    Analyseur lexical de base pour le langage Delphi - interface uniquement
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiDelphiInterfaceLexer = class(TSepiDelphiLexer)
+  private
+    /// Étape du lexer
+    FStep: (stNormal, stImplementation, stEnd, stFinalDot, stEof);
+
+    FSpecialTerminal: TSepiTerminal;
+  protected
+    function GetCurTerminal: TSepiTerminal; override;
+
+    procedure DoNextTerminal; override;
+  public
+    destructor Destroy; override;
+
+    procedure ResetToBookmark(ABookmark: TSepiLexerBookmark;
+      FreeBookmark: Boolean = True); override;
   end;
 
 var
@@ -331,244 +341,14 @@ const
     '', '',
     'DEFINE', 'UNDEF',
     'IFDEF', 'IFNDEF', 'IF', 'ELSE', 'ELSEIF', 'ENDIF', 'IFEND',
-    'MINENUMSIZE'
+    'MINENUMSIZE',
+    'INCLUDE'
   );
 
-{---------------------}
-{ TPreProcessor class }
-{---------------------}
-
-{*
-  Crée un nouveau pré-processuer
-  @param ALexer   Analyseur lexical propriétaire
-*}
-constructor TPreProcessor.Create(ALexer: TSepiDelphiLexer);
-begin
-  inherited Create;
-
-  FLexer := ALexer;
-  FDefines := TStringList.Create;
-
-  with TStringList(FDefines) do
-  begin
-    CaseSensitive := False;
-    Sorted := True;
-    Duplicates := dupIgnore;
-
-    Add('MSWINDOWS');
-    Add('WIN32');
-    Add('VER170');
-    Add('SEPIPARSER');
-  end;
-end;
-
-{*
-  [@inheritDoc]
-*}
-destructor TPreProcessor.Destroy;
-begin
-  FDefines.Free;
-
-  inherited;
-end;
-
-{*
-  Lit la commande du pré-processeur
-  @param Param   En sortie : paramètre de la commande (ou '' si aucun)
-  @return Numéro de la commande, ou -1 si inconnue
-*}
-function TPreProcessor.ReadCommand(out Param: string): TPreProcInstruction;
-var
-  Instr, Command: string;
-  CommandIdx: Integer;
-begin
-  Instr := Lexer.CurTerminal.Representation;
-  SplitToken(Instr, ' ', Command, Param);
-
-  if (Length(Command) >= 2) and (Command[1] in ['A'..'Z']) and
-    (Command[2] in ['+', '-', '0'..'9']) then
-  begin
-    Param := Instr;
-    Result := ppToggles;
-  end else
-  begin
-    CommandIdx := AnsiIndexText(Command, PreProcInstrs);
-
-    if CommandIdx < 0 then
-      Result := ppUnknown
-    else
-      Result := TPreProcInstruction(CommandIdx);
-  end;
-end;
-
-{*
-  Élimine une portion de code, jusqu'au ELSE ou ENDIF correspondant
-  @param StopOnElseIf   Si True, s'arrête sur un $ELSEIF
-*}
-procedure TPreProcessor.Skip(StopOnElseIf: Boolean = False);
-var
-  Depth: Integer;
-  Param: string;
-begin
-  Depth := 1;
-
-  while Depth > 0 do
-  begin
-    Lexer.NextPreProc;
-
-    case ReadCommand(Param) of
-      ppIfDef, ppIfNDef, ppIf:
-        Inc(Depth);
-      ppEndIf, ppIfEnd:
-        Dec(Depth);
-      ppElse:
-      begin
-        { $ELSE decrements Depth and immediately increments it.  Therefore, it
-          has no effect; unlesse Depth reaches 0 at this time. }
-        if Depth = 1 then
-          Break;
-      end;
-      ppElseIf:
-      begin
-        { $ELSEIF decrements Depth and immediately increments it.  Therefore,
-          it has no effect; unless Depth reaches 0 at this time and we are
-          asked to StopOnElseIf. }
-        if (Depth = 1) and StopOnElseIf then
-          Break;
-      end;
-    end;
-  end;
-end;
-
-{*
-  Évalue une condition booléenne constante dans le contexte courant
-  @param Condition   Condition à tester
-  @return Valeur de vérité de la condition
-*}
-function TPreProcessor.EvalCondition(const Condition: string): Boolean;
-var
-  RootNode: TPreProcIfConditionNode;
-  ExprNode: TSepiConstExpressionNode;
-begin
-  if Lexer.Context = nil then
-    Lexer.MakeError(SIFInstrNotSupported, ekFatalError);
-
-  RootNode := TPreProcIfConditionNode.Create(Lexer.Context,
-    ntInPreProcessorExpression, Lexer.CurrentPos);
-  try
-    RootNode.FPreProcessor := Self;
-
-    // Parse the condition expression
-    TSepiDelphiParser.Parse(RootNode,
-      TSepiDelphiLexer.Create(Lexer.Errors, Condition));
-
-    // Fetch its value into Result
-    ExprNode := RootNode.Children[0] as TSepiConstExpressionNode;
-    if not ExprNode.CompileConst(Result, ExprNode.SystemUnit.Boolean) then
-      Lexer.MakeError(SErrorInIFInstr, ekFatalError);
-  finally
-    RootNode.Free;
-  end;
-end;
-
-{*
-  Applique la directive $MINENUMSIZE ou $Z
-  @param Param   Paramètre
-*}
-procedure TPreProcessor.MinEnumSize(const Param: string);
-var
-  MinEnumSizeMsg: TCDMMinEnumSize;
-begin
-  MinEnumSizeMsg.MsgID := CDM_MINENUMSIZE;
-
-  if Param = '+' then
-    MinEnumSizeMsg.MinEmumSize := mesLongWord
-  else if Param = '-' then
-    MinEnumSizeMsg.MinEmumSize := mesByte
-  else
-  begin
-    case StrToIntDef(Param, 0) of
-      1: MinEnumSizeMsg.MinEmumSize := mesByte;
-      2: MinEnumSizeMsg.MinEmumSize := mesWord;
-      4: MinEnumSizeMsg.MinEmumSize := mesLongWord;
-    end;
-  end;
-
-  Lexer.Context.Dispatch(MinEnumSizeMsg);
-end;
-
-{*
-  Applique une directive de type toggle
-  @param Toggle   Toggle à appliquer
-  @param Value    Valeur du toggle
-*}
-procedure TPreProcessor.HandleToggle(Toggle, Value: Char);
-begin
-  if Toggle = 'Z' then
-    MinEnumSize(Value);
-end;
-
-{*
-  Applique une directive avec des toggles
-  @param Param   Paramètre
-*}
-procedure TPreProcessor.HandleToggles(const Toggles: string);
-var
-  Remaining, Temp, Toggle: string;
-begin
-  Remaining := Toggles;
-  while Remaining <> '' do
-  begin
-    SplitToken(Remaining, ',', Toggle, Temp);
-    Remaining := Temp;
-
-    Toggle := Trim(Toggle);
-    if Length(Toggle) = 2 then
-      HandleToggle(Toggle[1], Toggle[2]);
-  end;
-end;
-
-{*
-  Applique une instruction du pré-processeur
-*}
-procedure TPreProcessor.PreProc;
-var
-  Command: TPreProcInstruction;
-  Param: string;
-  Defined: Boolean;
-begin
-  Command := ReadCommand(Param);
-  Defined := Defines.IndexOf(Param) >= 0;
-
-  case Command of
-    ppToggles:
-      HandleToggles(Param);
-    ppDefine:
-      Defines.Add(Param);
-    ppUndef:
-      if Defined then
-        Defines.Delete(Defines.IndexOf(Param));
-    ppIfDef:
-      if not Defined then
-        Skip;
-    ppIfNDef:
-      if Defined then
-        Skip;
-    ppIf:
-    begin
-      while (Command in [ppIf, ppElseIf]) and (not EvalCondition(Param)) do
-      begin
-        Skip(True); // StopOnElseIf = True
-        Command := ReadCommand(Param);
-      end;
-    end;
-    ppElse, ppElseIf:
-      Skip;
-    ppEndIf, ppIfEnd: ;
-    ppMinEnumSize:
-      MinEnumSize(Param);
-  end;
-end;
+  PreProcShortInstrs: array[TPreProcInstruction] of string = (
+    '', '', '', '', '', '', '', '', '', '', '', '',
+    'I'
+  );
 
 {-------------------------------}
 { TPreProcIfConditionNode class }
@@ -584,12 +364,12 @@ begin
   begin
     Result := MakeExpression;
     ISepiExpressionPart(TSepiDefinedDeclaredPseudoRoutine.Create(
-      PreProcessor, False)).AttachToExpression(Result);
+      Lexer, False)).AttachToExpression(Result);
   end else if AnsiSameText(Identifier, 'Declared') then
   begin
     Result := MakeExpression;
     ISepiExpressionPart(TSepiDefinedDeclaredPseudoRoutine.Create(
-      PreProcessor, True)).AttachToExpression(Result);
+      Lexer, True)).AttachToExpression(Result);
   end else
   begin
     Result := inherited ResolveIdent(Identifier);
@@ -604,11 +384,11 @@ end;
   Crée la pseudo-routine
 *}
 constructor TSepiDefinedDeclaredPseudoRoutine.Create(
-  APreProcessor: TPreProcessor; AIsDeclared: Boolean);
+  ALexer: TSepiDelphiLexer; AIsDeclared: Boolean);
 begin
   inherited Create;
 
-  FPreProcessor := APreProcessor;
+  FLexer := ALexer;
   FIsDeclared := AIsDeclared;
 end;
 
@@ -666,60 +446,21 @@ begin
   AllocateConstant;
 
   if IsDeclared then
-    Value := PreProcessor.Lexer.Context.ResolveIdent(Identifier) <> nil
+    Value := Lexer.Context.ResolveIdent(Identifier) <> nil
   else
-    Value := PreProcessor.Defines.IndexOf(Identifier) >= 0;
+    Value := Lexer.Defines.IndexOf(Identifier) >= 0;
 
   Boolean(ConstValuePtr^) := Value;
 end;
 
-{------------------------}
-{ TSepiDelphiLexer class }
-{------------------------}
-
-{*
-  Crée un nouvel analyseur lexical
-  @param AErrors     Erreurs de compilation
-  @param ACode       Code source à analyser
-  @param AFileName   Nom du fichier source
-*}
-constructor TSepiDelphiLexer.Create(AErrors: TSepiCompilerErrorList;
-  const ACode: string; const AFileName: TFileName = '');
-begin
-  CreateSpecial(AErrors, ACode, AFileName, False);
-end;
-
-{*
-  Crée un nouvel analyseur lexical spécial
-  @param AErrors          Erreurs de compilation
-  @param ACode            Code source à analyser
-  @param AFileName        Nom du fichier source
-  @param AInterfaceOnly   Si True, considère 'implementation' come un Eof
-*}
-constructor TSepiDelphiLexer.CreateSpecial(AErrors: TSepiCompilerErrorList;
-  const ACode: string; const AFileName: TFileName;
-  AInterfaceOnly: Boolean);
-begin
-  inherited Create(AErrors, ACode, AFileName);
-
-  FPreProcessor := TPreProcessor.Create(Self);
-  FInterfaceOnly := AInterfaceOnly;
-end;
+{----------------------------}
+{ TSepiDelphiBaseLexer class }
+{----------------------------}
 
 {*
   [@inheritDoc]
 *}
-destructor TSepiDelphiLexer.Destroy;
-begin
-  FPreProcessor.Free;
-
-  inherited;
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TSepiDelphiLexer.IdentifyKeyword(const OrigKey: string;
+procedure TSepiDelphiBaseLexer.IdentifyKeyword(const OrigKey: string;
   var SymbolClass: TSepiSymbolClass);
 var
   Key: string;
@@ -814,28 +555,12 @@ begin
           if Key = 'writeonly'      then SymbolClass := tkWriteOnly;
     'x' : if Key = 'xor'            then SymbolClass := tkXor;
   end;
-
-  if (SymbolClass = tkImplementation) and InterfaceOnly then
-    SymbolClass := tkEof;
 end;
 
 {*
   [@inheritDoc]
 *}
-procedure TSepiDelphiLexer.DoNextTerminal;
-begin
-  repeat
-    inherited;
-
-    if CurTerminal.SymbolClass = tkPreProcessor then
-      PreProcessor.PreProc;
-  until CurTerminal.SymbolClass <> tkPreProcessor;
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TSepiDelphiLexer.InitLexingProcs;
+procedure TSepiDelphiBaseLexer.InitLexingProcs;
 var
   C: Char;
 begin
@@ -863,7 +588,7 @@ end;
   Analyse un symbole ou un commentaire
   @return True pour un symbole, False pour un commentaire
 *}
-procedure TSepiDelphiLexer.ActionSymbol;
+procedure TSepiDelphiBaseLexer.ActionSymbol;
 var
   Repr: string;
   SymbolClass: TSepiSymbolClass;
@@ -1040,7 +765,7 @@ end;
   Analyse un identificateur
   @return True
 *}
-procedure TSepiDelphiLexer.ActionIdentifier;
+procedure TSepiDelphiBaseLexer.ActionIdentifier;
 var
   ForceIdent: Boolean;
   BeginPos: Integer;
@@ -1069,7 +794,7 @@ end;
   Analyse un nombre
   @return True
 *}
-procedure TSepiDelphiLexer.ActionNumber;
+procedure TSepiDelphiBaseLexer.ActionNumber;
 var
   BeginPos: Integer;
   SymbolClass: TSepiSymbolClass;
@@ -1114,7 +839,7 @@ end;
   Analyse une chaîne de caractères
   @return True
 *}
-procedure TSepiDelphiLexer.ActionString;
+procedure TSepiDelphiBaseLexer.ActionString;
 var
   BeginPos: Integer;
 begin
@@ -1155,7 +880,7 @@ end;
   Analyse un commentaire sur une ligne
   @return False
 *}
-procedure TSepiDelphiLexer.ActionSingleLineComment;
+procedure TSepiDelphiBaseLexer.ActionSingleLineComment;
 var
   BeginPos: Integer;
 begin
@@ -1170,7 +895,7 @@ end;
   Analyse un commentaire sur plusieurs lignes
   @return True pour une instruction du pré-processuer, False sinon
 *}
-procedure TSepiDelphiLexer.ActionMultiLineComment;
+procedure TSepiDelphiBaseLexer.ActionMultiLineComment;
 var
   BeginPos: Integer;
   Text: string;
@@ -1210,17 +935,346 @@ begin
   end;
 end;
 
+{------------------------}
+{ TSepiDelphiLexer class }
+{------------------------}
+
 {*
-  Analyse le code source jusqu'à trouver une instruction du pré-processeur
+  [@inheritDoc]
 *}
-procedure TSepiDelphiLexer.NextPreProc;
+constructor TSepiDelphiLexer.Create(AErrors: TSepiCompilerErrorList;
+  const ACode: string; const AFileName: TFileName = '');
+begin
+  inherited;
+
+  SetBaseLexer(TSepiDelphiBaseLexer.Create(AErrors, ACode, AFileName));
+
+  FDefines := TStringList.Create;
+
+  with TStringList(FDefines) do
+  begin
+    CaseSensitive := False;
+    Sorted := True;
+    Duplicates := dupIgnore;
+
+    Add('MSWINDOWS');
+    Add('WIN32');
+    Add('VER170');
+    Add('SEPIPARSER');
+  end;
+end;
+
+{*
+  [@inheritDoc]
+*}
+destructor TSepiDelphiLexer.Destroy;
+begin
+  FDefines.Free;
+
+  inherited;
+end;
+
+{*
+  Lit la commande du pré-processeur
+  @param Param   En sortie : paramètre de la commande (ou '' si aucun)
+  @return Numéro de la commande, ou -1 si inconnue
+*}
+function TSepiDelphiLexer.ReadCommand(out Param: string): TPreProcInstruction;
+var
+  Instr, Command: string;
+  CommandIdx: Integer;
+begin
+  Instr := CurTerminal.Representation;
+  SplitToken(Instr, ' ', Command, Param);
+
+  if (Length(Command) >= 2) and (Command[1] in ['A'..'Z']) and
+    (Command[2] in ['+', '-', '0'..'9']) then
+  begin
+    Param := Instr;
+    Result := ppToggles;
+  end else
+  begin
+    CommandIdx := AnsiIndexText(Command, PreProcInstrs);
+    if CommandIdx < 0 then
+      CommandIdx := AnsiIndexText(Command, PreProcShortInstrs);
+
+    if CommandIdx < 0 then
+      Result := ppUnknown
+    else
+      Result := TPreProcInstruction(CommandIdx);
+  end;
+end;
+
+{*
+  Élimine une portion de code, jusqu'au $ELSE, $ENDIF ou $IFEND correspondant
+  @param StopOnElseIf   Si True, s'arrête aussi sur un $ELSEIF
+*}
+procedure TSepiDelphiLexer.Skip(StopOnElseIf: Boolean = False);
+var
+  Depth: Integer;
+  Param: string;
+begin
+  Depth := 1;
+
+  while Depth > 0 do
+  begin
+    // Skip to next compiler directive - do not cross file boundaries
+    repeat
+      CurLexer.NextTerminal;
+
+      if CurLexer.IsEof then
+        MakeError(SPreProcReachedEndOfFile, ekFatalError);
+    until CurTerminal.SymbolClass = tkPreProcessor;
+
+    // Update Depth following compiler directive kind
+    case ReadCommand(Param) of
+      ppIfDef, ppIfNDef, ppIf:
+        Inc(Depth);
+      ppEndIf, ppIfEnd:
+        Dec(Depth);
+      ppElse:
+      begin
+        { $ELSE decrements Depth and immediately increments it.  Therefore, it
+          has no effect; unlesse Depth reaches 0 at this time. }
+        if Depth = 1 then
+          Break;
+      end;
+      ppElseIf:
+      begin
+        { $ELSEIF decrements Depth and immediately increments it.  Therefore,
+          it has no effect; unless Depth reaches 0 at this time and we are
+          asked to StopOnElseIf. }
+        if (Depth = 1) and StopOnElseIf then
+          Break;
+      end;
+    end;
+  end;
+end;
+
+{*
+  Évalue une condition booléenne constante dans le contexte courant
+  @param Condition   Condition à tester
+  @return Valeur de vérité de la condition
+*}
+function TSepiDelphiLexer.EvalCondition(const Condition: string): Boolean;
+var
+  RootNode: TPreProcIfConditionNode;
+  ExprNode: TSepiConstExpressionNode;
+begin
+  if Context = nil then
+    MakeError(SIFInstrNotSupported, ekFatalError);
+
+  RootNode := TPreProcIfConditionNode.Create(Context,
+    ntInPreProcessorExpression, CurrentPos);
+  try
+    RootNode.FLexer := Self;
+
+    // Parse the condition expression
+    TSepiDelphiParser.Parse(RootNode,
+      TSepiDelphiBaseLexer.Create(Errors, Condition));
+
+    // Fetch its value into Result
+    ExprNode := RootNode.Children[0] as TSepiConstExpressionNode;
+    if not ExprNode.CompileConst(Result, ExprNode.SystemUnit.Boolean) then
+      MakeError(SErrorInIFInstr, ekFatalError);
+  finally
+    RootNode.Free;
+  end;
+end;
+
+{*
+  Applique la directive $MINENUMSIZE ou $Z
+  @param Param   Paramètre
+*}
+procedure TSepiDelphiLexer.DoMinEnumSize(const Param: string);
+var
+  MinEnumSizeMsg: TCDMMinEnumSize;
+begin
+  MinEnumSizeMsg.MsgID := CDM_MINENUMSIZE;
+
+  if Param = '+' then
+    MinEnumSizeMsg.MinEmumSize := mesLongWord
+  else if Param = '-' then
+    MinEnumSizeMsg.MinEmumSize := mesByte
+  else
+  begin
+    case StrToIntDef(Param, 0) of
+      1: MinEnumSizeMsg.MinEmumSize := mesByte;
+      2: MinEnumSizeMsg.MinEmumSize := mesWord;
+      4: MinEnumSizeMsg.MinEmumSize := mesLongWord;
+    else
+      Exit;
+    end;
+  end;
+
+  Context.Dispatch(MinEnumSizeMsg);
+end;
+
+{*
+  Applique la directive $INCLUDE ou $I
+  @param Param   Paramètre
+*}
+procedure TSepiDelphiLexer.DoInclude(const Param: string);
+var
+  FileName: TFileName;
+begin
+  if (Param <> '') and (Param[1] = '''') then
+    FileName := StrRepresToStr(Param)
+  else
+    FileName := Param;
+
+  EnterFile(FileName);
+end;
+
+{*
+  Applique une directive de type toggle
+  @param Toggle   Toggle à appliquer
+  @param Value    Valeur du toggle
+*}
+procedure TSepiDelphiLexer.HandleToggle(Toggle, Value: Char);
+begin
+  if Toggle = 'Z' then
+    DoMinEnumSize(Value);
+end;
+
+{*
+  Applique une directive avec des toggles
+  @param Param   Paramètre
+*}
+procedure TSepiDelphiLexer.HandleToggles(const Toggles: string);
+var
+  Remaining, Temp, Toggle: string;
+begin
+  Remaining := Toggles;
+  while Remaining <> '' do
+  begin
+    SplitToken(Remaining, ',', Toggle, Temp);
+    Remaining := Temp;
+
+    Toggle := Trim(Toggle);
+    if Length(Toggle) = 2 then
+      HandleToggle(Toggle[1], Toggle[2]);
+  end;
+end;
+
+{*
+  Applique une instruction du pré-processeur
+*}
+procedure TSepiDelphiLexer.PreProc;
+var
+  Command: TPreProcInstruction;
+  Param: string;
+  Defined: Boolean;
+begin
+  Command := ReadCommand(Param);
+  Defined := Defines.IndexOf(Param) >= 0;
+
+  case Command of
+    ppToggles:
+      HandleToggles(Param);
+    ppDefine:
+      Defines.Add(Param);
+    ppUndef:
+      if Defined then
+        Defines.Delete(Defines.IndexOf(Param));
+    ppIfDef:
+      if not Defined then
+        Skip;
+    ppIfNDef:
+      if Defined then
+        Skip;
+    ppIf:
+    begin
+      while (Command in [ppIf, ppElseIf]) and (not EvalCondition(Param)) do
+      begin
+        Skip({StopOnElseIf =} True);
+        Command := ReadCommand(Param);
+      end;
+    end;
+    ppElse, ppElseIf:
+      Skip;
+    ppEndIf, ppIfEnd: ;
+    ppMinEnumSize:
+      DoMinEnumSize(Param);
+    ppInclude:
+      DoInclude(Param);
+  end;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiDelphiLexer.DoNextTerminal;
 begin
   repeat
-    inherited DoNextTerminal;
+    inherited;
 
-    if CurTerminal.SymbolClass = tkEof then
-      MakeError(SPreProcReachedEndOfFile, ekFatalError);
-  until CurTerminal.SymbolClass = tkPreProcessor;
+    if CurTerminal.SymbolClass = tkPreProcessor then
+      PreProc;
+  until CurTerminal.SymbolClass <> tkPreProcessor;
+end;
+
+{---------------------------------}
+{ TSepiDelphiInterfaceLexer class }
+{---------------------------------}
+
+{*
+  [@inheritDoc]
+*}
+destructor TSepiDelphiInterfaceLexer.Destroy;
+begin
+  FreeAndNil(FSpecialTerminal);
+
+  inherited;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiDelphiInterfaceLexer.GetCurTerminal: TSepiTerminal;
+begin
+  if FStep in [stNormal, stImplementation] then
+    Result := inherited GetCurTerminal
+  else
+    Result := FSpecialTerminal;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiDelphiInterfaceLexer.DoNextTerminal;
+begin
+  if FStep = stNormal then
+  begin
+    inherited;
+
+    if CurTerminal.SymbolClass = tkImplementation then
+      FStep := stImplementation;
+  end else if FStep <> stEof then
+  begin
+    FStep := Succ(FStep);
+    FreeAndNil(FSpecialTerminal);
+
+    case FStep of
+      stEnd:
+        FSpecialTerminal := TSepiTerminal.Create(tkEnd, CurrentPos, 'end');
+      stFinalDot:
+        FSpecialTerminal := TSepiTerminal.Create(tkDot, CurrentPos, '.');
+      stEof:
+        FSpecialTerminal := TSepiTerminal.Create(tkEof, CurrentPos, SEndOfFile);
+    end;
+  end;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiDelphiInterfaceLexer.ResetToBookmark(
+  ABookmark: TSepiLexerBookmark; FreeBookmark: Boolean);
+begin
+  inherited;
+
+  FStep := stNormal;
 end;
 
 initialization

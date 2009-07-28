@@ -29,8 +29,8 @@ interface
 {$D-,L-}
 
 uses
-  SysUtils, Classes, ScUtils, SepiCore, SepiCompilerErrors, SepiParseTrees,
-  SepiCompilerConsts;
+  SysUtils, Classes, Contnrs, ScUtils, SepiCore, SepiCompilerErrors,
+  SepiParseTrees, SepiCompilerConsts;
 
 const
   tkEof = 0;     /// Lexème fin de fichier
@@ -38,11 +38,21 @@ const
   tkComment = 2; /// Lexème commentaire
 
 type
+  TSepiCustomLexer = class;
+
   {*
     Fonction d'analyse d'un terminal
     @return True si un véritable terminal a été analysé, False sinon
   *}
   TSepiLexingProc = procedure of object;
+
+  {*
+    Type d'événement OnNeedFile des analyseurs lexicaux Sepi
+    @param Sender     Analyseur lexical qui a déclenché l'événement
+    @param FileName   Nom de fichier à résoudre
+  *}
+  TSepiLexerNeedFileEvent = procedure(Sender: TSepiCustomLexer;
+    var FileName: TFileName) of object;
 
   {*
     Erreur d'analyse lexicale
@@ -72,7 +82,12 @@ type
 
     FContext: TSepiNonTerminal; /// Contexte courant (peut être nil)
 
+    /// Événement déclenché lorsque cet analyseur a besoin d'un fichier
+    FOnNeedFile: TSepiLexerNeedFileEvent;
+
     procedure SetExcludedTokens(const Value: TSysByteSet);
+
+    function GetIsEof: Boolean;
   protected
     procedure MakeError(const ErrorMsg: string;
       Kind: TSepiErrorKind = ekError);
@@ -80,6 +95,9 @@ type
     function GetCurrentPos: TSepiSourcePosition; virtual; abstract;
     function GetCurTerminal: TSepiTerminal; virtual; abstract;
     procedure SetContext(Value: TSepiNonTerminal); virtual;
+
+    procedure DoNeedFile(var FileName: TFileName); virtual;
+    function FindFile(const FileName: TFileName): TFileName;
 
     procedure DoNextTerminal; virtual; abstract;
   public
@@ -99,9 +117,16 @@ type
 
     property CurrentPos: TSepiSourcePosition read GetCurrentPos;
     property CurTerminal: TSepiTerminal read GetCurTerminal;
+    property IsEof: Boolean read GetIsEof;
 
     property Context: TSepiNonTerminal read FContext write SetContext;
+
+    property OnNeedFile: TSepiLexerNeedFileEvent
+      read FOnNeedFile write FOnNeedFile;
   end;
+
+  /// Classe de TSepiCustomLexerClass
+  TSepiCustomLexerClass = class of TSepiCustomLexer;
 
   {*
     Bookmark pour TSepiBaseLexer
@@ -165,9 +190,6 @@ type
     property CurTerminal: TSepiTerminal read FCurTerminal;
   end;
 
-  /// Classe de TSepiCustomLexerClass
-  TSepiCustomLexerClass = class of TSepiCustomLexer;
-
   {*
     Classe de base pour les analyseurs lexicaux Sepi écrits à la main
     @author sjrd
@@ -188,6 +210,65 @@ type
   public
     constructor Create(AErrors: TSepiCompilerErrorList; const ACode: string;
       const AFileName: TFileName = ''); override;
+  end;
+
+  {*
+    Bookmark pour TSepiCustomCompositeLexer
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiCompositeLexerBookmark = class(TSepiLexerBookmark)
+  private
+    FLexerChangeCount: Integer;            /// Nombre de changements d'analyseur
+    FCurLexerBookmark: TSepiLexerBookmark; /// Bookmark pour l'analyseur courant
+  public
+    constructor Create(ALexerChangeCount: Integer;
+      ACurLexerBookmark: TSepiLexerBookmark);
+    destructor Destroy; override;
+
+    property LexerChangeCount: Integer read FLexerChangeCount;
+    property CurLexerBookmark: TSepiLexerBookmark read FCurLexerBookmark;
+  end;
+
+  {*
+    Classe de base pour les analyseurs lexicaux composites
+    Un analyseur lexical composite n'analyse pas directement un code source,
+    mais prend sa source depuis un ou plusieurs autres analyseurs lexicaux, et
+    transforme leur produit.
+    Un exemple simple est celui d'un pré-processeur, ou d'un processeur de
+    directives de compilations comme celui de Delphi.
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiCustomCompositeLexer = class(TSepiCustomLexer)
+  private
+    FCurLexer: TSepiCustomLexer; /// Analyseur courant
+    FLexerStack: TObjectStack;   /// Pile des analyseurs sauvegardés
+    FLexerChangeCount: Integer;  /// Nombre de changements d'analyseur
+  protected
+    function GetCurrentPos: TSepiSourcePosition; override;
+    function GetCurTerminal: TSepiTerminal; override;
+    procedure SetContext(Value: TSepiNonTerminal); override;
+
+    procedure DoNextTerminal; override;
+
+    procedure SetBaseLexer(BaseLexer: TSepiCustomLexer);
+
+    procedure CurLexerChanged; virtual;
+
+    procedure EnterLexer(NewLexer: TSepiCustomLexer);
+    procedure EnterFile(const FileName: TFileName);
+    procedure LeaveCurLexer;
+
+    property CurLexer: TSepiCustomLexer read FCurLexer;
+  public
+    constructor Create(AErrors: TSepiCompilerErrorList; const ACode: string;
+      const AFileName: TFileName = ''); override;
+    destructor Destroy; override;
+
+    function MakeBookmark: TSepiLexerBookmark; override;
+    procedure ResetToBookmark(ABookmark: TSepiLexerBookmark;
+      FreeBookmark: Boolean = True); override;
   end;
 
 const
@@ -225,6 +306,18 @@ begin
 end;
 
 {*
+  Indique si l'analyseur a atteint la fin du fichier
+  @return True si la fin de fichier a été atteinte, False sinon
+*}
+function TSepiCustomLexer.GetIsEof: Boolean;
+var
+  ACurTerminal: TSepiTerminal;
+begin
+  ACurTerminal := CurTerminal;
+  Result := (ACurTerminal <> nil) and (ACurTerminal.SymbolClass = tkEof);
+end;
+
+{*
   Produit une erreur
   @param ErrorMsg   Message d'erreur
   @param Kind       Type d'erreur (défaut = Erreur)
@@ -242,6 +335,31 @@ end;
 procedure TSepiCustomLexer.SetContext(Value: TSepiNonTerminal);
 begin
   FContext := Value;
+end;
+
+{*
+  Exécuté lorsque cet analyseur a besoin d'un fichier valide
+  @param FileName   Nom de fichier recherché
+*}
+procedure TSepiCustomLexer.DoNeedFile(var FileName: TFileName);
+begin
+  if Assigned(FOnNeedFile) then
+    FOnNeedFile(Self, FileName);
+end;
+
+{*
+  Trouve un fichier
+  @param FileName   Nom de fichier recherché au départ
+  @return Nom de fichier complet valide
+  @throws ESepiCompilerFatalError Le fichier n'a pas été trouvé
+*}
+function TSepiCustomLexer.FindFile(const FileName: TFileName): TFileName;
+begin
+  Result := FileName;
+  DoNeedFile(Result);
+
+  if not FileExists(Result) then
+    MakeError(Format(SCantOpenSourceFile, [FileName]), ekFatalError);
 end;
 
 {*
@@ -514,6 +632,223 @@ begin
     CursorForward;
 
   TerminalParsed(tkBlank, ' ');
+end;
+
+{-----------------------------------}
+{ TSepiCompositeLexerBookmark class }
+{-----------------------------------}
+
+{*
+  Crée un bookmark
+  @param ALexerChangeCount   Nombre de changements d'analyseur
+  @param ACurLexerBookmark   Bookmark pour l'analyseur courant
+*}
+constructor TSepiCompositeLexerBookmark.Create(ALexerChangeCount: Integer;
+  ACurLexerBookmark: TSepiLexerBookmark);
+begin
+  inherited Create;
+
+  FLexerChangeCount := ALexerChangeCount;
+  FCurLexerBookmark := ACurLexerBookmark;
+end;
+
+{*
+  [@inheritDoc]
+*}
+destructor TSepiCompositeLexerBookmark.Destroy;
+begin
+  FCurLexerBookmark.Free;
+
+  inherited;
+end;
+
+{---------------------------------}
+{ TSepiCustomCompositeLexer class }
+{---------------------------------}
+
+{*
+  [@inheritDoc]
+*}
+constructor TSepiCustomCompositeLexer.Create(AErrors: TSepiCompilerErrorList;
+  const ACode: string; const AFileName: TFileName = '');
+begin
+  inherited;
+
+  FLexerStack := TObjectStack.Create;
+end;
+
+{*
+  [@inheritDoc]
+*}
+destructor TSepiCustomCompositeLexer.Destroy;
+begin
+  if Assigned(FLexerStack) then
+  begin
+    while FLexerStack.Count > 0 do
+      FLexerStack.Pop.Free;
+    FLexerStack.Free;
+  end;
+
+  FCurLexer.Free;
+
+  inherited;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiCustomCompositeLexer.GetCurrentPos: TSepiSourcePosition;
+begin
+  Result := CurLexer.CurrentPos;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiCustomCompositeLexer.GetCurTerminal: TSepiTerminal;
+begin
+  Result := CurLexer.CurTerminal;
+
+  if (Result = nil) and (FLexerStack.Count > 0) then
+    Result := TSepiCustomLexer(FLexerStack.Peek).CurTerminal;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiCustomCompositeLexer.SetContext(Value: TSepiNonTerminal);
+begin
+  inherited;
+
+  CurLexer.Context := Context;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiCustomCompositeLexer.DoNextTerminal;
+begin
+  CurLexer.NextTerminal;
+
+  while CurLexer.IsEof and (FLexerStack.Count > 0) do
+  begin
+    LeaveCurLexer;
+    CurLexer.NextTerminal;
+  end;
+end;
+
+{*
+  Renseigne l'analyseur de base
+  Cette méthode doit être appelée une et une seule fois dans le constructeur.
+  @param BaseLexer   Analyseur de base
+*}
+procedure TSepiCustomCompositeLexer.SetBaseLexer(BaseLexer: TSepiCustomLexer);
+begin
+  Assert(FCurLexer = nil);
+  FCurLexer := BaseLexer;
+
+  CurLexerChanged;
+end;
+
+{*
+  Appelé lorsque l'analyseur courant a été modifié
+*}
+procedure TSepiCustomCompositeLexer.CurLexerChanged;
+begin
+  Inc(FLexerChangeCount);
+  CurLexer.Context := Context;
+  Errors.CurrentFileName := CurLexer.CurrentPos.FileName;
+end;
+
+{*
+  Entre dans un nouvel analyseur
+  @param NewLexer   Nouvel analyseur dans lequel entrer
+*}
+procedure TSepiCustomCompositeLexer.EnterLexer(NewLexer: TSepiCustomLexer);
+begin
+  FLexerStack.Push(FCurLexer);
+  FCurLexer := NewLexer;
+
+  CurLexerChanged;
+end;
+
+{*
+  Entre dans un nouvel analyseur pour un fichier donné
+  Le type d'analyseur utilisé est le même que celui de l'analyseur courant
+  @param FileName   Nom du fichier a chargé dans le nouvel analyseur
+*}
+procedure TSepiCustomCompositeLexer.EnterFile(const FileName: TFileName);
+var
+  CompleteFileName: TFileName;
+  FileContents: TStrings;
+  LexerClass: TSepiCustomLexerClass;
+begin
+  CompleteFileName := FindFile(FileName);
+
+  FileContents := TStringList.Create;
+  try
+    FileContents.LoadFromFile(CompleteFileName);
+
+    LexerClass := TSepiCustomLexerClass(CurLexer.ClassType);
+    EnterLexer(LexerClass.Create(Errors, FileContents.Text, CompleteFileName));
+  finally
+    FileContents.Free;
+  end;
+end;
+
+{*
+  Quitte l'analyseur courant
+  S'il n'y a plus d'analyseur "en réserve", sur la pile, l'analyseur de base
+  est amené jusqu'à sa fin de fichier.
+*}
+procedure TSepiCustomCompositeLexer.LeaveCurLexer;
+begin
+  if FLexerStack.Count > 0 then
+  begin
+    FreeAndNil(FCurLexer);
+    FCurLexer := TSepiCustomLexer(FLexerStack.Pop);
+
+    CurLexerChanged;
+  end else
+  begin
+    while not CurLexer.IsEof do
+      CurLexer.NextTerminal;
+  end;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiCustomCompositeLexer.MakeBookmark: TSepiLexerBookmark;
+var
+  CurLexerBookmark: TSepiLexerBookmark;
+begin
+  CurLexerBookmark := CurLexer.MakeBookmark;
+  try
+    Result := TSepiCompositeLexerBookmark.Create(FLexerChangeCount,
+      CurLexerBookmark);
+  except
+    CurLexerBookmark.Free;
+    raise;
+  end;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiCustomCompositeLexer.ResetToBookmark(
+  ABookmark: TSepiLexerBookmark; FreeBookmark: Boolean = True);
+var
+  Bookmark: TSepiCompositeLexerBookmark;
+begin
+  Bookmark := ABookmark as TSepiCompositeLexerBookmark;
+
+  if Bookmark.LexerChangeCount <> FLexerChangeCount then
+    MakeError(SBookmarksCantPassThroughLexer, ekFatalError);
+
+  CurLexer.ResetToBookmark(Bookmark.CurLexerBookmark, False);
+
+  inherited;
 end;
 
 end.

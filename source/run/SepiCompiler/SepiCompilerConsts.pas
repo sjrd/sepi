@@ -50,6 +50,9 @@ resourcestring
   SBadSourceCharacter = 'Caractère %s incorrect dans un source';
   SEndOfFile = 'Fin de fichier';
   SStringNotTerminated = 'Chaîne non terminée';
+  SBookmarksCantPassThroughLexer =
+    'Impossible de revenir en arrière en changeant d''analyseur lexical de '+
+    'base.';
 
   // Erreurs de l'analyseur syntaxique
   SSyntaxError = '%s attendu mais %s trouvé';
