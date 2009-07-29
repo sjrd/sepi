@@ -4,6 +4,7 @@ interface
 
 uses
   SepiImportsActnList,
+  SepiImportsButtons,
   SepiImportsClipBrd,
   SepiImportsComCtrls,
   SepiImportsControls,
@@ -16,6 +17,7 @@ uses
   SepiImportsListActns,
   SepiImportsMenus,
   SepiImportsPrinters,
+  SepiImportsSpin,
   SepiImportsStdCtrls,
   SepiImportsToolWin;
 

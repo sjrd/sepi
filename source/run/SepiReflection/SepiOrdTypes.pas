@@ -1478,7 +1478,7 @@ begin
   if Size <= 4 then
     Result := Size
   else
-    Result := 1;
+    Result := 8;
 end;
 
 {*

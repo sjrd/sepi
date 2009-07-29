@@ -7,6 +7,8 @@
     <DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
     <DCC_DependencyCheckOutputName>..\..\bin\SepiDelphiUnitImporter\SepiDelphiUnitImporter.exe</DCC_DependencyCheckOutputName>
     <MainSource>SepiDelphiUnitImporter.dpr</MainSource>
+    <DCC_EnabledPackages>true</DCC_EnabledPackages>
+    <DCC_UsePackage>vcl;rtl;vclx;dbrtl;vcldb;VclSmp;SCL110;SVCL110;SDL110;SepiCore110;SepiReflection110;SepiInterpreter110;SepiCompiler110;SepiDelphiCompiler110</DCC_UsePackage>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <Version>7.0</Version>

@@ -138,6 +138,8 @@ begin
     SepiRoot.OnLoadUnit := TSepiLoadUnitEvent(MakeMethod(
       @LoadUnit, Context));
 
+    LoadAll(SepiRoot);
+
     // Update current file name
     Errors.CurrentFileName := ExtractFileName(SrcFileName);
 

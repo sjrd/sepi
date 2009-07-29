@@ -113,6 +113,9 @@ const // don't localize
   InitMethodAddressesParam = 'InitMethodAddresses';
   InitVarAddressesParam = 'InitVarAddresses';
 
+  StaticAssertionsParam = 'StaticAssertions';
+  DynamicAssertionsParam = 'DynamicAssertions';
+
   ClassNameParam = 'ClassName';
   DashesParam = 'Dashes';
   MembersParam = 'Members';
@@ -258,6 +261,8 @@ begin
       SetParam(InitTypeInfoArrayParam, '');
       SetParam(InitMethodAddressesParam, '');
       SetParam(InitVarAddressesParam, '');
+      SetParam(StaticAssertionsParam, '');
+      SetParam(DynamicAssertionsParam, '');
     end;
 
     // Initialize uses list
@@ -339,17 +344,62 @@ end;
 procedure TSepiImporterProducer.HandleType(Template: TTemplate;
   SepiType: TSepiType);
 const
+  CheckSizeOfStatement = CRLF+
+    '{$IF SizeOf(%s) <> %d}'+CRLF+
+    '  {$MESSAGE WARN ''Le type %0:s n''''a pas la taille calculée par '+
+      'Sepi''}'+CRLF;
+  CheckAlignmentStatement = CRLF+
+    'type'+CRLF+
+    '  TCheckAlignmentFor%s = record'+CRLF+
+    '    Dummy: Byte;'+CRLF+
+    '    Field: %0:s;'+CRLF+
+    '  end;'+CRLF+CRLF+
+    '{$IF SizeOf(TCheckAlignmentFor%0:s) <> (%d + %d)}'+CRLF+
+    '  {$MESSAGE WARN ''Le type %0:s n''''a pas l''''alignement calculé par '+
+      'Sepi''}'+CRLF+
+    '{$IFEND}'+CRLF;
   NoTypeInfo = -1;
   CantFindTypeInfo = -2;
   SetTypeInfoStatement =
     '  TypeInfoArray[%d] := TypeInfo(%s);'+CRLF;
 var
   SetType: TSepiSetType;
+  HasSizeOfAssertion: Boolean;
+  AddToAlignment: Integer;
 begin
   if SepiType is TSepiSetType then
     SetType := TSepiSetType(SepiType)
   else
     SetType := nil;
+
+  if (SepiType.Name[1] <> '$') and
+    ((SepiType is TSepiSetType) or (SepiType is TSepiRecordType) or
+    (SepiType is TSepiStaticArrayType)) then
+  begin
+    HasSizeOfAssertion := True;
+    Template.AddToParam(StaticAssertionsParam,
+      Format(CheckSizeOfStatement, [SepiType.Name, SepiType.Size]));
+  end else
+    HasSizeOfAssertion := False;
+
+  if (SepiType.Name[1] <> '$') and (SepiType.Size < $1000000) then
+  begin
+    if HasSizeOfAssertion then
+      Template.AddToParam(StaticAssertionsParam, '{$ELSE}'+CRLF);
+
+    AddToAlignment := SepiType.Size;
+    SepiType.AlignOffset(AddToAlignment);
+
+    Template.AddToParam(StaticAssertionsParam,
+      Format(CheckAlignmentStatement,
+      [SepiType.Name, SepiType.Alignment, AddToAlignment]));
+
+    if HasSizeOfAssertion then
+      Template.AddToParam(StaticAssertionsParam, CRLF);
+  end;
+
+  if HasSizeOfAssertion then
+    Template.AddToParam(StaticAssertionsParam, '{$IFEND}'+CRLF);
 
   with SepiType do
   begin
@@ -438,6 +488,8 @@ end;
 procedure TSepiImporterProducer.HandleClassType(Template: TTemplate;
   SepiClass: TSepiClass);
 const
+  CheckInstanceSizeStatement =
+    '  CheckInstanceSize(%s, %d, %d);'+CRLF;
   InitMethAddrCallStatement =
     '  TSepiImports%s.InitMethodAddresses;'+CRLF;
 var
@@ -445,6 +497,10 @@ var
   Component: TSepiComponent;
   DeclTemplate, ImplTemplate: TTemplate;
 begin
+  Template.AddToParam(DynamicAssertionsParam,
+    Format(CheckInstanceSizeStatement,
+      [SepiClass.Name, SepiClass.InstSize, SepiClass.Parent.InstSize]));
+
   // If returns False, no import must be done for this class
   if not PrepareClassMethodTags(SepiClass) then
     Exit;

@@ -569,6 +569,11 @@ constructor TSepiDynArrayType.RegisterTypeInfo(AOwner: TSepiComponent;
   ATypeInfo: PTypeInfo);
 begin
   inherited;
+
+  FSize := 4;
+  FNeedInit := True;
+  FResultBehavior := rbParameter;
+
   ExtractTypeData;
 end;
 
@@ -578,6 +583,10 @@ end;
 constructor TSepiDynArrayType.Load(AOwner: TSepiComponent; Stream: TStream);
 begin
   inherited;
+
+  FSize := 4;
+  FNeedInit := True;
+  FResultBehavior := rbParameter;
 
   if not Native then
     MakeTypeInfo;
@@ -593,6 +602,10 @@ constructor TSepiDynArrayType.Create(AOwner: TSepiComponent; const AName: string
   AElementType: TSepiType);
 begin
   inherited Create(AOwner, AName, tkDynArray, AElementType);
+
+  FSize := 4;
+  FNeedInit := True;
+  FResultBehavior := rbParameter;
 
   MakeTypeInfo;
 end;
@@ -617,10 +630,6 @@ begin
   UnitName := OwningUnit.Name;
   TypeDataLength := DynArrayTypeDataLengthBase + Length(UnitName) + 1;
   AllocateTypeInfo(TypeDataLength);
-
-  FSize := 4;
-  FNeedInit := True;
-  FResultBehavior := rbParameter;
 
   // Element size
   TypeData.elSize := ElementType.Size;
@@ -653,10 +662,6 @@ end;
 procedure TSepiDynArrayType.ExtractTypeData;
 begin
   inherited;
-
-  FSize := 4;
-  FNeedInit := True;
-  FResultBehavior := rbParameter;
 
   if Assigned(TypeData.elType2) then
     FElementType := Root.FindType(TypeData.elType2^);

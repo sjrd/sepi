@@ -13,6 +13,8 @@ uses
 var
   SepiImports(#UnitName2#)LazyLoad: Boolean = (#LazyLoad#);
 
+procedure DelphiSepiConsistencyAssertions;
+
 implementation
 
 {$R *.res}
@@ -106,6 +108,28 @@ begin
 procedure InitVarAddresses;
 begin
 (#InitVarAddresses#)end;
+
+{------------------------------------}
+{ Delphi-Sepi consistency assertions }
+{------------------------------------}
+(#StaticAssertions#)
+procedure CheckInstanceSize(AClass: TClass;
+  SepiInstSize, ParentSepiInstSize: Longint);
+begin
+  if (AClass.InstanceSize - SepiInstSize) =
+    (AClass.ClassParent.InstanceSize - ParentSepiInstSize) then
+    Exit;
+
+  WriteLn(ErrOutput, Format('InstanceSize;%d;%d;(#UnitName#);%s;%s',
+    [SepiInstSize, AClass.InstanceSize, AClass.ClassName,
+    AClass.ClassParent.ClassName]));
+end;
+
+procedure DelphiSepiConsistencyAssertions;
+begin
+  {$ASSERTIONS ON}
+(#DynamicAssertions#)  {$ASSERTIONS OFF}
+end;
 
 {$WARN SYMBOL_DEPRECATED ON}
 

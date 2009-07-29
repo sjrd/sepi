@@ -28,6 +28,8 @@ interface
 
 {$ASSERTIONS ON}
 
+{.$DEFINE TRYING_TO_UNDERSTAND_THE_GAP_IN_CLASSES}
+
 uses
   Windows, Classes, SysUtils, StrUtils, RTLConsts, Contnrs, TypInfo, ScUtils,
   ScStrUtils, ScDelphiLanguage, ScCompilerMagic, SepiReflectionCore,
@@ -772,12 +774,14 @@ type
     Relocates: Pointer;      /// Thunks de relocalisation
     IMT: Pointer;            /// Interface Method Table
     Offset: Integer;         /// Offset du champ interface dans l'objet
+    OwnsIMT: Boolean;        /// Indique si cette entrée possède son IMT
   end;
 
   {*
     Redirecteur de méthode d'interface pour une classe Sepi
   *}
   TSepiIntfMethodRedirector = record
+    Intf: TSepiInterface;    /// Interface
     IntfMethod: TSepiMethod; /// Méthode de l'interface
     RedirectorName: string;  /// Nom de la méthode de redirection
   end;
@@ -803,10 +807,16 @@ type
     FVMTSize: Integer;      /// Taille de la VMT dans les index positifs
     FDMTNextIndex: Integer; /// Prochain index à utiliser dans la DMT
 
+    FStoredInstSize: Integer; /// Valeur de FInstSize telle que stockée
+
     FDefaultProperty: TSepiProperty; /// Propriété tableau par défaut
 
     procedure MakeIMT(IntfEntry: PSepiInterfaceEntry);
+    procedure ListCompleteIMTInterfaces(CompleteIMTInterfaces: TObjectList);
+    procedure MakeCompleteIMTs(CompleteIMTInterfaces: TObjectList);
+    procedure MakeIMTRedirects(CompleteIMTInterfaces: TObjectList);
     procedure MakeIMTs;
+    procedure ReadNativeIMTs;
 
     procedure MakeTypeInfo;
     procedure MakeIntfTable;
@@ -830,8 +840,12 @@ type
     function GetDescription: string; override;
     function GetParentContainer: TSepiInheritableContainerType; override;
 
-    function FindIntfMethodImpl(IntfMethod: TSepiMethod;
-      FromClass: TSepiClass): TSepiMethod;
+    function IsIntfMethodRedirected(Intf: TSepiInterface;
+      IntfMethod: TSepiMethod): Boolean;
+    function FindIntfMethodImpl(Intf: TSepiInterface;
+      IntfMethod: TSepiMethod; FromClass: TSepiClass): TSepiMethod;
+
+    function HasAnyRedirectorFor(Intf: TSepiInterface): Boolean;
 
     property VMTEntries[Index: Integer]: Pointer
       read GetVMTEntries write SetVMTEntries;
@@ -908,8 +922,8 @@ type
       const AName, AReadAccess, AWriteAccess: string; ADefaultValue: Integer;
       const AStorage: string = ''): TSepiProperty; overload;
 
-    procedure AddIntfMethodRedirector(IntfMethod: TSepiMethod;
-      const RedirectorName: string);
+    procedure AddIntfMethodRedirector(Intf: TSepiInterface;
+      IntfMethod: TSepiMethod; const RedirectorName: string);
 
     procedure Complete;
 
@@ -3153,7 +3167,7 @@ begin
         FNeedInit := True;
       if Offset + FieldType.Size > FSize then
         FSize := Offset + FieldType.Size;
-      if FieldType.Alignment > FAlignment then
+      if (not IsPacked) and (FieldType.Alignment > FAlignment) then
         FAlignment := FieldType.Alignment;
     end;
   end;
@@ -3746,6 +3760,7 @@ begin
     FVMTSize := vmtMinMethodIndex;
     FDMTNextIndex := -1;
   end;
+  FStoredInstSize := DelphiClass.InstanceSize;
   FCompleted := False;
 end;
 
@@ -3754,7 +3769,7 @@ end;
 *}
 constructor TSepiClass.Load(AOwner: TSepiComponent; Stream: TStream);
 var
-  IntfCount, I: Integer;
+  IntfCount, RedirectorCount, I: Integer;
 begin
   inherited;
 
@@ -3773,9 +3788,39 @@ begin
   for I := 0 to IntfCount-1 do
     OwningUnit.ReadRef(Stream, FInterfaces[I].IntfRef);
 
+  Stream.ReadBuffer(RedirectorCount, 4);
+  SetLength(FIntfMethodRedirectors, RedirectorCount);
+  for I := 0 to RedirectorCount-1 do
+  begin
+    with FIntfMethodRedirectors[I] do
+    begin
+      OwningUnit.ReadRef(Stream, Intf);
+      OwningUnit.ReadRef(Stream, IntfMethod);
+      RedirectorName := ReadStrFromStream(Stream);
+    end;
+  end;
+
   FInstSize := Parent.InstSize;
   FVMTSize := Parent.VMTSize;
   FDMTNextIndex := Parent.FDMTNextIndex;
+
+  Stream.ReadBuffer(FStoredInstSize, 4);
+
+  {$IFDEF TRYING_TO_UNDERSTAND_THE_GAP_IN_CLASSES}
+  if Native then
+  begin
+    if (DelphiClass.InstanceSize-FStoredInstSize) <>
+      (Parent.DelphiClass.InstanceSize-Parent.FStoredInstSize) then
+    begin
+      {$I-}
+      WriteLn(ErrOutput, Format('InstanceSize;%s;%s;%d;%d;%s;%s;%d;%d',
+        [OwningUnit.Name, Name, FStoredInstSize, DelphiClass.InstanceSize,
+        Parent.OwningUnit.Name, Parent.Name, Parent.FStoredInstSize,
+        Parent.DelphiClass.InstanceSize]));
+      {$I+}
+    end;
+  end;
+  {$ENDIF}
 
   FDefaultProperty := Parent.DefaultProperty;
 
@@ -3832,7 +3877,7 @@ begin
       begin
         if Assigned(Relocates) then
           FreeMem(Relocates);
-        if Assigned(IMT) then
+        if Assigned(IMT) and OwnsIMT then
           FreeMem(IMT);
       end;
     end;
@@ -3855,7 +3900,7 @@ end;
 
 {*
   Construit une IMT non native
-  @param Index   Index de l'IMT à construire (dans le tableau FInterfaces)
+  @param IntfEntry   Entrée de l'IMT à construire
 *}
 procedure TSepiClass.MakeIMT(IntfEntry: PSepiInterfaceEntry);
 const
@@ -3906,6 +3951,7 @@ begin
     GetMem(IntfEntry.Relocates, RelocLength);
     RelocEntry := Integer(IntfEntry.Relocates);
     GetMem(IntfEntry.IMT, IntfEntry.IntfRef.IMTSize);
+    IntfEntry.OwnsIMT := True;
     IMTEntry := Integer(IntfEntry.IMT);
 
     // Filling the relocates thunks and the IMT
@@ -3953,7 +3999,7 @@ begin
       end;
 
       // JumpInstruction
-      RealMethod := FindIntfMethodImpl(Method, Self);
+      RealMethod := FindIntfMethodImpl(IntfEntry.IntfRef, Method, Self);
 
       // jmp Method.Code   E9 xx xx xx xx
       PByte(RelocEntry)^ := $E9;
@@ -3966,36 +4012,144 @@ begin
 end;
 
 {*
+  Liste les interfaces qui doivent avoir une IMT complète
+  @param CompleteIMTInterfaces   Liste des interfaces à IMT complète
+*}
+procedure TSepiClass.ListCompleteIMTInterfaces(
+  CompleteIMTInterfaces: TObjectList);
+var
+  Candidates: TObjectList;
+  I, J: Integer;
+  Intf: TSepiInterface;
+begin
+  Candidates := TObjectList.Create(False);
+  try
+    for I := 0 to InterfaceCount-1 do
+    begin
+      Intf := FInterfaces[I].IntfRef;
+
+      if HasAnyRedirectorFor(Intf) then
+        CompleteIMTInterfaces.Add(Intf)
+      else
+        Candidates.Add(Intf);
+    end;
+
+    for I := 0 to InterfaceCount-1 do
+    begin
+      Intf := FInterfaces[I].IntfRef;
+
+      if Candidates.IndexOf(Intf) < 0 then
+        Continue;
+
+      for J := 0 to Candidates.Count-1 do
+      begin
+        if (Candidates[J] <> Intf) and
+          TSepiInterface(Candidates[J]).IntfInheritsFrom(Intf) then
+        begin
+          Intf := nil;
+          Break;
+        end;
+      end;
+
+      if Intf <> nil then
+        CompleteIMTInterfaces.Add(Intf);
+    end;
+  finally
+    Candidates.Free;
+  end;
+end;
+
+{*
+  Construit les IMTs complètes
+  @param CompleteIMTInterfaces   Liste des interfaces à IMT complète
+*}
+procedure TSepiClass.MakeCompleteIMTs(CompleteIMTInterfaces: TObjectList);
+var
+  I: Integer;
+begin
+  for I := 0 to InterfaceCount-1 do
+  begin
+    if CompleteIMTInterfaces.IndexOf(FInterfaces[I].IntfRef) < 0 then
+      Continue;
+
+    FInterfaces[I].Offset := FInstSize;
+    Inc(FInstSize, 4);
+
+    MakeIMT(@FInterfaces[I]);
+  end;
+end;
+
+{*
+  Construit les IMTs redirigées vers d'autres IMTs (complètes)
+  @param CompleteIMTInterfaces   Liste des interfaces à IMT complète
+*}
+procedure TSepiClass.MakeIMTRedirects(CompleteIMTInterfaces: TObjectList);
+var
+  I, Existing: Integer;
+  Intf, ExistingIntf: TSepiInterface;
+begin
+  for I := 0 to InterfaceCount-1 do
+  begin
+    Intf := FInterfaces[I].IntfRef;
+
+    if CompleteIMTInterfaces.IndexOf(Intf) >= 0 then
+      Continue;
+
+    for Existing := 0 to InterfaceCount-1 do
+    begin
+      ExistingIntf := FInterfaces[Existing].IntfRef;
+
+      if (CompleteIMTInterfaces.IndexOf(ExistingIntf) >= 0) and
+        ExistingIntf.IntfInheritsFrom(Intf) then
+      begin
+        FInterfaces[I].IMT := FInterfaces[Existing].IMT;
+        FInterfaces[I].Offset := FInterfaces[Existing].Offset;
+
+        Break;
+      end;
+    end;
+
+    Assert(FInterfaces[I].Offset <> 0);
+  end;
+end;
+
+{*
   Construit les IMTs
 *}
 procedure TSepiClass.MakeIMTs;
 var
-  IntfCount, I: Integer;
-  IntfTable: PInterfaceTable;
+  CompleteIMTInterfaces: TObjectList;
 begin
-  // If no interface supported, then exit
-  IntfCount := InterfaceCount;
-  if IntfCount = 0 then
+  if InterfaceCount = 0 then
     Exit;
 
-  // Fetch native interface table
-  if Native then
-    IntfTable := DelphiClass.GetInterfaceTable
-  else
-    IntfTable := nil;
+  CompleteIMTInterfaces := TObjectList.Create(False);
+  try
+    ListCompleteIMTInterfaces(CompleteIMTInterfaces);
+    MakeCompleteIMTs(CompleteIMTInterfaces);
+    MakeIMTRedirects(CompleteIMTInterfaces);
+  finally
+    CompleteIMTInterfaces.Free;
+  end;
+end;
 
-  for I := 0 to IntfCount-1 do
+{*
+  Lit la table des IMTs natives pour obtenir les offsets réels
+*}
+procedure TSepiClass.ReadNativeIMTs;
+var
+  IntfTable: PInterfaceTable;
+  I: Integer;
+begin
+  IntfTable := DelphiClass.GetInterfaceTable;
+
+  for I := 0 to InterfaceCount-1 do
   begin
-    FInterfaces[I].Offset := FInstSize;
-    Inc(FInstSize, 4);
+    FInterfaces[I].IMT := IntfTable.Entries[I].VTable;
+    FInterfaces[I].Offset := IntfTable.Entries[I].IOffset;
 
-    // If native, get information from IntfTable; otherwise, create the IMT
-    if Native then
-    begin
-      FInterfaces[I].IMT := IntfTable.Entries[I].VTable;
-      FInterfaces[I].Offset := IntfTable.Entries[I].IOffset;
-    end else
-      MakeIMT(@FInterfaces[I]);
+    if FInterfaces[I].Offset + 4 > FInstSize then
+      FInstSize := FInterfaces[I].Offset + 4;
   end;
 end;
 
@@ -4428,9 +4582,20 @@ var
   I: Integer;
 begin
   inherited;
+
   OwningUnit.AddRef(FParent);
+
   for I := 0 to InterfaceCount-1 do
     OwningUnit.AddRef(Interfaces[I]);
+
+  for I := 0 to Length(FIntfMethodRedirectors)-1 do
+  begin
+    with FIntfMethodRedirectors[I] do
+    begin
+      OwningUnit.AddRef(Intf);
+      OwningUnit.AddRef(IntfMethod);
+    end;
+  end;
 end;
 
 {*
@@ -4438,7 +4603,7 @@ end;
 *}
 procedure TSepiClass.Save(Stream: TStream);
 var
-  IntfCount, I: Integer;
+  IntfCount, RedirectorCount, I: Integer;
 begin
   inherited;
   OwningUnit.WriteRef(Stream, FParent);
@@ -4447,6 +4612,20 @@ begin
   Stream.WriteBuffer(IntfCount, 4);
   for I := 0 to IntfCount-1 do
     OwningUnit.WriteRef(Stream, Interfaces[I]);
+
+  RedirectorCount := Length(FIntfMethodRedirectors);
+  Stream.WriteBuffer(RedirectorCount, 4);
+  for I := 0 to RedirectorCount-1 do
+  begin
+    with FIntfMethodRedirectors[I] do
+    begin
+      OwningUnit.WriteRef(Stream, Intf);
+      OwningUnit.WriteRef(Stream, IntfMethod);
+      WriteStrToStream(Stream, RedirectorName);
+    end;
+  end;
+
+  Stream.WriteBuffer(FInstSize, 4);
 
   SaveChildren(Stream);
 end;
@@ -4468,19 +4647,45 @@ begin
 end;
 
 {*
+  Teste si une méthode d'interface est redirigée dans cette class
+  @param Intf         Interface à tester
+  @param IntfMethod   Méthode d'interface à tester
+  @return True si cette méthode est redirigée, False sinon
+*}
+function TSepiClass.IsIntfMethodRedirected(Intf: TSepiInterface;
+  IntfMethod: TSepiMethod): Boolean;
+var
+  I: Integer;
+begin
+  Result := True;
+
+  for I := 0 to Length(FIntfMethodRedirectors)-1 do
+    if (FIntfMethodRedirectors[I].Intf = Intf) and
+      (FIntfMethodRedirectors[I].IntfMethod = IntfMethod) then
+      Exit;
+
+  if Parent <> nil then
+    Result := Parent.IsIntfMethodRedirected(Intf, IntfMethod)
+  else
+    Result := False;
+end;
+
+{*
   Trouve la méthode qui implémente une méthode d'interface
+  @param Intf         Interface dont on cherche l'implémentation
   @param IntfMethod   Méthode d'interface dont on cherche l'implémentation
   @param FromClass    Classe depuis laquelle on cherche
   @return Méthode qui implémente, ou nil si non trouvée
 *}
-function TSepiClass.FindIntfMethodImpl(IntfMethod: TSepiMethod;
-  FromClass: TSepiClass): TSepiMethod;
+function TSepiClass.FindIntfMethodImpl(Intf: TSepiInterface;
+  IntfMethod: TSepiMethod; FromClass: TSepiClass): TSepiMethod;
 var
   I: Integer;
 begin
   for I := 0 to Length(FIntfMethodRedirectors)-1 do
   begin
-    if FIntfMethodRedirectors[I].IntfMethod = IntfMethod then
+    if (FIntfMethodRedirectors[I].Intf = Intf) and
+      (FIntfMethodRedirectors[I].IntfMethod = IntfMethod) then
     begin
       Result := FromClass.LookForMember(
         FIntfMethodRedirectors[I].RedirectorName) as TSepiMethod;
@@ -4489,9 +4694,29 @@ begin
   end;
 
   if Parent <> nil then
-    Result := Parent.FindIntfMethodImpl(IntfMethod, FromClass)
+    Result := Parent.FindIntfMethodImpl(Intf, IntfMethod, FromClass)
   else
     Result := FromClass.LookForMember(IntfMethod.Name) as TSepiMethod;
+end;
+
+{*
+  Teste si cette classe a un quelconque redirecteur pour une interface donnée
+  @param Intf   Interface à tester
+*}
+function TSepiClass.HasAnyRedirectorFor(Intf: TSepiInterface): Boolean;
+var
+  I: Integer;
+begin
+  Result := True;
+
+  for I := 0 to Length(FIntfMethodRedirectors)-1 do
+    if FIntfMethodRedirectors[I].Intf = Intf then
+      Exit;
+
+  if Parent <> nil then
+    Result := Parent.HasAnyRedirectorFor(Intf)
+  else
+    Result := False;
 end;
 
 {*
@@ -4551,6 +4776,7 @@ begin
     Relocates := nil;
     IMT := nil;
     Offset := 0;
+    OwnsIMT := False;
   end;
 end;
 
@@ -4825,17 +5051,19 @@ end;
 
 {*
   Ajoute un redirecteur de méthode d'interface
+  @param Intf             Interface dont rediriger une méthode
   @param IntfMethod       Méthode d'interface à rediriger
   @param RedirectorName   Nom du redirecteur
 *}
-procedure TSepiClass.AddIntfMethodRedirector(IntfMethod: TSepiMethod;
-  const RedirectorName: string);
+procedure TSepiClass.AddIntfMethodRedirector(Intf: TSepiInterface;
+  IntfMethod: TSepiMethod; const RedirectorName: string);
 var
   Index: Integer;
 begin
   Index := Length(FIntfMethodRedirectors);
   SetLength(FIntfMethodRedirectors, Index+1);
 
+  FIntfMethodRedirectors[Index].Intf := Intf;
   FIntfMethodRedirectors[Index].IntfMethod := IntfMethod;
   FIntfMethodRedirectors[Index].RedirectorName := RedirectorName;
 end;
@@ -4850,9 +5078,14 @@ begin
 
   FCompleted := True;
   AlignOffset(FInstSize);
-  MakeIMTs;
-  if not Native then
+
+  if Native then
+    ReadNativeIMTs
+  else
+  begin
+    MakeIMTs;
     MakeVMT;
+  end;
 
   TSepiClass(Owner).ReAddChild(Self);
 end;

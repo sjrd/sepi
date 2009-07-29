@@ -4056,7 +4056,7 @@ begin
   if IntfMethod = nil then
     Exit;
 
-  SepiClass.AddIntfMethodRedirector(IntfMethod, GetRedirectorName);
+  SepiClass.AddIntfMethodRedirector(SepiIntf, IntfMethod, GetRedirectorName);
 end;
 
 {*
