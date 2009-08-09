@@ -554,6 +554,8 @@ type
 
     FIsDefault: Boolean; /// Indique si c'est la propriété par défaut
 
+    FNameIndex: Integer; /// Index de cette propriété dans les PropInfos
+
     procedure MakePropInfo(PropInfo: PPropInfo);
 
     function GetPropType: TSepiType;
@@ -803,9 +805,10 @@ type
     /// Redirecteurs de méthodes d'interface
     FIntfMethodRedirectors: array of TSepiIntfMethodRedirector;
 
-    FInstSize: Integer;     /// Taille d'une instance de la classe
-    FVMTSize: Integer;      /// Taille de la VMT dans les index positifs
-    FDMTNextIndex: Integer; /// Prochain index à utiliser dans la DMT
+    FInstSize: Integer;           /// Taille d'une instance de la classe
+    FVMTSize: Integer;            /// Taille de la VMT dans les index positifs
+    FDMTNextIndex: Integer;       /// Prochain index à utiliser dans la DMT
+    FPublishedPropCount: Integer; /// Nombre de propriétés publiées
 
     FStoredInstSize: Integer; /// Valeur de FInstSize telle que stockée
 
@@ -2706,6 +2709,13 @@ begin
 
   Stream.ReadBuffer(FIndex, 4);
   Stream.ReadBuffer(FDefaultValue, 4);
+
+  Stream.ReadBuffer(FStorage.Kind, 1);
+  if FStorage.Kind = pskConstant then
+    Stream.ReadBuffer(FStorage.Stored, 1)
+  else
+    OwningUnit.ReadRef(Stream, FStorage.Component);
+
   Stream.ReadBuffer(FIsDefault, 1);
 end;
 
@@ -2953,7 +2963,7 @@ begin
   with PropInfo^, Storage do
   begin
     case Kind of
-      pskConstant: StoredProc := Pointer($FFFFFF00 or LongWord(Stored));
+      pskConstant: StoredProc := Pointer(Stored);
       pskField: StoredProc := Pointer($FF000000 or Field.Offset);
       pskMethod:
       begin
@@ -2968,7 +2978,7 @@ begin
   // Some information
   PropInfo.Index := Index;
   PropInfo.Default := DefaultValue;
-  PropInfo.NameIndex := 0; // Unknown, give 0 and pray...
+  PropInfo.NameIndex := FNameIndex;
 
   // Property name
   ShortName := Name;
@@ -2990,9 +3000,13 @@ end;
 procedure TSepiProperty.ListReferences;
 begin
   inherited;
+
   Signature.ListReferences;
   OwningUnit.AddRef(FReadAccess.Component);
   OwningUnit.AddRef(FWriteAccess.Component);
+
+  if FStorage.Kind <> pskConstant then
+    OwningUnit.AddRef(FStorage.Component);
 end;
 
 {*
@@ -3010,6 +3024,13 @@ begin
 
   Stream.WriteBuffer(FIndex, 4);
   Stream.WriteBuffer(FDefaultValue, 4);
+
+  Stream.WriteBuffer(FStorage.Kind, 1);
+  if FStorage.Kind = pskConstant then
+    Stream.WriteBuffer(FStorage.Stored, 1)
+  else
+    OwningUnit.WriteRef(Stream, FStorage.Component);
+
   Stream.WriteBuffer(FIsDefault, 1);
 end;
 
@@ -3751,6 +3772,7 @@ begin
     FInstSize := Parent.InstSize;
     FVMTSize := Parent.VMTSize;
     FDMTNextIndex := Parent.FDMTNextIndex;
+    FPublishedPropCount := Parent.FPublishedPropCount;
     FDefaultProperty := Parent.DefaultProperty;
   end else
   begin
@@ -3803,6 +3825,7 @@ begin
   FInstSize := Parent.InstSize;
   FVMTSize := Parent.VMTSize;
   FDMTNextIndex := Parent.FDMTNextIndex;
+  FPublishedPropCount := Parent.FPublishedPropCount;
 
   Stream.ReadBuffer(FStoredInstSize, 4);
 
@@ -3852,6 +3875,7 @@ begin
   FInstSize := Parent.InstSize;
   FVMTSize := Parent.VMTSize;
   FDMTNextIndex := Parent.FDMTNextIndex;
+  FPublishedPropCount := Parent.FPublishedPropCount;
 
   FDefaultProperty := Parent.DefaultProperty;
 end;
@@ -4194,7 +4218,7 @@ begin
     // Basic information
     TypeData.ClassType := DelphiClass;
     TypeData.ParentInfo := FParent.TypeInfoRef;
-    TypeData.PropCount := Props.Count;
+    TypeData.PropCount := FPublishedPropCount;
     Move(OwningUnitName[0], TypeData.UnitName[0], Length(OwningUnitName)+1);
 
     // Property count
@@ -4559,6 +4583,9 @@ end;
   [@inheritDoc]
 *}
 procedure TSepiClass.ChildAdded(Child: TSepiComponent);
+var
+  Prop: TSepiProperty;
+  PreviousProp: TSepiMember;
 begin
   inherited;
 
@@ -4569,8 +4596,28 @@ begin
         FInstSize := Offset + FieldType.Size;
   end else if Child is TSepiProperty then
   begin
-    if TSepiProperty(Child).IsDefault then
-      FDefaultProperty := TSepiProperty(Child);
+    Prop := TSepiProperty(Child);
+
+    if Prop.Visibility = mvPublished then
+    begin
+      if Parent = nil then
+        PreviousProp := nil
+      else
+        PreviousProp := Parent.LookForMember(Prop.Name);
+
+      if (PreviousProp is TSepiProperty) and
+        (PreviousProp.Visibility = mvPublished) then
+      begin
+        Prop.FNameIndex := TSepiProperty(PreviousProp).FNameIndex;
+      end else
+      begin
+        Prop.FNameIndex := FPublishedPropCount;
+        Inc(FPublishedPropCount);
+      end;
+    end;
+
+    if Prop.IsDefault then
+      FDefaultProperty := Prop;
   end;
 end;
 

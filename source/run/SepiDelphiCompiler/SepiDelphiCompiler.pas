@@ -571,6 +571,7 @@ begin
 
   NonTerminalClasses[ntArithmeticLogicOp]         := TDelphiBinaryOpNode;
   NonTerminalClasses[ntArithmeticLogicOpNoEquals] := TDelphiBinaryOpNode;
+  NonTerminalClasses[ntInOperation]               := TSepiInSetOperationNode;
   NonTerminalClasses[ntIsOperation]               := TSepiIsOperationNode;
   NonTerminalClasses[ntAsOperation]               := TSepiAsOperationNode;
   NonTerminalClasses[ntUnaryOp]                   := TDelphiUnaryOpNode;

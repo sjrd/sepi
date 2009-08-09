@@ -701,6 +701,10 @@ type
     function ConvertLeftOperand(NewType: TSepiBaseType): TSepiType;
     function ConvertRightOperand(NewType: TSepiBaseType): TSepiType;
 
+    procedure CompileShortCircuitAndOr(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
+      TempVars: TSepiTempVarsLifeManager); virtual;
+
     procedure CompileCompute(Compiler: TSepiMethodCompiler;
       Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
       TempVars: TSepiTempVarsLifeManager); override;
@@ -723,6 +727,36 @@ type
       read FRightOperand write FRightOperand;
 
     property AutoConvert: Boolean read FAutoConvert write FAutoConvert;
+  end;
+
+  {*
+    Opération in (appartenance à un ensemble)
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiInSetOperation = class(TSepiCustomComputedValue)
+  private
+    FItemOperand: ISepiReadableValue; /// Opérande élément
+    FSetOperand: ISepiReadableValue;  /// Opérande ensemble
+
+    procedure CheckTypes;
+
+    procedure CollapseConsts;
+  protected
+    procedure CompileCompute(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
+      TempVars: TSepiTempVarsLifeManager); override;
+  public
+    constructor Create(ASepiRoot: TSepiRoot);
+
+    procedure Complete;
+
+    class function MakeOperation(const ItemOperand: ISepiReadableValue;
+      const SetOperand: ISepiReadableValue): ISepiReadableValue;
+
+    property ItemOperand: ISepiReadableValue
+      read FItemOperand write FItemOperand;
+    property SetOperand: ISepiReadableValue read FSetOperand write FSetOperand;
   end;
 
   {*
@@ -3597,6 +3631,26 @@ end;
 {*
   [@inheritDoc]
 *}
+procedure TSepiBinaryOperation.CompileShortCircuitAndOr(
+  Compiler: TSepiMethodCompiler; Instructions: TSepiInstructionList;
+  var Destination: TSepiMemoryReference; TempVars: TSepiTempVarsLifeManager);
+var
+  JumpInstr: TSepiAsmCondJump;
+begin
+  LeftOperand.CompileRead(Compiler, Instructions, Destination, TempVars);
+
+  JumpInstr := TSepiAsmCondJump.Create(Compiler, Operation = opOr);
+  JumpInstr.Test.Assign(Destination);
+  Instructions.Add(JumpInstr);
+
+  RightOperand.CompileRead(Compiler, Instructions, Destination, TempVars);
+
+  JumpInstr.Destination.InstructionRef := Instructions.GetCurrentEndRef;
+end;
+
+{*
+  [@inheritDoc]
+*}
 procedure TSepiBinaryOperation.CompileCompute(Compiler: TSepiMethodCompiler;
   Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
   TempVars: TSepiTempVarsLifeManager);
@@ -3606,6 +3660,12 @@ var
   OpInstr: TSepiAsmOperation;
   CmpInstr: TSepiAsmCompare;
 begin
+  if (Operation in [opAnd, opOr]) and (ValueType is TSepiBooleanType) then
+  begin
+    CompileShortCircuitAndOr(Compiler, Instructions, Destination, TempVars);
+    Exit;
+  end;
+
   LeftMemory := nil;
   RightMemory := nil;
   try
@@ -3789,6 +3849,186 @@ begin
   BinaryOp.LeftOperand := LeftOperand;
   BinaryOp.RightOperand := RightOperand;
   BinaryOp.Complete;
+end;
+
+{---------------------------}
+{ TSepiInSetOperation class }
+{---------------------------}
+
+{*
+  Crée une opération is ou as
+*}
+constructor TSepiInSetOperation.Create(ASepiRoot: TSepiRoot);
+begin
+  inherited Create;
+
+  SetValueType(TSepiSystemUnit(ASepiRoot.SystemUnit).Boolean);
+end;
+
+{*
+  Vérifie le type des opérandes
+*}
+procedure TSepiInSetOperation.CheckTypes;
+var
+  TempItemType, TempSetType: TSepiType;
+  TempExpression: ISepiExpression;
+  ItemType: TSepiOrdType;
+  SetType: TSepiSetType;
+  ForceableSet: ISepiTypeForceableSetValue;
+begin
+  TempItemType := ItemOperand.ValueType;
+  TempSetType := SetOperand.ValueType;
+
+  // Check item type
+
+  if not (TempItemType is TSepiOrdType) then
+  begin
+    TempExpression := ItemOperand as ISepiExpression;
+
+    if TempSetType is TSepiSetType then
+      TempItemType := TSepiSetType(TempSetType).CompType
+    else
+      TempItemType := UnitCompiler.SystemUnit.Byte;
+
+    TempExpression.MakeError(SOrdinalTypeRequired);
+    ItemOperand := TSepiErroneousValue.Create(TempItemType);
+    ItemOperand.AttachToExpression(TSepiExpression.Create(TempExpression));
+  end;
+
+  ItemType := TempItemType as TSepiOrdType;
+
+  // Check set type
+
+  if not (TempSetType is TSepiSetType) then
+  begin
+    TempExpression := SetOperand as ISepiExpression;
+
+    TempSetType := UnitCompiler.MakeSetType(ItemType);
+
+    TempExpression.MakeError(SSetTypeRequired);
+    SetOperand := TSepiErroneousValue.Create(TempSetType);
+    SetOperand.AttachToExpression(TSepiExpression.Create(TempExpression));
+  end;
+
+  SetType := TempSetType as TSepiSetType;
+
+  // Check compatibility between types
+
+  if not SetType.CompType.Equals(ItemType) then
+  begin
+    if TSepiConvertOperation.ConvertionExists(SetType, ItemOperand) then
+    begin
+      ItemOperand := TSepiConvertOperation.ConvertValue(SetType.CompType,
+        ItemOperand);
+    end else if Supports(SetOperand, ISepiTypeForceableSetValue,
+      ForceableSet) and
+      ForceableSet.CanForceCompType(ItemType) then
+    begin
+      ForceableSet.ForceCompType(ItemType);
+    end else
+    begin
+      TempExpression := ItemOperand as ISepiExpression;
+
+      TempExpression.MakeError(Format(STypeMismatch,
+        [ItemType.DisplayName, SetType.CompType.DisplayName]));
+      ItemOperand := TSepiErroneousValue.Create(SetType.CompType);
+      ItemOperand.AttachToExpression(TSepiExpression.Create(TempExpression));
+    end;
+  end;
+end;
+
+{*
+  Pliage des constantes
+*}
+procedure TSepiInSetOperation.CollapseConsts;
+type
+  TSet = set of Byte;
+begin
+  if (not ItemOperand.IsConstant) or (not SetOperand.IsConstant) then
+    Exit;
+
+  AllocateConstant;
+
+  Boolean(ConstValuePtr^) :=
+    Byte(ItemOperand.ConstValuePtr^) in TSet(SetOperand.ConstValuePtr^);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiInSetOperation.CompileCompute(Compiler: TSepiMethodCompiler;
+  Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
+  TempVars: TSepiTempVarsLifeManager);
+var
+  ItemMemory, SetMemory: TSepiMemoryReference;
+  SrcTempVars: TSepiTempVarsLifeManager;
+  Instruction: TSepiAsmSetIn;
+begin
+  ItemMemory := nil;
+  SetMemory := nil;
+  try
+    // Read operands
+    SrcTempVars := TSepiTempVarsLifeManager.Create;
+    try
+      ItemOperand.CompileRead(Compiler, Instructions, ItemMemory,
+        SrcTempVars);
+      SetOperand.CompileRead(Compiler, Instructions, SetMemory,
+        SrcTempVars);
+    finally
+      SrcTempVars.EndAllLifes(Instructions.GetCurrentEndRef);
+      SrcTempVars.Free;
+    end;
+
+    // Make instruction
+    Instruction := TSepiAsmSetIn.Create(Compiler);
+    Instruction.SourcePos := Expression.SourcePos;
+
+    NeedDestination(Destination, ValueType, Compiler, TempVars,
+      Instruction.AfterRef);
+
+    Instruction.Destination.Assign(Destination);
+    Instruction.SetValue.Assign(SetMemory);
+    Instruction.Element.Assign(ItemMemory);
+
+    Instructions.Add(Instruction);
+  finally
+    ItemMemory.Free;
+    SetMemory.Free;
+  end;
+end;
+
+{*
+  Complète l'opération
+  L'opération doit avoir été attachée à une expression auparavant, pour pouvoir
+  bénéficier du contexte de celle-ci.
+*}
+procedure TSepiInSetOperation.Complete;
+begin
+  Assert(Expression <> nil);
+  Assert((ItemOperand <> nil) and (SetOperand <> nil));
+
+  CheckTypes;
+  CollapseConsts;
+end;
+
+{*
+  Construit une opération binaire
+  @param LeftOperand    Opérande de gauche
+  @param RightOperand   Opérande de droite
+  @return Valeur représentant l'opération
+*}
+class function TSepiInSetOperation.MakeOperation(const ItemOperand,
+  SetOperand: ISepiReadableValue): ISepiReadableValue;
+var
+  Operation: TSepiInSetOperation;
+begin
+  Operation := Create((ItemOperand as ISepiExpression).SepiRoot);
+  Result := Operation;
+  Result.AttachToExpression(
+    TSepiExpression.Create(ItemOperand as ISepiExpression));
+  Operation.ItemOperand := ItemOperand;
+  Operation.SetOperand := SetOperand;
+  Operation.Complete;
 end;
 
 {--------------------------}

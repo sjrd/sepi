@@ -83,6 +83,7 @@ resourcestring
   SRecordTypeRequired = 'Type record requis';
   SOrdinalOrArrayTypeRequired = 'Type ordinal ou tableau requis';
   SOrdinalTypeRequired = 'Type ordinal requis';
+  SSetTypeRequired = 'Type ensemble requis';
   SClassTypeRequired = 'Type classe requis';
   SInterfaceTypeRequired = 'Type interface requis';
   SMetaClassTypeRequired = 'Type méta-classe requis';
@@ -137,6 +138,9 @@ resourcestring
   SMultiNameParamCantHaveDefaultValue =
     'Une définition de plusieurs paramètres ne peut pas avoir de valeur par '+
     'défaut';
+
+  // Erreurs sur les propriété
+  SInvalidStorageValue = 'Spécificateur de stockage invalide';
 
   // Erreurs sur les variables locales
   SLocalVarNameRequired = 'Variable locale requise';

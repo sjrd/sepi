@@ -74,6 +74,7 @@ tkLowerEq	<=
 tkGreaterThan	>
 tkGreaterEq	>=
 tkNotEqual	<>
+tkIn	in
 tkIs	is
 tkAs	as
 
@@ -349,11 +350,13 @@ ntSetRange	SetRange
 
 ntBinaryOp	BinaryOp	Simplify
 	ArithmeticLogicOp
+	InOperation
 	IsOperation
 	AsOperation
 
 ntBinaryOpNoEquals	BinaryOpNoEquals	Simplify
 	ArithmeticLogicOpNoEquals
+	InOperation
 	IsOperation
 	AsOperation
 
@@ -393,6 +396,9 @@ ntArithmeticLogicOpNoEquals	ArithmeticLogicOpNoEquals
 	'>'
 	'>='
 	'<>'
+
+ntInOperation	InOperation
+	'in'
 
 ntIsOperation	IsOperation
 	'is'

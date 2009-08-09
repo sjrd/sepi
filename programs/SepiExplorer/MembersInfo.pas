@@ -213,6 +213,11 @@ begin
   if Prop.DefaultValue <> NoDefaultValue then
     Output.Write(' default ' + IntToStr(Prop.DefaultValue));
 
+  if (Prop.Storage.Kind = pskConstant) and (not Prop.Storage.Stored) then
+    Output.Write(' stored False')
+  else if Prop.Storage.Kind <> pskConstant then
+    Output.Write(' stored '+Prop.Storage.Component.Name);
+
   if Prop.IsDefault then
     Output.Write('; default');
 

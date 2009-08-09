@@ -95,6 +95,9 @@ type
       Node: TSepiParseTreeNode): Boolean;
     function SetNoDefault(Node: TSepiParseTreeNode): Boolean;
 
+    function SetStorage(const Expression: ISepiExpression;
+      Node: TSepiParseTreeNode): Boolean;
+
     function SetIsDefault(Node: TSepiParseTreeNode): Boolean;
 
     procedure Build; override;
@@ -819,6 +822,79 @@ begin
 
   if Result then
     FDefaultValue := NoDefaultValue;
+end;
+
+{*
+  Définit le spécificateur de stockage
+  @param Expression   Expression du spécificateur de stockage
+  @param Node   Noeud utilisé pour produire les erreurs
+  @return True en cas de succès, False sinon
+*}
+function TSepiPropertyBuilder.SetStorage(const Expression: ISepiExpression;
+  Node: TSepiParseTreeNode): Boolean;
+var
+  BooleanType: TSepiBooleanType;
+  Value: ISepiReadableValue;
+  ComponentExpr: ISepiComponentExpression;
+  Component: TSepiComponent;
+  Member: TSepiMember absolute Component;
+  Field: TSepiField absolute Component;
+  Method: TSepiMethod absolute Component;
+  MemberOwner: TSepiContainerType;
+begin
+  CurrentNode := Node;
+  BooleanType := Node.SystemUnit.Boolean;
+
+  Result := False;
+
+  if Supports(Expression, ISepiReadableValue, Value) and
+    Value.IsConstant then
+  begin
+    if Value.ValueType.Equals(BooleanType) then
+    begin
+      FStorage.Kind := pskConstant;
+      FStorage.Stored := Boolean(Value.ConstValuePtr^);
+      FStorage.Component := nil;
+
+      Result := True;
+    end;
+  end else if Supports(Expression, ISepiComponentExpression, ComponentExpr) then
+  begin
+    Component := ComponentExpr.Component;
+
+    if (Component is TSepiField) or (Component is TSepiMethod) then
+    begin
+      MemberOwner := Member.Container;
+
+      if (MemberOwner = OwnerType) or
+        ((MemberOwner is TSepiInheritableContainerType) and
+        (OwnerType is TSepiInheritableContainerType) and
+        (TSepiInheritableContainerType(OwnerType).ContainerInheritsFrom(
+        TSepiInheritableContainerType(MemberOwner)))) then
+      begin
+        if (Member is TSepiField) and Field.FieldType.Equals(BooleanType) then
+        begin
+          FStorage.Kind := pskField;
+          FStorage.Field := Field;
+
+          Result := True;
+        end else if (Member is TSepiMethod) and
+          (Method.Signature.ParamCount = 0) and
+          (Method.Signature.CallingConvention = ccRegister) and
+          Method.Signature.ReturnType.Equals(BooleanType) and
+          (Method.LinkKind in [mlkStatic, mlkVirtual]) then
+        begin
+          FStorage.Kind := pskMethod;
+          FStorage.Method := Method;
+
+          Result := True;
+        end;
+      end;
+    end;
+  end;
+
+  if not Result then
+    MakeError(SInvalidStorageValue);
 end;
 
 {*

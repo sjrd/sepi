@@ -30,7 +30,7 @@ uses
   Types, Windows, SysUtils, Classes, Contnrs, TypInfo, ScUtils, ScTypInfo,
   ScIntegerSets, ScInterfaces, SepiReflectionCore, SepiMembers, SepiOrdTypes,
   SepiSystemUnit, SepiOpCodes, SepiReflectionConsts, SepiCompilerErrors,
-  SepiCompilerConsts;
+  SepiCompilerConsts, SepiArrayTypes;
 
 type
   TSepiAsmInstrList = class;
@@ -881,10 +881,20 @@ uses
 const
   /// Ensemble des opérations qui ont un argument mémoire
   OpsWithMemArg = [
-    aoPlusMemShortint, aoPlusMemSmallint, aoPlusMemLongint,
-    aoPlusConstTimesMemShortint, aoPlusConstTimesMemSmallint,
-    aoPlusConstTimesMemLongint
+    aoPlusMemShortint..aoPlusLongConstTimesMemLongWord
   ];
+
+  /// Tableau de conversion opération vers taille de l'argument constant
+  OperationToConstArgSize: array[TSepiAddressOperation] of Integer = (
+    0, SizeOf(Shortint), SizeOf(Smallint), SizeOf(Longint),
+    0, 0, 0,
+    SizeOf(Byte), SizeOf(Byte),
+    SizeOf(Byte), SizeOf(Byte),
+    SizeOf(Byte), SizeOf(Byte),
+    SizeOf(LongWord), SizeOf(LongWord),
+    SizeOf(LongWord), SizeOf(LongWord),
+    SizeOf(LongWord), SizeOf(LongWord)
+  );
 
   /// Le label n'a pas été assigné
   LabelUnassigned = TObject($FFFFFFFF);
@@ -3341,18 +3351,42 @@ end;
 procedure TSepiMemoryReference.Assign(Source: TSepiMemoryReference;
   SealAfter: Boolean = True);
 var
+  ConstType: TSepiType;
+  ConstVariable: TSepiVariable;
   I: Integer;
   MemOpArg: TSepiMemoryReference;
 begin
   CheckUnsealed;
 
   ClearOperations;
-  SetSpace(Source.Space, Source.SpaceArgument);
 
-  if Space = msConstant then
-    Source.GetConstant(FConstant^)
-  else if Space = msUnresolvedLocalVar then
-    FUnresolvedLocalVar := Source.FUnresolvedLocalVar;
+  if (Source.Space = msConstant) and (not (aoAcceptConstInCode in Options)) then
+  begin
+    case Source.ConstSize of
+      1: ConstType := MethodCompiler.SystemUnit.Byte;
+      2: ConstType := MethodCompiler.SystemUnit.Word;
+      4: ConstType := MethodCompiler.SystemUnit.LongWord;
+      8: ConstType := MethodCompiler.SystemUnit.Int64;
+      10: ConstType := MethodCompiler.SystemUnit.Extended;
+    else
+      ConstType := TSepiStaticArrayType.Create(MethodCompiler.LocalNamespace,
+        '', MethodCompiler.SystemUnit.Integer, 0, Source.ConstSize-1,
+        MethodCompiler.SystemUnit.Byte);
+    end;
+
+    ConstVariable := TSepiVariable.Create(MethodCompiler.LocalNameSpace, '',
+      ConstType, True);
+    Source.GetConstant(ConstVariable.Value^);
+    SetSpace(ConstVariable);
+  end else
+  begin
+    SetSpace(Source.Space, Source.SpaceArgument);
+
+    if Space = msConstant then
+      Source.GetConstant(FConstant^)
+    else if Space = msUnresolvedLocalVar then
+      FUnresolvedLocalVar := Source.FUnresolvedLocalVar;
+  end;
 
   for I := 0 to Source.OperationCount-1 do
   begin
@@ -3416,17 +3450,7 @@ begin
       Inc(FSize, SizeOf(TSepiAddressDerefAndOp));
 
       // Const argument
-      case Operation of
-        aoPlusConstShortint:
-          Inc(FSize, SizeOf(Shortint));
-        aoPlusConstSmallint:
-          Inc(FSize, SizeOf(Smallint));
-        aoPlusConstLongint:
-          Inc(FSize, SizeOf(Longint));
-        aoPlusConstTimesMemShortint, aoPlusConstTimesMemSmallint,
-          aoPlusConstTimesMemLongint:
-          Inc(FSize, SizeOf(Byte));
-      end;
+      Inc(FSize, OperationToConstArgSize[Operation]);
 
       // Memory argument
       if Assigned(MemOperationArg) then
@@ -3474,15 +3498,9 @@ begin
       Stream.WriteBuffer(DerefAndOp, SizeOf(TSepiAddressDerefAndOp));
 
       // Const argument
-      case Operation of
-        aoPlusConstShortint, aoPlusConstTimesMemShortint,
-          aoPlusConstTimesMemSmallint, aoPlusConstTimesMemLongint:
-          Stream.WriteBuffer(ConstOperationArg, SizeOf(Shortint));
-        aoPlusConstSmallint:
-          Stream.WriteBuffer(ConstOperationArg, SizeOf(Smallint));
-        aoPlusConstLongint:
-          Stream.WriteBuffer(ConstOperationArg, SizeOf(Longint));
-      end;
+      if OperationToConstArgSize[Operation] > 0 then
+        Stream.WriteBuffer(ConstOperationArg,
+          OperationToConstArgSize[Operation]);
 
       // Memory argument
       if Assigned(MemOperationArg) then

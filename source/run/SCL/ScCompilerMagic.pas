@@ -200,9 +200,9 @@ end;
 function SetEquals(const Set1, Set2; Size: Byte): Boolean;
 asm
         CALL    System.@SetEq
-        XOR     EAX,EAX
+        MOV     AL,0
         JNZ     @@notEqual
-        INC     EAX
+        INC     AL
 @@notEqual:
 end;
 
@@ -217,9 +217,9 @@ end;
 function SetContained(const SubSet, ContainingSet; Size: Byte): Boolean;
 asm
         CALL    System.@SetLe
-        XOR     EAX,EAX
+        MOV     AL,0
         JNZ     @@notEqual
-        INC     EAX
+        INC     AL
 @@notEqual:
 end;
 

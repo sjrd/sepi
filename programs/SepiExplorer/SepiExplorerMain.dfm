@@ -1,9 +1,9 @@
 object ExplorerForm: TExplorerForm
   Left = 0
   Top = 0
-  Width = 607
-  Height = 494
   Caption = 'Explorateur Sepi'
+  ClientHeight = 440
+  ClientWidth = 599
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -51,9 +51,14 @@ object ExplorerForm: TExplorerForm
     Align = alClient
     TabOrder = 1
     TabStop = True
+    ExplicitLeft = 292
+    ExplicitWidth = 307
+    ExplicitHeight = 440
     inherited MemoInfo: TMemo
       Width = 307
       Height = 440
+      ExplicitWidth = 307
+      ExplicitHeight = 440
     end
   end
   object MainMenu: TMainMenu

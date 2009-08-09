@@ -824,7 +824,8 @@ begin
   RightSetPtr := ReadAddress(aoAcceptAllConsts, SetSize);
 
   // Make Result
-  Result := Format('%d, %s, %s, %s', [DestPtr, LeftSetPtr, RightSetPtr]);
+  Result := Format('%d, %s, %s, %s',
+    [SetSize, DestPtr, LeftSetPtr, RightSetPtr]);
 end;
 
 {*
@@ -1015,6 +1016,8 @@ var
   LongOffset: Longint;
   OffsetPtr: string;
   ShortFactor: Shortint;
+  ByteFactor: Byte;
+  LongFactor: LongWord;
 begin
   // Read deref and op
   Instructions.ReadBuffer(AddrDerefAndOp, SizeOf(TSepiAddressDerefAndOp));
@@ -1091,6 +1094,78 @@ begin
       Instructions.ReadBuffer(ShortFactor, 1);
       OffsetPtr := ReadAddress(aoAcceptAllConsts, SizeOf(Longint));
       Address := Address + '+' + IntToStr(ShortFactor) + '*(' + OffsetPtr + ')';
+    end;
+    aoPlusConstTimesMemByte:
+    begin
+      { Read a Byte from code and a Byte from memory. Then, multiply
+        them and add the result to the address. }
+      Instructions.ReadBuffer(ByteFactor, 1);
+      OffsetPtr := ReadAddress(aoAcceptAllConsts, SizeOf(Byte));
+      Address := Address + '+' + IntToStr(ByteFactor) + '*(' + OffsetPtr + ')';
+    end;
+    aoPlusConstTimesMemWord:
+    begin
+      { Read a Byte from code and a Word from memory. Then, multiply
+        them and add the result to the address. }
+      Instructions.ReadBuffer(ByteFactor, 1);
+      OffsetPtr := ReadAddress(aoAcceptAllConsts, SizeOf(Word));
+      Address := Address + '+' + IntToStr(ByteFactor) + '*(' + OffsetPtr + ')';
+    end;
+    aoPlusConstTimesMemLongWord:
+    begin
+      { Read a Byte from code and a LongWord from memory. Then, multiply
+        them and add the result to the address. }
+      Instructions.ReadBuffer(ByteFactor, 1);
+      OffsetPtr := ReadAddress(aoAcceptAllConsts, SizeOf(LongWord));
+      Address := Address + '+' + IntToStr(ByteFactor) + '*(' + OffsetPtr + ')';
+    end;
+    aoPlusLongConstTimesMemShortint:
+    begin
+      { Read a Longint from code and a Shortint from memory. Then, multiply
+        them and add the result to the address. }
+      Instructions.ReadBuffer(LongFactor, SizeOf(Longint));
+      OffsetPtr := ReadAddress(aoAcceptAllConsts, SizeOf(Shortint));
+      Address := Address + '+' + IntToStr(LongFactor) + '*(' + OffsetPtr + ')';
+    end;
+    aoPlusLongConstTimesMemSmallint:
+    begin
+      { Read a Longint from code and a Smallint from memory. Then, multiply
+        them and add the result to the address. }
+      Instructions.ReadBuffer(LongFactor, SizeOf(Longint));
+      OffsetPtr := ReadAddress(aoAcceptAllConsts, SizeOf(Smallint));
+      Address := Address + '+' + IntToStr(LongFactor) + '*(' + OffsetPtr + ')';
+    end;
+    aoPlusLongConstTimesMemLongint:
+    begin
+      { Read a Longint from code and a Longint from memory. Then, multiply
+        them and add the result to the address. }
+      Instructions.ReadBuffer(LongFactor, SizeOf(Longint));
+      OffsetPtr := ReadAddress(aoAcceptAllConsts, SizeOf(Longint));
+      Address := Address + '+' + IntToStr(LongFactor) + '*(' + OffsetPtr + ')';
+    end;
+    aoPlusLongConstTimesMemByte:
+    begin
+      { Read a Longint from code and a Byte from memory. Then, multiply
+        them and add the result to the address. }
+      Instructions.ReadBuffer(LongFactor, SizeOf(Longint));
+      OffsetPtr := ReadAddress(aoAcceptAllConsts, SizeOf(Byte));
+      Address := Address + '+' + IntToStr(LongFactor) + '*(' + OffsetPtr + ')';
+    end;
+    aoPlusLongConstTimesMemWord:
+    begin
+      { Read a Longint from code and a Word from memory. Then, multiply
+        them and add the result to the address. }
+      Instructions.ReadBuffer(LongFactor, SizeOf(Longint));
+      OffsetPtr := ReadAddress(aoAcceptAllConsts, SizeOf(Word));
+      Address := Address + '+' + IntToStr(LongFactor) + '*(' + OffsetPtr + ')';
+    end;
+    aoPlusLongConstTimesMemLongWord:
+    begin
+      { Read a Longint from code and a LongWord from memory. Then, multiply
+        them and add the result to the address. }
+      Instructions.ReadBuffer(LongFactor, SizeOf(Longint));
+      OffsetPtr := ReadAddress(aoAcceptAllConsts, SizeOf(LongWord));
+      Address := Address + '+' + IntToStr(LongFactor) + '*(' + OffsetPtr + ')';
     end;
   else
     RaiseInvalidOpCode;

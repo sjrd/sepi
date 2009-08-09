@@ -232,6 +232,19 @@ type
   end;
 
   {*
+    Noeud représentant un opérateur in
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiInSetOperationNode = class(TSepiBinaryOpNode)
+  protected
+    function GetPriority: Integer; override;
+  public
+    function MakeOperation(
+      const Left, Right: ISepiExpression): ISepiExpression; override;
+  end;
+
+  {*
     Noeud représentant un opérateur is
     @author sjrd
     @version 1.0
@@ -2135,6 +2148,34 @@ begin
   Result.SourcePos := SourcePos;
 end;
 
+{-------------------------------}
+{ TSepiInSetOperationNode class }
+{-------------------------------}
+
+{*
+  [@inheritDoc]
+*}
+function TSepiInSetOperationNode.GetPriority: Integer;
+begin
+  Result := 2;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiInSetOperationNode.MakeOperation(
+  const Left, Right: ISepiExpression): ISepiExpression;
+var
+  LeftValue, RightValue: ISepiReadableValue;
+begin
+  RequireReadableValue(Left, LeftValue);
+  RequireReadableValue(Right, RightValue);
+
+  Result := TSepiInSetOperation.MakeOperation(LeftValue,
+    RightValue) as ISepiExpression;
+  Result.SourcePos := SourcePos;
+end;
+
 {----------------------------}
 { TSepiIsOperationNode class }
 {----------------------------}
@@ -3975,7 +4016,7 @@ end;
 *}
 procedure TSepiPropStorageNode.EndParsing;
 begin
-  // TODO Handle property storage
+  Builder.SetStorage((Children[0] as TSepiExpressionNode).Expression, Self);
 
   inherited;
 end;
