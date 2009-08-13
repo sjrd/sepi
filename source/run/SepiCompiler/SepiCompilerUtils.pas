@@ -466,9 +466,10 @@ end;
 function TSepiPropertyBuilder.LookForAccessOrError(
   const AccessName: string): TSepiMember;
 var
-  MemberName, SubFieldName, Temp: string;
+  MemberName, SubFieldName, Temp, FieldName: string;
   Offset: Integer;
   OldVisibility: TMemberVisibility;
+  FieldType: TSepiType;
 begin
   SplitToken(AccessName, '.', MemberName, SubFieldName);
 
@@ -511,14 +512,19 @@ begin
 
   Inc(Offset, TSepiField(Result).Offset);
 
-  OldVisibility := OwnerType.CurrentVisibility;
-  try
-    OwnerType.CurrentVisibility := mvStrictPrivate;
-    Result := TSepiField.Create(OwnerType,
-      AnsiReplaceStr(AccessName, '.', '$'), TSepiField(Result).FieldType,
-      Offset);
-  finally
-    OwnerType.CurrentVisibility := OldVisibility;
+  FieldName := AnsiReplaceStr(AccessName, '.', '$');
+  FieldType := TSepiField(Result).FieldType;
+  Result := OwnerType.GetComponent(FieldName) as TSepiField;
+
+  if Result = nil then
+  begin
+    OldVisibility := OwnerType.CurrentVisibility;
+    try
+      OwnerType.CurrentVisibility := mvStrictPrivate;
+      Result := TSepiField.Create(OwnerType, FieldName, FieldType, Offset);
+    finally
+      OwnerType.CurrentVisibility := OldVisibility;
+    end;
   end;
 end;
 
