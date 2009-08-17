@@ -335,6 +335,8 @@ begin
     // Re-raise exception in the caller thread
     TempError := FExceptObject;
     FExceptObject := nil;
+    if Loop <> clNoLoop then
+      Reset;
     raise TempError at FExceptAddress;
   end;
 end;
