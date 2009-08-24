@@ -131,6 +131,7 @@ tkOn	on
 tkFinally	finally
 tkRaise	raise
 tkInherited	inherited
+tkWith	with
 
 tkPreProcessor  Directive de compilation
 
@@ -344,6 +345,9 @@ ntNilValue	NilValue
 ntSetValue	SetValue
 	SetRange (','* SetRange)*
 	@
+
+ntCaseOfSetValue	CaseOfSetValue
+	SetRange (','* SetRange)*
 
 ntSetRange	SetRange
 	Expression ('..'* Expression)?
@@ -841,12 +845,14 @@ ntInstruction	Instruction	Simplify
 	NoInstruction
 	BeginEndBlock
 	IfThenElseInstruction
+	CaseOfInstruction
 	WhileInstruction
 	RepeatInstruction
 	ForInstruction
 	TryInstruction
 	RaiseInstruction
 	ExpressionInstruction
+	WithInstruction
 
 ntNoInstruction	NoInstruction
 	@
@@ -860,6 +866,16 @@ ntIfThenElseInstruction	IfThenElseInstruction
 ntElseBranch	ElseBranch	Simplify
 	1 'else'* Instruction
 	NoInstruction
+
+ntCaseOfInstruction	CaseOfInstruction
+	'case'* Expression 'of'* (CaseOfClause)+ CaseOfElseClause 'end'*
+
+ntCaseOfClause	CaseOfClause
+	CaseOfSetValue ':'* Instruction ';'*
+
+ntCaseOfElseClause	CaseOfElseClause
+	'else'* InstructionList
+	@
 
 ntWhileInstruction	WhileInstruction
 	'while'* Expression 'do'* Instruction
@@ -924,3 +940,13 @@ ntExecutableExpression	ExecutableExpression
 
 ntAssignmentOp	AssignmentOp
 	':='
+
+ntWithInstruction	WithInstruction
+	'with'* Expression WithEx
+
+ntWithEx	WithEx	Simplify
+	InnerWith
+	'do'* Instruction
+
+ntInnerWith	InnerWith
+	','* Expression WithEx

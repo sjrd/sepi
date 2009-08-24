@@ -591,6 +591,7 @@ begin
     TSepiPureInheritedExpressionNode;
   NonTerminalClasses[ntNilValue]              := TSepiNilValueNode;
   NonTerminalClasses[ntSetValue]              := TSepiSetValueNode;
+  NonTerminalClasses[ntCaseOfSetValue]        := TSepiSetValueNode;
 
   NonTerminalClasses[ntUnaryOpModifier] := TSepiUnaryOpModifierNode;
   NonTerminalClasses[ntDereferenceOp]   := TSepiDereferenceOpNode;
@@ -670,6 +671,9 @@ begin
   NonTerminalClasses[ntNoInstruction]         := TSepiNoInstructionNode;
   NonTerminalClasses[ntBeginEndBlock]         := TSepiBeginEndBlockNode;
   NonTerminalClasses[ntIfThenElseInstruction] := TSepiIfThenElseInstructionNode;
+  NonTerminalClasses[ntCaseOfInstruction]     := TSepiCaseOfInstructionNode;
+  NonTerminalClasses[ntCaseOfClause]          := TSepiCaseOfClauseNode;
+  NonTerminalClasses[ntCaseOfElseClause]      := TSepiInstructionListNode;
   NonTerminalClasses[ntWhileInstruction]      := TSepiWhileInstructionNode;
   NonTerminalClasses[ntRepeatInstruction] :=
     TSepiRepeatUntilInstructionNode;
@@ -685,6 +689,8 @@ begin
   NonTerminalClasses[ntMultiOnElseClause]     := TSepiMultiOnElseClauseNode;
   NonTerminalClasses[ntFinallyClause]         := TSepiFinallyClauseNode;
   NonTerminalClasses[ntRaiseInstruction]      := TSepiRaiseInstructionNode;
+  NonTerminalClasses[ntWithInstruction]       := TSepiWithInstructionNode;
+  NonTerminalClasses[ntInnerWith]             := TSepiWithInstructionNode;
 
   NonTerminalClasses[ntExpressionInstruction] :=
     TSepiExecuteExpressionInstructionNode;

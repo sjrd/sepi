@@ -53,6 +53,51 @@ type
   end;
 
   {*
+    Clause d'un case of
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiCaseOfClause = class(TObject)
+  private
+    FValue: ISepiReadableValue;          /// Valeur associée à cette clause
+    FInstructions: TSepiInstructionList; /// Instructions de cette clause
+  public
+    constructor Create(AMethodCompiler: TSepiMethodCompiler);
+
+    property Value: ISepiReadableValue read FValue write FValue;
+    property Instructions: TSepiInstructionList read FInstructions;
+  end;
+
+  {*
+    Instruction case of
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiCaseOf = class(TSepiInstruction)
+  private
+    FTestValue: ISepiReadableValue;          /// Valeur à tester
+    FClauses: TObjectList;                   /// Clauses de test
+    FElseInstructions: TSepiInstructionList; /// Instructions dans le else
+
+    procedure ReadTestValue(out TestValueVar: TSepiLocalVar);
+
+    function GetClauseCount: Integer;
+    function GetClauses(Index: Integer): TSepiCaseOfClause;
+  protected
+    procedure CustomCompile; override;
+  public
+    constructor Create(AMethodCompiler: TSepiMethodCompiler);
+    destructor Destroy; override;
+
+    function AddClause: TSepiCaseOfClause;
+
+    property TestValue: ISepiReadableValue read FTestValue write FTestValue;
+    property ClauseCount: Integer read GetClauseCount;
+    property Clauses[Index: Integer]: TSepiCaseOfClause read GetClauses;
+    property ElseInstructions: TSepiInstructionList read FElseInstructions;
+  end;
+
+  {*
     Instruction while..do ou do..while
     Attention, la version do..while de cette instruction n'est pas un
     repeat..until : la boucle est toujours effectuée tant que la condition du
@@ -431,6 +476,166 @@ begin
   finally
     TestMemory.Free;
   end;
+end;
+
+{-------------------------}
+{ TSepiCaseOfClause class }
+{-------------------------}
+
+{*
+  Crée une clause de case of
+  @param AMethodCompiler   Compilateur de méthode
+*}
+constructor TSepiCaseOfClause.Create(AMethodCompiler: TSepiMethodCompiler);
+begin
+  inherited Create;
+
+  FInstructions := TSepiInstructionList.Create(AMethodCompiler);
+end;
+
+{-------------------}
+{ TSepiCaseOf class }
+{-------------------}
+
+{*
+  Crée une instruction case of
+  @param AMethodCompiler   Compilateur de méthode
+*}
+constructor TSepiCaseOf.Create(AMethodCompiler: TSepiMethodCompiler);
+begin
+  inherited Create(AMethodCompiler);
+
+  FClauses := TObjectList.Create;
+  FElseInstructions := TSepiInstructionList.Create(MethodCompiler);
+end;
+
+{*
+  [@inheritDoc]
+*}
+destructor TSepiCaseOf.Destroy;
+begin
+  FClauses.Free;
+
+  inherited;
+end;
+
+{*
+  Lit la valeur de test
+  @param TestValueVar   En sortie : variable stockant la valeur de test
+*}
+procedure TSepiCaseOf.ReadTestValue(out TestValueVar: TSepiLocalVar);
+var
+  ReadTestValueInstructions: TSepiInstructionList;
+begin
+  ReadTestValueInstructions := TSepiInstructionList.Create(MethodCompiler);
+
+  // Configure life of test value temp var
+  TestValueVar := MethodCompiler.Locals.AddTempVar(TestValue.ValueType);
+  TestValueVar.HandleLife;
+  TestValueVar.Life.AddInstrInterval(
+    ReadTestValueInstructions.AfterRef, AfterRef);
+
+  // Read and store test value
+  (TSepiLocalVarValue.MakeValue(MethodCompiler,
+    TestValueVar) as ISepiWritableValue).CompileWrite(MethodCompiler,
+    ReadTestValueInstructions, TestValue);
+
+  ReadTestValueInstructions.Compile;
+end;
+
+{*
+  Nombre de clauses
+  @return Nombre de clauses
+*}
+function TSepiCaseOf.GetClauseCount: Integer;
+begin
+  Result := FClauses.Count;
+end;
+
+{*
+  Tableau zero-based des clauses
+  @param Index   Index compris entre 0 inclus et ClauseCount exclus
+  @return Clause à l'index spécifié
+*}
+function TSepiCaseOf.GetClauses(Index: Integer): TSepiCaseOfClause;
+begin
+  Result := TSepiCaseOfClause(FClauses[Index]);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiCaseOf.CustomCompile;
+var
+  TestValueVar: TSepiLocalVar;
+  TestValueVarValue, ClauseTestValue: ISepiReadableValue;
+  AllInstructions, CurInstructions: TSepiInstructionList;
+  I: Integer;
+  Clause: TSepiCaseOfClause;
+  IfInstr: TSepiIfThenElse;
+begin
+  // Ordinal type required
+  if not (TestValue.ValueType is TSepiOrdType) then
+  begin
+    (TestValue as ISepiExpression).MakeError(SOrdinalTypeRequired);
+    TestValue := TSepiErroneousValue.MakeReplacementValue(
+      TestValue as ISepiExpression);
+  end;
+
+  // Read test value
+  ReadTestValue(TestValueVar);
+  TestValueVarValue := TSepiLocalVarValue.MakeValue(MethodCompiler,
+    TestValueVar) as ISepiReadableValue;
+
+  // Prepare instruction lists
+  AllInstructions := TSepiInstructionList.Create(MethodCompiler);
+  CurInstructions := AllInstructions;
+
+  // Compile tests
+  for I := 0 to ClauseCount-1 do
+  begin
+    Clause := Clauses[I];
+
+    // Const expression required
+    if not Clause.Value.IsConstant then
+      (Clause.Value as ISepiExpression).MakeError(SConstExpressionRequired);
+
+    // Make if test value
+    if Clause.Value.ValueType is TSepiSetType then
+    begin
+      ClauseTestValue := TSepiInSetOperation.MakeOperation(
+        TestValueVarValue, Clause.Value);
+    end else
+    begin
+      ClauseTestValue := TSepiBinaryOperation.MakeOperation(opCmpEQ,
+        TestValueVarValue, Clause.Value);
+    end;
+
+    // Make if instruction
+    IfInstr := TSepiIfThenElse.Create(MethodCompiler);
+    IfInstr.TestValue := ClauseTestValue;
+    IfInstr.TrueInstructions.Add(Clause.Instructions);
+    CurInstructions.Add(IfInstr);
+
+    // Enter the else part of the if instruction
+    CurInstructions := IfInstr.FalseInstructions;
+  end;
+
+  // Make else instructions
+  CurInstructions.Add(ElseInstructions);
+
+  // Compile all instructions
+  AllInstructions.Compile;
+end;
+
+{*
+  Ajoute une clause
+  @return Clause ajoutée
+*}
+function TSepiCaseOf.AddClause: TSepiCaseOfClause;
+begin
+  Result := TSepiCaseOfClause.Create(MethodCompiler);
+  FClauses.Add(Result);
 end;
 
 {------------------}

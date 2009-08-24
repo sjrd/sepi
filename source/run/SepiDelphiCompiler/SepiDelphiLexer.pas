@@ -42,7 +42,7 @@ resourcestring
 
 const
   FirstTerminal = 0;
-  LastTerminal = 118;
+  LastTerminal = 119;
 
   tkEof = SepiLexerUtils.tkEof;         /// Fin de fichier
   tkBlank = SepiLexerUtils.tkBlank;     /// Lexème blanc
@@ -174,8 +174,9 @@ const
   tkFinally = 115;   // finally
   tkRaise = 116;     // raise
   tkInherited = 117; // inherited
+  tkWith = 118;      // with
 
-  tkPreProcessor = 118; // pre-processor instruction
+  tkPreProcessor = 119; // pre-processor instruction
 
 const
   /// ID message Directive du Compilateur : $MINEMUMSIZE ou $Z
@@ -552,7 +553,8 @@ begin
           if Key = 'uses'           then SymbolClass := tkUses;
     'v' : if Key = 'var'            then SymbolClass := tkVar else
           if Key = 'virtual'        then SymbolClass := tkVirtual;
-    'w' : if Key = 'while'          then SymbolClass := tkWhile else
+    'w' : if Key = 'with'           then SymbolClass := tkWith else
+          if Key = 'while'          then SymbolClass := tkWhile else
           if Key = 'write'          then SymbolClass := tkWrite else
           if Key = 'writeonly'      then SymbolClass := tkWriteOnly;
     'x' : if Key = 'xor'            then SymbolClass := tkXor;
@@ -1409,5 +1411,6 @@ initialization
   SymbolClassNames[tkFinally] := 'tkFinally';
   SymbolClassNames[tkRaise] := 'tkRaise';
   SymbolClassNames[tkInherited] := 'tkInherited';
+  SymbolClassNames[tkWith] := 'tkWith';
 end.
 

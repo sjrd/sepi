@@ -87,6 +87,7 @@ resourcestring
   SClassTypeRequired = 'Type classe requis';
   SInterfaceTypeRequired = 'Type interface requis';
   SMetaClassTypeRequired = 'Type méta-classe requis';
+  SContainerTypeRequired = 'Type classe, interface ou record requis';
   SCompilerTransientTypeForbidden =
     'Type de valeur spécial du compilateur non autorisé ici';
 

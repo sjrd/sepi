@@ -1278,6 +1278,45 @@ type
   end;
 
   {*
+    Instruction case of
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiCaseOfInstructionNode = class(TSepiInstructionNode)
+  private
+    FInstruction: TSepiCaseOf; /// Instruction
+  protected
+    procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
+    procedure ChildEndParsing(Child: TSepiParseTreeNode); override;
+  public
+    procedure BeginParsing; override;
+    procedure EndParsing; override;
+
+    property Instruction: TSepiCaseOf read FInstruction;
+  end;
+
+  {*
+    Clause on d'un case of
+    Le parent d'un noeud de ce type doit toujours être une instance de
+    TSepiCaseOfNode.
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiCaseOfClauseNode = class(TSepiInstructionNode)
+  private
+    FInstruction: TSepiCaseOf;  /// Instruction case of contenante
+    FClause: TSepiCaseOfClause; /// Clause représentée par ce noeud
+  protected
+    procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
+    procedure ChildEndParsing(Child: TSepiParseTreeNode); override;
+  public
+    procedure BeginParsing; override;
+
+    property Instruction: TSepiCaseOf read FInstruction;
+    property Clause: TSepiCaseOfClause read FClause;
+  end;
+
+  {*
     Instruction while..do ou similaire
     @author sjrd
     @version 1.0
@@ -1565,6 +1604,25 @@ type
   TSepiExecuteExpressionInstructionNode = class(TSepiInstructionNode)
   protected
     procedure ChildEndParsing(Child: TSepiParseTreeNode); override;
+  end;
+
+  {*
+    Instruction with
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiWithInstructionNode = class(TSepiInstructionNode)
+  private
+    FWithVar: TSepiLocalVar;        /// Variable with
+    FWithValue: ISepiReadableValue; /// Valeur de la variable with
+  protected
+    procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
+    procedure ChildEndParsing(Child: TSepiParseTreeNode); override;
+  public
+    function ResolveIdent(const Identifier: string): ISepiExpression; override;
+
+    property WithVar: TSepiLocalVar read FWithVar;
+    property WithValue: ISepiReadableValue read FWithValue;
   end;
 
 implementation
@@ -4722,6 +4780,92 @@ begin
   inherited;
 end;
 
+{-----------------------}
+{ TSepiCaseOfNode class }
+{-----------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiCaseOfInstructionNode.BeginParsing;
+begin
+  inherited;
+
+  FInstruction := TSepiCaseOf.Create(MethodCompiler);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiCaseOfInstructionNode.ChildBeginParsing(Child: TSepiParseTreeNode);
+begin
+  inherited;
+
+  if Child is TSepiInstructionListNode then
+    TSepiInstructionListNode(Child).InstructionList :=
+      Instruction.ElseInstructions;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiCaseOfInstructionNode.ChildEndParsing(Child: TSepiParseTreeNode);
+begin
+  if Child is TSepiExpressionNode then
+    Instruction.TestValue := TSepiExpressionNode(Child).AsReadableValue;
+
+  inherited;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiCaseOfInstructionNode.EndParsing;
+begin
+  InstructionList.Add(Instruction);
+
+  inherited;
+end;
+
+{-----------------------------}
+{ TSepiCaseOfClauseNode class }
+{-----------------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiCaseOfClauseNode.BeginParsing;
+begin
+  inherited;
+
+  FInstruction := (Parent as TSepiCaseOfInstructionNode).Instruction;
+  FClause := FInstruction.AddClause;
+
+  InstructionList := Clause.Instructions;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiCaseOfClauseNode.ChildBeginParsing(Child: TSepiParseTreeNode);
+begin
+  inherited;
+
+  if Child is TSepiInstructionNode then
+    TSepiInstructionNode(Child).InstructionList := InstructionList;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiCaseOfClauseNode.ChildEndParsing(Child: TSepiParseTreeNode);
+begin
+  if Child is TSepiExpressionNode then
+    Clause.Value := TSepiExpressionNode(Child).AsReadableValue;
+
+  inherited;
+end;
+
 {---------------------------------}
 { TSepiWhileInstructionNode class }
 {---------------------------------}
@@ -5113,7 +5257,8 @@ end;
 {*
   [@inheritDoc]
 *}
-function TSepiOnClauseNode.ResolveIdent(const Identifier: string): ISepiExpression;
+function TSepiOnClauseNode.ResolveIdent(
+  const Identifier: string): ISepiExpression;
 begin
   if AnsiSameText(Identifier, ExceptObjectVarName) then
   begin
@@ -5338,6 +5483,71 @@ begin
   end;
 
   inherited;
+end;
+
+{--------------------------------}
+{ TSepiWithInstructionNode class }
+{--------------------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiWithInstructionNode.ChildBeginParsing(Child: TSepiParseTreeNode);
+begin
+  inherited;
+
+  if Child is TSepiInstructionNode then
+    TSepiInstructionNode(Child).InstructionList := InstructionList;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiWithInstructionNode.ChildEndParsing(Child: TSepiParseTreeNode);
+var
+  AssignInstr: TSepiAssignment;
+begin
+  if Child is TSepiExpressionNode then
+  begin
+    FWithValue := TSepiExpressionNode(Child).AsReadableValue;
+
+    // Check type
+    if not (FWithValue.ValueType is TSepiContainerType) then
+    begin
+      Child.MakeError(SContainerTypeRequired);
+      FWithValue := TSepiErroneousValue.MakeReplacementValue(
+        FWithValue as ISepiExpression, SystemUnit.TObject);
+    end;
+
+    // Build with var and read it
+    FWithVar := MethodCompiler.Locals.AddTempVar(FWithValue.ValueType);
+    AssignInstr := TSepiAssignment.Create(MethodCompiler);
+    AssignInstr.Destination := TSepiLocalVarValue.MakeValue(
+      MethodCompiler, FWithVar) as ISepiWritableValue;
+    AssignInstr.Source := FWithValue;
+    AssignInstr.SourcePos := SourcePos;
+    InstructionList.Add(AssignInstr);
+
+    // Get new with value
+    FWithValue := TSepiLocalVarValue.MakeValue(MethodCompiler,
+      FWithVar) as ISepiReadableValue;
+  end;
+
+  inherited;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiWithInstructionNode.ResolveIdent(
+  const Identifier: string): ISepiExpression;
+begin
+  if WithValue <> nil then
+    Result := LanguageRules.FieldSelection(SepiContext,
+      WithValue as ISepiExpression, Identifier);
+
+  if Result = nil then
+    Result := inherited ResolveIdent(Identifier);
 end;
 
 end.

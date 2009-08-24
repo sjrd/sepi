@@ -481,6 +481,9 @@ type
   public
     constructor Create(ASepiRoot: TSepiRoot); overload;
     constructor Create(AValueType: TSepiType); overload;
+
+    class function MakeReplacementValue(const OrigExpr: ISepiExpression;
+      ValueType: TSepiType = nil): ISepiReadableValue;
   end;
 
   {*
@@ -2430,6 +2433,23 @@ end;
 procedure TSepiErroneousValue.ForceType(AValueType: TSepiType);
 begin
   SetValueType(AValueType);
+end;
+
+{*
+  Construit une valeur erronée pour remplacer une expression non valide
+  @param OrigExpr    Expression à remplacer
+  @param ValueType   Type de la valeur erronée
+  @return Valeur erronée créée
+*}
+class function TSepiErroneousValue.MakeReplacementValue(
+  const OrigExpr: ISepiExpression;
+  ValueType: TSepiType = nil): ISepiReadableValue;
+begin
+  if ValueType = nil then
+    ValueType := OrigExpr.UnitCompiler.SystemUnit.Integer;
+
+  Result := TSepiErroneousValue.Create(ValueType);
+  Result.AttachToExpression(TSepiExpression.Create(OrigExpr));
 end;
 
 {---------------------------}
