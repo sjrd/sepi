@@ -459,6 +459,8 @@ type
     FOriginalRoot: TSepiRoot;    /// Racine de base
     FForeignRefCounts: TStrings; /// Ref-counts des unités étrangères
     FDestroying: Boolean;        /// True lorsqu'en destruction
+
+    function LoadUnitFromOriginalRoot(const UnitName: string): TSepiUnit;
   protected
     procedure AddChild(Child: TSepiComponent); override;
     procedure RemoveChild(Child: TSepiComponent); override;
@@ -2515,6 +2517,33 @@ begin
 end;
 
 {*
+  Charge une unité depuis la racine de base
+  @param UnitName   Nom de l'unité
+  @return Unité Sepi chargée, ou nil si non trouvée
+*}
+function TSepiRootFork.LoadUnitFromOriginalRoot(
+  const UnitName: string): TSepiUnit;
+var
+  PreviousRoot: TSepiRoot;
+begin
+  PreviousRoot := Self;
+  Result := nil;
+
+  while (Result = nil) and (PreviousRoot is TSepiRootFork) do
+  begin
+    PreviousRoot := TSepiRootFork(PreviousRoot).OriginalRoot;
+    Result := (PreviousRoot.GetComponent(UnitName) as TSepiUnit);
+  end;
+
+  if Result <> nil then
+  begin
+    OriginalRoot.LoadUnit(UnitName);
+    AddChild(Result);
+    ChildAdded(Result);
+  end;
+end;
+
+{*
   [@inheritDoc]
 *}
 procedure TSepiRootFork.AddChild(Child: TSepiComponent);
@@ -2630,35 +2659,19 @@ begin
   begin
     ImportFunc := SepiImportedUnit(UnitName);
 
-    // For imported units, check the original root directly
     if Assigned(ImportFunc) then
     begin
-      Result := (OriginalRoot.GetComponent(UnitName) as TSepiUnit);
-
-      if Result <> nil then
-      begin
-        OriginalRoot.LoadUnit(UnitName);
-        AddChild(Result);
-        ChildAdded(Result);
-      end else
+      // For imported units, check the original root directly
+      Result := LoadUnitFromOriginalRoot(UnitName);
+      if Result = nil then
         Result := ImportFunc(Self);
-    end;
-
-    // Otherwise, load the unit in this fork
-    if (Result = nil) and Assigned(OnLoadUnit) then
-      Result := OnLoadUnit(Self, UnitName);
-
-    // If we didn't find anything, check the original root
-    if Result = nil then
+    end else
     begin
-      Result := (OriginalRoot.GetComponent(UnitName) as TSepiUnit);
-
-      if Result <> nil then
-      begin
-        OriginalRoot.LoadUnit(UnitName);
-        AddChild(Result);
-        ChildAdded(Result);
-      end;
+      // For fully Sepi units, first try and load the unit with OnLoadUnit
+      if Assigned(OnLoadUnit) then
+        Result := OnLoadUnit(Self, UnitName);
+      if Result = nil then
+        Result := LoadUnitFromOriginalRoot(UnitName);
     end;
   end;
 
