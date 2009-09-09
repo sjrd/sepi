@@ -3977,7 +3977,8 @@ begin
 
   if not SetType.CompType.Equals(ItemType) then
   begin
-    if TSepiConvertOperation.ConvertionExists(SetType, ItemOperand) then
+    if TSepiConvertOperation.ConvertionExists(SetType.CompType,
+      ItemOperand) then
     begin
       ItemOperand := TSepiConvertOperation.ConvertValue(SetType.CompType,
         ItemOperand);
