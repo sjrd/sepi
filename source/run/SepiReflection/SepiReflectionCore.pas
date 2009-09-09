@@ -2730,6 +2730,12 @@ begin
   FChildrenNames := THashedStringList.Create;
   FLoadingClassIntfChildren := TStringList.Create;
   FForwardClassIntfChildren := TObjectList.Create(False);
+
+  with TStringList(FLoadingClassIntfChildren) do
+  begin
+    Sorted := True;
+    Duplicates := dupIgnore;
+  end;
 end;
 
 {*
@@ -2925,7 +2931,10 @@ begin
     end;
 
     if Result <> nil then
+    begin
       FForwardClassIntfChildren.Add(Result);
+      FLoadingClassIntfChildren.Add(Data.Name);
+    end;
     Exit;
   end;
 
@@ -2942,13 +2951,25 @@ end;
 procedure MakeClassInheritance(SepiClass: TSepiClass;
   AncestorList: TStrings);
 var
+  I: Integer;
   AncestorClass: TSepiClass;
+  AncestorIntf: TSepiInterface;
 begin
   AncestorClass := SepiClass.Parent;
   while (AncestorClass <> nil) and (AncestorClass.Owner = SepiClass.Owner) do
   begin
     AncestorList.Add(AncestorClass.Name);
     AncestorClass := AncestorClass.Parent;
+  end;
+
+  for I := 0 to SepiClass.InterfaceCount-1 do
+  begin
+    AncestorIntf := SepiClass.Interfaces[I];
+    while (AncestorIntf <> nil) and (AncestorIntf.Owner = SepiClass.Owner) do
+    begin
+      AncestorList.Add(AncestorIntf.Name);
+      AncestorIntf := AncestorIntf.Parent;
+    end;
   end;
 end;
 
@@ -2978,11 +2999,14 @@ end;
 procedure MakeClassIntfInheritance(ClassIntf: TSepiType;
   out Inheritance: TStringDynArray);
 var
-  AncestorList: TStrings;
+  AncestorList: TStringList;
   I: Integer;
 begin
   AncestorList := TStringList.Create;
   try
+    AncestorList.Sorted := True;
+    AncestorList.Duplicates := dupIgnore;
+
     if ClassIntf is TSepiClass then
       MakeClassInheritance(TSepiClass(ClassIntf), AncestorList)
     else
