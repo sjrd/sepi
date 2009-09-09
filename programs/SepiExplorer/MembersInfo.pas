@@ -44,6 +44,9 @@ procedure PrintPropertyInfo(Output: TOutputWriter; Prop: TSepiProperty);
 
 implementation
 
+uses
+  TypesInfo;
+
 {---------------------}
 { TOutputWriter class }
 {---------------------}
@@ -109,6 +112,12 @@ begin
     Output.Write(Param.ParamType.DisplayName);
   end else if pfArray in Param.Flags then
     Output.Write(': array of const');
+
+  if Param.HasDefaultValue then
+  begin
+    Output.Write(' = ');
+    PrintValue(Output, Param.DefaultValuePtr, Param.ParamType);
+  end;
 
   if Param.HiddenKind <> hpNormal then
     Output.Write('}');

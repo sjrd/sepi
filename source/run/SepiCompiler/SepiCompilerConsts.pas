@@ -139,6 +139,8 @@ resourcestring
   SMultiNameParamCantHaveDefaultValue =
     'Une définition de plusieurs paramètres ne peut pas avoir de valeur par '+
     'défaut';
+  SByRefParamCantHaveDefaultValue =
+    'Un paramètre passé par référence ne peut pas avoir de valeur par défaut';
 
   // Erreurs sur les propriété
   SInvalidStorageValue = 'Spécificateur de stockage invalide';

@@ -398,14 +398,14 @@ type
   *}
   TSepiTrueConstValue = class(TSepiCustomDirectValue)
   private
-    FConstant: TSepiConstant;
-
-    constructor Create(AType: TSepiType); overload;
+    FConstant: TSepiConstant; /// Constante
   protected
     function CompileAsMemoryRef(Compiler: TSepiMethodCompiler;
       Instructions: TSepiInstructionList;
       TempVars: TSepiTempVarsLifeManager): TSepiMemoryReference; override;
   public
+    constructor Create(AType: TSepiType); overload;
+
     constructor Create(Constant: TSepiConstant); overload;
 
     constructor Create(ValueType: TSepiOrdType; Value: Integer); overload;
@@ -421,6 +421,11 @@ type
     constructor Create(SepiRoot: TSepiRoot; const Value: WideString); overload;
 
     destructor Destroy; override;
+
+    class function MakeAnyValue(UnitCompiler: TSepiUnitCompiler;
+      ValueType: TSepiType; const Value): ISepiReadableValue; overload;
+    class function MakeAnyValue(Compiler: TSepiMethodCompiler;
+      ValueType: TSepiType; const Value): ISepiReadableValue; overload;
 
     class function MakeValue(UnitCompiler: TSepiUnitCompiler;
       Constant: TSepiConstant): ISepiReadableValue; overload;
@@ -2165,6 +2170,42 @@ begin
     Result.Free;
     raise;
   end;
+end;
+
+{*
+  Construit une expression valeur pour une valeur quelconque dans une unité
+  @param UnitCompiler   Compilateur d'unité
+  @param ValueType      Type de la valeur
+  @param Value          Valeur
+  @return Valeur représentant la valeur Value de type ValueType
+*}
+class function TSepiTrueConstValue.MakeAnyValue(UnitCompiler: TSepiUnitCompiler;
+  ValueType: TSepiType; const Value): ISepiReadableValue;
+var
+  TrueConstValue: TSepiTrueConstValue;
+begin
+  TrueConstValue := TSepiTrueConstValue.Create(ValueType);
+  ValueType.CopyData(Value, TrueConstValue.ConstValuePtr^);
+  Result := TrueConstValue;
+  Result.AttachToExpression(TSepiExpression.Create(UnitCompiler));
+end;
+
+{*
+  Construit une expression valeur pour une valeur quelconque dans une méthode
+  @param Compiler    Compilateur de méthode
+  @param ValueType   Type de la valeur
+  @param Value       Valeur
+  @return Valeur représentant la valeur Value de type ValueType
+*}
+class function TSepiTrueConstValue.MakeAnyValue(Compiler: TSepiMethodCompiler;
+  ValueType: TSepiType; const Value): ISepiReadableValue;
+var
+  TrueConstValue: TSepiTrueConstValue;
+begin
+  TrueConstValue := TSepiTrueConstValue.Create(ValueType);
+  ValueType.CopyData(Value, TrueConstValue.ConstValuePtr^);
+  Result := TrueConstValue;
+  Result.AttachToExpression(TSepiExpression.Create(Compiler));
 end;
 
 {*
@@ -6089,9 +6130,18 @@ begin
   // Check param count
   if ParamCount < Signature.ParamCount then
   begin
-    Result := False;
+    Result := True;
+    for I := ParamCount to Signature.ParamCount-1 do
+    begin
+      if not Signature.Params[I].HasDefaultValue then
+      begin
+        Result := False;
+        Break;
+      end;
+    end;
+
     MinParamCount := ParamCount;
-    NotEnoughParams := True;
+    NotEnoughParams := not Result;
     TooManyParams := False;
   end else if ParamCount > Signature.ParamCount then
   begin
@@ -6236,6 +6286,13 @@ begin
         if SignatureParam.OpenArray then
           raise EAssertionFailed.Create(
             'Open array parameters not supported');
+
+        if ParamValue = nil then
+        begin
+          Assert(SignatureParam.HasDefaultValue);
+          ParamValue := TSepiTrueConstValue.MakeAnyValue(Compiler,
+            SignatureParam.ParamType, SignatureParam.DefaultValuePtr^);
+        end;
 
         if Supports(ParamValue, ISepiReadableValue, ReadableParam) then
         begin
@@ -6455,8 +6512,12 @@ begin
       end else
       begin
         if SignatureParam.HiddenKind in [hpNormal, hpOpenArrayHighValue] then
-          ParamValue := Params[RealParamIndex] as ISepiValue
-        else if SignatureParam.HiddenKind in [hpSelf, hpAlloc] then
+        begin
+          if RealParamIndex < ParamCount then
+            ParamValue := Params[RealParamIndex] as ISepiValue
+          else
+            ParamValue := nil;
+        end else if SignatureParam.HiddenKind in [hpSelf, hpAlloc] then
           ParamValue := SelfValue
         else
           ParamValue := nil;

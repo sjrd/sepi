@@ -32,8 +32,8 @@ interface
 
 uses
   Windows, Classes, SysUtils, StrUtils, RTLConsts, Contnrs, TypInfo, ScUtils,
-  ScStrUtils, ScDelphiLanguage, ScCompilerMagic, SepiReflectionCore,
-  SepiReflectionConsts;
+  ScStrUtils, ScDelphiLanguage, ScSerializer, ScCompilerMagic,
+  SepiReflectionCore, SepiReflectionConsts;
 
 const
   /// Pas d'index
@@ -248,6 +248,8 @@ type
     FFlags: TParamFlags;           /// Flags du paramètre
     FCallInfo: TSepiParamCallInfo; /// Informations d'appel du paramètre
 
+    FDefaultValuePtr: Pointer; /// Pointeur sur la valeur par défaut
+
     constructor CreateHidden(AOwner: TSepiSignature;
       AHiddenKind: TSepiHiddenParamKind; AType: TSepiType = nil);
     constructor RegisterParamData(AOwner: TSepiSignature;
@@ -259,13 +261,18 @@ type
 
     procedure ListReferences;
     procedure Save(Stream: TStream);
+
+    function GetHasDefaultValue: Boolean;
   public
     constructor Create(AOwner: TSepiSignature; const AName: string;
       AType: TSepiType; AKind: TSepiParamKind = pkValue;
       AOpenArray: Boolean = False);
     constructor Clone(AOwner: TSepiSignature; Source: TSepiParam);
+    destructor Destroy; override;
 
     procedure AfterConstruction; override;
+
+    procedure AllocDefaultValue;
 
     function Equals(AParam: TSepiParam;
       Options: TSepiSignatureCompareOptions = pcoAll): Boolean;
@@ -282,6 +289,9 @@ type
 
     property Flags: TParamFlags read FFlags;
     property CallInfo: TSepiParamCallInfo read FCallInfo;
+
+    property HasDefaultValue: Boolean read GetHasDefaultValue;
+    property DefaultValuePtr: Pointer read FDefaultValuePtr;
   end;
 
   {*
@@ -1328,6 +1338,8 @@ end;
   Charge un paramètre depuis un flux
 *}
 constructor TSepiParam.Load(AOwner: TSepiSignature; Stream: TStream);
+var
+  AHasDefaultValue: Boolean;
 begin
   inherited Create;
 
@@ -1343,6 +1355,14 @@ begin
 
   MakeFlags;
   Stream.ReadBuffer(FCallInfo, SizeOf(TSepiParamCallInfo));
+
+  Stream.ReadBuffer(AHasDefaultValue, 1);
+  if AHasDefaultValue then
+  begin
+    AllocDefaultValue;
+    ReadDataFromStream(Stream, DefaultValuePtr^, ParamType.Size,
+      ParamType.TypeInfo);
+  end;
 end;
 
 {*
@@ -1451,6 +1471,23 @@ begin
   FOpenArray  := Source.OpenArray;
   FType       := Source.ParamType;
   FFlags      := Source.Flags;
+
+  if Source.HasDefaultValue then
+  begin
+    AllocDefaultValue;
+    ParamType.CopyData(Source.DefaultValuePtr^, DefaultValuePtr^);
+  end;
+end;
+
+{*
+  [@inheritDoc]
+*}
+destructor TSepiParam.Destroy;
+begin
+  if FDefaultValuePtr <> nil then
+    ParamType.DisposeValue(FDefaultValuePtr);
+
+  inherited;
 end;
 
 {*
@@ -1492,6 +1529,8 @@ end;
   [@inheritDoc]
 *}
 procedure TSepiParam.Save(Stream: TStream);
+var
+  AHasDefaultValue: Boolean;
 begin
   WriteStrToStream(Stream, Name);
 
@@ -1501,6 +1540,21 @@ begin
   Owner.OwningUnit.WriteRef(Stream, FType);
 
   Stream.WriteBuffer(FCallInfo, SizeOf(TSepiParamCallInfo));
+
+  AHasDefaultValue := HasDefaultValue;
+  Stream.WriteBuffer(AHasDefaultValue, 1);
+  if AHasDefaultValue then
+    WriteDataToStream(Stream, DefaultValuePtr^, ParamType.Size,
+      ParamType.TypeInfo);
+end;
+
+{*
+  Indique si ce paramètre a une valeur par défaut
+  @return True si ce paramètre a une valeur par défaut, False sinon
+*}
+function TSepiParam.GetHasDefaultValue: Boolean;
+begin
+  Result := FDefaultValuePtr <> nil;
 end;
 
 {*
@@ -1512,6 +1566,20 @@ begin
 
   FOwner.AddParam(Self);
   FLoading := False;
+end;
+
+{*
+  Alloue une valeur par défaut pour ce paramètre
+*}
+procedure TSepiParam.AllocDefaultValue;
+begin
+  if FDefaultValuePtr <> nil then
+    Exit;
+
+  Assert((HiddenKind = hpNormal) and (not ByRef) and (not OpenArray) and
+    (ParamType <> nil));
+
+  FDefaultValuePtr := ParamType.NewValue;
 end;
 
 {*

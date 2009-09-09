@@ -21,6 +21,9 @@ procedure PrintTypeInfo(Output: TOutputWriter; SepiType: TSepiType);
 procedure PrintConstInfo(Output: TOutputWriter; Constant: TSepiConstant);
 procedure PrintVarInfo(Output: TOutputWriter; Variable: TSepiVariable);
 
+procedure PrintValue(Output: TOutputWriter; Value: Pointer;
+  ValueType: TSepiType);
+
 procedure PrintComponentInfo(Output: TOutputWriter; Component: TSepiComponent);
 
 implementation
@@ -270,37 +273,37 @@ begin
         if Assigned(TSepiPointerType(ValueType).PointTo) and
           (TSepiPointerType(ValueType).PointTo.TypeInfo = TypeInfo(Char)) and
           (Cardinal(Value^) > $100) then
-          Output.WriteLn(PChar(Value^))
+          Output.Write(PChar(Value^))
         else
-          Output.WriteLn('$'+IntToHex(PLongWord(Value)^, 8));
+          Output.Write('$'+IntToHex(PLongWord(Value)^, 8));
       end else
-        Output.WriteLn('(unknown)');
+        Output.Write('(unknown)');
     tkInteger:
       case ValueType.TypeData.OrdType of
-        otUByte: Output.WriteLn(IntToStr(PByte(Value)^));
-        otSByte: Output.WriteLn(IntToStr(PShortInt(Value)^));
-        otUWord: Output.WriteLn(IntToStr(PWord(Value)^));
-        otSWord: Output.WriteLn(IntToStr(PSmallInt(Value)^));
-        otULong: Output.WriteLn(IntToStr(Int64(PLongWord(Value)^)));
-        otSLong: Output.WriteLn(IntToStr(PLongInt(Value)^));
+        otUByte: Output.Write(IntToStr(PByte(Value)^));
+        otSByte: Output.Write(IntToStr(PShortInt(Value)^));
+        otUWord: Output.Write(IntToStr(PWord(Value)^));
+        otSWord: Output.Write(IntToStr(PSmallInt(Value)^));
+        otULong: Output.Write(IntToStr(Int64(PLongWord(Value)^)));
+        otSLong: Output.Write(IntToStr(PLongInt(Value)^));
       end;
-    tkInt64: Output.WriteLn(IntToStr(PInt64(Value)^));
+    tkInt64: Output.Write(IntToStr(PInt64(Value)^));
     tkFloat:
       case TSepiFloatType(ValueType).FloatType of
-        ftSingle: Output.WriteLn(FloatToStr(PSingle(Value)^));
-        ftDouble: Output.WriteLn(FloatToStr(PDouble(Value)^));
-        ftExtended: Output.WriteLn(FloatToStr(PExtended(Value)^));
-        ftComp: Output.WriteLn(FloatToStr(PComp(Value)^));
-        ftCurr: Output.WriteLn(FloatToStr(PCurrency(Value)^));
+        ftSingle: Output.Write(FloatToStr(PSingle(Value)^));
+        ftDouble: Output.Write(FloatToStr(PDouble(Value)^));
+        ftExtended: Output.Write(FloatToStr(PExtended(Value)^));
+        ftComp: Output.Write(FloatToStr(PComp(Value)^));
+        ftCurr: Output.Write(FloatToStr(PCurrency(Value)^));
       end;
-    tkLString: Output.WriteLn(string(Value^));
+    tkLString: Output.Write(string(Value^));
     tkEnumeration:
       case ValueType.Size of
-        1: Output.WriteLn(GetEnumName(ValueType.TypeInfo, PByte(Value)^));
-        2: Output.WriteLn(GetEnumName(ValueType.TypeInfo, PWord(Value)^));
+        1: Output.Write(GetEnumName(ValueType.TypeInfo, PByte(Value)^));
+        2: Output.Write(GetEnumName(ValueType.TypeInfo, PWord(Value)^));
       end;
   else
-    Output.WriteLn('(unknown)');
+    Output.Write('(unknown)');
   end;
 end;
 
@@ -310,6 +313,7 @@ begin
   begin
     Output.Write('const ' + Name + ' (' + ConstType.DisplayName + ') = ');
     PrintValue(Output, ValuePtr, ConstType);
+    Output.WriteLn;
   end;
 end;
 
@@ -323,6 +327,7 @@ begin
       Output.Write('var ');
     Output.Write(Name + ': ' + VarType.DisplayName + ' = ');
     PrintValue(Output, Value, VarType);
+    Output.WriteLn;
   end;
 end;
 

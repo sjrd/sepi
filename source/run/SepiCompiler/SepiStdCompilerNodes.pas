@@ -740,14 +740,17 @@ type
   *}
   TSepiParamNode = class(TSepiSignatureBuilderNode)
   private
-    FKind: TSepiParamKind;   /// Type de paramètre
-    FNames: TStringDynArray; /// Noms des paramètres
-    FOpenArray: Boolean;     /// True si c'est un tableau ouvert
-    FType: TSepiType;        /// Type du paramètre
+    FKind: TSepiParamKind;     /// Type de paramètre
+    FNames: TStringDynArray;   /// Noms des paramètres
+    FOpenArray: Boolean;       /// True si c'est un tableau ouvert
+    FType: TSepiType;          /// Type du paramètre
+    FDefaultValuePtr: Pointer; /// Pointeur sur la valeur par défaut
   protected
     procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
     procedure ChildEndParsing(Child: TSepiParseTreeNode); override;
   public
+    destructor Destroy; override;
+
     procedure EndParsing; override;
 
     property Kind: TSepiParamKind read FKind;
@@ -3507,6 +3510,17 @@ end;
 {*
   [@inheritDoc]
 *}
+destructor TSepiParamNode.Destroy;
+begin
+  if FDefaultValuePtr <> nil then
+    ParamType.DisposeValue(FDefaultValuePtr);
+
+  inherited;
+end;
+
+{*
+  [@inheritDoc]
+*}
 procedure TSepiParamNode.ChildBeginParsing(Child: TSepiParseTreeNode);
 var
   InitChild: TSepiInitializationExpressionNode;
@@ -3525,9 +3539,14 @@ begin
     begin
       Child.MakeError(SMultiNameParamCantHaveDefaultValue);
       InitChild.SetValueTypeAndPtr(SystemUnit.Integer);
+    end else if (Kind in [pkVar, pkOut]) or (ParamType = nil) then
+    begin
+      Child.MakeError(SByRefParamCantHaveDefaultValue);
+      InitChild.SetValueTypeAndPtr(ParamType);
     end else
     begin
-      InitChild.SetValueTypeAndPtr(ParamType);
+      FDefaultValuePtr := ParamType.NewValue;
+      InitChild.SetValueTypeAndPtr(ParamType, FDefaultValuePtr);
     end;
   end;
 end;
@@ -3555,11 +3574,20 @@ end;
 procedure TSepiParamNode.EndParsing;
 var
   I: Integer;
+  Param: TSepiParam;
 begin
   Assert(Length(Names) > 0);
 
   for I := 0 to Length(Names)-1 do
-    TSepiParam.Create(Signature, Names[I], ParamType, Kind, OpenArray);
+  begin
+    Param := TSepiParam.Create(Signature, Names[I], ParamType, Kind, OpenArray);
+
+    if FDefaultValuePtr <> nil then
+    begin
+      Param.AllocDefaultValue;
+      ParamType.CopyData(FDefaultValuePtr^, Param.DefaultValuePtr^);
+    end;
+  end;
 
   inherited;
 end;
