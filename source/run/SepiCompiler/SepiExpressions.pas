@@ -8133,6 +8133,8 @@ begin
     SetBuilder.AddRange(FRanges[I].LowerValue, FRanges[I].HigherValue);
 
   SetBuilder.Complete;
+
+  FSetBuilderCompleted := True;
 end;
 
 {*
@@ -8151,6 +8153,8 @@ begin
     OpenArrayBuilder.AddItem(FSingles[I]);
 
   OpenArrayBuilder.Complete;
+
+  FOpenArrayBuilderCompleted := True;
 end;
 
 {*
