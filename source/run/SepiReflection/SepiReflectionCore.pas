@@ -378,6 +378,24 @@ type
   TSepiTypeClass = class of TSepiType;
 
   {*
+    Type non typé
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiUntypedType = class(TSepiType)
+  protected
+    function GetAlignment: Integer; override;
+
+    function GetDescription: string; override;
+  public
+    constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
+    constructor Create(AOwner: TSepiComponent; const AName: string);
+
+    function Equals(Other: TSepiType): Boolean; override;
+    function CompatibleWith(AType: TSepiType): Boolean; override;
+  end;
+
+  {*
     Membre d'un type conteneur
     @author sjrd
     @version 1.0
@@ -2070,6 +2088,67 @@ end;
 function TSepiType.CompatibleWith(AType: TSepiType): Boolean;
 begin
   Result := AType.FKind = FKind;
+end;
+
+{------------------------}
+{ TSepiUntypedType class }
+{------------------------}
+
+{*
+  [@inheritDoc]
+*}
+constructor TSepiUntypedType.Load(AOwner: TSepiComponent; Stream: TStream);
+begin
+  inherited;
+
+  FParamBehavior.AlwaysByAddress := True;
+  FResultBehavior := rbNone;
+end;
+
+{*
+  Crée une instance de TSepiUntypedType
+  @param AOwner   Propriétaire
+  @param AName    Nom du type
+*}
+constructor TSepiUntypedType.Create(AOwner: TSepiComponent;
+  const AName: string);
+begin
+  inherited Create(AOwner, AName, tkUnknown);
+
+  FParamBehavior.AlwaysByAddress := True;
+  FResultBehavior := rbNone;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiUntypedType.GetAlignment: Integer;
+begin
+  Result := 1;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiUntypedType.GetDescription: string;
+begin
+  Result := SUntypedTypeDescription;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiUntypedType.Equals(Other: TSepiType): Boolean;
+begin
+  Result := False;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiUntypedType.CompatibleWith(AType: TSepiType): Boolean;
+begin
+  Result := False;
 end;
 
 {-------------------}

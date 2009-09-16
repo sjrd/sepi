@@ -178,6 +178,40 @@ type
   end;
 
   {*
+    Valeur tableau ouvert
+    @author sjrd
+    @version 1.0
+  *}
+  ISepiOpenArrayValue = interface(ISepiExpressionPart)
+    ['{8040104A-E942-407F-B17A-7B5C90C963C5}']
+
+    function GetElementType: TSepiType;
+
+    function CanForceElementType(AElementType: TSepiType): Boolean;
+    procedure ForceElementType(AElementType: TSepiType);
+
+    procedure CompileReadOpenArray(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList;
+      var OpenArrayDest, HighValueDest: TSepiMemoryReference;
+      TempVars: TSepiTempVarsLifeManager);
+
+    property ElementType: TSepiType read GetElementType;
+  end;
+
+  {*
+    Constructeur de tableau ouvert
+    @author sjrd
+    @version 1.0
+  *}
+  ISepiOpenArrayBuilder = interface(ISepiExpressionPart)
+    ['{335E8CD4-677F-41EA-8567-3CDD2CB2B651}']
+
+    procedure AddItem(const AItem: ISepiReadableValue);
+
+    procedure Complete;
+  end;
+
+  {*
     Expression qui peut être appelée
     @author sjrd
     @version 1.0
@@ -1203,6 +1237,12 @@ type
       Instructions: TSepiInstructionList; SignatureParam: TSepiParam;
       ParamValue: ISepiValue; InstrParamMemory: TSepiMemoryReference;
       TempVars: TSepiTempVarsLifeManager; FreeParamValue: Boolean = False);
+
+    procedure CompileOpenArrayParam(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList; SignatureParam: TSepiParam;
+      const OpenArray: ISepiOpenArrayValue;
+      InstrOpenArrayMemory, InstrHighValueMemory: TSepiMemoryReference;
+      TempVars: TSepiTempVarsLifeManager);
   protected
     function QueryInterface(const IID: TGUID;
       out Obj): HResult; override; stdcall;
@@ -1290,9 +1330,9 @@ type
     procedure CompileCall(Compiler: TSepiMethodCompiler;
       Instructions: TSepiInstructionList;
       Destination: TSepiMemoryReference); override;
-  public
-    procedure CompleteParams; override;
 
+    procedure CompleteParams; override;
+  public
     constructor Create(const AMethodRefValue: ISepiReadableValue = nil;
       AComplete: Boolean = False);
 
@@ -1343,6 +1383,90 @@ type
     property ObjectValue: ISepiReadableValue read FObjectValue;
     property ObjectProperty: TSepiProperty read FProperty;
     property ValueType: TSepiType read GetValueType;
+  end;
+
+  {*
+    Valeur tableau ouvert construit à partir d'une valeur tableau
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiOpenArrayFromArrayValue = class(TSepiCustomExpressionPart,
+    ISepiOpenArrayValue)
+  private
+    FArrayValue: ISepiReadableValue; /// Valeur tableau à avoir
+
+    procedure CheckTypes;
+  protected
+    procedure AttachToExpression(const Expression: ISepiExpression); override;
+
+    function GetElementType: TSepiType;
+
+    function CanForceElementType(AElementType: TSepiType): Boolean;
+    procedure ForceElementType(AElementType: TSepiType);
+
+    procedure CompileReadOpenArray(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList;
+      var OpenArrayDest, HighValueDest: TSepiMemoryReference;
+      TempVars: TSepiTempVarsLifeManager);
+
+    property ElementType: TSepiType read GetElementType;
+  public
+    procedure Complete;
+
+    class function MakeOpenArrayValue(
+      const ArrayValue: ISepiReadableValue): ISepiOpenArrayValue;
+
+    property ArrayValue: ISepiReadableValue read FArrayValue write FArrayValue;
+  end;
+
+  {*
+    Valeur tableau ouvert construit sur place
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiOpenArrayBuilder = class(TSepiCustomExpressionPart,
+    ISepiOpenArrayBuilder, ISepiOpenArrayValue)
+  private
+    FCompleted: Boolean;     /// Indique si le constructeur est complété
+    FVarRecType: TSepiType;  /// Type TVarRec
+    FElementType: TSepiType; /// Type des éléments
+    FItems: IInterfaceList;  /// Éléments du tableau ouvert
+
+    function GetVType(var ValueType: TSepiType): Byte;
+
+    procedure CompileReadVarRecItem(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList; const VarRecValue: ISepiWritableValue;
+      const AItemValue: ISepiReadableValue; TempVars: TSepiTempVarsLifeManager);
+
+    function GetItemCount: Integer;
+    function GetItems(Index: Integer): ISepiReadableValue;
+  protected
+    function QueryInterface(const IID: TGUID;
+      out Obj): HResult; override; stdcall;
+
+    procedure AttachToExpression(const Expression: ISepiExpression); override;
+
+    procedure AddItem(const AItem: ISepiReadableValue);
+    procedure Complete;
+
+    function GetElementType: TSepiType;
+
+    function CanForceElementType(AElementType: TSepiType): Boolean;
+    procedure ForceElementType(AElementType: TSepiType);
+
+    procedure CompileReadOpenArray(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList;
+      var OpenArrayDest, HighValueDest: TSepiMemoryReference;
+      TempVars: TSepiTempVarsLifeManager);
+
+    property ElementType: TSepiType read FElementType;
+
+    property ItemCount: Integer read GetItemCount;
+    property Items[Index: Integer]: ISepiReadableValue read GetItems;
+  public
+    constructor Create(ASepiRoot: TSepiRoot);
+
+    property Completed: Boolean read FCompleted;
   end;
 
   {*
@@ -1455,6 +1579,9 @@ function DefaultSepiTypeFor(BaseType: TSepiBaseType;
   SepiRoot: TSepiRoot): TSepiType;
 
 implementation
+
+uses
+  SepiCompilerUtils;
 
 const
   /// Zéro mémoire
@@ -2771,7 +2898,7 @@ begin
 
   // Can't collapse a cast if operand type is unknown
   OpType := ConstOp.ValueType;
-  if OpType = nil then
+  if OpType is TSepiUntypedType then
     Exit;
 
   // Can't collapse a cast on a need-init-type (unless operand is zero-memory)
@@ -2871,7 +2998,7 @@ begin
   IsAddressable := Supports(Operand, ISepiAddressableValue);
 
   // Check types
-  if (OpType <> nil) and (OpType.Size <> ValueType.Size) then
+  if (not (OpType is TSepiUntypedType)) and (OpType.Size <> ValueType.Size) then
   begin
     if (OpType.Size < ValueType.Size) or (not ForceCast) then
     begin
@@ -5737,6 +5864,8 @@ var
   SourceMemory, IndexMemory: TSepiMemoryReference;
   ConstIndex, ConstFactor: Integer;
 begin
+  { In this context, open arrays may be treated as static arrays with a zero
+    lower bound. }
   IndexValue := Self.IndexValue;
   IsDynamic := ArrayType is TSepiDynArrayType;
 
@@ -5774,10 +5903,10 @@ begin
     end;
 
     // For static arrays, ConstIndex must counter the LowerBound effect
-    if IsDynamic then
-      ConstIndex := 0
+    if ArrayType is TSepiStaticArrayType then
+      ConstIndex := - TSepiStaticArrayType(ArrayType).LowerBound
     else
-      ConstIndex := - TSepiStaticArrayType(ArrayType).LowerBound;
+      ConstIndex := 0;
 
     // If the index value is constant, use ConstIndex, otherwise read it
     if IndexValue.IsConstant then
@@ -5835,14 +5964,14 @@ begin
 
   // Set accesses
   IsReadable := Supports(ArrayValue, ISepiReadableValue);
-  if ArrayType is TSepiStaticArrayType then
-  begin
-    IsAddressable := Supports(ArrayValue, ISepiAddressableValue);
-    IsWritable := IsAddressable and Supports(ArrayValue, ISepiWritableValue);
-  end else
+  if ArrayType is TSepiDynArrayType then
   begin
     IsAddressable := IsReadable;
     IsWritable := IsReadable and Supports(ArrayValue, ISepiWritableValue);
+  end else
+  begin
+    IsAddressable := Supports(ArrayValue, ISepiAddressableValue);
+    IsWritable := IsAddressable and Supports(ArrayValue, ISepiWritableValue);
   end;
 end;
 
@@ -6124,7 +6253,7 @@ var
     if MakeErrors then
       ParamExpression.MakeError(Msg)
     else
-      raise EAbort.Create(Msg);
+      Abort;
   end;
 
 begin
@@ -6167,13 +6296,18 @@ begin
 
       if SignatureParam.OpenArray then
       begin
-        // TODO Handle open arrays
-        Error('Open arrays not supported yet');
+        if not LanguageRules.ConvertionToOpenArrayExists(
+          SignatureParam.ElementType, ParamExpression) then
+        begin
+          // Error: open array required
+          Error(Format(SOpenArrayRequired,
+            [SignatureParam.ParamType.DisplayName]));
+        end;
       end else if not Supports(ParamExpression, ISepiValue, ParamValue) then
       begin
         // Value required
         Error(SValueRequired);
-      end else if SignatureParam.ParamType = nil then
+      end else if SignatureParam.IsUntyped then
       begin
         // Untyped parameter: actual parameter must be addressable
         if not Supports(ParamValue, ISepiAddressableValue) then
@@ -6264,7 +6398,6 @@ end;
   @param Instructions       Liste d'instructions
   @param SignatureParam     Paramètre de la signature
   @param ParamValue         Valeur du paramètre
-  @param Destination        Référence mémoire à la variable résultat
   @param InstrParamMemory   Référence mémoire au paramètre dans l'instruction
   @param TempVars           Gestionnaire de vie des variables temporaires
   @param FreeParamValue     Valeur à donner au paramètre $Free (défaut = False)
@@ -6284,9 +6417,7 @@ begin
       // Paramètre normal
       hpNormal:
       begin
-        if SignatureParam.OpenArray then
-          raise EAssertionFailed.Create(
-            'Open array parameters not supported');
+        Assert(not SignatureParam.OpenArray);
 
         if ParamValue = nil then
         begin
@@ -6305,16 +6436,17 @@ begin
 
           ReadableParam.CompileRead(Compiler, Instructions, ParamMemory,
             TempVars);
+
+          InstrParamMemory.Assign(ParamMemory);
         end else
         begin
           (ParamValue as ISepiAddressableValue).CompileLoadAddress(
             Compiler, Instructions, ParamMemory, TempVars);
-          ParamMemory := TSepiMemoryReference.Clone(ParamMemory);
-          ParamMemory.AddOperation(adSimple);
-          ParamMemory.Seal;
-        end;
 
-        InstrParamMemory.Assign(ParamMemory);
+          InstrParamMemory.Assign(ParamMemory, False);
+          InstrParamMemory.AddOperation(adSimple);
+          InstrParamMemory.Seal;
+        end;
       end;
 
       // Paramètre Self
@@ -6325,6 +6457,11 @@ begin
         (ParamValue as ISepiReadableValue).CompileRead(Compiler, Instructions,
           ParamMemory, TempVars);
         InstrParamMemory.Assign(ParamMemory);
+      end;
+
+      // Résultat - rien à faire ici
+      hpResult:
+      begin
       end;
 
       // Paramètre $Alloc - True ssi SelfValue.ValueType is TSepiMetaClass
@@ -6344,16 +6481,45 @@ begin
         InstrParamMemory.SetSpace(msConstant);
         InstrParamMemory.SetConstant(FreeParamValue);
       end;
-
-      // Paramètre High$XXX
-      hpOpenArrayHighValue:
-      begin
-        raise EAssertionFailed.Create(
-          'Open array parameters not supported');
-      end;
+    else
+      Assert(False);
     end;
   finally
     ParamMemory.Free;
+  end;
+end;
+
+{*
+  Compile un paramètre tableau ouvert
+  @param Compiler               Compilateur de méthode
+  @param Instructions           Liste d'instructions
+  @param SignatureParam         Paramètre de la signature
+  @param OpenArray              Tableau ouvert
+  @param InstrOpenArrayMemory   Référence mémoire au paramètre tableau ouvert
+  @param InstrHighValueMemory   Référence mémoire au paramètre High
+  @param TempVars               Gestionnaire de vie des variables temporaires
+*}
+procedure TSepiCustomCallable.CompileOpenArrayParam(
+  Compiler: TSepiMethodCompiler; Instructions: TSepiInstructionList;
+  SignatureParam: TSepiParam; const OpenArray: ISepiOpenArrayValue;
+  InstrOpenArrayMemory, InstrHighValueMemory: TSepiMemoryReference;
+  TempVars: TSepiTempVarsLifeManager);
+var
+  OpenArrayMemory, HighValueMemory: TSepiMemoryReference;
+begin
+  Assert(SignatureParam.OpenArray);
+
+  OpenArrayMemory := nil;
+  HighValueMemory := nil;
+  try
+    OpenArray.CompileReadOpenArray(Compiler, Instructions, OpenArrayMemory,
+      HighValueMemory, TempVars);
+
+    InstrOpenArrayMemory.Assign(OpenArrayMemory);
+    InstrHighValueMemory.Assign(HighValueMemory);
+  finally
+    OpenArrayMemory.Free;
+    HighValueMemory.Free;
   end;
 end;
 
@@ -6474,6 +6640,7 @@ var
   SignatureParam: TSepiParam;
   ParamValue: ISepiValue;
   InstrParamMemory: TSepiMemoryReference;
+  OpenArray: ISepiOpenArrayValue;
 begin
   // If parameters are not valid, don't try anything
   if not MatchesSignature(Signature) then
@@ -6501,6 +6668,9 @@ begin
     begin
       SignatureParam := Signature.ActualParams[I];
 
+      if SignatureParam.HiddenKind = hpOpenArrayHighValue then
+        Continue;
+
       if SignatureParam.HiddenKind = hpNormal then
         Inc(RealParamIndex);
 
@@ -6510,9 +6680,18 @@ begin
       begin
         Assert(SelfMem.IsSealed);
         InstrParamMemory.Assign(SelfMem);
+      end else if SignatureParam.OpenArray then
+      begin
+        OpenArray := LanguageRules.ConvertToOpenArray(
+          SignatureParam.ElementType,
+          Params[RealParamIndex]) as ISepiOpenArrayValue;
+
+        CompileOpenArrayParam(Compiler, Instructions, SignatureParam,
+          OpenArray, InstrParamMemory, Parameters.Parameters[I+1].MemoryRef,
+          TempVars);
       end else
       begin
-        if SignatureParam.HiddenKind in [hpNormal, hpOpenArrayHighValue] then
+        if SignatureParam.HiddenKind = hpNormal then
         begin
           if RealParamIndex < ParamCount then
             ParamValue := Params[RealParamIndex] as ISepiValue
@@ -7020,6 +7199,482 @@ begin
 
     (MethodCall as ISepiExecutable).CompileExecute(Compiler, Instructions);
   end;
+end;
+
+{------------------------------------}
+{ TSepiOpenArrayFromArrayValue class }
+{------------------------------------}
+
+{*
+  Vérifie les types
+*}
+procedure TSepiOpenArrayFromArrayValue.CheckTypes;
+begin
+  if not (ArrayValue.ValueType is TSepiArrayType) then
+    (ArrayValue as ISepiExpression).MakeError(SArrayTypeRequired);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiOpenArrayFromArrayValue.AttachToExpression(
+  const Expression: ISepiExpression);
+var
+  AsExpressionPart: ISepiExpressionPart;
+begin
+  AsExpressionPart := Self;
+
+  Expression.Attach(ISepiOpenArrayValue, AsExpressionPart);
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiOpenArrayFromArrayValue.GetElementType: TSepiType;
+begin
+  Result := (ArrayValue.ValueType as TSepiArrayType).ElementType;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiOpenArrayFromArrayValue.CanForceElementType(
+  AElementType: TSepiType): Boolean;
+begin
+  Result := AElementType.Equals(ElementType);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiOpenArrayFromArrayValue.ForceElementType(
+  AElementType: TSepiType);
+begin
+  Assert(CanForceElementType(AElementType));
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiOpenArrayFromArrayValue.CompileReadOpenArray(
+  Compiler: TSepiMethodCompiler; Instructions: TSepiInstructionList;
+  var OpenArrayDest, HighValueDest: TSepiMemoryReference;
+  TempVars: TSepiTempVarsLifeManager);
+var
+  ArrayType: TSepiArrayType;
+  DynArrayHighInstr: TSepiAsmValueToIntStdFunction;
+  TempOpenArrayDest: TSepiMemoryReference;
+begin
+  ArrayType := ArrayValue.ValueType as TSepiArrayType;
+
+  ArrayValue.CompileRead(Compiler, Instructions, OpenArrayDest, TempVars);
+
+  if ArrayType is TSepiStaticArrayType then
+  begin
+    HighValueDest := TSepiMemoryReference.Create(Compiler, aoAcceptAllConsts,
+      SizeOf(Integer));
+    HighValueDest.SetAsConst(TSepiStaticArrayType(ArrayType).ArrayLength-1);
+    HighValueDest.Seal;
+  end else if ArrayType is TSepiDynArrayType then
+  begin
+    NeedDestination(HighValueDest,
+      (SepiRoot.SystemUnit as TSepiSystemUnit).Integer, Compiler, TempVars,
+      Instructions.GetCurrentEndRef);
+
+    DynArrayHighInstr := TSepiAsmValueToIntStdFunction.Create(Compiler,
+      ocDynArrayHigh);
+    DynArrayHighInstr.Destination.Assign(HighValueDest);
+    DynArrayHighInstr.Value.Assign(OpenArrayDest);
+    Instructions.Add(DynArrayHighInstr);
+
+    if not OpenArrayDest.IsSealed then
+      OpenArrayDest.AddOperation(adSimple)
+    else
+    begin
+      TempOpenArrayDest := OpenArrayDest;
+      OpenArrayDest := nil;
+      try
+        OpenArrayDest := TSepiMemoryReference.Clone(TempOpenArrayDest);
+        OpenArrayDest.AddOperation(adSimple);
+        OpenArrayDest.Seal;
+      finally
+        TempOpenArrayDest.Free;
+      end;
+    end;
+  end else if ArrayType is TSepiOpenArrayType then
+  begin
+    HighValueDest := TSepiMemoryReference.Create(Compiler, aoAcceptAllConsts,
+      SizeOf(Integer));
+    HighValueDest.SetSpace(TSepiOpenArrayType(ArrayType).HighVarName);
+    HighValueDest.Seal;
+  end else
+  begin
+    Assert(False);
+  end;
+end;
+
+{*
+  Complète la valeur
+*}
+procedure TSepiOpenArrayFromArrayValue.Complete;
+begin
+  Assert(ArrayValue <> nil);
+
+  CheckTypes;
+end;
+
+{*
+  Construit une valeur tableau ouvert sur base d'une valeur tableau
+  @param ArrayValue   Valeur tableau
+  @return Valeur tableau ouvert
+*}
+class function TSepiOpenArrayFromArrayValue.MakeOpenArrayValue(
+  const ArrayValue: ISepiReadableValue): ISepiOpenArrayValue;
+var
+  OpenArrayValue: TSepiOpenArrayFromArrayValue;
+begin
+  OpenArrayValue := TSepiOpenArrayFromArrayValue.Create;
+  Result := OpenArrayValue;
+  Result.AttachToExpression(TSepiExpression.Create(
+    ArrayValue as ISepiExpression));
+  OpenArrayValue.ArrayValue := ArrayValue;
+  OpenArrayValue.Complete;
+end;
+
+{-----------------------------}
+{ TSepiOpenArrayBuilder class }
+{-----------------------------}
+
+{*
+  Crée une instance de TSepiOpenArrayBuilder
+  @param ASepiRoot   Racine Sepi
+*}
+constructor TSepiOpenArrayBuilder.Create(ASepiRoot: TSepiRoot);
+begin
+  inherited Create;
+
+  FVarRecType := (ASepiRoot.SystemUnit as TSepiSystemUnit).TVarRec;
+  FElementType := FVarRecType;
+  FItems := TInterfaceList.Create;
+end;
+
+{*
+  Détermine le VType correspondant à un type Sepi
+  GetVType ajuste également le paramètre ValueType pour qu'il corresponde
+  exactement au type de valeur attendu, si nécessaire.
+  @param ValueType   Type de valeur
+  @return VType correspondant
+*}
+function TSepiOpenArrayBuilder.GetVType(var ValueType: TSepiType): Byte;
+const
+  vtError = $FF;
+var
+  SystemUnit: TSepiSystemUnit;
+begin
+  SystemUnit := ValueType.Root.SystemUnit as TSepiSystemUnit;
+
+  case ValueType.Kind of
+    tkUnknown:
+    begin
+      if ValueType is TSepiMetaClass then
+        Result := vtClass
+      else if ValueType = SystemUnit.PAnsiChar then
+        Result := vtPChar
+      else if ValueType = SystemUnit.PWideChar then
+        Result := vtPWideChar
+      else if ValueType is TSepiPointerType then
+        Result := vtPointer
+      else
+        Result := vtError;
+    end;
+
+    tkInteger:
+    begin
+      Result := vtInteger;
+      ValueType := SystemUnit.Integer;
+    end;
+
+    tkEnumeration:
+    begin
+      if ValueType is TSepiBooleanType then
+      begin
+        Result := vtBoolean;
+        ValueType := SystemUnit.Boolean;
+      end else
+        Result := vtError;
+    end;
+
+    tkFloat:
+    begin
+      case (ValueType as TSepiFloatType).FloatType of
+        ftCurr: Result := vtCurrency;
+        ftComp: Result := vtError;
+      else
+        Result := vtExtended;
+        ValueType := SystemUnit.Extended;
+      end;
+    end;
+
+    tkChar: Result := vtChar;
+    tkString: Result := vtString;
+    tkClass: Result := vtObject;
+    tkWChar: Result := vtWideChar;
+    tkLString: Result := vtAnsiString;
+    tkWString: Result := vtWideString;
+    tkVariant: Result := vtVariant;
+    tkInterface: Result := vtInterface;
+    tkInt64: Result := vtInt64;
+  else
+    Result := vtError;
+  end;
+end;
+
+{*
+  Compile la lecture d'un élément de tableau ouvert de const (donc TVarRec)
+  @param Compiler       Compilateur
+  @param Instructions   Liste d'instructions
+  @param VarRecValue    Valeur de type TVarRec destination
+  @param AItemValue     Valeur de l'élément à enregistrer dans VarRecValue
+  @param TempVars       Gestionnaire de variables temporaires
+*}
+procedure TSepiOpenArrayBuilder.CompileReadVarRecItem(
+  Compiler: TSepiMethodCompiler; Instructions: TSepiInstructionList;
+  const VarRecValue: ISepiWritableValue; const AItemValue: ISepiReadableValue;
+  TempVars: TSepiTempVarsLifeManager);
+const
+  vtLast = vtInt64;
+  VTypeToFieldName: array[0..vtLast] of string = (
+    'VInteger', 'VBoolean', 'VChar', 'VExtended', 'VString', 'VPointer',
+    'VPChar', 'VObject', 'VClass', 'VWideChar', 'VPWideChar', 'VAnsiString',
+    'VCurrency', 'VVariant', 'VInterface', 'VWideString', 'VInt64'
+  );
+  VTypeFieldName = 'VType';
+  ByAddressVTypes = [vtExtended, vtString, vtVariant, vtInt64];
+  AsPointerVTypes = [vtAnsiString, vtInterface, vtWideString];
+  NeedTempVarVTypes = ByAddressVTypes + AsPointerVTypes;
+var
+  SystemUnit: TSepiSystemUnit;
+  ItemValue: ISepiReadableValue;
+  ItemExpression: ISepiExpression;
+  ValueType: TSepiType;
+  VType: Byte;
+  FieldValue, VTypeValue: ISepiWritableValue;
+  TempVar: TSepiLocalVar;
+  TempVarValue: ISepiValue;
+begin
+  // Get VType and fix ValueType
+  SystemUnit := SepiRoot.SystemUnit as TSepiSystemUnit;
+  ItemValue := AItemValue;
+  ItemExpression := ItemValue as ISepiExpression;
+  ValueType := ItemValue.ValueType;
+  VType := GetVType(ValueType);
+
+  // Check for invalid value type
+  if VType > vtLast then
+  begin
+    (ItemValue as ISepiExpression).MakeError(SInvalidArrayOfConstItem);
+    Exit;
+  end;
+
+  // Make FieldValue
+  FieldValue := TSepiRecordFieldValue.Create(VarRecValue,
+    FVarRecType.FindComponent(VTypeToFieldName[VType]) as TSepiField);
+  FieldValue.AttachToExpression(TSepiExpression.Create(ItemExpression));
+
+  // Make VTypeValue
+  VTypeValue := TSepiRecordFieldValue.Create(VarRecValue,
+    FVarRecType.FindComponent(VTypeFieldName) as TSepiField);
+  VTypeValue.AttachToExpression(TSepiExpression.Create(ItemExpression));
+
+  // Convert item value to expected value type
+  if not ItemValue.ValueType.Equals(ValueType) then
+  begin
+    Assert(TSepiConvertOperation.ConvertionExists(ValueType, ItemValue));
+    ItemValue := TSepiConvertOperation.ConvertValue(ValueType, ItemValue);
+  end;
+
+  // Write item value into FieldValue
+  if VType in NeedTempVarVTypes then
+  begin
+    TempVar := Compiler.Locals.AddTempVar(ValueType);
+    TempVars.BeginLife(TempVar, Instructions.GetCurrentEndRef);
+    TempVarValue := TSepiLocalVarValue.MakeValue(Compiler, TempVar);
+
+    (TempVarValue as ISepiWritableValue).CompileWrite(Compiler, Instructions,
+      ItemValue);
+
+    if VType in ByAddressVTypes then
+    begin
+      TempVarValue := TSepiAddressOfValue.MakeAddressOf(
+        TempVarValue as ISepiAddressableValue);
+    end else
+    begin
+      TempVarValue := TSepiCastOperator.CastValue(SystemUnit.Pointer,
+        TempVarValue);
+    end;
+
+    FieldValue.CompileWrite(Compiler, Instructions,
+      TempVarValue as ISepiReadableValue);
+  end else
+  begin
+    FieldValue.CompileWrite(Compiler, Instructions, ItemValue);
+  end;
+
+  // Write VType constant into VTypeValue
+  VTypeValue.CompileWrite(Compiler, Instructions,
+    TSepiTrueConstValue.MakeOrdinalValue(Compiler, SystemUnit.Byte, VType));
+end;
+
+{*
+  Nombre d'éléments
+  @return Nombre d'éléments
+*}
+function TSepiOpenArrayBuilder.GetItemCount: Integer;
+begin
+  Result := FItems.Count;
+end;
+
+{*
+  Tableau zero-based des éléments
+  @param Index   Index compris entre 0 inclus et ItemCount exlu
+*}
+function TSepiOpenArrayBuilder.GetItems(Index: Integer): ISepiReadableValue;
+begin
+  Result := FItems[Index] as ISepiReadableValue;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiOpenArrayBuilder.QueryInterface(const IID: TGUID;
+  out Obj): HResult;
+begin
+  if SameGUID(IID, ISepiOpenArrayBuilder) and Completed then
+    Result := E_NOINTERFACE
+  else if SameGUID(IID, ISepiOpenArrayValue) and (not Completed) then
+    Result := E_NOINTERFACE
+  else
+    Result := inherited QueryInterface(IID, Obj);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiOpenArrayBuilder.AttachToExpression(
+  const Expression: ISepiExpression);
+var
+  AsExpressionPart: ISepiExpressionPart;
+begin
+  AsExpressionPart := Self;
+
+  if Completed then
+  begin
+    Expression.Attach(ISepiOpenArrayValue, AsExpressionPart);
+    Expression.Detach(ISepiOpenArrayBuilder);
+  end else
+  begin
+    Expression.Attach(ISepiOpenArrayBuilder, AsExpressionPart);
+    Expression.Detach(ISepiOpenArrayValue);
+  end;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiOpenArrayBuilder.AddItem(const AItem: ISepiReadableValue);
+begin
+  Assert(not Completed);
+
+  FItems.Add(AItem);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiOpenArrayBuilder.Complete;
+begin
+  Assert(not Completed);
+
+  FCompleted := True;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiOpenArrayBuilder.GetElementType: TSepiType;
+begin
+  Result := FElementType;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiOpenArrayBuilder.CanForceElementType(
+  AElementType: TSepiType): Boolean;
+begin
+  Result := True;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiOpenArrayBuilder.ForceElementType(
+  AElementType: TSepiType);
+begin
+  FElementType := AElementType;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiOpenArrayBuilder.CompileReadOpenArray(
+  Compiler: TSepiMethodCompiler; Instructions: TSepiInstructionList;
+  var OpenArrayDest, HighValueDest: TSepiMemoryReference;
+  TempVars: TSepiTempVarsLifeManager);
+var
+  StaticArrayType: TSepiStaticArrayType;
+  StaticArrayVar: TSepiLocalVar;
+  StaticArrayValue: ISepiValue;
+  I: Integer;
+  Item, IndexValue: ISepiReadableValue;
+  ItemValue: ISepiWritableValue;
+begin
+  // Make a temporary variable to store the array
+
+  StaticArrayType := TSepiStaticArrayType.Create(Compiler.LocalNamespace, '',
+    (SepiRoot.SystemUnit as TSepiSystemUnit).Integer, 0, ItemCount-1,
+    ElementType);
+
+  StaticArrayVar := Compiler.Locals.AddTempVar(StaticArrayType);
+  TempVars.BeginLife(StaticArrayVar, Instructions.GetCurrentEndRef);
+
+  // Build the array
+
+  StaticArrayValue := TSepiLocalVarValue.MakeValue(Compiler, StaticArrayVar);
+  (StaticArrayValue as ISepiExpression).SourcePos := Expression.SourcePos;
+
+  for I := 0 to ItemCount-1 do
+  begin
+    Item := Items[I];
+    IndexValue := TSepiTrueConstValue.MakeIntegerLiteral(Compiler, I);
+    ItemValue := TSepiArrayItemValue.MakeArrayItemValue(StaticArrayValue,
+      IndexValue) as ISepiWritableValue;
+
+    if FElementType = FVarRecType then
+      CompileReadVarRecItem(Compiler, Instructions, ItemValue, Item, TempVars)
+    else
+      ItemValue.CompileWrite(Compiler, Instructions, Item);
+  end;
+
+  // Fill memory spaces: OpenArrayDest and HighValueDest
+
+  OpenArrayDest := TSepiMemoryReference.Create(Compiler);
+  OpenArrayDest.SetSpace(StaticArrayVar);
+  OpenArrayDest.Seal;
+
+  HighValueDest := TSepiMemoryReference.Create(Compiler, aoAcceptAllConsts,
+    SizeOf(Integer));
+  HighValueDest.SetAsConst(ItemCount-1);
 end;
 
 {-------------------------------}

@@ -33,7 +33,7 @@ interface
 uses
   Windows, Classes, SysUtils, StrUtils, RTLConsts, Contnrs, TypInfo, ScUtils,
   ScStrUtils, ScDelphiLanguage, ScSerializer, ScCompilerMagic,
-  SepiReflectionCore, SepiReflectionConsts;
+  SepiReflectionCore, SepiReflectionConsts, SepiArrayTypes;
 
 const
   /// Pas d'index
@@ -242,8 +242,10 @@ type
     FHiddenKind: TSepiHiddenParamKind; /// Type de paramètre caché
     FKind: TSepiParamKind;             /// Type de paramètre
     FByRef: Boolean;                   /// True si passé par référence
-    FOpenArray: Boolean;               /// True pour un tableau ouvert
-    FType: TSepiType;                  /// Type du paramètre (peut être nil)
+    FType: TSepiType;                  /// Type du paramètre
+    FIsUntyped: Boolean;               /// Indique si non typé
+    FOpenArray: Boolean;               /// Indique si c'est un tableau ouvert
+    FElementType: TSepiType;           /// Type des éléments du tableau ouvert
 
     FFlags: TParamFlags;           /// Flags du paramètre
     FCallInfo: TSepiParamCallInfo; /// Informations d'appel du paramètre
@@ -263,6 +265,8 @@ type
     procedure Save(Stream: TStream);
 
     function GetHasDefaultValue: Boolean;
+
+    function GetDescription: string;
   public
     constructor Create(AOwner: TSepiSignature; const AName: string;
       AType: TSepiType; AKind: TSepiParamKind = pkValue;
@@ -284,14 +288,18 @@ type
     property HiddenKind: TSepiHiddenParamKind read FHiddenKind;
     property Kind: TSepiParamKind read FKind;
     property ByRef: Boolean read FByRef;
-    property OpenArray: Boolean read FOpenArray;
     property ParamType: TSepiType read FType;
+    property IsUntyped: Boolean read FIsUntyped;
+    property OpenArray: Boolean read FOpenArray;
+    property ElementType: TSepiType read FElementType;
 
     property Flags: TParamFlags read FFlags;
     property CallInfo: TSepiParamCallInfo read FCallInfo;
 
     property HasDefaultValue: Boolean read GetHasDefaultValue;
     property DefaultValuePtr: Pointer read FDefaultValuePtr;
+
+    property Description: string read GetDescription;
   end;
 
   {*
@@ -301,7 +309,7 @@ type
   *}
   TSepiSignature = class
   private
-    FOwner: TSepiComponent;      /// Propriétaire de la signature
+    FOwner: TSepiComponent; /// Propriétaire de la signature
     FRoot: TSepiRoot;       /// Racine
     FOwningUnit: TSepiUnit; /// Unité contenante
     FContext: TSepiType;    /// Contexte
@@ -341,6 +349,8 @@ type
     function GetParamByName(const ParamName: string): TSepiParam;
 
     function GetHiddenParam(Kind: TSepiHiddenParamKind): TSepiParam;
+
+    function GetDescription: string;
   protected
     procedure ListReferences;
     procedure Save(Stream: TStream);
@@ -392,6 +402,8 @@ type
     property RegUsage: Byte read FRegUsage;
     property StackUsage: Word read FStackUsage;
     property SepiStackUsage: Word read FSepiStackUsage;
+
+    property Description: string read GetDescription;
   end;
 
   {*
@@ -1259,6 +1271,7 @@ begin
   FKind := pkValue;
   FByRef := False;
   FOpenArray := False;
+  FIsUntyped := False;
 
   case HiddenKind of
     hpSelf:
@@ -1349,9 +1362,13 @@ begin
 
   Stream.ReadBuffer(FHiddenKind, 1);
   Stream.ReadBuffer(FKind, 1);
-  FByRef := FKind in [pkVar, pkOut];
-  Stream.ReadBuffer(FOpenArray, 1);
   Owner.OwningUnit.ReadRef(Stream, FType);
+  FIsUntyped := FType is TSepiUntypedType;
+  FByRef := (FKind in [pkVar, pkOut]) or FIsUntyped;
+
+  FOpenArray := FType is TSepiOpenArrayType;
+  if FOpenArray then
+    FElementType := TSepiOpenArrayType(FType).ElementType;
 
   MakeFlags;
   Stream.ReadBuffer(FCallInfo, SizeOf(TSepiParamCallInfo));
@@ -1434,6 +1451,18 @@ constructor TSepiParam.Create(AOwner: TSepiSignature; const AName: string;
   AType: TSepiType; AKind: TSepiParamKind = pkValue;
   AOpenArray: Boolean = False);
 begin
+  // Open array types must be created and customized in here
+  Assert(not (AType is TSepiOpenArrayType));
+
+  if AOpenArray then
+  begin
+    AType := TSepiOpenArrayType.Create(AOwner.OwningUnit, '', AType,
+      HiddenParamNames[hpOpenArrayHighValue]+AName);
+  end else if AType = nil then
+  begin
+    AType := (AOwner.Root.SystemUnit as TSepiSystemUnit).Untyped;
+  end;
+
   inherited Create;
 
   FOwner := AOwner;
@@ -1442,9 +1471,13 @@ begin
 
   FHiddenKind := hpNormal;
   FKind := AKind;
-  FByRef := FKind in [pkVar, pkOut];
-  FOpenArray := AOpenArray;
   FType := AType;
+  FIsUntyped := FType is TSepiUntypedType;
+  FByRef := (FKind in [pkVar, pkOut]) or FIsUntyped;
+
+  FOpenArray := FType is TSepiOpenArrayType;
+  if FOpenArray then
+    FElementType := TSepiOpenArrayType(FType).ElementType;
 
   MakeFlags;
 end;
@@ -1463,14 +1496,16 @@ begin
 
   FOwner := AOwner;
 
-  FName       := Source.Name;
-  FLoading    := True;
-  FHiddenKind := Source.HiddenKind;
-  FKind       := Source.Kind;
-  FByRef      := Source.ByRef;
-  FOpenArray  := Source.OpenArray;
-  FType       := Source.ParamType;
-  FFlags      := Source.Flags;
+  FName        := Source.Name;
+  FLoading     := True;
+  FHiddenKind  := Source.HiddenKind;
+  FKind        := Source.Kind;
+  FByRef       := Source.ByRef;
+  FType        := Source.ParamType;
+  FIsUntyped   := Source.IsUntyped;
+  FOpenArray   := Source.OpenArray;
+  FElementType := Source.ElementType;
+  FFlags       := Source.Flags;
 
   if Source.HasDefaultValue then
   begin
@@ -1512,7 +1547,7 @@ begin
   begin
     if (FType is TSepiClass) or (FType is TSepiInterface) then
       Include(FFlags, pfAddress);
-    if (FType <> nil) and (FType.ParamBehavior.AlwaysByAddress) then
+    if (not IsUntyped) and (FType.ParamBehavior.AlwaysByAddress) then
       Include(FFlags, pfReference);
   end;
 end;
@@ -1536,7 +1571,6 @@ begin
 
   Stream.WriteBuffer(FHiddenKind, 1);
   Stream.WriteBuffer(FKind, 1);
-  Stream.WriteBuffer(FOpenArray, 1);
   Owner.OwningUnit.WriteRef(Stream, FType);
 
   Stream.WriteBuffer(FCallInfo, SizeOf(TSepiParamCallInfo));
@@ -1555,6 +1589,29 @@ end;
 function TSepiParam.GetHasDefaultValue: Boolean;
 begin
   Result := FDefaultValuePtr <> nil;
+end;
+
+{*
+  Description du paramètre
+*}
+function TSepiParam.GetDescription: string;
+begin
+  // Don't localize strings in this method
+
+  case Kind of
+    pkValue: Result := '';
+    pkVar: Result := 'var ';
+    pkConst: Result := 'const ';
+    pkOut: Result := 'out ';
+  end;
+
+  Result := Result + Name;
+
+  if not IsUntyped then
+    Result := Result + ': ' + ParamType.DisplayName;
+
+  if HasDefaultValue then
+    Result := Result + ' = ...'; // TODO Print a nice default value in param
 end;
 
 {*
@@ -1604,9 +1661,12 @@ begin
     if (pcoName in Options) and (not AnsiSameText(Name, AParam.Name)) then
       Exit;
 
-    if (pcoType in Options) and
-      ((OpenArray <> AParam.OpenArray) or (ParamType <> AParam.ParamType)) then
-      Exit;
+    if pcoType in Options then
+    begin
+      if not ((IsUntyped and AParam.IsUntyped) or
+        ParamType.Equals(AParam.ParamType)) then
+        Exit;
+    end;
   end;
 
   Result := True;
@@ -1619,7 +1679,9 @@ end;
 *}
 function TSepiParam.CompatibleWith(AType: TSepiType): Boolean;
 begin
-  if ByRef then
+  if IsUntyped then
+    Result := True
+  else if ByRef then
     Result := FType = AType
   else
     Result := FType.CompatibleWith(AType);
@@ -2074,6 +2136,40 @@ begin
   end;
 
   Result := nil;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiSignature.GetDescription: string;
+var
+  I: Integer;
+begin
+  Result := SignatureKindStrings[Kind];
+
+  if ParamCount > 0 then
+  begin
+    Result := Result + '(';
+
+    for I := 0 to ParamCount-1 do
+    begin
+      if I <> 0 then
+        Result := Result + '; ';
+      Result := Result + Params[I].Description;
+    end;
+
+    Result := Result + ')';
+  end;
+
+  if ReturnType <> nil then
+    Result := Result + ': ' + ReturnType.DisplayName;
+
+  if CallingConvention <> ccRegister then
+  begin
+    Result := Result + '; ' + LowerCase(Copy(
+      GetEnumName(TypeInfo(TCallingConvention), Integer(CallingConvention)),
+      3, MaxInt));
+  end;
 end;
 
 {*
@@ -4581,7 +4677,7 @@ begin
     Parent.VMTSize - vmtMinMethodIndex);
 
   // Setting the new method addresses
-  AbstractErrorProcAddress := CompilerMagicRoutineAddress(@AbstractError);
+  AbstractErrorProcAddress := DereferenceJump(@AbstractError);
   for I := 0 to ChildCount-1 do
   begin
     if Children[I] is TSepiMethod then

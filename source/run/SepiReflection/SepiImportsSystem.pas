@@ -28,7 +28,7 @@ interface
 
 uses
   TypInfo, SepiReflectionCore, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
-  SepiMembers, SepiSystemUnit;
+  SepiMembers, SepiSystemUnit, SepiReflectionConsts;
 
 implementation
 
@@ -551,6 +551,39 @@ begin
   end;
 end;
 
+{----------------}
+{ TVarRec import }
+{----------------}
+
+function SepiImportTVarRec(Owner: TSepiUnit): TSepiRecordType;
+begin
+  Result := TSepiRecordType.Create(Owner, 'TVarRec', False, True);
+
+  with Result do
+  begin
+    AddField('VInteger', System.TypeInfo(Integer));
+    AddField('VType', System.TypeInfo(Byte));
+    AddFieldAfter('VBoolean', System.TypeInfo(Boolean), '');
+    AddFieldAfter('VChar', System.TypeInfo(Char), '');
+    AddFieldAfter('VExtended', 'PExtended', '');
+    AddFieldAfter('VString', 'PShortString', '');
+    AddFieldAfter('VPointer', 'Pointer', '');
+    AddFieldAfter('VPChar', 'PChar', '');
+    AddFieldAfter('VObject', System.TypeInfo(TObject), '');
+    AddFieldAfter('VClass', 'TClass', '');
+    AddFieldAfter('VWideChar', System.TypeInfo(WideChar), '');
+    AddFieldAfter('VPWideChar', 'PWideChar', '');
+    AddFieldAfter('VAnsiString', 'Pointer', '');
+    AddFieldAfter('VCurrency', 'PCurrency', '');
+    AddFieldAfter('VVariant', 'PVariant', '');
+    AddFieldAfter('VInterface', 'Pointer', '');
+    AddFieldAfter('VWideString', 'Pointer', '');
+    AddFieldAfter('VInt64', 'PInt64', '');
+
+    Complete;
+  end;
+end;
+
 {-----------------}
 { TFileRec import }
 {-----------------}
@@ -723,6 +756,9 @@ var
 begin
   SystemUnit := TSepiSystemUnit.Create(Root);
   Result := SystemUnit;
+
+  // Special types
+  TSepiUntypedType.Create(Result, SUntypedTypeName);
 
   // Integer types
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(Integer));
@@ -1003,6 +1039,8 @@ begin
   SepiImportTCallDesc(Result);
   TSepiPointerType.Create(Result, 'PDispDesc', 'TDispDesc', True);
   SepiImportTDispDesc(Result);
+  SepiImportTVarRec(Result);
+  TSepiPointerType.Create(Result, 'PVarRec', 'TVarRec', True);
 
   // Routines
   TSepiMethod.Create(Result, 'AcquireExceptionObject', @AcquireExceptionObject,

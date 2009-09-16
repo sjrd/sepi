@@ -904,18 +904,19 @@ begin
       Result := Result + Param.Name;
 
       // Param type
-      if (Param.ParamType = nil) and Param.OpenArray then
-        Result := Result + ': array of const;'
-      else if Param.ParamType <> nil then
+      if not Param.IsUntyped then
       begin
-        if Param.OpenArray then
-          Result := Result + ': array of '
-        else
-          Result := Result + ': ';
+        Result := Result + ': ';
 
-        Result := Result + IdentifierFor(Param.ParamType, From) + ';';
-      end else
-        Result := Result + ';';
+        if not Param.OpenArray then
+          Result := Result + IdentifierFor(Param.ParamType, From)
+        else if (Param.ParamType as TSepiOpenArrayType).IsArrayOfConst then
+          Result := Result + 'array of const'
+        else
+          Result := Result + 'array of '+IdentifierFor(Param.ElementType, From);
+      end;
+
+      Result := Result + ';';
     end;
 
     if Signature.Kind = skProperty then

@@ -88,45 +88,62 @@ begin
       Name + ': ' + FieldType.DisplayName + ';');
 end;
 
-procedure PrintParamInfo(Output: TOutputWriter; Param: TSepiParam);
+procedure PrintParamInfo(Output: TOutputWriter; Param: TSepiParam;
+  const PreviousParams: string);
 begin
-  if Param.HiddenKind <> hpNormal then
-    Output.Write('{');
-
   case Param.Kind of
     pkVar: Output.Write('var ');
     pkConst: Output.Write('const ');
     pkOut: Output.Write('out ');
   end;
 
-  //if pfAddress in Param.Flags then Output.Write('{addr} ');
-  //if pfReference in Param.Flags then Output.Write('{ref} ');
+  Output.Write(PreviousParams + Param.Name);
 
-  Output.Write(Param.Name);
-
-  if Param.ParamType <> nil then
-  begin
-    Output.Write(': ');
-    if pfArray in Param.Flags then
-      Output.Write('array of ');
-    Output.Write(Param.ParamType.DisplayName);
-  end else if pfArray in Param.Flags then
-    Output.Write(': array of const');
+  if not Param.IsUntyped then
+    Output.Write(': ' + Param.ParamType.DisplayName);
 
   if Param.HasDefaultValue then
   begin
     Output.Write(' = ');
     PrintValue(Output, Param.DefaultValuePtr, Param.ParamType);
   end;
+end;
 
-  if Param.HiddenKind <> hpNormal then
-    Output.Write('}');
+procedure PrintInnerParams(Output: TOutputWriter; Signature: TSepiSignature);
+var
+  I: Integer;
+  PreviousParams: string;
+  First: Boolean;
+  Param: TSepiParam;
+begin
+  with Signature do
+  begin
+    PreviousParams := '';
+    First := True;
+
+    for I := 0 to ParamCount-1 do
+    begin
+      Param := Params[I];
+
+      if (I < ParamCount-1) and (not Param.HasDefaultValue) and
+        Param.Equals(Params[I+1], pcoAll - [pcoName]) then
+      begin
+        PreviousParams := Param.Name + ', ';
+      end else
+      begin
+        if not First then
+          Output.Write('; ');
+
+        First := False;
+        PrintParamInfo(Output, Param, PreviousParams);
+        PreviousParams := '';
+      end;
+    end;
+  end;
 end;
 
 procedure PrintSignature(Output: TOutputWriter; Signature: TSepiSignature;
   const Name: string = '');
-var
-  ParameterCount, I: Integer;
 begin
   Output.Write('  ' + SignatureKindStrings[Signature.Kind]);
   if Name <> '' then
@@ -134,16 +151,10 @@ begin
 
   with Signature do
   begin
-    ParameterCount := {Actual} ParamCount;
-    if ParameterCount > 0 then
+    if ParamCount > 0 then
     begin
       Output.Write('(');
-      for I := 0 to ParameterCount-1 do
-      begin
-        if I <> 0 then
-          Output.Write('; ');
-        PrintParamInfo(Output, {Actual} Params[I]);
-      end;
+      PrintInnerParams(Output, Signature);
       Output.Write(')');
     end;
 
@@ -191,8 +202,6 @@ begin
 end;
 
 procedure PrintPropertyInfo(Output: TOutputWriter; Prop: TSepiProperty);
-var
-  I: Integer;
 begin
   Output.Write('  property ' + Prop.Name);
 
@@ -201,12 +210,7 @@ begin
     if ParamCount > 0 then
     begin
       Output.Write('[');
-      for I := 0 to ParamCount-1 do
-      begin
-        if I <> 0 then
-          Output.Write('; ');
-        PrintParamInfo(Output, Params[I]);
-      end;
+      PrintInnerParams(Output, Prop.Signature);
       Output.Write(']');
     end;
   end;

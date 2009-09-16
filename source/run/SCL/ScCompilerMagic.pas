@@ -58,6 +58,9 @@ procedure DynArrayCopy(Source: Pointer; TypeInfo: Pointer;
 procedure DynArrayCopyRange(Source: Pointer; TypeInfo: Pointer;
   Index, Count: Integer; var Dest: Pointer);
 
+function DynArrayLength(const DynArray): Integer;
+function DynArrayHigh(const DynArray): Integer;
+
 procedure SetElem(var Dest; Elem, Size: Byte);
 procedure SetRange(var Dest; Lo, Hi, Size: Byte);
 function SetEquals(const Set1, Set2; Size: Byte): Boolean;
@@ -67,8 +70,7 @@ procedure SetUnion(var Dest; const Source; Size: Byte);
 procedure SetSub(var Dest; const Source; Size: Byte);
 procedure SetExpand(const PackedSet; var ExpandedSet; Lo, Hi: Byte);
 
-function CompilerMagicRoutineAddress(
-  CompilerMagicRoutineAlias: Pointer): Pointer;
+function DereferenceJump(Code: Pointer): Pointer;
 
 implementation
 
@@ -163,6 +165,28 @@ asm
 end;
 
 {*
+  Longueur d'un tableau dynamique
+  @param DynArray   Tableau dynamique
+  @return Longueur du tableau DynArray
+*}
+function DynArrayLength(const DynArray): Integer;
+asm
+        MOV     EAX,[EAX]
+        JMP     System.@DynArrayLength
+end;
+
+{*
+  Borne haute d'un tableau dynamique
+  @param DynArray   Tableau dynamique
+  @return Borne haute du tableau DynArray
+*}
+function DynArrayHigh(const DynArray): Integer;
+asm
+        MOV     EAX,[EAX]
+        JMP     System.@DynArrayHigh
+end;
+
+{*
   Construit un set singleton
   @param Dest   Set destination
   @param Elem   Valeur ordinale (normalisée sur la MinValue) de l'élément
@@ -175,7 +199,6 @@ end;
 
 {*
   Construit un set intervalle
-  Cette routine n'est pas valide pour l'appel à CompilerMagicRoutineAddress.
   @param Dest   Set destination
   @param Lo     Valeur ordinale (normalisée sur la MinValue) de la borne basse
   @param Hi     Valeur ordinale (normalisée sur la MinValue) de la borne haute
@@ -191,7 +214,6 @@ end;
 
 {*
   Teste si deux sets sont égaux
-  Cette routine n'est pas valide pour l'appel à CompilerMagicRoutineAddress.
   @param Set1   Premier opérande
   @param Set2   Second opérande
   @param Size   Taille en octets des sets
@@ -208,7 +230,6 @@ end;
 
 {*
   Teste si un set est contenu dans un autre
-  Cette routine n'est pas valide pour l'appel à CompilerMagicRoutineAddress.
   @param SubSet          Sous-set
   @param ContainingSet   Set contenant
   @param Size            Taille en octets des sets
@@ -258,7 +279,6 @@ end;
 
 {*
   Étend un set "packed" en set étendu sur 32 octets
-  Cette routine n'est pas valide pour l'appel à CompilerMagicRoutineAddress.
   @param PackedSet     Set source "packed"
   @param ExpandedSet   Set destination "étandu", sur 32 octets
   @param Lo            Byte bas du packed set
@@ -271,29 +291,35 @@ asm
 end;
 
 {*
-  Détermine l'adresse réelle d'une routine de "compiler magic"
-  Cette routine n'est valide qu'avec les alias de l'unité ScCompilerMagic (sauf
-  mention contraire dans la description de ceux-ci), ou à défaut avec d'autres
-  alias se contentant d'un JMP sur la véritable routine.
-  @param CompilerMagicRoutineAlias   Pointeur sur le code d'un alias de routine
+  Déréférence un JUMP dans un code x86, le plus loin possible
+  @param Code   Pointeur sur le code du JUMP
   @return Pointeur sur le code de la routine réelle
 *}
-function CompilerMagicRoutineAddress(
-  CompilerMagicRoutineAlias: Pointer): Pointer;
+function DereferenceJump(Code: Pointer): Pointer;
+var
+  OldResult: Pointer;
 begin
-  // Handle an optional module redirector
-  if PWord(CompilerMagicRoutineAlias)^ = $25FF then // JMP dword ptr [] op code
-  begin
-    Inc(Integer(CompilerMagicRoutineAlias), 2);
-    CompilerMagicRoutineAlias := PPointer(CompilerMagicRoutineAlias)^;
-    CompilerMagicRoutineAlias := PPointer(CompilerMagicRoutineAlias)^;
-  end;
+  Result := Code;
 
-  // Handle the actual alias
-  Assert(PByte(CompilerMagicRoutineAlias)^ = $E9); // JMP op code
-  Inc(Integer(CompilerMagicRoutineAlias));
-  Result := Pointer(Integer(CompilerMagicRoutineAlias) +
-    PInteger(CompilerMagicRoutineAlias)^ + 4);
+  repeat
+    OldResult := Result;
+
+    // Handle module redirector
+    if PWord(Result)^ = $25FF then // JMP dword ptr [] op code
+    begin
+      Inc(Integer(Result), 2);
+      Result := PPointer(Result)^;
+      Result := PPointer(Result)^;
+    end;
+
+    // Handle simple jump
+    if PByte(Result)^ = $E9 then // JMP op code
+    begin
+      Inc(Integer(Result));
+      Result := Pointer(Integer(Result) +
+        PInteger(Result)^ + 4);
+    end;
+  until Result = OldResult;
 end;
 
 end.

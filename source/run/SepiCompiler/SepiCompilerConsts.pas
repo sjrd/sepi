@@ -90,6 +90,9 @@ resourcestring
   SContainerTypeRequired = 'Type classe, interface ou record requis';
   SCompilerTransientTypeForbidden =
     'Type de valeur spécial du compilateur non autorisé ici';
+  SOpenArrayRequired = 'Tableau ouvert de type %s requis';
+  SInvalidArrayOfConstItem =
+    'Type de valeur non autorisé dans un élément de tableau ouvert';
 
   // Erreurs sur les valeurs
   SValueRequired = 'Valeur requise';

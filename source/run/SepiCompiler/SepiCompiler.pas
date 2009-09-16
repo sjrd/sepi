@@ -452,6 +452,12 @@ type
       const BaseExpression: ISepiExpression;
       const FieldName: string): ISepiExpression; virtual; abstract;
 
+    function ConvertionToOpenArrayExists(ElementType: TSepiType;
+      const Expression: ISepiExpression): Boolean; virtual;
+
+    function ConvertToOpenArray(ElementType: TSepiType;
+      const Expression: ISepiExpression): ISepiExpression; virtual;
+
     property UnitCompiler: TSepiUnitCompiler read FUnitCompiler;
     property SepiRoot: TSepiRoot read FSepiRoot;
     property SystemUnit: TSepiSystemUnit read FSystemUnit;
@@ -709,7 +715,7 @@ type
     function GetPointerType(PointTo: TSepiType): TSepiPointerType;
     function GetMetaClass(SepiClass: TSepiClass): TSepiMetaClass;
     function GetEmptySetType: TSepiType;
-    
+
     function MakeSetType(CompType: TSepiOrdType): TSepiSetType;
 
     function GetErroneousType: TSepiType;
@@ -876,7 +882,7 @@ function CardinalSize(Value: Cardinal;
 implementation
 
 uses
-  SepiCompilerUtils;
+  SepiCompilerUtils, SepiExpressions;
 
 const
   /// Ensemble des opérations qui ont un argument mémoire
@@ -1910,7 +1916,7 @@ end;
 function TSepiLocalVariables.GetHiddenVar(
   Kind: TSepiHiddenParamKind): TSepiLocalVar;
 begin
-  Result := Self.GetVarByName(HiddenParamNames[Kind]);
+  Result := GetVarByName(HiddenParamNames[Kind]);
 end;
 
 {*
@@ -1923,7 +1929,7 @@ var
 begin
   with Signature do
   begin
-    for I := 0 to ActualParamCount-1 do
+    for I := ActualParamCount-1 downto 0 do
       FVariables.Add(TSepiLocalVar.CreateParam(ActualParams[I]));
 
     if not (ReturnType.SafeResultBehavior in [rbNone, rbParameter]) then
@@ -2176,6 +2182,61 @@ begin
   FUnitCompiler := AUnitCompiler;
   FSepiRoot := AUnitCompiler.SepiRoot;
   FSystemUnit := AUnitCompiler.SystemUnit;
+end;
+
+{*
+  Teste si une conversion vers un tableau ouvert existe
+  @param ElementType   Type d'élément voulu pour le tableau ouvert
+  @param Expression    Expression à convertir
+  @return True si Expression peut être convertie, False sinon
+*}
+function TSepiLanguageRules.ConvertionToOpenArrayExists(ElementType: TSepiType;
+  const Expression: ISepiExpression): Boolean;
+var
+  OpenArray: ISepiOpenArrayValue;
+  Value: ISepiReadableValue;
+begin
+  Result := Supports(Expression, ISepiOpenArrayValue, OpenArray) and
+    (OpenArray.ElementType.Equals(ElementType) or
+    OpenArray.CanForceElementType(ElementType));
+
+  if (not Result) and Supports(Expression, ISepiReadableValue, Value) and
+    (Value.ValueType is TSepiArrayType) and
+    TSepiArrayType(Value.ValueType).ElementType.Equals(ElementType) then
+    Result := True;
+end;
+
+{*
+  Convertit une expression en tableau ouvert
+  ConvertToOpenArray ne peut être appelée que si ConvertionToOpenArrayExists
+  renvoie True pour les mêmes arguments.
+  L'expression renvoyée est garantie supporter l'interface
+  SepiExpressions.ISepiOpenArrayValue.
+  @param ElementType   Type d'élément voulu pour le tableau ouvert
+  @param Expression    Expression à convertir
+  @return Expression convertie en tableau ouvert
+*}
+function TSepiLanguageRules.ConvertToOpenArray(ElementType: TSepiType;
+  const Expression: ISepiExpression): ISepiExpression;
+var
+  OpenArray: ISepiOpenArrayValue;
+  Value: ISepiReadableValue;
+begin
+  Assert(ConvertionToOpenArrayExists(ElementType, Expression));
+
+  if Supports(Expression, ISepiOpenArrayValue, OpenArray) then
+  begin
+    Result := Expression;
+    if not OpenArray.ElementType.Equals(ElementType) then
+      OpenArray.ForceElementType(ElementType);
+  end else
+  begin
+    Value := Expression as ISepiReadableValue;
+    Assert(Value.ValueType is TSepiArrayType);
+
+    Result := TSepiOpenArrayFromArrayValue.MakeOpenArrayValue(
+      Value) as ISepiExpression;
+  end;
 end;
 
 {-----------------------}

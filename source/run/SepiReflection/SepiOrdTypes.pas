@@ -323,6 +323,7 @@ type
   TSepiPointerType = class(TSepiOrdType)
   private
     FPointTo: TSepiType; /// Type vers lequel pointe le pointeur
+    FIsUntyped: Boolean; /// Indique si c'est un pointeur non typé
 
     FForwardInfo: PSepiForwardPointerInfo; /// Infos conservées en forward
   protected
@@ -348,9 +349,13 @@ type
     function Equals(Other: TSepiType): Boolean; override;
 
     property PointTo: TSepiType read FPointTo;
+    property IsUntyped: Boolean read FIsUntyped;
   end;
 
 implementation
+
+uses
+  SepiSystemUnit;
 
 const
   /// Chaînes 'False' et 'True' en packed ShortString
@@ -1531,6 +1536,7 @@ begin
 
   FSize := 4;
   OwningUnit.ReadRef(Stream, FPointTo);
+  FIsUntyped := FPointTo is TSepiUntypedType;
 end;
 
 {*
@@ -1542,10 +1548,14 @@ end;
 constructor TSepiPointerType.Create(AOwner: TSepiComponent; const AName: string;
   APointTo: TSepiType; AIsNative: Boolean = False);
 begin
+  if APointTo = nil then
+    APointTo := (AOwner.Root.SystemUnit as TSepiSystemUnit).Untyped;
+
   inherited Create(AOwner, AName, tkUnknown);
 
   FSize := 4;
   FPointTo := APointTo;
+  FIsUntyped := APointTo is TSepiUntypedType;
 
   if AIsNative then
     ForceNative;
@@ -1571,6 +1581,7 @@ begin
     Create(AOwner, AName, APointToType, AIsNative)
   else
   begin
+    FPointTo := (AOwner.Root.SystemUnit as TSepiSystemUnit).Untyped;
     New(FForwardInfo);
     FForwardInfo.Owner := AOwner;
     FForwardInfo.Name := AName;
@@ -1601,6 +1612,7 @@ begin
     Create(AOwner, AName, APointToType, AIsNative)
   else
   begin
+    FPointTo := (AOwner.Root.SystemUnit as TSepiSystemUnit).Untyped;
     New(FForwardInfo);
     FForwardInfo.Owner := AOwner;
     FForwardInfo.Name := AName;
@@ -1678,10 +1690,10 @@ end;
 *}
 function TSepiPointerType.GetDescription: string;
 begin
-  if PointTo <> nil then
-    Result := '^'+PointTo.DisplayName
+  if IsUntyped then
+    Result := 'Pointer'
   else
-    Result := 'Pointer';
+    Result := '^'+PointTo.DisplayName;
 end;
 
 {*
@@ -1696,6 +1708,7 @@ begin
     FSize := 4;
     FNeedInit := False;
     FResultBehavior := rbOrdinal;
+    FIsUntyped := True;
   end;
 end;
 
@@ -1705,8 +1718,8 @@ end;
 function TSepiPointerType.Equals(Other: TSepiType): Boolean;
 begin
   Result := (ClassType = Other.ClassType) and
-    ((PointTo = TSepiPointerType(Other).PointTo) or
-    (PointTo = nil) or (TSepiPointerType(Other).PointTo = nil));
+    (PointTo.Equals(TSepiPointerType(Other).PointTo) or
+    IsUntyped or TSepiPointerType(Other).IsUntyped);
 end;
 
 initialization

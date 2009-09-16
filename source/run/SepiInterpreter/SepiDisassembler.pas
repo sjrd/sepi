@@ -86,6 +86,8 @@ type
     function OpCodeSetOtherOp(OpCode: TSepiOpCode): string;
     function OpCodeSetExpand(OpCode: TSepiOpCode): string;
 
+    function OpCodeValueToIntStdFunction(OpCode: TSepiOpCode): string;
+
     // Other methods
 
     function ReadRef: string;
@@ -122,7 +124,7 @@ var
   OpCodeArgsFuncs: array[TSepiOpCode] of TOpCodeArgsFunc;
 
 const
-  MaxKnownOpCode = ocSetExpand; /// Plus grand OpCode connu
+  MaxKnownOpCode = ocDynArrayHigh; /// Plus grand OpCode connu
 
   /// Nom des OpCodes
   { Don't localize any of these strings! }
@@ -158,7 +160,9 @@ const
     '', '', '', '', '', '', '', '', '', '', '',
     // Set operations
     'SINC', 'SEXC', 'SIN', 'SELE', 'SRNG', 'SUR', 'SEQ', 'SNE', 'SLE',
-    'SINT', 'SADD', 'SSUB', 'SINT', 'SADD', 'SSUB', 'SEXP'
+    'SINT', 'SADD', 'SSUB', 'SINT', 'SADD', 'SSUB', 'SEXP',
+    // Standart Delphi functions
+    'ASL', 'WSL', 'DAL', 'DAH'
   );
 
   /// Virgule
@@ -268,6 +272,16 @@ begin
   @OpCodeArgsFuncs[ocSetOtherUnion]     := @TSepiDisassembler.OpCodeSetOtherOp;
   @OpCodeArgsFuncs[ocSetOtherSubtract]  := @TSepiDisassembler.OpCodeSetOtherOp;
   @OpCodeArgsFuncs[ocSetExpand]         := @TSepiDisassembler.OpCodeSetExpand;
+
+  // Standart Delphi functions
+  @OpCodeArgsFuncs[ocAnsiStrLength] :=
+    @TSepiDisassembler.OpCodeValueToIntStdFunction;
+  @OpCodeArgsFuncs[ocWideStrLength] :=
+    @TSepiDisassembler.OpCodeValueToIntStdFunction;
+  @OpCodeArgsFuncs[ocDynArrayLength] :=
+    @TSepiDisassembler.OpCodeValueToIntStdFunction;
+  @OpCodeArgsFuncs[ocDynArrayHigh] :=
+    @TSepiDisassembler.OpCodeValueToIntStdFunction;
 end;
 
 {-------------------------}
@@ -882,6 +896,23 @@ begin
 
   // Make Result
   Result := Format('%s, %s, %d, %d', [DestPtr, SourcePtr, Lo, Hi]);
+end;
+
+{*
+  OpCode ASL, WSL, DAL et DAH
+  @param OpCode   OpCode
+*}
+function TSepiDisassembler.OpCodeValueToIntStdFunction(
+  OpCode: TSepiOpCode): string;
+var
+  DestPtr, ValuePtr: string;
+begin
+  // Read arguments
+  DestPtr := ReadAddress;
+  ValuePtr := ReadAddress(aoAcceptNonCodeConsts);
+
+  // Make Result
+  Result := Format('%s, %s', [DestPtr, ValuePtr]);
 end;
 
 {*

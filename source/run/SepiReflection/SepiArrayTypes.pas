@@ -98,19 +98,6 @@ type
       const AElementTypeName: string; AIsNative: Boolean = False;
       ATypeInfo: PTypeInfo = nil); overload;
 
-    constructor Create(AOwner: TSepiComponent; const AName: string;
-      const ADimensions: array of Integer; AElementType: TSepiType;
-      AIsNative: Boolean = False; ATypeInfo: PTypeInfo = nil); overload;
-      deprecated;
-    constructor Create(AOwner: TSepiComponent; const AName: string;
-      const ADimensions: array of Integer; AElementTypeInfo: PTypeInfo;
-      AIsNative: Boolean = False; ATypeInfo: PTypeInfo = nil); overload;
-      deprecated;
-    constructor Create(AOwner: TSepiComponent; const AName: string;
-      const ADimensions: array of Integer; const AElementTypeName: string;
-      AIsNative: Boolean = False; ATypeInfo: PTypeInfo = nil); overload;
-      deprecated;
-
     constructor Clone(AOwner: TSepiComponent; const AName: string;
       Source: TSepiType); override;
 
@@ -149,6 +136,32 @@ type
     procedure SetElementType(const AElementTypeName: string); overload;
 
     function CompatibleWith(AType: TSepiType): Boolean; override;
+  end;
+
+  {*
+    Type tableau ouvert
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiOpenArrayType = class(TSepiArrayType)
+  private
+    FIsArrayOfConst: Boolean; /// Indique si c'est un array of const
+    FHighVarName: string;     /// Nom de la variable reprenant la valeur de High
+  protected
+    procedure Save(Stream: TStream); override;
+
+    function GetIndexType: TSepiOrdType; override;
+
+    function GetDescription: string; override;
+  public
+    constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
+    constructor Create(AOwner: TSepiComponent; const AName: string;
+      AElementType: TSepiType; const AHighVarName: string);
+
+    function CompatibleWith(AType: TSepiType): Boolean; override;
+
+    property IsArrayOfConst: Boolean read FIsArrayOfConst;
+    property HighVarName: string read FHighVarName;
   end;
 
 implementation
@@ -264,10 +277,10 @@ end;
   @param AIsNative      Indique si le type tableau est natif
   @param ATypeInfo      RTTI du type tableau natif
 *}
-constructor TSepiStaticArrayType.Create(AOwner: TSepiComponent; const AName: string;
-  AIndexType: TSepiOrdType; ALowerBound, AHigherBound: Integer;
-  AElementType: TSepiType; AIsNative: Boolean = False;
-  ATypeInfo: PTypeInfo = nil);
+constructor TSepiStaticArrayType.Create(AOwner: TSepiComponent;
+  const AName: string; AIndexType: TSepiOrdType;
+  ALowerBound, AHigherBound: Integer; AElementType: TSepiType;
+  AIsNative: Boolean = False; ATypeInfo: PTypeInfo = nil);
 begin
   inherited Create(AOwner, AName, tkArray, AElementType);
 
@@ -299,10 +312,10 @@ end;
   @param AIsNative         Indique si le type tableau est natif
   @param ATypeInfo         RTTI du type tableau natif
 *}
-constructor TSepiStaticArrayType.Create(AOwner: TSepiComponent; const AName: string;
-  AIndexTypeInfo: PTypeInfo; ALowerBound, AHigherBound: Integer;
-  AElementTypeInfo: PTypeInfo; AIsNative: Boolean = False;
-  ATypeInfo: PTypeInfo = nil);
+constructor TSepiStaticArrayType.Create(AOwner: TSepiComponent;
+  const AName: string; AIndexTypeInfo: PTypeInfo;
+  ALowerBound, AHigherBound: Integer; AElementTypeInfo: PTypeInfo;
+  AIsNative: Boolean = False; ATypeInfo: PTypeInfo = nil);
 begin
   Create(AOwner, AName, AOwner.Root.FindType(AIndexTypeInfo) as TSepiOrdType,
     ALowerBound, AHigherBound, AOwner.Root.FindType(AElementTypeInfo),
@@ -319,10 +332,10 @@ end;
   @param AIsNative         Indique si le type tableau est natif
   @param ATypeInfo         RTTI du type tableau natif
 *}
-constructor TSepiStaticArrayType.Create(AOwner: TSepiComponent; const AName: string;
-  const AIndexTypeName: string; ALowerBound, AHigherBound: Integer;
-  const AElementTypeName: string; AIsNative: Boolean = False;
-  ATypeInfo: PTypeInfo = nil);
+constructor TSepiStaticArrayType.Create(AOwner: TSepiComponent;
+  const AName: string; const AIndexTypeName: string;
+  ALowerBound, AHigherBound: Integer; const AElementTypeName: string;
+  AIsNative: Boolean = False; ATypeInfo: PTypeInfo = nil);
 begin
   Create(AOwner, AName, AOwner.Root.FindType(AIndexTypeName) as TSepiOrdType,
     ALowerBound, AHigherBound, AOwner.Root.FindType(AElementTypeName),
@@ -330,82 +343,10 @@ begin
 end;
 
 {*
-  Crée un nouveau type tableau
-  @param AOwner         Propriétaire du type
-  @param AName          Nom du type
-  @param ADimensions    Dimensions du tableau [Min1, Max1, Min2, Max2, ...]
-  @param AElementType   Type des éléments
-  @param AIsNative      Indique si le type tableau est natif
-  @param ATypeInfo      RTTI du type tableau natif
-*}
-constructor TSepiStaticArrayType.Create(AOwner: TSepiComponent; const AName: string;
-  const ADimensions: array of Integer; AElementType: TSepiType;
-  AIsNative: Boolean = False; ATypeInfo: PTypeInfo = nil);
-var
-  IntegerType: TSepiOrdType;
-  DimCount, CurDim: Integer;
-begin
-  IntegerType := (AOwner.Root.SystemUnit as TSepiSystemUnit).Integer;
-
-  DimCount := Length(ADimensions) div 2;
-
-  if DimCount > 1 then
-  begin
-    for CurDim := DimCount-1 downto 1 do
-    begin
-      AElementType := TSepiStaticArrayType.Create(AOwner, '', IntegerType,
-        ADimensions[2*CurDim], ADimensions[2*CurDim+1], AElementType,
-        AIsNative);
-    end;
-  end;
-
-  Create(AOwner, AName, IntegerType, ADimensions[0], ADimensions[1],
-    AElementType, AIsNative, ATypeInfo);
-end;
-
-{$WARN SYMBOL_DEPRECATED OFF}
-
-{*
-  Crée un nouveau type tableau
-  @param AOwner             Propriétaire du type
-  @param AName              Nom du type
-  @param ADimensions        Dimensions du tableau [Min1, Max1, Min2, Max2, ...]
-  @param AElementTypeInfo   RTTI du type des éléments
-  @param AIsNative          Indique si le type tableau est natif
-  @param ATypeInfo          RTTI du type tableau natif
-*}
-constructor TSepiStaticArrayType.Create(AOwner: TSepiComponent; const AName: string;
-  const ADimensions: array of Integer; AElementTypeInfo: PTypeInfo;
-  AIsNative: Boolean = False; ATypeInfo: PTypeInfo = nil);
-begin
-  Create(AOwner, AName, ADimensions, AOwner.Root.FindType(AElementTypeInfo),
-    AIsNative, ATypeInfo);
-end;
-
-{*
-  Crée un nouveau type tableau
-  @param AOwner             Propriétaire du type
-  @param AName              Nom du type
-  @param ADimensions        Dimensions du tableau [Min1, Max1, Min2, Max2, ...]
-  @param AElementTypeName   Nom du type des éléments
-  @param AIsNative          Indique si le type tableau est natif
-  @param ATypeInfo          RTTI du type tableau natif
-*}
-constructor TSepiStaticArrayType.Create(AOwner: TSepiComponent; const AName: string;
-  const ADimensions: array of Integer; const AElementTypeName: string;
-  AIsNative: Boolean = False; ATypeInfo: PTypeInfo = nil);
-begin
-  Create(AOwner, AName, ADimensions, AOwner.Root.FindType(AElementTypeName),
-    AIsNative, ATypeInfo);
-end;
-
-{$WARN SYMBOL_DEPRECATED ON}
-
-{*
   [@inheritDoc]
 *}
-constructor TSepiStaticArrayType.Clone(AOwner: TSepiComponent; const AName: string;
-  Source: TSepiType);
+constructor TSepiStaticArrayType.Clone(AOwner: TSepiComponent;
+  const AName: string; Source: TSepiType);
 begin
   with Source as TSepiStaticArrayType do
     Create(AOwner, AName, IndexType, LowerBound, HigherBound, ElementType);
@@ -717,9 +658,82 @@ begin
   Result := False;
 end;
 
+{--------------------------}
+{ TSepiOpenArrayType class }
+{--------------------------}
+
+{*
+  [@inheritDoc]
+*}
+constructor TSepiOpenArrayType.Load(AOwner: TSepiComponent; Stream: TStream);
+begin
+  inherited;
+
+  Stream.ReadBuffer(FIsArrayOfConst, SizeOf(Boolean));
+  FHighVarName := ReadStrFromStream(Stream);
+end;
+
+{*
+  Crée une instance TSepiOpenArrayType
+  @param AOwner         Propriétaire
+  @param AName          Nom du type
+  @param AElementType   Type d'élément
+  @param AHighVarName   Nom de la variable High
+*}
+constructor TSepiOpenArrayType.Create(AOwner: TSepiComponent;
+  const AName: string; AElementType: TSepiType; const AHighVarName: string);
+begin
+  FIsArrayOfConst := (AElementType = nil) or (AElementType is TSepiUntypedType);
+  if FIsArrayOfConst then
+    AElementType := (AOwner.Root.SystemUnit as TSepiSystemUnit).TVarRec;
+
+  inherited Create(AOwner, AName, tkUnknown, AElementType);
+
+  FHighVarName := AHighVarName;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiOpenArrayType.Save(Stream: TStream);
+begin
+  inherited;
+
+  Stream.WriteBuffer(FIsArrayOfConst, SizeOf(Boolean));
+  WriteStrToStream(Stream, FHighVarName);
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiOpenArrayType.GetIndexType: TSepiOrdType;
+begin
+  Result := (Root.SystemUnit as TSepiSystemUnit).Integer;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiOpenArrayType.GetDescription: string;
+begin
+  if IsArrayOfConst then
+    Result := 'array of const'
+  else
+    Result := 'array of '+ElementType.DisplayName;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiOpenArrayType.CompatibleWith(AType: TSepiType): Boolean;
+begin
+  Result := (AType is TSepiArrayType) and
+    TSepiArrayType(AType).ElementType.Equals(ElementType);
+end;
+
 initialization
   SepiRegisterComponentClasses([
-    TSepiStaticArrayType, TSepiDynArrayType
+    TSepiStaticArrayType, TSepiDynArrayType, TSepiOpenArrayType
   ]);
 end.
 

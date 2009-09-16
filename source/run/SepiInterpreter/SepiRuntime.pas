@@ -208,6 +208,8 @@ type
     procedure OpCodeSetOtherOp(OpCode: TSepiOpCode);
     procedure OpCodeSetExpand(OpCode: TSepiOpCode);
 
+    procedure OpCodeValueToIntStdFunction(OpCode: TSepiOpCode);
+
     // Other methods
 
     function ReadBaseAddress(Options: TSepiAddressOptions; ConstSize: Integer;
@@ -358,6 +360,16 @@ begin
   @OpCodeProcs[ocSetOtherUnion]     := @TSepiRuntimeContext.OpCodeSetOtherOp;
   @OpCodeProcs[ocSetOtherSubtract]  := @TSepiRuntimeContext.OpCodeSetOtherOp;
   @OpCodeProcs[ocSetExpand]         := @TSepiRuntimeContext.OpCodeSetExpand;
+
+  // Standart Delphi functions
+  @OpCodeProcs[ocAnsiStrLength] :=
+    @TSepiRuntimeContext.OpCodeValueToIntStdFunction;
+  @OpCodeProcs[ocWideStrLength] :=
+    @TSepiRuntimeContext.OpCodeValueToIntStdFunction;
+  @OpCodeProcs[ocDynArrayLength] :=
+    @TSepiRuntimeContext.OpCodeValueToIntStdFunction;
+  @OpCodeProcs[ocDynArrayHigh] :=
+    @TSepiRuntimeContext.OpCodeValueToIntStdFunction;
 end;
 
 {*
@@ -557,7 +569,6 @@ begin
 
   FFullName := ReadStrFromStream(Stream);
   FRuntimeUnit := AUnit;
-  FSepiMethod := nil;
 
   Stream.ReadBuffer(FParamsSize, 4);
   Stream.ReadBuffer(FLocalsSize, 4);
@@ -565,16 +576,6 @@ begin
 
   GetMem(FCode, FCodeSize);
   Stream.ReadBuffer(FCode^, FCodeSize);
-
-  FParamsAddRef := nil;
-  FLocalParamsSize := 0;
-  FLocalParamsInfo := nil;
-
-  FResultSize := 0;
-
-  FLocalsInfo := nil;
-
-  FNativeCode := nil;
 end;
 
 {*
@@ -617,7 +618,7 @@ begin
     begin
       { An "add ref" is required if the three following conditions meet:
         - The parameter is a value parameter (not const/var/out) ;
-        - It is transmitted by value (and not by address, i.e. big records) ;
+        - It is transmitted by value (and not by address, e.g. big records) ;
         - Its type requires initialization. }
       if (Kind = pkValue) and (not CallInfo.ByAddress) and
         ParamType.NeedInit then
@@ -671,10 +672,11 @@ begin
   begin
     with Signature.ActualParams[I] do
     begin
-      { Copying is required if both following conditions meet:
-        - The parameter is a value parameter (not const/var/out) ;
-        - It is transmitted by address (i.e. big records). }
-      if (Kind = pkValue) and CallInfo.ByAddress then
+      { Copying is required if the three following conditions meet:
+        - The parameter is a value parameter (not const/var/out);
+        - It is not an open array;
+        - It is transmitted by address (e.g. big records). }
+      if (Kind = pkValue) and (not OpenArray) and CallInfo.ByAddress then
       begin
         with FLocalParams[Count] do
         begin
@@ -1667,6 +1669,28 @@ begin
 
   // Execute instruction
   SetExpand(SourcePtr^, DestPtr^, Lo, Hi);
+end;
+
+{*
+  OpCode ASL, WSL, DAL et DAH
+  @param OpCode   OpCode
+*}
+procedure TSepiRuntimeContext.OpCodeValueToIntStdFunction(OpCode: TSepiOpCode);
+var
+  DestPtr: PInteger;
+  ValuePtr: Pointer;
+begin
+  // Read arguments
+  DestPtr := ReadAddress;
+  ValuePtr := ReadAddress(aoAcceptNonCodeConsts);
+
+  // Execute instruction
+  case OpCode of
+    ocAnsiStrLength: DestPtr^ := Length(AnsiString(ValuePtr^));
+    ocWideStrLength: DestPtr^ := Length(WideString(ValuePtr^));
+    ocDynArrayLength: DestPtr^ := DynArrayLength(ValuePtr^);
+    ocDynArrayHigh: DestPtr^ := DynArrayHigh(ValuePtr^);
+  end;
 end;
 
 {*

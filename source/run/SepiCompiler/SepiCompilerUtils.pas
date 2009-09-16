@@ -4,7 +4,7 @@ interface
 
 uses
   SysUtils, Classes, StrUtils, TypInfo, ScStrUtils,
-  SepiReflectionCore, SepiOrdTypes, SepiMembers, SepiSystemUnit,
+  SepiReflectionCore, SepiOrdTypes, SepiMembers, SepiArrayTypes, SepiSystemUnit,
   SepiExpressions, SepiParseTrees, SepiLexerUtils, SepiParserUtils,
   SepiCompilerErrors, SepiCompiler, SepiCompilerConsts;
 
@@ -949,7 +949,8 @@ end;
 {*
   [@inheritDoc]
 *}
-constructor TSepiCompilerTransientType.Load(AOwner: TSepiComponent; Stream: TStream);
+constructor TSepiCompilerTransientType.Load(AOwner: TSepiComponent;
+  Stream: TStream);
 begin
   raise EAssertionFailed.Create('Can''t load instance of '+ClassName);
 end;

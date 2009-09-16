@@ -26,6 +26,9 @@ unit SepiReflectionConsts;
 
 interface
 
+const
+  SUntypedTypeName = '$Untyped'; /// Nom du type non typé
+
 resourcestring
   SSepiComponentAlreadyCreated = 'Le meta de nom ''%s'' a déjà été créé';
   SSepiComponentAlreadyExists = 'Un meta de  nom ''%s'' existe déjà';
@@ -41,6 +44,8 @@ resourcestring
 
   SSepiUnsupportedIntfCallConvention =
     'La convention d''appel %s n''est pas encore supportée pour les interfaces';
+
+  SUntypedTypeDescription = '(non typé)';
 
 implementation
 

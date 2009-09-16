@@ -760,6 +760,27 @@ type
     property HigherBound: TSepiMemoryReference read FHigherByte;
   end;
 
+  {*
+    Instruction ASL, WSL, DAL ou DAH
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiAsmValueToIntStdFunction = class(TSepiAsmInstr)
+  private
+    FDestination: TSepiMemoryReference; /// Destination
+    FValue: TSepiMemoryReference;       /// Valeur
+  public
+    constructor Create(AMethodCompiler: TSepiMethodCompiler;
+      AOpCode: TSepiOpCode);
+    destructor Destroy; override;
+
+    procedure Make; override;
+    procedure WriteToStream(Stream: TStream); override;
+
+    property Destination: TSepiMemoryReference read FDestination;
+    property Value: TSepiMemoryReference read FValue;
+  end;
+
 implementation
 
 const
@@ -2981,6 +3002,63 @@ begin
   Source.WriteToStream(Stream);
   LowerBound.WriteToStream(Stream);
   HigherBound.WriteToStream(Stream);
+end;
+
+{-------------------------------------}
+{ TSepiAsmValueToIntStdFunction class }
+{-------------------------------------}
+
+{*
+  Crée une instruction ASL, WSL, DAL ou DAH
+  @param AMethodCompiler   Compilateur de méthode
+*}
+constructor TSepiAsmValueToIntStdFunction.Create(
+  AMethodCompiler: TSepiMethodCompiler; AOpCode: TSepiOpCode);
+begin
+  Assert(AOpCode in [ocAnsiStrLength..ocDynArrayHigh]);
+
+  inherited Create(AMethodCompiler);
+
+  FOpCode := AOpCode;
+
+  FDestination := TSepiMemoryReference.Create(MethodCompiler);
+  FValue := TSepiMemoryReference.Create(MethodCompiler,
+    aoAcceptNonCodeConsts);
+end;
+
+{*
+  [@inheritDoc]
+*}
+destructor TSepiAsmValueToIntStdFunction.Destroy;
+begin
+  FValue.Free;
+  FDestination.Free;
+
+  inherited;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiAsmValueToIntStdFunction.Make;
+begin
+  inherited;
+
+  Destination.Make;
+  Inc(FSize, Destination.Size);
+  Value.Make;
+  Inc(FSize, Value.Size);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiAsmValueToIntStdFunction.WriteToStream(Stream: TStream);
+begin
+  inherited;
+
+  Destination.WriteToStream(Stream);
+  Value.WriteToStream(Stream);
 end;
 
 end.

@@ -27,9 +27,14 @@ end;
 
 procedure Test(const Str: string; Strings: TStrings);
 var
+  Tab: array[0..1] of TVarRec;
   Line: string;
 begin
-  Line := Str + ' ' + IntToStr(Random(5));
+  Tab[0].VAnsiString := Pointer(Str);
+  Tab[0].VType := vtAnsiString;
+  Tab[1].VInteger := Random(5);
+  Tab[1].VType := vtInteger;
+  Line := Format('%s %d', Tab);
   Strings.Add(Line);
 end;
 

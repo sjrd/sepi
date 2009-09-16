@@ -366,6 +366,12 @@ const
   ocSetOtherSubtract  = TSepiOpCode($7E); /// SSUB SetSize, Dest, Left, Right
   ocSetExpand         = TSepiOpCode($7F); /// SEXP Dest, Src, Lo, Hi
 
+  // Standart Delphi functions
+  ocAnsiStrLength  = TSepiOpCode($80); /// ASL Dest, Value
+  ocWideStrLength  = TSepiOpCode($81); /// WSL Dest, Value
+  ocDynArrayLength = TSepiOpCode($82); /// DAL Dest, Value
+  ocDynArrayHigh   = TSepiOpCode($83); /// DAH Dest, Value
+
 function MemoryRefEncode(MemorySpace: TSepiMemorySpace;
   OpCount: Integer): TSepiMemoryRef;
 procedure MemoryRefDecode(MemoryRef: TSepiMemoryRef;

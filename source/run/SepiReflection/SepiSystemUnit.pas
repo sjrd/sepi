@@ -30,7 +30,7 @@ interface
 
 uses
   Classes, StrUtils, TypInfo, SepiReflectionCore, SepiOrdTypes, SepiStrTypes,
-  SepiArrayTypes, SepiMembers;
+  SepiArrayTypes, SepiMembers, SepiReflectionConsts;
 
 type
   {*
@@ -39,7 +39,10 @@ type
     @version 1.0
   *}
   TSepiSystemTypes = packed record
-    { Update the SystemTypeCount constant below when you modify this record. }
+    { Update the SystemTypeNames constant below when you modify this record. }
+
+    // Special types
+    Untyped: TSepiUntypedType;
 
     // Integer types
     Integer: TSepiOrdType;
@@ -96,6 +99,7 @@ type
     IDispatch: TSepiInterface;
     TGUID: TSepiRecordType;
     TMethod: TSepiRecordType;
+    TVarRec: TSepiRecordType;
   end;
 
   {*
@@ -115,6 +119,9 @@ type
     constructor Create(AOwner: TSepiComponent);
 
     property Types: TSepiSystemTypes read FTypes;
+
+    // Special types
+    property Untyped: TSepiUntypedType read FTypes.Untyped;
 
     // Integer types
     property Integer: TSepiOrdType read FTypes.Integer;
@@ -171,6 +178,7 @@ type
     property IDispatch: TSepiInterface read FTypes.IDispatch;
     property TGUID: TSepiRecordType read FTypes.TGUID;
     property TMethod: TSepiRecordType read FTypes.TMethod;
+    property TVarRec: TSepiRecordType read FTypes.TVarRec;
   end;
 
 implementation
@@ -181,6 +189,9 @@ const // don't localize
 
   /// Noms des types sytème
   SystemTypeNames: array[0..SystemTypeCount-1] of string = (
+    // Special types
+    SUntypedTypeName,
+
     // Integer types
     'Integer',
     'Cardinal',
@@ -235,7 +246,8 @@ const // don't localize
     'IUnknown',
     'IDispatch',
     'TGUID',
-    'TMethod'
+    'TMethod',
+    'TVarRec'
   );
 
 {-----------------------}
