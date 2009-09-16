@@ -2752,7 +2752,7 @@ var
   PointerTypeName: string;
   I: Integer;
 begin
-  if PointTo = nil then
+  if (PointTo = nil) or (PointTo is TSepiUntypedType) then
   begin
     Result := SystemUnit.Pointer;
     Exit;

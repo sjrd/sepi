@@ -293,6 +293,20 @@ type
   end;
 
   {*
+    Constructeur d'ensemble ou de tableau ouvert
+    @author sjrd
+    @version 1.0
+  *}
+  ISepiSetOrOpenArrayBuilder = interface(ISepiExpressionPart)
+    ['{3AE1F41D-BBF6-4716-90D9-3EB32CB3720B}']
+
+    procedure AddSingle(const Value: ISepiReadableValue);
+    procedure AddRange(const Lower, Higher: ISepiReadableValue);
+
+    procedure Complete;
+  end;
+
+  {*
     Implémentation de base de ISepiExpressionPart
     La majorité des classes devant implémenter ISepiExpressionPart devraient
     hériter de cette classe.
@@ -1563,6 +1577,78 @@ type
     constructor Create(AType: TSepiType);
 
     property ExprType: TSepiType read FType;
+  end;
+
+  {*
+    Constructeur d'ensemble ou de tableau ouvert
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiSetOrOpenArrayBuilder = class(TSepiCustomExpressionPart,
+    ISepiSetOrOpenArrayBuilder, ISepiValue, ISepiReadableValue,
+    ISepiTypeForceableValue, ISepiOpenArrayValue)
+  private
+    FCompleted: Boolean;                    /// True si complété
+    FSingles: array of ISepiReadableValue;  /// Valeurs simples
+    FRanges: array of TSepiSetBuilderRange; /// Intervalles de valeur
+
+    FOpenArrayAvailable: Boolean; /// Indique si un tableau ouvert est possible
+
+    FSetBuilder: ISepiSetBuilder;             /// Constructeur d'ensemble
+    FOpenArrayBuilder: ISepiOpenArrayBuilder; /// Constructeur de tableau ouvert
+
+    FSetBuilderCompleted: Boolean;       /// Indique si l'ensemble est complété
+    FOpenArrayBuilderCompleted: Boolean; /// Indique si le tableau est complété
+
+    procedure NeedSetBuilder;
+    procedure NeedOpenArrayBuilder;
+  protected
+    function QueryInterface(const IID: TGUID;
+      out Obj): HResult; override; stdcall;
+
+    procedure AttachToExpression(const Expression: ISepiExpression); override;
+
+    // ISepiSetOrOpenArrayBuilder
+
+    procedure AddSingle(const Value: ISepiReadableValue);
+    procedure AddRange(const Lower, Higher: ISepiReadableValue);
+
+    procedure Complete;
+
+    // ISepiValue, ISepiReadableValue and ISepiTypeForceableValue
+
+    function GetValueType: TSepiType;
+
+    function CanForceType(AValueType: TSepiType; Explicit: Boolean): Boolean;
+    procedure ForceType(AValueType: TSepiType);
+
+    function GetIsConstant: Boolean;
+    function GetConstValuePtr: Pointer;
+
+    procedure CompileRead(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
+      TempVars: TSepiTempVarsLifeManager);
+
+    // ISepiOpenArrayValue
+
+    function GetElementType: TSepiType;
+
+    function CanForceElementType(AElementType: TSepiType): Boolean;
+    procedure ForceElementType(AElementType: TSepiType);
+
+    procedure CompileReadOpenArray(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList;
+      var OpenArrayDest, HighValueDest: TSepiMemoryReference;
+      TempVars: TSepiTempVarsLifeManager);
+
+    // Properties
+
+    property Completed: Boolean read FCompleted;
+
+    property SetBuilder: ISepiSetBuilder read FSetBuilder;
+    property OpenArrayBuilder: ISepiOpenArrayBuilder read FOpenArrayBuilder;
+  public
+    constructor Create(UnitCompiler: TSepiUnitCompiler);
   end;
 
 procedure NeedDestination(var Destination: TSepiMemoryReference;
@@ -8010,6 +8096,271 @@ end;
 function TSepiTypeExpression.GetType: TSepiType;
 begin
   Result := FType;
+end;
+
+{----------------------------------}
+{ TSepiSetOrOpenArrayBuilder class }
+{----------------------------------}
+
+{*
+  Crée une instance de TSepiSetOrOpenArrayBuilder
+  @param UnitCompiler   Compilateur d'unité
+*}
+constructor TSepiSetOrOpenArrayBuilder.Create(UnitCompiler: TSepiUnitCompiler);
+begin
+  inherited Create;
+
+  FSetBuilder := TSepiSetBuilder.Create(UnitCompiler);
+  FOpenArrayBuilder := TSepiOpenArrayBuilder.Create(UnitCompiler.SepiRoot);
+
+  FOpenArrayAvailable := True;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiSetOrOpenArrayBuilder.NeedSetBuilder;
+var
+  I: Integer;
+begin
+  if FSetBuilderCompleted then
+    Exit;
+
+  for I := 0 to Length(FSingles)-1 do
+    SetBuilder.AddSingle(FSingles[I]);
+
+  for I := 0 to Length(FRanges)-1 do
+    SetBuilder.AddRange(FRanges[I].LowerValue, FRanges[I].HigherValue);
+
+  SetBuilder.Complete;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiSetOrOpenArrayBuilder.NeedOpenArrayBuilder;
+var
+  I: Integer;
+begin
+  Assert(FOpenArrayAvailable);
+
+  if FOpenArrayBuilderCompleted then
+    Exit;
+
+  for I := 0 to Length(FSingles)-1 do
+    OpenArrayBuilder.AddItem(FSingles[I]);
+
+  OpenArrayBuilder.Complete;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiSetOrOpenArrayBuilder.QueryInterface(const IID: TGUID;
+  out Obj): HResult;
+begin
+  if SameGUID(IID, ISepiTypeForceableSetValue) then
+  begin
+    NeedSetBuilder;
+    Result := FSetBuilder.QueryInterface(IID, Obj);
+  end else if SameGUID(IID, ISepiOpenArrayValue) and
+    (not FOpenArrayAvailable) then
+  begin
+    Result := E_NOINTERFACE;
+  end else
+  begin
+    Result := inherited QueryInterface(IID, Obj);
+  end;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiSetOrOpenArrayBuilder.AttachToExpression(
+  const Expression: ISepiExpression);
+var
+  AsExpressionPart: ISepiExpressionPart;
+begin
+  AsExpressionPart := Self;
+
+  Expression.Attach(ISepiSetOrOpenArrayBuilder, AsExpressionPart);
+
+  if not Supports(SetBuilder, ISepiExpression) then
+  begin
+    SetBuilder.AttachToExpression(TSepiExpression.Create(Expression));
+    OpenArrayBuilder.AttachToExpression(TSepiExpression.Create(Expression));
+  end;
+
+  if Completed then
+  begin
+    Expression.Attach(ISepiValue, AsExpressionPart);
+    Expression.Attach(ISepiReadableValue, AsExpressionPart);
+
+    if FOpenArrayAvailable then
+      Expression.Attach(ISepiOpenArrayValue, AsExpressionPart);
+  end;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiSetOrOpenArrayBuilder.AddSingle(const Value: ISepiReadableValue);
+var
+  Len: Integer;
+begin
+  Assert(not Completed);
+
+  Len := Length(FSingles);
+  SetLength(FSingles, Len+1);
+  FSingles[Len] := Value;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiSetOrOpenArrayBuilder.AddRange(
+  const Lower, Higher: ISepiReadableValue);
+var
+  Len: Integer;
+begin
+  Assert(not Completed);
+
+  Len := Length(FRanges);
+  SetLength(FRanges, Len+1);
+  FRanges[Len].LowerValue := Lower;
+  FRanges[Len].HigherValue := Higher;
+
+  FOpenArrayAvailable := False;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiSetOrOpenArrayBuilder.Complete;
+begin
+  Assert(not Completed);
+  FCompleted := True;
+
+  AttachToExpression(Expression);
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiSetOrOpenArrayBuilder.GetValueType: TSepiType;
+begin
+  Result := FSetBuilder.ValueType;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiSetOrOpenArrayBuilder.CanForceType(AValueType: TSepiType;
+  Explicit: Boolean): Boolean;
+begin
+  Result := AValueType is TSepiSetType;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiSetOrOpenArrayBuilder.ForceType(AValueType: TSepiType);
+begin
+  Assert(CanForceType(AValueType, False));
+
+  NeedSetBuilder;
+
+  if SetBuilder.CanForceType(AValueType) then
+    SetBuilder.ForceType(AValueType)
+  else
+  begin
+    MakeError(Format(STypeMismatch, [AValueType.DisplayName,
+      SetBuilder.ValueType.DisplayName]));
+
+    FSetBuilder := TSepiSetBuilder.Create(UnitCompiler);
+    FSetBuilder.AttachToExpression(TSepiExpression.Create(Expression));
+    FSetBuilder.Complete;
+
+    Assert(SetBuilder.CanForceType(AValueType));
+    SetBuilder.ForceType(AValueType);
+  end;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiSetOrOpenArrayBuilder.GetIsConstant: Boolean;
+begin
+  NeedSetBuilder;
+
+  Result := (SetBuilder as ISepiReadableValue).IsConstant;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiSetOrOpenArrayBuilder.GetConstValuePtr: Pointer;
+begin
+  NeedSetBuilder;
+
+  Result := (SetBuilder as ISepiReadableValue).ConstValuePtr;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiSetOrOpenArrayBuilder.CompileRead(Compiler: TSepiMethodCompiler;
+  Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
+  TempVars: TSepiTempVarsLifeManager);
+begin
+  NeedSetBuilder;
+
+  (SetBuilder as ISepiReadableValue).CompileRead(Compiler, Instructions,
+    Destination, TempVars);
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiSetOrOpenArrayBuilder.GetElementType: TSepiType;
+begin
+  if FOpenArrayBuilderCompleted then
+    Result := (OpenArrayBuilder as ISepiOpenArrayValue).ElementType
+  else
+    Result := (SepiRoot.SystemUnit as TSepiSystemUnit).TVarRec;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiSetOrOpenArrayBuilder.CanForceElementType(
+  AElementType: TSepiType): Boolean;
+begin
+  Result := True;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiSetOrOpenArrayBuilder.ForceElementType(AElementType: TSepiType);
+begin
+  NeedOpenArrayBuilder;
+
+  (OpenArrayBuilder as ISepiOpenArrayValue).ForceElementType(AElementType);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiSetOrOpenArrayBuilder.CompileReadOpenArray(
+  Compiler: TSepiMethodCompiler; Instructions: TSepiInstructionList;
+  var OpenArrayDest, HighValueDest: TSepiMemoryReference;
+  TempVars: TSepiTempVarsLifeManager);
+begin
+  NeedOpenArrayBuilder;
+
+  (OpenArrayBuilder as ISepiOpenArrayValue).CompileReadOpenArray(Compiler,
+    Instructions, OpenArrayDest, HighValueDest, TempVars);
 end;
 
 end.

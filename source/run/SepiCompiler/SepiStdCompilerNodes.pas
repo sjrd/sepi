@@ -449,6 +449,23 @@ type
   end;
 
   {*
+    Noeud constructeur d'ensemble ou de tableau ouvert
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiSetOrOpenArrayBuilderNode = class(TSepiExpressionNode)
+  private
+    FBuilder: ISepiSetOrOpenArrayBuilder; /// Constructeur
+  protected
+    procedure ChildEndParsing(Child: TSepiParseTreeNode); override;
+
+    property Builder: ISepiSetOrOpenArrayBuilder read FBuilder;
+  public
+    procedure BeginParsing; override;
+    procedure EndParsing; override;
+  end;
+
+  {*
     Noeud représentant une expression d'appel inherited
     @author sjrd
     @version 1.0
@@ -2735,6 +2752,62 @@ end;
 procedure TSepiSetValueNode.EndParsing;
 begin
   SetBuilder.Complete;
+
+  inherited;
+end;
+
+{--------------------------------------}
+{ TSepiSetOrOpenArrayBuilderNode class }
+{--------------------------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiSetOrOpenArrayBuilderNode.BeginParsing;
+begin
+  inherited;
+
+  SetExpression(MakeExpression);
+  FBuilder := TSepiSetOrOpenArrayBuilder.Create(UnitCompiler);
+  FBuilder.AttachToExpression(Expression);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiSetOrOpenArrayBuilderNode.ChildEndParsing(
+  Child: TSepiParseTreeNode);
+var
+  SingleValue, LowerValue, HigherValue: ISepiReadableValue;
+begin
+  if Child.ChildCount = 1 then
+  begin
+    // Single value
+
+    SingleValue := (Child.Children[0] as TSepiExpressionNode).AsReadableValue;
+
+    if SingleValue <> nil then
+      Builder.AddSingle(SingleValue);
+  end else
+  begin
+    // Range
+
+    LowerValue := (Child.Children[0] as TSepiExpressionNode).AsReadableValue;
+    HigherValue := (Child.Children[1] as TSepiExpressionNode).AsReadableValue;
+
+    if (LowerValue <> nil) and (HigherValue <> nil) then
+      Builder.AddRange(LowerValue, HigherValue);
+  end;
+
+  inherited;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiSetOrOpenArrayBuilderNode.EndParsing;
+begin
+  Builder.Complete;
 
   inherited;
 end;

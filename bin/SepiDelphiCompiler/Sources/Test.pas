@@ -27,14 +27,9 @@ end;
 
 procedure Test(const Str: string; Strings: TStrings);
 var
-  Tab: array[0..1] of TVarRec;
   Line: string;
 begin
-  Tab[0].VAnsiString := Pointer(Str);
-  Tab[0].VType := vtAnsiString;
-  Tab[1].VInteger := Random(5);
-  Tab[1].VType := vtInteger;
-  Line := Format('%s %d', Tab);
+  Line := Format('%s %d', [Str, Random(5)]);
   Strings.Add(Line);
 end;
 
@@ -72,6 +67,7 @@ begin
   D := 'D';
   WriteLn(CharSetToStr(SwitchChars + [C, 'A'..D] - ['B', 'Q'] * ['B'..'E'] +
     [Chr(ShorterConst)..Chr(ShorterVar)] + EmptySet + (['Z']-[])));
+  WriteLn(CharSetToStr(['1', '9']));
 end;
 
 procedure TestChangeGlobalVar;

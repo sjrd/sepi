@@ -593,11 +593,12 @@ begin
   NonTerminalClasses[ntSetValue]              := TSepiSetValueNode;
   NonTerminalClasses[ntCaseOfSetValue]        := TSepiSetValueNode;
 
-  NonTerminalClasses[ntUnaryOpModifier] := TSepiUnaryOpModifierNode;
-  NonTerminalClasses[ntDereferenceOp]   := TSepiDereferenceOpNode;
-  NonTerminalClasses[ntParameters]      := TDelphiParametersNode;
-  NonTerminalClasses[ntArrayIndices]    := TSepiArrayIndicesModifierNode;
-  NonTerminalClasses[ntFieldSelection]  := TSepiFieldSelectionModifierNode;
+  NonTerminalClasses[ntUnaryOpModifier]       := TSepiUnaryOpModifierNode;
+  NonTerminalClasses[ntDereferenceOp]         := TSepiDereferenceOpNode;
+  NonTerminalClasses[ntParameters]            := TDelphiParametersNode;
+  NonTerminalClasses[ntSetOrOpenArrayBuilder] := TSepiSetOrOpenArrayBuilderNode;
+  NonTerminalClasses[ntArrayIndices]          := TSepiArrayIndicesModifierNode;
+  NonTerminalClasses[ntFieldSelection] := TSepiFieldSelectionModifierNode;
 
   NonTerminalClasses[ntTypeName] := TSepiTypeNameNode;
 
