@@ -45,7 +45,7 @@ begin
     WriteLn('');
 
   WriteLn(Title);
-  WriteLn(StringOfChar('-', 10));
+  WriteLn(StringOfChar('-', Length(Title)));
   WriteLn('');
 
   IsFirstTitle := False;
@@ -166,10 +166,10 @@ begin
 
   Strings := TPrintOnAddStrings.Create;
   try
-    for I := 0 to 10 do
+    for I := Low(Tab) to High(Tab) do
       Tab[I] := I*I;
 
-    for I := 0 to 10 do
+    for I := Low(Tab) to High(Tab) do
       Test(IntToStr(Tab[I]), Strings);
 
     try
@@ -195,7 +195,7 @@ begin
       WriteLn('Will not appear');
     except
       on Error: EConvertError do
-        WriteLn('Hey, I catched a EConvertError: ' + Error.Message);
+        WriteLn(Format('Hey, I catched a EConvertError: %s', [Error.Message]));
       {else
         WriteLn('Unknown exception: I reraise it');
         raise;}
@@ -208,7 +208,25 @@ begin
   WriteLn('Will appear only if that was a EConvertError, which was catched');
 end;
 
+procedure TestOpenArray(const Values: array of Integer);
+var
+  Line: string;
+  I: Integer;
+begin
+  WriteTitle('Test an open array parameter');
+
+  WriteLn(Format('The array has %d elements', [Length(Values)]));
+
+  Line := 'Values are:';
+  for I := Low(Values) to High(Values) do
+    Line := Line + ' ' + IntToStr(Values[I]);
+
+  WriteLn(Line);
+end;
+
 procedure Main;
+const
+  Items: array[1..8] of Integer = (2, 3, 5, 7, 11, 13, 17, 19);
 begin
   Randomize;
 
@@ -217,6 +235,7 @@ begin
   TestIfCompilerDirective;
   TestMethodRef;
   TestIsAs;
+  TestOpenArray(Items);
   TestExceptionsAndClassDef;
 end;
 

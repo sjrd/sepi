@@ -78,6 +78,7 @@ resourcestring
 
   // Sorte particulière de type requise
   STypeIdentifierRequired = 'Identificateur de type requis';
+  SStringTypeRequired = 'Type chaîne requis';
   SPointerTypeRequired = 'Type pointeur requis';
   SArrayTypeRequired = 'Type tableau requis';
   SRecordTypeRequired = 'Type record requis';
@@ -93,6 +94,13 @@ resourcestring
   SOpenArrayRequired = 'Tableau ouvert de type %s requis';
   SInvalidArrayOfConstItem =
     'Type de valeur non autorisé dans un élément de tableau ouvert';
+  SStringOrArrayTypeRequired = 'Type chaîne ou tableau requis';
+  SStringTypeOrTypeIdentifierRequired =
+    'Type chaîne ou identificateur de type requis';
+  SArrayTypeOrTypeIdentifierRequired =
+    'Type tableau ou identificateur de type requis';
+  SStringOrArrayTypeOrTypeIdentifierRequired =
+    'Type tableau, type chaîne, ou identificateur de type requis';
 
   // Erreurs sur les valeurs
   SValueRequired = 'Valeur requise';

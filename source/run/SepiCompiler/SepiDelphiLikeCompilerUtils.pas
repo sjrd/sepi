@@ -28,8 +28,8 @@ interface
 
 uses
   Windows, SysUtils, StrUtils, TypInfo, ScUtils, SepiReflectionCore,
-  SepiOrdTypes, SepiMembers, SepiSystemUnit, SepiCompiler, SepiExpressions,
-  SepiInstructions, SepiCompilerConsts;
+  SepiOrdTypes, SepiStrTypes, SepiArrayTypes, SepiMembers, SepiSystemUnit,
+  SepiCompiler, SepiExpressions, SepiInstructions, SepiCompilerConsts;
 
 type
   {*
@@ -108,20 +108,50 @@ type
   end;
 
   {*
+    Option d'une opération sur un type
+    - tooTypeOperand : accepte un opérande qui est un type
+    - tooValueTypeOperand : accepte un opérande valeur pour en extraire le type
+    - tooStrValueOperand : accepte un opérande chaîne
+    - tooArrayValueOperand : accepte un opérande tableau
+    - tooNilIfNoTypeInfo : pour TypeInfo, accepte un type sans RTTI -> nil
+  *}
+  TSepiTypeOperationOption = (
+    tooTypeOperand, tooValueTypeOperand, tooStrValueOperand,
+    tooArrayValueOperand, tooNilIfNoTypeInfo
+  );
+
+  /// Options d'une opération sur un type
+  TSepiTypeOperationOptions = set of TSepiTypeOperationOption;
+
+const
+  /// Options des opérations sur les types utilisées en Delphi
+  tooDelphiOptions = [tooTypeOperand..tooArrayValueOperand];
+
+type
+  {*
     Pseudo-routine d'opération sur un type
     @author sjrd
     @version 1.0
   *}
   TSepiTypeOperationPseudoRoutine = class(TSepiOneParamValueBackedPseudoRoutine)
   private
-    FTypeOperation: TSepiTypeOperationValue; /// Opération sous-jacente
+    FKind: TSepiTypeOperation;           /// Type d'opération
+    FOptions: TSepiTypeOperationOptions; /// Options
   protected
     function MakeTypeExpression(SepiType: TSepiType): ISepiTypeExpression;
 
+    procedure CompleteTypeOperation(
+      const TypeExpression: ISepiTypeExpression); virtual;
+    procedure CompleteStrOperation(const StrValue: ISepiReadableValue); virtual;
+    procedure CompleteArrayBound(const ArrayValue: ISepiReadableValue); virtual;
+
     procedure CompleteParams; override;
   public
-    constructor Create(AOperation: TSepiTypeOperation;
-      ANilIfNoTypeInfo: Boolean = False);
+    constructor Create(AKind: TSepiTypeOperation;
+      AOptions: TSepiTypeOperationOptions = tooDelphiOptions);
+
+    property Kind: TSepiTypeOperation read FKind;
+    property Options: TSepiTypeOperationOptions read FOptions;
   end;
 
   {*
@@ -708,13 +738,25 @@ end;
   @param AOperation         Opération
   @param ANilIfNoTypeInfo   Si True, TypeInfo peut renvoyer nil
 *}
-constructor TSepiTypeOperationPseudoRoutine.Create(
-  AOperation: TSepiTypeOperation; ANilIfNoTypeInfo: Boolean = False);
+constructor TSepiTypeOperationPseudoRoutine.Create(AKind: TSepiTypeOperation;
+  AOptions: TSepiTypeOperationOptions = tooDelphiOptions);
+const
+  OptionsWhomAtLeastOne = [
+    tooTypeOperand, tooValueTypeOperand, tooStrValueOperand,
+    tooArrayValueOperand
+  ];
 begin
   inherited Create;
 
-  FTypeOperation := TSepiTypeOperationValue.Create(AOperation,
-    ANilIfNoTypeInfo);
+  FKind := AKind;
+  FOptions := AOptions;
+
+  if Kind <> toLength then
+    Exclude(FOptions, tooStrValueOperand);
+  if not (Kind in [toLowerBound, toHigherBound, toLength]) then
+    Exclude(FOptions, tooArrayValueOperand);
+
+  Assert(FOptions * OptionsWhomAtLeastOne <> []);
 end;
 
 {*
@@ -730,35 +772,118 @@ begin
 end;
 
 {*
+  Complète une opération sur un type
+  @param TypeExpression   Expression de type
+*}
+procedure TSepiTypeOperationPseudoRoutine.CompleteTypeOperation(
+  const TypeExpression: ISepiTypeExpression);
+begin
+  BackingValue := TSepiTypeOperationValue.MakeTypeOperationValue(Kind,
+    TypeExpression, tooNilIfNoTypeInfo in Options);
+end;
+
+{*
+  Complète une opération sur une chaîne de caractères
+  @param StrValue   Valeur chaîne
+*}
+procedure TSepiTypeOperationPseudoRoutine.CompleteStrOperation(
+  const StrValue: ISepiReadableValue);
+begin
+  Assert(Kind = toLength);
+
+  BackingValue := TSepiStringLengthValue.MakeStringLengthValue(StrValue);
+end;
+
+{*
+  Complète une opération sur un tableau
+  @param ArrayValue   Valeur tableau
+*}
+procedure TSepiTypeOperationPseudoRoutine.CompleteArrayBound(
+  const ArrayValue: ISepiReadableValue);
+const
+  TypeOperationToArrayBound: array[toLowerBound..toLength] of
+    TSepiArrayBoundKind = (abkLow, abkHigh, abkLength);
+begin
+  Assert(Kind in [toLowerBound, toHigherBound, toLength]);
+
+  BackingValue := TSepiArrayBoundValue.MakeArrayBoundValue(
+    TypeOperationToArrayBound[Kind], ArrayValue);
+end;
+
+{*
   [@inheritDoc]
 *}
 procedure TSepiTypeOperationPseudoRoutine.CompleteParams;
 var
-  Param: ISepiExpression;
   TypeExpression: ISepiTypeExpression;
   Value: ISepiValue;
+  ReadableValue: ISepiReadableValue;
+  ErrorIndex: Byte;
 begin
   inherited;
 
-  BackingValue := FTypeOperation;
-  BackingValue.AttachToExpression(TSepiExpression.Create(Expression));
-
-  Param := Operand;
-  if Param <> nil then
+  if Operand <> nil then
   begin
-    if Supports(Param, ISepiTypeExpression, TypeExpression) then
-      FTypeOperation.Operand := TypeExpression
-    else if Supports(Param, ISepiValue, Value) then
-      FTypeOperation.Operand := MakeTypeExpression(Value.ValueType)
-    else
-      Param.MakeError(STypeIdentifierRequired);
+    // Operand is a type expression
+    if (tooTypeOperand in Options) and
+      Supports(Operand, ISepiTypeExpression, TypeExpression) then
+    begin
+      CompleteTypeOperation(TypeExpression);
+    end else
+
+    // Operand is a string/array value
+    if (Options * [tooStrValueOperand, tooArrayValueOperand] <> []) and
+      Supports(Operand, ISepiReadableValue, ReadableValue) then
+    begin
+      // Operand is a string value
+      if (tooStrValueOperand in Options) and
+        (ReadableValue.ValueType is TSepiStringType) then
+      begin
+        CompleteStrOperation(ReadableValue);
+      end else
+
+      // Operand is an array value
+      if (tooArrayValueOperand in Options) and
+        (ReadableValue.ValueType is TSepiArrayType) then
+      begin
+        CompleteArrayBound(ReadableValue);
+      end;
+    end else
+
+    // Operand is a value that we interpret as a type expression
+    if (tooValueTypeOperand in Options) and
+      Supports(Operand, ISepiValue, Value) then
+    begin
+      CompleteTypeOperation(MakeTypeExpression(Value.ValueType));
+    end;
   end;
 
-  if FTypeOperation.Operand = nil then
-    FTypeOperation.Operand := MakeTypeExpression(
-      (SepiRoot.SystemUnit as TSepiSystemUnit).Integer);
+  // Error handling
+  if BackingValue = nil then
+  begin
+    // Issue error message
+    ErrorIndex := 0;
+    if tooStrValueOperand in Options then
+      Inc(ErrorIndex, 1);
+    if tooArrayValueOperand in Options then
+      Inc(ErrorIndex, 2);
+    if Options * [tooTypeOperand, tooValueTypeOperand] <> [] then
+      Inc(ErrorIndex, 4);
 
-  FTypeOperation.Complete;
+    case ErrorIndex of
+      1: MakeError(SStringTypeRequired);
+      2: MakeError(SArrayTypeRequired);
+      3: MakeError(SStringOrArrayTypeRequired);
+      4: MakeError(STypeIdentifierRequired);
+      5: MakeError(SStringTypeOrTypeIdentifierRequired);
+      6: MakeError(SArrayTypeOrTypeIdentifierRequired);
+      7: MakeError(SStringOrArrayTypeOrTypeIdentifierRequired);
+    end;
+
+    // Make fake value
+    FKind := toSizeOf;
+    CompleteTypeOperation(MakeTypeExpression(UnitCompiler.SystemUnit.Integer));
+  end;
 
   AttachToExpression(Expression);
 end;

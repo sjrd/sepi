@@ -1203,6 +1203,78 @@ type
   end;
 
   {*
+    Longueur d'une chaîne de caractères
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiStringLengthValue = class(TSepiCustomComputedValue)
+  private
+    FOperand: ISepiReadableValue; /// Opérande
+
+    procedure CheckType;
+    procedure CollapseConsts;
+  protected
+    procedure CompileCompute(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
+      TempVars: TSepiTempVarsLifeManager); override;
+  public
+    procedure Complete;
+
+    class function MakeStringLengthValue(
+      const Operand: ISepiReadableValue): ISepiReadableValue;
+
+    property Operand: ISepiReadableValue read FOperand write FOperand;
+  end;
+
+  {*
+    Type de borne de tableau
+    - abkLow : Borne inférieure ;
+    - abkHigh : Borne supérieure ;
+    - abkLength : Longueur du tableau.
+  *}
+  TSepiArrayBoundKind = (abkLow, abkHigh, abkLength);
+
+  {*
+    Borne d'un tableau (Low, High ou Length)
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiArrayBoundValue = class(TSepiCustomComputedValue)
+  private
+    FKind: TSepiArrayBoundKind;   /// Type de borne
+    FOperand: ISepiReadableValue; /// Opérande
+
+    FArrayType: TSepiArrayType; /// Type tableau de l'opérande
+
+    procedure CheckType;
+    procedure CollapseConsts;
+  protected
+    procedure CompileCompute(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
+      TempVars: TSepiTempVarsLifeManager); override;
+
+    procedure CompileComputeDynArray(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
+      TempVars: TSepiTempVarsLifeManager); virtual;
+
+    procedure CompileComputeOpenArray(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
+      TempVars: TSepiTempVarsLifeManager); virtual;
+
+    property ArrayType: TSepiArrayType read FArrayType;
+  public
+    constructor Create(AKind: TSepiArrayBoundKind);
+
+    procedure Complete;
+
+    class function MakeArrayBoundValue(Kind: TSepiArrayBoundKind;
+      const Operand: ISepiReadableValue): ISepiReadableValue;
+
+    property Kind: TSepiArrayBoundKind read FKind;
+    property Operand: ISepiReadableValue read FOperand write FOperand;
+  end;
+
+  {*
     Classe de base pour les expressions qui ont des paramètres
     @author sjrd
     @version 1.0
@@ -1509,6 +1581,10 @@ type
 
     procedure Complete;
 
+    class function MakeTypeOperationValue(Operation: TSepiTypeOperation;
+      const Operand: ISepiTypeExpression;
+      NilIfNoTypeInfo: Boolean = False): ISepiReadableValue;
+
     property Operation: TSepiTypeOperation read FOperation;
     property Operand: ISepiTypeExpression read FOperand write FOperand;
     property NilIfNoTypeInfo: Boolean
@@ -1548,7 +1624,8 @@ type
     @author sjrd
     @version 1.0
   *}
-  TSepiComponentExpression = class(TSepiCustomExpressionPart, ISepiComponentExpression)
+  TSepiComponentExpression = class(TSepiCustomExpressionPart,
+    ISepiComponentExpression)
   private
     FComponent: TSepiComponent; /// Component
   protected
@@ -6195,7 +6272,6 @@ begin
     { To access a class field, we must read the object value, then
       dereference it and add the field offset. }
 
-    SourceMemory := nil;
     ObjectValue.CompileRead(Compiler, Instructions,
       SourceMemory, TempVars);
 
@@ -6210,6 +6286,309 @@ begin
   finally
     SourceMemory.Free;
   end;
+end;
+
+{------------------------------}
+{ TSepiStringLengthValue class }
+{------------------------------}
+
+{*
+  Vérification de type
+*}
+procedure TSepiStringLengthValue.CheckType;
+begin
+  if not (Operand.ValueType is TSepiStringType) then
+  begin
+    MakeError(SStringTypeRequired);
+    Operand := TSepiErroneousValue.MakeReplacementValue(
+      Operand as ISepiExpression,
+      (SepiRoot.SystemUnit as TSepiSystemUnit).LongString);
+  end;
+end;
+
+{*
+  Pliage des constantes
+*}
+procedure TSepiStringLengthValue.CollapseConsts;
+begin
+  if not Operand.IsConstant then
+    Exit;
+
+  AllocateConstant;
+
+  if (Operand.ValueType as TSepiStringType).IsUnicode then
+    PInteger(ConstValuePtr)^ := Length(WideString(Operand.ConstValuePtr^))
+  else
+    PInteger(ConstValuePtr)^ := Length(AnsiString(Operand.ConstValuePtr^));
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiStringLengthValue.CompileCompute(Compiler: TSepiMethodCompiler;
+  Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
+  TempVars: TSepiTempVarsLifeManager);
+var
+  SourceMemory: TSepiMemoryReference;
+  SrcTempVars: TSepiTempVarsLifeManager;
+  Instr: TSepiAsmValueToIntStdFunction;
+begin
+  SourceMemory := nil;
+  try
+    // Read operand
+    SrcTempVars := TSepiTempVarsLifeManager.Create;
+    try
+      Operand.CompileRead(Compiler, Instructions, SourceMemory, SrcTempVars);
+    finally
+      SrcTempVars.EndAllLifes(Instructions.GetCurrentEndRef);
+      SrcTempVars.Free;
+    end;
+
+    // Make instruction
+    Instr := TSepiAsmValueToIntStdFunction.Create(Compiler,
+      IIF((Operand.ValueType as TSepiStringType).IsUnicode, ocWideStrLength,
+      ocAnsiStrLength));
+    Instr.SourcePos := Expression.SourcePos;
+
+    NeedDestination(Destination, ValueType, Compiler, TempVars, Instr.AfterRef);
+
+    Instr.Destination.Assign(Destination);
+    Instr.Value.Assign(SourceMemory);
+
+    Instructions.Add(Instr);
+  finally
+    SourceMemory.Free;
+  end;
+end;
+
+{*
+  Complète l'opération
+  L'opération doit avoir été attachée à une expression auparavant, pour pouvoir
+  bénéficier du contexte de celle-ci.
+*}
+procedure TSepiStringLengthValue.Complete;
+begin
+  Assert(Expression <> nil);
+  Assert(Operand <> nil);
+
+  SetValueType((SepiRoot.SystemUnit as TSepiSystemUnit).Integer);
+
+  CheckType;
+  CollapseConsts;
+end;
+
+{*
+  Construit une valeur longueur de chaîne de caractères
+  @param Operand    Opérande
+  @return Valeur représentant la longueur de la chaîne de caractères
+*}
+class function TSepiStringLengthValue.MakeStringLengthValue(
+  const Operand: ISepiReadableValue): ISepiReadableValue;
+var
+  StrLenValue: TSepiStringLengthValue;
+begin
+  StrLenValue := TSepiStringLengthValue.Create;
+  Result := StrLenValue;
+  Result.AttachToExpression(TSepiExpression.Create(Operand as ISepiExpression));
+  StrLenValue.Operand := Operand;
+  StrLenValue.Complete;
+end;
+
+{----------------------------}
+{ TSepiArrayBoundValue class }
+{----------------------------}
+
+{*
+  Crée une valeur borne de tableau
+  @param AKind   Type de borne
+*}
+constructor TSepiArrayBoundValue.Create(AKind: TSepiArrayBoundKind);
+begin
+  inherited Create;
+
+  FKind := AKind;
+end;
+
+{*
+  Vérification de type
+*}
+procedure TSepiArrayBoundValue.CheckType;
+begin
+  if Operand.ValueType is TSepiArrayType then
+  begin
+    FArrayType := TSepiArrayType(Operand.ValueType);
+
+    if Kind = abkLength then
+      SetValueType(UnitCompiler.SystemUnit.Integer)
+    else
+      SetValueType(ArrayType.IndexType);
+  end else
+  begin
+    MakeError(SArrayTypeRequired);
+    Operand := nil;
+    SetValueType(UnitCompiler.SystemUnit.Integer);
+  end;
+end;
+
+{*
+  Pliage des constantes
+*}
+procedure TSepiArrayBoundValue.CollapseConsts;
+var
+  Bound: Integer;
+begin
+  if ArrayType is TSepiStaticArrayType then
+  begin
+    // Static arrays have constant bounds
+    AllocateConstant;
+
+    with TSepiStaticArrayType(ArrayType) do
+    begin
+      case Self.Kind of
+        abkLow:    Bound := LowerBound;
+        abkHigh:   Bound := HigherBound;
+        abkLength: Bound := ArrayLength;
+      else
+        Assert(False);
+        Bound := 0;
+      end;
+    end;
+
+    ValueType.CopyData(Bound, ConstValuePtr^);
+  end else if Kind = abkLow then
+  begin
+    // Low is always zero for other types of arrays
+    AllocateConstant;
+  end;
+
+  // Other bounds are not constant
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiArrayBoundValue.CompileCompute(Compiler: TSepiMethodCompiler;
+  Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
+  TempVars: TSepiTempVarsLifeManager);
+begin
+  Assert(Kind in [abkHigh, abkLength]);
+
+  if ArrayType is TSepiDynArrayType then
+    CompileComputeDynArray(Compiler, Instructions, Destination, TempVars)
+  else if ArrayType is TSepiOpenArrayType then
+    CompileComputeOpenArray(Compiler, Instructions, Destination, TempVars)
+  else // static arrays have always constant bounds
+    Assert(False);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiArrayBoundValue.CompileComputeDynArray(
+  Compiler: TSepiMethodCompiler; Instructions: TSepiInstructionList;
+  var Destination: TSepiMemoryReference; TempVars: TSepiTempVarsLifeManager);
+var
+  SourceMemory: TSepiMemoryReference;
+  SrcTempVars: TSepiTempVarsLifeManager;
+  Instr: TSepiAsmValueToIntStdFunction;
+begin
+  SourceMemory := nil;
+  try
+    // Read operand
+    SrcTempVars := TSepiTempVarsLifeManager.Create;
+    try
+      Operand.CompileRead(Compiler, Instructions, SourceMemory, SrcTempVars);
+    finally
+      SrcTempVars.EndAllLifes(Instructions.GetCurrentEndRef);
+      SrcTempVars.Free;
+    end;
+
+    // Make instruction
+    Instr := TSepiAsmValueToIntStdFunction.Create(Compiler,
+      IIF(Kind = abkLength, ocDynArrayLength, ocDynArrayHigh));
+    Instr.SourcePos := Expression.SourcePos;
+
+    NeedDestination(Destination, ValueType, Compiler, TempVars, Instr.AfterRef);
+
+    Instr.Destination.Assign(Destination);
+    Instr.Value.Assign(SourceMemory);
+
+    Instructions.Add(Instr);
+  finally
+    SourceMemory.Free;
+  end;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiArrayBoundValue.CompileComputeOpenArray(
+  Compiler: TSepiMethodCompiler; Instructions: TSepiInstructionList;
+  var Destination: TSepiMemoryReference; TempVars: TSepiTempVarsLifeManager);
+var
+  HighValueMemory: TSepiMemoryReference;
+  IncInstr: TSepiAsmOperation;
+begin
+  HighValueMemory := TSepiMemoryReference.Create(Compiler, aoAcceptAllConsts,
+    SizeOf(Integer));
+  HighValueMemory.SetSpace(TSepiOpenArrayType(ArrayType).HighVarName);
+  HighValueMemory.Seal;
+
+  if Kind = abkHigh then
+  begin
+    Destination := HighValueMemory;
+  end else if Kind = abkLength then
+  begin
+    NeedDestination(Destination, ValueType, Compiler, TempVars,
+      Instructions.GetCurrentEndRef);
+
+    IncInstr := TSepiAsmOperation.Create(Compiler, ocOtherInc, btLongint);
+    IncInstr.SourcePos := Expression.SourcePos;
+
+    IncInstr.Destination.Assign(Destination);
+    IncInstr.Source.Assign(HighValueMemory);
+
+    Instructions.Add(IncInstr);
+  end else
+  begin
+    Assert(False);
+  end;
+end;
+
+{*
+  Complète l'opération
+  L'opération doit avoir été attachée à une expression auparavant, pour pouvoir
+  bénéficier du contexte de celle-ci.
+*}
+procedure TSepiArrayBoundValue.Complete;
+begin
+  Assert(Expression <> nil);
+  Assert(Operand <> nil);
+
+  CheckType;
+
+  if Operand = nil then
+    AllocateConstant
+  else
+    CollapseConsts;
+end;
+
+{*
+  Construit une valeur longueur de chaîne de caractères
+  @param Operand    Opérande
+  @return Valeur représentant la longueur de la chaîne de caractères
+*}
+class function TSepiArrayBoundValue.MakeArrayBoundValue(
+  Kind: TSepiArrayBoundKind;
+  const Operand: ISepiReadableValue): ISepiReadableValue;
+var
+  ArrayBoundValue: TSepiArrayBoundValue;
+begin
+  ArrayBoundValue := TSepiArrayBoundValue.Create(Kind);
+  Result := ArrayBoundValue;
+  Result.AttachToExpression(TSepiExpression.Create(Operand as ISepiExpression));
+  ArrayBoundValue.Operand := Operand;
+  ArrayBoundValue.Complete;
 end;
 
 {-----------------------------}
@@ -7942,6 +8321,25 @@ begin
     else
       CompleteOrdinalBound;
   end;
+end;
+
+{*
+  Construit une valeur opération de type
+  @param Operation       Opération à effectuer sur le type
+  @param Operand         Opérande
+  @param NilIfTypeInfo   Si True, TypeInfo peut valoir nil
+*}
+class function TSepiTypeOperationValue.MakeTypeOperationValue(
+  Operation: TSepiTypeOperation; const Operand: ISepiTypeExpression;
+  NilIfNoTypeInfo: Boolean = False): ISepiReadableValue;
+var
+  TypeOperation: TSepiTypeOperationValue;
+begin
+  TypeOperation := TSepiTypeOperationValue.Create(Operation, NilIfNoTypeInfo);
+  Result := TypeOperation;
+  Result.AttachToExpression(TSepiExpression.Create(Operand as ISepiExpression));
+  TypeOperation.Operand := Operand;
+  TypeOperation.Complete;
 end;
 
 {---------------------}
