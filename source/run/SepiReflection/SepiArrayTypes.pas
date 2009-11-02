@@ -671,6 +671,9 @@ begin
 
   Stream.ReadBuffer(FIsArrayOfConst, SizeOf(Boolean));
   FHighVarName := ReadStrFromStream(Stream);
+
+  FParamBehavior.AlwaysByAddress := True;
+  FResultBehavior := rbNone;
 end;
 
 {*
@@ -690,6 +693,9 @@ begin
   inherited Create(AOwner, AName, tkUnknown, AElementType);
 
   FHighVarName := AHighVarName;
+
+  FParamBehavior.AlwaysByAddress := True;
+  FResultBehavior := rbNone;
 end;
 
 {*
