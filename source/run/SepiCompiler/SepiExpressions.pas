@@ -440,6 +440,19 @@ type
   end;
 
   {*
+    Classe de base pour les expressions exécutables
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiCustomExecutable = class(TSepiCustomExpressionPart, ISepiExecutable)
+  protected
+    procedure AttachToExpression(const Expression: ISepiExpression); override;
+
+    procedure CompileExecute(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList); virtual; abstract;
+  end;
+
+  {*
     Valeur constante (vraie constante ou constante litérale)
     @author sjrd
     @version 1.0
@@ -1246,7 +1259,7 @@ type
 
     FArrayType: TSepiArrayType; /// Type tableau de l'opérande
 
-    procedure CheckType;
+    procedure CheckTypes;
     procedure CollapseConsts;
   protected
     procedure CompileCompute(Compiler: TSepiMethodCompiler;
@@ -1272,6 +1285,66 @@ type
 
     property Kind: TSepiArrayBoundKind read FKind;
     property Operand: ISepiReadableValue read FOperand write FOperand;
+  end;
+
+  {*
+    Expression de changement de la longueur d'une chaîne de caractères
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiStrSetLengthExpression = class(TSepiCustomExecutable)
+  private
+    FStrValue: ISepiValue;               /// Chaîne dont modifier la longueur
+    FNewLengthValue: ISepiReadableValue; /// Nouvelle longueur
+
+    procedure CheckTypes;
+  protected
+    procedure CompileExecute(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList); override;
+  public
+    procedure Complete;
+
+    class function MakeStrSetLengthExpression(const StrValue: ISepiValue;
+      const NewLengthValue: ISepiReadableValue): ISepiExecutable;
+
+    property StrValue: ISepiValue read FStrValue write FStrValue;
+    property NewLengthValue: ISepiReadableValue
+      read FNewLengthValue write FNewLengthValue;
+  end;
+
+  {*
+    Expression de changement de la longueur d'un tableau dynamique
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiDynArraySetLengthExpression = class(TSepiCustomExecutable)
+  private
+    FDynArrayValue: ISepiValue;  /// Chaîne dont modifier la longueur
+    FDimCount: Integer;          /// Nombre de dimensions
+    FDimensions: IInterfaceList; /// Dimensions
+
+    procedure CheckTypes;
+
+    function GetDimensions(Index: Integer): ISepiReadableValue;
+    procedure SetDimensions(Index: Integer; const Value: ISepiReadableValue);
+  protected
+    procedure CompileExecute(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList); override;
+  public
+    constructor Create(ADimCount: Integer = 1);
+
+    procedure Complete;
+
+    class function MakeDynArraySetLengthExpression(
+      const DynArrayValue: ISepiValue;
+      const Dimensions: array of ISepiReadableValue): ISepiExecutable;
+
+    property DynArrayValue: ISepiValue read FDynArrayValue write FDynArrayValue;
+    property DimCount: Integer read FDimCount;
+    property Dimensions[Index: Integer]: ISepiReadableValue
+      read GetDimensions write SetDimensions;
+    property FirstDimension: ISepiReadableValue index 0
+      read GetDimensions write SetDimensions;
   end;
 
   {*
@@ -1726,6 +1799,26 @@ type
     property OpenArrayBuilder: ISepiOpenArrayBuilder read FOpenArrayBuilder;
   public
     constructor Create(UnitCompiler: TSepiUnitCompiler);
+  end;
+
+  {*
+    Expression wrapper pour une instruction
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiInstructionExpression = class(TSepiCustomExpressionPart,
+    ISepiExecutable)
+  private
+    FInstruction: TSepiInstruction; /// Instruction wrappée
+  protected
+    procedure AttachToExpression(const Expression: ISepiExpression); override;
+
+    procedure CompileExecute(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList);
+  public
+    constructor Create(AInstruction: TSepiInstruction);
+
+    property Instruction: TSepiInstruction read FInstruction;
   end;
 
 procedure NeedDestination(var Destination: TSepiMemoryReference;
@@ -2264,6 +2357,23 @@ begin
 
     Destination.Seal;
   end;
+end;
+
+{-----------------------------}
+{ TSepiCustomExecutable class }
+{-----------------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiCustomExecutable.AttachToExpression(
+  const Expression: ISepiExpression);
+var
+  AsExpressionPart: ISepiExpressionPart;
+begin
+  AsExpressionPart := Self;
+
+  Expression.Attach(ISepiExecutable, AsExpressionPart);
 end;
 
 {---------------------}
@@ -6412,7 +6522,7 @@ end;
 {*
   Vérification de type
 *}
-procedure TSepiArrayBoundValue.CheckType;
+procedure TSepiArrayBoundValue.CheckTypes;
 begin
   if Operand.ValueType is TSepiArrayType then
   begin
@@ -6565,7 +6675,7 @@ begin
   Assert(Expression <> nil);
   Assert(Operand <> nil);
 
-  CheckType;
+  CheckTypes;
 
   if Operand = nil then
     AllocateConstant
@@ -6589,6 +6699,299 @@ begin
   Result.AttachToExpression(TSepiExpression.Create(Operand as ISepiExpression));
   ArrayBoundValue.Operand := Operand;
   ArrayBoundValue.Complete;
+end;
+
+{-----------------------------------}
+{ TSepiStrSetLengthExpression class }
+{-----------------------------------}
+
+{*
+  Vérification de type
+*}
+procedure TSepiStrSetLengthExpression.CheckTypes;
+var
+  StrExpression: ISepiExpression;
+begin
+  StrExpression := StrValue as ISepiExpression;
+
+  // String operand
+
+  if not (StrValue.ValueType is TSepiStringType) then
+  begin
+    StrExpression.MakeError(SStringTypeRequired);
+    StrValue := TSepiErroneousValue.MakeReplacementValue(StrExpression,
+      UnitCompiler.SystemUnit.LongString);
+  end else if not (Supports(StrValue, ISepiReadableValue) and
+    Supports(StrValue, ISepiWritableValue) and
+    Supports(StrValue, ISepiAddressableValue)) then
+  begin
+    StrExpression.MakeError(SVarValueRequired);
+    StrValue := TSepiErroneousValue.MakeReplacementValue(StrExpression,
+      UnitCompiler.SystemUnit.LongString);
+  end;
+
+  // New length operand
+
+  if not NewLengthValue.ValueType.Equals(UnitCompiler.SystemUnit.Integer) then
+  begin
+    NewLengthValue := TSepiConvertOperation.ConvertValue(
+      UnitCompiler.SystemUnit.Integer, NewLengthValue);
+  end;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiStrSetLengthExpression.CompileExecute(
+  Compiler: TSepiMethodCompiler; Instructions: TSepiInstructionList);
+var
+  ReadableStrValue: ISepiReadableValue;
+  StrMemory, NewLengthMemory: TSepiMemoryReference;
+  TempVars: TSepiTempVarsLifeManager;
+  OpCode: TSepiOpCode;
+  AsmInstr: TSepiAsmStrSetLength;
+begin
+  ReadableStrValue := StrValue as ISepiReadableValue;
+
+  StrMemory := nil;
+  NewLengthMemory := nil;
+  TempVars := TSepiTempVarsLifeManager.Create;
+  try
+    // Read operands
+
+    ReadableStrValue.CompileRead(Compiler, Instructions, StrMemory, TempVars);
+    NewLengthValue.CompileRead(Compiler, Instructions, NewLengthMemory,
+      TempVars);
+
+    TempVars.EndAllLifes(Instructions.GetCurrentEndRef);
+
+    // Make asm instruction
+
+    OpCode := IIF(TSepiStringType(StrValue.ValueType).IsUnicode,
+      ocWideStrSetLength, ocAnsiStrSetLength);
+
+    AsmInstr := TSepiAsmStrSetLength.Create(Compiler, OpCode);
+    AsmInstr.SourcePos := Expression.SourcePos;
+    AsmInstr.StrValue.Assign(StrMemory);
+    AsmInstr.NewLength.Assign(NewLengthMemory);
+
+    Instructions.Add(AsmInstr);
+  finally
+    StrMemory.Free;
+    NewLengthMemory.Free;
+    TempVars.Free;
+  end;
+end;
+
+{*
+  Complète l'expression
+*}
+procedure TSepiStrSetLengthExpression.Complete;
+begin
+  Assert(StrValue <> nil);
+  Assert(NewLengthValue <> nil);
+
+  CheckTypes;
+end;
+
+{*
+  Construit une expression de changement de la longueur d'une chaîne
+  @param StrValue         Valeur chaîne
+  @param NewLengthValue   Nouvelle longueur de la chaîne
+*}
+class function TSepiStrSetLengthExpression.MakeStrSetLengthExpression(
+  const StrValue: ISepiValue;
+  const NewLengthValue: ISepiReadableValue): ISepiExecutable;
+var
+  StrSetLength: TSepiStrSetLengthExpression;
+begin
+  StrSetLength := TSepiStrSetLengthExpression.Create;
+  Result := StrSetLength;
+  Result.AttachToExpression(TSepiExpression.Create(
+    StrValue as ISepiExpression));
+  StrSetLength.StrValue := StrValue;
+  StrSetLength.NewLengthValue := NewLengthValue;
+  StrSetLength.Complete;
+end;
+
+{----------------------------------------}
+{ TSepiDynArraySetLengthExpression class }
+{----------------------------------------}
+
+{*
+  Crée une expression de changement de la longueur d'un tableau dynamique
+  @param ADimCount   Nombre de dimensions (> 0)
+*}
+constructor TSepiDynArraySetLengthExpression.Create(ADimCount: Integer = 1);
+begin
+  Assert(ADimCount > 0);
+
+  inherited Create;
+
+  FDimCount := ADimCount;
+  FDimensions := TInterfaceList.Create;
+  FDimensions.Count := DimCount;
+end;
+
+{*
+  Vérification de type
+*}
+procedure TSepiDynArraySetLengthExpression.CheckTypes;
+var
+  DynArrayExpression: ISepiExpression;
+  I, MaxDimCount: Integer;
+  SubType: TSepiType;
+begin
+  DynArrayExpression := DynArrayValue as ISepiExpression;
+
+  // String operand
+
+  if not (DynArrayValue.ValueType is TSepiDynArrayType) then
+  begin
+    DynArrayExpression.MakeError(SDynArrayTypeRequired);
+    DynArrayValue := nil;
+  end else if not (Supports(DynArrayValue, ISepiReadableValue) and
+    Supports(DynArrayValue, ISepiWritableValue) and
+    Supports(DynArrayValue, ISepiAddressableValue)) then
+  begin
+    DynArrayExpression.MakeError(SVarValueRequired);
+    DynArrayValue := nil;
+  end;
+
+  // Dimensions
+
+  for I := 0 to DimCount-1 do
+  begin
+    if not Dimensions[I].ValueType.Equals(UnitCompiler.SystemUnit.Integer) then
+    begin
+      Dimensions[I] := TSepiConvertOperation.ConvertValue(
+        UnitCompiler.SystemUnit.Integer, Dimensions[I]);
+    end;
+  end;
+
+  if DynArrayValue <> nil then
+  begin
+    MaxDimCount := 0;
+    SubType := DynArrayValue.ValueType;
+
+    while SubType is TSepiDynArrayType do
+    begin
+      Inc(MaxDimCount);
+      SubType := TSepiDynArrayType(SubType).ElementType;
+    end;
+
+    if DimCount > MaxDimCount then
+    begin
+      (Dimensions[MaxDimCount] as ISepiExpression).MakeError(
+        STooManyActualParameters);
+      FDimCount := MaxDimCount;
+      FDimensions.Count := MaxDimCount;
+    end;
+  end;
+end;
+
+{*
+  Tableau zero-based des dimensions
+  @param Index   Index compris entre 0 inclus et DimCount exclu
+  @return Dimension à l'index spécifié
+*}
+function TSepiDynArraySetLengthExpression.GetDimensions(
+  Index: Integer): ISepiReadableValue;
+begin
+  Result := FDimensions[Index] as ISepiReadableValue;
+end;
+
+{*
+  Modifie le tableau zero-based des dimensions
+  @param Index   Index compris entre 0 inclus et DimCount exclu
+  @param Value   Nouvelle valeur pour la dimension à l'index spécifié
+*}
+procedure TSepiDynArraySetLengthExpression.SetDimensions(Index: Integer;
+  const Value: ISepiReadableValue);
+begin
+  FDimensions[Index] := Value;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiDynArraySetLengthExpression.CompileExecute(
+  Compiler: TSepiMethodCompiler; Instructions: TSepiInstructionList);
+var
+  ReadableDynArrayValue: ISepiReadableValue;
+  DynArrayMemory: TSepiMemoryReference;
+  DimensionsMemory: array of TSepiMemoryReference;
+  TempVars: TSepiTempVarsLifeManager;
+  AsmInstr: TSepiAsmDynArraySetLength;
+  I: Integer;
+begin
+  ReadableDynArrayValue := DynArrayValue as ISepiReadableValue;
+
+  DynArrayMemory := nil;
+  SetLength(DimensionsMemory, DimCount);
+  FillChar(DimensionsMemory[0], DimCount*SizeOf(TSepiMemoryReference), 0);
+  TempVars := TSepiTempVarsLifeManager.Create;
+  try
+    // Read operands
+
+    ReadableDynArrayValue.CompileRead(Compiler, Instructions, DynArrayMemory,
+      TempVars);
+    for I := 0 to DimCount-1 do
+      Dimensions[I].CompileRead(Compiler, Instructions, DimensionsMemory[I],
+        TempVars);
+
+    TempVars.EndAllLifes(Instructions.GetCurrentEndRef);
+
+    // Make asm instruction
+
+    AsmInstr := TSepiAsmDynArraySetLength.Create(Compiler,
+      DynArrayValue.ValueType as TSepiDynArrayType, DimCount);
+    AsmInstr.SourcePos := Expression.SourcePos;
+    AsmInstr.DynArrayValue.Assign(DynArrayMemory);
+    for I := 0 to DimCount-1 do
+      AsmInstr.Dimensions[I].Assign(DimensionsMemory[I]);
+
+    Instructions.Add(AsmInstr);
+  finally
+    DynArrayMemory.Free;
+    for I := 0 to DimCount-1 do
+      DimensionsMemory[I].Free;
+    TempVars.Free;
+  end;
+end;
+
+{*
+  Complète l'expression
+*}
+procedure TSepiDynArraySetLengthExpression.Complete;
+begin
+  Assert(DynArrayValue <> nil);
+  Assert(FirstDimension <> nil);
+
+  CheckTypes;
+end;
+
+{*
+  Construit une expression de changement de la longueur d'un tableau dynamique
+  @param DynArrayValue   Valeur tableau dynamique
+  @param Dimensions      Nouvelles longueurs des dimensions
+*}
+class function TSepiDynArraySetLengthExpression.MakeDynArraySetLengthExpression(
+  const DynArrayValue: ISepiValue;
+  const Dimensions: array of ISepiReadableValue): ISepiExecutable;
+var
+  DynArraySetLength: TSepiDynArraySetLengthExpression;
+  I: Integer;
+begin
+  DynArraySetLength := TSepiDynArraySetLengthExpression.Create(
+    Length(Dimensions));
+  Result := DynArraySetLength;
+  Result.AttachToExpression(TSepiExpression.Create(
+    DynArrayValue as ISepiExpression));
+  DynArraySetLength.DynArrayValue := DynArrayValue;
+  for I := Low(Dimensions) to High(Dimensions) do
+    DynArraySetLength.Dimensions[I] := Dimensions[I];
+  DynArraySetLength.Complete;
 end;
 
 {-----------------------------}
@@ -8763,6 +9166,44 @@ begin
 
   (OpenArrayBuilder as ISepiOpenArrayValue).CompileReadOpenArray(Compiler,
     Instructions, OpenArrayDest, HighValueDest, TempVars);
+end;
+
+{----------------------------------}
+{ TSepiInstructionExpression class }
+{----------------------------------}
+
+{*
+  Crée une expression wrapper pour une instruction
+  @param AInstruction   Instruction wrappée
+*}
+constructor TSepiInstructionExpression.Create(AInstruction: TSepiInstruction);
+begin
+  inherited Create;
+
+  FInstruction := AInstruction;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiInstructionExpression.AttachToExpression(
+  const Expression: ISepiExpression);
+var
+  AsExpressionPart: ISepiExpressionPart;
+begin
+  AsExpressionPart := Self;
+
+  Expression.Attach(ISepiExecutable, AsExpressionPart);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiInstructionExpression.CompileExecute(
+  Compiler: TSepiMethodCompiler; Instructions: TSepiInstructionList);
+begin
+  Assert(Instruction.MethodCompiler = Compiler);
+  Instructions.Add(Instruction);
 end;
 
 end.

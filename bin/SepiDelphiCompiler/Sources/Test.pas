@@ -3,7 +3,7 @@ unit Test;
 interface
 
 uses
-  SysUtils, Classes, ScDelphiLanguage;
+  Types, SysUtils, Classes, ScDelphiLanguage;
 
 type
   TPrintOnAddStrings = class(TStringList)
@@ -208,13 +208,11 @@ begin
   WriteLn('Will appear only if that was a EConvertError, which was catched');
 end;
 
-procedure TestOpenArray(const Values: array of Integer);
+procedure DisplayArray(const Values: array of Integer);
 var
   Line: string;
   I: Integer;
 begin
-  WriteTitle('Test an open array parameter');
-
   WriteLn(Format('The array has %d elements', [Length(Values)]));
 
   Line := 'Values are:';
@@ -224,9 +222,34 @@ begin
   WriteLn(Line);
 end;
 
-procedure Main;
+procedure TestOpenArray;
 const
   Items: array[1..8] of Integer = (2, 3, 5, 7, 11, 13, 17, 19);
+begin
+  WriteTitle('Test an open array parameter');
+
+  DisplayArray(Items);
+end;
+
+procedure TestSetLength;
+var
+  I: Integer;
+  IntArray: TIntegerDynArray;
+  Str: string;
+begin
+  WriteTitle('Test SetLength and dynamic arrays');
+
+  SetLength(IntArray, 5);
+  for I := 0 to Length(IntArray)-1 do
+    IntArray[I] := I*I;
+  DisplayArray(IntArray);
+
+  Str := 'Hello world!';
+  SetLength(Str, 5);
+  WriteLn(Str);
+end;
+
+procedure Main;
 begin
   Randomize;
 
@@ -235,7 +258,8 @@ begin
   TestIfCompilerDirective;
   TestMethodRef;
   TestIsAs;
-  TestOpenArray(Items);
+  TestOpenArray;
+  TestSetLength;
   TestExceptionsAndClassDef;
 end;
 

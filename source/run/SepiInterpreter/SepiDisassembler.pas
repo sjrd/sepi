@@ -27,8 +27,8 @@ unit SepiDisassembler;
 interface
 
 uses
-  SysUtils, Classes, ScClasses, SepiReflectionCore, SepiMembers, SepiOpCodes,
-  SepiRuntime;
+  Types, SysUtils, Classes, ScClasses, SepiReflectionCore, SepiMembers,
+  SepiOpCodes, SepiRuntime;
 
 type
   {*
@@ -87,6 +87,8 @@ type
     function OpCodeSetExpand(OpCode: TSepiOpCode): string;
 
     function OpCodeValueToIntStdFunction(OpCode: TSepiOpCode): string;
+    function OpCodeStrSetLength(OpCode: TSepiOpCode): string;
+    function OpCodeDynArraySetLength(OpCode: TSepiOpCode): string;
 
     // Other methods
 
@@ -124,7 +126,7 @@ var
   OpCodeArgsFuncs: array[TSepiOpCode] of TOpCodeArgsFunc;
 
 const
-  MaxKnownOpCode = ocDynArrayHigh; /// Plus grand OpCode connu
+  MaxKnownOpCode = ocDynArraySetLength; /// Plus grand OpCode connu
 
   /// Nom des OpCodes
   { Don't localize any of these strings! }
@@ -162,7 +164,7 @@ const
     'SINC', 'SEXC', 'SIN', 'SELE', 'SRNG', 'SUR', 'SEQ', 'SNE', 'SLE',
     'SINT', 'SADD', 'SSUB', 'SINT', 'SADD', 'SSUB', 'SEXP',
     // Standart Delphi functions
-    'ASL', 'WSL', 'DAL', 'DAH'
+    'ASL', 'WSL', 'DAL', 'DAH', 'ASSL', 'WSSL', 'DASL'
   );
 
   /// Virgule
@@ -282,6 +284,12 @@ begin
     @TSepiDisassembler.OpCodeValueToIntStdFunction;
   @OpCodeArgsFuncs[ocDynArrayHigh] :=
     @TSepiDisassembler.OpCodeValueToIntStdFunction;
+  @OpCodeArgsFuncs[ocAnsiStrSetLength] :=
+    @TSepiDisassembler.OpCodeStrSetLength;
+  @OpCodeArgsFuncs[ocWideStrSetLength] :=
+    @TSepiDisassembler.OpCodeStrSetLength;
+  @OpCodeArgsFuncs[ocDynArraySetLength] :=
+    @TSepiDisassembler.OpCodeDynArraySetLength;
 end;
 
 {-------------------------}
@@ -913,6 +921,50 @@ begin
 
   // Make Result
   Result := Format('%s, %s', [DestPtr, ValuePtr]);
+end;
+
+{*
+  OpCode ASSL et WSSL
+  @param OpCode   OpCode
+*}
+function TSepiDisassembler.OpCodeStrSetLength(
+  OpCode: TSepiOpCode): string;
+var
+  StrPtr, LenPtr: string;
+begin
+  // Read arguments
+  StrPtr := ReadAddress;
+  LenPtr := ReadAddress(aoAcceptAllConsts, SizeOf(Integer));
+
+  // Make result
+  Result := Format('%s, %s', [StrPtr, LenPtr]);
+end;
+
+{*
+  OpCode DASL
+  @param OpCode   OpCode
+*}
+function TSepiDisassembler.OpCodeDynArraySetLength(OpCode: TSepiOpCode): string;
+var
+  SepiType: TSepiType;
+  DynArrayPtr, DimPtr: string;
+  DimCount, I: Integer;
+begin
+  // Read arguments
+  RuntimeUnit.ReadRef(Instructions, SepiType);
+  DynArrayPtr := ReadAddress;
+  DimCount := 0;
+  Instructions.ReadBuffer(DimCount, 1);
+
+  // Make result base
+  Result := Format('%s, %s, %d', [SepiType.DisplayName, DynArrayPtr, DimCount]);
+
+  // Read and make dimensions
+  for I := 0 to DimCount-1 do
+  begin
+    DimPtr := ReadAddress(aoAcceptAllConsts, SizeOf(Integer));
+    Result := Result + Comma + DimPtr;
+  end;
 end;
 
 {*

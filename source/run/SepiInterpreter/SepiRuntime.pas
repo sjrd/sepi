@@ -27,8 +27,8 @@ unit SepiRuntime;
 interface
 
 uses
-  Windows, SysUtils, Classes, Contnrs, TypInfo, ScUtils, ScStrUtils, ScClasses,
-  ScTypInfo, ScDelphiLanguage, ScCompilerMagic, SepiReflectionCore,
+  Windows, Types, SysUtils, Classes, Contnrs, TypInfo, ScUtils, ScStrUtils,
+  ScClasses, ScTypInfo, ScDelphiLanguage, ScCompilerMagic, SepiReflectionCore,
   SepiMembers, SepiReflectionConsts, SepiOpCodes, SepiRuntimeOperations;
 
 type
@@ -209,6 +209,8 @@ type
     procedure OpCodeSetExpand(OpCode: TSepiOpCode);
 
     procedure OpCodeValueToIntStdFunction(OpCode: TSepiOpCode);
+    procedure OpCodeStrSetLength(OpCode: TSepiOpCode);
+    procedure OpCodeDynArraySetLength(OpCode: TSepiOpCode);
 
     // Other methods
 
@@ -370,6 +372,12 @@ begin
     @TSepiRuntimeContext.OpCodeValueToIntStdFunction;
   @OpCodeProcs[ocDynArrayHigh] :=
     @TSepiRuntimeContext.OpCodeValueToIntStdFunction;
+  @OpCodeProcs[ocAnsiStrSetLength] :=
+    @TSepiRuntimeContext.OpCodeStrSetLength;
+  @OpCodeProcs[ocWideStrSetLength] :=
+    @TSepiRuntimeContext.OpCodeStrSetLength;
+  @OpCodeProcs[ocDynArraySetLength] :=
+    @TSepiRuntimeContext.OpCodeDynArraySetLength;
 end;
 
 {*
@@ -1691,6 +1699,57 @@ begin
     ocDynArrayLength: DestPtr^ := DynArrayLength(ValuePtr^);
     ocDynArrayHigh: DestPtr^ := DynArrayHigh(ValuePtr^);
   end;
+end;
+
+{*
+  OpCode ASSL et WSSL
+  @param OpCode   OpCode
+*}
+procedure TSepiRuntimeContext.OpCodeStrSetLength(OpCode: TSepiOpCode);
+var
+  StrPtr: Pointer;
+  LenPtr: PInteger;
+begin
+  // Read arguments
+  StrPtr := ReadAddress;
+  LenPtr := ReadAddress(aoAcceptAllConsts, SizeOf(Integer));
+
+  // Execute instruction
+  case OpCode of
+    ocAnsiStrSetLength: SetLength(AnsiString(StrPtr^), LenPtr^);
+    ocWideStrSetLength: SetLength(WideString(StrPtr^), LenPtr^);
+  end;
+end;
+
+{*
+  OpCode DASL
+  @param OpCode   OpCode
+*}
+procedure TSepiRuntimeContext.OpCodeDynArraySetLength(OpCode: TSepiOpCode);
+var
+  SepiType: TSepiType;
+  DynArrayPtr: Pointer;
+  DimCount, I: Integer;
+  Dimensions: TIntegerDynArray;
+  DimPtr: PInteger;
+begin
+  // Read arguments
+  RuntimeUnit.ReadRef(Instructions, SepiType);
+  DynArrayPtr := ReadAddress;
+  DimCount := 0;
+  Instructions.ReadBuffer(DimCount, 1);
+
+  // Read dimensions
+  SetLength(Dimensions, DimCount);
+  for I := 0 to DimCount-1 do
+  begin
+    DimPtr := ReadAddress(aoAcceptAllConsts, SizeOf(Integer));
+    Dimensions[I] := DimPtr^;
+  end;
+
+  // Execute instruction
+  DynArraySetLength(Pointer(DynArrayPtr^), SepiType.TypeInfo, DimCount,
+    @Dimensions[0]);
 end;
 
 {*

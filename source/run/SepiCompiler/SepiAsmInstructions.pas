@@ -28,7 +28,8 @@ interface
 
 uses
   Windows, Classes, SysUtils, TypInfo, SepiReflectionCore, SepiMembers,
-  SepiOpCodes, SepiCompiler, SepiReflectionConsts, SepiCompilerConsts;
+  SepiArrayTypes, SepiOpCodes, SepiCompiler, SepiReflectionConsts,
+  SepiCompilerConsts;
 
 type
   {*
@@ -779,6 +780,56 @@ type
 
     property Destination: TSepiMemoryReference read FDestination;
     property Value: TSepiMemoryReference read FValue;
+  end;
+
+  {*
+    Instruction ASSL ou WSSL
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiAsmStrSetLength = class(TSepiAsmInstr)
+  private
+    FStrValue: TSepiMemoryReference;  /// Valeur chaîne
+    FNewLength: TSepiMemoryReference; /// Nouvelle longueur de la chaîne
+  public
+    constructor Create(AMethodCompiler: TSepiMethodCompiler;
+      AOpCode: TSepiOpCode);
+    destructor Destroy; override;
+
+    procedure Make; override;
+    procedure WriteToStream(Stream: TStream); override;
+
+    property StrValue: TSepiMemoryReference read FStrValue;
+    property NewLength: TSepiMemoryReference read FNewLength;
+  end;
+
+  {*
+    Instruction DASL
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiAsmDynArraySetLength = class(TSepiAsmInstr)
+  private
+    FDynArrayType: TSepiDynArrayType;           /// Type du tableau
+    FDynArrayValue: TSepiMemoryReference;       /// Tableau
+    FDimCount: Integer;                         /// Nombre de dimensions
+    FDimensions: array of TSepiMemoryReference; /// Dimensions
+
+    function GetDimensions(Index: Integer): TSepiMemoryReference;
+  public
+    constructor Create(AMethodCompiler: TSepiMethodCompiler;
+      ADynArrayType: TSepiDynArrayType; ADimCount: Integer = 1);
+    destructor Destroy; override;
+
+    procedure Make; override;
+    procedure WriteToStream(Stream: TStream); override;
+
+    property DynArrayType: TSepiDynArrayType read FDynArrayType;
+    property DynArrayValue: TSepiMemoryReference read FDynArrayValue;
+    property DimCount: Integer read FDimCount;
+    property Dimensions[Index: Integer]: TSepiMemoryReference
+      read GetDimensions;
+    property FirstDimension: TSepiMemoryReference index 0 read GetDimensions;
   end;
 
 implementation
@@ -3059,6 +3110,163 @@ begin
 
   Destination.WriteToStream(Stream);
   Value.WriteToStream(Stream);
+end;
+
+{----------------------------}
+{ TSepiAsmStrSetLength class }
+{----------------------------}
+
+{*
+  Crée une instruction ASSL ou WSSL
+  @param AMethodCompiler   Compilateur de méthode
+  @param AOpCode           OpCode (in [ocAnsiStrSetLength..ocWideStrSetLength])
+*}
+constructor TSepiAsmStrSetLength.Create(
+  AMethodCompiler: TSepiMethodCompiler; AOpCode: TSepiOpCode);
+begin
+  Assert(AOpCode in [ocAnsiStrSetLength..ocWideStrSetLength]);
+
+  inherited Create(AMethodCompiler);
+
+  FOpCode := AOpCode;
+
+  FStrValue := TSepiMemoryReference.Create(MethodCompiler);
+  FNewLength := TSepiMemoryReference.Create(MethodCompiler,
+    aoAcceptAllConsts, SizeOf(Integer));
+end;
+
+{*
+  [@inheritDoc]
+*}
+destructor TSepiAsmStrSetLength.Destroy;
+begin
+  FNewLength.Free;
+  FStrValue.Free;
+
+  inherited;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiAsmStrSetLength.Make;
+begin
+  inherited;
+
+  StrValue.Make;
+  Inc(FSize, StrValue.Size);
+  NewLength.Make;
+  Inc(FSize, NewLength.Size);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiAsmStrSetLength.WriteToStream(Stream: TStream);
+begin
+  inherited;
+
+  StrValue.WriteToStream(Stream);
+  NewLength.WriteToStream(Stream);
+end;
+
+{---------------------------------}
+{ TSepiAsmDynArraySetLength class }
+{---------------------------------}
+
+{*
+  Crée une instruction DASL
+  @param AMethodCompiler   Compilateur de méthode
+  @param ADimCount         Nombre de dimensions (> 0)
+*}
+constructor TSepiAsmDynArraySetLength.Create(
+  AMethodCompiler: TSepiMethodCompiler; ADynArrayType: TSepiDynArrayType;
+  ADimCount: Integer = 1);
+var
+  I: Integer;
+begin
+  Assert(ADimCount > 0);
+
+  inherited Create(AMethodCompiler);
+
+  FOpCode := ocDynArraySetLength;
+
+  FDynArrayType := ADynArrayType;
+  FDynArrayValue := TSepiMemoryReference.Create(MethodCompiler);
+
+  SetLength(FDimensions, ADimCount);
+  FillChar(FDimensions[0], ADimCount*SizeOf(TSepiMemoryReference), 0);
+  FDimCount := ADimCount;
+
+  for I := 0 to DimCount-1 do
+    FDimensions[I] := TSepiMemoryReference.Create(MethodCompiler,
+      aoAcceptAllConsts, SizeOf(Integer));
+end;
+
+{*
+  [@inheritDoc]
+*}
+destructor TSepiAsmDynArraySetLength.Destroy;
+var
+  I: Integer;
+begin
+  for I := 0 to DimCount-1 do
+    FDimensions[I].Free;
+
+  FDynArrayValue.Free;
+
+  inherited;
+end;
+
+{*
+  Tableau zero-based des dimensions
+  @param Index   Index compris entre 0 inclus et DimCount exclu
+  @return Référence mémoire sur la valeur de la dimension d'index spécifié
+*}
+function TSepiAsmDynArraySetLength.GetDimensions(
+  Index: Integer): TSepiMemoryReference;
+begin
+  Result := FDimensions[Index];
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiAsmDynArraySetLength.Make;
+var
+  I: Integer;
+begin
+  inherited;
+
+  Inc(FSize, SizeOf(Integer));
+  DynArrayValue.Make;
+  Inc(FSize, DynArrayValue.Size);
+  Inc(FSize, SizeOf(Byte));
+
+  for I := 0 to DimCount-1 do
+  begin
+    Dimensions[I].Make;
+    Inc(FSize, Dimensions[I].Size);
+  end;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiAsmDynArraySetLength.WriteToStream(Stream: TStream);
+var
+  DynArrayTypeRef, I: Integer;
+begin
+  inherited;
+
+  DynArrayTypeRef := UnitCompiler.MakeReference(DynArrayType);
+  Stream.WriteBuffer(DynArrayTypeRef, SizeOf(Integer));
+
+  DynArrayValue.WriteToStream(Stream);
+  Stream.WriteBuffer(FDimCount, SizeOf(Byte));
+
+  for I := 0 to DimCount-1 do
+    Dimensions[I].WriteToStream(Stream);
 end;
 
 end.

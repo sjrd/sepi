@@ -81,6 +81,8 @@ resourcestring
   SStringTypeRequired = 'Type chaîne requis';
   SPointerTypeRequired = 'Type pointeur requis';
   SArrayTypeRequired = 'Type tableau requis';
+  SDynArrayTypeRequired = 'Type tableau dynamique requis';
+  SStringOrDynArrayTypeRequired = 'Type chaîne ou tableau dynamique requis';
   SRecordTypeRequired = 'Type record requis';
   SOrdinalOrArrayTypeRequired = 'Type ordinal ou tableau requis';
   SOrdinalTypeRequired = 'Type ordinal requis';

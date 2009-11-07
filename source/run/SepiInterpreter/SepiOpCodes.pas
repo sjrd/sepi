@@ -367,10 +367,13 @@ const
   ocSetExpand         = TSepiOpCode($7F); /// SEXP Dest, Src, Lo, Hi
 
   // Standart Delphi functions
-  ocAnsiStrLength  = TSepiOpCode($80); /// ASL Dest, Value
-  ocWideStrLength  = TSepiOpCode($81); /// WSL Dest, Value
-  ocDynArrayLength = TSepiOpCode($82); /// DAL Dest, Value
-  ocDynArrayHigh   = TSepiOpCode($83); /// DAH Dest, Value
+  ocAnsiStrLength     = TSepiOpCode($80); /// ASL Dest, Value
+  ocWideStrLength     = TSepiOpCode($81); /// WSL Dest, Value
+  ocDynArrayLength    = TSepiOpCode($82); /// DAL Dest, Value
+  ocDynArrayHigh      = TSepiOpCode($83); /// DAH Dest, Value
+  ocAnsiStrSetLength  = TSepiOpCode($84); /// ASSL Var, Len
+  ocWideStrSetLength  = TSepiOpCode($85); /// WSSL Var, Len
+  ocDynArraySetLength = TSepiOpCode($86); /// DASL Type-Ref, Var, DimCount, Dims
 
 function MemoryRefEncode(MemorySpace: TSepiMemorySpace;
   OpCount: Integer): TSepiMemoryRef;

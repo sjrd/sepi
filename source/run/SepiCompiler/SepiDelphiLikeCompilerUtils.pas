@@ -29,7 +29,8 @@ interface
 uses
   Windows, SysUtils, StrUtils, TypInfo, ScUtils, SepiReflectionCore,
   SepiOrdTypes, SepiStrTypes, SepiArrayTypes, SepiMembers, SepiSystemUnit,
-  SepiCompiler, SepiExpressions, SepiInstructions, SepiCompilerConsts;
+  SepiCompiler, SepiExpressions, SepiInstructions, SepiCompilerConsts,
+  SepiCompilerUtils;
 
 type
   {*
@@ -105,6 +106,28 @@ type
     procedure CompleteParams; override;
 
     property Operand: ISepiExpression read GetOperand;
+  end;
+
+  {*
+    Pseudo-routine compilée en une expression exécutable
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiExecutableBackedPseudoRoutine = class(TSepiCustomWithParams,
+    ISepiWantingParams, ISepiExecutable)
+  private
+    FBackingExecutable: ISepiExecutable; /// Implémentation de la pseudo-routine
+  protected
+    function QueryInterface(const IID: TGUID;
+      out Obj): HResult; override; stdcall;
+
+    procedure AttachToExpression(const Expression: ISepiExpression); override;
+
+    procedure CompileExecute(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList);
+
+    property BackingExecutable: ISepiExecutable
+      read FBackingExecutable write FBackingExecutable;
   end;
 
   {*
@@ -189,6 +212,16 @@ type
   end;
 
   {*
+    Pseudo-routine SetLength
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiSetLengthPseudoRoutine = class(TSepiExecutableBackedPseudoRoutine)
+  protected
+    procedure CompleteParams; override;
+  end;
+
+  {*
     Pseudo-routine de jump spécial (Continue, Break ou Exit)
     @author sjrd
     @version 1.0
@@ -251,6 +284,10 @@ const
   /// Nom de la pseudo-routine Chr
   ChrName = 'Chr';
 
+  /// Nom de la pseudo-routine SetLength
+  SetLengthName = 'SetLength';
+
+  /// Nom des pseudo-routines de jump spécial
   SpecialJumpNames: array[TSepiSpecialJumpKind] of string = (
     'Continue', 'Break', 'Exit'
   );
@@ -343,6 +380,14 @@ begin
   if AnsiSameText(Identifier, ChrName) then
   begin
     ISepiExpressionPart(TSepiCastPseudoRoutine.CreateChr).AttachToExpression(
+      Expression);
+    Exit;
+  end;
+
+  // SetLength pseudo-routine
+  if AnsiSameText(Identifier, SetLengthName) then
+  begin
+    ISepiExpressionPart(TSepiSetLengthPseudoRoutine.Create).AttachToExpression(
       Expression);
     Exit;
   end;
@@ -729,6 +774,50 @@ begin
     MakeError(STooManyActualParameters);
 end;
 
+{------------------------------------------}
+{ TSepiExecutableBackedPseudoRoutine class }
+{------------------------------------------}
+
+{*
+  [@inheritDoc]
+*}
+function TSepiExecutableBackedPseudoRoutine.QueryInterface(const IID: TGUID;
+  out Obj): HResult;
+begin
+  if SameGUID(IID, ISepiWantingParams) and ParamsCompleted then
+    Result := E_NOINTERFACE
+  else if SameGUID(IID, ISepiExecutable) and (not ParamsCompleted) then
+    Result := E_NOINTERFACE
+  else
+    Result := inherited QueryInterface(IID, Obj);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiExecutableBackedPseudoRoutine.AttachToExpression(
+  const Expression: ISepiExpression);
+var
+  AsExpressionPart: ISepiExpressionPart;
+begin
+  AsExpressionPart := Self;
+
+  if not ParamsCompleted then
+    Expression.Attach(ISepiWantingParams, AsExpressionPart);
+
+  if BackingExecutable <> nil then
+    Expression.Attach(ISepiExecutable, AsExpressionPart);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiExecutableBackedPseudoRoutine.CompileExecute(
+  Compiler: TSepiMethodCompiler; Instructions: TSepiInstructionList);
+begin
+  BackingExecutable.CompileExecute(Compiler, Instructions);
+end;
+
 {---------------------------------------}
 { TSepiTypeOperationPseudoRoutine class }
 {---------------------------------------}
@@ -1025,6 +1114,55 @@ begin
   end;
 
   AttachToExpression(Expression);
+end;
+
+{-----------------------------------}
+{ TSepiSetLengthPseudoRoutine class }
+{-----------------------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiSetLengthPseudoRoutine.CompleteParams;
+var
+  FirstValue: ISepiValue;
+  Dimensions: array of ISepiReadableValue;
+  I: Integer;
+begin
+  inherited;
+
+  if ParamCount < 2 then
+  begin
+    MakeError(SNotEnoughActualParameters);
+    Exit;
+  end;
+
+  if not Supports(Params[0], ISepiValue, FirstValue) then
+  begin
+    Params[0].MakeError(SStringOrDynArrayTypeRequired);
+    Exit;
+  end;
+
+  SetLength(Dimensions, ParamCount-1);
+  for I := 0 to ParamCount-2 do
+    RequireReadableValue(Params[I+1], Dimensions[I]);
+
+  if FirstValue.ValueType is TSepiStringType then
+  begin
+    if ParamCount > 2 then
+      Params[2].MakeError(STooManyActualParameters);
+
+    BackingExecutable := TSepiStrSetLengthExpression.MakeStrSetLengthExpression(
+      FirstValue, Dimensions[0]);
+  end else if FirstValue.ValueType is TSepiDynArrayType then
+  begin
+    BackingExecutable :=
+      TSepiDynArraySetLengthExpression.MakeDynArraySetLengthExpression(
+        FirstValue, Dimensions);
+  end else
+  begin
+    Params[0].MakeError(SStringOrDynArrayTypeRequired);
+  end;
 end;
 
 {-------------------------------------}

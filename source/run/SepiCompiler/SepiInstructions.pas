@@ -27,9 +27,9 @@ unit SepiInstructions;
 interface
 
 uses
-  SysUtils, Contnrs, TypInfo, SepiOrdTypes, SepiMembers, SepiOpCodes,
-  SepiCompiler, SepiAsmInstructions, SepiExpressions, SepiCompilerErrors,
-  SepiCompilerConsts;
+  SysUtils, Contnrs, TypInfo, ScUtils, SepiOrdTypes, SepiStrTypes, SepiMembers,
+  SepiOpCodes, SepiCompiler, SepiAsmInstructions, SepiExpressions,
+  SepiCompilerErrors, SepiCompilerConsts;
 
 type
   {*
@@ -1252,7 +1252,7 @@ end;
 *}
 procedure TSepiContinue.CustomCompile;
 begin
-  if MethodCompiler.BreakRef = nil then
+  if MethodCompiler.ContinueRef = nil then
     MakeError(SContinueAllowedOnlyInLoop)
   else
     CompileJump(MethodCompiler.ContinueRef);
