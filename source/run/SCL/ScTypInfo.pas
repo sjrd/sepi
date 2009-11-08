@@ -190,7 +190,7 @@ begin
         CopyArray(@Dest, @Source, ElType^, Count);
     tkRecord: CopyRecord(@Dest, @Source, TypeInfo);
     tkInterface: IInterface(Dest) := IInterface(Source);
-    tkDynArray: DynArrayCopy(Pointer(Source), TypeInfo, Pointer(Dest));
+    tkDynArray: DynArrayAsg(Pointer(Dest), Pointer(Source), TypeInfo);
   else
     Move(Source, Dest, TypeSize(TypeInfo));
   end;

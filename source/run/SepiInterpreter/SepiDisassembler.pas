@@ -104,6 +104,9 @@ type
     function OpCodeValueToIntStdFunction(OpCode: TSepiOpCode): string;
     function OpCodeStrSetLength(OpCode: TSepiOpCode): string;
     function OpCodeDynArraySetLength(OpCode: TSepiOpCode): string;
+    function OpCodeStrCopy(OpCode: TSepiOpCode): string;
+    function OpCodeDynArrayCopy(OpCode: TSepiOpCode): string;
+    function OpCodeDynArrayCopyRange(OpCode: TSepiOpCode): string;
 
     // Other methods
 
@@ -141,7 +144,7 @@ var
   OpCodeArgsFuncs: array[TSepiOpCode] of TOpCodeArgsFunc;
 
 const
-  MaxKnownOpCode = ocDynArraySetLength; /// Plus grand OpCode connu
+  MaxKnownOpCode = ocDynArrayCopyRange; /// Plus grand OpCode connu
 
   /// Nom des OpCodes
   { Don't localize any of these strings! }
@@ -178,8 +181,9 @@ const
     // Set operations
     'SINC', 'SEXC', 'SIN', 'SELE', 'SRNG', 'SUR', 'SEQ', 'SNE', 'SLE',
     'SINT', 'SADD', 'SSUB', 'SINT', 'SADD', 'SSUB', 'SEXP',
-    // Standart Delphi functions
-    'ASL', 'WSL', 'DAL', 'DAH', 'ASSL', 'WSSL', 'DASL'
+    // Standard Delphi functions
+    'ASL', 'WSL', 'DAL', 'DAH', 'ASSL', 'WSSL', 'DASL', 'ASCP', 'WSCP', 'DACP',
+    'DACP'
   );
 
   /// Virgule
@@ -305,6 +309,14 @@ begin
     @TSepiDisassembler.OpCodeStrSetLength;
   @OpCodeArgsFuncs[ocDynArraySetLength] :=
     @TSepiDisassembler.OpCodeDynArraySetLength;
+  @OpCodeArgsFuncs[ocAnsiStrCopy] :=
+    @TSepiDisassembler.OpCodeStrCopy;
+  @OpCodeArgsFuncs[ocWideStrCopy] :=
+    @TSepiDisassembler.OpCodeStrCopy;
+  @OpCodeArgsFuncs[ocDynArrayCopy] :=
+    @TSepiDisassembler.OpCodeDynArrayCopy;
+  @OpCodeArgsFuncs[ocDynArrayCopyRange] :=
+    @TSepiDisassembler.OpCodeDynArrayCopyRange;
 end;
 
 {-------------------------}
@@ -980,6 +992,65 @@ begin
     DimPtr := ReadAddress(aoAcceptAllConsts, SizeOf(Integer));
     Result := Result + Comma + DimPtr;
   end;
+end;
+
+{*
+  OpCode ASCP et WSCP
+  @param OpCode   OpCode
+*}
+function TSepiDisassembler.OpCodeStrCopy(OpCode: TSepiOpCode): string;
+var
+  DestPtr, SrcPtr: string;
+  IndexPtr, CountPtr: string;
+begin
+  // Read arguments
+  DestPtr := ReadAddress;
+  SrcPtr := ReadAddress(aoAcceptNonCodeConsts);
+  IndexPtr := ReadAddress(aoAcceptAllConsts, SizeOf(Integer));
+  CountPtr := ReadAddress(aoAcceptAllConsts, SizeOf(Integer));
+
+  // Make result
+  Result := Format('%s, %s, %s, %s', [DestPtr, SrcPtr, IndexPtr, CountPtr]);
+end;
+
+{*
+  OpCode DACP version tableau entier
+  @param OpCode   OpCode
+*}
+function TSepiDisassembler.OpCodeDynArrayCopy(OpCode: TSepiOpCode): string;
+var
+  SepiType: TSepiType;
+  DestPtr, SrcPtr: string;
+begin
+  // Read arguments
+  RuntimeUnit.ReadRef(Instructions, SepiType);
+  DestPtr := ReadAddress;
+  SrcPtr := ReadAddress(aoAcceptNonCodeConsts);
+
+  // Make result
+  Result := Format('%s, %s, %s', [SepiType.DisplayName, DestPtr, SrcPtr]);
+end;
+
+{*
+  OpCode DACP version range
+  @param OpCode   OpCode
+*}
+function TSepiDisassembler.OpCodeDynArrayCopyRange(OpCode: TSepiOpCode): string;
+var
+  SepiType: TSepiType;
+  DestPtr, SrcPtr: string;
+  IndexPtr, CountPtr: string;
+begin
+  // Read arguments
+  RuntimeUnit.ReadRef(Instructions, SepiType);
+  DestPtr := ReadAddress;
+  SrcPtr := ReadAddress(aoAcceptNonCodeConsts);
+  IndexPtr := ReadAddress(aoAcceptAllConsts, SizeOf(Integer));
+  CountPtr := ReadAddress(aoAcceptAllConsts, SizeOf(Integer));
+
+  // Make result
+  Result := Format('%s, %s, %s, %s, %s',
+    [SepiType.DisplayName, DestPtr, SrcPtr, IndexPtr, CountPtr]);
 end;
 
 {*

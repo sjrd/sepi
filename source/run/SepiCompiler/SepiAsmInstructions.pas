@@ -42,7 +42,7 @@ unit SepiAsmInstructions;
 interface
 
 uses
-  Windows, Classes, SysUtils, TypInfo, SepiReflectionCore, SepiMembers,
+  Windows, Classes, SysUtils, TypInfo, ScUtils, SepiReflectionCore, SepiMembers,
   SepiArrayTypes, SepiOpCodes, SepiCompiler, SepiReflectionConsts,
   SepiCompilerConsts;
 
@@ -845,6 +845,62 @@ type
     property Dimensions[Index: Integer]: TSepiMemoryReference
       read GetDimensions;
     property FirstDimension: TSepiMemoryReference index 0 read GetDimensions;
+  end;
+
+  {*
+    Instruction ASCP ou WSCP
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiAsmStrCopy = class(TSepiAsmInstr)
+  private
+    FDestination: TSepiMemoryReference; /// Destination
+    FSource: TSepiMemoryReference;      /// Source
+    FIndexValue: TSepiMemoryReference;  /// Index de base de la copie
+    FCountValue: TSepiMemoryReference;  /// Nombre de caractères à copier
+  public
+    constructor Create(AMethodCompiler: TSepiMethodCompiler;
+      AOpCode: TSepiOpCode);
+    destructor Destroy; override;
+
+    procedure Make; override;
+    procedure WriteToStream(Stream: TStream); override;
+
+    property Destination: TSepiMemoryReference read FDestination;
+    property Source: TSepiMemoryReference read FSource;
+    property IndexValue: TSepiMemoryReference read FIndexValue;
+    property CountValue: TSepiMemoryReference read FCountValue;
+  end;
+
+  {*
+    Instruction DACP
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiAsmDynArrayCopy = class(TSepiAsmInstr)
+  private
+    FDynArrayType: TSepiDynArrayType; /// Type du tableau
+    FIsRange: Boolean;                /// Indique si c'est la version range
+
+    FDestination: TSepiMemoryReference; /// Destination
+    FSource: TSepiMemoryReference;      /// Source
+    FIndexValue: TSepiMemoryReference;  /// Index de base de la copie
+    FCountValue: TSepiMemoryReference;  /// Nombre de caractères à copier
+  public
+    constructor Create(AMethodCompiler: TSepiMethodCompiler;
+      ADynArrayType: TSepiDynArrayType; AIsRange: Boolean);
+    destructor Destroy; override;
+
+    procedure Make; override;
+    procedure WriteToStream(Stream: TStream); override;
+
+    property DynArrayType: TSepiDynArrayType read FDynArrayType;
+    property IsRange: Boolean read FIsRange;
+
+    property Destination: TSepiMemoryReference read FDestination;
+    property Source: TSepiMemoryReference read FSource;
+    property IndexValue: TSepiMemoryReference read FIndexValue;
+    property CountValue: TSepiMemoryReference read FCountValue;
   end;
 
 implementation
@@ -3192,6 +3248,7 @@ end;
 {*
   Crée une instruction DASL
   @param AMethodCompiler   Compilateur de méthode
+  @param ADynArrayType     Type de tableau dynamique
   @param ADimCount         Nombre de dimensions (> 0)
 *}
 constructor TSepiAsmDynArraySetLength.Create(
@@ -3282,6 +3339,165 @@ begin
 
   for I := 0 to DimCount-1 do
     Dimensions[I].WriteToStream(Stream);
+end;
+
+{-----------------------}
+{ TSepiAsmStrCopy class }
+{-----------------------}
+
+{*
+  Crée une instruction ASCP ou WSCP
+  @param AMethodCompiler   Compilateur de méthode
+  @param AOpCode           OpCode (in [ocAnsiStrCopy..ocWideStrCopy])
+*}
+constructor TSepiAsmStrCopy.Create(AMethodCompiler: TSepiMethodCompiler;
+  AOpCode: TSepiOpCode);
+begin
+  Assert(AOpCode in [ocAnsiStrCopy..ocWideStrCopy]);
+
+  inherited Create(AMethodCompiler);
+
+  FOpCode := AOpCode;
+
+  FDestination := TSepiMemoryReference.Create(MethodCompiler);
+  FSource := TSepiMemoryReference.Create(MethodCompiler, aoAcceptNonCodeConsts);
+  FIndexValue := TSepiMemoryReference.Create(MethodCompiler, aoAcceptAllConsts,
+    SizeOf(Integer));
+  FCountValue := TSepiMemoryReference.Create(MethodCompiler, aoAcceptAllConsts,
+    SizeOf(Integer));
+end;
+
+{*
+  [@inheritDoc]
+*}
+destructor TSepiAsmStrCopy.Destroy;
+begin
+  FCountValue.Free;
+  FIndexValue.Free;
+  FSource.Free;
+  FDestination.Free;
+
+  inherited;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiAsmStrCopy.Make;
+begin
+  inherited;
+
+  Destination.Make;
+  Inc(FSize, Destination.Size);
+  Source.Make;
+  Inc(FSize, Source.Size);
+  IndexValue.Make;
+  Inc(FSize, IndexValue.Size);
+  CountValue.Make;
+  Inc(FSize, CountValue.Size);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiAsmStrCopy.WriteToStream(Stream: TStream);
+begin
+  inherited;
+
+  Destination.WriteToStream(Stream);
+  Source.WriteToStream(Stream);
+  IndexValue.WriteToStream(Stream);
+  CountValue.WriteToStream(Stream);
+end;
+
+{----------------------------}
+{ TSepiAsmDynArrayCopy class }
+{----------------------------}
+
+{*
+  Crée une instruction DACP
+  @param AMethodCompiler   Compilateur de méthode
+  @param ADynArrayType     Type de tableau dynamique
+  @param AIsRange          Indique si c'est la version range
+*}
+constructor TSepiAsmDynArrayCopy.Create(AMethodCompiler: TSepiMethodCompiler;
+  ADynArrayType: TSepiDynArrayType; AIsRange: Boolean);
+begin
+  inherited Create(AMethodCompiler);
+
+  FOpCode := IIF(AIsRange, ocDynArrayCopyRange, ocDynArrayCopy);
+
+  FDynArrayType := ADynArrayType;
+  FIsRange := AIsRange;
+
+  FDestination := TSepiMemoryReference.Create(MethodCompiler);
+  FSource := TSepiMemoryReference.Create(MethodCompiler, aoAcceptNonCodeConsts);
+
+  if IsRange then
+  begin
+    FIndexValue := TSepiMemoryReference.Create(MethodCompiler,
+      aoAcceptAllConsts, SizeOf(Integer));
+    FCountValue := TSepiMemoryReference.Create(MethodCompiler,
+      aoAcceptAllConsts, SizeOf(Integer));
+  end;
+end;
+
+{*
+  [@inheritDoc]
+*}
+destructor TSepiAsmDynArrayCopy.Destroy;
+begin
+  FCountValue.Free;
+  FIndexValue.Free;
+  FSource.Free;
+  FDestination.Free;
+
+  inherited;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiAsmDynArrayCopy.Make;
+begin
+  inherited;
+
+  Inc(FSize, SizeOf(Integer));
+
+  Destination.Make;
+  Inc(FSize, Destination.Size);
+  Source.Make;
+  Inc(FSize, Source.Size);
+
+  if IsRange then
+  begin
+    IndexValue.Make;
+    Inc(FSize, IndexValue.Size);
+    CountValue.Make;
+    Inc(FSize, CountValue.Size);
+  end;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiAsmDynArrayCopy.WriteToStream(Stream: TStream);
+var
+  DynArrayTypeRef: Integer;
+begin
+  inherited;
+
+  DynArrayTypeRef := UnitCompiler.MakeReference(DynArrayType);
+  Stream.WriteBuffer(DynArrayTypeRef, SizeOf(Integer));
+
+  Destination.WriteToStream(Stream);
+  Source.WriteToStream(Stream);
+
+  if IsRange then
+  begin
+    IndexValue.WriteToStream(Stream);
+    CountValue.WriteToStream(Stream);
+  end;
 end;
 
 end.

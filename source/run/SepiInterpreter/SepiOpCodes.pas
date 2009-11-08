@@ -381,7 +381,7 @@ const
   ocSetOtherSubtract  = TSepiOpCode($7E); /// SSUB SetSize, Dest, Left, Right
   ocSetExpand         = TSepiOpCode($7F); /// SEXP Dest, Src, Lo, Hi
 
-  // Standart Delphi functions
+  // Standard Delphi functions
   ocAnsiStrLength     = TSepiOpCode($80); /// ASL Dest, Value
   ocWideStrLength     = TSepiOpCode($81); /// WSL Dest, Value
   ocDynArrayLength    = TSepiOpCode($82); /// DAL Dest, Value
@@ -389,6 +389,10 @@ const
   ocAnsiStrSetLength  = TSepiOpCode($84); /// ASSL Var, Len
   ocWideStrSetLength  = TSepiOpCode($85); /// WSSL Var, Len
   ocDynArraySetLength = TSepiOpCode($86); /// DASL Type-Ref, Var, DimCount, Dims
+  ocAnsiStrCopy       = TSepiOpCode($87); /// ASCP Dest, Src, Index, Count
+  ocWideStrCopy       = TSepiOpCode($88); /// WSCP Dest, Src, Index, Count
+  ocDynArrayCopy      = TSepiOpCode($89); /// DACP Type-Ref, Dest, Src
+  ocDynArrayCopyRange = TSepiOpCode($8A); /// DACP Type-Ref, Dest, Src, Idx, Cnt
 
 function MemoryRefEncode(MemorySpace: TSepiMemorySpace;
   OpCount: Integer): TSepiMemoryRef;

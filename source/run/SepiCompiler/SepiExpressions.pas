@@ -1363,6 +1363,71 @@ type
   end;
 
   {*
+    Expression copie d'une partie d'une chaîne de caractères
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiStrCopyExpression = class(TSepiCustomComputedValue)
+  private
+    FSourceStr: ISepiReadableValue;  /// Chaîne source
+    FIndexValue: ISepiReadableValue; /// Valeur de l'index
+    FCountValue: ISepiReadableValue; /// Valeur du nombre de caractères à copier
+
+    procedure CheckTypes;
+    procedure CollapseConsts;
+  protected
+    procedure CompileCompute(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
+      TempVars: TSepiTempVarsLifeManager); override;
+  public
+    procedure Complete;
+
+    class function MakeStrCopy(const SourceStr: ISepiReadableValue;
+      const IndexValue, CountValue: ISepiReadableValue): ISepiReadableValue;
+
+    property SourceStr: ISepiReadableValue read FSourceStr write FSourceStr;
+    property IndexValue: ISepiReadableValue read FIndexValue write FIndexValue;
+    property CountValue: ISepiReadableValue read FCountValue write FCountValue;
+  end;
+
+  {*
+    Expression copie d'une partie d'une chaîne de caractères
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiDynArrayCopyExpression = class(TSepiCustomComputedValue)
+  private
+    FIsRange: Boolean; /// Indique si c'est la version range
+
+    FSourceArray: ISepiReadableValue; /// Tableau source
+    FIndexValue: ISepiReadableValue;  /// Valeur de l'index
+    FCountValue: ISepiReadableValue;  /// Valeur du nombre d'éléments à copier
+
+    procedure CheckTypes;
+  protected
+    procedure CompileCompute(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
+      TempVars: TSepiTempVarsLifeManager); override;
+  public
+    constructor Create(AIsRange: Boolean);
+
+    procedure Complete;
+
+    class function MakeDynArrayCopy(
+      const SourceArray: ISepiReadableValue): ISepiReadableValue; overload;
+    class function MakeDynArrayCopyRange(const SourceArray: ISepiReadableValue;
+      const IndexValue, CountValue: ISepiReadableValue):
+      ISepiReadableValue; overload;
+
+    property IsRange: Boolean read FIsRange;
+
+    property SourceArray: ISepiReadableValue
+      read FSourceArray write FSourceArray;
+    property IndexValue: ISepiReadableValue read FIndexValue write FIndexValue;
+    property CountValue: ISepiReadableValue read FCountValue write FCountValue;
+  end;
+
+  {*
     Classe de base pour les expressions qui ont des paramètres
     @author sjrd
     @version 1.0
@@ -7007,6 +7072,310 @@ begin
   for I := Low(Dimensions) to High(Dimensions) do
     DynArraySetLength.Dimensions[I] := Dimensions[I];
   DynArraySetLength.Complete;
+end;
+
+{------------------------------}
+{ TSepiStrCopyExpression class }
+{------------------------------}
+
+{*
+  Vérification de type
+*}
+procedure TSepiStrCopyExpression.CheckTypes;
+begin
+  // Source string
+  if not (SourceStr.ValueType is TSepiStringType) then
+  begin
+    (SourceStr as ISepiExpression).MakeError(SStringTypeRequired);
+    SourceStr := TSepiErroneousValue.MakeReplacementValue(
+      SourceStr as ISepiExpression, UnitCompiler.SystemUnit.LongString);
+  end;
+
+  // Index
+  if not IndexValue.ValueType.Equals(UnitCompiler.SystemUnit.Integer) then
+  begin
+    IndexValue := TSepiConvertOperation.ConvertValue(
+      UnitCompiler.SystemUnit.Integer, IndexValue);
+  end;
+
+  // Count
+  if not CountValue.ValueType.Equals(UnitCompiler.SystemUnit.Integer) then
+  begin
+    CountValue := TSepiConvertOperation.ConvertValue(
+      UnitCompiler.SystemUnit.Integer, CountValue);
+  end;
+end;
+
+{*
+  Pliage des constantes
+*}
+procedure TSepiStrCopyExpression.CollapseConsts;
+var
+  Index, Count: Integer;
+begin
+  if not (SourceStr.IsConstant and IndexValue.IsConstant and
+    CountValue.IsConstant) then
+    Exit;
+
+  AllocateConstant;
+
+  Index := Integer(IndexValue.ConstValuePtr^);
+  Count := Integer(CountValue.ConstValuePtr^);
+
+  if (ValueType as TSepiStringType).IsUnicode then
+  begin
+    WideString(ConstValuePtr^) := Copy(WideString(SourceStr.ConstValuePtr^),
+      Index, Count);
+  end else
+  begin
+    AnsiString(ConstValuePtr^) := Copy(AnsiString(SourceStr.ConstValuePtr^),
+      Index, Count);
+  end;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiStrCopyExpression.CompileCompute(Compiler: TSepiMethodCompiler;
+  Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
+  TempVars: TSepiTempVarsLifeManager);
+var
+  SourceStrMemory, IndexMemory, CountMemory: TSepiMemoryReference;
+  SrcTempVars: TSepiTempVarsLifeManager;
+  Instruction: TSepiAsmStrCopy;
+begin
+  SourceStrMemory := nil;
+  IndexMemory := nil;
+  CountMemory := nil;
+  try
+    // Read operands
+    SrcTempVars := TSepiTempVarsLifeManager.Create;
+    try
+      SourceStr.CompileRead(Compiler, Instructions, SourceStrMemory,
+        SrcTempVars);
+      IndexValue.CompileRead(Compiler, Instructions, IndexMemory, SrcTempVars);
+      CountValue.CompileRead(Compiler, Instructions, CountMemory, SrcTempVars);
+    finally
+      SrcTempVars.EndAllLifes(Instructions.GetCurrentEndRef);
+      SrcTempVars.Free;
+    end;
+
+    // Make instruction
+    Instruction := TSepiAsmStrCopy.Create(Compiler,
+      IIF(TSepiStringType(ValueType).IsUnicode, ocWideStrCopy, ocAnsiStrCopy));
+    Instruction.SourcePos := Expression.SourcePos;
+
+    NeedDestination(Destination, ValueType, Compiler, TempVars,
+      Instruction.AfterRef);
+
+    Instruction.Destination.Assign(Destination);
+    Instruction.Source.Assign(SourceStrMemory);
+    Instruction.IndexValue.Assign(IndexMemory);
+    Instruction.CountValue.Assign(CountMemory);
+
+    Instructions.Add(Instruction);
+  finally
+    SourceStrMemory.Free;
+    IndexMemory.Free;
+    CountMemory.Free;
+  end;
+end;
+
+{*
+  Complète l'expression
+*}
+procedure TSepiStrCopyExpression.Complete;
+begin
+  Assert(SourceStr <> nil);
+  Assert(IndexValue <> nil);
+  Assert(CountValue <> nil);
+
+  CheckTypes;
+  SetValueType(SourceStr.ValueType);
+
+  CollapseConsts;
+end;
+
+{*
+  Construit une expression copie d'une partie de chaîne de caractères
+  @param SourceStr   Chaîne source
+  @param IndexValue   Valeur index de début de la copie
+  @param CountValue   Valeur nombre de caractères à copier
+*}
+class function TSepiStrCopyExpression.MakeStrCopy(
+  const SourceStr: ISepiReadableValue;
+  const IndexValue, CountValue: ISepiReadableValue): ISepiReadableValue;
+var
+  StrCopy: TSepiStrCopyExpression;
+begin
+  StrCopy := TSepiStrCopyExpression.Create;
+  Result := StrCopy;
+  Result.AttachToExpression(TSepiExpression.Create(
+    SourceStr as ISepiExpression));
+  StrCopy.SourceStr := SourceStr;
+  StrCopy.IndexValue := IndexValue;
+  StrCopy.CountValue := CountValue;
+  StrCopy.Complete;
+end;
+
+{-----------------------------------}
+{ TSepiDynArrayCopyExpression class }
+{-----------------------------------}
+
+{*
+  Crée une expression copie de tableau dynamique
+  @param AIsRange   Indique si c'est la version range
+*}
+constructor TSepiDynArrayCopyExpression.Create(AIsRange: Boolean);
+begin
+  inherited Create;
+
+  FIsRange := AIsRange;
+end;
+
+{*
+  Vérification de type
+*}
+procedure TSepiDynArrayCopyExpression.CheckTypes;
+begin
+  // Source array
+  if not (SourceArray.ValueType is TSepiDynArrayType) then
+  begin
+    (SourceArray as ISepiExpression).MakeError(SDynArrayTypeRequired);
+    SourceArray := TSepiErroneousValue.MakeReplacementValue(
+      SourceArray as ISepiExpression,
+      TSepiDynArrayType.Create(UnitCompiler.SepiUnit, '',
+      UnitCompiler.SystemUnit.Integer));
+  end;
+
+  if IsRange then
+  begin
+    // Index
+    if not IndexValue.ValueType.Equals(UnitCompiler.SystemUnit.Integer) then
+    begin
+      IndexValue := TSepiConvertOperation.ConvertValue(
+        UnitCompiler.SystemUnit.Integer, IndexValue);
+    end;
+
+    // Count
+    if not CountValue.ValueType.Equals(UnitCompiler.SystemUnit.Integer) then
+    begin
+      CountValue := TSepiConvertOperation.ConvertValue(
+        UnitCompiler.SystemUnit.Integer, CountValue);
+    end;
+  end;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiDynArrayCopyExpression.CompileCompute(
+  Compiler: TSepiMethodCompiler; Instructions: TSepiInstructionList;
+  var Destination: TSepiMemoryReference; TempVars: TSepiTempVarsLifeManager);
+var
+  SourceArrayMemory, IndexMemory, CountMemory: TSepiMemoryReference;
+  SrcTempVars: TSepiTempVarsLifeManager;
+  Instruction: TSepiAsmDynArrayCopy;
+begin
+  SourceArrayMemory := nil;
+  IndexMemory := nil;
+  CountMemory := nil;
+  try
+    // Read operands
+    SrcTempVars := TSepiTempVarsLifeManager.Create;
+    try
+      SourceArray.CompileRead(Compiler, Instructions, SourceArrayMemory,
+        SrcTempVars);
+
+      if IsRange then
+      begin
+        IndexValue.CompileRead(Compiler, Instructions, IndexMemory,
+          SrcTempVars);
+        CountValue.CompileRead(Compiler, Instructions, CountMemory,
+          SrcTempVars);
+      end;
+    finally
+      SrcTempVars.EndAllLifes(Instructions.GetCurrentEndRef);
+      SrcTempVars.Free;
+    end;
+
+    // Make instruction
+    Instruction := TSepiAsmDynArrayCopy.Create(Compiler,
+      ValueType as TSepiDynArrayType, IsRange);
+    Instruction.SourcePos := Expression.SourcePos;
+
+    NeedDestination(Destination, ValueType, Compiler, TempVars,
+      Instruction.AfterRef);
+
+    Instruction.Destination.Assign(Destination);
+    Instruction.Source.Assign(SourceArrayMemory);
+
+    if IsRange then
+    begin
+      Instruction.IndexValue.Assign(IndexMemory);
+      Instruction.CountValue.Assign(CountMemory);
+    end;
+
+    Instructions.Add(Instruction);
+  finally
+    SourceArrayMemory.Free;
+    IndexMemory.Free;
+    CountMemory.Free;
+  end;
+end;
+
+{*
+  Complète l'expression
+*}
+procedure TSepiDynArrayCopyExpression.Complete;
+begin
+  Assert(SourceArray <> nil);
+  Assert(IsRange = (IndexValue <> nil));
+  Assert(IsRange = (CountValue <> nil));
+
+  CheckTypes;
+  SetValueType(SourceArray.ValueType);
+end;
+
+{*
+  Construit une expression copie d'une partie de chaîne de caractères
+  @param SourceArray   Tableau source
+  @param IndexValue    Valeur index de début de la copie
+  @param CountValue    Valeur nombre de caractères à copier
+*}
+class function TSepiDynArrayCopyExpression.MakeDynArrayCopy(
+  const SourceArray: ISepiReadableValue): ISepiReadableValue;
+var
+  DynArrayCopy: TSepiDynArrayCopyExpression;
+begin
+  DynArrayCopy := TSepiDynArrayCopyExpression.Create(False);
+  Result := DynArrayCopy;
+  Result.AttachToExpression(TSepiExpression.Create(
+    SourceArray as ISepiExpression));
+  DynArrayCopy.SourceArray := SourceArray;
+  DynArrayCopy.Complete;
+end;
+
+{*
+  Construit une expression copie d'une partie de chaîne de caractères
+  @param SourceArray   Tableau source
+  @param IndexValue    Valeur index de début de la copie
+  @param CountValue    Valeur nombre de caractères à copier
+*}
+class function TSepiDynArrayCopyExpression.MakeDynArrayCopyRange(
+  const SourceArray: ISepiReadableValue;
+  const IndexValue, CountValue: ISepiReadableValue): ISepiReadableValue;
+var
+  DynArrayCopy: TSepiDynArrayCopyExpression;
+begin
+  DynArrayCopy := TSepiDynArrayCopyExpression.Create(True);
+  Result := DynArrayCopy;
+  Result.AttachToExpression(TSepiExpression.Create(
+    SourceArray as ISepiExpression));
+  DynArrayCopy.SourceArray := SourceArray;
+  DynArrayCopy.IndexValue := IndexValue;
+  DynArrayCopy.CountValue := CountValue;
+  DynArrayCopy.Complete;
 end;
 
 {-----------------------------}

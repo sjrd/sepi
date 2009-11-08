@@ -237,6 +237,16 @@ type
   end;
 
   {*
+    Pseudo-routine Copy
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiCopyPseudoRoutine = class(TSepiValueBackedPseudoRoutine)
+  protected
+    procedure CompleteParams; override;
+  end;
+
+  {*
     Pseudo-routine de jump spécial (Continue, Break ou Exit)
     @author sjrd
     @version 1.0
@@ -301,6 +311,9 @@ const
 
   /// Nom de la pseudo-routine SetLength
   SetLengthName = 'SetLength';
+
+  /// Nom de la pseudo-routine Copy
+  CopyName = 'Copy';
 
   /// Nom des pseudo-routines de jump spécial
   SpecialJumpNames: array[TSepiSpecialJumpKind] of string = (
@@ -403,6 +416,14 @@ begin
   if AnsiSameText(Identifier, SetLengthName) then
   begin
     ISepiExpressionPart(TSepiSetLengthPseudoRoutine.Create).AttachToExpression(
+      Expression);
+    Exit;
+  end;
+
+  // Copy pseudo-routine
+  if AnsiSameText(Identifier, CopyName) then
+  begin
+    ISepiExpressionPart(TSepiCopyPseudoRoutine.Create).AttachToExpression(
       Expression);
     Exit;
   end;
@@ -1174,6 +1195,69 @@ begin
     BackingExecutable :=
       TSepiDynArraySetLengthExpression.MakeDynArraySetLengthExpression(
         FirstValue, Dimensions);
+  end else
+  begin
+    Params[0].MakeError(SStringOrDynArrayTypeRequired);
+  end;
+end;
+
+{------------------------------}
+{ TSepiCopyPseudoRoutine class }
+{------------------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiCopyPseudoRoutine.CompleteParams;
+var
+  SourceValue, IndexValue, CountValue: ISepiReadableValue;
+begin
+  inherited;
+
+  if ParamCount = 0 then
+  begin
+    MakeError(SNotEnoughActualParameters);
+    Exit;
+  end;
+
+  RequireReadableValue(Params[0], SourceValue);
+  if ParamCount >= 2 then
+    RequireReadableValue(Params[1], IndexValue);
+  if ParamCount >= 3 then
+    RequireReadableValue(Params[2], CountValue);
+
+  if ParamCount = 2 then
+  begin
+    MakeError(SNotEnoughActualParameters);
+    CountValue := TSepiErroneousValue.MakeReplacementValue(Expression,
+      UnitCompiler.SystemUnit.Integer);
+  end else if ParamCount > 3 then
+  begin
+    MakeError(STooManyActualParameters);
+  end;
+
+  if SourceValue.ValueType is TSepiStringType then
+  begin
+    if ParamCount = 1 then
+    begin
+      MakeError(SNotEnoughActualParameters);
+      IndexValue := TSepiErroneousValue.MakeReplacementValue(Expression,
+        UnitCompiler.SystemUnit.Integer);
+      CountValue := IndexValue;
+    end;
+
+    BackingValue := TSepiStrCopyExpression.MakeStrCopy(SourceValue,
+      IndexValue, CountValue);
+  end else if SourceValue.ValueType is TSepiDynArrayType then
+  begin
+    if ParamCount = 1 then
+    begin
+      BackingValue := TSepiDynArrayCopyExpression.MakeDynArrayCopy(SourceValue);
+    end else
+    begin
+      BackingValue := TSepiDynArrayCopyExpression.MakeDynArrayCopyRange(
+        SourceValue, IndexValue, CountValue);
+    end;
   end else
   begin
     Params[0].MakeError(SStringOrDynArrayTypeRequired);

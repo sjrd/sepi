@@ -53,13 +53,15 @@ procedure AddRef(var Value; TypeInfo: PTypeInfo; Count: Cardinal = 1);
 
 procedure CopyArray(Dest, Source, TypeInfo: Pointer; Count: Integer);
 procedure CopyRecord(Dest, Source, TypeInfo: Pointer);
+
 procedure DynArrayCopy(Source: Pointer; TypeInfo: Pointer;
   var Dest: Pointer);
 procedure DynArrayCopyRange(Source: Pointer; TypeInfo: Pointer;
-  Index, Count: Integer; var Dest: Pointer);
+  Index, Count: Integer; var Dest: Pointer); assembler;
 
 function DynArrayLength(const DynArray): Integer;
 function DynArrayHigh(const DynArray): Integer;
+procedure DynArrayAsg(var Dest: Pointer; Src: Pointer; TypeInfo: Pointer);
 
 procedure SetElem(var Dest; Elem, Size: Byte);
 procedure SetRange(var Dest; Lo, Hi, Size: Byte);
@@ -124,6 +126,7 @@ end;
 *}
 procedure CopyArray(Dest, Source, TypeInfo: Pointer; Count: Integer);
 asm
+        POP     EBP // Anti-asm
         JMP     System.@CopyArray
 end;
 
@@ -161,6 +164,7 @@ end;
 procedure DynArrayCopyRange(Source: Pointer; TypeInfo: Pointer;
   Index, Count: Integer; var Dest: Pointer);
 asm
+        POP     EBP // Anti-asm
         JMP     System.@DynArrayCopyRange
 end;
 
@@ -184,6 +188,17 @@ function DynArrayHigh(const DynArray): Integer;
 asm
         MOV     EAX,[EAX]
         JMP     System.@DynArrayHigh
+end;
+
+{*
+  Assigne un tableau dynamique
+  @param Dest       Destination
+  @param Src        Source
+  @param TypeInfo   RTTI du type tableau dynamique
+*}
+procedure DynArrayAsg(var Dest: Pointer; Src: Pointer; TypeInfo: Pointer);
+asm
+        JMP     System.@DynArrayAsg
 end;
 
 {*

@@ -226,6 +226,9 @@ type
     procedure OpCodeValueToIntStdFunction(OpCode: TSepiOpCode);
     procedure OpCodeStrSetLength(OpCode: TSepiOpCode);
     procedure OpCodeDynArraySetLength(OpCode: TSepiOpCode);
+    procedure OpCodeStrCopy(OpCode: TSepiOpCode);
+    procedure OpCodeDynArrayCopy(OpCode: TSepiOpCode);
+    procedure OpCodeDynArrayCopyRange(OpCode: TSepiOpCode);
 
     // Other methods
 
@@ -378,7 +381,7 @@ begin
   @OpCodeProcs[ocSetOtherSubtract]  := @TSepiRuntimeContext.OpCodeSetOtherOp;
   @OpCodeProcs[ocSetExpand]         := @TSepiRuntimeContext.OpCodeSetExpand;
 
-  // Standart Delphi functions
+  // Standard Delphi functions
   @OpCodeProcs[ocAnsiStrLength] :=
     @TSepiRuntimeContext.OpCodeValueToIntStdFunction;
   @OpCodeProcs[ocWideStrLength] :=
@@ -393,6 +396,14 @@ begin
     @TSepiRuntimeContext.OpCodeStrSetLength;
   @OpCodeProcs[ocDynArraySetLength] :=
     @TSepiRuntimeContext.OpCodeDynArraySetLength;
+  @OpCodeProcs[ocAnsiStrCopy] :=
+    @TSepiRuntimeContext.OpCodeStrCopy;
+  @OpCodeProcs[ocWideStrCopy] :=
+    @TSepiRuntimeContext.OpCodeStrCopy;
+  @OpCodeProcs[ocDynArrayCopy] :=
+    @TSepiRuntimeContext.OpCodeDynArrayCopy;
+  @OpCodeProcs[ocDynArrayCopyRange] :=
+    @TSepiRuntimeContext.OpCodeDynArrayCopyRange;
 end;
 
 {*
@@ -1765,6 +1776,69 @@ begin
   // Execute instruction
   DynArraySetLength(Pointer(DynArrayPtr^), SepiType.TypeInfo, DimCount,
     @Dimensions[0]);
+end;
+
+{*
+  OpCode ASCP et WSCP
+  @param OpCode   OpCode
+*}
+procedure TSepiRuntimeContext.OpCodeStrCopy(OpCode: TSepiOpCode);
+var
+  DestPtr, SrcPtr: Pointer;
+  IndexPtr, CountPtr: PInteger;
+begin
+  // Read arguments
+  DestPtr := ReadAddress;
+  SrcPtr := ReadAddress(aoAcceptNonCodeConsts);
+  IndexPtr := ReadAddress(aoAcceptAllConsts, SizeOf(Integer));
+  CountPtr := ReadAddress(aoAcceptAllConsts, SizeOf(Integer));
+
+  // Execute instruction
+  case OpCode of
+    ocAnsiStrCopy:
+      AnsiString(DestPtr^) := Copy(AnsiString(SrcPtr^), IndexPtr^, CountPtr^);
+    ocWideStrCopy:
+      WideString(DestPtr^) := Copy(WideString(SrcPtr^), IndexPtr^, CountPtr^);
+  end;
+end;
+
+{*
+  OpCode DACP version tableau entier
+  @param OpCode   OpCode
+*}
+procedure TSepiRuntimeContext.OpCodeDynArrayCopy(OpCode: TSepiOpCode);
+var
+  SepiType: TSepiType;
+  DestPtr, SrcPtr: PPointer;
+begin
+  // Read arguments
+  RuntimeUnit.ReadRef(Instructions, SepiType);
+  DestPtr := ReadAddress;
+  SrcPtr := ReadAddress(aoAcceptNonCodeConsts);
+
+  // Execute instruction
+  DynArrayCopy(SrcPtr^, SepiType.TypeInfo, DestPtr^);
+end;
+
+{*
+  OpCode DACP version range
+  @param OpCode   OpCode
+*}
+procedure TSepiRuntimeContext.OpCodeDynArrayCopyRange(OpCode: TSepiOpCode);
+var
+  SepiType: TSepiType;
+  DestPtr, SrcPtr: PPointer;
+  IndexPtr, CountPtr: PInteger;
+begin
+  // Read arguments
+  RuntimeUnit.ReadRef(Instructions, SepiType);
+  DestPtr := ReadAddress;
+  SrcPtr := ReadAddress(aoAcceptNonCodeConsts);
+  IndexPtr := ReadAddress(aoAcceptAllConsts, SizeOf(Integer));
+  CountPtr := ReadAddress(aoAcceptAllConsts, SizeOf(Integer));
+
+  // Execute instruction
+  DynArrayCopyRange(SrcPtr^, SepiType.TypeInfo, IndexPtr^, CountPtr^, DestPtr^);
 end;
 
 {*

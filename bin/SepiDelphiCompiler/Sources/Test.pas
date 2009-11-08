@@ -231,10 +231,10 @@ begin
   DisplayArray(Items);
 end;
 
-procedure TestSetLength;
+procedure TestSetLengthAndCopy;
 var
   I: Integer;
-  IntArray: TIntegerDynArray;
+  IntArray, OtherArray: TIntegerDynArray;
   Str: string;
 begin
   WriteTitle('Test SetLength and dynamic arrays');
@@ -244,7 +244,25 @@ begin
     IntArray[I] := I*I;
   DisplayArray(IntArray);
 
+  WriteLn('');
+  OtherArray := IntArray;
+  OtherArray[3] := 0;
+  DisplayArray(IntArray);
+  DisplayArray(OtherArray);
+
+  WriteLn('');
+  OtherArray := Copy(IntArray);
+  OtherArray[3] := 1;
+  DisplayArray(IntArray);
+  DisplayArray(OtherArray);
+
+  WriteLn('');
+  OtherArray := Copy(IntArray, 1, 3);
+  DisplayArray(OtherArray);
+
+  WriteLn('');
   Str := 'Hello world!';
+  WriteLn(Copy(Str, 7, MaxInt));
   SetLength(Str, 5);
   WriteLn(Str);
 end;
@@ -259,7 +277,7 @@ begin
   TestMethodRef;
   TestIsAs;
   TestOpenArray;
-  TestSetLength;
+  TestSetLengthAndCopy;
   TestExceptionsAndClassDef;
 end;
 
