@@ -1,9 +1,9 @@
 {-------------------------------------------------------------------------------
 Sepi - Object-oriented script engine for Delphi
-Copyright (C) 2006-2007  Sébastien Doeraene
+Copyright (C) 2006-2009  Sébastien Doeraene
 All Rights Reserved
 
-This file is part of the SCL (Sepi Code Library), which is part of Sepi.
+This file is part of Sepi.
 
 Sepi is free software: you can redistribute it and/or modify it under the terms
 of the GNU General Public License as published by the Free Software Foundation,
@@ -16,9 +16,9 @@ PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License along with
 Sepi.  If not, see <http://www.gnu.org/licenses/>.
 
-Linking this library -the SCL- statically or dynamically with other modules is
-making a combined work based on this library.  Thus, the terms and conditions
-of the GNU General Public License cover the whole combination.
+Linking this library statically or dynamically with other modules is making a
+combined work based on this library.  Thus, the terms and conditions of the GNU
+General Public License cover the whole combination.
 
 As a special exception, the copyright holders of this library give you
 permission to link this library with independent modules to produce an

@@ -6,10 +6,8 @@ the file COPYING.txt.  If you do not have the source code, it is available at:
 
     http://sjrd.developpez.com/sepi/
 
-The files in the subdirectory source/run/SCL/ make the subproject SCL: Sepi
-Code Library.  The following exception to the GNU General Public License (GPL)
-applies to the SCL and its files, as mentionned in their source code.
-HOWEVER, it does NOT apply to other source files that are part of Sepi.
+The following exception to the GNU General Public License (GPL) applies to all
+Sepi files, as mentionned in their source code.
 
   Linking this library statically or dynamically with other modules is
   making a combined work based on this library.  Thus, the terms and
