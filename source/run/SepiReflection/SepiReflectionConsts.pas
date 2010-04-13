@@ -45,13 +45,17 @@ const
   SUntypedTypeName = '$Untyped'; /// Nom du type non typé
 
 resourcestring
-  SSepiComponentAlreadyCreated = 'Le meta de nom ''%s'' a déjà été créé';
-  SSepiComponentAlreadyExists = 'Un meta de  nom ''%s'' existe déjà';
-  SSepiComponentAlreadyAssigned = 'L''objet meta à la position %d est déjà assigné';
+  SSepiComponentAlreadyCreated = 'Le composant de nom ''%s'' a déjà été créé';
+  SSepiComponentAlreadyExists = 'Un composant de nom ''%s'' existe déjà';
+  SSepiComponentAlreadyAssigned =
+    'Le composant à la position %d est déjà assigné';
   SSepiComponentNotFound = 'Composant %s non trouvé';
   SSepiUnitNotFound = 'Impossible de trouver l''unité %s';
   SSepiCantSaveLazyLoadUnit =
     'Impossible d''enregistrer une unité en mode lazy-load';
+  SSepiIncompatibleUsedUnit =
+    'L''unité ''%s'' a été compilée avec une version différente de l''unité '+
+    'utilisée ''%s'', et doit être recompilée.';
   SSepiNoRegisterTypeInfo = 'Ce type n''implémente pas RegisterTypeInfo';
   SCantCloneType = 'Ne peut cloner le type %s';
   SSepiBadConstType = 'Impossible de créer une constante de type variant %d';

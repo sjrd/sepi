@@ -1793,7 +1793,7 @@ procedure TSepiPointerType.WriteDigestData(Stream: TStream);
 begin
   inherited;
 
-  PointTo.WriteDigestToStream(Stream);
+  WriteStrToStream(Stream, PointTo.GetFullName);
 end;
 
 {*

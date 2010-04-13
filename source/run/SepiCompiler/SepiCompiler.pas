@@ -2913,6 +2913,7 @@ end;
 procedure TSepiUnitCompiler.WriteToStream(Stream: TStream);
 var
   I, Count: Integer;
+  Digest: TSepiDigest;
 begin
   // Compile methods
   for I := 0 to MethodCount-1 do
@@ -2934,7 +2935,11 @@ begin
   Count := FReferences.Count;
   Stream.WriteBuffer(Count, 4);
   for I := 0 to Count-1 do
+  begin
     WriteStrToStream(Stream, TSepiComponent(FReferences[I]).GetFullName);
+    Digest := TSepiComponent(FReferences[I]).Digest;
+    Stream.WriteBuffer(Digest, SizeOf(TSepiDigest));
+  end;
 
   // Write locals information
   for I := 0 to MethodCount-1 do

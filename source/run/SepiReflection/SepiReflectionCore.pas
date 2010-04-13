@@ -133,6 +133,13 @@ type
   ESepiUnitNotFoundError = class(ESepiComponentNotFoundError);
 
   {*
+    Déclenchée si une unité utilisée est incompatible avec les digests connus
+    @author sjrd
+    @version 1.0
+  *}
+  ESepiIncompatibleUsedUnitError = class(ESepiError);
+
+  {*
     Déclenchée si l'on tente de créer une constante avec un mauvais type
     @author sjrd
     @version 1.0
@@ -268,6 +275,9 @@ type
     function LookFor(const Name: string): TSepiComponent; overload;
 
     procedure WriteDigestToStream(Stream: TStream);
+
+    function CheckDigest(const ADigest: TSepiDigest): Boolean; overload;
+    function CheckDigest(const ADigest: string): Boolean; overload;
 
     function MakeUnnamedChildName: string;
 
@@ -1799,6 +1809,27 @@ begin
 end;
 
 {*
+  Vérifie le digest de compatibilité
+  @param ADigest   Digest attendu
+  @return True si le digest est correct, False sinon
+*}
+function TSepiComponent.CheckDigest(const ADigest: TSepiDigest): Boolean;
+begin
+  EnsureDigestBuilt;
+  Result := MD5DigestCompare(ADigest, FDigest);
+end;
+
+{*
+  Vérifie le digest de compatibilité
+  @param ADigest   Digest attendu sous forme de chaîne
+  @return True si le digest est correct, False sinon
+*}
+function TSepiComponent.CheckDigest(const ADigest: string): Boolean;
+begin
+  Result := CheckDigest(StrToMD5Digest(ADigest));
+end;
+
+{*
   Construit un nom pour un enfant créé anonyme
   @return Nom pour l'enfant
 *}
@@ -3292,7 +3323,8 @@ end;
 constructor TSepiUnit.Load(AOwner: TSepiComponent; Stream: TStream);
 var
   UsesCount, RefCount, I, J: Integer;
-  Str: string;
+  Str, StrDigest: string;
+  Digest: TSepiDigest;
 begin
   if LazyLoad then
     FLazyLoadData := TSepiLazyLoadData.Create(Self, Stream);
@@ -3300,6 +3332,9 @@ begin
   Stream.ReadBuffer(UsesCount, 4);
   SetLength(FReferences, UsesCount+1);
   FillChar(FReferences[0], 4*(UsesCount+1), 0);
+
+  FillChar(Digest, SizeOf(TSepiDigest), 0);
+  StrDigest := MD5DigestToStr(Digest);
 
   try
     // Load uses and set up the references lists
@@ -3314,8 +3349,19 @@ begin
 
       FReferences[I] := TStringList.Create;
       Stream.ReadBuffer(RefCount, 4);
+
       for J := 0 to RefCount-1 do
-        FReferences[I].Add(ReadStrFromStream(Stream));
+      begin
+        Str := ReadStrFromStream(Stream);
+
+        if I > 0 then
+        begin
+          Stream.ReadBuffer(Digest, SizeOf(TSepiDigest));
+          StrDigest := MD5DigestToStr(Digest);
+        end;
+
+        FReferences[I].Values[Str] := StrDigest;
+      end;
     end;
 
     // Now, you can add yourself to the root children
@@ -3506,6 +3552,7 @@ procedure TSepiUnit.Save(Stream: TStream);
 var
   UsesCount, RefCount, I, J: Integer;
   RefList: TStrings;
+  Digest: TSepiDigest;
 begin
   UsesCount := FUsesList.Count;
   SetLength(FReferences, UsesCount+1);
@@ -3529,7 +3576,15 @@ begin
       Stream.WriteBuffer(RefCount, 4);
 
       for J := 0 to RefCount-1 do
-        WriteStrToStream(Stream, RefList[J]);
+      begin
+        WriteStrToStream(Stream, RefList.Names[J]);
+
+        if I > 0 then
+        begin
+          Digest := TSepiComponent(RefList.Objects[J]).Digest;
+          Stream.WriteBuffer(Digest, SizeOf(TSepiDigest));
+        end;
+      end;
     end;
 
     // Actually saving the unit
@@ -3669,6 +3724,9 @@ procedure TSepiUnit.ReadRef(Stream: TStream; out Ref);
 var
   UnitIndex, RefIndex: Integer;
   RefList: TStrings;
+  SepiUnit: TSepiUnit;
+  Component: TSepiComponent;
+  DigestOK: Boolean;
 begin
   // Reading unit index and checking for nil reference
   UnitIndex := 0;
@@ -3687,12 +3745,24 @@ begin
 
   if TObject(Ref) = nil then
   begin
-    if UnitIndex = 0 then // local reference
-      TObject(Ref) := FindComponent(RefList[RefIndex])
-    else // remote reference
-      TObject(Ref) := TSepiUnit(FUsesList.Objects[UnitIndex-1])
-        .FindComponent(RefList[RefIndex]);
-    RefList.Objects[RefIndex] := TObject(Ref);
+    if UnitIndex = 0 then
+      SepiUnit := Self
+    else
+      SepiUnit := TSepiUnit(FUsesList.Objects[UnitIndex-1]);
+
+    Component := SepiUnit.GetComponent(RefList.Names[RefIndex]);
+
+    if (Component = nil) or (UnitIndex = 0) then
+      DigestOK := True
+    else
+      DigestOK := Component.CheckDigest(RefList.ValueFromIndex[RefIndex]);
+
+    if (Component = nil) or (not DigestOK) then
+      raise ESepiIncompatibleUsedUnitError.CreateFmt(SSepiIncompatibleUsedUnit,
+        [Name, SepiUnit.Name]);
+
+    RefList.Objects[RefIndex] := Component;
+    TObject(Ref) := Component;
   end;
 end;
 
@@ -3716,7 +3786,7 @@ begin
 
   if RefList.IndexOfObject(Ref) < 0 then
     RefList.AddObject(Copy(
-      Ref.GetFullName, Length(Ref.OwningUnit.Name)+2, MaxInt), Ref);
+      Ref.GetFullName, Length(Ref.OwningUnit.Name)+2, MaxInt)+'=', Ref);
 end;
 
 {*

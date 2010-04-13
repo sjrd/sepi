@@ -452,6 +452,7 @@ end;
 constructor TSepiRuntimeUnit.Create(SepiRoot: TSepiRoot; Stream: TStream);
 var
   I, Count: Integer;
+  Digest: TSepiDigest;
 begin
   inherited Create;
 
@@ -469,7 +470,14 @@ begin
   Stream.ReadBuffer(Count, SizeOf(Integer));
   SetLength(FReferences, Count);
   for I := 0 to Count-1 do
+  begin
     FReferences[I] := SepiRoot.FindComponent(ReadStrFromStream(Stream));
+    Stream.ReadBuffer(Digest, SizeOf(TSepiDigest));
+
+    if not FReferences[I].CheckDigest(Digest) then
+      raise ESepiIncompatibleUsedUnitError.CreateFmt(SSepiIncompatibleUsedUnit,
+        [SepiUnit.Name, FReferences[I].OwningUnit.Name]);
+  end;
 
   // Read locals information
   for I := 0 to FMethods.Count-1 do
