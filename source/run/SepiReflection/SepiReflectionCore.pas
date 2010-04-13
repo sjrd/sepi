@@ -46,7 +46,7 @@ interface
 uses
   Types, Windows, SysUtils, Classes, Contnrs, RTLConsts, IniFiles, TypInfo,
   Variants, StrUtils, ScUtils, ScStrUtils, ScSyncObjs, ScCompilerMagic,
-  ScSerializer, ScTypInfo, SepiCore, SepiReflectionConsts;
+  ScSerializer, ScTypInfo, ScMD5, SepiCore, SepiReflectionConsts;
 
 type
   TSepiComponent = class;
@@ -54,6 +54,9 @@ type
   TSepiRoot = class;
   TSepiUnit = class;
   TSepiAsynchronousRootManager = class;
+
+  /// Digest de compatibilité d'un composant Sepi
+  TSepiDigest = TMD5Digest;
 
   {*
     État d'un composant
@@ -189,6 +192,8 @@ type
     FVisibility: TMemberVisibility; /// Visibilité
     /// Visibilité avec laquelle les enfants de ce composant seront créés
     FCurrentVisibility: TMemberVisibility;
+    FDigestBuilt: Boolean;          /// True ssi FDigest a déjà été construit
+    FDigest: TSepiDigest;           /// Digest de compatibilité
     FTag: Integer;                  /// Tag
     FForwards: TStrings;            /// Liste des enfants forwards
     FChildren: TSepiComponentList;  /// Liste des enfants
@@ -196,7 +201,11 @@ type
     FObjResources: TObjectList;     /// Liste des ressources objet
     FPtrResources: TList;           /// Liste des ressources pointeur
 
+    procedure EnsureDigestBuilt;
+
     function GetWasForward: Boolean;
+
+    function GetDigest: TSepiDigest;
 
     function GetChildCount: Integer;
     function GetChildren(Index: Integer): TSepiComponent;
@@ -233,6 +242,8 @@ type
 
     function GetDisplayName: string; virtual;
 
+    procedure WriteDigestData(Stream: TStream); virtual;
+
     property State: TSepiComponentState read FState;
   public
     constructor Load(AOwner: TSepiComponent; Stream: TStream); virtual;
@@ -256,6 +267,8 @@ type
       FromComponent: TSepiComponent): TSepiComponent; overload;
     function LookFor(const Name: string): TSepiComponent; overload;
 
+    procedure WriteDigestToStream(Stream: TStream);
+
     function MakeUnnamedChildName: string;
 
     procedure AddObjResource(Obj: TObject);
@@ -273,6 +286,7 @@ type
     property Visibility: TMemberVisibility read FVisibility write FVisibility;
     property CurrentVisibility: TMemberVisibility
       read FCurrentVisibility write FCurrentVisibility;
+    property Digest: TSepiDigest read GetDigest;
     property Tag: Integer read FTag write FTag;
 
     property ChildCount: Integer read GetChildCount;
@@ -335,6 +349,8 @@ type
     FResultBehavior: TSepiTypeResultBehavior; /// Comportement comme résultat
 
     procedure Save(Stream: TStream); override;
+
+    procedure WriteDigestData(Stream: TStream); override;
 
     procedure ForceNative(ATypeInfo: PTypeInfo = nil);
     procedure AllocateTypeInfo(TypeDataLength: Integer = 0);
@@ -659,6 +675,8 @@ type
   protected
     procedure ListReferences; override;
     procedure Save(Stream: TStream); override;
+
+    procedure WriteDigestData(Stream: TStream); override;
   public
     constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
     constructor Create(AOwner: TSepiComponent; const AName: string;
@@ -683,6 +701,8 @@ type
   protected
     procedure ListReferences; override;
     procedure Save(Stream: TStream); override;
+
+    procedure WriteDigestData(Stream: TStream); override;
   public
     constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
     constructor Create(AOwner: TSepiComponent; const AName: string;
@@ -717,6 +737,8 @@ type
     procedure Save(Stream: TStream); override;
 
     procedure Destroying; override;
+
+    procedure WriteDigestData(Stream: TStream); override;
   public
     constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
 
@@ -1185,12 +1207,42 @@ begin
 end;
 
 {*
+  S'assure que le digest de compatibilité a été construit
+*}
+procedure TSepiComponent.EnsureDigestBuilt;
+var
+  Stream: TStream;
+begin
+  if not FDigestBuilt then
+  begin
+    Stream := TMemoryStream.Create;
+    try
+      WriteDigestData(Stream);
+      FDigest := MD5Stream(Stream);
+      FDigestBuilt := True;
+    finally
+      Stream.Free;
+    end;
+  end;
+end;
+
+{*
   Indique si le composant a été créé forward
   @return True si le composant a été créé forward, False sinon
 *}
 function TSepiComponent.GetWasForward: Boolean;
 begin
   Result := (FOwner <> nil) and (FOwner.FForwards.IndexOfObject(Self) >= 0);
+end;
+
+{*
+  Digest de compatibilité
+  @return Digest de compatibilité
+*}
+function TSepiComponent.GetDigest: TSepiDigest;
+begin
+  EnsureDigestBuilt;
+  Result := FDigest;
 end;
 
 {*
@@ -1554,6 +1606,15 @@ begin
 end;
 
 {*
+  Écrit les données nécessaires au digest de compatibilité dans un flux
+  @param Stream   Flux destination
+*}
+procedure TSepiComponent.WriteDigestData(Stream: TStream);
+begin
+  WriteStrToStream(Stream, ClassName);
+end;
+
+{*
   [@inheritDoc]
 *}
 class function TSepiComponent.NewInstance: TObject;
@@ -1720,6 +1781,24 @@ begin
 end;
 
 {*
+  Écrit le digest de compatibilité dans un flux
+  @param Stream   Flux destination
+*}
+procedure TSepiComponent.WriteDigestToStream(Stream: TStream);
+const
+  NilDigest: TSepiDigest = (A: 0; B: 0; C: 0; D: 0);
+begin
+  if Self = nil then
+  begin
+    Stream.WriteBuffer(NilDigest, SizeOf(TSepiDigest));
+  end else
+  begin
+    EnsureDigestBuilt;
+    Stream.WriteBuffer(FDigest, SizeOf(TSepiDigest));
+  end;
+end;
+
+{*
   Construit un nom pour un enfant créé anonyme
   @return Nom pour l'enfant
 *}
@@ -1882,6 +1961,22 @@ procedure TSepiType.Save(Stream: TStream);
 begin
   inherited;
   Stream.WriteBuffer(FKind, 1);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiType.WriteDigestData(Stream: TStream);
+var
+  Alignment: Integer;
+begin
+  inherited;
+
+  Alignment := GetAlignment;
+
+  Stream.WriteBuffer(FKind, 1);
+  Stream.WriteBuffer(FSize, SizeOf(Integer));
+  Stream.WriteBuffer(Alignment, SizeOf(Integer));
 end;
 
 {*
@@ -3758,6 +3853,16 @@ begin
   OwningUnit.WriteRef(Stream, FDest);
 end;
 
+{*
+  [@inheritDoc]
+*}
+procedure TSepiTypeAlias.WriteDigestData(Stream: TStream);
+begin
+  inherited;
+
+  Dest.WriteDigestToStream(Stream);
+end;
+
 {----------------------}
 { Classe TSepiConstant }
 {----------------------}
@@ -3903,6 +4008,17 @@ begin
   inherited;
 
   OwningUnit.WriteRef(Stream, FType);
+  WriteDataToStream(Stream, FValuePtr^, FType.Size, FType.TypeInfo);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiConstant.WriteDigestData(Stream: TStream);
+begin
+  inherited;
+
+  ConstType.WriteDigestToStream(Stream);
   WriteDataToStream(Stream, FValuePtr^, FType.Size, FType.TypeInfo);
 end;
 
@@ -4106,6 +4222,18 @@ begin
 
   if FOwnValue then
     FType.FinalizeValue(FValue^);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiVariable.WriteDigestData(Stream: TStream);
+begin
+  inherited;
+
+  Stream.WriteBuffer(FIsConst, SizeOf(Boolean));
+  VarType.WriteDigestToStream(Stream);
+  WriteDataToStream(Stream, FValue^, FType.Size, FType.TypeInfo);
 end;
 
 {----------------------}

@@ -56,6 +56,8 @@ type
   protected
     procedure Save(Stream: TStream); override;
 
+    procedure WriteDigestData(Stream: TStream); override;
+
     procedure ExtractTypeData; override;
 
     function GetAlignment: Integer; override;
@@ -85,6 +87,8 @@ type
     FIsUnicode: Boolean; /// Indique si la chaîne est Unicode ou non
   protected
     procedure Save(Stream: TStream); override;
+
+    procedure WriteDigestData(Stream: TStream); override;
 
     procedure ExtractTypeData; override;
   public
@@ -172,6 +176,16 @@ procedure TSepiShortStringType.Save(Stream: TStream);
 begin
   inherited;
   Stream.WriteBuffer(TypeData^, ShortStringTypeDataLength);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiShortStringType.WriteDigestData(Stream: TStream);
+begin
+  inherited;
+
+  Stream.WriteBuffer(FMaxLength, 1);
 end;
 
 {*
@@ -281,6 +295,16 @@ procedure TSepiStringType.Save(Stream: TStream);
 begin
   inherited;
   Stream.WriteBuffer(TypeData^, StringTypeDataLength);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiStringType.WriteDigestData(Stream: TStream);
+begin
+  inherited;
+
+  Stream.WriteBuffer(FIsUnicode, 1);
 end;
 
 {*

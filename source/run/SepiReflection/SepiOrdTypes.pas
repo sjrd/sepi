@@ -42,7 +42,8 @@ unit SepiOrdTypes;
 interface
 
 uses
-  Classes, SysUtils, SysConst, TypInfo, ScDelphiLanguage, SepiReflectionCore;
+  Classes, SysUtils, SysConst, TypInfo, ScUtils, ScDelphiLanguage,
+  SepiReflectionCore;
 
 const
   MinInt64 = Int64($FFFFFFFFFFFFFFFF);
@@ -71,6 +72,8 @@ type
     FMinValue: Longint; /// Valeur minimale
     FMaxValue: Longint; /// Valeur maximale
   protected
+    procedure WriteDigestData(Stream: TStream); override;
+
     procedure ExtractTypeData; override;
   public
     function Equals(Other: TSepiType): Boolean; override;
@@ -127,6 +130,8 @@ type
   protected
     procedure Save(Stream: TStream); override;
 
+    procedure WriteDigestData(Stream: TStream); override;
+
     procedure ExtractTypeData; override;
 
     function GetDescription: string; override;
@@ -162,6 +167,8 @@ type
   protected
     procedure Save(Stream: TStream); override;
 
+    procedure WriteDigestData(Stream: TStream); override;
+
     procedure ExtractTypeData; override;
 
     function GetDescription: string; override;
@@ -192,6 +199,8 @@ type
     FFloatType: TFloatType; /// Type de flottant
   protected
     procedure Save(Stream: TStream); override;
+
+    procedure WriteDigestData(Stream: TStream); override;
 
     procedure ExtractTypeData; override;
 
@@ -258,6 +267,8 @@ type
     procedure ListReferences; override;
     procedure Save(Stream: TStream); override;
 
+    procedure WriteDigestData(Stream: TStream); override;
+
     procedure ExtractTypeData; override;
 
     function GetDescription: string; override;
@@ -293,6 +304,8 @@ type
   protected
     procedure ListReferences; override;
     procedure Save(Stream: TStream); override;
+
+    procedure WriteDigestData(Stream: TStream); override;
 
     procedure ExtractTypeData; override;
 
@@ -347,6 +360,8 @@ type
     procedure ListReferences; override;
     procedure Save(Stream: TStream); override;
 
+    procedure WriteDigestData(Stream: TStream); override;
+
     function GetDescription: string; override;
   public
     constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
@@ -390,6 +405,17 @@ const
 {---------------------}
 { Classe TSepiOrdType }
 {---------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiOrdType.WriteDigestData(Stream: TStream);
+begin
+  inherited;
+
+  Stream.WriteBuffer(FMinValue, 4);
+  Stream.WriteBuffer(FMaxValue, 4);
+end;
 
 {*
   [@inheritDoc]
@@ -666,6 +692,16 @@ begin
 end;
 
 {*
+  [@inheritDoc]
+*}
+procedure TSepiCharType.WriteDigestData(Stream: TStream);
+begin
+  inherited;
+
+  Stream.WriteBuffer(FIsUnicode, 1);
+end;
+
+{*
   [@inheritedDoc]
 *}
 procedure TSepiCharType.ExtractTypeData;
@@ -790,6 +826,17 @@ begin
 end;
 
 {*
+  [@inheritDoc]
+*}
+procedure TSepiInt64Type.WriteDigestData(Stream: TStream);
+begin
+  inherited;
+
+  Stream.WriteBuffer(FMinValue, 8);
+  Stream.WriteBuffer(FMaxValue, 8);
+end;
+
+{*
   [@inheritedDoc]
 *}
 procedure TSepiInt64Type.ExtractTypeData;
@@ -898,6 +945,16 @@ procedure TSepiFloatType.Save(Stream: TStream);
 begin
   inherited;
   Stream.WriteBuffer(TypeData^, FloatTypeDataLength);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiFloatType.WriteDigestData(Stream: TStream);
+begin
+  inherited;
+
+  Stream.WriteBuffer(FFloatType, 1);
 end;
 
 {*
@@ -1298,6 +1355,25 @@ begin
 end;
 
 {*
+  [@inheritDoc]
+*}
+procedure TSepiEnumType.WriteDigestData(Stream: TStream);
+var
+  I: Integer;
+begin
+  inherited;
+
+  if BaseType = Self then
+  begin
+    for I := 0 to ValueCount-1 do
+      WriteStrToStream(Stream, Names[I]);
+  end else
+  begin
+    BaseType.WriteDigestToStream(Stream);
+  end;
+end;
+
+{*
   [@inheritedDoc]
 *}
 procedure TSepiEnumType.ExtractTypeData;
@@ -1472,6 +1548,16 @@ begin
   inherited;
   Stream.WriteBuffer(TypeData^, SetTypeDataLength);
   OwningUnit.WriteRef(Stream, FCompType);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiSetType.WriteDigestData(Stream: TStream);
+begin
+  inherited;
+
+  CompType.WriteDigestToStream(Stream);
 end;
 
 {*
@@ -1698,6 +1784,16 @@ procedure TSepiPointerType.Save(Stream: TStream);
 begin
   inherited;
   OwningUnit.WriteRef(Stream, FPointTo);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiPointerType.WriteDigestData(Stream: TStream);
+begin
+  inherited;
+
+  PointTo.WriteDigestToStream(Stream);
 end;
 
 {*

@@ -15,7 +15,7 @@ interface
 
 uses
   SysUtils, StrUtils, TypInfo, SepiReflectionCore, SepiOrdTypes, SepiStrTypes,
-  SepiArrayTypes, SepiMembers, ScUtils, MembersInfo;
+  SepiArrayTypes, SepiMembers, ScUtils, ScMD5, MembersInfo;
 
 procedure PrintTypeInfo(Output: TOutputWriter; SepiType: TSepiType);
 procedure PrintConstInfo(Output: TOutputWriter; Constant: TSepiConstant);
@@ -334,7 +334,8 @@ end;
 procedure PrintComponentInfo(Output: TOutputWriter; Component: TSepiComponent);
 begin
   Output.Write(Component.Name + ': ' + Component.ClassName + ' - ');
-  Output.WriteLn(VisibilityStrings[Component.Visibility]);
+  Output.Write(VisibilityStrings[Component.Visibility]);
+  Output.WriteLn(' - Digest: ' + MD5DigestToStr(Component.Digest));
 
   if Component is TSepiType then
     PrintTypeInfo(Output, TSepiType(Component))

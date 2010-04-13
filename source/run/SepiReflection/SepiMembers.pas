@@ -216,6 +216,8 @@ type
   protected
     procedure ListReferences; override;
     procedure Save(Stream: TStream); override;
+
+    procedure WriteDigestData(Stream: TStream); override;
   public
     constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
     constructor Create(AOwner: TSepiComponent; const AName: string;
@@ -278,6 +280,8 @@ type
 
     procedure ListReferences;
     procedure Save(Stream: TStream);
+
+    procedure WriteDigestData(Stream: TStream);
 
     function GetHasDefaultValue: Boolean;
 
@@ -369,6 +373,8 @@ type
   protected
     procedure ListReferences;
     procedure Save(Stream: TStream);
+
+    procedure WriteDigestData(Stream: TStream);
   public
     constructor RegisterTypeData(AOwner: TSepiComponent; ATypeData: PTypeData);
     constructor Load(AOwner: TSepiComponent; Stream: TStream);
@@ -462,6 +468,8 @@ type
   protected
     procedure ListReferences; override;
     procedure Save(Stream: TStream); override;
+
+    procedure WriteDigestData(Stream: TStream); override;
   public
     constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
 
@@ -601,6 +609,8 @@ type
     procedure Save(Stream: TStream); override;
 
     procedure Destroying; override;
+
+    procedure WriteDigestData(Stream: TStream); override;
   public
     constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
 
@@ -664,6 +674,8 @@ type
 
     procedure Save(Stream: TStream); override;
 
+    procedure WriteDigestData(Stream: TStream); override;
+
     function GetAlignment: Integer; override;
 
     function GetDescription: string; override;
@@ -711,6 +723,8 @@ type
     function InternalLookFor(const Name: string;
       FromComponent: TSepiComponent): TSepiComponent; override;
 
+    procedure WriteDigestData(Stream: TStream); override;
+
     function GetParentContainer:
       TSepiInheritableContainerType; virtual; abstract;
   public
@@ -746,6 +760,8 @@ type
   protected
     procedure ListReferences; override;
     procedure Save(Stream: TStream); override;
+
+    procedure WriteDigestData(Stream: TStream); override;
 
     function GetDescription: string; override;
     function GetParentContainer: TSepiInheritableContainerType; override;
@@ -998,6 +1014,8 @@ type
     procedure ListReferences; override;
     procedure Save(Stream: TStream); override;
 
+    procedure WriteDigestData(Stream: TStream); override;
+
     function GetDescription: string; override;
   public
     constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
@@ -1029,6 +1047,8 @@ type
   protected
     procedure ListReferences; override;
     procedure Save(Stream: TStream); override;
+
+    procedure WriteDigestData(Stream: TStream); override;
 
     function GetDescription: string; override;
   public
@@ -1257,6 +1277,17 @@ procedure TSepiField.Save(Stream: TStream);
 begin
   inherited;
   OwningUnit.WriteRef(Stream, FType);
+  Stream.WriteBuffer(FOffset, 4);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiField.WriteDigestData(Stream: TStream);
+begin
+  inherited;
+
+  FieldType.WriteDigestToStream(Stream);
   Stream.WriteBuffer(FOffset, 4);
 end;
 
@@ -1595,6 +1626,17 @@ begin
   if AHasDefaultValue then
     WriteDataToStream(Stream, DefaultValuePtr^, ParamType.Size,
       ParamType.TypeInfo);
+end;
+
+{*
+  Écrit les données nécessaires au digest de compatibilité dans un flux
+  @param Stream   Flux destination
+*}
+procedure TSepiParam.WriteDigestData(Stream: TStream);
+begin
+  Stream.WriteBuffer(FHiddenKind, SizeOf(TSepiHiddenParamKind));
+  Stream.WriteBuffer(FKind, SizeOf(TSepiParamKind));
+  ParamType.WriteDigestToStream(Stream);
 end;
 
 {*
@@ -2220,6 +2262,24 @@ begin
 end;
 
 {*
+  Écrit les données nécessaires au digest de compatibilité dans un flux
+  @param Stream   Flux destination
+*}
+procedure TSepiSignature.WriteDigestData(Stream: TStream);
+var
+  I, Count: Integer;
+begin
+  Stream.WriteBuffer(FKind, 1);
+  ReturnType.WriteDigestToStream(Stream);
+  Stream.WriteBuffer(FCallingConvention, 1);
+
+  Count := ActualParamCount;
+  Stream.WriteBuffer(Count, 4);
+  for I := 0 to Count-1 do
+    ActualParams[I].WriteDigestData(Stream);
+end;
+
+{*
   Complète la signature
 *}
 procedure TSepiSignature.Complete;
@@ -2661,6 +2721,19 @@ begin
   end;
 
   SaveChildren(Stream);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiMethod.WriteDigestData(Stream: TStream);
+begin
+  inherited;
+
+  Signature.WriteDigestData(Stream);
+  Stream.WriteBuffer(FLinkKind, 1);
+  Stream.WriteBuffer(FAbstract, 1);
+  Stream.WriteBuffer(FLinkIndex, 2);
 end;
 
 {*
@@ -3224,6 +3297,19 @@ begin
     FSignature := nil;
 end;
 
+{*
+  [@inheritDoc]
+*}
+procedure TSepiProperty.WriteDigestData(Stream: TStream);
+begin
+  inherited;
+
+  Signature.WriteDigestData(Stream);
+  FReadAccess.Component.WriteDigestToStream(Stream);
+  FWriteAccess.Component.WriteDigestToStream(Stream);
+  Stream.WriteBuffer(FIndex, 4);
+end;
+
 {------------------------}
 { Classe TSepiRecordType }
 {------------------------}
@@ -3381,6 +3467,20 @@ begin
   inherited;
   Stream.WriteBuffer(FPacked, 1);
   SaveChildren(Stream);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiRecordType.WriteDigestData(Stream: TStream);
+var
+  I: Integer;
+begin
+  inherited;
+
+  for I := 0 to ChildCount-1 do
+    if Children[I] is TSepiField then
+      Children[I].WriteDigestToStream(Stream);
 end;
 
 {*
@@ -3567,6 +3667,16 @@ begin
   else
     Result := TSepiInheritableContainerType(Owner).InternalLookFor(
       Name, FromComponent);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiInheritableContainerType.WriteDigestData(Stream: TStream);
+begin
+  inherited;
+
+  ParentContainer.WriteDigestToStream(Stream);
 end;
 
 {*
@@ -3759,6 +3869,16 @@ begin
   Stream.WriteBuffer(FGUID, SizeOf(TGUID));
 
   SaveChildren(Stream);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiInterface.WriteDigestData(Stream: TStream);
+begin
+  inherited;
+
+  Stream.WriteBuffer(FGUID, SizeOf(TGUID));
 end;
 
 {*
@@ -5452,6 +5572,16 @@ end;
 {*
   [@inheritDoc]
 *}
+procedure TSepiMetaClass.WriteDigestData(Stream: TStream);
+begin
+  inherited;
+
+  SepiClass.WriteDigestToStream(Stream);
+end;
+
+{*
+  [@inheritDoc]
+*}
 function TSepiMetaClass.GetDescription: string;
 begin
   Result := 'class of '+SepiClass.DisplayName;
@@ -5592,6 +5722,16 @@ procedure TSepiMethodRefType.Save(Stream: TStream);
 begin
   inherited;
   Signature.Save(Stream);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiMethodRefType.WriteDigestData(Stream: TStream);
+begin
+  inherited;
+
+  Signature.WriteDigestData(Stream);
 end;
 
 {*

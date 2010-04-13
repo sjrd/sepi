@@ -58,6 +58,8 @@ type
     procedure ListReferences; override;
     procedure Save(Stream: TStream); override;
 
+    procedure WriteDigestData(Stream: TStream); override;
+
     {*
       Type de l'index
       @return Type de l'index
@@ -92,6 +94,8 @@ type
   protected
     procedure ListReferences; override;
     procedure Save(Stream: TStream); override;
+
+    procedure WriteDigestData(Stream: TStream); override;
 
     function GetAlignment: Integer; override;
     function GetIndexType: TSepiOrdType; override;
@@ -246,6 +250,16 @@ begin
   inherited;
 
   OwningUnit.WriteRef(Stream, FElementType);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiArrayType.WriteDigestData(Stream: TStream);
+begin
+  inherited;
+
+  ElementType.WriteDigestToStream(Stream);
 end;
 
 {*
@@ -425,6 +439,18 @@ begin
   inherited;
 
   OwningUnit.WriteRef(Stream, FIndexType);
+  Stream.WriteBuffer(FLowerBound, 4);
+  Stream.WriteBuffer(FHigherBound, 4);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiStaticArrayType.WriteDigestData(Stream: TStream);
+begin
+  inherited;
+
+  IndexType.WriteDigestToStream(Stream);
   Stream.WriteBuffer(FLowerBound, 4);
   Stream.WriteBuffer(FHigherBound, 4);
 end;
