@@ -214,7 +214,8 @@ type
     constructor CreateAsPartOf(ChoiceEnd: TChoiceEnd);
     destructor Destroy; override;
 
-    function Equals(Right: TChoiceEnd): Boolean;
+    function Equals(Obj: TObject): Boolean;
+      {$IF RTLVersion >= 20.0} override; {$IFEND}
 
     property Empty: Boolean read FEmpty;
     property ItemCount: Integer read GetItemCount;
@@ -605,11 +606,18 @@ begin
   Result := TGramSymbol(FItems[Index]);
 end;
 
-function TChoiceEnd.Equals(Right: TChoiceEnd): Boolean;
+function TChoiceEnd.Equals(Obj: TObject): Boolean;
 var
+  Right: TChoiceEnd;
   I: Integer;
 begin
   Result := False;
+
+  if not (Obj is TChoiceEnd) then
+    Exit;
+
+  Right := TChoiceEnd(Obj);
+
   if ItemCount <> Right.ItemCount then
     Exit;
   for I := 0 to ItemCount-1 do
