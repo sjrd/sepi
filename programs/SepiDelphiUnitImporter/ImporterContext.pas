@@ -222,7 +222,7 @@ begin
     while EnvStrings^ <> #0 do
     begin
       EnvString := string(EnvStrings);
-      Inc(EnvStrings, SizeOf(Char) * (Length(EnvString) + 1));
+      Inc(EnvStrings, Length(EnvString) + 1);
       FDirectoryConsts.Add(EnvString);
     end;
   finally
