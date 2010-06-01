@@ -3195,7 +3195,7 @@ end;
 constructor TSepiAsmStrSetLength.Create(
   AMethodCompiler: TSepiMethodCompiler; AOpCode: TSepiOpCode);
 begin
-  Assert(AOpCode in [ocAnsiStrSetLength..ocWideStrSetLength]);
+  Assert(AOpCode in [ocAnsiStrSetLength..ocUnicodeStrSetLength]);
 
   inherited Create(AMethodCompiler);
 
@@ -3353,7 +3353,7 @@ end;
 constructor TSepiAsmStrCopy.Create(AMethodCompiler: TSepiMethodCompiler;
   AOpCode: TSepiOpCode);
 begin
-  Assert(AOpCode in [ocAnsiStrCopy..ocWideStrCopy]);
+  Assert(AOpCode in [ocAnsiStrCopy..ocUnicodeStrCopy]);
 
   inherited Create(AMethodCompiler);
 

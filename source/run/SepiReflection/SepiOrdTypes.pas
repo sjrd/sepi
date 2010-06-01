@@ -42,7 +42,7 @@ unit SepiOrdTypes;
 interface
 
 uses
-  Classes, SysUtils, SysConst, TypInfo, ScUtils, ScDelphiLanguage,
+  Classes, SysUtils, SysConst, TypInfo, ScUtils, ScTypInfo, ScDelphiLanguage,
   SepiReflectionCore;
 
 const
@@ -1189,20 +1189,26 @@ end;
 constructor TSepiEnumType.Create(AOwner: TSepiComponent; const AName: string;
   const AValues: array of string; AMinEnumSize: TSepiMinEnumSize = mesByte);
 var
+  EncUnitName: TypeInfoString;
+  EncValues: array of TypeInfoString;
   I, Len: Integer;
-  Current: PChar;
-  OwningUnitName: ShortString;
+  Current: PAnsiChar;
 begin
   inherited Create(AOwner, AName, tkEnumeration);
 
   FBaseType := Self;
 
+  // Encode strings for RTTI
+  EncUnitName := TypeInfoEncode(OwningUnit.Name);
+  SetLength(EncValues, Length(AValues));
+  for I := 0 to Length(EncValues)-1 do
+    EncValues[I] := TypeInfoEncode(AValues[I]);
+
   // Calcul de la taille des données de type et allocation de celles-ci
   TypeDataLength := EnumTypeDataLength;
   for I := Low(AValues) to High(AValues) do
-    Inc(TypeDataLength, Length(AValues[I]));
-  Inc(TypeDataLength, Length(AValues)); // Longueurs des chaînes
-  Inc(TypeDataLength, Length(OwningUnit.Name)+1);
+    Inc(TypeDataLength, Length(EncValues[I])+1);
+  Inc(TypeDataLength, Length(EncUnitName)+1);
   AllocateTypeInfo(TypeDataLength);
 
   // Initialisation des variables privées
@@ -1233,23 +1239,24 @@ begin
   Current := @TypeData.NameList;
   for I := 0 to ValueCount-1 do
   begin
-    Len := Length(AValues[Low(AValues)+I]);
+    Len := Length(EncValues[I]);
 
     // Enregistrement de l'adresse dans le tableau FValues
     FValues[I] := PShortString(Current);
 
     // Recopie du nom dans les données de type
-    Current[0] := Chr(Len);
+    Byte(Current[0]) := Len;
     Inc(Current);
-    Move(AValues[Low(AValues)+I][1], Current^, Len);
+    Move(EncValues[I][1], Current^, Len);
 
     // Passage à l'élément suivant
     Inc(Current, Len);
   end;
 
   // Enregistrement du nom de l'unité dans les données de type
-  OwningUnitName := OwningUnit.Name;
-  Move(OwningUnitName[0], Current[0], Length(OwningUnitName)+1);
+  Byte(Current[0]) := Length(EncUnitName);
+  Inc(Current);
+  Move(EncUnitName[1], Current^, Length(EncUnitName));
 
   // Créer les constantes énumérées
   CreateConstants;
@@ -1266,15 +1273,15 @@ end;
 constructor TSepiEnumType.Create(AOwner: TSepiComponent; const AName: string;
   ABaseType: TSepiEnumType; AMinValue, AMaxValue: Integer);
 var
-  OwningUnitName: ShortString;
+  EncUnitName: ShortString;
 begin
   inherited Create(AOwner, AName, tkEnumeration);
 
   ABaseType := ABaseType.BaseType;
-  OwningUnitName := OwningUnit.Name;
+  EncUnitName := TypeInfoEncode(OwningUnit.Name);
 
   // Allocate type info
-  TypeDataLength := EnumTypeDataLength + 1 + Length(OwningUnitName);
+  TypeDataLength := EnumTypeDataLength + 1 + Length(EncUnitName);
   AllocateTypeInfo(TypeDataLength);
 
   // Copy source type data and set MinValue and MaxValue
@@ -1283,7 +1290,8 @@ begin
   TypeData.MaxValue := AMaxValue;
 
   // Write unit name
-  Move(OwningUnitName[0], TypeData.NameList[0], Length(OwningUnitName)+1);
+  Byte(TypeData.NameList[0]) := Length(EncUnitName);
+  Move(EncUnitName[1], TypeData.NameList[1], Length(EncUnitName));
 
   // Set fields
   inherited ExtractTypeData;
@@ -1321,7 +1329,7 @@ end;
 *}
 function TSepiEnumType.GetNames(Value: Integer): string;
 begin
-  Result := BaseType.FValues[Value]^;
+  Result := TypeInfoDecode(BaseType.FValues[Value]^);
 end;
 
 {*

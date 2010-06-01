@@ -306,7 +306,7 @@ begin
   begin
     Param := ParamStr(Result);
 
-    if (Chars = []) or (Param[1] in Chars) then
+    if (Chars = []) or CharInSet(Param[1], Chars) then
     begin
       if IgnoreCase then
       begin
@@ -924,9 +924,9 @@ begin
 
     if not CaseSensitive then
     begin
-      if C in ['a'..'z'] then
+      if CharInSet(C, ['a'..'z']) then
         FCharsTable[Chr(Ord(C) - CaseDiff)] := Option
-      else if C in ['A'..'Z'] then
+      else if CharInSet(C, ['A'..'Z']) then
         FCharsTable[Chr(Ord(C) + CaseDiff)] := Option;
     end;
   end;
@@ -985,7 +985,7 @@ begin
     Param := Parameters[Current];
     Inc(Current);
 
-    if (Length(Param) < 2) or (not (Param[1] in SwitchChars)) then
+    if (Length(Param) < 2) or (not CharInSet(Param[1], SwitchChars)) then
     begin
       if UnparsedParams = nil then
         raise ECommandLineParsingException.Create(SNonOptionParamForbidden);

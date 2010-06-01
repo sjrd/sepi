@@ -210,6 +210,21 @@ begin
       'class function(const IID: TGUID): PInterfaceEntry');
     AddMethod('GetInterfaceTable', @TSepiImportsTObject.GetInterfaceTable,
       'class function: PInterfaceTable');
+
+    {$IF RTLVersion >= 20.0}
+    AddMethod('UnitName', @TSepiImportsTObject.UnitName,
+      'class function: string');
+    AddMethod('Equals', @TSepiImportsTObject.Equals,
+      'function(Obj: TObject): Boolean',
+      mlkVirtual);
+    AddMethod('GetHashCode', @TSepiImportsTObject.GetHashCode,
+      'function: Integer',
+      mlkVirtual);
+    AddMethod('ToString', @TSepiImportsTObject.ToString,
+      'function: string',
+      mlkVirtual);
+    {$IFEND}
+
     AddMethod('SafeCallException', @TSepiImportsTObject.SafeCallException,
       'function(ExceptObject: TObject; ExceptAddr: Pointer ) : HResult',
       mlkVirtual);
@@ -733,14 +748,14 @@ begin
   Result := Random;
 end;
 
-function UnicodeToUtf8_0(Dest: PChar; MaxDestBytes: Cardinal;
+function UnicodeToUtf8_0(Dest: PAnsiChar; MaxDestBytes: Cardinal;
   Source: PWideChar; SourceChars: Cardinal): Cardinal;
 begin
   Result := UnicodeToUtf8(Dest, MaxDestBytes, Source, SourceChars);
 end;
 
 function Utf8ToUnicode_0(Dest: PWideChar; MaxDestChars: Cardinal;
-  Source: PChar; SourceBytes: Cardinal): Cardinal;
+  Source: PAnsiChar; SourceBytes: Cardinal): Cardinal;
 begin
   Result := Utf8ToUnicode(Dest, MaxDestChars, Source, SourceBytes);
 end;
@@ -790,9 +805,14 @@ begin
   {$IFEND}
 
   // Character types
-  TSepiType.LoadFromTypeInfo(Result, TypeInfo(Char));
-  TSepiTypeAlias.Create(Result, 'AnsiChar', TypeInfo(AnsiChar));
+  TSepiType.LoadFromTypeInfo(Result, TypeInfo(AnsiChar));
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(WideChar));
+
+{$IFDEF UNICODE}
+  TSepiTypeAlias.Create(Result, 'WideChar', TypeInfo(WideChar));
+{$ELSE}
+  TSepiTypeAlias.Create(Result, 'AnsiChar', TypeInfo(AnsiChar));
+{$ENDIF}
 
   // Boolean types
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(Boolean));
@@ -810,8 +830,15 @@ begin
   // String types
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(string));
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(ShortString));
-  TSepiTypeAlias.Create(Result, 'AnsiString', TypeInfo(AnsiString));
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(WideString));
+
+{$IFDEF UNICODE}
+  TSepiType.LoadFromTypeInfo(Result, TypeInfo(AnsiString));
+  TSepiTypeAlias.Create(Result, 'UnicodeString', TypeInfo(UnicodeString));
+  TSepiType.LoadFromTypeInfo(Result, TypeInfo(RawByteString));
+{$ELSE}
+  TSepiTypeAlias.Create(Result, 'AnsiString', TypeInfo(AnsiString));
+{$ENDIF}
 
   // Variant types
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(Variant));
@@ -836,6 +863,16 @@ begin
   { The pseudo-constant nil isn't declared here, for it has many different
     types, depending on the situation. Each compiler should understand the nil
     value for what it is: a special value, not a simple constant. }
+
+  {$IF Declared(Int8)}
+  { Useful alias types }
+  TSepiTypeAlias.Create(Result, 'Int8', TypeInfo(Int8));
+  TSepiTypeAlias.Create(Result, 'Int16', TypeInfo(Int16));
+  TSepiTypeAlias.Create(Result, 'Int32', TypeInfo(Int32));
+  TSepiTypeAlias.Create(Result, 'UInt8', TypeInfo(UInt8));
+  TSepiTypeAlias.Create(Result, 'UInt16', TypeInfo(UInt16));
+  TSepiTypeAlias.Create(Result, 'UInt32', TypeInfo(UInt32));
+  {$IFEND}
 
   { Variant type codes }
   TSepiConstant.Create(Result, 'varEmpty', varEmpty);
@@ -1158,10 +1195,12 @@ begin
     'function(Dest: PChar; MaxDestBytes: Cardinal; Source: PWideChar; SourceChars: Cardinal): Cardinal');
   TSepiMethod.CreateOverloaded(Result, 'Utf8ToUnicode', @Utf8ToUnicode_0,
     'function(Dest: PWideChar; MaxDestChars: Cardinal; Source: PChar; SourceBytes: Cardinal): Cardinal');
+  {$IFNDEF UNICODE}
   TSepiMethod.Create(Result, 'UTF8Encode', @UTF8Encode,
     'function(const WS: WideString): UTF8String');
   TSepiMethod.Create(Result, 'UTF8Decode', @UTF8Decode,
     'function(const S: UTF8String): WideString');
+  {$ENDIF}
   TSepiMethod.Create(Result, 'AnsiToUtf8', @AnsiToUtf8,
     'function(const S: string): UTF8String');
   TSepiMethod.Create(Result, 'Utf8ToAnsi', @Utf8ToAnsi,

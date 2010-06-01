@@ -228,7 +228,7 @@ begin
     if Result <> 0 then
     begin
       GetMem(Package, SizeOf(TSepiPackage));
-      Package.FileName := FileName;
+      Package.FileName := ShortString(FileName);
       Package.Handle := Result;
       Package.Counter := 1;
       FPackages.Add(Package);

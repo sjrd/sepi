@@ -156,8 +156,8 @@ const
     // Calls
     'CALL', 'CALL', 'CALL', '', '', '', '', '', '', '', '',
     // Memory moves
-    'LEA', 'MOVB', 'MOVW', 'MOVD', 'MOVQ', 'MOVE', 'MOVAS', 'MOVWS', 'MOVV',
-    'MOVI', 'MOVS', 'MOVM', 'MOVO', 'CVRT', '', '',
+    'LEA', 'MOVB', 'MOVW', 'MOVD', 'MOVQ', 'MOVE', 'MOVAS', 'MOVWS', 'MOVUS',
+    'MOVV', 'MOVI', 'MOVS', 'MOVM', 'MOVO', 'CVRT', '',
     // Self dest unary operations
     'INC', 'DEC', 'NOT', 'NEG',
     // Self dest binary operations
@@ -182,8 +182,8 @@ const
     'SINC', 'SEXC', 'SIN', 'SELE', 'SRNG', 'SUR', 'SEQ', 'SNE', 'SLE',
     'SINT', 'SADD', 'SSUB', 'SINT', 'SADD', 'SSUB', 'SEXP',
     // Standard Delphi functions
-    'ASL', 'WSL', 'DAL', 'DAH', 'ASSL', 'WSSL', 'DASL', 'ASCP', 'WSCP', 'DACP',
-    'DACP'
+    'ASL', 'WSL', 'USL', 'DAL', 'DAH', 'ASSL', 'WSSL', 'USSL', 'DASL', 'ASCP',
+    'WSCP', 'USCP', 'DACP', 'DACP'
   );
 
   /// Virgule
@@ -204,7 +204,7 @@ const
   BaseTypeNames: array[TSepiBaseType] of string = (
     'Boolean', 'Byte', 'Word', 'DWord', 'Shortint', 'Smallint', 'Longint',
     'Int64', 'Single', 'Double', 'Extended', 'Comp', 'Currency', 'AnsiChar',
-    'WideChar', 'AnsiStr', 'WideStr', 'Variant'
+    'WideChar', 'AnsiStr', 'WideStr', 'UnicodeStr', 'Variant'
   );
 
 {*
@@ -299,6 +299,8 @@ begin
     @TSepiDisassembler.OpCodeValueToIntStdFunction;
   @OpCodeArgsFuncs[ocWideStrLength] :=
     @TSepiDisassembler.OpCodeValueToIntStdFunction;
+  @OpCodeArgsFuncs[ocUnicodeStrLength] :=
+    @TSepiDisassembler.OpCodeValueToIntStdFunction;
   @OpCodeArgsFuncs[ocDynArrayLength] :=
     @TSepiDisassembler.OpCodeValueToIntStdFunction;
   @OpCodeArgsFuncs[ocDynArrayHigh] :=
@@ -307,11 +309,15 @@ begin
     @TSepiDisassembler.OpCodeStrSetLength;
   @OpCodeArgsFuncs[ocWideStrSetLength] :=
     @TSepiDisassembler.OpCodeStrSetLength;
+  @OpCodeArgsFuncs[ocUnicodeStrSetLength] :=
+    @TSepiDisassembler.OpCodeStrSetLength;
   @OpCodeArgsFuncs[ocDynArraySetLength] :=
     @TSepiDisassembler.OpCodeDynArraySetLength;
   @OpCodeArgsFuncs[ocAnsiStrCopy] :=
     @TSepiDisassembler.OpCodeStrCopy;
   @OpCodeArgsFuncs[ocWideStrCopy] :=
+    @TSepiDisassembler.OpCodeStrCopy;
+  @OpCodeArgsFuncs[ocUnicodeStrCopy] :=
     @TSepiDisassembler.OpCodeStrCopy;
   @OpCodeArgsFuncs[ocDynArrayCopy] :=
     @TSepiDisassembler.OpCodeDynArrayCopy;

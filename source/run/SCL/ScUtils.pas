@@ -44,6 +44,10 @@ interface
 uses
   Types, SysUtils, Classes;
 
+{$IF not Declared(CharInSet)}
+  {$DEFINE NEED_CHARINSET}
+{$IFEND}
+
 type
   {*
     Représente un point situé dans un espace en trois dimensions
@@ -140,6 +144,13 @@ function Point3DToString(const Point3D: T3DPoint;
 
 {$IFDEF MSWINDOWS}
 procedure RunURL(const URL: string; const Verb: string = 'open');
+{$ENDIF}
+
+{$IFDEF NEED_CHARINSET}
+function CharInSet(C: AnsiChar;
+  const CharSet: TSysCharSet): Boolean; overload; inline;
+function CharInSet(C: WideChar;
+  const CharSet: TSysCharSet): Boolean; overload; inline;
 {$ENDIF}
 
 implementation
@@ -500,7 +511,7 @@ var
 begin
   Stream.ReadBuffer(Len, 4);
   SetLength(Result, Len);
-  Stream.ReadBuffer(Result[1], Len);
+  Stream.ReadBuffer(Result[1], Len * SizeOf(Char));
 end;
 
 {*
@@ -515,7 +526,7 @@ var
 begin
   Len := Length(Str);
   Stream.WriteBuffer(Len, 4);
-  Stream.WriteBuffer(Str[1], Len);
+  Stream.WriteBuffer(Str[1], Len * SizeOf(Char));
 end;
 
 {*
@@ -532,7 +543,7 @@ function CorrectFileName(const FileName: string;
   AcceptDriveDelim: Boolean = False): Boolean;
 var
   I: Integer;
-  BadChars: set of Char;
+  BadChars: TSysCharSet;
 begin
   BadChars := ['\', '/', ':', '*', '?', '"', '<', '>', '|'];
   Result := False;
@@ -549,7 +560,7 @@ begin
 
   // On teste tous les caractères de FileName
   for I := 1 to Length(FileName) do
-    if FileName[I] in BadChars then
+    if CharInSet(FileName[I], BadChars) then
       Exit;
   Result := True;
 end;
@@ -723,6 +734,30 @@ procedure RunURL(const URL: string; const Verb: string = 'open');
 begin
   ShellExecute(GetDesktopWindow(), PChar(Verb), PChar(URL),
     nil, nil, SW_SHOWNORMAL);
+end;
+{$ENDIF}
+
+{$IFDEF NEED_CHARINSET}
+{*
+  Teste si un caractère est présent dans un ensemble de caractères
+  @param C         Caractère à tester
+  @param CharSet   Ensemble de caractères
+  @return True ssi C appartient à l'ensemble CharSet
+*}
+function CharInSet(C: AnsiChar; const CharSet: TSysCharSet): Boolean;
+begin
+  Result := C in CharSet;
+end;
+
+{*
+  Teste si un caractère est présent dans un ensemble de caractères
+  @param C         Caractère à tester
+  @param CharSet   Ensemble de caractères
+  @return True ssi C appartient à l'ensemble CharSet
+*}
+function CharInSet(C: WideChar; const CharSet: TSysCharSet): Boolean;
+begin
+  Result := (C < #$0100) and (AnsiChar(C) in CharSet);
 end;
 {$ENDIF}
 

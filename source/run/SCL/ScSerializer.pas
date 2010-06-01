@@ -62,33 +62,90 @@ procedure ReadDataFromStream(Stream: TStream; var Data;
 
 implementation
 
+uses
+  ScCompilerMagic;
+
+{$IFDEF UNICODE}
 {*
-  Écrit une chaîne de caractères ANSI dans un flux
+  Écrit une chaîne de caractères Unicode dans un flux
   @param Stream   Flux de destination
   @param Data     Source
 *}
-procedure WriteAnsiStringToStream(Stream: TStream; const Data: AnsiString);
+procedure WriteUnicodeStringToStream(Stream: TStream;
+  const Data: UnicodeString);
 var
   Len: Integer;
 begin
   Len := Length(Data);
   Stream.WriteBuffer(Len, 4);
-  Stream.WriteBuffer(Data[1], Len);
+  Stream.WriteBuffer(Data[1], Len * SizeOf(Char));
 end;
 
 {*
-  Lit une chaîne de caractères ANSI depuis un flux
+  Lit une chaîne de caractères Unicode depuis un flux
   @param Stream   Flux source
   @param Data     Destination
 *}
-procedure ReadAnsiStringFromStream(Stream: TStream; var Data: AnsiString);
+procedure ReadUnicodeStringFromStream(Stream: TStream; var Data: UnicodeString);
 var
   Len: Integer;
 begin
   Stream.ReadBuffer(Len, 4);
   SetLength(Data, Len);
-  Stream.ReadBuffer(Data[1], Len);
+  Stream.ReadBuffer(Data[1], Len * SizeOf(Char));
 end;
+{$ENDIF}
+
+{*
+  Écrit une chaîne de caractères dans un flux
+  @param Stream   Flux de destination
+  @param Data     Source
+*}
+procedure WriteLongStringToStream(Stream: TStream; const Data: LongString);
+{$IFDEF UNICODE}
+begin
+  WriteUnicodeStringToStream(Stream, UnicodeString(Data));
+end;
+{$ELSE}
+var
+  Len: Integer;
+begin
+  Len := Length(Data);
+  Stream.WriteBuffer(Len, 4);
+  Stream.WriteBuffer(Data[1], Len * SizeOf(AnsiChar));
+end;
+{$ENDIF}
+
+{$IFDEF UNICODE}
+{*
+  Lit une chaîne de caractères depuis un flux
+  @param Stream     Flux source
+  @param Data       Destination
+  @param CodePage   Code page de la destination
+*}
+procedure ReadLongStringFromStream(Stream: TStream; var Data: LongString;
+  CodePage: Word);
+var
+  UnicodeData: UnicodeString;
+begin
+  ReadUnicodeStringFromStream(Stream, UnicodeData);
+  LStrFromUStr(AnsiString(Data), UnicodeData, CodePage);
+end;
+{$ELSE}
+{*
+  Lit une chaîne de caractères depuis un flux
+  @param Stream   Flux source
+  @param Data     Destination
+*}
+procedure ReadLongStringFromStream(Stream: TStream; var Data: LongString);
+var
+  Len: Integer;
+begin
+  Stream.ReadBuffer(Len, 4);
+  SetLength(Data, Len);
+  Stream.ReadBuffer(Data[1], Len * SizeOf(AnsiChar));
+end;
+{$ENDIF}
 
 {*
   Écrit une chaîne de caractères Unicode dans un flux
@@ -101,7 +158,7 @@ var
 begin
   Len := Length(Data);
   Stream.WriteBuffer(Len, 4);
-  Stream.WriteBuffer(Data[1], 2*Len);
+  Stream.WriteBuffer(Data[1], Len * SizeOf(WideChar));
 end;
 
 {*
@@ -115,7 +172,7 @@ var
 begin
   Stream.ReadBuffer(Len, 4);
   SetLength(Data, Len);
-  Stream.ReadBuffer(Data[1], 2*Len);
+  Stream.ReadBuffer(Data[1], Len * SizeOf(WideChar));
 end;
 
 {*
@@ -352,7 +409,7 @@ begin
     Kind := TypeInfo.Kind;
 
   case Kind of
-    tkLString: WriteAnsiStringToStream(Stream, AnsiString(Data));
+    tkLString: WriteLongStringToStream(Stream, LongString(Data));
     tkWString: WriteWideStringToStream(Stream, WideString(Data));
     tkArray: WriteArrayToStream(Stream, Data, TypeInfo);
     tkRecord: WriteRecordToStream(Stream, Data, TypeInfo);
@@ -360,6 +417,9 @@ begin
     tkVariant, tkInterface:
       raise ESerializerError.CreateResFmt(@SCantSerializeType,
         [TypeInfo.Name]);
+    {$IFDEF UNICODE}
+    tkUString: WriteUnicodeStringToStream(Stream, UnicodeString(Data));
+    {$ENDIF}
   else
     Stream.WriteBuffer(Data, Size);
   end;
@@ -398,7 +458,8 @@ begin
     Kind := TypeInfo.Kind;
 
   case Kind of
-    tkLString: ReadAnsiStringFromStream(Stream, AnsiString(Data));
+    tkLString: ReadLongStringFromStream(Stream, LongString(Data)
+      {$IFDEF UNICODE}, GetTypeData(TypeInfo).CodePage {$ENDIF});
     tkWString: ReadWideStringFromStream(Stream, WideString(Data));
     tkArray: ReadArrayFromStream(Stream, Data, TypeInfo);
     tkRecord: ReadRecordFromStream(Stream, Data, TypeInfo);
@@ -406,6 +467,9 @@ begin
     tkVariant, tkInterface:
       raise ESerializerError.CreateResFmt(@SCantSerializeType,
         [TypeInfo.Name]);
+    {$IFDEF UNICODE}
+    tkUString: ReadUnicodeStringFromStream(Stream, UnicodeString(Data));
+    {$ENDIF}
   else
     Stream.ReadBuffer(Data, Size);
   end;

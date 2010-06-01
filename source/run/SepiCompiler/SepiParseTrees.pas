@@ -744,7 +744,8 @@ end;
   @param Node   Noeud dont le texte est le nom du meta à rechercher
   @return Component trouvé, ou nil si non trouvé
 *}
-function TSepiParseTreeNode.LookForOrError(Node: TSepiParseTreeNode): TSepiComponent;
+function TSepiParseTreeNode.LookForOrError(
+  Node: TSepiParseTreeNode): TSepiComponent;
 begin
   Result := LookFor(Node);
   CheckIdentFound(Result, Node.AsText, Node);

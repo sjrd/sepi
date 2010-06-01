@@ -305,7 +305,7 @@ type
     destructor Destroy; override;
     procedure SetToZero;
     procedure Assign(Source: TPolynom);
-    function ToString: string;
+    function ToString: string; {$IF RTLVersion >= 20.0} override; {$IFEND}
     procedure LoadFromStream(Stream: TStream);
     procedure SaveToStream(Stream: TStream);
     procedure Add(Source: TPolynom);
@@ -1799,9 +1799,9 @@ begin
     raise ETooManyBracketsError.CreateTooManyBrackets(-NiveauParentheses, '(');
   if NiveauParentheses > 0 then
     raise ETooManyBracketsError.CreateTooManyBrackets(NiveauParentheses, ')');
-  if (Result > 1) and (not (Str[Result] in BinaryOperators)) then
+  if (Result > 1) and (not CharInSet(Str[Result], BinaryOperators)) then
     raise EOpNotExistsError.CreateOpIsNotBinary(Str[Result]);
-  if (Result = 1) and (not (Str[Result] in UnaryOperators)) then
+  if (Result = 1) and (not CharInSet(Str[Result], UnaryOperators)) then
     raise EOpNotExistsError.CreateOpIsNotUnary(Str[Result]);
   if Result = 0 then
     raise EWrongExpressionError.CreateWrongExpression;
@@ -1873,7 +1873,7 @@ begin
   try
     // On vérifie que Exoression contient uniqument des caractères corrects
     for I := 1 to Length(Expression) do
-      if not (Expression[I] in EvalChars) then
+      if not CharInSet(Expression[I], EvalChars) then
         raise EWrongCharacterError.CreateWrongCharacter(Expression[I]);
 
     Expression := Trim(Expression);

@@ -47,7 +47,7 @@ interface
 
 uses
   Windows, Classes, SysUtils, StrUtils, RTLConsts, Contnrs, TypInfo, ScUtils,
-  ScStrUtils, ScDelphiLanguage, ScSerializer, ScCompilerMagic,
+  ScStrUtils, ScTypInfo, ScDelphiLanguage, ScSerializer, ScCompilerMagic,
   SepiReflectionCore, SepiReflectionConsts, SepiArrayTypes;
 
 const
@@ -299,6 +299,7 @@ type
 
     function Equals(AParam: TSepiParam;
       Options: TSepiSignatureCompareOptions = pcoAll): Boolean;
+      {$IF RTLVersion >= 20.0} reintroduce; {$IFEND}
     function CompatibleWith(AType: TSepiType): Boolean;
 
     property Owner: TSepiSignature read FOwner;
@@ -391,6 +392,7 @@ type
 
     function Equals(ASignature: TSepiSignature;
       Options: TSepiSignatureCompareOptions = scoAll): Boolean;
+      {$IF RTLVersion >= 20.0} reintroduce; {$IFEND}
     function CompatibleWith(const ATypes: array of TSepiType): Boolean;
 
     property Owner: TSepiComponent read FOwner;
@@ -885,6 +887,8 @@ type
     function GetInterfaceCount: Integer;
     function GetInterfaces(Index: Integer): TSepiInterface;
 
+    function GetTotalInstSize: Integer;
+
     function GetVMTEntries(Index: Integer): Pointer;
     procedure SetVMTEntries(Index: Integer; Value: Pointer);
   protected
@@ -997,6 +1001,7 @@ type
     property Interfaces[Index: Integer]: TSepiInterface read GetInterfaces;
 
     property InstSize: Integer read FInstSize;
+    property TotalInstSize: Integer read GetTotalInstSize;
     property VMTSize: Integer read FVMTSize;
 
     property DefaultProperty: TSepiProperty read FDefaultProperty;
@@ -1118,6 +1123,14 @@ const
   CallingConventionStrings: array[TCallingConvention] of string = (
     'register', 'cdecl', 'pascal', 'stdcall', 'safecall'
   );
+
+{$IF Declared(hfFieldSize)}
+  /// Taille des champs cachés dans un objet
+  hfFieldSize = System.hfFieldSize;
+{$ELSE}
+  /// Taille des champs cachés dans un objet
+  hfFieldSize = 0;
+{$IFEND}
 
 implementation
 
@@ -1359,9 +1372,9 @@ begin
   FHiddenKind := hpNormal;
   AFlags := TParamFlags(ParamData^);
   Inc(Longint(ParamData), SizeOf(TParamFlags));
-  AName := PShortString(ParamData)^;
+  AName := TypeInfoDecode(PShortString(ParamData)^);
   Inc(Longint(ParamData), PByte(ParamData)^ + 1);
-  ATypeStr := PShortString(ParamData)^;
+  ATypeStr := TypeInfoDecode(PShortString(ParamData)^);
   Inc(Longint(ParamData), PByte(ParamData)^ + 1);
 
   if pfVar in AFlags then
@@ -1797,7 +1810,7 @@ begin
   FCallingConvention := ccRegister;
 
   if Kind in skWithReturnType then
-    FReturnType := Root.FindType(PShortString(ParamData)^)
+    FReturnType := Root.FindType(TypeInfoDecode(PShortString(ParamData)^))
   else
     FReturnType := nil;
 
@@ -1885,7 +1898,7 @@ begin
   // Paramètres
   if ParamPos < ReturnTypePos then
   begin
-    while not (ASignature[ParamPos] in [')', ']', ':']) do
+    while not CharInSet(ASignature[ParamPos], [')', ']', ':']) do
     begin
       Inc(ParamPos);
       ParamEnd := MultiPos([';', ')', ']', ':'], ASignature, ParamPos);
@@ -3174,7 +3187,7 @@ end;
 *}
 procedure TSepiProperty.MakePropInfo(PropInfo: PPropInfo);
 var
-  ShortName: ShortString;
+  EncName: TypeInfoString;
 begin
   // Property type RTTI
   PropInfo.PropType := TSepiMetaClass(PropType).TypeInfoRef;
@@ -3233,8 +3246,8 @@ begin
   PropInfo.NameIndex := FNameIndex;
 
   // Property name
-  ShortName := Name;
-  Move(ShortName[0], PropInfo.Name[0], Length(ShortName)+1);
+  EncName := TypeInfoEncode(Name);
+  Move(EncName[0], PropInfo.Name[0], Length(EncName)+1);
 end;
 
 {*
@@ -3814,11 +3827,13 @@ end;
 procedure TSepiInterface.MakeTypeInfo;
 var
   Flags: TIntfFlags;
-  OwningUnitName: ShortString;
+  OwningUnitName: TypeInfoString;
   Count: PWord;
 begin
+  OwningUnitName := TypeInfoEncode(OwningUnit.Name);
+
   // Creating the RTTI
-  AllocateTypeInfo(IntfTypeDataLengthBase + Length(OwningUnit.Name) + 1);
+  AllocateTypeInfo(IntfTypeDataLengthBase + Length(OwningUnitName) + 1);
   TypeData.IntfParent := FParent.TypeInfoRef;
 
   // Interface flags
@@ -3835,7 +3850,6 @@ begin
   TypeData.Guid := FGUID;
 
   // Owning unit name
-  OwningUnitName := OwningUnit.Name;
   Move(OwningUnitName[0], TypeData.IntfUnit[0], Length(OwningUnitName)+1);
 
   // Method count in the interface
@@ -4081,7 +4095,7 @@ begin
     FVMTSize := vmtMinMethodIndex;
     FDMTNextIndex := -1;
   end;
-  FStoredInstSize := DelphiClass.InstanceSize;
+  FStoredInstSize := DelphiClass.InstanceSize - hfFieldSize;
   FCompleted := False;
 end;
 
@@ -4481,19 +4495,18 @@ end;
 *}
 procedure TSepiClass.MakeTypeInfo;
 var
-  OwningUnitName: ShortString;
+  OwningUnitName: TypeInfoString;
   TypeDataLength, I: Integer;
   Props: TObjectList;
   Prop: TSepiProperty;
   PropCount: PWord;
   PropInfo: PPropInfo;
 begin
-  OwningUnitName := OwningUnit.Name;
+  OwningUnitName := TypeInfoEncode(OwningUnit.Name);
   Props := TObjectList.Create(False);
   try
     TypeDataLength := ClassTypeDataLengthBase;
-    Inc(TypeDataLength, Length(OwningUnitName));
-    Inc(TypeDataLength);
+    Inc(TypeDataLength, Length(OwningUnitName)+1);
 
     // Listing the published properties, and computing the type data length
     for I := 0 to ChildCount-1 do
@@ -4506,8 +4519,7 @@ begin
 
         Props.Add(Prop);
         Inc(TypeDataLength, PropInfoLengthBase);
-        Inc(TypeDataLength, Length(Prop.Name));
-        Inc(TypeDataLength);
+        Inc(TypeDataLength, Length(TypeInfoEncode(Prop.Name))+1);
       end;
     end;
 
@@ -4632,7 +4644,7 @@ var
   Component: TSepiComponent;
   FieldTable: PFieldTable;
   FieldInfo: PFieldInfo;
-  ShortName: ShortString;
+  EncName: TypeInfoString;
 begin
   Fields := TObjectList.Create(False);
   try
@@ -4664,10 +4676,10 @@ begin
       begin
         FieldInfo.Offset := Offset;
         FieldInfo.Index := I;
-        ShortName := Name;
-        Move(ShortName[0], FieldInfo.Name[0], Length(ShortName)+1);
+        EncName := TypeInfoEncode(Name);
+        Move(EncName[0], FieldInfo.Name[0], Length(EncName)+1);
 
-        Inc(Integer(FieldInfo), 7 + Length(ShortName));
+        Inc(Integer(FieldInfo), 7 + Length(EncName));
       end;
     end;
   finally
@@ -4686,7 +4698,7 @@ var
   Component: TSepiComponent;
   MethodTable: PMethodTable;
   MethodInfo: PMethodInfo;
-  ShortName: ShortString;
+  EncName: TypeInfoString;
 begin
   Methods := TObjectList.Create(False);
   try
@@ -4717,10 +4729,10 @@ begin
     begin
       with TSepiMethod(Methods[I]) do
       begin
-        ShortName := Name;
-        MethodInfo.Size := 7 + Length(ShortName);
+        EncName := TypeInfoEncode(Name);
+        MethodInfo.Size := 7 + Length(EncName);
         MethodInfo.Code := Code;
-        Move(ShortName[0], MethodInfo.Name[0], Length(ShortName)+1);
+        Move(EncName[0], MethodInfo.Name[0], Length(EncName)+1);
 
         Inc(Integer(MethodInfo), MethodInfo.Size);
       end;
@@ -4803,7 +4815,7 @@ begin
 
   VMTEntries[vmtTypeInfo] := TypeInfo;
   VMTEntries[vmtClassName] := @TypeInfo.Name;
-  VMTEntries[vmtInstanceSize] := Pointer(InstSize);
+  VMTEntries[vmtInstanceSize] := Pointer(TotalInstSize);
   VMTEntries[vmtParent] := @Parent.FDelphiClass;
 
   // Copy the parent VMT
@@ -4853,6 +4865,15 @@ end;
 function TSepiClass.GetInterfaces(Index: Integer): TSepiInterface;
 begin
   Result := FInterfaces[Index].IntfRef;
+end;
+
+{*
+  Taille totale d'instance (incluant les champs cachés)
+  @return Taille totale d'instance (incluant les champs cachés)
+*}
+function TSepiClass.GetTotalInstSize: Integer;
+begin
+  Result := InstSize + hfFieldSize;
 end;
 
 {*

@@ -80,19 +80,19 @@ function GetObjectDynamicCode(AObject: TObject; DMTIndex: Integer): Pointer;
 function GetObjectDynamicMethod(AObject: TObject;
   DMTIndex: Integer): TMethod;
 
-function StrToStrRepres(const Str: string;
-  ExcludedChars: TSysCharSet = []): string;
-function StrRepresToStr(Str: string): string;
+function StrToStrRepres(const Str: AnsiString;
+  ExcludedChars: TSysCharSet = []): AnsiString;
+function StrRepresToStr(Str: AnsiString): AnsiString;
 
-function CharToCharRepres(Chr: Char;
-  ExcludedChars: TSysCharSet = []): string;
-function CharRepresToChar(Str: string): Char;
+function CharToCharRepres(Chr: AnsiChar;
+  ExcludedChars: TSysCharSet = []): AnsiString;
+function CharRepresToChar(Str: AnsiString): AnsiChar;
 
-function CharSetToStr(const CharSet: TSysCharSet): string;
-function StrToCharSet(Str: string): TSysCharSet;
+function CharSetToStr(const CharSet: TSysCharSet): AnsiString;
+function StrToCharSet(Str: AnsiString): TSysCharSet;
 
-function EnumSetToStr(const EnumSet; TypeInfo: PTypeInfo): string;
-procedure StrToEnumSet(const Str: string; TypeInfo: PTypeInfo; out EnumSet);
+function EnumSetToStr(const EnumSet; TypeInfo: PTypeInfo): AnsiString;
+procedure StrToEnumSet(const Str: AnsiString; TypeInfo: PTypeInfo; out EnumSet);
 
 function SkipPackedShortString(Value: PShortstring): Pointer;
 
@@ -229,13 +229,13 @@ begin
 
   { Si le premier caractère n'est pas alphabétique,
     ce n'est pas un identificateur correct }
-  if not (Ident[1] in ['A'..'Z', '_', 'a'..'z']) then
+  if not CharInSet(Ident[1], ['A'..'Z', '_', 'a'..'z']) then
     Exit;
 
   { Si l'un des caractères suivants n'est pas alphanumérique,
     ce n'est pas un identificateur correct }
   for I := 2 to Length(Ident) do
-    if not (Ident[I] in ['0'..'9', 'A'..'Z', '_', 'a'..'z']) then
+    if not CharInSet(Ident[I], ['0'..'9', 'A'..'Z', '_', 'a'..'z']) then
       Exit;
 
   // Dans les autres cas, ça l'est
@@ -446,8 +446,8 @@ end;
   @param ExcludedChars   Ensemble des caractères qu'il faut échapper
   @return Représentation Pascal de Str
 *}
-function StrToStrRepres(const Str: string;
-  ExcludedChars: TSysCharSet = []): string;
+function StrToStrRepres(const Str: AnsiString;
+  ExcludedChars: TSysCharSet = []): AnsiString;
 var
   I: Integer;
 begin
@@ -465,7 +465,7 @@ begin
         if I mod 256 = 0 then
           Result := Result+'+';
 
-        Result := Result+'#'+IntToStr(Byte(Str[I]));
+        Result := Result+'#'+AnsiString(IntToStr(Byte(Str[I])));
         Inc(I);
       end else
       begin
@@ -497,14 +497,14 @@ end;
   @return Chaîne représentée par Str en Pascal
   @throws EConvertError Chaîne de caractère incorrecte
 *}
-function StrRepresToStr(Str: string): string;
+function StrRepresToStr(Str: AnsiString): AnsiString;
 var
-  CharStr: string;
+  CharStr: AnsiString;
   I, IntChar: Integer;
   NumChars: TSysCharSet;
 begin
   Result := '';
-  Str := Trim(Str);
+  Str := AnsiString(Trim(string(Str)));
   I := 1;
   repeat
     if I > 1 then
@@ -547,14 +547,14 @@ begin
           NumChars := ['0'..'9', 'A'..'F', 'a'..'f'];
         end else
           NumChars := ['0'..'9'];
-        while (I <= Length(Str)) and (Str[I] in NumChars) do
+        while (I <= Length(Str)) and CharInSet(Str[I], NumChars) do
         begin
           CharStr := CharStr+Str[I];
           Inc(I);
         end;
-        IntChar := StrToIntDef(CharStr, -1);
+        IntChar := StrToIntDef(string(CharStr), -1);
         if (IntChar >= 0) and (IntChar <= 255) then
-          Result := Result+Char(IntChar)
+          Result := Result+AnsiChar(IntChar)
         else
           raise EConvertError.CreateFmt(sScWrongString, [Str]);
       end;
@@ -570,16 +570,16 @@ end;
   @param ExcludedChars   Ensemble des caractères qu'il faut échapper
   @return Représentation Pascal de Chr
 *}
-function CharToCharRepres(Chr: Char;
-  ExcludedChars: TSysCharSet = []): string;
+function CharToCharRepres(Chr: AnsiChar;
+  ExcludedChars: TSysCharSet = []): AnsiString;
 begin
   ExcludedChars := ExcludedChars + [#0..#31];
   if Chr in ExcludedChars then
-    Result := '#'+IntToStr(Byte(Chr))
+    Result := '#'+AnsiString(IntToStr(Byte(Chr)))
   else if Chr = '''' then
     Result := ''''''''''
   else
-    Result := ''''+Chr+'''';
+    Result := AnsiString(''''+Chr+'''');
 end;
 
 {*
@@ -588,10 +588,10 @@ end;
   @return Caractère représenté par Str en Pascal
   @throws EConvertError Caractère incorrect
 *}
-function CharRepresToChar(Str: string): Char;
+function CharRepresToChar(Str: AnsiString): AnsiChar;
 begin
   try
-    Str := Trim(Str);
+    Str := AnsiString(Trim(string(Str)));
     if Str = '' then
       raise EConvertError.Create('');
     case Str[1] of
@@ -600,7 +600,7 @@ begin
         // Le résultat est le caractère dont le code ASCII est l'entier
         // spécifié à la suite
         Delete(Str, 1, 1);
-        Result := Chr(StrToInt(Str));
+        Result := AnsiChar(StrToInt(string(Str)));
       end;
       '''':
       begin
@@ -636,38 +636,38 @@ end;
   @param CharSet   Ensemble de caractères à traiter
   @return Représentation Pascal de CharSet
 *}
-function CharSetToStr(const CharSet: TSysCharSet): string;
+function CharSetToStr(const CharSet: TSysCharSet): AnsiString;
 var
   I, From: Word;
 begin
   Result := '';
   I := 0;
   // On cherche d'abord le premier caractère inclus
-  while (I <= 255) and (not (Chr(I) in CharSet)) do
+  while (I <= 255) and (not CharInSet(Chr(I), CharSet)) do
     Inc(I);
   while I <= 255 do
   begin
     // Chr(I) est inclus
     From := I;
     // On cherche le caractère suivant qui n'est pas inclus
-    while (I <= 255) and (Chr(I) in CharSet) do
+    while (I <= 255) and CharInSet(Chr(I), CharSet) do
       Inc(I);
     // On teste I-From, soit le nombre de caractère consécutifs
     case I-From of
       // 1 : on ajoute simplement ce caractère
-      1: Result := Result+', '+CharToCharRepres(Chr(From));
+      1: Result := Result+', '+CharToCharRepres(AnsiChar(From));
       // 2 : on ajoute ces deux caractères séparés par des virgules
-      2: Result := Result+', '+CharToCharRepres(Chr(From))+
-          ', '+CharToCharRepres(Chr(I-1));
+      2: Result := Result+', '+CharToCharRepres(AnsiChar(From))+
+          ', '+CharToCharRepres(AnsiChar(I-1));
     else
       // 3+ : on ajoute les deux extrèmes séparés par ..
-      Result := Result+', '+CharToCharRepres(Chr(From))+
-        '..'+CharToCharRepres(Chr(I-1));
+      Result := Result+', '+CharToCharRepres(AnsiChar(From))+
+        '..'+CharToCharRepres(AnsiChar(I-1));
     end;
     // on cherche le caractère suivant inclus
     repeat
       Inc(I);
-    until (I > 255) or (Chr(I) in CharSet);
+    until (I > 255) or (AnsiChar(I) in CharSet);
   end;
   // On supprime les deux premiers caractères, car ce sont ', '
   Delete(Result, 1, 2);
@@ -679,13 +679,13 @@ end;
   @return Ensemble de caractères représenté par CharSet
   @throws EConvertError Ensemble de caractères incorrect
 *}
-function StrToCharSet(Str: string): TSysCharSet;
+function StrToCharSet(Str: AnsiString): TSysCharSet;
 var
   I: Integer;
 
   // Renvoie le caractère à la position courante et augmente I en conséquence
   // Fonctionne sur le même principe que CharRepresToChar
-  function GetCharAt: Char;
+  function GetCharAt: AnsiChar;
   var
     From: Integer;
   begin
@@ -696,7 +696,7 @@ var
         repeat
           Inc(I);
         until (I > Length(Str)) or (not (Str[I] in ['0'..'9']));
-        Result := Chr(StrToInt(Copy(Str, From, I-From)));
+        Result := AnsiChar(StrToInt(string(Copy(Str, From, I-From))));
       end;
       '''':
       begin
@@ -727,17 +727,17 @@ var
   end;
 
 var
-  C1, C2: Char;
+  C1, C2: AnsiChar;
 begin
   try
     Result := [];
-    Str := Trim(Str);
+    Str := AnsiString(Trim(string(Str)));
     // Si Str est vide, il n'y a aucun caractère dans l'ensemble
     if Str = '' then
       Exit;
     // Si il y des [] aux extrémités, on les supprime
     if (Str[1] = '[') and (Str[Length(Str)] = ']') then
-      Str := Trim(Copy(Str, 2, Length(Str)-2));
+      Str := AnsiString(Trim(string(Copy(Str, 2, Length(Str)-2))));
 
     I := 1;
     while I <= Length(Str) do
@@ -828,7 +828,7 @@ end;
   @param TypeInfo   RTTI du type ensemble ou du type énumération
   @return Chaîne représentant l'ensemble EnumSet
 *}
-function EnumSetToStr(const EnumSet; TypeInfo: PTypeInfo): string;
+function EnumSetToStr(const EnumSet; TypeInfo: PTypeInfo): AnsiString;
 var
   TypeData: PTypeData;
   ByteValue: Byte;
@@ -842,7 +842,7 @@ begin
   for ByteValue := TypeData.MinValue to TypeData.MaxValue do
   begin
     if ByteValue in TSysByteSet(EnumSet) then
-      Result := Result + GetEnumName(TypeInfo, ByteValue) + ', ';
+      Result := Result + AnsiString(GetEnumName(TypeInfo, ByteValue) + ', ');
   end;
 
   if Result <> '' then
@@ -858,7 +858,7 @@ end;
   @param EnumSet    Ensemble converti en sortie
   @return Chaîne représentant l'ensemble EnumSet
 *}
-procedure StrToEnumSet(const Str: string; TypeInfo: PTypeInfo; out EnumSet);
+procedure StrToEnumSet(const Str: AnsiString; TypeInfo: PTypeInfo; out EnumSet);
 type
   TSetAsBytes = array[0..31] of Byte;
 var
@@ -897,10 +897,11 @@ begin
         raise Exception.Create('');
       Inc(Index);
 
-      while (Index <= Len) and (SetStr[Index] in [' ', #13, #10]) do
+      while (Index <= Len) and CharInSet(SetStr[Index], [' ', #13, #10]) do
         Inc(Index);
       BeginIndex := Index;
-      while (Index <= Len) and (not (SetStr[Index] in [',', ' ', #13, #10])) do
+      while (Index <= Len) and (not CharInSet(SetStr[Index],
+        [',', ' ', #13, #10])) do
         Inc(Index);
 
       Value := GetEnumValue(TypeInfo,
@@ -909,7 +910,7 @@ begin
         raise Exception.Create('');
       Include(TSysByteSet(EnumSet), Value);
 
-      while (Index <= Len) and (SetStr[Index] in [' ', #13, #10]) do
+      while (Index <= Len) and CharInSet(SetStr[Index], [' ', #13, #10]) do
         Inc(Index);
     end;
   except

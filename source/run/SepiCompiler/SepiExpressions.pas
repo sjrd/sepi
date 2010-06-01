@@ -43,7 +43,7 @@ interface
 
 uses
   SysUtils, Classes, Math, TypInfo, ScUtils, ScInterfaces, ScCompilerMagic,
-  ScDelphiLanguage, ScIntegerSets, SepiReflectionCore, SepiOrdTypes,
+  ScDelphiLanguage, ScIntegerSets, ScTypInfo, SepiReflectionCore, SepiOrdTypes,
   SepiStrTypes, SepiArrayTypes, SepiMembers, SepiSystemUnit, SepiOpCodes,
   SepiRuntimeOperations, SepiCompiler, SepiCompilerErrors, SepiCompilerConsts,
   SepiAsmInstructions;
@@ -495,6 +495,10 @@ type
 
     constructor Create(SepiRoot: TSepiRoot; const Value: AnsiString); overload;
     constructor Create(SepiRoot: TSepiRoot; const Value: WideString); overload;
+    {$IFDEF UNICODE}
+    constructor Create(SepiRoot: TSepiRoot;
+      const Value: UnicodeString); overload;
+    {$ENDIF}
 
     destructor Destroy; override;
 
@@ -540,6 +544,13 @@ type
       const Value: WideString): ISepiReadableValue; overload;
     class function MakeStringLiteral(Compiler: TSepiMethodCompiler;
       const Value: WideString): ISepiReadableValue; overload;
+
+    {$IFDEF UNICODE}
+    class function MakeStringLiteral(UnitCompiler: TSepiUnitCompiler;
+      const Value: UnicodeString): ISepiReadableValue; overload;
+    class function MakeStringLiteral(Compiler: TSepiMethodCompiler;
+      const Value: UnicodeString): ISepiReadableValue; overload;
+    {$ENDIF}
 
     property Constant: TSepiConstant read FConstant;
     property ConstValuePtr;
@@ -2012,8 +2023,8 @@ const
   CharIsUnicodeToBaseType: array[Boolean] of TSepiBaseType = (
     btAnsiChar, btWideChar
   );
-  StrIsUnicodeToBaseType: array[Boolean] of TSepiBaseType = (
-    btAnsiStr, btWideStr
+  StringKindToBaseType: array[TSepiStringKind] of TSepiBaseType = (
+    btAnsiStr, btWideStr, btUnicodeStr
   );
 begin
   Result := True;
@@ -2030,7 +2041,7 @@ begin
   else if SepiType is TSepiCharType then
     BaseType := CharIsUnicodeToBaseType[TSepiCharType(SepiType).IsUnicode]
   else if SepiType is TSepiStringType then
-    BaseType := StrIsUnicodeToBaseType[TSepiStringType(SepiType).IsUnicode]
+    BaseType := StringKindToBaseType[TSepiStringType(SepiType).StringKind]
   else if SepiType is TSepiVariantType then
     BaseType := btVariant
   else
@@ -2063,22 +2074,23 @@ begin
   SystemUnit := SepiRoot.SystemUnit as TSepiSystemUnit;
 
   case BaseType of
-    btBoolean:  Result := SystemUnit.Boolean;
-    btByte:     Result := SystemUnit.Byte;
-    btWord:     Result := SystemUnit.Word;
-    btDWord:    Result := SystemUnit.LongWord;
-    btShortint: Result := SystemUnit.Shortint;
-    btSmallint: Result := SystemUnit.Smallint;
-    btLongint:  Result := SystemUnit.Longint;
-    btInt64:    Result := SystemUnit.Int64;
-    btSingle:   Result := SystemUnit.Single;
-    btDouble:   Result := SystemUnit.Double;
-    btExtended: Result := SystemUnit.Extended;
-    btComp:     Result := SystemUnit.Comp;
-    btCurrency: Result := SystemUnit.Currency;
-    btAnsiStr:  Result := SystemUnit.AnsiString;
-    btWideStr:  Result := SystemUnit.WideString;
-    btVariant:  Result := SystemUnit.Variant;
+    btBoolean:    Result := SystemUnit.Boolean;
+    btByte:       Result := SystemUnit.Byte;
+    btWord:       Result := SystemUnit.Word;
+    btDWord:      Result := SystemUnit.LongWord;
+    btShortint:   Result := SystemUnit.Shortint;
+    btSmallint:   Result := SystemUnit.Smallint;
+    btLongint:    Result := SystemUnit.Longint;
+    btInt64:      Result := SystemUnit.Int64;
+    btSingle:     Result := SystemUnit.Single;
+    btDouble:     Result := SystemUnit.Double;
+    btExtended:   Result := SystemUnit.Extended;
+    btComp:       Result := SystemUnit.Comp;
+    btCurrency:   Result := SystemUnit.Currency;
+    btAnsiStr:    Result := SystemUnit.AnsiString;
+    btWideStr:    Result := SystemUnit.WideString;
+    btUnicodeStr: Result := SystemUnit.UnicodeString;
+    btVariant:    Result := SystemUnit.Variant;
   else
     Assert(False);
     Result := nil;
@@ -2597,7 +2609,7 @@ begin
 end;
 
 {*
-  Crée une constante litérale chaîne Unicode
+  Crée une constante litérale chaîne Wide
   @param SepiRoot   Racine Sepi (pour trouver le type Sepi)
   @param Value      Valeur de la constante
 *}
@@ -2608,6 +2620,21 @@ begin
 
   WideString(ConstValuePtr^) := Value;
 end;
+
+{$IFDEF UNICODE}
+{*
+  Crée une constante litérale chaîne Unicode
+  @param SepiRoot   Racine Sepi (pour trouver le type Sepi)
+  @param Value      Valeur de la constante
+*}
+constructor TSepiTrueConstValue.Create(SepiRoot: TSepiRoot;
+  const Value: UnicodeString);
+begin
+  Create((SepiRoot.SystemUnit as TSepiSystemUnit).UnicodeString);
+
+  UnicodeString(ConstValuePtr^) := Value;
+end;
+{$ENDIF}
 
 {*
   [@inheritDoc]
@@ -2899,6 +2926,36 @@ begin
   Result := TSepiTrueConstValue.Create(Compiler.SepiMethod.Root, Value);
   Result.AttachToExpression(TSepiExpression.Create(Compiler));
 end;
+
+{$IFDEF UNICODE}
+{*
+  Construit une expression valeur pour un littéral chaîne dans une unité
+  @param UnitCompiler   Compilateur d'unité
+  @param Value          Valeur littérale
+  @return Valeur représentant la constante littérale
+*}
+class function TSepiTrueConstValue.MakeStringLiteral(
+  UnitCompiler: TSepiUnitCompiler;
+  const Value: UnicodeString): ISepiReadableValue;
+begin
+  Result := TSepiTrueConstValue.Create(UnitCompiler.SepiUnit.Root, Value);
+  Result.AttachToExpression(TSepiExpression.Create(UnitCompiler));
+end;
+
+{*
+  Construit une expression valeur pour un littéral chaîne dans une méthode
+  @param Compiler   Compilateur de méthode
+  @param Value      Valeur littérale
+  @return Valeur représentant la constante littérale
+*}
+class function TSepiTrueConstValue.MakeStringLiteral(
+  Compiler: TSepiMethodCompiler;
+  const Value: UnicodeString): ISepiReadableValue;
+begin
+  Result := TSepiTrueConstValue.Create(Compiler.SepiMethod.Root, Value);
+  Result.AttachToExpression(TSepiExpression.Create(Compiler));
+end;
+{$ENDIF}
 
 {---------------------------}
 { TSepiErroneousValue class }
@@ -4324,12 +4381,13 @@ const
       btDouble, btDouble, btDouble, btExtended, btDouble, btCurrency)
   );
 
-  StrResults: array[btAnsiChar..btWideStr, btAnsiChar..btWideStr] of
+  StrResults: array[btAnsiChar..btUnicodeStr, btAnsiChar..btUnicodeStr] of
       TSepiBaseType = (
-    (btAnsiChar, btWideChar, btAnsiStr, btWideStr),
-    (btWideChar, btWideChar, btWideStr, btWideStr),
-    (btAnsiStr , btWideStr , btAnsiStr, btWideStr),
-    (btWideStr , btWideStr , btWideStr, btWideStr)
+    (btAnsiChar  , btWideChar  , btAnsiStr   , btWideStr   , btUnicodeStr),
+    (btWideChar  , btWideChar  , btWideStr   , btWideStr   , btUnicodeStr),
+    (btAnsiStr   , btWideStr   , btAnsiStr   , btWideStr   , btUnicodeStr),
+    (btWideStr   , btWideStr   , btWideStr   , btWideStr   , btUnicodeStr),
+    (btUnicodeStr, btUnicodeStr, btUnicodeStr, btUnicodeStr, btUnicodeStr)
   );
 var
   Types: TSepiBaseTypes;
@@ -4350,10 +4408,10 @@ begin
     end;
 
     CommonType := btBoolean;
-  end else if Types * [btAnsiChar..btWideStr] <> [] then
+  end else if Types * btCharsAndStrings <> [] then
   begin
     // Strings only matches with themselves - prefer wide and prefer string
-    if not (Types <= [btAnsiChar..btWideStr]) then
+    if not (Types <= btCharsAndStrings) then
     begin
       Result := False;
       Exit;
@@ -6070,8 +6128,7 @@ begin
       Result := TSepiTrueConstValue.MakeOrdinalValue(Expression.UnitCompiler,
         Expression.UnitCompiler.SystemUnit.Boolean, 1)
     else
-      Result := TSepiTrueConstValue.MakeIntegerLiteral(
-        Expression.UnitCompiler, 0);
+      Result := TSepiErroneousValue.MakeReplacementValue(Expression);
   end;
 end;
 
@@ -6506,10 +6563,16 @@ begin
 
   AllocateConstant;
 
-  if (Operand.ValueType as TSepiStringType).IsUnicode then
-    PInteger(ConstValuePtr)^ := Length(WideString(Operand.ConstValuePtr^))
-  else
-    PInteger(ConstValuePtr)^ := Length(AnsiString(Operand.ConstValuePtr^));
+  case (Operand.ValueType as TSepiStringType).StringKind of
+    skAnsiString:
+      PInteger(ConstValuePtr)^ := Length(AnsiString(Operand.ConstValuePtr^));
+    skWideString:
+      PInteger(ConstValuePtr)^ := Length(WideString(Operand.ConstValuePtr^));
+    {$IFDEF UNICODE}
+    skUnicodeString:
+      PInteger(ConstValuePtr)^ := Length(UnicodeString(Operand.ConstValuePtr^));
+    {$ENDIF}
+  end;
 end;
 
 {*
@@ -6518,6 +6581,10 @@ end;
 procedure TSepiStringLengthValue.CompileCompute(Compiler: TSepiMethodCompiler;
   Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
   TempVars: TSepiTempVarsLifeManager);
+const
+  StringKindToOpCode: array[TSepiStringKind] of TSepiOpCode = (
+    ocAnsiStrLength, ocWideStrLength, ocUnicodeStrLength
+  );
 var
   SourceMemory: TSepiMemoryReference;
   SrcTempVars: TSepiTempVarsLifeManager;
@@ -6536,8 +6603,7 @@ begin
 
     // Make instruction
     Instr := TSepiAsmValueToIntStdFunction.Create(Compiler,
-      IIF((Operand.ValueType as TSepiStringType).IsUnicode, ocWideStrLength,
-      ocAnsiStrLength));
+      StringKindToOpCode[(Operand.ValueType as TSepiStringType).StringKind]);
     Instr.SourcePos := Expression.SourcePos;
 
     NeedDestination(Destination, ValueType, Compiler, TempVars, Instr.AfterRef);
@@ -6824,6 +6890,10 @@ end;
 *}
 procedure TSepiStrSetLengthExpression.CompileExecute(
   Compiler: TSepiMethodCompiler; Instructions: TSepiInstructionList);
+const
+  StringKindToOpCode: array[TSepiStringKind] of TSepiOpCode = (
+    ocAnsiStrSetLength, ocWideStrSetLength, ocUnicodeStrSetLength
+  );
 var
   ReadableStrValue: ISepiReadableValue;
   StrMemory, NewLengthMemory: TSepiMemoryReference;
@@ -6847,8 +6917,8 @@ begin
 
     // Make asm instruction
 
-    OpCode := IIF(TSepiStringType(StrValue.ValueType).IsUnicode,
-      ocWideStrSetLength, ocAnsiStrSetLength);
+    OpCode := StringKindToOpCode[
+      TSepiStringType(StrValue.ValueType).StringKind];
 
     AsmInstr := TSepiAsmStrSetLength.Create(Compiler, OpCode);
     AsmInstr.SourcePos := Expression.SourcePos;
@@ -7111,6 +7181,7 @@ end;
 *}
 procedure TSepiStrCopyExpression.CollapseConsts;
 var
+  DestPtr, SrcPtr: Pointer;
   Index, Count: Integer;
 begin
   if not (SourceStr.IsConstant and IndexValue.IsConstant and
@@ -7119,17 +7190,21 @@ begin
 
   AllocateConstant;
 
+  DestPtr := ConstValuePtr;
+  SrcPtr := SourceStr.ConstValuePtr;
   Index := Integer(IndexValue.ConstValuePtr^);
   Count := Integer(CountValue.ConstValuePtr^);
 
-  if (ValueType as TSepiStringType).IsUnicode then
-  begin
-    WideString(ConstValuePtr^) := Copy(WideString(SourceStr.ConstValuePtr^),
-      Index, Count);
-  end else
-  begin
-    AnsiString(ConstValuePtr^) := Copy(AnsiString(SourceStr.ConstValuePtr^),
-      Index, Count);
+  case (ValueType as TSepiStringType).StringKind of
+    skAnsiString:
+      AnsiString(DestPtr^) := Copy(AnsiString(SrcPtr^), Index, Count);
+    skWideString:
+      WideString(DestPtr^) := Copy(WideString(SrcPtr^), Index, Count);
+
+    {$IFDEF UNICODE}
+    skUnicodeString:
+      UnicodeString(DestPtr^) := Copy(UnicodeString(SrcPtr^), Index, Count);
+    {$ENDIF}
   end;
 end;
 
@@ -7139,6 +7214,10 @@ end;
 procedure TSepiStrCopyExpression.CompileCompute(Compiler: TSepiMethodCompiler;
   Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
   TempVars: TSepiTempVarsLifeManager);
+const
+  StringKindToOpCode: array[TSepiStringKind] of TSepiOpCode = (
+    ocAnsiStrCopy, ocWideStrCopy, ocUnicodeStrCopy
+  );
 var
   SourceStrMemory, IndexMemory, CountMemory: TSepiMemoryReference;
   SrcTempVars: TSepiTempVarsLifeManager;
@@ -7162,7 +7241,7 @@ begin
 
     // Make instruction
     Instruction := TSepiAsmStrCopy.Create(Compiler,
-      IIF(TSepiStringType(ValueType).IsUnicode, ocWideStrCopy, ocAnsiStrCopy));
+      StringKindToOpCode[TSepiStringType(ValueType).StringKind]);
     Instruction.SourcePos := Expression.SourcePos;
 
     NeedDestination(Destination, ValueType, Compiler, TempVars,
@@ -8676,6 +8755,10 @@ begin
     tkVariant: Result := vtVariant;
     tkInterface: Result := vtInterface;
     tkInt64: Result := vtInt64;
+
+    {$IF Declared(tkUString)}
+    tkUString: Result := vtUnicodeString;
+    {$IFEND}
   else
     Result := vtError;
   end;
@@ -8694,15 +8777,20 @@ procedure TSepiOpenArrayBuilder.CompileReadVarRecItem(
   const VarRecValue: ISepiWritableValue; const AItemValue: ISepiReadableValue;
   TempVars: TSepiTempVarsLifeManager);
 const
-  vtLast = vtInt64;
+  {$IF not Declared(vtUnicodeString)}
+  vtUnicodeString = vtInt64 + 1;
+  {$IFEND}
+  vtLast = vtUnicodeString;
+
   VTypeToFieldName: array[0..vtLast] of string = (
     'VInteger', 'VBoolean', 'VChar', 'VExtended', 'VString', 'VPointer',
     'VPChar', 'VObject', 'VClass', 'VWideChar', 'VPWideChar', 'VAnsiString',
-    'VCurrency', 'VVariant', 'VInterface', 'VWideString', 'VInt64'
+    'VCurrency', 'VVariant', 'VInterface', 'VWideString', 'VInt64',
+    'VUnicodeString'
   );
   VTypeFieldName = 'VType';
   ByAddressVTypes = [vtExtended, vtString, vtVariant, vtInt64];
-  AsPointerVTypes = [vtAnsiString, vtInterface, vtWideString];
+  AsPointerVTypes = [vtAnsiString, vtInterface, vtWideString, vtUnicodeString];
   NeedTempVarVTypes = ByAddressVTypes + AsPointerVTypes;
 var
   SystemUnit: TSepiSystemUnit;
@@ -9211,9 +9299,9 @@ begin
     Assert(False);
 end;
 
-{---------------------------}
+{--------------------------------}
 { TSepiComponentExpression class }
-{---------------------------}
+{--------------------------------}
 
 {*
   Crée une expression représentant un meta

@@ -69,8 +69,8 @@ type
   *}
   TSepiRuntimeUnit = class(TObject)
   private
-    FMethods: TObjectList;           /// Méthodes
-    FSepiUnit: TSepiUnit;            /// Unité Sepi
+    FMethods: TObjectList;                /// Méthodes
+    FSepiUnit: TSepiUnit;                 /// Unité Sepi
     FReferences: array of TSepiComponent; /// Références internes
 
     FOnDebug: TSepiDebugEvent; /// Evénément de débogage
@@ -278,6 +278,9 @@ type
   /// Set le plus grand possible
   TSet = set of Byte;
 
+  /// Type chaîne Unicode, si existant dans cette version de Delphi
+  UnicodeStrDef = string;
+
 var
   /// Tableau des méthodes de traitement des OpCodes
   OpCodeProcs: array[TSepiOpCode] of TOpCodeProc;
@@ -386,6 +389,8 @@ begin
     @TSepiRuntimeContext.OpCodeValueToIntStdFunction;
   @OpCodeProcs[ocWideStrLength] :=
     @TSepiRuntimeContext.OpCodeValueToIntStdFunction;
+  @OpCodeProcs[ocUnicodeStrLength] :=
+    @TSepiRuntimeContext.OpCodeValueToIntStdFunction;
   @OpCodeProcs[ocDynArrayLength] :=
     @TSepiRuntimeContext.OpCodeValueToIntStdFunction;
   @OpCodeProcs[ocDynArrayHigh] :=
@@ -394,11 +399,15 @@ begin
     @TSepiRuntimeContext.OpCodeStrSetLength;
   @OpCodeProcs[ocWideStrSetLength] :=
     @TSepiRuntimeContext.OpCodeStrSetLength;
+  @OpCodeProcs[ocUnicodeStrSetLength] :=
+    @TSepiRuntimeContext.OpCodeStrSetLength;
   @OpCodeProcs[ocDynArraySetLength] :=
     @TSepiRuntimeContext.OpCodeDynArraySetLength;
   @OpCodeProcs[ocAnsiStrCopy] :=
     @TSepiRuntimeContext.OpCodeStrCopy;
   @OpCodeProcs[ocWideStrCopy] :=
+    @TSepiRuntimeContext.OpCodeStrCopy;
+  @OpCodeProcs[ocUnicodeStrCopy] :=
     @TSepiRuntimeContext.OpCodeStrCopy;
   @OpCodeProcs[ocDynArrayCopy] :=
     @TSepiRuntimeContext.OpCodeDynArrayCopy;
@@ -1730,6 +1739,7 @@ begin
   case OpCode of
     ocAnsiStrLength: DestPtr^ := Length(AnsiString(ValuePtr^));
     ocWideStrLength: DestPtr^ := Length(WideString(ValuePtr^));
+    ocUnicodeStrLength: DestPtr^ := Length(UnicodeStrDef(ValuePtr^));
     ocDynArrayLength: DestPtr^ := DynArrayLength(ValuePtr^);
     ocDynArrayHigh: DestPtr^ := DynArrayHigh(ValuePtr^);
   end;
@@ -1752,6 +1762,7 @@ begin
   case OpCode of
     ocAnsiStrSetLength: SetLength(AnsiString(StrPtr^), LenPtr^);
     ocWideStrSetLength: SetLength(WideString(StrPtr^), LenPtr^);
+    ocUnicodeStrSetLength: SetLength(UnicodeStrDef(StrPtr^), LenPtr^);
   end;
 end;
 
@@ -1794,6 +1805,7 @@ procedure TSepiRuntimeContext.OpCodeStrCopy(OpCode: TSepiOpCode);
 var
   DestPtr, SrcPtr: Pointer;
   IndexPtr, CountPtr: PInteger;
+  Index, Count: Integer;
 begin
   // Read arguments
   DestPtr := ReadAddress;
@@ -1801,12 +1813,17 @@ begin
   IndexPtr := ReadAddress(aoAcceptAllConsts, SizeOf(Integer));
   CountPtr := ReadAddress(aoAcceptAllConsts, SizeOf(Integer));
 
+  Index := IndexPtr^;
+  Count := CountPtr^;
+
   // Execute instruction
   case OpCode of
     ocAnsiStrCopy:
-      AnsiString(DestPtr^) := Copy(AnsiString(SrcPtr^), IndexPtr^, CountPtr^);
+      AnsiString(DestPtr^) := Copy(AnsiString(SrcPtr^), Index, Count);
     ocWideStrCopy:
-      WideString(DestPtr^) := Copy(WideString(SrcPtr^), IndexPtr^, CountPtr^);
+      WideString(DestPtr^) := Copy(WideString(SrcPtr^), Index, Count);
+    ocUnicodeStrCopy:
+      UnicodeStrDef(DestPtr^) := Copy(UnicodeStrDef(SrcPtr^), Index, Count);
   end;
 end;
 

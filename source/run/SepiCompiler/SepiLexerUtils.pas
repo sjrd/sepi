@@ -457,7 +457,7 @@ constructor TSepiBaseLexer.Create(AErrors: TSepiCompilerErrorList;
 begin
   inherited;
 
-  FCode := ACode + #0;
+  FCode := ACode;
   FCursor := 1;
 
   if AFileName = '' then
@@ -596,8 +596,19 @@ end;
   [@inheritDoc]
 *}
 procedure TSepiCustomManualLexer.DoNextTerminal;
+var
+  Discriminant: Char;
 begin
-  LexingProcs[Code[Cursor]];
+  Discriminant := Code[Cursor];
+
+  {$IF SizeOf(Char) > 1}
+    if Discriminant <= #255 then
+      LexingProcs[Discriminant]
+    else
+      ActionUnknown;
+  {$ELSE}
+    LexingProcs[Discriminant];
+  {$IFEND}
 end;
 
 {*
@@ -611,7 +622,7 @@ begin
   begin
     if C = #0 then
       LexingProcs[C] := ActionEof
-    else if C in BlankChars then
+    else if CharInSet(C, BlankChars) then
       LexingProcs[C] := ActionBlank
     else
       LexingProcs[C] := ActionUnknown;
@@ -643,7 +654,7 @@ end;
 *}
 procedure TSepiCustomManualLexer.ActionBlank;
 begin
-  while Code[Cursor] in BlankChars do
+  while CharInSet(Code[Cursor], BlankChars) do
     CursorForward;
 
   TerminalParsed(tkBlank, ' ');

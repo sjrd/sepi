@@ -51,6 +51,11 @@ procedure Initialize(var Value; TypeInfo: PTypeInfo; Count: Cardinal = 1);
 procedure Finalize(var Value; TypeInfo: PTypeInfo; Count: Cardinal = 1);
 procedure AddRef(var Value; TypeInfo: PTypeInfo; Count: Cardinal = 1);
 
+{$IFDEF UNICODE}
+procedure LStrFromUStr(var Dest: AnsiString; const Source: UnicodeString;
+  CodePage: Word);
+{$ENDIF}
+
 procedure CopyArray(Dest, Source, TypeInfo: Pointer; Count: Integer);
 procedure CopyRecord(Dest, Source, TypeInfo: Pointer);
 
@@ -96,6 +101,17 @@ asm
 end;
 
 {*
+  Finalise une variable - alias de @FinalizeArray
+  @param Value      Variable à finaliser
+  @param TypeInfo   RTTI du type de la variable
+  @param Count      Nombre d'éléments dans la variable
+*}
+procedure Finalize(var Value; TypeInfo: PTypeInfo; Count: Cardinal = 1);
+asm
+        JMP     System.@FinalizeArray
+end;
+
+{*
   Ajoute une référence à une variable - alias de @AddRefArray
   @param Value      Variable à laquelle ajouter une référence
   @param TypeInfo   RTTI du type de la variable
@@ -106,16 +122,19 @@ asm
         JMP     System.@AddRefArray
 end;
 
+{$IFDEF UNICODE}
 {*
-  Finalise une variable - alias de @FinalizeArray
-  @param Value      Variable à finaliser
-  @param TypeInfo   RTTI du type de la variable
-  @param Count      Nombre d'éléments dans la variable
+  Assigne une chaîne Unicode à une chaîne Ansi
+  @param Dest       Destination
+  @param Source     Source
+  @param CodePage   Code page de la destination
 *}
-procedure Finalize(var Value; TypeInfo: PTypeInfo; Count: Cardinal = 1);
+procedure LStrFromUStr(var Dest: AnsiString; const Source: UnicodeString;
+  CodePage: Word);
 asm
-        JMP     System.@FinalizeArray
+        JMP     System.@LStrFromUStr
 end;
+{$ENDIF}
 
 {*
   Copie un tableau statique - alias de @CopyArray

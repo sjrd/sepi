@@ -42,7 +42,7 @@ unit SepiArrayTypes;
 interface
 
 uses
-  Classes, SysUtils, SysConst, TypInfo, ScUtils, SepiReflectionCore,
+  Classes, SysUtils, SysConst, TypInfo, ScUtils, ScTypInfo, SepiReflectionCore,
   SepiOrdTypes;
 
 type
@@ -606,10 +606,10 @@ end;
 *}
 procedure TSepiDynArrayType.MakeTypeInfo;
 var
-  UnitName: ShortString;
+  UnitName: TypeInfoString;
   TypeDataLength: Integer;
 begin
-  UnitName := OwningUnit.Name;
+  UnitName := TypeInfoEncode(OwningUnit.Name);
   TypeDataLength := DynArrayTypeDataLengthBase + Length(UnitName) + 1;
   AllocateTypeInfo(TypeDataLength);
 
@@ -635,7 +635,8 @@ begin
     TypeData.elType2 := nil;
 
   // Unit name
-  Move(UnitName[0], TypeData.DynUnitName[0], Length(UnitName)+1);
+  Byte(TypeData.DynUnitName[0]) := Length(UnitName);
+  Move(UnitName[1], TypeData.DynUnitName[1], Length(UnitName));
 end;
 
 {*

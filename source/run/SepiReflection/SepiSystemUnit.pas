@@ -94,6 +94,7 @@ type
     LongString: TSepiStringType;
     AnsiString: TSepiStringType;
     WideString: TSepiStringType;
+    UnicodeString: TSepiStringType;
 
     // Variant types
     Variant: TSepiVariantType;
@@ -168,11 +169,12 @@ type
     property Currency: TSepiFloatType read FTypes.Currency;
     property TDateTime: TSepiFloatType read FTypes.TDateTime;
 
-    // String types
+    // String types - warning: UnicodeString may be nil
     property ShortString: TSepiShortStringType read FTypes.ShortString;
     property LongString: TSepiStringType read FTypes.LongString;
     property AnsiString: TSepiStringType read FTypes.AnsiString;
     property WideString: TSepiStringType read FTypes.WideString;
+    property UnicodeString: TSepiStringType read FTypes.UnicodeString;
 
     // Variant types
     property Variant: TSepiVariantType read FTypes.Variant;
@@ -242,6 +244,7 @@ const // don't localize
     'string',
     'AnsiString',
     'WideString',
+    'UnicodeString',
 
     // Variant types
     'Variant',

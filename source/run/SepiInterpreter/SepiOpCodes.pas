@@ -171,7 +171,7 @@ type
   TSepiBaseType = (
     btBoolean, btByte, btWord, btDWord, btShortint, btSmallint, btLongint,
     btInt64, btSingle, btDouble, btExtended, btComp, btCurrency, btAnsiChar,
-    btWideChar, btAnsiStr, btWideStr, btVariant
+    btWideChar, btAnsiStr, btWideStr, btUnicodeStr, btVariant
   );
 
   {*
@@ -183,8 +183,10 @@ const
   btIntegers =
     [btByte, btWord, btDWord, btShortint, btSmallint, btLongint, btInt64];
   btFloats = [btSingle, btDouble, btExtended, btComp, btCurrency];
+  btNumbers = btIntegers + btFloats;
   btChars = [btAnsiChar, btWideChar];
-  btStrings = [btAnsiStr, btWideStr];
+  btStrings = [btAnsiStr, btWideStr, btUnicodeStr];
+  btCharsAndStrings = btChars + btStrings;
 
 type
   /// Configuration d'un appel basique
@@ -226,7 +228,7 @@ const
 
   /// Taille des constantes en fonction des types de base
   BaseTypeConstSizes: array[TSepiBaseType] of Integer = (
-    1, 1, 2, 4, 1, 2, 4, 8, 4, 8, 10, 8, 8, 1, 2, 0, 0, 0
+    1, 1, 2, 4, 1, 2, 4, 8, 4, 8, 10, 8, 8, 1, 2, 0, 0, 0, 0
   );
 
   /// Le paramètre est passé par adresse
@@ -285,20 +287,21 @@ const
   ocDynamicCall = TSepiOpCode($07); /// CALL Method-Ref Self Params
 
   // Memory moves
-  ocLoadAddress = TSepiOpCode($10); /// LEA   Dest, Src
-  ocMoveByte    = TSepiOpCode($11); /// MOVB  Dest, Src
-  ocMoveWord    = TSepiOpCode($12); /// MOVW  Dest, Src
-  ocMoveDWord   = TSepiOpCode($13); /// MOVD  Dest, Src
-  ocMoveQWord   = TSepiOpCode($14); /// MOVQ  Dest, Src
-  ocMoveExt     = TSepiOpCode($15); /// MOVE  Dest, Src
-  ocMoveAnsiStr = TSepiOpCode($16); /// MOVAS Dest, Src
-  ocMoveWideStr = TSepiOpCode($17); /// MOVWS Dest, Src
-  ocMoveVariant = TSepiOpCode($18); /// MOVV  Dest, Src
-  ocMoveIntf    = TSepiOpCode($19); /// MOVI  Dest, Src
-  ocMoveSome    = TSepiOpCode($1A); /// MOVS  Byte-Count, Dest, Src
-  ocMoveMany    = TSepiOpCode($1B); /// MOVM  Word-Count, Dest, Src
-  ocMoveOther   = TSepiOpCode($1C); /// MOVO  Type-Ref, Dest, Src
-  ocConvert     = TSepiOpCode($1D); /// CVRT  Type, Type, Mem, Mem
+  ocLoadAddress    = TSepiOpCode($10); /// LEA   Dest, Src
+  ocMoveByte       = TSepiOpCode($11); /// MOVB  Dest, Src
+  ocMoveWord       = TSepiOpCode($12); /// MOVW  Dest, Src
+  ocMoveDWord      = TSepiOpCode($13); /// MOVD  Dest, Src
+  ocMoveQWord      = TSepiOpCode($14); /// MOVQ  Dest, Src
+  ocMoveExt        = TSepiOpCode($15); /// MOVE  Dest, Src
+  ocMoveAnsiStr    = TSepiOpCode($16); /// MOVAS Dest, Src
+  ocMoveWideStr    = TSepiOpCode($17); /// MOVWS Dest, Src
+  ocMoveUnicodeStr = TSepiOpCode($18); /// MOVUS Dest, Src
+  ocMoveVariant    = TSepiOpCode($19); /// MOVV  Dest, Src
+  ocMoveIntf       = TSepiOpCode($1A); /// MOVI  Dest, Src
+  ocMoveSome       = TSepiOpCode($1B); /// MOVS  Byte-Count, Dest, Src
+  ocMoveMany       = TSepiOpCode($1C); /// MOVM  Word-Count, Dest, Src
+  ocMoveOther      = TSepiOpCode($1D); /// MOVO  Type-Ref, Dest, Src
+  ocConvert        = TSepiOpCode($1E); /// CVRT  Type, Type, [CP,] Mem, Mem
 
   // Self dest unary operations
   ocSelfInc = TSepiOpCode($20); /// INC Type, Var
@@ -382,17 +385,20 @@ const
   ocSetExpand         = TSepiOpCode($7F); /// SEXP Dest, Src, Lo, Hi
 
   // Standard Delphi functions
-  ocAnsiStrLength     = TSepiOpCode($80); /// ASL Dest, Value
-  ocWideStrLength     = TSepiOpCode($81); /// WSL Dest, Value
-  ocDynArrayLength    = TSepiOpCode($82); /// DAL Dest, Value
-  ocDynArrayHigh      = TSepiOpCode($83); /// DAH Dest, Value
-  ocAnsiStrSetLength  = TSepiOpCode($84); /// ASSL Var, Len
-  ocWideStrSetLength  = TSepiOpCode($85); /// WSSL Var, Len
-  ocDynArraySetLength = TSepiOpCode($86); /// DASL Type-Ref, Var, DimCount, Dims
-  ocAnsiStrCopy       = TSepiOpCode($87); /// ASCP Dest, Src, Index, Count
-  ocWideStrCopy       = TSepiOpCode($88); /// WSCP Dest, Src, Index, Count
-  ocDynArrayCopy      = TSepiOpCode($89); /// DACP Type-Ref, Dest, Src
-  ocDynArrayCopyRange = TSepiOpCode($8A); /// DACP Type-Ref, Dest, Src, Idx, Cnt
+  ocAnsiStrLength       = TSepiOpCode($80); /// ASL Dest, Value
+  ocWideStrLength       = TSepiOpCode($81); /// WSL Dest, Value
+  ocUnicodeStrLength    = TSepiOpCode($82); /// USL Dest, Value
+  ocDynArrayLength      = TSepiOpCode($83); /// DAL Dest, Value
+  ocDynArrayHigh        = TSepiOpCode($84); /// DAH Dest, Value
+  ocAnsiStrSetLength    = TSepiOpCode($85); /// ASSL Var, Len
+  ocWideStrSetLength    = TSepiOpCode($86); /// WSSL Var, Len
+  ocUnicodeStrSetLength = TSepiOpCode($87); /// USSL Var, Len
+  ocDynArraySetLength   = TSepiOpCode($88); /// DASL Type-Ref, Var,DimCount,Dims
+  ocAnsiStrCopy         = TSepiOpCode($89); /// ASCP Dest, Src, Index, Count
+  ocWideStrCopy         = TSepiOpCode($8A); /// WSCP Dest, Src, Index, Count
+  ocUnicodeStrCopy      = TSepiOpCode($8B); /// USCP Dest, Src, Index, Count
+  ocDynArrayCopy        = TSepiOpCode($8C); /// DACP Type-Ref, Dest, Src
+  ocDynArrayCopyRange   = TSepiOpCode($8D); /// DACP Type-Ref, Dest, Src,Idx,Cnt
 
 function MemoryRefEncode(MemorySpace: TSepiMemorySpace;
   OpCount: Integer): TSepiMemoryRef;

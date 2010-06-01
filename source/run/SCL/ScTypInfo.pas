@@ -45,15 +45,33 @@ uses
   TypInfo;
 
 const
+  /// tkUString sous Delphi 2009+, tkUnknown sinon
+{$IF Declared(tkUString)}
+  tkUStringOrUnknown = tkUString;
+{$ELSE}
+  tkUStringOrUnknown = tkUnknown;
+{$IFEND}
+
   /// Types qui requièrent une initialisation
   { tkArray and tkRecord are listed here, though static arrays and record don't
     always need initialization, because these types have got RTTI if and only
     if the particular type needs initialization. }
   NeedInitTypeKinds = [
     tkLString, tkWString, tkVariant, tkArray, tkRecord, tkInterface, tkDynArray
+    {$IF Declared(tkUString)}, tkUString{$IFEND}
   ];
 
 type
+  /// Long string - ambivalent type for Delphi 2007- and Delphi 2009+
+{$IF Declared(RawByteString)}
+  LongString = RawByteString;
+{$ELSE}
+  LongString = AnsiString;
+{$IFEND}
+
+  /// String type used in RTTI
+  TypeInfoString = ShortString;
+
   /// Pointeur vers TRecordField
   PRecordField = ^TRecordField;
 
@@ -103,6 +121,9 @@ procedure CopyData(const Source; var Dest; TypeInfo: PTypeInfo); overload;
 
 function AreInitFinitCompatible(Left, Right: PTypeInfo): Boolean;
 
+function TypeInfoEncode(const Str: string): TypeInfoString; inline;
+function TypeInfoDecode(const Str: TypeInfoString): string; inline;
+
 implementation
 
 uses
@@ -120,6 +141,7 @@ function TypeSize(TypeInfo: PTypeInfo): Integer;
 const
   TypeKindToSize: array[TTypeKind] of Integer = (
     -1, 0, 1, 0, 0, 0, 0, 4, 8, 2, 4, 4, 16, 0, 0, 4, 8, 4
+    {$IF Declared(tkUString)}, 4 {$IFEND}
   );
   OrdTypeToSize: array[TOrdType] of Integer = (1, 1, 2, 2, 4, 4);
   FloatTypeToSize: array[TFloatType] of Integer = (4, 8, 10, 8, 8);
@@ -182,7 +204,7 @@ end;
 procedure CopyData(const Source; var Dest; TypeInfo: PTypeInfo);
 begin
   case TypeInfo.Kind of
-    tkLString: AnsiString(Dest) := AnsiString(Source);
+    tkLString: LongString(Dest) := LongString(Source);
     tkWString: WideString(Dest) := WideString(Source);
     tkVariant: Variant(Dest) := Variant(Source);
     tkArray:
@@ -191,6 +213,10 @@ begin
     tkRecord: CopyRecord(@Dest, @Source, TypeInfo);
     tkInterface: IInterface(Dest) := IInterface(Source);
     tkDynArray: DynArrayAsg(Pointer(Dest), Pointer(Source), TypeInfo);
+
+    {$IF Declared(tkUString)}
+    tkUString: UnicodeString(Dest) := UnicodeString(Source);
+    {$IFEND}
   else
     Move(Source, Dest, TypeSize(TypeInfo));
   end;
@@ -288,6 +314,34 @@ begin
       Result := True;
     end;
   end;
+end;
+
+{*
+  Encode a string for storing into RTTI
+  @param Str   String to encode
+  @return The string Str encoded in the proper form for storing into RTTI
+*}
+function TypeInfoEncode(const Str: string): TypeInfoString;
+begin
+{$IFDEF UNICODE}
+  Result := UTF8EncodeToShortString(Str);
+{$ELSE}
+  Result := TypeInfoString(Str);
+{$ENDIF}
+end;
+
+{*
+  Dcode a string coming from RTTI
+  @param Str   String to decode
+  @return The string Str decoded using the encoding of RTTI
+*}
+function TypeInfoDecode(const Str: TypeInfoString): string;
+begin
+{$IFDEF UNICODE}
+  Result := UTF8ToString(Str);
+{$ELSE}
+  Result := string(Str);
+{$ENDIF}
 end;
 
 end.

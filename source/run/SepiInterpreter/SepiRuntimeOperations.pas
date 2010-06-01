@@ -59,6 +59,8 @@ function ConversionExists(SrcBaseType, DestBaseType: TSepiBaseType): Boolean;
 implementation
 
 type
+  UniStrDef = string;
+
   TConvertProc = procedure(DestType: TSepiBaseType; var Dest; const Source);
 
 var
@@ -160,8 +162,9 @@ begin
         btComp:     Comp      (Dest) := Comp      (Left) + Comp      (Right);
         btCurrency: Currency  (Dest) := Currency  (Left) + Currency  (Right);
 
-        btAnsiStr:  AnsiString(Dest) := AnsiString(Left) + AnsiString(Right);
-        btWideStr:  WideString(Dest) := WideString(Left) + WideString(Right);
+        btAnsiStr:    AnsiString(Dest) := AnsiString(Left) + AnsiString(Right);
+        btWideStr:    WideString(Dest) := WideString(Left) + WideString(Right);
+        btUnicodeStr: UniStrDef (Dest) := UniStrDef (Left) + UniStrDef (Right);
 
         btVariant:  Variant(Dest) := Variant(Left) + Variant(Right);
       else
@@ -368,10 +371,11 @@ begin
         btComp:     Boolean(Dest) := Comp    (Left) = Comp    (Right);
         btCurrency: Boolean(Dest) := Currency(Left) = Currency(Right);
 
-        btAnsiChar: Boolean(Dest) := AnsiChar  (Left) = AnsiChar  (Right);
-        btWideChar: Boolean(Dest) := WideChar  (Left) = WideChar  (Right);
-        btAnsiStr:  Boolean(Dest) := AnsiString(Left) = AnsiString(Right);
-        btWideStr:  Boolean(Dest) := WideString(Left) = WideString(Right);
+        btAnsiChar:   Boolean(Dest) := AnsiChar  (Left) = AnsiChar  (Right);
+        btWideChar:   Boolean(Dest) := WideChar  (Left) = WideChar  (Right);
+        btAnsiStr:    Boolean(Dest) := AnsiString(Left) = AnsiString(Right);
+        btWideStr:    Boolean(Dest) := WideString(Left) = WideString(Right);
+        btUnicodeStr: Boolean(Dest) := UniStrDef (Left) = UniStrDef (Right);
 
         btVariant: Boolean(Dest) := Variant(Left) = Variant(Right);
       else
@@ -394,10 +398,11 @@ begin
         btComp:     Boolean(Dest) := Comp    (Left) <> Comp    (Right);
         btCurrency: Boolean(Dest) := Currency(Left) <> Currency(Right);
 
-        btAnsiChar: Boolean(Dest) := AnsiChar  (Left) <> AnsiChar  (Right);
-        btWideChar: Boolean(Dest) := WideChar  (Left) <> WideChar  (Right);
-        btAnsiStr:  Boolean(Dest) := AnsiString(Left) <> AnsiString(Right);
-        btWideStr:  Boolean(Dest) := WideString(Left) <> WideString(Right);
+        btAnsiChar:   Boolean(Dest) := AnsiChar  (Left) <> AnsiChar  (Right);
+        btWideChar:   Boolean(Dest) := WideChar  (Left) <> WideChar  (Right);
+        btAnsiStr:    Boolean(Dest) := AnsiString(Left) <> AnsiString(Right);
+        btWideStr:    Boolean(Dest) := WideString(Left) <> WideString(Right);
+        btUnicodeStr: Boolean(Dest) := UniStrDef (Left) <> UniStrDef (Right);
 
         btVariant: Boolean(Dest) := Variant(Left) <> Variant(Right);
       else
@@ -423,10 +428,11 @@ begin
         btComp:     Boolean(Dest) := Comp    (Left) < Comp    (Right);
         btCurrency: Boolean(Dest) := Currency(Left) < Currency(Right);
 
-        btAnsiChar: Boolean(Dest) := AnsiChar  (Left) < AnsiChar  (Right);
-        btWideChar: Boolean(Dest) := WideChar  (Left) < WideChar  (Right);
-        btAnsiStr:  Boolean(Dest) := AnsiString(Left) < AnsiString(Right);
-        btWideStr:  Boolean(Dest) := WideString(Left) < WideString(Right);
+        btAnsiChar:   Boolean(Dest) := AnsiChar  (Left) < AnsiChar  (Right);
+        btWideChar:   Boolean(Dest) := WideChar  (Left) < WideChar  (Right);
+        btAnsiStr:    Boolean(Dest) := AnsiString(Left) < AnsiString(Right);
+        btWideStr:    Boolean(Dest) := WideString(Left) < WideString(Right);
+        btUnicodeStr: Boolean(Dest) := UniStrDef (Left) < UniStrDef (Right);
 
         btVariant: Boolean(Dest) := Variant(Left) < Variant(Right);
       else
@@ -452,10 +458,11 @@ begin
         btComp:     Boolean(Dest) := Comp    (Left) > Comp    (Right);
         btCurrency: Boolean(Dest) := Currency(Left) > Currency(Right);
 
-        btAnsiChar: Boolean(Dest) := AnsiChar  (Left) > AnsiChar  (Right);
-        btWideChar: Boolean(Dest) := WideChar  (Left) > WideChar  (Right);
-        btAnsiStr:  Boolean(Dest) := AnsiString(Left) > AnsiString(Right);
-        btWideStr:  Boolean(Dest) := WideString(Left) > WideString(Right);
+        btAnsiChar:   Boolean(Dest) := AnsiChar  (Left) > AnsiChar  (Right);
+        btWideChar:   Boolean(Dest) := WideChar  (Left) > WideChar  (Right);
+        btAnsiStr:    Boolean(Dest) := AnsiString(Left) > AnsiString(Right);
+        btWideStr:    Boolean(Dest) := WideString(Left) > WideString(Right);
+        btUnicodeStr: Boolean(Dest) := UniStrDef (Left) > UniStrDef (Right);
 
         btVariant: Boolean(Dest) := Variant(Left) > Variant(Right);
       else
@@ -481,10 +488,11 @@ begin
         btComp:     Boolean(Dest) := Comp    (Left) <= Comp    (Right);
         btCurrency: Boolean(Dest) := Currency(Left) <= Currency(Right);
 
-        btAnsiChar: Boolean(Dest) := AnsiChar  (Left) <= AnsiChar  (Right);
-        btWideChar: Boolean(Dest) := WideChar  (Left) <= WideChar  (Right);
-        btAnsiStr:  Boolean(Dest) := AnsiString(Left) <= AnsiString(Right);
-        btWideStr:  Boolean(Dest) := WideString(Left) <= WideString(Right);
+        btAnsiChar:   Boolean(Dest) := AnsiChar  (Left) <= AnsiChar  (Right);
+        btWideChar:   Boolean(Dest) := WideChar  (Left) <= WideChar  (Right);
+        btAnsiStr:    Boolean(Dest) := AnsiString(Left) <= AnsiString(Right);
+        btWideStr:    Boolean(Dest) := WideString(Left) <= WideString(Right);
+        btUnicodeStr: Boolean(Dest) := UniStrDef (Left) <= UniStrDef (Right);
 
         btVariant: Boolean(Dest) := Variant(Left) <= Variant(Right);
       else
@@ -510,10 +518,11 @@ begin
         btComp:     Boolean(Dest) := Comp    (Left) >= Comp    (Right);
         btCurrency: Boolean(Dest) := Currency(Left) >= Currency(Right);
 
-        btAnsiChar: Boolean(Dest) := AnsiChar  (Left) >= AnsiChar  (Right);
-        btWideChar: Boolean(Dest) := WideChar  (Left) >= WideChar  (Right);
-        btAnsiStr:  Boolean(Dest) := AnsiString(Left) >= AnsiString(Right);
-        btWideStr:  Boolean(Dest) := WideString(Left) >= WideString(Right);
+        btAnsiChar:   Boolean(Dest) := AnsiChar  (Left) >= AnsiChar  (Right);
+        btWideChar:   Boolean(Dest) := WideChar  (Left) >= WideChar  (Right);
+        btAnsiStr:    Boolean(Dest) := AnsiString(Left) >= AnsiString(Right);
+        btWideStr:    Boolean(Dest) := WideString(Left) >= WideString(Right);
+        btUnicodeStr: Boolean(Dest) := UniStrDef (Left) >= UniStrDef (Right);
 
         btVariant: Boolean(Dest) := Variant(Left) >= Variant(Right);
       else
@@ -914,10 +923,11 @@ procedure ConvertFromAnsiChar(DestType: TSepiBaseType; var Dest;
   var Source: AnsiChar);
 begin
   case DestType of
-    btAnsiChar: AnsiChar  (Dest) := Source;
-    btWideChar: WideChar  (Dest) := WideChar(Source);
-    btAnsiStr:  AnsiString(Dest) := Source;
-    btWideStr:  WideString(Dest) := Source;
+    btAnsiChar:   AnsiChar  (Dest) := Source;
+    btWideChar:   WideChar  (Dest) := WideChar(Source);
+    btAnsiStr:    AnsiString(Dest) := Source;
+    btWideStr:    WideString(Dest) := Source;
+    btUnicodeStr: UniStrDef (Dest) := Source;
 
     btVariant: Variant(Dest) := Source;
   else
@@ -935,10 +945,11 @@ procedure ConvertFromWideChar(DestType: TSepiBaseType; var Dest;
   var Source: WideChar);
 begin
   case DestType of
-    btAnsiChar: AnsiChar  (Dest) := AnsiChar(Source);
-    btWideChar: WideChar  (Dest) := Source;
-    btAnsiStr:  AnsiString(Dest) := Source;
-    btWideStr:  WideString(Dest) := Source;
+    btAnsiChar:   AnsiChar  (Dest) := AnsiChar(Source);
+    btWideChar:   WideChar  (Dest) := Source;
+    btAnsiStr:    AnsiString(Dest) := Source;
+    btWideStr:    WideString(Dest) := Source;
+    btUnicodeStr: UniStrDef (Dest) := Source;
 
     btVariant: Variant(Dest) := Source;
   else
@@ -956,8 +967,9 @@ procedure ConvertFromAnsiString(DestType: TSepiBaseType; var Dest;
   var Source: AnsiString);
 begin
   case DestType of
-    btAnsiStr:  AnsiString(Dest) := AnsiString(Source);
-    btWideStr:  WideString(Dest) := WideString(Source);
+    btAnsiStr:    AnsiString(Dest) := AnsiString(Source);
+    btWideStr:    WideString(Dest) := WideString(Source);
+    btUnicodeStr: UniStrDef (Dest) := UniStrDef (Source);
 
     btVariant: Variant(Dest) := Source;
   else
@@ -975,8 +987,29 @@ procedure ConvertFromWideString(DestType: TSepiBaseType; var Dest;
   var Source: WideString);
 begin
   case DestType of
-    btAnsiStr:  AnsiString(Dest) := AnsiString(Source);
-    btWideStr:  WideString(Dest) := WideString(Source);
+    btAnsiStr:    AnsiString(Dest) := AnsiString(Source);
+    btWideStr:    WideString(Dest) := WideString(Source);
+    btUnicodeStr: UniStrDef (Dest) := UniStrDef (Source);
+
+    btVariant: Variant(Dest) := Source;
+  else
+    RaiseInvalidOpCode;
+  end;
+end;
+
+{*
+  Conversion standard depuis une UnicodeString
+  @param DestType   Type de destination
+  @param Dest       Destination
+  @param Source     Source
+*}
+procedure ConvertFromUnicodeString(DestType: TSepiBaseType; var Dest;
+  var Source: UniStrDef);
+begin
+  case DestType of
+    btAnsiStr:    AnsiString(Dest) := AnsiString(Source);
+    btWideStr:    WideString(Dest) := WideString(Source);
+    btUnicodeStr: UniStrDef (Dest) := UniStrDef (Source);
 
     btVariant: Variant(Dest) := Source;
   else
@@ -994,22 +1027,23 @@ procedure ConvertFromVariant(DestType: TSepiBaseType; var Dest;
   var Source: Variant);
 begin
   case DestType of
-    btBoolean:  Boolean   (Dest) := Source;
-    btByte:     Byte      (Dest) := Source;
-    btWord:     Word      (Dest) := Source;
-    btDWord:    LongWord  (Dest) := Source;
-    btShortint: Shortint  (Dest) := Source;
-    btSmallint: Smallint  (Dest) := Source;
-    btLongint:  Longint   (Dest) := Source;
-    btInt64:    Int64     (Dest) := Source;
-    btSingle:   Single    (Dest) := Source;
-    btDouble:   Double    (Dest) := Source;
-    btExtended: Extended  (Dest) := Source;
-    btComp:     Comp      (Dest) := Source;
-    btCurrency: Currency  (Dest) := Source;
-    btAnsiStr:  AnsiString(Dest) := Source;
-    btWideStr:  WideString(Dest) := Source;
-    btVariant:  Variant   (Dest) := Source;
+    btBoolean:    Boolean   (Dest) := Source;
+    btByte:       Byte      (Dest) := Source;
+    btWord:       Word      (Dest) := Source;
+    btDWord:      LongWord  (Dest) := Source;
+    btShortint:   Shortint  (Dest) := Source;
+    btSmallint:   Smallint  (Dest) := Source;
+    btLongint:    Longint   (Dest) := Source;
+    btInt64:      Int64     (Dest) := Source;
+    btSingle:     Single    (Dest) := Source;
+    btDouble:     Double    (Dest) := Source;
+    btExtended:   Extended  (Dest) := Source;
+    btComp:       Comp      (Dest) := Source;
+    btCurrency:   Currency  (Dest) := Source;
+    btAnsiStr:    AnsiString(Dest) := Source;
+    btWideStr:    WideString(Dest) := Source;
+    btUnicodeStr: UniStrDef (Dest) := Source;
+    btVariant:    Variant   (Dest) := Source;
   else
     RaiseInvalidOpCode;
   end;
@@ -1017,10 +1051,7 @@ end;
 
 function ConversionExists(SrcBaseType, DestBaseType: TSepiBaseType): Boolean;
 const
-  BoolFriendlyTypes = [
-    btBoolean, btByte, btWord, btDWord, btShortint, btSmallint, btLongint,
-    btInt64
-  ];
+  BoolFriendlyTypes = [btBoolean] + btIntegers;
 var
   BaseTypes: set of TSepiBaseType;
 begin
@@ -1041,7 +1072,7 @@ begin
   // Char types convert to Char types or string types
   if SrcBaseType in btChars then
   begin
-    Result := DestBaseType in (btChars + btStrings);
+    Result := DestBaseType in (btCharsAndStrings);
     Exit;
   end;
 
@@ -1053,9 +1084,9 @@ begin
   end;
 
   // String types convert between each other, but not with anything else
-  if BaseTypes = [btAnsiStr, btWideStr] then
+  if BaseTypes <= btStrings then
     Exit;
-  if BaseTypes * [btAnsiStr, btWideStr] <> [] then
+  if BaseTypes * btStrings <> [] then
   begin
     Result := False;
     Exit;
@@ -1076,24 +1107,25 @@ end;
 *}
 procedure InitConvertProcs;
 begin
-  @ConvertProcs[btBoolean]  := @ConvertFromBoolean;
-  @ConvertProcs[btByte]     := @ConvertFromByte;
-  @ConvertProcs[btWord]     := @ConvertFromWord;
-  @ConvertProcs[btDWord]    := @ConvertFromLongWord;
-  @ConvertProcs[btShortint] := @ConvertFromShortint;
-  @ConvertProcs[btSmallint] := @ConvertFromSmallint;
-  @ConvertProcs[btLongint]  := @ConvertFromLongint;
-  @ConvertProcs[btInt64]    := @ConvertFromInt64;
-  @ConvertProcs[btSingle]   := @ConvertFromSingle;
-  @ConvertProcs[btDouble]   := @ConvertFromDouble;
-  @ConvertProcs[btExtended] := @ConvertFromExtended;
-  @ConvertProcs[btComp]     := @ConvertFromComp;
-  @ConvertProcs[btCurrency] := @ConvertFromCurrency;
-  @ConvertProcs[btAnsiChar] := @ConvertFromAnsiChar;
-  @ConvertProcs[btWideChar] := @ConvertFromWideChar;
-  @ConvertProcs[btAnsiStr]  := @ConvertFromAnsiString;
-  @ConvertProcs[btWideStr]  := @ConvertFromWideString;
-  @ConvertProcs[btVariant]  := @ConvertFromVariant;
+  @ConvertProcs[btBoolean]    := @ConvertFromBoolean;
+  @ConvertProcs[btByte]       := @ConvertFromByte;
+  @ConvertProcs[btWord]       := @ConvertFromWord;
+  @ConvertProcs[btDWord]      := @ConvertFromLongWord;
+  @ConvertProcs[btShortint]   := @ConvertFromShortint;
+  @ConvertProcs[btSmallint]   := @ConvertFromSmallint;
+  @ConvertProcs[btLongint]    := @ConvertFromLongint;
+  @ConvertProcs[btInt64]      := @ConvertFromInt64;
+  @ConvertProcs[btSingle]     := @ConvertFromSingle;
+  @ConvertProcs[btDouble]     := @ConvertFromDouble;
+  @ConvertProcs[btExtended]   := @ConvertFromExtended;
+  @ConvertProcs[btComp]       := @ConvertFromComp;
+  @ConvertProcs[btCurrency]   := @ConvertFromCurrency;
+  @ConvertProcs[btAnsiChar]   := @ConvertFromAnsiChar;
+  @ConvertProcs[btWideChar]   := @ConvertFromWideChar;
+  @ConvertProcs[btAnsiStr]    := @ConvertFromAnsiString;
+  @ConvertProcs[btWideStr]    := @ConvertFromWideString;
+  @ConvertProcs[btUnicodeStr] := @ConvertFromUnicodeString;
+  @ConvertProcs[btVariant]    := @ConvertFromVariant;
 end;
 
 initialization

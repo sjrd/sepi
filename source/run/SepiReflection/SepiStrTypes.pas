@@ -42,7 +42,7 @@ unit SepiStrTypes;
 interface
 
 uses
-  SysUtils, Classes, TypInfo, SepiReflectionCore;
+  SysUtils, Classes, TypInfo, ScTypInfo, SepiReflectionCore;
 
 type
   {*
@@ -78,13 +78,38 @@ type
   end;
 
   {*
+    Type de chaîne longue
+    - skAnsiString : chaîne Ansi
+    - skWideString : chaîne Wide
+    - skUnicodeString : chaîne Unicode (Delphi 2009 et supérieur)
+  *}
+  TSepiStringKind = (skAnsiString, skWideString, skUnicodeString);
+
+const
+  /// String kind to type kind
+  StringKindToTypeKind: array[TSepiStringKind] of TTypeKind = (
+    tkLString, tkWString, tkUStringOrUnknown
+  );
+
+{$IFDEF UNICODE}
+  DefaultStringKind = skUnicodeString; /// Type de chaîne de string
+{$ELSE}
+  DefaultStringKind = skAnsiString;    /// Type de chaîne de string
+{$ENDIF}
+
+  RawByteCodePage = $FFFF; /// Code page de RawByteString
+
+type
+  {*
     Type chaîne de caractères longue
     @author sjrd
     @version 1.0
   *}
   TSepiStringType = class(TSepiType)
   private
-    FIsUnicode: Boolean; /// Indique si la chaîne est Unicode ou non
+    FStringKind: TSepiStringKind; /// Type de chaîne longue
+
+    FCodePage: Word; /// Code de page pour une chaîne Ansi
   protected
     procedure Save(Stream: TStream); override;
 
@@ -96,13 +121,16 @@ type
       ATypeInfo: PTypeInfo); override;
     constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
     constructor Create(AOwner: TSepiComponent; const AName: string;
-      AIsUnicode: Boolean = False);
+      AStringKind: TSepiStringKind = DefaultStringKind;
+      ACodePage: Integer = -1);
     constructor Clone(AOwner: TSepiComponent; const AName: string;
       Source: TSepiType); override;
 
     function Equals(Other: TSepiType): Boolean; override;
 
-    property IsUnicode: Boolean read FIsUnicode;
+    property StringKind: TSepiStringKind read FStringKind;
+
+    property CodePage: Word read FCodePage;
   end;
 
 implementation
@@ -110,7 +138,13 @@ implementation
 const
   // Tailles de structure TTypeData en fonction des types
   ShortStringTypeDataLength = SizeOf(Byte);
-  StringTypeDataLength = 0;
+  StringTypeDataLength: array[Boolean] of Integer = (
+    0, {$IFDEF UNICODE} SizeOf(Word) {$ELSE} 0 {$ENDIF}
+  );
+
+{$IF not Declared(DefaultSystemCodePage)}
+  DefaultSystemCodePage = 1252; /// Code page par défaut
+{$IFEND}
 
 {-----------------------------}
 { Classe TSepiShortStringType }
@@ -163,8 +197,8 @@ end;
 {*
   [@inheritDoc]
 *}
-constructor TSepiShortStringType.Clone(AOwner: TSepiComponent; const AName: string;
-  Source: TSepiType);
+constructor TSepiShortStringType.Clone(AOwner: TSepiComponent;
+  const AName: string; Source: TSepiType);
 begin
   Create(AOwner, AName, (Source as TSepiShortStringType).MaxLength);
 end;
@@ -244,37 +278,46 @@ end;
   Charge un type chaîne longue depuis un flux
 *}
 constructor TSepiStringType.Load(AOwner: TSepiComponent; Stream: TStream);
+var
+  TypeDataLength: Integer;
 begin
   inherited;
 
+  TypeDataLength := StringTypeDataLength[Kind = tkLString];
+
   if not Native then
   begin
-    AllocateTypeInfo(StringTypeDataLength);
-    Stream.ReadBuffer(TypeData^, StringTypeDataLength);
+    AllocateTypeInfo(TypeDataLength);
+    Stream.ReadBuffer(TypeData^, TypeDataLength);
   end else
-    Stream.Seek(StringTypeDataLength, soFromCurrent);
+    Stream.Seek(TypeDataLength, soFromCurrent);
 
   ExtractTypeData;
 end;
 
 {*
   Crée un nouveau type chaîne longue
-  @param AOwner       Propriétaire du type
-  @param AName        Nom du type
-  @param AIsUnicode   Indique si la chaîne est Unicode ou non
+  @param AOwner        Propriétaire du type
+  @param AName         Nom du type
+  @param AStringKind   Type de chaîne longue
+  @param ACodePage     Code page pour les chaînes Ansi sous Delphi 2009+
 *}
 constructor TSepiStringType.Create(AOwner: TSepiComponent; const AName: string;
-  AIsUnicode: Boolean = False);
-var
-  AKind: TTypeKind;
+  AStringKind: TSepiStringKind = DefaultStringKind; ACodePage: Integer = -1);
 begin
-  if AIsUnicode then
-    AKind := tkWString
-  else
-    AKind := tkLString;
-  inherited Create(AOwner, AName, AKind);
+  inherited Create(AOwner, AName, StringKindToTypeKind[AStringKind]);
 
-  AllocateTypeInfo(StringTypeDataLength);
+  AllocateTypeInfo(StringTypeDataLength[AStringKind = skAnsiString]);
+
+  {$IFDEF UNICODE}
+  if AStringKind = skAnsiString then
+  begin
+    if ACodePage < 0 then
+      TypeData.CodePage := DefaultSystemCodePage
+    else
+      TypeData.CodePage := ACodePage;
+  end;
+  {$ENDIF}
 
   ExtractTypeData;
 end;
@@ -284,8 +327,11 @@ end;
 *}
 constructor TSepiStringType.Clone(AOwner: TSepiComponent; const AName: string;
   Source: TSepiType);
+var
+  SourceString: TSepiStringType;
 begin
-  Create(AOwner, AName, (Source as TSepiStringType).IsUnicode);
+  SourceString := Source as TSepiStringType;
+  Create(AOwner, AName, SourceString.StringKind, SourceString.CodePage);
 end;
 
 {*
@@ -294,7 +340,8 @@ end;
 procedure TSepiStringType.Save(Stream: TStream);
 begin
   inherited;
-  Stream.WriteBuffer(TypeData^, StringTypeDataLength);
+  Stream.WriteBuffer(TypeData^,
+    StringTypeDataLength[StringKind = skAnsiString]);
 end;
 
 {*
@@ -304,7 +351,8 @@ procedure TSepiStringType.WriteDigestData(Stream: TStream);
 begin
   inherited;
 
-  Stream.WriteBuffer(FIsUnicode, 1);
+  Stream.WriteBuffer(FStringKind, 1);
+  Stream.WriteBuffer(FCodePage, 2);
 end;
 
 {*
@@ -317,7 +365,22 @@ begin
   FSize := 4;
   FNeedInit := True;
   FResultBehavior := rbParameter;
-  FIsUnicode := Kind = tkWString;
+
+  case Kind of
+    tkLString: FStringKind := skAnsiString;
+    tkWString: FStringKind := skWideString;
+  else
+    FStringKind := skUnicodeString;
+  end;
+
+{$IFDEF UNICODE}
+  if StringKind = skAnsiString then
+    FCodePage := TypeData.CodePage
+  else
+    FCodePage := DefaultSystemCodePage;
+{$ELSE}
+  FCodePage := DefaultSystemCodePage;
+{$ENDIF}
 end;
 
 {*
@@ -326,7 +389,8 @@ end;
 function TSepiStringType.Equals(Other: TSepiType): Boolean;
 begin
   Result := (ClassType = Other.ClassType) and
-    (IsUnicode = TSepiStringType(Other).IsUnicode);
+    (StringKind = TSepiStringType(Other).StringKind) and
+    (CodePage = TSepiStringType(Other).CodePage);
 end;
 
 initialization

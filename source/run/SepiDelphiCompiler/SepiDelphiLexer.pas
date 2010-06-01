@@ -44,7 +44,7 @@ interface
 {$D-,L-}
 
 uses
-  Windows, Classes, SysUtils, StrUtils, ScStrUtils, ScDelphiLanguage,
+  Windows, Classes, SysUtils, StrUtils, ScUtils, ScStrUtils, ScDelphiLanguage,
   SepiCompilerErrors, SepiParseTrees, SepiLexerUtils, SepiCompilerConsts,
   SepiExpressions, SepiCompiler, SepiDelphiLikeCompilerUtils, SepiOrdTypes,
   SepiStdCompilerNodes;
@@ -797,7 +797,7 @@ begin
 
   BeginPos := Cursor;
   CursorForward;
-  while Code[Cursor] in IdentChars do
+  while CharInSet(Code[Cursor], IdentChars) do
     CursorForward;
 
   Repr := Copy(Code, BeginPos, Cursor-BeginPos);
@@ -825,28 +825,28 @@ begin
   begin
     repeat
       CursorForward;
-    until not (Code[Cursor] in HexChars);
+    until not CharInSet(Code[Cursor], HexChars);
   end else
   begin
-    while Code[Cursor] in NumberChars do
+    while CharInSet(Code[Cursor], NumberChars) do
       CursorForward;
 
-    if (Code[Cursor] = '.') and (Code[Cursor+1] in NumberChars) then
+    if (Code[Cursor] = '.') and CharInSet(Code[Cursor+1], NumberChars) then
     begin
       SymbolClass := tkFloat;
       repeat
         CursorForward;
-      until not (Code[Cursor] in NumberChars);
+      until not CharInSet(Code[Cursor], NumberChars);
     end;
 
-    if Code[Cursor] in ['e', 'E'] then
+    if CharInSet(Code[Cursor], ['e', 'E']) then
     begin
       SymbolClass := tkFloat;
       CursorForward;
-      if Code[Cursor] in ['+', '-'] then
+      if CharInSet(Code[Cursor], ['+', '-']) then
         CursorForward;
 
-      while Code[Cursor] in NumberChars do
+      while CharInSet(Code[Cursor], NumberChars) do
         CursorForward;
     end;
   end;
@@ -864,7 +864,7 @@ var
 begin
   BeginPos := Cursor;
 
-  while Code[Cursor] in StringChars do
+  while CharInSet(Code[Cursor], StringChars) do
   begin
     case Code[Cursor] of
       '''':
@@ -872,7 +872,7 @@ begin
         CursorForward;
         while Code[Cursor] <> '''' do
         begin
-          if Code[Cursor] in [#0, #10, #13] then
+          if CharInSet(Code[Cursor], [#0, #10, #13]) then
             MakeError(SStringNotTerminated, ekFatalError)
           else
             CursorForward;
@@ -884,9 +884,9 @@ begin
         CursorForward;
         if Code[Cursor] = '$' then
           CursorForward;
-        if not (Code[Cursor] in HexChars) then
+        if not CharInSet(Code[Cursor], HexChars) then
           MakeError(SStringNotTerminated, ekFatalError);
-        while Code[Cursor] in HexChars do
+        while CharInSet(Code[Cursor], HexChars) do
           CursorForward;
       end;
     end;
@@ -904,7 +904,7 @@ var
   BeginPos: Integer;
 begin
   BeginPos := Cursor;
-  while not (Code[Cursor] in [#0, #13, #10]) do
+  while not CharInSet(Code[Cursor], [#0, #13, #10]) do
     CursorForward;
 
   TerminalParsed(tkComment, Copy(Code, BeginPos, Cursor-BeginPos));
@@ -924,7 +924,7 @@ begin
   // Find end of comment
   if Code[Cursor] = '{' then
   begin
-    while not (Code[Cursor] in [#0, '}']) do
+    while not CharInSet(Code[Cursor], [#0, '}']) do
       CursorForward;
     CursorForward;
   end else
@@ -980,6 +980,10 @@ begin
     Add('WIN32');
     Add('VER170');
     Add('SEPIPARSER');
+
+    {$IFDEF UNICODE}
+    Add('UNICODE');
+    {$ENDIF}
   end;
 end;
 
@@ -1006,8 +1010,8 @@ begin
   Instr := CurTerminal.Representation;
   SplitToken(Instr, ' ', Command, Param);
 
-  if (Length(Command) >= 2) and (Command[1] in ['A'..'Z']) and
-    (Command[2] in ['+', '-', '0'..'9']) then
+  if (Length(Command) >= 2) and CharInSet(Command[1], ['A'..'Z']) and
+    CharInSet(Command[2], ['+', '-', '0'..'9']) then
   begin
     Param := Instr;
     Result := ppToggles;

@@ -396,7 +396,8 @@ type
     procedure DisposeValue(Value: Pointer);
     procedure CopyData(const Source; var Dest);
 
-    function Equals(Other: TSepiType): Boolean; virtual;
+    function Equals(Other: TSepiType): Boolean;
+      {$IF RTLVersion >= 20.0} reintroduce; {$IFEND} virtual;
     function CompatibleWith(AType: TSepiType): Boolean; virtual;
 
     property Kind: TTypeKind read FKind;
@@ -810,7 +811,7 @@ type
   TSepiUnitLoadTask = class(TScTask)
   private
     FRoot: TSepiRoot;  /// Racine Sepi
-    FUnitName: string; /// Nom de l'unité à charger/décharger
+    FName: string;     /// Nom de l'unité à charger/décharger
     FIsLoad: Boolean;  /// True pour charger, False pour décharger
   protected
     procedure Execute; override;
@@ -822,7 +823,7 @@ type
       const AUnitName: string; AIsLoad: Boolean); overload;
 
     property Root: TSepiRoot read FRoot;
-    property UnitName: string read FUnitName;
+    property Name: string read FName;
     property IsLoad: Boolean read FIsLoad;
   end;
 
@@ -1897,8 +1898,13 @@ end;
 *}
 constructor TSepiType.RegisterTypeInfo(AOwner: TSepiComponent;
   ATypeInfo: PTypeInfo);
+var
+  AName: string;
 begin
-  inherited Create(AOwner, AnsiReplaceStr(ATypeInfo.Name, '.', '$$'));
+  AName := TypeInfoDecode(ATypeInfo.Name);
+  AName := AnsiReplaceStr(AName, '.', '$$');
+
+  inherited Create(AOwner, AName);
 
   FKind := ATypeInfo.Kind;
   FNative := True;
@@ -2123,6 +2129,7 @@ const
     TSepiShortStringType, TSepiSetType, TSepiClass, TSepiMethodRefType,
     TSepiCharType, TSepiStringType, TSepiStringType, TSepiVariantType,
     nil, nil, TSepiInterface, TSepiInt64Type, TSepiDynArrayType
+    {$IF Declared(tkUString)}, TSepiStringType {$IFEND}
   );
 var
   TypeClass: TSepiTypeClass;
@@ -4405,7 +4412,7 @@ constructor TSepiUnitLoadTask.Create(AOwner: TScCustomTaskQueue;
 begin
   inherited Create(AOwner, AFreeOnFinished);
   FRoot := ARoot;
-  FUnitName := AUnitName;
+  FName := AUnitName;
   FIsLoad := AIsLoad;
 end;
 
@@ -4421,7 +4428,7 @@ constructor TSepiUnitLoadTask.Create(AOwner: TScCustomTaskQueue;
 begin
   inherited Create(AOwner);
   FRoot := ARoot;
-  FUnitName := AUnitName;
+  FName := AUnitName;
   FIsLoad := AIsLoad;
 end;
 
@@ -4431,9 +4438,9 @@ end;
 procedure TSepiUnitLoadTask.Execute;
 begin
   if IsLoad then
-    Root.LoadUnit(UnitName)
+    Root.LoadUnit(Name)
   else
-    Root.UnloadUnit(UnitName);
+    Root.UnloadUnit(Name);
 end;
 
 {-------------------------------------}
