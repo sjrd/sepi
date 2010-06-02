@@ -23,6 +23,8 @@
 			<Base>true</Base>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Base)'!=''">
+			<DCC_IMPLICIT_STRING_CAST>false</DCC_IMPLICIT_STRING_CAST>
+			<DCC_IMPLICIT_STRING_CAST_LOSS>false</DCC_IMPLICIT_STRING_CAST_LOSS>
 			<DCC_DependencyCheckOutputName>C:\Users\Public\Documents\RAD Studio\6.0\Bpl\SepiInterpreter120.bpl</DCC_DependencyCheckOutputName>
 			<DCC_ImageBase>00400000</DCC_ImageBase>
 			<DCC_Description>Sepi Interpreter</DCC_Description>
@@ -64,8 +66,8 @@
 				<MainSource>MainSource</MainSource>
 			</DelphiCompile>
 			<DCCReference Include="rtl.dcp"/>
-			<DCCReference Include="SepiReflection110.dcp"/>
-			<DCCReference Include="SCL110.dcp"/>
+			<DCCReference Include="SepiReflection120.dcp"/>
+			<DCCReference Include="SCL120.dcp"/>
 			<DCCReference Include="..\..\source\run\SepiInterpreter\SepiDisassembler.pas"/>
 			<DCCReference Include="..\..\source\run\SepiInterpreter\SepiInCalls.pas"/>
 			<DCCReference Include="..\..\source\run\SepiInterpreter\SepiOpCodes.pas"/>

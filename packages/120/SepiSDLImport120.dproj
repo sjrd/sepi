@@ -1,11 +1,11 @@
 ﻿	<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 		<PropertyGroup>
-			<ProjectGuid>{ec9275e5-f757-49ab-86ef-761ce1736b61}</ProjectGuid>
-			<MainSource>DclSepiCore120.dpk</MainSource>
+			<ProjectGuid>{90c2f266-f532-457a-af0d-f726e750a612}</ProjectGuid>
+			<MainSource>SepiSDLImport120.dpk</MainSource>
 			<Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
 			<Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
 			<DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
-			<DCC_DependencyCheckOutputName>C:\Documents and Settings\All Users\Documents\RAD Studio\5.0\Bpl\DclSepiCore110.bpl</DCC_DependencyCheckOutputName>
+			<DCC_DependencyCheckOutputName>C:\Documents and Settings\All Users\Documents\RAD Studio\5.0\Bpl\SepiSDLImport110.bpl</DCC_DependencyCheckOutputName>
 			<ProjectVersion>12.0</ProjectVersion>
 			<Config Condition="'$(Config)'==''">Debug</Config>
 		</PropertyGroup>
@@ -23,10 +23,11 @@
 			<Base>true</Base>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Base)'!=''">
+			<DCC_DependencyCheckOutputName>C:\Users\Public\Documents\RAD Studio\6.0\Bpl\SepiSDLImport120.bpl</DCC_DependencyCheckOutputName>
 			<DCC_ImageBase>00400000</DCC_ImageBase>
-			<DesignOnlyPackage>true</DesignOnlyPackage>
-			<DCC_Description>Sepi Core</DCC_Description>
-			<DCC_DependencyCheckOutputName>C:\Users\Public\Documents\RAD Studio\6.0\Bpl\DclSepiCore120.bpl</DCC_DependencyCheckOutputName>
+			<DCC_Description>Sepi importer for SDL units</DCC_Description>
+			<RuntimeOnlyPackage>true</RuntimeOnlyPackage>
+			<DesignOnlyPackage>false</DesignOnlyPackage>
 			<DCC_OutputNeverBuildDcps>true</DCC_OutputNeverBuildDcps>
 			<GenDll>true</GenDll>
 			<DCC_SymbolReferenceInfo>1</DCC_SymbolReferenceInfo>
@@ -59,14 +60,18 @@
 			<DCC_HppOutput>.\..\..\dcu\</DCC_HppOutput>
 		</PropertyGroup>
 		<ItemGroup>
-			<DelphiCompile Include="DclSepiCore120.dpk">
+			<DelphiCompile Include="SepiSDLImport120.dpk">
 				<MainSource>MainSource</MainSource>
 			</DelphiCompile>
-			<DCCReference Include="..\..\source\design\SepiCore\SepiCoreReg.dcr"/>
 			<DCCReference Include="rtl.dcp"/>
-			<DCCReference Include="SepiCore120.dcp"/>
-			<DCCReference Include="..\..\source\design\SepiCore\SepiCoreReg.pas"/>
-			<DCCReference Include="..\..\source\design\SepiCore\SepiCoreReg.dcr"/>
+			<DCCReference Include="vcl.dcp"/>
+			<DCCReference Include="SepiReflection10.dcp"/>
+			<DCCReference Include="..\..\source\run\SepiSDLImport\SepiImportsSdAbout.pas"/>
+			<DCCReference Include="..\..\source\run\SepiSDLImport\SepiImportsSdDialogs.pas"/>
+			<DCCReference Include="..\..\source\run\SepiSDLImport\SepiImportsSDL.pas"/>
+			<DCCReference Include="..\..\source\run\SepiSDLImport\SepiImportsSdNumber.pas"/>
+			<DCCReference Include="..\..\source\run\SepiSDLImport\SepiImportsSdPassword.pas"/>
+			<DCCReference Include="SepiReflection110.dcp"/>
 			<BuildConfiguration Include="Base">
 				<Key>Base</Key>
 			</BuildConfiguration>
@@ -107,12 +112,12 @@
 					</VersionInfo>
 					<VersionInfoKeys>
 						<VersionInfoKeys Name="CompanyName">SJRDoeraene</VersionInfoKeys>
-						<VersionInfoKeys Name="FileDescription">Sepi Core</VersionInfoKeys>
+						<VersionInfoKeys Name="FileDescription">Sepi importer for SDL units</VersionInfoKeys>
 						<VersionInfoKeys Name="FileVersion">1.0.0.0</VersionInfoKeys>
-						<VersionInfoKeys Name="InternalName">DclSepiCore</VersionInfoKeys>
+						<VersionInfoKeys Name="InternalName">SepiSDLImport</VersionInfoKeys>
 						<VersionInfoKeys Name="LegalCopyright">Copyright (c) 2006-2009 SJRDoeraene</VersionInfoKeys>
 						<VersionInfoKeys Name="LegalTrademarks"/>
-						<VersionInfoKeys Name="OriginalFilename">DclSepiCore110.bpl</VersionInfoKeys>
+						<VersionInfoKeys Name="OriginalFilename">SepiSDLImport110.bpl</VersionInfoKeys>
 						<VersionInfoKeys Name="ProductName">Sepi</VersionInfoKeys>
 						<VersionInfoKeys Name="ProductVersion">1.0.0.0</VersionInfoKeys>
 						<VersionInfoKeys Name="Comments"/>
@@ -124,7 +129,7 @@
 						<Excluded_Packages Name="$(BDS)\bin\dcloffice2k100.bpl">Composants Microsoft Office 2000 Sample Automation Server Wrapper</Excluded_Packages>
 					</Excluded_Packages>
 					<Source>
-						<Source Name="MainSource">DclSepiCore120.dpk</Source>
+						<Source Name="MainSource">SepiSDLImport120.dpk</Source>
 					</Source>
 				</Delphi.Personality>
 			</BorlandProject>

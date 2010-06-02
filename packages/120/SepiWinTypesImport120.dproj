@@ -1,11 +1,11 @@
 ﻿	<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 		<PropertyGroup>
-			<ProjectGuid>{ec9275e5-f757-49ab-86ef-761ce1736b61}</ProjectGuid>
-			<MainSource>DclSepiCore120.dpk</MainSource>
+			<ProjectGuid>{16113283-945a-461b-bb30-682458286814}</ProjectGuid>
+			<MainSource>SepiWinTypesImport120.dpk</MainSource>
 			<Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
 			<Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
 			<DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
-			<DCC_DependencyCheckOutputName>C:\Documents and Settings\All Users\Documents\RAD Studio\5.0\Bpl\DclSepiCore110.bpl</DCC_DependencyCheckOutputName>
+			<DCC_DependencyCheckOutputName>C:\Documents and Settings\All Users\Documents\RAD Studio\5.0\Bpl\SepiWinTypesImport110.bpl</DCC_DependencyCheckOutputName>
 			<ProjectVersion>12.0</ProjectVersion>
 			<Config Condition="'$(Config)'==''">Debug</Config>
 		</PropertyGroup>
@@ -23,10 +23,11 @@
 			<Base>true</Base>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Base)'!=''">
+			<DCC_DependencyCheckOutputName>C:\Users\Public\Documents\RAD Studio\6.0\Bpl\SepiWinTypesImport120.bpl</DCC_DependencyCheckOutputName>
 			<DCC_ImageBase>00400000</DCC_ImageBase>
-			<DesignOnlyPackage>true</DesignOnlyPackage>
-			<DCC_Description>Sepi Core</DCC_Description>
-			<DCC_DependencyCheckOutputName>C:\Users\Public\Documents\RAD Studio\6.0\Bpl\DclSepiCore120.bpl</DCC_DependencyCheckOutputName>
+			<DCC_Description>Sepi importer for types in Windows standart units</DCC_Description>
+			<RuntimeOnlyPackage>true</RuntimeOnlyPackage>
+			<DesignOnlyPackage>false</DesignOnlyPackage>
 			<DCC_OutputNeverBuildDcps>true</DCC_OutputNeverBuildDcps>
 			<GenDll>true</GenDll>
 			<DCC_SymbolReferenceInfo>1</DCC_SymbolReferenceInfo>
@@ -59,14 +60,56 @@
 			<DCC_HppOutput>.\..\..\dcu\</DCC_HppOutput>
 		</PropertyGroup>
 		<ItemGroup>
-			<DelphiCompile Include="DclSepiCore120.dpk">
+			<DelphiCompile Include="SepiWinTypesImport120.dpk">
 				<MainSource>MainSource</MainSource>
 			</DelphiCompile>
-			<DCCReference Include="..\..\source\design\SepiCore\SepiCoreReg.dcr"/>
 			<DCCReference Include="rtl.dcp"/>
-			<DCCReference Include="SepiCore120.dcp"/>
-			<DCCReference Include="..\..\source\design\SepiCore\SepiCoreReg.pas"/>
-			<DCCReference Include="..\..\source\design\SepiCore\SepiCoreReg.dcr"/>
+			<DCCReference Include="SepiReflection110.dcp"/>
+			<DCCReference Include="..\..\source\run\SepiWinTypesImport\SepiImportsWinTypes.pas"/>
+			<DCCReference Include="..\..\source\run\SepiWinTypesImport\SepiImportsAccCtrl.pas"/>
+			<DCCReference Include="..\..\source\run\SepiWinTypesImport\SepiImportsAclAPI.pas"/>
+			<DCCReference Include="..\..\source\run\SepiWinTypesImport\SepiImportsActiveX.pas"/>
+			<DCCReference Include="..\..\source\run\SepiWinTypesImport\SepiImportsAspTlb.pas"/>
+			<DCCReference Include="..\..\source\run\SepiWinTypesImport\SepiImportsCOMAdmin.pas"/>
+			<DCCReference Include="..\..\source\run\SepiWinTypesImport\SepiImportsCommCtrl.pas"/>
+			<DCCReference Include="..\..\source\run\SepiWinTypesImport\SepiImportsCommDlg.pas"/>
+			<DCCReference Include="..\..\source\run\SepiWinTypesImport\SepiImportsComObj.pas"/>
+			<DCCReference Include="..\..\source\run\SepiWinTypesImport\SepiImportsComSvcs.pas"/>
+			<DCCReference Include="..\..\source\run\SepiWinTypesImport\SepiImportsCpl.pas"/>
+			<DCCReference Include="..\..\source\run\SepiWinTypesImport\SepiImportsDDEml.pas"/>
+			<DCCReference Include="..\..\source\run\SepiWinTypesImport\SepiImportsDlgs.pas"/>
+			<DCCReference Include="..\..\source\run\SepiWinTypesImport\SepiImportsFlatSB.pas"/>
+			<DCCReference Include="..\..\source\run\SepiWinTypesImport\SepiImportsImageHlp.pas"/>
+			<DCCReference Include="..\..\source\run\SepiWinTypesImport\SepiImportsImm.pas"/>
+			<DCCReference Include="..\..\source\run\SepiWinTypesImport\SepiImportsIsapi2.pas"/>
+			<DCCReference Include="..\..\source\run\SepiWinTypesImport\SepiImportsIsapi.pas"/>
+			<DCCReference Include="..\..\source\run\SepiWinTypesImport\SepiImportsLZExpand.pas"/>
+			<DCCReference Include="..\..\source\run\SepiWinTypesImport\SepiImportsMapi.pas"/>
+			<DCCReference Include="..\..\source\run\SepiWinTypesImport\SepiImportsMessages.pas"/>
+			<DCCReference Include="..\..\source\run\SepiWinTypesImport\SepiImportsMMSystem.pas"/>
+			<DCCReference Include="..\..\source\run\SepiWinTypesImport\SepiImportsmsxml.pas"/>
+			<DCCReference Include="..\..\source\run\SepiWinTypesImport\SepiImportsMtx.pas"/>
+			<DCCReference Include="..\..\source\run\SepiWinTypesImport\SepiImportsMultiMon.pas"/>
+			<DCCReference Include="..\..\source\run\SepiWinTypesImport\SepiImportsNb30.pas"/>
+			<DCCReference Include="..\..\source\run\SepiWinTypesImport\SepiImportsNs30Fix.pas"/>
+			<DCCReference Include="..\..\source\run\SepiWinTypesImport\SepiImportsNs35Fix.pas"/>
+			<DCCReference Include="..\..\source\run\SepiWinTypesImport\SepiImportsNs36Fix.pas"/>
+			<DCCReference Include="..\..\source\run\SepiWinTypesImport\SepiImportsNsapi.pas"/>
+			<DCCReference Include="..\..\source\run\SepiWinTypesImport\SepiImportsOpenGL.pas"/>
+			<DCCReference Include="..\..\source\run\SepiWinTypesImport\SepiImportsPenWin.pas"/>
+			<DCCReference Include="..\..\source\run\SepiWinTypesImport\SepiImportsPsAPI.pas"/>
+			<DCCReference Include="..\..\source\run\SepiWinTypesImport\SepiImportsRegStr.pas"/>
+			<DCCReference Include="..\..\source\run\SepiWinTypesImport\SepiImportsRichEdit.pas"/>
+			<DCCReference Include="..\..\source\run\SepiWinTypesImport\SepiImportsShellAPI.pas"/>
+			<DCCReference Include="..\..\source\run\SepiWinTypesImport\SepiImportsSHFolder.pas"/>
+			<DCCReference Include="..\..\source\run\SepiWinTypesImport\SepiImportsShlObj.pas"/>
+			<DCCReference Include="..\..\source\run\SepiWinTypesImport\SepiImportsTlHelp32.pas"/>
+			<DCCReference Include="..\..\source\run\SepiWinTypesImport\SepiImportsUrlMon.pas"/>
+			<DCCReference Include="..\..\source\run\SepiWinTypesImport\SepiImportsUxTheme.pas"/>
+			<DCCReference Include="..\..\source\run\SepiWinTypesImport\SepiImportsWinInet.pas"/>
+			<DCCReference Include="..\..\source\run\SepiWinTypesImport\SepiImportsWinSock.pas"/>
+			<DCCReference Include="..\..\source\run\SepiWinTypesImport\SepiImportsWinSpool.pas"/>
+			<DCCReference Include="..\..\source\run\SepiWinTypesImport\SepiImportsWinSvc.pas"/>
 			<BuildConfiguration Include="Base">
 				<Key>Base</Key>
 			</BuildConfiguration>
@@ -107,12 +150,12 @@
 					</VersionInfo>
 					<VersionInfoKeys>
 						<VersionInfoKeys Name="CompanyName">SJRDoeraene</VersionInfoKeys>
-						<VersionInfoKeys Name="FileDescription">Sepi Core</VersionInfoKeys>
+						<VersionInfoKeys Name="FileDescription">Sepi importer for types in Windows standart units</VersionInfoKeys>
 						<VersionInfoKeys Name="FileVersion">1.0.0.0</VersionInfoKeys>
-						<VersionInfoKeys Name="InternalName">DclSepiCore</VersionInfoKeys>
+						<VersionInfoKeys Name="InternalName">SepiWinTypesImport</VersionInfoKeys>
 						<VersionInfoKeys Name="LegalCopyright">Copyright (c) 2006-2009 SJRDoeraene</VersionInfoKeys>
 						<VersionInfoKeys Name="LegalTrademarks"/>
-						<VersionInfoKeys Name="OriginalFilename">DclSepiCore110.bpl</VersionInfoKeys>
+						<VersionInfoKeys Name="OriginalFilename">SepiWinTypesImport110.bpl</VersionInfoKeys>
 						<VersionInfoKeys Name="ProductName">Sepi</VersionInfoKeys>
 						<VersionInfoKeys Name="ProductVersion">1.0.0.0</VersionInfoKeys>
 						<VersionInfoKeys Name="Comments"/>
@@ -124,7 +167,7 @@
 						<Excluded_Packages Name="$(BDS)\bin\dcloffice2k100.bpl">Composants Microsoft Office 2000 Sample Automation Server Wrapper</Excluded_Packages>
 					</Excluded_Packages>
 					<Source>
-						<Source Name="MainSource">DclSepiCore120.dpk</Source>
+						<Source Name="MainSource">SepiWinTypesImport120.dpk</Source>
 					</Source>
 				</Delphi.Personality>
 			</BorlandProject>

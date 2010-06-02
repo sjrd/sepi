@@ -70,8 +70,6 @@
 			<DCCReference Include="..\..\source\run\SepiCore\SepiAbout.pas"/>
 			<DCCReference Include="..\..\source\run\SepiCore\SepiConsts.pas"/>
 			<DCCReference Include="..\..\source\run\SepiCore\SepiCore.pas"/>
-			<DCCReference Include="SDL10.dcp"/>
-			<DCCReference Include="SDL110.dcp"/>
 			<BuildConfiguration Include="Base">
 				<Key>Base</Key>
 			</BuildConfiguration>

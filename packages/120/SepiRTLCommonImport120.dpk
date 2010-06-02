@@ -1,0 +1,62 @@
+package SepiRTLCommonImport120;
+
+{$R *.res}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO ON}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION ON}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES OFF}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DESCRIPTION 'Sepi importer for RTL common units'}
+{$RUNONLY}
+{$IMPLICITBUILD OFF}
+
+requires
+  rtl,
+  SepiReflection120;
+
+contains
+  SepiImportsZLibConst in '..\..\source\run\SepiRTLCommonImport\SepiImportsZLibConst.pas',
+  SepiImportsClasses in '..\..\source\run\SepiRTLCommonImport\SepiImportsClasses.pas',
+  SepiImportsComConst in '..\..\source\run\SepiRTLCommonImport\SepiImportsComConst.pas',
+  SepiImportsContnrs in '..\..\source\run\SepiRTLCommonImport\SepiImportsContnrs.pas',
+  SepiImportsConvUtils in '..\..\source\run\SepiRTLCommonImport\SepiImportsConvUtils.pas',
+  SepiImportsDateUtils in '..\..\source\run\SepiRTLCommonImport\SepiImportsDateUtils.pas',
+  SepiImportsHelpIntfs in '..\..\source\run\SepiRTLCommonImport\SepiImportsHelpIntfs.pas',
+  SepiImportsIniFiles in '..\..\source\run\SepiRTLCommonImport\SepiImportsIniFiles.pas',
+  SepiImportsMasks in '..\..\source\run\SepiRTLCommonImport\SepiImportsMasks.pas',
+  SepiImportsMaskUtils in '..\..\source\run\SepiRTLCommonImport\SepiImportsMaskUtils.pas',
+  SepiImportsMath in '..\..\source\run\SepiRTLCommonImport\SepiImportsMath.pas',
+  SepiImportsObjAuto in '..\..\source\run\SepiRTLCommonImport\SepiImportsObjAuto.pas',
+  SepiImportsRegistry in '..\..\source\run\SepiRTLCommonImport\SepiImportsRegistry.pas',
+  SepiImportsRTLCommon in '..\..\source\run\SepiRTLCommonImport\SepiImportsRTLCommon.pas',
+  SepiImportsRTLConsts in '..\..\source\run\SepiRTLCommonImport\SepiImportsRTLConsts.pas',
+  SepiImportsStdConvs in '..\..\source\run\SepiRTLCommonImport\SepiImportsStdConvs.pas',
+  SepiImportsStdVCL in '..\..\source\run\SepiRTLCommonImport\SepiImportsStdVCL.pas',
+  SepiImportsStrUtils in '..\..\source\run\SepiRTLCommonImport\SepiImportsStrUtils.pas',
+  SepiImportsSyncObjs in '..\..\source\run\SepiRTLCommonImport\SepiImportsSyncObjs.pas',
+  SepiImportsTypInfo in '..\..\source\run\SepiRTLCommonImport\SepiImportsTypInfo.pas',
+  SepiImportsVarCmplx in '..\..\source\run\SepiRTLCommonImport\SepiImportsVarCmplx.pas',
+  SepiImportsVarConv in '..\..\source\run\SepiRTLCommonImport\SepiImportsVarConv.pas',
+  SepiImportsVCLCom in '..\..\source\run\SepiRTLCommonImport\SepiImportsVCLCom.pas',
+  SepiImportsWideStrings in '..\..\source\run\SepiRTLCommonImport\SepiImportsWideStrings.pas',
+  SepiImportsWideStrUtils in '..\..\source\run\SepiRTLCommonImport\SepiImportsWideStrUtils.pas',
+  SepiImportsZLib in '..\..\source\run\SepiRTLCommonImport\SepiImportsZLib.pas';
+
+end.
+

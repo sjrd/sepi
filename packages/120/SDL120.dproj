@@ -68,14 +68,11 @@
 			<DCCReference Include="VclSmp.dcp"/>
 			<DCCReference Include="vclx.dcp"/>
 			<DCCReference Include="SVCL120.dcp"/>
-			<DCCReference Include="SCL10.dcp"/>
+			<DCCReference Include="SCL120.dcp"/>
 			<DCCReference Include="..\..\source\run\SDL\SdAbout.pas"/>
 			<DCCReference Include="..\..\source\run\SDL\SdDialogs.pas"/>
 			<DCCReference Include="..\..\source\run\SDL\SdNumber.pas"/>
 			<DCCReference Include="..\..\source\run\SDL\SdPassword.pas"/>
-			<DCCReference Include="SCL110.dcp"/>
-			<DCCReference Include="SVCL10.dcp"/>
-			<DCCReference Include="SVCL110.dcp"/>
 			<BuildConfiguration Include="Base">
 				<Key>Base</Key>
 			</BuildConfiguration>

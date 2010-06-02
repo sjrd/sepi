@@ -1,0 +1,43 @@
+package SepiRTLSysImport120;
+
+{$R *.res}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO ON}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION ON}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES OFF}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DESCRIPTION 'Sepi importer for RTL sys units'}
+{$RUNONLY}
+{$IMPLICITBUILD OFF}
+
+requires
+  rtl,
+  SepiReflection120;
+
+contains
+  SepiImportsRTLSys in '..\..\source\run\SepiRTLSysImport\SepiImportsRTLSys.pas',
+  SepiImportsSysConst in '..\..\source\run\SepiRTLSysImport\SepiImportsSysConst.pas',
+  SepiImportsSysUtils in '..\..\source\run\SepiRTLSysImport\SepiImportsSysUtils.pas',
+  SepiImportsTypes in '..\..\source\run\SepiRTLSysImport\SepiImportsTypes.pas',
+  SepiImportsVariants in '..\..\source\run\SepiRTLSysImport\SepiImportsVariants.pas',
+  SepiImportsVarUtils in '..\..\source\run\SepiRTLSysImport\SepiImportsVarUtils.pas',
+  SepiImportsWindows in '..\..\source\run\SepiRTLSysImport\SepiImportsWindows.pas';
+
+end.
+

@@ -1,0 +1,60 @@
+package SepiSCLImport120;
+
+{$R *.res}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO ON}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION ON}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES OFF}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DESCRIPTION 'Sepi importer for SCL units'}
+{$RUNONLY}
+{$IMPLICITBUILD OFF}
+
+requires
+  rtl,
+  SepiReflection120;
+
+contains
+  SepiImportsScZLib in '..\..\source\run\SepiSCLImport\SepiImportsScZLib.pas',
+  SepiImportsScClasses in '..\..\source\run\SepiSCLImport\SepiImportsScClasses.pas',
+  SepiImportsScCompilerMagic in '..\..\source\run\SepiSCLImport\SepiImportsScCompilerMagic.pas',
+  SepiImportsScConsoleUtils in '..\..\source\run\SepiSCLImport\SepiImportsScConsoleUtils.pas',
+  SepiImportsScConsts in '..\..\source\run\SepiSCLImport\SepiImportsScConsts.pas',
+  SepiImportsScCoroutines in '..\..\source\run\SepiSCLImport\SepiImportsScCoroutines.pas',
+  SepiImportsScDateTimeUtils in '..\..\source\run\SepiSCLImport\SepiImportsScDateTimeUtils.pas',
+  SepiImportsScDelphiLanguage in '..\..\source\run\SepiSCLImport\SepiImportsScDelphiLanguage.pas',
+  SepiImportsScEnumerators in '..\..\source\run\SepiSCLImport\SepiImportsScEnumerators.pas',
+  SepiImportsScIntegerSets in '..\..\source\run\SepiSCLImport\SepiImportsScIntegerSets.pas',
+  SepiImportsScInterfaces in '..\..\source\run\SepiSCLImport\SepiImportsScInterfaces.pas',
+  SepiImportsSCL in '..\..\source\run\SepiSCLImport\SepiImportsSCL.pas',
+  SepiImportsScLists in '..\..\source\run\SepiSCLImport\SepiImportsScLists.pas',
+  SepiImportsScLOGFile in '..\..\source\run\SepiSCLImport\SepiImportsScLOGFile.pas',
+  SepiImportsScMaths in '..\..\source\run\SepiSCLImport\SepiImportsScMaths.pas',
+  SepiImportsScMD5 in '..\..\source\run\SepiSCLImport\SepiImportsScMD5.pas',
+  SepiImportsScPipes in '..\..\source\run\SepiSCLImport\SepiImportsScPipes.pas',
+  SepiImportsScSerializer in '..\..\source\run\SepiSCLImport\SepiImportsScSerializer.pas',
+  SepiImportsScStrUtils in '..\..\source\run\SepiSCLImport\SepiImportsScStrUtils.pas',
+  SepiImportsScSyncObjs in '..\..\source\run\SepiSCLImport\SepiImportsScSyncObjs.pas',
+  SepiImportsScTypInfo in '..\..\source\run\SepiSCLImport\SepiImportsScTypInfo.pas',
+  SepiImportsScUtils in '..\..\source\run\SepiSCLImport\SepiImportsScUtils.pas',
+  SepiImportsScWindows in '..\..\source\run\SepiSCLImport\SepiImportsScWindows.pas',
+  SepiImportsScXML in '..\..\source\run\SepiSCLImport\SepiImportsScXML.pas';
+
+end.
+
