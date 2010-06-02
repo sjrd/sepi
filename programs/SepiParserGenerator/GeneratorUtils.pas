@@ -133,6 +133,7 @@ procedure TGenerator.Generate;
 var
   OutputString: string;
   Count: Integer;
+  AnsiOutputString: AnsiString;
 begin
   OutputString := Source.Text;
 
@@ -173,7 +174,8 @@ begin
   with TFileStream.Create(DestFileName,
     fmCreate or fmShareExclusive) do
   try
-    WriteBuffer(Pointer(OutputString)^, Length(OutputString));
+    AnsiOutputString := AnsiString(OutputString);
+    WriteBuffer(Pointer(AnsiOutputString)^, Length(AnsiOutputString));
   finally
     Free;
   end;
