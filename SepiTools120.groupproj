@@ -1,0 +1,50 @@
+﻿	<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+		<PropertyGroup>
+			<ProjectGuid>{f41b483a-da67-4d6f-8f86-8f541e03ef32}</ProjectGuid>
+		</PropertyGroup>
+		<ItemGroup>
+			<Projects Include="programs\SepiDelphiUnitImporter\SepiDelphiUnitImporter120.dproj">
+				<Dependencies/>
+			</Projects>
+			<Projects Include="programs\SepiParserGenerator\SepiParserGenerator120.dproj">
+				<Dependencies/>
+			</Projects>
+		</ItemGroup>
+		<ProjectExtensions>
+			<Borland.Personality>Default.Personality.12</Borland.Personality>
+			<Borland.ProjectType/>
+			<BorlandProject>
+				<BorlandProject>
+					<Default.Personality/>
+				</BorlandProject>
+			</BorlandProject>
+		</ProjectExtensions>
+		<Target Name="SepiDelphiUnitImporter120">
+			<MSBuild Projects="programs\SepiDelphiUnitImporter\SepiDelphiUnitImporter120.dproj"/>
+		</Target>
+		<Target Name="SepiDelphiUnitImporter120:Clean">
+			<MSBuild Targets="Clean" Projects="programs\SepiDelphiUnitImporter\SepiDelphiUnitImporter120.dproj"/>
+		</Target>
+		<Target Name="SepiDelphiUnitImporter120:Make">
+			<MSBuild Targets="Make" Projects="programs\SepiDelphiUnitImporter\SepiDelphiUnitImporter120.dproj"/>
+		</Target>
+		<Target Name="SepiParserGenerator120">
+			<MSBuild Projects="programs\SepiParserGenerator\SepiParserGenerator120.dproj"/>
+		</Target>
+		<Target Name="SepiParserGenerator120:Clean">
+			<MSBuild Targets="Clean" Projects="programs\SepiParserGenerator\SepiParserGenerator120.dproj"/>
+		</Target>
+		<Target Name="SepiParserGenerator120:Make">
+			<MSBuild Targets="Make" Projects="programs\SepiParserGenerator\SepiParserGenerator120.dproj"/>
+		</Target>
+		<Target Name="Build">
+			<CallTarget Targets="SepiDelphiUnitImporter120;SepiParserGenerator120"/>
+		</Target>
+		<Target Name="Clean">
+			<CallTarget Targets="SepiDelphiUnitImporter120:Clean;SepiParserGenerator120:Clean"/>
+		</Target>
+		<Target Name="Make">
+			<CallTarget Targets="SepiDelphiUnitImporter120:Make;SepiParserGenerator120:Make"/>
+		</Target>
+		<Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+	</Project>
