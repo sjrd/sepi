@@ -494,7 +494,11 @@ ntArrayRange	ArrayRange
 	ConstOrType ('..'* ConstExpression)?
 
 ntTypeModifiers	TypeModifiers
-	(Identifier)*
+	(TypeModifier)*
+
+ntTypeModifier	TypeModifier	Simplify
+	1 'deprecated' (tkStringCst*)?
+	Identifier
 
 ntCloneDesc	CloneDesc
 	'type'* TypeName
@@ -681,7 +685,7 @@ ntDefaultMarker	DefaultMarker
 	'default'
 
 ntIgnoredPropertyModifier	IgnoredPropertyModifier
-	'deprecated'
+	'deprecated' (tkStringCst)?
 
 ntEventDesc	EventDesc	AsText
 	RoutineKind MethodSignature EventModifiers
