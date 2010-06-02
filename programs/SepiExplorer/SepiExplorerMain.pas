@@ -48,7 +48,8 @@ type
     procedure TreeViewInitNode(Sender: TBaseVirtualTree; ParentNode,
       Node: PVirtualNode; var InitialStates: TVirtualNodeInitStates);
     procedure TreeViewGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
-      Column: TColumnIndex; TextType: TVSTTextType; var CellText: WideString);
+      Column: TColumnIndex; TextType: TVSTTextType;
+      var CellText: {$IFDEF UNICODE} string {$ELSE} WideString {$ENDIF});
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure ActionLoadUnitExecute(Sender: TObject);
@@ -282,7 +283,7 @@ end;
 *}
 procedure TExplorerForm.TreeViewGetText(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType;
-  var CellText: WideString);
+  var CellText: {$IFDEF UNICODE} string {$ELSE} WideString {$ENDIF});
 var
   Component: TSepiComponent;
 begin

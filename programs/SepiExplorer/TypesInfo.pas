@@ -95,7 +95,11 @@ end;
 
 procedure PrintStringInfo(Output: TOutputWriter; StringType: TSepiStringType);
 begin
-  Output.WriteLn('Unicode: ' + BooleanIdents[StringType.IsUnicode]);
+  Output.WriteLn('String kind: ' + GetEnumName(TypeInfo(TSepiStringKind),
+    Ord(StringType.StringKind)));
+
+  if StringType.StringKind = skAnsiString then
+    Output.WriteLn('Code page: ' + IntToStr(StringType.CodePage));
 end;
 
 procedure PrintArrayInfo(Output: TOutputWriter;
