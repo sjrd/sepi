@@ -914,6 +914,14 @@ type
   end;
 
   {*
+    Marqueur static
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiStaticMarkerNode = class(TSepiNonTerminal)
+  end;
+
+  {*
     Marqueur forward
     @author sjrd
     @version 1.0
@@ -3929,6 +3937,15 @@ begin
       Child.MakeError(SIntfMethodCantBeOverloaded)
     else
       FIsOverloaded := True;
+  end else if Child is TSepiStaticMarkerNode then
+  begin
+    // Static marker, i.e. class method without a Self parameter
+    case Signature.Kind of
+      skClassProcedure: Signature.Kind := skStaticProcedure;
+      skClassFunction: Signature.Kind := skStaticFunction;
+    else
+      Child.MakeError(SStaticMarkerOnlyWithClassMethods);
+    end;
   end else if Child is TSepiMethodLinkKindNode then
   begin
     // Link kind - not valid in interface

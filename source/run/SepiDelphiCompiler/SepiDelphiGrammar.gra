@@ -728,6 +728,7 @@ ntRoutineModifier	RoutineModifier	Simplify
 ntMethodModifier	MethodModifier	Simplify
 	CallingConvention
 	OverloadMarker
+	StaticMarker
 	MethodLinkKind
 	AbstractMarker
 	IgnoredMethodModifier
@@ -751,6 +752,9 @@ ntAbstractMarker	AbstractMarker
 
 ntOverloadMarker	OverloadMarker
 	'overload'
+
+ntStaticMarker	StaticMarker
+	'static'
 
 ntIgnoredRoutineModifier	IgnoredRoutineModifier
 	'deprecated' (tkStringCst)?

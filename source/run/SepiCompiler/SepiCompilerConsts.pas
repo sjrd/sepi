@@ -147,6 +147,8 @@ resourcestring
     'Les méthodes d''interface ne peuvent être surchargées';
   SIntfMethodCantChangeLinkKind =
     'Type de liaison invalide pour une méthode d''interface';
+  SStaticMarkerOnlyWithClassMethods =
+    'Seules les méthodes de classe peuvent être marquées ''static''';
   SDuplicatedLinkKind = 'Directive de type de liaison dupliquée';
   SDuplicatedAbstractMarker = 'Directive abstract dupliquée';
   SDuplicatedOfObjectMarker = 'Directive of object dupliquée';

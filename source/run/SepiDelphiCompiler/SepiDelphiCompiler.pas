@@ -658,6 +658,7 @@ begin
   NonTerminalClasses[ntMethodLinkKind]    := TSepiMethodLinkKindNode;
   NonTerminalClasses[ntAbstractMarker]    := TSepiAbstractMarkerNode;
   NonTerminalClasses[ntOverloadMarker]    := TSepiOverloadMarkerNode;
+  NonTerminalClasses[ntStaticMarker]      := TSepiStaticMarkerNode;
 
   NonTerminalClasses[ntMethodSignature]   := TSepiSignatureBuilderNode;
   NonTerminalClasses[ntPropertySignature] := TSepiSignatureBuilderNode;
