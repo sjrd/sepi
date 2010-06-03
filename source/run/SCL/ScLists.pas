@@ -494,10 +494,10 @@ begin
     Result := BeginSearchAt;
     while Result <= EndSearchAt do
     begin
-      if CompareStrings(Str, Strings[BeginSearchAt]) = 0 then
+      if CompareStrings(Str, Strings[Result]) = 0 then
         Exit
       else
-        Inc(BeginSearchAt);
+        Inc(Result);
     end;
     Result := -1;
   end;
