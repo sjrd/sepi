@@ -894,10 +894,16 @@ begin
   TSepiConstant.Create(Result, 'varWord', varWord);
   TSepiConstant.Create(Result, 'varLongWord', varLongWord);
   TSepiConstant.Create(Result, 'varInt64', varInt64);
+  {$IF Declared(varUInt64)}
+  TSepiConstant.Create(Result, 'varUInt64', varUInt64);
+  {$IFEND}
 
   TSepiConstant.Create(Result, 'varStrArg', varStrArg);
   TSepiConstant.Create(Result, 'varString', varString);
   TSepiConstant.Create(Result, 'varAny', varAny);
+  {$IF Declared(varUString)}
+  TSepiConstant.Create(Result, 'varUString', varUString);
+  {$IFEND}
 
   TSepiConstant.Create(Result, 'varTypeMask', varTypeMask);
   TSepiConstant.Create(Result, 'varArray', varArray);
@@ -921,6 +927,9 @@ begin
   TSepiConstant.Create(Result, 'vtInterface', vtInterface);
   TSepiConstant.Create(Result, 'vtWideString', vtWideString);
   TSepiConstant.Create(Result, 'vtInt64', vtInt64);
+  {$IF Declared(vtUnicodeString)}
+  TSepiConstant.Create(Result, 'vtUnicodeString', vtUnicodeString);
+  {$IFEND}
 
   { Virtual method table entries }
   TSepiConstant.Create(Result, 'vmtSelfPtr', vmtSelfPtr);
