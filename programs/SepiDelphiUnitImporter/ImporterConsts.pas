@@ -54,9 +54,15 @@ resourcestring
   SCantFindProgram = 'Ne peut trouver le programme externe %s';
   SCantFindSourceFile = 'Le fichier source %s n''existe pas';
   SCantOpenSourceFile = 'Impossible de créer le fichier source %s';
+  SBadlyFormedOverloadFile = 'Fichier d''overloading mal formé';
   SCantOpenDestFile = 'Impossible de créer le fichier de sortie %s';
   SSepiInternalError = 'Erreur interne : %s';
   SCantCompileRCFile = 'Ne peut compiler le fichier de ressources %s';
+
+  // Warnings
+  SOverloadHasMoreLinesThanOriginal =
+    'L''overload contient plus de lignes que l''original : les numéros de '+
+    'ligne des erreurs seront probablement faussés.';
 
 const // don't localize
   PascalExt = '.pas';

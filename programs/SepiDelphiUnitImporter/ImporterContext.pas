@@ -65,6 +65,7 @@ type
     FBDSBrowsingPath: string;   /// Chemin de recherche BDS
     FSepiBrowsingPath: string;  /// Chemin de recherche Sepi
 
+    FOverloadDir: TFileName;  /// Dossier des overloads pour les fichiers lus
     FCacheDir: TFileName;     /// Dossier de cache
     FOutputDir: TFileName;    /// Dossier de destination
     FResourcesDir: TFileName; /// Dossier de destination des ressources
@@ -103,6 +104,7 @@ type
     property SepiBrowsingPath: string
       read FSepiBrowsingPath write FSepiBrowsingPath;
 
+    property OverloadDir: TFileName read FOverloadDir write FOverloadDir;
     property CacheDir: TFileName read FCacheDir write FCacheDir;
     property OutputDir: TFileName read FOutputDir write FOutputDir;
     property ResourcesDir: TFileName read FResourcesDir write FResourcesDir;
@@ -116,6 +118,9 @@ type
 const
   /// Format de la clef racine de BDS dans la base de registres
   BDSRootKeyFmt = '\Software\%s\BDS\%s\';
+
+  /// Format du dossier des overloads
+  OverloadDirBase = 'OvldSource\';
 
 implementation
 
@@ -140,6 +145,8 @@ begin
 
   LoadEnvironmentStrings;
   LoadFromRegistry;
+
+  FOverloadDir := Dir + OverloadDirBase;
 end;
 
 {*

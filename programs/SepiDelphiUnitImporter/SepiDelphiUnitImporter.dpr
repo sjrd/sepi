@@ -54,6 +54,7 @@ uses
   SepiCompiler,
   ScUtils,
   ScStrUtils,
+  ScLists,
   ScDelphiLanguage,
   ScConsoleUtils,
   SepiCompilerErrors,
@@ -158,6 +159,102 @@ begin
     end;
   end else
     Result := nil;
+end;
+
+{*
+  Apply the overloads on a source file
+  @param SourceFile   Source file
+  @param Overloads    Overloads to apply to this source file
+*}
+procedure ApplyOverloads(Context: TImporterContext;
+  SourceFile, Overloads: TStrings);
+const
+  Delimiter = '----------';
+var
+  Source: string;
+  Index: Integer;
+  FromText, ToText: string;
+  FromLineCount, ToLineCount: Integer;
+
+  procedure ReadBlock(var Text: string; var LineCount: Integer);
+  begin
+    Text := '';
+    LineCount := 0;
+
+    while (Index < Overloads.Count) and (Overloads[Index] <> Delimiter) do
+    begin
+      Text := Text + Overloads[Index] + SourceFile.LineBreak;
+      Inc(LineCount);
+      Inc(Index);
+    end;
+
+    if Index >= Overloads.Count then
+      Context.Errors.MakeError(SBadlyFormedOverloadFile);
+
+    Inc(Index);
+  end;
+
+begin
+  Source := SourceFile.Text;
+
+  Index := 0;
+  while Index < Overloads.Count do
+  begin
+    Index := StringsOps.IndexOf(Overloads, Delimiter, Index)+1;
+    if Index <= 0 then
+      Break;
+
+    ReadBlock(FromText, FromLineCount);
+    ReadBlock(ToText, ToLineCount);
+
+    // Pad ToText so that it has the same number of lines as FromText
+    while ToLineCount < FromLineCount do
+    begin
+      ToText := ToText + SourceFile.LineBreak;
+      Inc(ToLineCount);
+    end;
+
+    // Warning when padding cannot be done
+    if ToLineCount > FromLineCount then
+      Context.Errors.MakeError(SOverloadHasMoreLinesThanOriginal, ekWarning);
+
+    Source := AnsiReplaceStr(Source, FromText, ToText);
+  end;
+
+  SourceFile.Text := Source;
+end;
+
+{*
+  Charge un fichier source Delphi
+  @param Context      Contexte d'importation
+  @param FileNames    Noms des fichiers
+  @param SourceFile   Liste de chaînes destination
+*}
+procedure LoadSourceFile(Context: TImporterContext; const FileNames: TFileNames;
+  SourceFile: TStrings);
+var
+  OverloadFileName: TFileName;
+  Overloads: TStrings;
+begin
+  try
+    SourceFile.LoadFromFile(FileNames.Source);
+  except
+    on EStreamError do
+      Context.Errors.MakeError(Format(SCantOpenSourceFile,
+        [FileNames.Source]), ekFatalError);
+  end;
+
+  OverloadFileName := Context.OverloadDir + ExtractFileName(FileNames.Source);
+  if not FileExists(OverloadFileName) then
+    Exit;
+
+  Overloads := TStringList.Create;
+  try
+    Overloads.LoadFromFile(OverloadFileName);
+    ApplyOverloads(Context, SourceFile, Overloads);
+  finally
+    Overloads.Free;
+  end;
 end;
 
 {*
@@ -285,13 +382,7 @@ begin
     Errors.CurrentFileName := FileNames.Source;
 
     // Create source file stream (PAS file)
-    try
-      SourceFile.LoadFromFile(FileNames.Source);
-    except
-      on EStreamError do
-        Errors.MakeError(Format(SCantOpenSourceFile, [FileNames.Source]),
-          ekFatalError);
-    end;
+    LoadSourceFile(Context, FileNames, SourceFile);
 
     // Create resource file stream (SCI file)
     try
@@ -483,8 +574,7 @@ begin
         Context.OutputDir := Context.ReplaceMacros(Options.OutputDir);
         Context.ResourcesDir := Context.ReplaceMacros(Options.ResourcesDir);
 
-        Context.BDSBrowsingPath := Dir+'OvldSource\'+Context.BDSVersion+'\' +
-          PathSep + Context.BDSBrowsingPath;
+        Context.BDSBrowsingPath := Context.BDSBrowsingPath;
         Context.SepiBrowsingPath :=
           Options.CacheDir + PathSep + Options.OutputDir;
 
