@@ -83,6 +83,8 @@
 						<Parameters Name="UseLauncher">False</Parameters>
 						<Parameters Name="LoadAllSymbols">True</Parameters>
 						<Parameters Name="LoadUnspecifiedSymbols">False</Parameters>
+						<Parameters Name="RunParams"> -i SepiDelphiGrammar.gra -o . -l Delphi</Parameters>
+						<Parameters Name="DebugCWD">C:\Projets\Sepi\source\run\SepiDelphiCompiler</Parameters>
 					</Parameters>
 					<VersionInfo>
 						<VersionInfo Name="IncludeVerInfo">False</VersionInfo>
@@ -116,7 +118,7 @@
 						<Excluded_Packages Name="$(BDS)\bin\dclofficexp120.bpl">Composants Microsoft Office XP Sample Automation Server Wrapper</Excluded_Packages>
 					</Excluded_Packages>
 					<Source>
-						<Source Name="MainSource">SepiParserGenerator120.dpr</Source>
+						<Source Name="MainSource">SepiParserGenerator.dpr</Source>
 					</Source>
 				</Delphi.Personality>
 			</BorlandProject>
