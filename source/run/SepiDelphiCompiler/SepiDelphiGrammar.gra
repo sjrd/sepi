@@ -616,6 +616,8 @@ ntInterfaceMemberList	InterfaceMemberList
 ntClassMethodProp	ClassMethodProp	Simplify
 	ClassMethodDecl
 	PropertyDecl
+	TypeSection
+	ConstSection
 
 ntClassMethodDecl	ClassMethodDecl	SuccessiveTries
 	IntfMethodRedirector

@@ -12,23 +12,6 @@ Around line 296 in Delphi 2009
     // This function is called when the destructor is called to clean up any data associated
     // with the given opaque data structure.
     CleanUpStackInfoProc: procedure (Info: Pointer);
-    // Use this function to raise an exception instance from within an exception handler and
-    // you want to "acquire" the active exception and chain it to the new exception and preserve
-    // the context. This will cause the FInnerException field to get set with the exception
-    // in currently in play.
-    // You should only call this procedure from within an except block where the this new
-    // exception is expected to be handled elsewhere.
-    class procedure RaiseOuterException(E: Exception); static;
-    // Provide another method that does the same thing as RaiseOuterException, but uses the
-    // C++ vernacular of "throw"
-    class procedure ThrowOuterException(E: Exception); static;
-----------
-----------
-
-Around line 3375 in Delphi 2009
-----------
-    private const
-      DefaultCapacity = $10;
 ----------
 ----------
 
