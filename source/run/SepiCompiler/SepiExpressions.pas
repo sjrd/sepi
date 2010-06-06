@@ -8129,10 +8129,19 @@ end;
 *}
 procedure TSepiMethodCall.CheckSelfValueType;
 const
-  skValidOnClass = [skConstructor, skClassProcedure, skClassFunction];
+  skNoSelfValue = [skStaticProcedure, skStaticFunction];
+  skAlwaysOnClass = [skClassProcedure, skClassFunction];
+  skValidOnClass = [skConstructor] + skAlwaysOnClass;
 begin
   if SelfValue = nil then
     Exit;
+
+  // When calling a static method, we don't care about the Self value
+  if Signature.Kind in skNoSelfValue then
+  begin
+    FSelfValue := nil;
+    Exit;
+  end;
 
   // Can''t call an object method on a class value
   if SelfValue.ValueType is TSepiMetaClass then
@@ -8147,7 +8156,7 @@ begin
   // Call a class method on an object: auto-dereference
   if SelfValue.ValueType is TSepiClass then
   begin
-    if Signature.Kind in [skClassProcedure, skClassFunction] then
+    if Signature.Kind in skAlwaysOnClass then
     begin
       SelfValue := TSepiDereferenceValue.MakeDereference(
         SelfValue) as ISepiReadableValue;
@@ -8472,7 +8481,7 @@ begin
     RightValue := TSepiObjectFieldValue.Create(ObjectValue,
       FProperty.ReadAccess.Field);
     RightValue.AttachToExpression(RightExpression);
-  end else
+  end else if FProperty.ReadAccess.Kind = pakMethod then
   begin
     Method := FProperty.ReadAccess.Method;
     MethodCall := TSepiMethodCall.Create(Method, ObjectValue);
@@ -8488,6 +8497,10 @@ begin
     MethodCall.CompleteParams;
 
     RightValue := MethodCall as ISepiReadableValue;
+  end else if FProperty.ReadAccess.Kind = pakClassField then
+  begin
+    RightValue := TSepiVariableValue.Create(FProperty.ReadAccess.ClassField);
+    RightValue.AttachToExpression(RightExpression);
   end;
 
   RightValue.CompileRead(Compiler, Instructions, Destination, TempVars);
@@ -8511,7 +8524,7 @@ begin
       FProperty.WriteAccess.Field);
     LeftValue.AttachToExpression(TSepiExpression.Create(Expression));
     LeftValue.CompileWrite(Compiler, Instructions, Source);
-  end else
+  end else if FProperty.ReadAccess.Kind = pakMethod then
   begin
     Method := FProperty.WriteAccess.Method;
     MethodCall := TSepiMethodCall.Create(Method, ObjectValue);
@@ -8529,6 +8542,11 @@ begin
     MethodCall.CompleteParams;
 
     (MethodCall as ISepiExecutable).CompileExecute(Compiler, Instructions);
+  end else if FProperty.ReadAccess.Kind = pakClassField then
+  begin
+    LeftValue := TSepiVariableValue.Create(FProperty.WriteAccess.ClassField);
+    LeftValue.AttachToExpression(TSepiExpression.Create(Expression));
+    LeftValue.CompileWrite(Compiler, Instructions, Source);
   end;
 end;
 

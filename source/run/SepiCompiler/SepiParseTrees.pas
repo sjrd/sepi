@@ -121,6 +121,9 @@ type
     procedure Move(NewParent: TSepiNonTerminal; Index: Integer = -1);
     function FindRightMost: TSepiParseTreeNode;
 
+    function IsAncestor(Ancestor: TSepiParseTreeNode): Boolean; overload;
+    function IsAncestor(AncestorClass: TClass): Boolean; overload;
+
     function ResolveIdent(const Identifier: string): ISepiExpression; virtual;
 
     function ResolveIdentOrError(Node: TSepiParseTreeNode): ISepiExpression;
@@ -661,6 +664,28 @@ begin
     with TSepiNonTerminal(Result) do
       Result := Children[ChildCount-1];
   end;
+end;
+
+{*
+  Teste si ce noeud a pour ancêtre un noeud donné
+  @param Ancestor   Ancêtre potentiel
+  @return True si Ancestor est un ancêtre de ce noeud, False sinon
+*}
+function TSepiParseTreeNode.IsAncestor(Ancestor: TSepiParseTreeNode): Boolean;
+begin
+  Result := (Ancestor = Self) or
+    ((Parent <> nil) and Parent.IsAncestor(Ancestor));
+end;
+
+{*
+  Teste si ce noeud a pour ancêtre une classe de noeud donnée
+  @param AncestorClasse   Classe d'un ancêtre potentiel
+  @return True si un ancêtre de ce noeud est un AncestorClass, False sinon
+*}
+function TSepiParseTreeNode.IsAncestor(AncestorClass: TClass): Boolean;
+begin
+  Result := (Self is AncestorClass) or
+    ((Parent <> nil) and Parent.IsAncestor(AncestorClass));
 end;
 
 {*

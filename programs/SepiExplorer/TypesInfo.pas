@@ -203,7 +203,7 @@ procedure PrintMethodRefInfo(Output: TOutputWriter;
   MethodRef: TSepiMethodRefType);
 begin
   PrintSignature(Output, MethodRef.Signature);
-  Output.WriteLn;
+  Output.WriteLn(';');
 end;
 
 procedure PrintTypeInfo(Output: TOutputWriter; SepiType: TSepiType);

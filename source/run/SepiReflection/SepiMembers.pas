@@ -70,13 +70,14 @@ type
     - skClassFunction : fonction de classe ;
     - skClassConstructor : constructeur de classe (pour usage futur) ;
     - skOperator : surcharge d'opérateur (pour usage futur) ;
-    - skProperty : propriété.
+    - skProperty : propriété ;
+    - skClassProperty : propriété de classe ;
   *}
   TSepiSignatureKind = (
     skStaticProcedure, skStaticFunction,
     skObjectProcedure, skObjectFunction, skConstructor, skDestructor,
     skClassProcedure, skClassFunction, skClassConstructor,
-    skOperator, skProperty
+    skOperator, skProperty, skClassProperty
   );
 
 const
@@ -89,8 +90,11 @@ const
   /// Fonction (statique, d'objet ou de classe)
   skFunction = [skStaticFunction, skObjectFunction, skClassFunction];
 
+  /// Propriété (d'objet ou de classe)
+  skAnyProperty = [skProperty, skClassProperty];
+
   /// Types de signature avec valeur de retour
-  skWithReturnType = skFunction + [skOperator, skProperty];
+  skWithReturnType = skFunction + [skOperator] + skAnyProperty;
 
   /// Types de signature avec un paramètre Self
   skWithSelfParam = [skObjectProcedure..skClassConstructor];
@@ -194,7 +198,7 @@ type
   {*
     Type d'accesseur d'une propriété
   *}
-  TPropertyAccessKind = (pakNone, pakField, pakMethod);
+  TPropertyAccessKind = (pakNone, pakField, pakMethod, pakClassField);
 
   {*
     Type de stockage d'une propriété
@@ -203,6 +207,9 @@ type
 
   TSepiSignature = class;
   TSepiOverloadedMethod = class;
+
+  /// Champ de classe
+  TSepiClassField = TSepiVariable;
 
   {*
     Champ
@@ -562,11 +569,12 @@ type
     @version 1.0
   *}
   TSepiPropertyAccess = record
-    Kind: TPropertyAccessKind;           /// Type d'accès
+    Kind: TPropertyAccessKind;                      /// Type d'accès
     case TPropertyAccessKind of
-      pakNone: (Component: TSepiMember); /// Component d'accès (neutre)
-      pakField: (Field: TSepiField);     /// Champ d'accès
-      pakMethod: (Method: TSepiMethod);  /// Méthode d'accès
+      pakNone: (Component: TSepiMember);            /// Accès neutre
+      pakField: (Field: TSepiField);                /// Accès champ
+      pakMethod: (Method: TSepiMethod);             /// Accès méthode
+      pakClassField: (ClassField: TSepiClassField); /// Accès champ de classe
   end;
 
   {*
@@ -606,6 +614,7 @@ type
     procedure MakePropInfo(PropInfo: PPropInfo);
 
     function GetPropType: TSepiType;
+    function GetIsClassProperty: Boolean;
   protected
     procedure ListReferences; override;
     procedure Save(Stream: TStream); override;
@@ -644,6 +653,7 @@ type
 
     property Signature: TSepiSignature read FSignature;
     property PropType: TSepiType read GetPropType;
+    property IsClassProperty: Boolean read GetIsClassProperty;
 
     property ReadAccess: TSepiPropertyAccess read FReadAccess;
     property WriteAccess: TSepiPropertyAccess read FWriteAccess;
@@ -1111,7 +1121,7 @@ const
     'static procedure', 'static function',
     'object procedure', 'object function', 'constructor', 'destructor',
     'class procedure', 'class function', 'class constructor',
-    'operator', 'property'
+    'operator', 'property', 'class property'
   );
 
   /// Chaînes des types de liaison de méthodes
@@ -1215,6 +1225,8 @@ begin
       Kind := pakField
     else if Component is TSepiMethod then
       Kind := pakMethod
+    else if Component is TSepiClassField then
+      Kind := pakClassField
     else
       Kind := pakNone;
   end;
@@ -3181,14 +3193,17 @@ end;
 
 {*
   Construit les informations de propriétés pour les RTTI
-  Cette méthode ne doit être appelée que pour des propriétés de classe, pas pour
-  des propriétés d'interface.
+  Cette méthode ne doit être appelée que pour des propriétés d'objet, pas pour
+  des propriétés d'interface ou de classe.
   @param PropInfo   Destination des informations
 *}
 procedure TSepiProperty.MakePropInfo(PropInfo: PPropInfo);
 var
   EncName: TypeInfoString;
 begin
+  Assert(Owner is TSepiClass);
+  Assert(Signature.Kind = skProperty);
+
   // Property type RTTI
   PropInfo.PropType := TSepiMetaClass(PropType).TypeInfoRef;
 
@@ -3257,6 +3272,15 @@ end;
 function TSepiProperty.GetPropType: TSepiType;
 begin
   Result := Signature.ReturnType;
+end;
+
+{*
+  Indique si c'est une propriété de classe
+  @return True si c'est une propriété de classe, False sinon
+*}
+function TSepiProperty.GetIsClassProperty: Boolean;
+begin
+  Result := Signature.Kind = skClassProperty;
 end;
 
 {*
@@ -4514,7 +4538,7 @@ begin
       if Children[I] is TSepiProperty then
       begin
         Prop := TSepiProperty(Children[I]);
-        if Prop.Visibility <> mvPublished then
+        if (Prop.Visibility <> mvPublished) or Prop.IsClassProperty then
           Continue;
 
         Props.Add(Prop);

@@ -38,7 +38,7 @@ type
 
 procedure PrintFieldInfo(Output: TOutputWriter; Field: TSepiField);
 procedure PrintSignature(Output: TOutputWriter; Signature: TSepiSignature;
-  const Name: string = '');
+  const Name: string = ''; const Brackets: string = '()');
 procedure PrintMethodInfo(Output: TOutputWriter; Method: TSepiMethod);
 procedure PrintPropertyInfo(Output: TOutputWriter; Prop: TSepiProperty);
 
@@ -143,7 +143,7 @@ begin
 end;
 
 procedure PrintSignature(Output: TOutputWriter; Signature: TSepiSignature;
-  const Name: string = '');
+  const Name: string = ''; const Brackets: string = '()');
 begin
   Output.Write('  ' + SignatureKindStrings[Signature.Kind]);
   if Name <> '' then
@@ -153,9 +153,9 @@ begin
   begin
     if ParamCount > 0 then
     begin
-      Output.Write('(');
+      Output.Write(Brackets[1]);
       PrintInnerParams(Output, Signature);
-      Output.Write(')');
+      Output.Write(Brackets[2]);
     end;
 
     if ReturnType <> nil then
@@ -166,8 +166,6 @@ begin
         GetEnumName(TypeInfo(TCallingConvention), Integer(CallingConvention)),
         3, MaxInt)));
   end;
-
-  Output.Write(';');
 end;
 
 procedure PrintMethodInfo(Output: TOutputWriter; Method: TSepiMethod);
@@ -175,6 +173,8 @@ procedure PrintMethodInfo(Output: TOutputWriter; Method: TSepiMethod);
   Code: Pointer;}
 begin
   PrintSignature(Output, Method.Signature, Method.Name);
+
+  Output.Write(';');
 
   if not Method.FirstDeclaration then
     Output.Write(' override;')
@@ -203,19 +203,7 @@ end;
 
 procedure PrintPropertyInfo(Output: TOutputWriter; Prop: TSepiProperty);
 begin
-  Output.Write('  property ' + Prop.Name);
-
-  with Prop.Signature do
-  begin
-    if ParamCount > 0 then
-    begin
-      Output.Write('[');
-      PrintInnerParams(Output, Prop.Signature);
-      Output.Write(']');
-    end;
-  end;
-
-  Output.Write(': ' + Prop.PropType.DisplayName);
+  PrintSignature(Output, Prop.Signature, Prop.Name, '[]');
 
   if Prop.ReadAccess.Kind <> pakNone then
     Output.Write(' read ' + Prop.ReadAccess.Component.Name);

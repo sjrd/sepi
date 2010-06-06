@@ -616,12 +616,18 @@ ntInterfaceMemberList	InterfaceMemberList
 ntClassMethodProp	ClassMethodProp	Simplify
 	ClassMethodDecl
 	PropertyDecl
+	'class'* ClassClassMethodProp
 	TypeSection
 	ConstSection
 
 ntClassMethodDecl	ClassMethodDecl	SuccessiveTries
 	IntfMethodRedirector
 	MethodDecl
+
+ntClassClassMethodProp	ClassClassMethodProp
+	MethodDecl
+	PropertyDecl
+	VarSection
 
 ntIntfMethodProp	IntfMethodProp	Simplify
 	MethodDecl
@@ -638,7 +644,7 @@ ntMethodDecl	MethodDecl
 	MethodKind MethodNameDeclaration MethodSignature ';'* (MethodModifier ';'*)*
 
 ntPropertyDecl	PropertyDecl
-	PropertyKind* IdentifierDecl PropertyNextDecl (PropInfo)* ';'* (PropertyModifier ';'*)*
+	PropertyKind IdentifierDecl PropertyNextDecl (PropInfo)* ';'* (PropertyModifier ';'*)*
 
 ntPropertyKind	PropertyKind	AsText
 	'property'
@@ -709,15 +715,10 @@ ntRoutineKind	RoutineKind	AsText
 	'function'
 
 ntMethodKind	MethodKind	AsText
-	'class' ClassMethodKind
 	'procedure'
 	'function'
 	'constructor'
 	'destructor'
-
-ntClassMethodKind	ClassMethodKind	Simplify
-	'procedure'
-	'function'
 
 ntMethodNameDeclaration	MethodNameDeclaration
 	Identifier

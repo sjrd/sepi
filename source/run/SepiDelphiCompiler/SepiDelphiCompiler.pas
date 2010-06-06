@@ -644,6 +644,7 @@ begin
 
   NonTerminalClasses[ntRecordField]          := TSepiRecordFieldNode;
   NonTerminalClasses[ntRecordCaseField]      := TSepiRecordFieldNode;
+  NonTerminalClasses[ntClassClassMethodProp] := TSepiClassMemberDefinitionNode;
   NonTerminalClasses[ntField]                := TSepiClassFieldNode;
   NonTerminalClasses[ntIntfMethodRedirector] := TSepiIntfMethodRedirectorNode;
   NonTerminalClasses[ntMethodDecl]           := TSepiMethodDeclarationNode;
@@ -670,6 +671,7 @@ begin
   NonTerminalClasses[ntReturnType]        := TSepiSignatureReturnTypeNode;
   NonTerminalClasses[ntPropType]          := TSepiSignatureReturnTypeNode;
 
+  NonTerminalClasses[ntPropertyKind]     := TSepiPropertyKindNode;
   NonTerminalClasses[ntRedefineMarker]   := TSepiPropRedefineMarkerNode;
   NonTerminalClasses[ntPropReadAccess]   := TSepiPropReadAccessNode;
   NonTerminalClasses[ntPropWriteAccess]  := TSepiPropWriteAccessNode;

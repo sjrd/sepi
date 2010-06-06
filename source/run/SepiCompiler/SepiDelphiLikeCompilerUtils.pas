@@ -361,16 +361,11 @@ begin
     // Variable
     ISepiExpressionPart(TSepiVariableValue.Create(
       TSepiVariable(Component))).AttachToExpression(Expression);
-  end else if Component is TSepiMethod then
+  end else if Component is TSepiMethodBase then
   begin
     // Method
     ISepiExpressionPart(TSepiMethodCall.Create(
       TSepiMethod(Component))).AttachToExpression(Expression);
-  end else if Component is TSepiOverloadedMethod then
-  begin
-    // Method
-    ISepiExpressionPart(TSepiMethodCall.Create(
-      TSepiOverloadedMethod(Component))).AttachToExpression(Expression);
   end;
 end;
 

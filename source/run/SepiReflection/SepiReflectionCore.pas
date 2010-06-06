@@ -439,6 +439,9 @@ type
 
   {*
     Membre d'un type conteneur
+    Les classes qui héritent de TSepiMember ne sont pas nécessairement toujours
+    des membres. Ce sont les composants qui sont susceptibles, dans certains
+    circonstances, d'être des membres.
     @author sjrd
     @version 1.0
   *}
@@ -734,10 +737,12 @@ type
 
   {*
     Variable (ou constante typée)
+    TSepiVariable est aussi la classe utilisée pour les champs de classe, ce qui
+    explique qu'elle hérite de TSepiMember.
     @author sjrd
     @version 1.0
   *}
-  TSepiVariable = class(TSepiComponent)
+  TSepiVariable = class(TSepiMember)
   private
     FIsConst: Boolean;  /// Indique si la variable est une constante typée
     FType: TSepiType;   /// Type de la constante
@@ -2305,8 +2310,8 @@ end;
 
 {*
   Conteneur de ce membre
-  Pour les instances de TSepiMethodBase, GetContainer peut renvoyer nil, si
-  elles sont contenues dans une unité.
+  Pour les instances de TSepiMethodBase et de TSepiVariable, GetContainer peut
+  renvoyer nil, si elles sont contenues dans une unité, et non dans une classe.
   @return Conteneur de ce membre
 *}
 function TSepiMember.GetContainer: TSepiContainerType;

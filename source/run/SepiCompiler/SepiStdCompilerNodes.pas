@@ -710,6 +710,14 @@ type
   end;
 
   {*
+    Noeud marqueur que ses enfants sont déclarés comme membres de classe
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiClassMemberDefinitionNode = class(TSepiNonTerminal)
+  end;
+
+  {*
     Classe de base pour les noeuds qui doivent construire une signature
     TSepiSignatureBuilderNode ne crée pas elle-même d'instance de
     TSepiSignature. Elle est prévue pour construire une signature créée par un
@@ -748,6 +756,17 @@ type
     procedure EndParsing; override;
 
     property Kind: TSepiSignatureKind read GetKind;
+  end;
+
+  {*
+    Noeud représentant un type de signature pour une propriété
+    Cette classe admet que Signature ne soit pas renseignée.
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiPropertyKindNode = class(TSepiSignatureKindNode)
+  protected
+    function GetKind: TSepiSignatureKind; override;
   end;
 
   {*
@@ -3539,16 +3558,22 @@ end;
 *}
 function TSepiSignatureKindNode.GetKind: TSepiSignatureKind;
 var
+  StrKind: string;
   OrdKind: Integer;
 begin
-  OrdKind := AnsiIndexText(AsText, SignatureKindStrings);
+  StrKind := AsText;
+  OrdKind := AnsiIndexText(StrKind, SignatureKindStrings);
 
   if OrdKind < 0 then
   begin
-    if (SepiContext is TSepiClass) or (SepiContext is TSepiInterface) then
-      OrdKind := AnsiIndexText('object '+AsText, SignatureKindStrings)
+    if IsAncestor(TSepiClassMemberDefinitionNode) then
+      StrKind := 'class '+StrKind
+    else if (SepiContext is TSepiClass) or (SepiContext is TSepiInterface) then
+      StrKind := 'object '+AsText
     else
-      OrdKind := AnsiIndexText('static '+AsText, SignatureKindStrings);
+      StrKind := 'static '+StrKind;
+
+    OrdKind := AnsiIndexText(StrKind, SignatureKindStrings);
   end;
 
   if OrdKind < 0 then
@@ -3566,6 +3591,21 @@ begin
     Signature.Kind := Kind;
 
   inherited;
+end;
+
+{------------------------------}
+{ TSepiPropertyKindNode class }
+{------------------------------}
+
+{*
+  [@inheritDoc]
+*}
+function TSepiPropertyKindNode.GetKind: TSepiSignatureKind;
+begin
+  if IsAncestor(TSepiClassMemberDefinitionNode) then
+    Result := skClassProperty
+  else
+    Result := skProperty;
 end;
 
 {----------------------------------}
