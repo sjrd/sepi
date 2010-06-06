@@ -457,7 +457,16 @@ ntTypeSection	TypeSection
 	'type'* (TypeDecl)+
 
 ntTypeDecl	TypeDecl
-	IdentifierDecl '='* TypeDesc TypeModifiers ';'*
+	Attributes* IdentifierDecl '='* TypeDesc TypeModifiers ';'*
+
+ntAttributes	Attributes
+	(Attribute)*
+
+ntAttribute	Attribute
+	'['* QualifiedIdent ('('* AttributeParams ')'*)? ']'*
+
+ntAttributeParams	AttributeParams
+	ConstExpression (','* ConstExpression)*
 
 ntTypeDesc	TypeDesc	Simplify
 	CloneDesc
