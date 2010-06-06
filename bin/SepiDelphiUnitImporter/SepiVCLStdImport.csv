@@ -6,12 +6,12 @@ Controls.pas
 Forms.pas
 StdCtrls.pas
 Printers.pas
-Dialogs.pas
+ToolWin.pas
 GraphUtil.pas
 ExtCtrls.pas
-ClipBrd.pas
 ListActns.pas
-ToolWin.pas
 ComCtrls.pas
+Dialogs.pas
+ClipBrd.pas
 Buttons.pas
 Spin.pas
