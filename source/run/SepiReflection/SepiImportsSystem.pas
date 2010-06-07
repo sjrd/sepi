@@ -995,7 +995,15 @@ begin
   TSepiPointerType.Create(Result, 'PShortString', TypeInfo(ShortString), True);
   TSepiPointerType.Create(Result, 'PAnsiString', TypeInfo(AnsiString), True);
   TSepiPointerType.Create(Result, 'PWideString', TypeInfo(WideString), True);
+  {$IF Declared(PUnicodeString)}
+  TSepiPointerType.Create(Result, 'PUnicodeString',
+    TypeInfo(UnicodeString), True);
+  {$IFEND}
+  {$IFNDEF UNICODE}
   TSepiTypeAlias.Create(Result, 'PString', 'PAnsiString');
+  {$ELSE}
+  TSepiTypeAlias.Create(Result, 'PString', 'PUnicodeString');
+  {$ENDIF}
   TSepiTypeAlias.Create(Result, 'UCS2Char', TypeInfo(WideChar));
   TSepiTypeAlias.Create(Result, 'PUCS2Char', 'PWideChar');
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(UCS4Char));
@@ -1034,9 +1042,9 @@ begin
   TSepiPointerType.Create(Result, 'PWordBool', TypeInfo(WordBool), True);
   TSepiPointerType.Create(Result, 'PUnknown', TypeInfo(IUnknown), True);
   TSepiPointerType.Create(Result, 'PPUnknown', 'PUnknown', True);
-  TSepiPointerType.Create(Result, 'PPWideChar', 'PWideChar', True);
   TSepiPointerType.Create(Result, 'PPChar', 'PChar', True);
-  TSepiTypeAlias.Create(Result, 'PPAnsiChar', 'PPChar');
+  TSepiPointerType.Create(Result, 'PPWideChar', 'PWideChar', True);
+  TSepiPointerType.Create(Result, 'PPAnsiChar', 'PAnsiChar', True);
   TSepiPointerType.Create(Result, 'PExtended', TypeInfo(Extended), True);
   TSepiPointerType.Create(Result, 'PComp', TypeInfo(Comp), True);
   TSepiPointerType.Create(Result, 'PCurrency', TypeInfo(Currency), True);
@@ -1045,6 +1053,10 @@ begin
   TSepiPointerType.Create(Result, 'PPointer', 'Pointer', True);
   TSepiPointerType.Create(Result, 'PBoolean', TypeInfo(Boolean), True);
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(TDateTime));
+  {$IF Declared(TDate) and Declared(TTime)}
+  TSepiType.LoadFromTypeInfo(Result, TypeInfo(TDate));
+  TSepiType.LoadFromTypeInfo(Result, TypeInfo(TTime));
+  {$IFEND}
   TSepiPointerType.Create(Result, 'PDateTime', TypeInfo(TDateTime), True);
   TSepiTypeAlias.Create(Result, 'THandle', TypeInfo(LongWord));
   SepiImportTVarArrayBound(Result);
