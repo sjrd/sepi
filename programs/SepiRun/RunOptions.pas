@@ -37,7 +37,7 @@ type
 
     procedure AfterConstruction; override;
 
-    property UnitName: string read FUnitName;
+    property MainUnitName: string read FUnitName;
     property BrowsingPath: string read FBrowsingPath;
     property UseDebugger: Boolean read FUseDebugger;
 

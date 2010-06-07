@@ -38,7 +38,7 @@ begin
     try
       Execution.BrowsingPath := Options.BrowsingPath;
       Execution.UseDebugger := Options.UseDebugger;
-      UnitName := Options.UnitName;
+      UnitName := Options.MainUnitName;
     finally
       Options.Free;
     end;

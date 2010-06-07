@@ -25,7 +25,7 @@
 		<PropertyGroup Condition="'$(Base)'!=''">
 			<UsePackages>true</UsePackages>
 			<DCC_DependencyCheckOutputName>SDC.exe</DCC_DependencyCheckOutputName>
-			<DCC_UsePackage>vcl;rtl;vclx;dbrtl;vcldb;VclSmp;SCL110;SVCL110;SDL110;SepiCore110;SepiReflection110;SepiInterpreter110;SepiCompiler110;SepiDelphiCompiler110;SepiRTLCommonImport110;SepiRTLSysImport110;SepiSCLImport110;SepiSDLImport110;SepiSVCLImport110;SepiVCLStdImport110;SepiWinTypesImport110</DCC_UsePackage>
+			<DCC_UsePackage>vcl;rtl;vclx;dbrtl;vcldb;VclSmp;SCL120;SVCL120;SDL120;SepiCore120;SepiReflection120;SepiInterpreter120;SepiCompiler120;SepiDelphiCompiler120;SepiRTLCommonImport120;SepiRTLSysImport120;SepiSCLImport120;SepiSDLImport120;SepiSVCLImport120;SepiVCLStdImport120;SepiWinTypesImport120</DCC_UsePackage>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Cfg_1)'!=''">
 			<DCC_DependencyCheckOutputName>..\..\bin\SepiDelphiCompiler\SDC.exe</DCC_DependencyCheckOutputName>
@@ -112,13 +112,11 @@
 						<VersionInfoKeys Name="Comments"/>
 					</VersionInfoKeys>
 					<Excluded_Packages>
-						<Excluded_Packages Name="$(BDS)\bin\dclofficexp100.bpl">Composants Microsoft Office XP Sample Automation Server Wrapper</Excluded_Packages>
-						<Excluded_Packages Name="$(BDS)\bin\bcboffice2k100.bpl">CodeGear C++Builder Office 2000 Servers Package</Excluded_Packages>
-						<Excluded_Packages Name="$(BDS)\bin\bcbofficexp100.bpl">CodeGear C++Builder Office XP Servers Package</Excluded_Packages>
-						<Excluded_Packages Name="$(BDS)\bin\dcloffice2k100.bpl">Composants Microsoft Office 2000 Sample Automation Server Wrapper</Excluded_Packages>
+						<Excluded_Packages Name="$(BDS)\bin\dcloffice2k120.bpl">Composants Microsoft Office 2000 Sample Automation Server Wrapper</Excluded_Packages>
+						<Excluded_Packages Name="$(BDS)\bin\dclofficexp120.bpl">Composants Microsoft Office XP Sample Automation Server Wrapper</Excluded_Packages>
 					</Excluded_Packages>
 					<Source>
-						<Source Name="MainSource">SDC120.dpr</Source>
+						<Source Name="MainSource">SDC.dpr</Source>
 					</Source>
 				</Delphi.Personality>
 			</BorlandProject>
