@@ -75,12 +75,15 @@ type
     procedure WriteDigestData(Stream: TStream); override;
 
     procedure ExtractTypeData; override;
+
+    function GetOrdType: TOrdType; virtual;
   public
     function Equals(Other: TSepiType): Boolean; override;
 
     function ValueAsInteger(const Value): Integer;
     function ValueAsCardinal(const Value): Cardinal;
 
+    property OrdType: TOrdType read GetOrdType;
     property MinValue: Longint read FMinValue;
     property MaxValue: Longint read FMaxValue;
   end;
@@ -326,6 +329,8 @@ type
 
     procedure ExtractTypeData; override;
 
+    function GetOrdType: TOrdType; override;
+
     function GetDescription: string; override;
   public
     constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
@@ -435,6 +440,12 @@ function IntegerSize(Value: Integer; ZeroGivesZero: Boolean = False): Integer;
 function CardinalSize(Value: Cardinal;
   ZeroGivesZero: Boolean = False): Integer;
 
+function ValueAsInteger(const Value; OrdType: TOrdType): Integer; overload;
+function ValueAsCardinal(const Value; OrdType: TOrdType): Cardinal; overload;
+
+function ValueAsInteger(const Value; Size: Integer): Integer; overload;
+function ValueAsCardinal(const Value; Size: Integer): Cardinal; overload;
+
 implementation
 
 uses
@@ -502,6 +513,68 @@ begin
     Result := 4;
 end;
 
+{*
+  Lit une valeur ordinale comme un Integer
+  @param Value     Valeur de ce type
+  @param OrdType   Type d'ordinal
+  @return Value comme Integer
+*}
+function ValueAsInteger(const Value; OrdType: TOrdType): Integer;
+begin
+  case OrdType of
+    otSByte: Result := Shortint(Value);
+    otUByte: Result := Byte(Value);
+    otSWord: Result := Smallint(Value);
+    otUWord: Result := Word(Value);
+  else
+    Result := Longint(Value);
+  end;
+end;
+
+{*
+  Lit une valeur ordinale comme un Cardinal
+  @param Value     Valeur de ce type
+  @param OrdType   Type d'ordinal
+  @return Value comme Cardinal
+*}
+function ValueAsCardinal(const Value; OrdType: TOrdType): Cardinal;
+begin
+  case OrdType of
+    otSByte: Result := Shortint(Value);
+    otUByte: Result := Byte(Value);
+    otSWord: Result := Smallint(Value);
+    otUWord: Result := Word(Value);
+  else
+    Result := LongWord(Value);
+  end;
+end;
+
+{*
+  Lit une valeur ordinale comme un Integer
+  @param Value   Valeur de ce type
+  @param Size    Taille du type (1, 2 ou 4)
+  @return Value comme Integer
+*}
+function ValueAsInteger(const Value; Size: Integer): Integer;
+const
+  SizeToOrdType: array[1..4] of TOrdType = (otSByte, otSWord, otSLong, otSLong);
+begin
+  Result := ValueAsInteger(Value, SizeToOrdType[Size]);
+end;
+
+{*
+  Lit une valeur ordinale comme un Cardinal
+  @param Value   Valeur de ce type
+  @param Size    Taille du type (1, 2 ou 4)
+  @return Value comme Cardinal
+*}
+function ValueAsCardinal(const Value; Size: Integer): Cardinal;
+const
+  SizeToOrdType: array[1..4] of TOrdType = (otUByte, otUWord, otULong, otULong);
+begin
+  Result := ValueAsCardinal(Value, SizeToOrdType[Size]);
+end;
+
 {---------------------}
 { Classe TSepiOrdType }
 {---------------------}
@@ -535,12 +608,21 @@ begin
 end;
 
 {*
+  Type d'ordinal
+  @return Type d'ordinal
+*}
+function TSepiOrdType.GetOrdType: TOrdType;
+begin
+  Result := TypeData.OrdType;
+end;
+
+{*
   [@inheritDoc]
 *}
 function TSepiOrdType.Equals(Other: TSepiType): Boolean;
 begin
   Result := (ClassType = Other.ClassType) and
-    (TypeData.OrdType = Other.TypeData.OrdType);
+    (OrdType = TSepiOrdType(Other).OrdType);
 end;
 
 {*
@@ -550,14 +632,7 @@ end;
 *}
 function TSepiOrdType.ValueAsInteger(const Value): Integer;
 begin
-  case TypeData.OrdType of
-    otSByte: Result := Shortint(Value);
-    otUByte: Result := Byte(Value);
-    otSWord: Result := Smallint(Value);
-    otUWord: Result := Word(Value);
-  else
-    Result := Longint(Value);
-  end;
+  Result := SepiOrdTypes.ValueAsInteger(Value, OrdType);
 end;
 
 {*
@@ -567,14 +642,7 @@ end;
 *}
 function TSepiOrdType.ValueAsCardinal(const Value): Cardinal;
 begin
-  case TypeData.OrdType of
-    otSByte: Result := Shortint(Value);
-    otUByte: Result := Byte(Value);
-    otSWord: Result := Smallint(Value);
-    otUWord: Result := Word(Value);
-  else
-    Result := LongWord(Value);
-  end;
+  Result := SepiOrdTypes.ValueAsCardinal(Value, OrdType);
 end;
 
 {-------------------------}
@@ -1689,6 +1757,16 @@ end;
 *}
 procedure TSepiFakeEnumType.ExtractTypeData;
 begin
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiFakeEnumType.GetOrdType: TOrdType;
+const
+  SizeToOrdType: array[1..4] of TOrdType = (otUByte, otUWord, otULong, otULong);
+begin
+  Result := SizeToOrdType[Size];
 end;
 
 {*

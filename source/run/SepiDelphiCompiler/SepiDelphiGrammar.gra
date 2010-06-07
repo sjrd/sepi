@@ -514,6 +514,7 @@ ntCloneDesc	CloneDesc
 
 ntRangeOrEnumDesc	RangeOrEnumDesc	SuccessiveTries
 	EnumDesc
+	FakeEnumDesc
 	RangeDesc
 
 ntRangeDesc	RangeDesc
@@ -521,6 +522,12 @@ ntRangeDesc	RangeDesc
 
 ntEnumDesc	EnumDesc
 	'('* CommaIdentList ')'*
+
+ntFakeEnumDesc	FakeEnumDesc
+	'('* FakeEnumValue (','* FakeEnumValue)* ')'*
+
+ntFakeEnumValue	FakeEnumValue
+	Identifier ('='* ConstExpression)?
 
 ntSetDesc	SetDesc
 	'set'* 'of'* TypeDesc

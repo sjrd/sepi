@@ -331,6 +331,30 @@ type
   end;
 
   {*
+    Noeud descripteur d'un type fausse énumération
+    @author sjrd
+    @version 1.0
+  *}
+  TDelphiFakeEnumTypeNode = class(TSepiTypeDefinitionNode)
+  public
+    procedure EndParsing; override;
+  end;
+
+  {*
+    Noeud descripteur d'une valeur d'un type fausse énumération
+    @author sjrd
+    @version 1.0
+  *}
+  TDelphiFakeEnumValueNode = class(TSepiNonTerminal)
+  private
+    FValue: TSepiFakeEnumValue; /// Valeur
+  protected
+    procedure ChildEndParsing(Child: TSepiParseTreeNode); override;
+  public
+    property Value: TSepiFakeEnumValue read FValue;
+  end;
+
+  {*
     Noeud descripteur d'un type ensemble
     @author sjrd
     @version 1.0
@@ -621,6 +645,8 @@ begin
   NonTerminalClasses[ntRangeOrEnumDesc]   := TDelphiRangeOrEnumTypeNode;
   NonTerminalClasses[ntRangeDesc]         := TDelphiRangeTypeNode;
   NonTerminalClasses[ntEnumDesc]          := TDelphiEnumTypeNode;
+  NonTerminalClasses[ntFakeEnumDesc]      := TDelphiFakeEnumTypeNode;
+  NonTerminalClasses[ntFakeEnumValue]     := TDelphiFakeEnumValueNode;
   NonTerminalClasses[ntSetDesc]           := TDelphiSetTypeNode;
   NonTerminalClasses[ntStringDesc]        := TDelphiStringTypeNode;
   NonTerminalClasses[ntPointerDesc]       := TDelphiPointerTypeNode;
@@ -1451,6 +1477,50 @@ begin
 
   SetSepiType(TSepiEnumType.Create(SepiContext, TypeName, Values,
     (RootNode as TDelphiRootNode).MinEnumSize));
+
+  inherited;
+end;
+
+{-------------------------------}
+{ TDelphiFakeEnumTypeNode class }
+{-------------------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TDelphiFakeEnumTypeNode.EndParsing;
+var
+  I: Integer;
+  Values: TSepiFakeEnumValueDynArray;
+begin
+  SetLength(Values, ChildCount);
+
+  for I := 0 to ChildCount-1 do
+    Values[I] := (Children[I] as TDelphiFakeEnumValueNode).Value;
+
+  SetSepiType(TSepiFakeEnumType.Create(SepiContext, TypeName, Values,
+    (RootNode as TDelphiRootNode).MinEnumSize));
+
+  inherited;
+end;
+
+{--------------------------------}
+{ TDelphiFakeEnumValueNode class }
+{--------------------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TDelphiFakeEnumValueNode.ChildEndParsing(Child: TSepiParseTreeNode);
+begin
+  if ChildCount = 1 then
+  begin
+    FValue.Name := Child.AsText;
+    FValue.Value := -1;
+  end else
+  begin
+    FValue.Value := (Child as TSepiConstExpressionNode).AsInteger;
+  end;
 
   inherited;
 end;

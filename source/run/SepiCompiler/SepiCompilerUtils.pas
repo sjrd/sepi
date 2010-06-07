@@ -843,8 +843,7 @@ begin
     Result := False;
   end else
   begin
-    FDefaultValue := TSepiOrdType(Value.ValueType).ValueAsInteger(
-      Value.ConstValuePtr^);
+    FDefaultValue := ValueAsInteger(Value.ConstValuePtr^, Value.ValueType.Size);
     Result := True;
   end;
 end;

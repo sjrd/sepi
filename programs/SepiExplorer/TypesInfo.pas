@@ -72,6 +72,13 @@ begin
   Output.WriteLn(EnumType.Description);
 end;
 
+procedure PrintFakeEnumInfo(Output: TOutputWriter; EnumType: TSepiFakeEnumType);
+begin
+  Output.WriteLn('From ' + IntToStr(EnumType.MinValue) + ' to ' +
+    IntToStr(EnumType.MaxValue));
+  Output.WriteLn(EnumType.Description);
+end;
+
 procedure PrintSetInfo(Output: TOutputWriter; SetType: TSepiSetType);
 begin
   Output.WriteLn(SetType.Description);
@@ -240,6 +247,8 @@ begin
     PrintBooleanInfo(Output, TSepiBooleanType(SepiType))
   else if SepiType is TSepiEnumType then
     PrintEnumInfo(Output, TSepiEnumType(SepiType))
+  else if SepiType is TSepiFakeEnumType then
+    PrintFakeEnumInfo(Output, TSepiFakeEnumType(SepiType))
   else if SepiType is TSepiSetType then
     PrintSetInfo(Output, TSepiSetType(SepiType))
   else if SepiType is TSepiPointerType then
@@ -280,6 +289,10 @@ begin
           Output.Write(PChar(Value^))
         else
           Output.Write('$'+IntToHex(PLongWord(Value)^, 8));
+      end else if ValueType is TSepiFakeEnumType then
+      begin
+        Output.Write(IntToStr(
+          TSepiFakeEnumType(ValueType).ValueAsInteger(Value^)));
       end else
         Output.Write('(unknown)');
     tkInteger:
