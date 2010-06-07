@@ -65,13 +65,12 @@
 			</DelphiCompile>
 			<DCCReference Include="rtl.dcp"/>
 			<DCCReference Include="vcl.dcp"/>
-			<DCCReference Include="SepiReflection10.dcp"/>
+			<DCCReference Include="SepiReflection120.dcp"/>
 			<DCCReference Include="..\..\source\run\SepiSDLImport\SepiImportsSdAbout.pas"/>
 			<DCCReference Include="..\..\source\run\SepiSDLImport\SepiImportsSdDialogs.pas"/>
 			<DCCReference Include="..\..\source\run\SepiSDLImport\SepiImportsSDL.pas"/>
 			<DCCReference Include="..\..\source\run\SepiSDLImport\SepiImportsSdNumber.pas"/>
 			<DCCReference Include="..\..\source\run\SepiSDLImport\SepiImportsSdPassword.pas"/>
-			<DCCReference Include="SepiReflection110.dcp"/>
 			<BuildConfiguration Include="Base">
 				<Key>Base</Key>
 			</BuildConfiguration>

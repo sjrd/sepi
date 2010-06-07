@@ -67,7 +67,7 @@
 			<DCCReference Include="vcl.dcp"/>
 			<DCCReference Include="VclSmp.dcp"/>
 			<DCCReference Include="vclx.dcp"/>
-			<DCCReference Include="SepiReflection110.dcp"/>
+			<DCCReference Include="SepiReflection120.dcp"/>
 			<DCCReference Include="..\..\source\run\SepiVCLStdImport\SepiImportsVCLStd.pas"/>
 			<DCCReference Include="..\..\source\run\SepiVCLStdImport\SepiImportsActnList.pas"/>
 			<DCCReference Include="..\..\source\run\SepiVCLStdImport\SepiImportsButtons.pas"/>

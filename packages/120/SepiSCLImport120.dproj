@@ -64,7 +64,7 @@
 				<MainSource>MainSource</MainSource>
 			</DelphiCompile>
 			<DCCReference Include="rtl.dcp"/>
-			<DCCReference Include="SepiReflection110.dcp"/>
+			<DCCReference Include="SepiReflection120.dcp"/>
 			<DCCReference Include="..\..\source\run\SepiSCLImport\SepiImportsScZLib.pas"/>
 			<DCCReference Include="..\..\source\run\SepiSCLImport\SepiImportsScClasses.pas"/>
 			<DCCReference Include="..\..\source\run\SepiSCLImport\SepiImportsScCompilerMagic.pas"/>
