@@ -267,6 +267,7 @@ type
     function FindComponent(const Name: string): TSepiComponent;
 
     function FindContainer: TSepiContainerType;
+    function IsAncestor(Ancestor: TSepiComponent): Boolean;
 
     function IsVisibleFrom(FromComponent: TSepiComponent): Boolean; virtual;
 
@@ -1731,6 +1732,17 @@ begin
 end;
 
 {*
+  Teste si un composant donné est un ancêtre de ce composnat
+  @param Ancestor   Ancêtre potentiel
+  @return True si Ancestor est un ancêtre de ce composant, False sinon
+*}
+function TSepiComponent.IsAncestor(Ancestor: TSepiComponent): Boolean;
+begin
+  Result := (Ancestor = Self) or
+    ((Owner <> nil) and Owner.IsAncestor(Ancestor));
+end;
+
+{*
   Teste si ce composant est visible depuis un composant donné
   @param FromComponent   Composant depuis lequel on regarde
   @return True si le composant est visible, False sinon
@@ -1747,13 +1759,13 @@ begin
     (FromComponent.OwningUnit = OwningUnit) then
     Exit;
 
-  FromContainer := FromComponent.FindContainer;
-
-  if FromContainer = Owner then
+  if FromComponent.IsAncestor(Owner) then
     Exit;
 
   if Visibility in [mvStrictProtected, mvProtected] then
   begin
+    FromContainer := FromComponent.FindContainer;
+
     if (FromContainer is TSepiInheritableContainerType) and
       (Owner is TSepiInheritableContainerType) and
       TSepiInheritableContainerType(FromContainer).ContainerInheritsFrom(

@@ -3685,25 +3685,14 @@ end;
 *}
 function TSepiInheritableContainerType.InternalLookFor(const Name: string;
   FromComponent: TSepiComponent): TSepiComponent;
-var
-  Ancestor: TSepiInheritableContainerType;
 begin
-  // Look in the hierarchy first
-  Ancestor := Self;
-  while (Ancestor <> nil) do
-  begin
-    Result := Ancestor.GetComponent(Name);
-    if (Result <> nil) and Result.IsVisibleFrom(FromComponent) then
-      Exit;
-    Ancestor := Ancestor.ParentContainer;
-  end;
+  // Look for a member first
+  Result := LookForMember(Name, FromComponent);
+  if Result <> nil then
+    Exit;
 
-  // If not found, continue search a level up
-  if Owner = nil then
-    Result := nil
-  else
-    Result := TSepiInheritableContainerType(Owner).InternalLookFor(
-      Name, FromComponent);
+  // If not found, continue search normally
+  Result := inherited InternalLookFor(Name, FromComponent);
 end;
 
 {*
