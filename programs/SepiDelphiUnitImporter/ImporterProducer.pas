@@ -42,9 +42,10 @@ unit ImporterProducer;
 interface
 
 uses
-  Windows, SysUtils, Classes, StrUtils, TypInfo, ScUtils, ScDelphiLanguage,
-  SepiReflectionCore, SepiMembers, SepiOrdTypes, SepiArrayTypes, SepiStrTypes,
-  ImporterTemplates, SepiDelphiCompilerConsts, ImporterConsts;
+  Windows, SysUtils, Classes, StrUtils, TypInfo, ScUtils, ScStrUtils,
+  ScDelphiLanguage, SepiReflectionCore, SepiMembers, SepiOrdTypes,
+  SepiArrayTypes, SepiStrTypes, ImporterTemplates, SepiDelphiCompilerConsts,
+  ImporterConsts;
 
 type
   {*
@@ -346,9 +347,22 @@ end;
 *}
 function TSepiImporterProducer.IdentifierFor(
   ForComponent, FromComponent: TSepiComponent): string;
+var
+  First: TSepiComponent;
 begin
   Result := ForComponent.GetShorterNameFrom(FromComponent);
-  RequireUnit(ForComponent.OwningUnit.Name);
+  First := FromComponent.LookFor(GetFirstToken(Result, '.'));
+
+  // Artificially qualify inner types
+  while (First.Owner <> First.OwningUnit) and not (First is TSepiMember) and
+    not (First is TSepiUnit) do
+  begin
+    First := First.Owner;
+    Result := First.Name + '.' + Result;
+  end;
+
+  Assert(FromComponent.LookFor(Result) = ForComponent);
+  RequireUnit(First.OwningUnit.Name);
 end;
 
 {*
