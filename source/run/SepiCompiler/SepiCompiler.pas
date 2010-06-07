@@ -890,10 +890,6 @@ const
   /// Indique une variable locale non encore résolue
   msUnresolvedLocalVar = TSepiMemorySpace(-1);
 
-function IntegerSize(Value: Integer; ZeroGivesZero: Boolean = False): Integer;
-function CardinalSize(Value: Cardinal;
-  ZeroGivesZero: Boolean = False): Integer;
-
 implementation
 
 uses
@@ -982,49 +978,6 @@ type
     property VertexCount: Integer read GetVertexCount;
     property Vertices[Index: Integer]: TSepiLocalVarVertex read GetVertices;
   end;
-
-{*
-  Calcule la taille en octets d'un entier signé
-  @param Value           Entier signé
-  @param ZeroGivesZero   Si True, alors Value = 0 renvoie 0
-  @return Taille de l'entier signé
-*}
-function IntegerSize(Value: Integer; ZeroGivesZero: Boolean = False): Integer;
-begin
-  if ZeroGivesZero and (Value = 0) then
-    Result := 0
-  else
-  begin
-    if Value < 0 then
-      Value := not Value;
-
-    if Value and Integer($FFFFFF80) = 0 then
-      Result := 1
-    else if Value and Integer($FFFF8000) = 0 then
-      Result := 2
-    else
-      Result := 4;
-  end;
-end;
-
-{*
-  Calcule la taille en octets d'un entier non signé
-  @param Value           Entier non signé
-  @param ZeroGivesZero   Si True, alors Value = 0 renvoie 0
-  @return Taille de l'entier non signé
-*}
-function CardinalSize(Value: Cardinal;
-  ZeroGivesZero: Boolean = False): Integer;
-begin
-  if ZeroGivesZero and (Value = 0) then
-    Result := 0
-  else if Value and Cardinal($FFFFFF00) = 0 then
-    Result := 1
-  else if Value and Cardinal($FFFF0000) = 0 then
-    Result := 2
-  else
-    Result := 4;
-end;
 
 {------------------------}
 { TSepiInstruction class }

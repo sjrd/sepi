@@ -43,7 +43,7 @@ interface
 
 uses
   Windows, Classes, SysUtils, TypInfo, ScUtils, SepiReflectionCore, SepiMembers,
-  SepiArrayTypes, SepiOpCodes, SepiCompiler, SepiReflectionConsts,
+  SepiOrdTypes, SepiArrayTypes, SepiOpCodes, SepiCompiler, SepiReflectionConsts,
   SepiCompilerConsts;
 
 type

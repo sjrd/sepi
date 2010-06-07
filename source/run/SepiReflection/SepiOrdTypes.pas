@@ -43,7 +43,7 @@ interface
 
 uses
   Classes, SysUtils, SysConst, TypInfo, ScUtils, ScTypInfo, ScDelphiLanguage,
-  SepiReflectionCore;
+  ScSerializer, SepiReflectionCore;
 
 const
   MinInt64 = Int64($FFFFFFFFFFFFFFFF);
@@ -294,6 +294,55 @@ type
   end;
 
   {*
+    Valeur d'un faux enum
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiFakeEnumValue = record
+    Name: string;   /// Name of the value
+    Value: Longint; /// Ordinal value of this value
+  end;
+
+  /// Tableau de valeurs d'un faux enum
+  TSepiFakeEnumValueDynArray = array of TSepiFakeEnumValue;
+
+  {*
+    Fausse énumération
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiFakeEnumType = class(TSepiOrdType)
+  private
+    FValueCount: Integer;                /// Nombre de valeurs
+    FValues: TSepiFakeEnumValueDynArray; /// Valeurs
+
+    procedure CreateConstants;
+
+    function GetValues(Index: Integer): TSepiFakeEnumValue;
+  protected
+    procedure Save(Stream: TStream); override;
+
+    procedure WriteDigestData(Stream: TStream); override;
+
+    procedure ExtractTypeData; override;
+
+    function GetDescription: string; override;
+  public
+    constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
+    constructor Create(AOwner: TSepiComponent; const AName: string;
+      const AValues: array of TSepiFakeEnumValue;
+      AMinEnumSize: TSepiMinEnumSize = mesByte);
+    constructor Clone(AOwner: TSepiComponent; const AName: string;
+      Source: TSepiType); override;
+
+    function Equals(Other: TSepiType): Boolean; override;
+    function CompatibleWith(AType: TSepiType): Boolean; override;
+
+    property ValueCount: Integer read FValueCount;
+    property Values[Index: Integer]: TSepiFakeEnumValue read GetValues;
+  end;
+
+  {*
     Type ensemble
     @author sjrd
     @version 1.0
@@ -382,6 +431,10 @@ type
     property IsUntyped: Boolean read FIsUntyped;
   end;
 
+function IntegerSize(Value: Integer; ZeroGivesZero: Boolean = False): Integer;
+function CardinalSize(Value: Cardinal;
+  ZeroGivesZero: Boolean = False): Integer;
+
 implementation
 
 uses
@@ -401,6 +454,53 @@ const
   EnumTypeDataLength = SizeOf(TOrdType) + 2*SizeOf(Longint) + SizeOf(Pointer);
   BooleanTypeDataLength = EnumTypeDataLength + SizeOf(PackedShortStrFalseTrue);
   SetTypeDataLength = SizeOf(TOrdType) + SizeOf(Pointer);
+
+{-----------------}
+{ Global routines }
+{-----------------}
+
+{*
+  Calcule la taille en octets d'un entier signé
+  @param Value           Entier signé
+  @param ZeroGivesZero   Si True, alors Value = 0 renvoie 0
+  @return Taille de l'entier signé
+*}
+function IntegerSize(Value: Integer; ZeroGivesZero: Boolean = False): Integer;
+begin
+  if ZeroGivesZero and (Value = 0) then
+    Result := 0
+  else
+  begin
+    if Value < 0 then
+      Value := not Value;
+
+    if Value and Integer($FFFFFF80) = 0 then
+      Result := 1
+    else if Value and Integer($FFFF8000) = 0 then
+      Result := 2
+    else
+      Result := 4;
+  end;
+end;
+
+{*
+  Calcule la taille en octets d'un entier non signé
+  @param Value           Entier non signé
+  @param ZeroGivesZero   Si True, alors Value = 0 renvoie 0
+  @return Taille de l'entier non signé
+*}
+function CardinalSize(Value: Cardinal;
+  ZeroGivesZero: Boolean = False): Integer;
+begin
+  if ZeroGivesZero and (Value = 0) then
+    Result := 0
+  else if Value and Cardinal($FFFFFF00) = 0 then
+    Result := 1
+  else if Value and Cardinal($FFFF0000) = 0 then
+    Result := 2
+  else
+    Result := 4;
+end;
 
 {---------------------}
 { Classe TSepiOrdType }
@@ -1447,6 +1547,180 @@ begin
   Result := Equals(AType);
 end;
 
+{-------------------------}
+{ TSepiFakeEnumType class }
+{-------------------------}
+
+{*
+  [@inheritDoc]
+*}
+constructor TSepiFakeEnumType.Load(AOwner: TSepiComponent; Stream: TStream);
+begin
+  inherited;
+
+  Stream.ReadBuffer(FMinValue, SizeOf(Longint));
+  Stream.ReadBuffer(FMaxValue, SizeOf(Longint));
+  Stream.ReadBuffer(FSize, SizeOf(Longint));
+
+  ReadDataFromStream(Stream, FValues,
+    System.TypeInfo(TSepiFakeEnumValueDynArray));
+  FValueCount := Length(FValues);
+end;
+
+{*
+  Crée un type fausse énumération
+  @param AOwner    Composant propriétaire
+  @param AName     Nom du type
+  @param AValues   Valeurs du type
+*}
+constructor TSepiFakeEnumType.Create(AOwner: TSepiComponent;
+  const AName: string; const AValues: array of TSepiFakeEnumValue;
+  AMinEnumSize: TSepiMinEnumSize = mesByte);
+var
+  I, PreviousValue, Value: Integer;
+begin
+  inherited Create(AOwner, AName, tkUnknown);
+
+  FValueCount := Length(AValues);
+  SetLength(FValues, ValueCount);
+
+  PreviousValue := -1;
+
+  FMinValue := MaxInt;
+  FMaxValue := 0;
+
+  for I := 0 to ValueCount-1 do
+  begin
+    FValues[I].Name := AValues[I].Name;
+    Value := AValues[I].Value;
+
+    if AValues[I].Value < 0 then
+      Value := PreviousValue + 1;
+
+    FValues[I].Value := Value;
+    PreviousValue := Value;
+
+    if Value < FMinValue then
+      FMinValue := Value;
+    if Value > FMaxValue then
+      FMaxValue := Value;
+  end;
+
+  FSize := CardinalSize(MaxValue);
+
+  case AMinEnumSize of
+    mesWord: FSize := IIF(FSize < 2, 2, FSize);
+    mesLongWord: FSize := 4;
+  end;
+
+  CreateConstants;
+end;
+
+{*
+  [@inheritDoc]
+*}
+constructor TSepiFakeEnumType.Clone(AOwner: TSepiComponent; const AName: string;
+  Source: TSepiType);
+var
+  SrcEnum: TSepiFakeEnumType;
+begin
+  inherited Create(AOwner, AName, tkUnknown);
+
+  SrcEnum := Source as TSepiFakeEnumType;
+
+  FMinValue := SrcEnum.MinValue;
+  FMaxValue := SrcEnum.MaxValue;
+  FSize := SrcEnum.Size;
+
+  FValueCount := SrcEnum.ValueCount;
+  FValues := Copy(SrcEnum.FValues);
+end;
+
+{*
+  Crée les constantes énumérées
+*}
+procedure TSepiFakeEnumType.CreateConstants;
+var
+  I: Integer;
+begin
+  for I := 0 to ValueCount-1 do
+    with FValues[I] do
+      TSepiConstant.Create(Owner, Name, Value, Self);
+end;
+
+{*
+  Tableau zero-based des valeurs de ce type fausse énumération
+  @param Index   Index compris entre 0 inclus et ValueCount exclu
+  @return La valeur à l'index spécifié
+*}
+function TSepiFakeEnumType.GetValues(Index: Integer): TSepiFakeEnumValue;
+begin
+  Result := FValues[Index];
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiFakeEnumType.Save(Stream: TStream);
+begin
+  inherited;
+
+  Stream.WriteBuffer(FMinValue, SizeOf(Longint));
+  Stream.WriteBuffer(FMaxValue, SizeOf(Longint));
+  Stream.WriteBuffer(FSize, SizeOf(Longint));
+
+  WriteDataToStream(Stream, FValues,
+    System.TypeInfo(TSepiFakeEnumValueDynArray));
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiFakeEnumType.WriteDigestData(Stream: TStream);
+begin
+  inherited;
+
+  WriteDataToStream(Stream, FValues,
+    System.TypeInfo(TSepiFakeEnumValueDynArray));
+end;
+
+{*
+  [@inheritedDoc]
+*}
+procedure TSepiFakeEnumType.ExtractTypeData;
+begin
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiFakeEnumType.GetDescription: string;
+var
+  I: Integer;
+begin
+  for I := 0 to ValueCount-1 do
+    with FValues[I] do
+      Result := Result + ' ' + Name + ' = ' + IntToStr(Value) + ',';
+  Result[1] := '(';
+  Result[Length(Result)] := ')';
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiFakeEnumType.Equals(Other: TSepiType): Boolean;
+begin
+  Result := Other = Self;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiFakeEnumType.CompatibleWith(AType: TSepiType): Boolean;
+begin
+  Result := AType = Self;
+end;
+
 {---------------------}
 { Classe TSepiSetType }
 {---------------------}
@@ -1844,7 +2118,8 @@ end;
 initialization
   SepiRegisterComponentClasses([
     TSepiIntegerType, TSepiCharType, TSepiInt64Type, TSepiFloatType,
-    TSepiBooleanType, TSepiEnumType, TSepiSetType, TSepiPointerType
+    TSepiBooleanType, TSepiEnumType, TSepiFakeEnumType, TSepiSetType,
+    TSepiPointerType
   ]);
 end.
 
