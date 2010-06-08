@@ -531,10 +531,16 @@ begin
     AddFieldAfter('VWord', System.TypeInfo(Word), 'Reserved3');
     AddFieldAfter('VLongWord', System.TypeInfo(LongWord), 'Reserved3');
     AddFieldAfter('VInt64', System.TypeInfo(Int64), 'Reserved3');
+    {$IF RTLVersion >= 20.0}
+    AddFieldAfter('VUInt64', System.TypeInfo(UInt64), 'Reserved3');
+    {$IFEND}
     AddFieldAfter('VString', 'Pointer', 'Reserved3');
     AddFieldAfter('VAny', 'Pointer', 'Reserved3');
     AddFieldAfter('VArray', 'PVarArray', 'Reserved3');
     AddFieldAfter('VPointer', 'Pointer', 'Reserved3');
+    {$IF RTLVersion >= 20.0}
+    AddFieldAfter('VUString', 'Pointer', 'Reserved3');
+    {$IFEND}
     AddFieldAfter('VLongs', '$3', 'Reserved1');
     AddFieldAfter('VWords', '$4', 'VType');
     AddFieldAfter('VBytes', '$5', 'VType');
@@ -609,6 +615,9 @@ begin
     AddFieldAfter('VInterface', 'Pointer', '');
     AddFieldAfter('VWideString', 'Pointer', '');
     AddFieldAfter('VInt64', 'PInt64', '');
+    {$IF RTLVersion >= 20.0}
+    AddFieldAfter('VUnicodeString', 'Pointer', '');
+    {$IFEND}
 
     Complete;
   end;
