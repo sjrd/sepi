@@ -56,7 +56,7 @@ const
   ShorterConst: TShorterInt = 5;
   EmptySet: TSysCharSet = [];
 var
-  C, D: Char;
+  C, D: AnsiChar;
   ShorterVar: TShorterInt;
 begin
   WriteTitle('Test set construction and operations');
