@@ -1159,15 +1159,16 @@ begin
     SourcePtr := ReadAddress(aoAcceptAllConsts, ConstSizes[OpCode]);
 
   case OpCode of
-    ocMoveByte:    Shortint  (DestPtr^) := Shortint  (SourcePtr^);
-    ocMoveWord:    Smallint  (DestPtr^) := Smallint  (SourcePtr^);
-    ocMoveDWord:   Longint   (DestPtr^) := Longint   (SourcePtr^);
-    ocMoveQWord:   Int64     (DestPtr^) := Int64     (SourcePtr^);
-    ocMoveExt:     Extended  (DestPtr^) := Extended  (SourcePtr^);
-    ocMoveAnsiStr: AnsiString(DestPtr^) := AnsiString(SourcePtr^);
-    ocMoveWideStr: WideString(DestPtr^) := WideString(SourcePtr^);
-    ocMoveVariant: Variant   (DestPtr^) := Variant   (SourcePtr^);
-    ocMoveIntf:    IInterface(DestPtr^) := IInterface(SourcePtr^);
+    ocMoveByte:       Shortint     (DestPtr^) := Shortint     (SourcePtr^);
+    ocMoveWord:       Smallint     (DestPtr^) := Smallint     (SourcePtr^);
+    ocMoveDWord:      Longint      (DestPtr^) := Longint      (SourcePtr^);
+    ocMoveQWord:      Int64        (DestPtr^) := Int64        (SourcePtr^);
+    ocMoveExt:        Extended     (DestPtr^) := Extended     (SourcePtr^);
+    ocMoveAnsiStr:    AnsiString   (DestPtr^) := AnsiString   (SourcePtr^);
+    ocMoveWideStr:    WideString   (DestPtr^) := WideString   (SourcePtr^);
+    ocMoveUnicodeStr: UnicodeStrDef(DestPtr^) := UnicodeStrDef(SourcePtr^);
+    ocMoveVariant:    Variant      (DestPtr^) := Variant      (SourcePtr^);
+    ocMoveIntf:       IInterface   (DestPtr^) := IInterface   (SourcePtr^);
   end;
 end;
 
