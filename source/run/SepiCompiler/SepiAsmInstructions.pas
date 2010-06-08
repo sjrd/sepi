@@ -1755,6 +1755,10 @@ end;
 *}
 constructor TSepiAsmMove.Create(AMethodCompiler: TSepiMethodCompiler;
   ADataType: TSepiType);
+const
+  tkLongStrings = [
+    tkLString, tkWString {$IF Declared(tkUString)}, tkUString {$IFEND}
+  ];
 begin
   if (not ADataType.NeedInit) and
     (CardinalSize(ADataType.Size) <= SizeOf(Word)) then
@@ -1773,13 +1777,16 @@ begin
     tkWString: FOpCode := ocMoveWideStr;
     tkInterface: FOpCode := ocMoveIntf;
     tkVariant: FOpCode := ocMoveVariant;
+    {$IF Declared(tkUString)}
+    tkUString: FOpCode := ocMoveUnicodeStr;
+    {$IFEND}
   else
     FOpCode := ocMoveOther;
   end;
 
   FDestination := TSepiMemoryReference.Create(MethodCompiler);
 
-  if DataType.Kind in [tkLString, tkWString] then
+  if DataType.Kind in tkLongStrings then
   begin
     FSource := TSepiMemoryReference.Create(MethodCompiler,
       aoAcceptNonCodeConsts);
