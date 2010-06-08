@@ -4327,7 +4327,6 @@ begin
 
   Stream.WriteBuffer(FIsConst, SizeOf(Boolean));
   VarType.WriteDigestToStream(Stream);
-  WriteDataToStream(Stream, FValue^, FType.Size, FType.TypeInfo);
 end;
 
 {----------------------}
