@@ -350,7 +350,18 @@ function TSepiImporterProducer.IdentifierFor(
 var
   First: TSepiComponent;
 begin
+  Result := '';
+
+  if ForComponent.Visibility in [mvStrictPrivate, mvPrivate] then
+    Exit;
+  if not (FromComponent is TSepiInheritableContainerType) and
+    (ForComponent.Visibility in [mvStrictProtected, mvProtected]) then
+    Exit;
+
   Result := ForComponent.GetShorterNameFrom(FromComponent);
+  if Result = '' then
+    Exit;
+
   First := FromComponent.LookFor(GetFirstToken(Result, '.'));
 
   // Artificially qualify inner types
@@ -361,8 +372,40 @@ begin
     Result := First.Name + '.' + Result;
   end;
 
+  if Pos('$', Result) > 0 then
+  begin
+    // Anonymous components can never be accessed in a real Delphi code
+    Result := '';
+    Exit;
+  end;
+
   Assert(FromComponent.LookFor(Result) = ForComponent);
   RequireUnit(First.OwningUnit.Name);
+end;
+
+{*
+  Teste si un type est un ensemble spécial qui n'a pas de RTTI en Delphi
+  @param SepiType   Type à tester
+  @return True si c'est un type ensemble spécial sans RTTI, False sinon
+*}
+function IsSpecialSetWithoutTypeInfo(SepiType: TSepiType): Boolean;
+var
+  SetType: TSepiSetType;
+begin
+  Result := False;
+  if not (SepiType is TSepiSetType) then
+    Exit;
+
+  SetType := TSepiSetType(SepiType);
+
+  if SetType.CompType.Name[1] <> '$' then
+    Exit;
+
+  if (SetType.CompType is TSepiEnumType) and
+    (TSepiEnumType(SetType.CompType).BaseType = SetType.CompType) then
+    Exit;
+
+  Result := True;
 end;
 
 {*
@@ -379,12 +422,12 @@ const
       'Sepi''}'+CRLF;
   CheckAlignmentStatement = CRLF+
     'type'+CRLF+
-    '  TCheckAlignmentFor%s = record'+CRLF+
+    '  TCheckAlignmentFor%0:s = record'+CRLF+
     '    Dummy: Byte;'+CRLF+
-    '    Field: %0:s;'+CRLF+
+    '    Field: %1:s;'+CRLF+
     '  end;'+CRLF+CRLF+
-    '{$IF SizeOf(TCheckAlignmentFor%0:s) <> (%d + %d)}'+CRLF+
-    '  {$MESSAGE WARN ''Le type %0:s n''''a pas l''''alignement calculé par '+
+    '{$IF SizeOf(TCheckAlignmentFor%0:s) <> (%2:d + %3:d)}'+CRLF+
+    '  {$MESSAGE WARN ''Le type %1:s n''''a pas l''''alignement calculé par '+
       'Sepi''}'+CRLF+
     '{$IFEND}'+CRLF;
   NoTypeInfo = -1;
@@ -392,26 +435,36 @@ const
   SetTypeInfoStatement =
     '  TypeInfoArray[%d] := TypeInfo(%s);'+CRLF;
 var
-  SetType: TSepiSetType;
+  FullName: string;
   HasSizeOfAssertion: Boolean;
-  AddToAlignment: Integer;
+  I, AddToAlignment: Integer;
 begin
-  if SepiType is TSepiSetType then
-    SetType := TSepiSetType(SepiType)
-  else
-    SetType := nil;
+  // Find a name that access the type from the Delphi code
+  FullName := IdentifierFor(SepiType, SepiType.OwningUnit);
 
-  if (SepiType.Name[1] <> '$') and
-    ((SepiType is TSepiSetType) or (SepiType is TSepiRecordType) or
-    (SepiType is TSepiStaticArrayType)) then
+  // If that was impossible, we are stuck anyway
+  if FullName = '' then
+  begin
+    if SepiType.TypeInfo = nil then
+      SepiType.Tag := NoTypeInfo
+    else
+      SepiType.Tag := CantFindTypeInfo;
+
+    Exit;
+  end;
+
+  // Check Size was computed correctly for sets, records and arrays
+  if (SepiType is TSepiSetType) or (SepiType is TSepiRecordType) or
+    (SepiType is TSepiStaticArrayType) then
   begin
     HasSizeOfAssertion := True;
     Template.AddToParam(StaticAssertionsParam,
-      Format(CheckSizeOfStatement, [SepiType.Name, SepiType.Size]));
+      Format(CheckSizeOfStatement, [FullName, SepiType.Size]));
   end else
     HasSizeOfAssertion := False;
 
-  if (SepiType.Name[1] <> '$') and (SepiType.Size < $1000000) then
+  // Check that Alignment was computed correctly
+  if SepiType.Size < $1000000 then
   begin
     if HasSizeOfAssertion then
       Template.AddToParam(StaticAssertionsParam, '{$ELSE}'+CRLF);
@@ -420,8 +473,8 @@ begin
     SepiType.AlignOffset(AddToAlignment);
 
     Template.AddToParam(StaticAssertionsParam,
-      Format(CheckAlignmentStatement,
-      [SepiType.Name, SepiType.Alignment, AddToAlignment]));
+      Format(CheckAlignmentStatement, [AnsiReplaceStr(FullName, '.', ''),
+      FullName, SepiType.Alignment, AddToAlignment]));
 
     if HasSizeOfAssertion then
       Template.AddToParam(StaticAssertionsParam, CRLF);
@@ -430,25 +483,30 @@ begin
   if HasSizeOfAssertion then
     Template.AddToParam(StaticAssertionsParam, '{$IFEND}'+CRLF);
 
+  // Find its TypeInfo
   with SepiType do
   begin
     if TypeInfo = nil then
       Tag := NoTypeInfo
-    else if Name[1] = '$' then
-      Tag := CantFindTypeInfo
-    else if (SetType <> nil) and (SetType.CompType.Name[1] = '$') and
-      ((not (SetType.CompType is TSepiEnumType)) or
-      (TSepiEnumType(SetType.CompType).BaseType <> SetType.CompType)) then
+    else if IsSpecialSetWithoutTypeInfo(SepiType) then
       Tag := CantFindTypeInfo
     else
     begin
       Tag := NextTypeID;
       Template.AddToParam(InitTypeInfoArrayParam,
-        Format(SetTypeInfoStatement, [Tag, Name]));
+        Format(SetTypeInfoStatement, [Tag, FullName]));
     end;
+  end;
 
-    if SepiType is TSepiClass then
-      HandleClassType(Template, TSepiClass(SepiType));
+  // Handle classes
+  if SepiType is TSepiClass then
+    HandleClassType(Template, TSepiClass(SepiType));
+
+  // Handle inner types
+  for I := 0 to SepiType.ChildCount-1 do
+  begin
+    if SepiType.Children[I] is TSepiType then
+      HandleType(Template, TSepiType(SepiType.Children[I]));
   end;
 end;
 
