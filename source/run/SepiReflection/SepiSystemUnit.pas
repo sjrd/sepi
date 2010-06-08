@@ -134,6 +134,8 @@ type
     constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
     constructor Create(AOwner: TSepiComponent);
 
+    procedure CreateBuiltinTypes;
+
     property Types: TSepiSystemTypes read FTypes;
 
     // Special types
@@ -268,6 +270,90 @@ const // don't localize
     'TVarRec'
   );
 
+{-----------------}
+{ Global routines }
+{-----------------}
+
+{*
+  Create builtin types
+*}
+procedure InternalCreateBuiltinTypes(Self: TSepiSystemUnit);
+begin
+  // Special types
+  TSepiUntypedType.Create(Self, SUntypedTypeName);
+
+  // Integer types
+  TSepiType.LoadFromTypeInfo(Self, TypeInfo(Integer));
+  TSepiType.LoadFromTypeInfo(Self, TypeInfo(Cardinal));
+  TSepiType.LoadFromTypeInfo(Self, TypeInfo(Shortint));
+  TSepiType.LoadFromTypeInfo(Self, TypeInfo(Smallint));
+  TSepiTypeAlias.Create(Self, 'Longint', TypeInfo(Longint));
+  TSepiType.LoadFromTypeInfo(Self, TypeInfo(Int64));
+  TSepiType.LoadFromTypeInfo(Self, TypeInfo(Byte));
+  TSepiType.LoadFromTypeInfo(Self, TypeInfo(Word));
+  TSepiTypeAlias.Create(Self, 'LongWord', TypeInfo(LongWord));
+  {$IF Declared(UInt64)}
+  TSepiType.LoadFromTypeInfo(Self, TypeInfo(UInt64));
+  {$IFEND}
+
+  // Character types
+  TSepiType.LoadFromTypeInfo(Self, TypeInfo(AnsiChar));
+  TSepiType.LoadFromTypeInfo(Self, TypeInfo(WideChar));
+
+{$IFDEF UNICODE}
+  TSepiTypeAlias.Create(Self, 'WideChar', TypeInfo(WideChar));
+{$ELSE}
+  TSepiTypeAlias.Create(Self, 'AnsiChar', TypeInfo(AnsiChar));
+{$ENDIF}
+
+  // Boolean types
+  TSepiType.LoadFromTypeInfo(Self, TypeInfo(Boolean));
+  TSepiType.LoadFromTypeInfo(Self, TypeInfo(ByteBool));
+  TSepiType.LoadFromTypeInfo(Self, TypeInfo(WordBool));
+  TSepiType.LoadFromTypeInfo(Self, TypeInfo(LongBool));
+
+  // Float types
+  TSepiType.LoadFromTypeInfo(Self, TypeInfo(Single));
+  TSepiType.LoadFromTypeInfo(Self, TypeInfo(Double));
+  TSepiType.LoadFromTypeInfo(Self, TypeInfo(Extended));
+  TSepiType.LoadFromTypeInfo(Self, TypeInfo(Comp));
+  TSepiType.LoadFromTypeInfo(Self, TypeInfo(Currency));
+
+  // String types
+  TSepiType.LoadFromTypeInfo(Self, TypeInfo(string));
+  TSepiType.LoadFromTypeInfo(Self, TypeInfo(ShortString));
+  TSepiType.LoadFromTypeInfo(Self, TypeInfo(WideString));
+
+{$IFDEF UNICODE}
+  TSepiType.LoadFromTypeInfo(Self, TypeInfo(AnsiString));
+  TSepiTypeAlias.Create(Self, 'UnicodeString', TypeInfo(UnicodeString));
+  TSepiType.LoadFromTypeInfo(Self, TypeInfo(RawByteString));
+{$ELSE}
+  TSepiTypeAlias.Create(Self, 'AnsiString', TypeInfo(AnsiString));
+{$ENDIF}
+
+  // Variant types
+  TSepiType.LoadFromTypeInfo(Self, TypeInfo(Variant));
+  TSepiType.LoadFromTypeInfo(Self, TypeInfo(OleVariant));
+
+  // Pointer types
+  TSepiPointerType.Create(Self, 'Pointer', TSepiType(nil), True);
+  TSepiPointerType.Create(Self, 'PChar', TypeInfo(Char), True);
+  TSepiPointerType.Create(Self, 'PAnsiChar', TypeInfo(AnsiChar), True);
+  TSepiPointerType.Create(Self, 'PWideChar', TypeInfo(WideChar), True);
+
+  { System constants }
+  TSepiConstant.Create(Self, 'CompilerVersion', CompilerVersion);
+  TSepiConstant.Create(Self, 'True', True);
+  TSepiConstant.Create(Self, 'False', False);
+  TSepiConstant.Create(Self, 'MaxInt', MaxInt);
+  TSepiConstant.Create(Self, 'MaxLongint', MaxLongint);
+
+  { The pseudo-constant nil isn't declared here, for it has many different
+    types, depending on the situation. Each compiler should understand the nil
+    value for what it is: a special value, not a simple constant. }
+end;
+
 {-----------------------}
 { TSepiSystemUnit class }
 {-----------------------}
@@ -320,6 +406,14 @@ begin
       Dec(FRemainingUnknownTypeCount);
     end;
   end;
+end;
+
+{*
+  Create builtin types - those that are not even written in the System.pas file
+*}
+procedure TSepiSystemUnit.CreateBuiltinTypes;
+begin
+  InternalCreateBuiltinTypes(Self);
 end;
 
 end.

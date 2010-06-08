@@ -794,84 +794,14 @@ var
   SystemUnit: TSepiSystemUnit;
 begin
   SystemUnit := TSepiSystemUnit.Create(Root);
+  SystemUnit.CreateBuiltinTypes;
   Result := SystemUnit;
-
-  // Special types
-  TSepiUntypedType.Create(Result, SUntypedTypeName);
-
-  // Integer types
-  TSepiType.LoadFromTypeInfo(Result, TypeInfo(Integer));
-  TSepiType.LoadFromTypeInfo(Result, TypeInfo(Cardinal));
-  TSepiType.LoadFromTypeInfo(Result, TypeInfo(Shortint));
-  TSepiType.LoadFromTypeInfo(Result, TypeInfo(Smallint));
-  TSepiTypeAlias.Create(Result, 'Longint', TypeInfo(Longint));
-  TSepiType.LoadFromTypeInfo(Result, TypeInfo(Int64));
-  TSepiType.LoadFromTypeInfo(Result, TypeInfo(Byte));
-  TSepiType.LoadFromTypeInfo(Result, TypeInfo(Word));
-  TSepiTypeAlias.Create(Result, 'LongWord', TypeInfo(LongWord));
-  {$IF DECLARED(UInt64)}
-  TSepiType.LoadFromTypeInfo(Result, TypeInfo(UInt64));
-  {$IFEND}
-
-  // Character types
-  TSepiType.LoadFromTypeInfo(Result, TypeInfo(AnsiChar));
-  TSepiType.LoadFromTypeInfo(Result, TypeInfo(WideChar));
-
-{$IFDEF UNICODE}
-  TSepiTypeAlias.Create(Result, 'WideChar', TypeInfo(WideChar));
-{$ELSE}
-  TSepiTypeAlias.Create(Result, 'AnsiChar', TypeInfo(AnsiChar));
-{$ENDIF}
-
-  // Boolean types
-  TSepiType.LoadFromTypeInfo(Result, TypeInfo(Boolean));
-  TSepiType.LoadFromTypeInfo(Result, TypeInfo(ByteBool));
-  TSepiType.LoadFromTypeInfo(Result, TypeInfo(WordBool));
-  TSepiType.LoadFromTypeInfo(Result, TypeInfo(LongBool));
-
-  // Float types
-  TSepiType.LoadFromTypeInfo(Result, TypeInfo(Single));
-  TSepiType.LoadFromTypeInfo(Result, TypeInfo(Double));
-  TSepiType.LoadFromTypeInfo(Result, TypeInfo(Extended));
-  TSepiType.LoadFromTypeInfo(Result, TypeInfo(Comp));
-  TSepiType.LoadFromTypeInfo(Result, TypeInfo(Currency));
-
-  // String types
-  TSepiType.LoadFromTypeInfo(Result, TypeInfo(string));
-  TSepiType.LoadFromTypeInfo(Result, TypeInfo(ShortString));
-  TSepiType.LoadFromTypeInfo(Result, TypeInfo(WideString));
-
-{$IFDEF UNICODE}
-  TSepiType.LoadFromTypeInfo(Result, TypeInfo(AnsiString));
-  TSepiTypeAlias.Create(Result, 'UnicodeString', TypeInfo(UnicodeString));
-  TSepiType.LoadFromTypeInfo(Result, TypeInfo(RawByteString));
-{$ELSE}
-  TSepiTypeAlias.Create(Result, 'AnsiString', TypeInfo(AnsiString));
-{$ENDIF}
-
-  // Variant types
-  TSepiType.LoadFromTypeInfo(Result, TypeInfo(Variant));
-  TSepiType.LoadFromTypeInfo(Result, TypeInfo(OleVariant));
-
-  // Pointer types
-  TSepiPointerType.Create(Result, 'Pointer', TSepiType(nil), True);
-  TSepiPointerType.Create(Result, 'PChar', TypeInfo(Char), True);
-  TSepiPointerType.Create(Result, 'PAnsiChar', TypeInfo(AnsiChar), True);
-  TSepiPointerType.Create(Result, 'PWideChar', TypeInfo(WideChar), True);
 
   { System constants }
   TSepiConstant.Create(Result, 'RTLVersion', RTLVersion);
-  TSepiConstant.Create(Result, 'CompilerVersion', CompilerVersion);
-  {$IF DECLARED(GPL)}
+  {$IF Declared(GPL)}
   TSepiConstant.Create(Result, 'GPL', GPL);
   {$IFEND}
-  TSepiConstant.Create(Result, 'True', True);
-  TSepiConstant.Create(Result, 'False', False);
-  TSepiConstant.Create(Result, 'MaxInt', MaxInt);
-  TSepiConstant.Create(Result, 'MaxLongint', MaxLongint);
-  { The pseudo-constant nil isn't declared here, for it has many different
-    types, depending on the situation. Each compiler should understand the nil
-    value for what it is: a special value, not a simple constant. }
 
   {$IF Declared(Int8)}
   { Useful alias types }
