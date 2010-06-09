@@ -1290,7 +1290,8 @@ end;
 procedure TSepiBooleanType.Save(Stream: TStream);
 begin
   inherited;
-  Stream.WriteBuffer(TypeData^, EnumTypeDataLength);
+
+  Stream.WriteBuffer(FBooleanKind, SizeOf(TBooleanKind));
 end;
 
 {*
