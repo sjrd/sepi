@@ -16,8 +16,8 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ActnList, ImgList, Menus, VirtualTrees, SdDialogs,
-  SepiReflectionCore, SepiMembers, SepiRuntime, ExplorerOptions, ExplorerConsts,
-  ExtCtrls, ComponentExplorer;
+  SepiReflectionCore, SepiMembers, SepiSystemUnit, SepiRuntime, ExplorerOptions,
+  ExplorerConsts, ExtCtrls, ComponentExplorer;
 
 type
   {*
@@ -100,8 +100,15 @@ var
 begin
   FOptions := TExplorerOptions.Create;
 
-  FSepiRoot := TSepiRoot.Create;
-  FSepiRoot.OnLoadUnit := RootLoadUnit;
+  FSepiRoot := TSepiRoot(TSepiRoot.NewInstance);
+  try
+    FSepiRoot.OnLoadUnit := RootLoadUnit;
+    FSepiRoot.Create;
+  except
+    FSepiRoot := nil;
+    raise;
+  end;
+
   FRuntimeUnits := TStringList.Create;
 
   ComponentExplorer.OnGetRuntimeMethod := GetRuntimeMethod;
@@ -153,11 +160,17 @@ begin
   if UnitFileName <> '' then
   begin
     Stream := TFileStream.Create(UnitFileName, fmOpenRead);
-    LazyLoad := (not DisableLazyLoad) and (Stream.Size > MaxSizeBeforeLazyLoad);
     try
-      Result := TSepiUnit.LoadFromStream(Sender, Stream, LazyLoad);
-      if LazyLoad then
-        Result.AcquireObjResource(Stream);
+      if AnsiSameText(UnitName, SystemUnitName) then
+        Result := TSepiSystemUnit.LoadFromStream(Sender, Stream)
+      else
+      begin
+        LazyLoad := (not DisableLazyLoad) and
+          (Stream.Size > MaxSizeBeforeLazyLoad);
+        Result := TSepiUnit.LoadFromStream(Sender, Stream, LazyLoad);
+        if LazyLoad then
+          Result.AcquireObjResource(Stream);
+      end;
     finally
       Stream.Free;
     end;
@@ -336,5 +349,7 @@ begin
     Options.BrowsingPath := BrowsingPath;
 end;
 
+initialization
+  SepiUnregisterImportedUnit(SystemUnitName);
 end.
 

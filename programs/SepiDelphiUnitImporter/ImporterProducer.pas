@@ -584,9 +584,12 @@ var
   Component: TSepiComponent;
   DeclTemplate, ImplTemplate: TTemplate;
 begin
-  Template.AddToParam(DynamicAssertionsParam,
-    Format(CheckInstanceSizeStatement,
-      [SepiClass.Name, SepiClass.InstSize, SepiClass.Parent.InstSize]));
+  if SepiClass.Parent <> nil then
+  begin
+    Template.AddToParam(DynamicAssertionsParam,
+      Format(CheckInstanceSizeStatement,
+        [SepiClass.Name, SepiClass.InstSize, SepiClass.Parent.InstSize]));
+  end;
 
   // If returns False, no import must be done for this class
   if not PrepareClassMethodTags(SepiClass) then

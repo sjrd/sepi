@@ -879,6 +879,8 @@ type
 
     FDefaultProperty: TSepiProperty; /// Propriété tableau par défaut
 
+    procedure LoadInitialDataFromParent;
+
     procedure MakeIMT(IntfEntry: PSepiInterfaceEntry);
     procedure ListCompleteIMTInterfaces(CompleteIMTInterfaces: TObjectList);
     procedure MakeCompleteIMTs(CompleteIMTInterfaces: TObjectList);
@@ -3787,7 +3789,7 @@ begin
   FResultBehavior := rbParameter;
 
   OwningUnit.ReadRef(Stream, FParent);
-  Assert(FParent.Completed);
+  Assert((FParent = nil) or FParent.Completed);
   FCompleted := False;
 
   Stream.ReadBuffer(FHasGUID, 1);
@@ -3795,7 +3797,8 @@ begin
   Stream.ReadBuffer(FIsDispatch, 1);
   Stream.ReadBuffer(FGUID, SizeOf(TGUID));
 
-  FIMTSize := Parent.IMTSize;
+  if Parent <> nil then
+    FIMTSize := Parent.IMTSize;
 
   LoadChildren(Stream);
 
@@ -3822,7 +3825,7 @@ begin
     FParent := AParent
   else
     FParent := (Root.SystemUnit as TSepiSystemUnit).IInterface;
-  Assert(FParent.Completed);
+  Assert((FParent = nil) or FParent.Completed);
   FCompleted := False;
 
   FHasGUID := not IsNoGUID(AGUID);
@@ -3831,7 +3834,8 @@ begin
     (Root.SystemUnit as TSepiSystemUnit).IDispatch);
   FGUID := AGUID;
 
-  FIMTSize := Parent.IMTSize;
+  if Parent <> nil then
+    FIMTSize := Parent.IMTSize;
 end;
 
 {*
@@ -3847,7 +3851,10 @@ begin
 
   // Creating the RTTI
   AllocateTypeInfo(IntfTypeDataLengthBase + Length(OwningUnitName) + 1);
-  TypeData.IntfParent := FParent.TypeInfoRef;
+  if Parent = nil then
+    TypeData.IntfParent := nil
+  else
+    TypeData.IntfParent := Parent.TypeInfoRef;
 
   // Interface flags
   Flags := [];
@@ -4092,24 +4099,11 @@ begin
   FSize := 4;
   FDelphiClass := TypeData.ClassType;
   if Assigned(TypeData.ParentInfo) then
-  begin
     FParent := TSepiClass(Root.FindType(TypeData.ParentInfo^));
-    Assert(FParent.Completed);
-    FInstSize := Parent.InstSize;
-    FVMTSize := Parent.VMTSize;
-    FDMTNextIndex := Parent.FDMTNextIndex;
-    FPublishedPropCount := Parent.FPublishedPropCount;
-    FDefaultProperty := Parent.DefaultProperty;
-  end else
-  begin
-    // This is TObject
-    FParent := nil;
-    FInstSize := 4; // pointer to VMT
-    FVMTSize := vmtMinMethodIndex;
-    FDMTNextIndex := -1;
-  end;
+
+  LoadInitialDataFromParent;
+
   FStoredInstSize := DelphiClass.InstanceSize - hfFieldSize;
-  FCompleted := False;
 end;
 
 {*
@@ -4127,8 +4121,6 @@ begin
   else
     FDelphiClass := nil;
   OwningUnit.ReadRef(Stream, FParent);
-  Assert(FParent.Completed);
-  FCompleted := False;
 
   Stream.ReadBuffer(IntfCount, 4);
   SetLength(FInterfaces, IntfCount);
@@ -4148,10 +4140,7 @@ begin
     end;
   end;
 
-  FInstSize := Parent.InstSize;
-  FVMTSize := Parent.VMTSize;
-  FDMTNextIndex := Parent.FDMTNextIndex;
-  FPublishedPropCount := Parent.FPublishedPropCount;
+  LoadInitialDataFromParent;
 
   Stream.ReadBuffer(FStoredInstSize, 4);
 
@@ -4170,8 +4159,6 @@ begin
     end;
   end;
   {$ENDIF}
-
-  FDefaultProperty := Parent.DefaultProperty;
 
   LoadChildren(Stream);
 
@@ -4195,15 +4182,8 @@ begin
     FParent := AParent
   else
     FParent := (Root.SystemUnit as TSepiSystemUnit).TObject;
-  Assert(FParent.Completed);
-  FCompleted := False;
 
-  FInstSize := Parent.InstSize;
-  FVMTSize := Parent.VMTSize;
-  FDMTNextIndex := Parent.FDMTNextIndex;
-  FPublishedPropCount := Parent.FPublishedPropCount;
-
-  FDefaultProperty := Parent.DefaultProperty;
+  LoadInitialDataFromParent;
 end;
 
 {*
@@ -4246,6 +4226,29 @@ begin
   end;
 
   inherited;
+end;
+
+{*
+  Charge les données initiales depuis le parent de cette classe
+*}
+procedure TSepiClass.LoadInitialDataFromParent;
+begin
+  if Parent <> nil then
+  begin
+    Assert(FParent.Completed);
+
+    FInstSize := Parent.InstSize;
+    FVMTSize := Parent.VMTSize;
+    FDMTNextIndex := Parent.FDMTNextIndex;
+    FPublishedPropCount := Parent.FPublishedPropCount;
+    FDefaultProperty := Parent.DefaultProperty;
+  end else
+  begin
+    // This is TObject
+    FInstSize := 4; // pointer to VMT
+    FVMTSize := vmtMinMethodIndex;
+    FDMTNextIndex := -1;
+  end;
 end;
 
 {*
@@ -4541,7 +4544,10 @@ begin
 
     // Basic information
     TypeData.ClassType := DelphiClass;
-    TypeData.ParentInfo := FParent.TypeInfoRef;
+    if FParent = nil then
+      TypeData.ParentInfo := nil
+    else
+      TypeData.ParentInfo := FParent.TypeInfoRef;
     TypeData.PropCount := FPublishedPropCount;
     Move(OwningUnitName[0], TypeData.UnitName[0], Length(OwningUnitName)+1);
 
@@ -4832,9 +4838,12 @@ begin
   VMTEntries[vmtParent] := @Parent.FDelphiClass;
 
   // Copy the parent VMT
-  Move(Pointer(Integer(Parent.DelphiClass) + vmtMinMethodIndex)^,
-    Pointer(Integer(PVMT) + vmtMinMethodIndex)^,
-    Parent.VMTSize - vmtMinMethodIndex);
+  if Parent <> nil then
+  begin
+    Move(Pointer(Integer(Parent.DelphiClass) + vmtMinMethodIndex)^,
+      Pointer(Integer(PVMT) + vmtMinMethodIndex)^,
+      Parent.VMTSize - vmtMinMethodIndex);
+  end;
 
   // Setting the new method addresses
   AbstractErrorProcAddress := DereferenceJump(@AbstractError);

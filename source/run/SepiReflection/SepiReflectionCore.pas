@@ -2386,10 +2386,10 @@ end;
 constructor TSepiRoot.Create;
 begin
   inherited Create(nil, '');
+
   FRoot := Self;
   FState := msNormal;
   FSearchOrder := TObjectList.Create(False);
-  FOnLoadUnit := nil;
 
   LoadUnit(SystemUnitName);
 end;
@@ -4509,7 +4509,8 @@ end;
 
 initialization
   SepiRegisterComponentClasses([
-    TSepiUnit, TSepiTypeAlias, TSepiConstant, TSepiVariable, TSepiNamespace
+    TSepiUntypedType, TSepiUnit, TSepiTypeAlias, TSepiConstant, TSepiVariable,
+    TSepiNamespace
   ]);
 finalization
   SepiComponentClasses.Free;
