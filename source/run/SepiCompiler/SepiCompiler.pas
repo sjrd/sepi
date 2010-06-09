@@ -618,16 +618,39 @@ type
   end;
 
   {*
+    Classe de base pour les classes TSepiMethodCompiler et TSepiUnitCompiler
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiCompilerBase = class(TObject)
+  private
+    FUnitCompiler: TSepiUnitCompiler; /// Compilateur d'unité
+
+    FErrors: TSepiCompilerErrorList; /// Erreurs
+
+    FSepiUnit: TSepiUnit;         /// Unité Sepi
+    FSepiRoot: TSepiRoot;         /// Racine Sepi
+    FSystemUnit: TSepiSystemUnit; /// Unité System
+  public
+    constructor Create(AUnitCompiler: TSepiUnitCompiler;
+      AErrors: TSepiCompilerErrorList; ASepiUnit: TSepiUnit);
+
+    property UnitCompiler: TSepiUnitCompiler read FUnitCompiler;
+
+    property Errors: TSepiCompilerErrorList read FErrors;
+
+    property SepiUnit: TSepiUnit read FSepiUnit;
+    property SepiRoot: TSepiRoot read FSepiRoot;
+    property SystemUnit: TSepiSystemUnit read FSystemUnit;
+  end;
+
+  {*
     Compilateur d'une méthode Sepi
     @author sjrd
     @version 1.0
   *}
-  TSepiMethodCompiler = class(TObject)
+  TSepiMethodCompiler = class(TSepiCompilerBase)
   private
-    FUnitCompiler: TSepiUnitCompiler; /// Compilateur d'unité
-
-    FSystemUnit: TSepiSystemUnit; /// Unité System
-
     FObjFreeList: TObjectList; /// Liste des objets à libérer en fin de vie
 
     FSepiMethod: TSepiMethod;        /// Méthode Sepi correspondante
@@ -682,8 +705,6 @@ type
     procedure WriteToStream(Stream: TStream);
     procedure WriteLocalsInfo(Stream: TStream);
 
-    property UnitCompiler: TSepiUnitCompiler read FUnitCompiler;
-    property SystemUnit: TSepiSystemUnit read FSystemUnit;
     property SepiMethod: TSepiMethod read FSepiMethod;
     property HasLocalNamespace: Boolean read GetHasLocalNamespace;
     property LocalNamespace: TSepiNamespace read GetLocalNamespace;
@@ -701,17 +722,11 @@ type
     @author sjrd
     @version 1.0
   *}
-  TSepiUnitCompiler = class(TObject)
+  TSepiUnitCompiler = class(TSepiCompilerBase)
   private
-    FErrors: TSepiCompilerErrorList; /// Erreurs
-
-    FSepiUnit: TSepiUnit;  /// Unité Sepi
-    FSepiRoot: TSepiRoot;  /// Racine Sepi
     FMethods: TObjectList; /// Compilateurs de méthodes
 
     FLanguageRules: TSepiLanguageRules; /// Règles du langage utilisé
-
-    FSystemUnit: TSepiSystemUnit; /// Unité System
 
     FCompileTimeTypes: TSepiComponent; /// Types de compilation
     FErroneousType: TSepiType;         /// Type erroné
@@ -743,14 +758,7 @@ type
 
     procedure WriteToStream(Stream: TStream);
 
-    property Errors: TSepiCompilerErrorList read FErrors;
-
-    property SepiUnit: TSepiUnit read FSepiUnit;
-    property SepiRoot: TSepiRoot read FSepiRoot;
-
     property LanguageRules: TSepiLanguageRules read FLanguageRules;
-
-    property SystemUnit: TSepiSystemUnit read FSystemUnit;
 
     property MethodCount: Integer read GetMethodCount;
     property Methods[Index: Integer]: TSepiMethodCompiler read GetMethods;
@@ -2333,6 +2341,29 @@ begin
   UnitCompiler.Errors.MakeError(Msg, Kind, SourcePos);
 end;
 
+{-------------------------}
+{ TSepiCompilerBase class }
+{-------------------------}
+
+{*
+  Crée un nouveau compilateur Sepi
+  @param AUnitCompiler   Compilateur d'unité
+  @param AErrors         Gestionnaire d'erreurs
+  @param ASepiUnit       Unité Sepi à compiler
+*}
+constructor TSepiCompilerBase.Create(AUnitCompiler: TSepiUnitCompiler;
+  AErrors: TSepiCompilerErrorList; ASepiUnit: TSepiUnit);
+begin
+  inherited Create;
+
+  FUnitCompiler := AUnitCompiler;
+  FErrors := AErrors;
+
+  FSepiUnit := ASepiUnit;
+  FSepiRoot := ASepiUnit.Root;
+  FSystemUnit := FSepiRoot.SystemUnit as TSepiSystemUnit;
+end;
+
 {---------------------------}
 { TSepiMethodCompiler class }
 {---------------------------}
@@ -2345,7 +2376,7 @@ end;
 constructor TSepiMethodCompiler.Create(AUnitCompiler: TSepiUnitCompiler;
   ASepiMethod: TSepiMethod);
 begin
-  inherited Create;
+  inherited Create(AUnitCompiler, AUnitCompiler.Errors, AUnitCompiler.SepiUnit);
 
   FUnitCompiler := AUnitCompiler;
   FSystemUnit := FUnitCompiler.SystemUnit;
@@ -2650,18 +2681,15 @@ end;
 
 {*
   Crée un nouveau compilateur d'unité Sepi
-  @param ASepiUnit   Unité Sepi à assembler
+  @param AErrors               Gestionnaire d'erreurs
+  @param ASepiUnit             Unité Sepi à compiler
+  @param ALanguageRulesClass   Classe du gestionnaire des règles du langage
 *}
 constructor TSepiUnitCompiler.Create(AErrors: TSepiCompilerErrorList;
   ASepiUnit: TSepiUnit; ALanguageRulesClass: TSepiLanguageRulesClass);
 begin
-  inherited Create;
+  inherited Create(Self, AErrors, ASepiUnit);
 
-  FErrors := AErrors;
-
-  FSepiUnit := ASepiUnit;
-  FSepiRoot := FSepiUnit.Root;
-  FSystemUnit := FSepiRoot.SystemUnit as TSepiSystemUnit;
   FMethods := TObjectList.Create;
   FReferences := TObjectList.Create(False);
 
