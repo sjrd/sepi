@@ -510,7 +510,10 @@ ntTypeModifier	TypeModifier	Simplify
 	Identifier
 
 ntCloneDesc	CloneDesc
-	'type'* TypeName
+	'type'* TypeName (AnsiStringCodePage)?
+
+ntAnsiStringCodePage	AnsiStringCodePage	Simplify
+	'('* ConstExpression ')'*
 
 ntRangeOrEnumDesc	RangeOrEnumDesc	SuccessiveTries
 	EnumDesc

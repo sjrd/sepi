@@ -44,8 +44,8 @@ interface
 uses
   Windows, Types, SysUtils, Classes, StrUtils, TypInfo, SysConst, ScUtils,
   ScStrUtils, ScDelphiLanguage, SepiReflectionCore, SepiMembers, SepiOrdTypes,
-  SepiStrTypes, SepiArrayTypes, SepiDelphiLexer, SepiDelphiParser,
-  SepiCompilerErrors, SepiParseTrees, SepiCompiler, SepiCore,
+  SepiStrTypes, SepiArrayTypes, SepiSystemUnit, SepiDelphiLexer,
+  SepiDelphiParser, SepiCompilerErrors, SepiParseTrees, SepiCompiler, SepiCore,
   SepiCompilerConsts, SepiExpressions, SepiDelphiCompilerConsts, SepiOpCodes,
   SepiDelphiLikeCompilerUtils, SepiLL1ParserUtils, SepiInstructions,
   SepiCompilerUtils, SepiStdCompilerNodes;
@@ -771,10 +771,27 @@ end;
   [@inheritDoc]
 *}
 procedure TDelphiRootNode.ChildEndParsing(Child: TSepiParseTreeNode);
+var
+  UnitName: string;
+  SepiUnit: TSepiUnit;
 begin
   if Child.SymbolClass = ntIdentifier then
-    SetSepiUnit(TSepiUnit.Create(SepiRoot, Child.AsText, []),
-      TSepiDelphiLanguageRules);
+  begin
+    UnitName := Child.AsText;
+
+    if AnsiSameText(UnitName, SystemUnitName) then
+    begin
+      Assert(SepiRoot.ChildCount = 1);
+      SepiRoot.SystemUnit.Free;
+      SepiUnit := TSepiSystemUnit.Create(SepiRoot);
+      TSepiSystemUnit(SepiUnit).CreateBuiltinTypes;
+    end else
+    begin
+      SepiUnit := TSepiUnit.Create(SepiRoot, UnitName, []);
+    end;
+
+    SetSepiUnit(SepiUnit, TSepiDelphiLanguageRules);
+  end;
 
   inherited;
 end;
@@ -1314,14 +1331,26 @@ begin
 
   if OldType <> nil then
   begin
-    try
-      SetSepiType(TSepiTypeClass(OldType.ClassType).Clone(
-        SepiContext, TypeName, OldType));
-    except
-      on Error: ESepiError do
-      begin
-        MakeError(Error.Message);
-        SetSepiType(UnitCompiler.MakeErroneousTypeAlias(TypeName));
+    if ChildCount >= 2 then
+    begin
+      // Definition of an AnsiString with a given code page
+      if OldType <> SystemUnit.AnsiString then
+        Children[1].MakeError(SCodePageSpecificationForbidden);
+
+      SetSepiType(TSepiStringType.Create(SepiContext, TypeName, skAnsiString,
+        (Children[1] as TSepiConstExpressionNode).AsInteger));
+    end else
+    begin
+      // Regular clone
+      try
+        SetSepiType(TSepiTypeClass(OldType.ClassType).Clone(
+          SepiContext, TypeName, OldType));
+      except
+        on Error: ESepiError do
+        begin
+          MakeError(Error.Message);
+          SetSepiType(UnitCompiler.MakeErroneousTypeAlias(TypeName));
+        end;
       end;
     end;
   end;

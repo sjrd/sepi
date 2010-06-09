@@ -45,6 +45,8 @@ uses
   SepiReflectionCore, SepiMembers;
 
 resourcestring
+  SCodePageSpecificationForbidden =
+    'Spécification de page de code non autorisée en dehors des AnsiString';
   SWrongSetCompType =
     'Les éléments d''un ensemble doivent être des ordinaux avec maximum 256 '+
     'valeurs';
