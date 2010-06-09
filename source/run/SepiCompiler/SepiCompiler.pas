@@ -52,6 +52,7 @@ type
   TSepiInstructionList = class;
   ISepiExpression = interface;
   TSepiMethodCompiler = class;
+  TSepiCompilerBase = class;
   TSepiUnitCompiler = class;
   TSepiMemoryReference = class;
 
@@ -512,6 +513,12 @@ type
     function GetSepiRoot: TSepiRoot;
 
     {*
+      Compilateur de base
+      @return Compilateur de base
+    *}
+    function GetBaseCompiler: TSepiCompilerBase;
+
+    {*
       Compilateur d'unité
       @return Compilateur d'unité
     *}
@@ -562,6 +569,7 @@ type
     procedure MakeError(const Msg: string; Kind: TSepiErrorKind = ekError);
 
     property SepiRoot: TSepiRoot read GetSepiRoot;
+    property BaseCompiler: TSepiCompilerBase read GetBaseCompiler;
     property UnitCompiler: TSepiUnitCompiler read GetUnitCompiler;
     property MethodCompiler: TSepiMethodCompiler read GetMethodCompiler;
     property LanguageRules: TSepiLanguageRules read GetLanguageRules;
@@ -586,6 +594,7 @@ type
   TSepiExpression = class(TDynamicIntfController, ISepiExpression)
   private
     FSepiRoot: TSepiRoot;                 /// Racine Sepi
+    FBaseCompiler: TSepiCompilerBase;     /// Compilateur de base
     FUnitCompiler: TSepiUnitCompiler;     /// Compilateur d'unité
     FMethodCompiler: TSepiMethodCompiler; /// Compilateur de méthode
     FLanguageRules: TSepiLanguageRules;   /// Règles du langage utilisé
@@ -593,6 +602,7 @@ type
     FSourcePos: TSepiSourcePosition; /// Position dans le source
   protected
     function GetSepiRoot: TSepiRoot;
+    function GetBaseCompiler: TSepiCompilerBase;
     function GetUnitCompiler: TSepiUnitCompiler;
     function GetMethodCompiler: TSepiMethodCompiler;
     function GetLanguageRules: TSepiLanguageRules;
@@ -600,8 +610,7 @@ type
     function GetSourcePos: TSepiSourcePosition;
     procedure SetSourcePos(const Value: TSepiSourcePosition);
   public
-    constructor Create(AUnitCompiler: TSepiUnitCompiler); overload;
-    constructor Create(AMethodCompiler: TSepiMethodCompiler); overload;
+    constructor Create(ACompiler: TSepiCompilerBase); overload;
     constructor Create(const Context: ISepiExpression); overload;
 
     procedure Attach(const IID: TGUID; const Intf: ISepiExpressionPart);
@@ -610,6 +619,7 @@ type
     procedure MakeError(const Msg: string; Kind: TSepiErrorKind = ekError);
 
     property SepiRoot: TSepiRoot read FSepiRoot;
+    property BaseCompiler: TSepiCompilerBase read FBaseCompiler;
     property UnitCompiler: TSepiUnitCompiler read FUnitCompiler;
     property MethodCompiler: TSepiMethodCompiler read FMethodCompiler;
     property LanguageRules: TSepiLanguageRules read FLanguageRules;
@@ -2220,28 +2230,18 @@ end;
 {-----------------------}
 
 {*
-  Crée une expression relative à une unité
-  @param AUnitCompiler   Compilateur d'unité
+  Crée une expression
+  @param ACompiler   Compilateur
 *}
-constructor TSepiExpression.Create(AUnitCompiler: TSepiUnitCompiler);
+constructor TSepiExpression.Create(ACompiler: TSepiCompilerBase);
 begin
   inherited Create;
 
-  FUnitCompiler := AUnitCompiler;
-  FSepiRoot := UnitCompiler.SepiRoot;
-  FLanguageRules := UnitCompiler.LanguageRules;
-end;
+  FBaseCompiler := ACompiler;
+  if ACompiler is TSepiMethodCompiler then
+    FMethodCompiler := TSepiMethodCompiler(ACompiler);
+  FUnitCompiler := ACompiler.UnitCompiler;
 
-{*
-  Crée une expression relative à une méthode
-  @param AMethodCompiler   Compilateur de méthode
-*}
-constructor TSepiExpression.Create(AMethodCompiler: TSepiMethodCompiler);
-begin
-  inherited Create;
-
-  FMethodCompiler := AMethodCompiler;
-  FUnitCompiler := MethodCompiler.UnitCompiler;
   FSepiRoot := UnitCompiler.SepiRoot;
   FLanguageRules := UnitCompiler.LanguageRules;
 end;
@@ -2254,6 +2254,7 @@ constructor TSepiExpression.Create(const Context: ISepiExpression);
 begin
   inherited Create;
 
+  FBaseCompiler := Context.BaseCompiler;
   FMethodCompiler := Context.MethodCompiler;
   FUnitCompiler := Context.UnitCompiler;
   FSepiRoot := Context.SepiRoot;
@@ -2269,6 +2270,15 @@ end;
 function TSepiExpression.GetSepiRoot: TSepiRoot;
 begin
   Result := FSepiRoot;
+end;
+
+{*
+  Compilateur de base
+  @return Compilateur de base
+*}
+function TSepiExpression.GetBaseCompiler: TSepiCompilerBase;
+begin
+  Result := FBaseCompiler;
 end;
 
 {*
