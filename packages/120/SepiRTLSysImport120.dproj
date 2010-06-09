@@ -72,6 +72,7 @@
 			<DCCReference Include="..\..\source\run\SepiRTLSysImport\SepiImportsVariants.pas"/>
 			<DCCReference Include="..\..\source\run\SepiRTLSysImport\SepiImportsVarUtils.pas"/>
 			<DCCReference Include="..\..\source\run\SepiRTLSysImport\SepiImportsWindows.pas"/>
+			<DCCReference Include="..\..\source\run\SepiRTLSysImport\SepiImportsSystem.pas"/>
 			<BuildConfiguration Include="Base">
 				<Key>Base</Key>
 			</BuildConfiguration>

@@ -44,8 +44,8 @@ interface
 uses
   Windows, SysUtils, Classes, StrUtils, TypInfo, ScUtils, ScStrUtils,
   ScDelphiLanguage, SepiReflectionCore, SepiMembers, SepiOrdTypes,
-  SepiArrayTypes, SepiStrTypes, ImporterTemplates, SepiDelphiCompilerConsts,
-  ImporterConsts;
+  SepiArrayTypes, SepiStrTypes, SepiSystemUnit, ImporterTemplates,
+  SepiDelphiCompilerConsts, ImporterConsts;
 
 type
   {*
@@ -116,6 +116,7 @@ const // don't localize
 
   UnitNameParam = 'UnitName';
   UnitName2Param = 'UnitName2';
+  SepiUnitClassParam = 'SepiUnitClass';
   UsesListParam = 'UsesList';
   TypeCountParam = 'TypeCount';
   MethodCountParam = 'MethodCount';
@@ -211,6 +212,7 @@ end;
 *}
 function TSepiImporterProducer.ProduceUsesList: string;
 const
+  SepiSystemUnitName = 'SepiSystemUnit';
   InitUses: array[0..5] of string = (
     'Windows', 'SysUtils', 'Classes', 'TypInfo', 'SepiReflectionCore',
     'SepiMembers'
@@ -236,9 +238,19 @@ begin
         List.Add(UnitName);
     end;
 
+    if SepiUnit is TSepiSystemUnit then
+    begin
+      if List.IndexOf(SepiSystemUnitName) < 0 then
+        List.Add(SepiSystemUnitName);
+    end;
+
     for I := High(InitUses) downto Low(InitUses) do
       if List.IndexOf(InitUses[I]) < 0 then
         List.Add(InitUses[I]);
+
+    I := List.IndexOf(SystemUnitName);
+    if I >= 0 then
+      List.Delete(I);
 
     // Convert the list to a string
 
@@ -270,6 +282,7 @@ begin
     begin
       SetParam(UnitNameParam, SepiUnit.Name);
       SetParam(UnitName2Param, ProducedUnitName);
+      SetParam(SepiUnitClassParam, SepiUnit.ClassName);
       SetParam(TypeDeclParam, '');
       SetParam(ImportClassesDeclsParam, '');
       SetParam(ImportClassesImplsParam, '');
@@ -334,8 +347,7 @@ end;
 *}
 procedure TSepiImporterProducer.RequireUnit(const UnitName: string);
 begin
-  if not AnsiSameText(UnitName, SystemUnitName) then
-    UsesList.Add(UnitName);
+  UsesList.Add(UnitName);
 end;
 
 {*
@@ -352,12 +364,14 @@ var
 begin
   Result := '';
 
+  // Private and protected are difficult to access anyway
   if ForComponent.Visibility in [mvStrictPrivate, mvPrivate] then
     Exit;
   if not (FromComponent is TSepiInheritableContainerType) and
     (ForComponent.Visibility in [mvStrictProtected, mvProtected]) then
     Exit;
 
+  // Regular case
   Result := ForComponent.GetShorterNameFrom(FromComponent);
   if Result = '' then
     Exit;
@@ -533,12 +547,18 @@ begin
 
     if IsOverloaded then
       StrAddress := ResolveOverloadedMethod(Template, Routine)
+    else if AnsiSameText(GetFullName, 'System.Error') then // see below
+      StrAddress := GetFullName
     else
       StrAddress := Name;
 
     Template.AddToParam(InitMethodAddressesParam,
       Format(SetMethodAddressStatement, [Tag, StrAddress]));
   end;
+
+  { We use a big fat hack to solve the one-shot problem of System.Error. It
+    happens because there exists a Windows.ERROR, and we cannot make System
+    appear at the end of the uses list, like we do for regular units. }
 end;
 
 {*

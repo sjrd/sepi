@@ -84,7 +84,7 @@ begin
   Stream := TResourceStream.Create(SysInit.HInstance,
     ResourceName, RT_RCDATA);
   try
-    Result := TSepiUnit.LoadFromStream(Root, Stream,
+    Result := (#SepiUnitClass#).LoadFromStream(Root, Stream,
       SepiImports(#UnitName2#)LazyLoad,
       TGetMethodCodeEvent(GetMethodCodeEvent),
       TGetTypeInfoEvent(GetTypeInfoEvent),

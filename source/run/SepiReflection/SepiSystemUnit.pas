@@ -274,6 +274,21 @@ const // don't localize
 { Global routines }
 {-----------------}
 
+procedure Write(const S: string);
+begin
+  System.Write(S);
+end;
+
+procedure Writeln(const S: string);
+begin
+  System.Writeln(S);
+end;
+
+procedure Readln(var S: string);
+begin
+  System.Readln(S);
+end;
+
 {*
   Create builtin types
 *}
@@ -355,6 +370,22 @@ begin
   { The pseudo-constant nil isn't declared here, for it has many different
     types, depending on the situation. Each compiler should understand the nil
     value for what it is: a special value, not a simple constant. }
+
+  { Write, Writeln and Readln routines }
+  TSepiMethod.CreateOverloaded(Self, 'Write', @Write,
+    'procedure(const S: string)');
+  TSepiMethod.CreateOverloaded(Self, 'Writeln', @Writeln,
+    'procedure(const S: string)');
+  TSepiMethod.CreateOverloaded(Self, 'Readln', @Readln,
+    'procedure(var S: string)');
+
+  { We create these three routines as overloaded, though there are only one of
+    them each. This will force the unit importer to generate indirect calls to
+    these methods, which is needed because they do not have an actual address
+    in System.pas. Besides, these methods being overloaded better matches the
+    actual implementation, since the Delphi compiler accepts many different
+    kinds of argument. So, it appears like we simply do not support other
+    types of argument. }
 end;
 
 {-----------------------}

@@ -50,6 +50,7 @@ uses
   TypInfo,
   SepiReflectionCore,
   SepiMembers,
+  SepiSystemUnit,
   SepiRuntime,
   SepiCompiler,
   ScUtils,
@@ -151,9 +152,14 @@ begin
     Stream := TFileStream.Create(UnitFileName, fmOpenRead);
     LazyLoad := Stream.Size > MaxSizeBeforeLazyLoad;
     try
-      Result := TSepiUnit.LoadFromStream(Sender, Stream, LazyLoad);
-      if LazyLoad then
-        Result.AcquireObjResource(Stream);
+      if AnsiSameText(UnitName, SystemUnitName) then
+        Result := TSepiSystemUnit.LoadFromStream(Sender, Stream)
+      else
+      begin
+        Result := TSepiUnit.LoadFromStream(Sender, Stream, LazyLoad);
+        if LazyLoad then
+          Result.AcquireObjResource(Stream);
+      end;
     finally
       Stream.Free;
     end;

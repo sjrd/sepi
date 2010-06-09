@@ -883,7 +883,7 @@ const
 implementation
 
 uses
-  SepiOrdTypes, SepiStrTypes, SepiArrayTypes, SepiMembers, SepiImportsSystem;
+  SepiOrdTypes, SepiStrTypes, SepiArrayTypes, SepiMembers;
 
 var
   SepiComponentClasses: TStrings = nil;
@@ -2390,8 +2390,6 @@ begin
   FRoot := Self;
   FState := msNormal;
   FSearchOrder := TObjectList.Create(False);
-
-  LoadUnit(SystemUnitName);
 end;
 
 {*

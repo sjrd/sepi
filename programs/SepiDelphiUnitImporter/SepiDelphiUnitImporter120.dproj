@@ -54,11 +54,6 @@
 			<DelphiCompile Include="SepiDelphiUnitImporter.dpr">
 				<MainSource>MainSource</MainSource>
 			</DelphiCompile>
-			<DCCReference Include="ImporterConsts.pas"/>
-			<DCCReference Include="ImporterContext.pas"/>
-			<DCCReference Include="ImporterOptions.pas"/>
-			<DCCReference Include="ImporterProducer.pas"/>
-			<DCCReference Include="ImporterTemplates.pas"/>
 			<BuildConfiguration Include="Base">
 				<Key>Base</Key>
 			</BuildConfiguration>
@@ -81,7 +76,7 @@
 						<Parameters Name="UseLauncher">False</Parameters>
 						<Parameters Name="LoadAllSymbols">True</Parameters>
 						<Parameters Name="LoadUnspecifiedSymbols">False</Parameters>
-						<Parameters Name="RunParams">SepiRTLSysImport.csv -w -v6.0</Parameters>
+						<Parameters Name="RunParams">System.pas -w -v6.0</Parameters>
 						<Parameters Name="DebugSourceDirs">C:\Projets\Sepi\source\run\SepiCompiler\</Parameters>
 					</Parameters>
 					<VersionInfo>

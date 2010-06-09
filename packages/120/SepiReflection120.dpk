@@ -33,7 +33,6 @@ requires
 
 contains
   SepiArrayTypes in '..\..\source\run\SepiReflection\SepiArrayTypes.pas',
-  SepiImportsSystem in '..\..\source\run\SepiReflection\SepiImportsSystem.pas',
   SepiMembers in '..\..\source\run\SepiReflection\SepiMembers.pas',
   SepiOrdTypes in '..\..\source\run\SepiReflection\SepiOrdTypes.pas',
   SepiReflectionConsts in '..\..\source\run\SepiReflection\SepiReflectionConsts.pas',

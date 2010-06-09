@@ -69,7 +69,6 @@
 			<DCCReference Include="SCL120.dcp"/>
 			<DCCReference Include="SepiCore120.dcp"/>
 			<DCCReference Include="..\..\source\run\SepiReflection\SepiArrayTypes.pas"/>
-			<DCCReference Include="..\..\source\run\SepiReflection\SepiImportsSystem.pas"/>
 			<DCCReference Include="..\..\source\run\SepiReflection\SepiMembers.pas"/>
 			<DCCReference Include="..\..\source\run\SepiReflection\SepiOrdTypes.pas"/>
 			<DCCReference Include="..\..\source\run\SepiReflection\SepiReflectionConsts.pas"/>

@@ -781,8 +781,7 @@ begin
 
     if AnsiSameText(UnitName, SystemUnitName) then
     begin
-      Assert(SepiRoot.ChildCount = 1);
-      SepiRoot.SystemUnit.Free;
+      Assert(SepiRoot.ChildCount = 0);
       SepiUnit := TSepiSystemUnit.Create(SepiRoot);
       TSepiSystemUnit(SepiUnit).CreateBuiltinTypes;
     end else

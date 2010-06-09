@@ -100,14 +100,8 @@ var
 begin
   FOptions := TExplorerOptions.Create;
 
-  FSepiRoot := TSepiRoot(TSepiRoot.NewInstance);
-  try
-    FSepiRoot.OnLoadUnit := RootLoadUnit;
-    FSepiRoot.Create;
-  except
-    FSepiRoot := nil;
-    raise;
-  end;
+  FSepiRoot := TSepiRoot.Create;
+  FSepiRoot.OnLoadUnit := RootLoadUnit;
 
   FRuntimeUnits := TStringList.Create;
 

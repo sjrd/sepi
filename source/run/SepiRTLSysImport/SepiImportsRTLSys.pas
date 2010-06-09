@@ -38,6 +38,7 @@ interface
 
 uses
   SepiImportsSysConst,
+  SepiImportsSystem,
   SepiImportsSysUtils,
   SepiImportsTypes,
   SepiImportsWindows,
