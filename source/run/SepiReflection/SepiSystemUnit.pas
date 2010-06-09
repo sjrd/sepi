@@ -327,7 +327,6 @@ begin
 {$IFDEF UNICODE}
   TSepiType.LoadFromTypeInfo(Self, TypeInfo(AnsiString));
   TSepiTypeAlias.Create(Self, 'UnicodeString', TypeInfo(UnicodeString));
-  TSepiType.LoadFromTypeInfo(Self, TypeInfo(RawByteString));
 {$ELSE}
   TSepiTypeAlias.Create(Self, 'AnsiString', TypeInfo(AnsiString));
 {$ENDIF}
@@ -341,6 +340,10 @@ begin
   TSepiPointerType.Create(Self, 'PChar', TypeInfo(Char), True);
   TSepiPointerType.Create(Self, 'PAnsiChar', TypeInfo(AnsiChar), True);
   TSepiPointerType.Create(Self, 'PWideChar', TypeInfo(WideChar), True);
+
+  // Text file type
+  TSepiStaticArrayType.Create(Self, 'Text', TypeInfo(Integer), 0,
+    SizeOf(TTextRec)-1, TypeInfo(Byte), True);
 
   { System constants }
   TSepiConstant.Create(Self, 'CompilerVersion', CompilerVersion);
@@ -363,10 +366,9 @@ end;
 *}
 constructor TSepiSystemUnit.Load(AOwner: TSepiComponent; Stream: TStream);
 begin
-  Assert(False, 'No support for loading the System unit at the moment');
-  inherited;
-
   FRemainingUnknownTypeCount := SizeOf(TSepiSystemTypes) div SizeOf(TSepiType);
+
+  inherited;
 end;
 
 {*

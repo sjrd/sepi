@@ -953,6 +953,11 @@ begin
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(UCS4String));
   TSepiType.LoadFromTypeInfo(Result, TypeInfo(UTF8String));
   TSepiPointerType.Create(Result, 'PUTF8String', TypeInfo(UTF8String), True);
+  {$IF Declared(RawByteString)}
+  TSepiType.LoadFromTypeInfo(Result, TypeInfo(RawByteString));
+  TSepiPointerType.Create(Result, 'PRawByteString',
+    TypeInfo(RawByteString), True);
+  {$IFEND}
   TSepiStaticArrayType.Create(Result, 'IntegerArray', TypeInfo(Integer),
     0, $effffff, TypeInfo(Integer), True);
   TSepiPointerType.Create(Result, 'PIntegerArray', 'IntegerArray', True);
@@ -1100,7 +1105,7 @@ begin
     1, 32, TypeInfo(Byte), True);
   TSepiStaticArrayType.Create(Result, '$11', TypeInfo(Integer),
     0, 259, TypeInfo(Char), True);
-  TSepiTypeAlias.Create(Result, 'Text', SepiImportTTextRec(Result));
+  SepiImportTTextRec(Result);
   TSepiMethodRefType.Create(Result, 'TTextIOFunc',
     'function(var F: TTextRec): Integer');
   TSepiMethodRefType.Create(Result, 'TFileIOFunc',
