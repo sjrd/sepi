@@ -313,12 +313,16 @@ begin
         ftComp: Output.Write(FloatToStr(PComp(Value)^));
         ftCurr: Output.Write(FloatToStr(PCurrency(Value)^));
       end;
-    tkLString: Output.Write(string(Value^));
+    tkLString: Output.Write(AnsiString(Value^));
+    tkWString: Output.Write(WideString(Value^));
     tkEnumeration:
       case ValueType.Size of
         1: Output.Write(GetEnumName(ValueType.TypeInfo, PByte(Value)^));
         2: Output.Write(GetEnumName(ValueType.TypeInfo, PWord(Value)^));
       end;
+    {$IF Declared(tkUString)}
+    tkUString: Output.Write(UnicodeString(Value^));
+    {$IFEND}
   else
     Output.Write('(unknown)');
   end;

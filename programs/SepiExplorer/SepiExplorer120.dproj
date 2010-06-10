@@ -23,6 +23,7 @@
 			<Base>true</Base>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Base)'!=''">
+			<DCC_IMPLICIT_STRING_CAST>false</DCC_IMPLICIT_STRING_CAST>
 			<UsePackages>true</UsePackages>
 			<DCC_DependencyCheckOutputName>SepiExplorer.exe</DCC_DependencyCheckOutputName>
 			<DCC_UsePackage>vcl;rtl;vclx;dbrtl;vcldb;VclSmp;SCL120;SVCL120;SDL120;SepiCore120;SepiReflection120;SepiInterpreter120;SepiCompiler120;SepiDelphiCompiler120</DCC_UsePackage>
