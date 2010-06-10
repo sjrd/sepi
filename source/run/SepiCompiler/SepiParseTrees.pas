@@ -81,6 +81,7 @@ type
 
     function GetIndexAsChild: Integer;
 
+    function GetCompiler: TSepiCompilerBase;
     function GetUnitCompiler: TSepiUnitCompiler;
     function GetSepiRoot: TSepiRoot;
     function GetSepiUnit: TSepiUnit;
@@ -167,6 +168,7 @@ type
     property ChildCount: Integer read GetChildCount;
     property Children[Index: Integer]: TSepiParseTreeNode read GetChildren;
 
+    property Compiler: TSepiCompilerBase read GetCompiler;
     property UnitCompiler: TSepiUnitCompiler read GetUnitCompiler;
     property MethodCompiler: TSepiMethodCompiler read GetMethodCompiler;
     property SepiRoot: TSepiRoot read GetSepiRoot;
@@ -429,6 +431,17 @@ begin
 end;
 
 {*
+  Compilateur
+  @return Compilateur, si rattaché à un noeud racine, nil sinon
+*}
+function TSepiParseTreeNode.GetCompiler: TSepiCompilerBase;
+begin
+  Result := GetMethodCompiler;
+  if Result = nil then
+    Result := GetUnitCompiler;
+end;
+
+{*
   Racine Sepi
   @return Racine Sepi, si rattaché à un noeud racine, nil sinon
 *}
@@ -499,16 +512,8 @@ end;
   @return Expression construite
 *}
 function TSepiParseTreeNode.MakeExpression: ISepiExpression;
-var
-  MethodComp: TSepiMethodCompiler;
 begin
-  MethodComp := MethodCompiler;
-
-  if MethodComp = nil then
-    Result := TSepiExpression.Create(UnitCompiler)
-  else
-    Result := TSepiExpression.Create(MethodComp);
-
+  Result := TSepiExpression.Create(Compiler);
   Result.SourcePos := SourcePos;
 end;
 

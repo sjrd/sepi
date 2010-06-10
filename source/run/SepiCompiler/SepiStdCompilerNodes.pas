@@ -2733,7 +2733,8 @@ end;
 
 {*
   [@inheritDoc]
-*}                                                                      procedure TSepiNilValueNode.EndParsing;
+*}
+procedure TSepiNilValueNode.EndParsing;
 begin
   SetExpression(MakeExpression);
 

@@ -334,6 +334,7 @@ type
     FExpression: Pointer; /// Référence faible à l'expression contrôleur
 
     FSepiRoot: TSepiRoot;                 /// Racine Sepi
+    FBaseCompiler: TSepiCompilerBase;     /// Compilateur de base
     FUnitCompiler: TSepiUnitCompiler;     /// Compilateur d'unité
     FMethodCompiler: TSepiMethodCompiler; /// Compilateur de méthode
     FLanguageRules: TSepiLanguageRules;   /// Règles du langage utilisé
@@ -351,6 +352,7 @@ type
     property Expression: ISepiExpression read GetExpression;
 
     property SepiRoot: TSepiRoot read FSepiRoot;
+    property BaseCompiler: TSepiCompilerBase read FBaseCompiler;
     property UnitCompiler: TSepiUnitCompiler read FUnitCompiler;
     property MethodCompiler: TSepiMethodCompiler read FMethodCompiler;
     property LanguageRules: TSepiLanguageRules read FLanguageRules;
@@ -502,53 +504,33 @@ type
 
     destructor Destroy; override;
 
-    class function MakeAnyValue(UnitCompiler: TSepiUnitCompiler;
-      ValueType: TSepiType; const Value): ISepiReadableValue; overload;
-    class function MakeAnyValue(Compiler: TSepiMethodCompiler;
-      ValueType: TSepiType; const Value): ISepiReadableValue; overload;
+    class function MakeAnyValue(Compiler: TSepiCompilerBase;
+      ValueType: TSepiType; const Value): ISepiReadableValue;
 
-    class function MakeValue(UnitCompiler: TSepiUnitCompiler;
-      Constant: TSepiConstant): ISepiReadableValue; overload;
-    class function MakeValue(Compiler: TSepiMethodCompiler;
-      Constant: TSepiConstant): ISepiReadableValue; overload;
+    class function MakeValue(Compiler: TSepiCompilerBase;
+      Constant: TSepiConstant): ISepiReadableValue;
 
-    class function MakeOrdinalValue(UnitCompiler: TSepiUnitCompiler;
-      ValueType: TSepiOrdType; Value: Integer): ISepiReadableValue; overload;
-    class function MakeOrdinalValue(Compiler: TSepiMethodCompiler;
-      ValueType: TSepiOrdType; Value: Integer): ISepiReadableValue; overload;
+    class function MakeOrdinalValue(Compiler: TSepiCompilerBase;
+      ValueType: TSepiOrdType; Value: Integer): ISepiReadableValue;
 
-    class function MakeIntegerLiteral(UnitCompiler: TSepiUnitCompiler;
-      Value: Int64): ISepiReadableValue; overload;
-    class function MakeIntegerLiteral(Compiler: TSepiMethodCompiler;
-      Value: Int64): ISepiReadableValue; overload;
+    class function MakeIntegerLiteral(Compiler: TSepiCompilerBase;
+      Value: Int64): ISepiReadableValue;
 
-    class function MakeExtendedLiteral(UnitCompiler: TSepiUnitCompiler;
-      Value: Extended): ISepiReadableValue; overload;
-    class function MakeExtendedLiteral(Compiler: TSepiMethodCompiler;
-      Value: Extended): ISepiReadableValue; overload;
+    class function MakeExtendedLiteral(Compiler: TSepiCompilerBase;
+      Value: Extended): ISepiReadableValue;
 
-    class function MakeCharLiteral(UnitCompiler: TSepiUnitCompiler;
+    class function MakeCharLiteral(Compiler: TSepiCompilerBase;
       Value: AnsiChar): ISepiReadableValue; overload;
-    class function MakeCharLiteral(Compiler: TSepiMethodCompiler;
-      Value: AnsiChar): ISepiReadableValue; overload;
-    class function MakeCharLiteral(UnitCompiler: TSepiUnitCompiler;
-      Value: WideChar): ISepiReadableValue; overload;
-    class function MakeCharLiteral(Compiler: TSepiMethodCompiler;
+    class function MakeCharLiteral(Compiler: TSepiCompilerBase;
       Value: WideChar): ISepiReadableValue; overload;
 
-    class function MakeStringLiteral(UnitCompiler: TSepiUnitCompiler;
+    class function MakeStringLiteral(Compiler: TSepiCompilerBase;
       const Value: AnsiString): ISepiReadableValue; overload;
-    class function MakeStringLiteral(Compiler: TSepiMethodCompiler;
-      const Value: AnsiString): ISepiReadableValue; overload;
-    class function MakeStringLiteral(UnitCompiler: TSepiUnitCompiler;
-      const Value: WideString): ISepiReadableValue; overload;
-    class function MakeStringLiteral(Compiler: TSepiMethodCompiler;
+    class function MakeStringLiteral(Compiler: TSepiCompilerBase;
       const Value: WideString): ISepiReadableValue; overload;
 
     {$IFDEF UNICODE}
-    class function MakeStringLiteral(UnitCompiler: TSepiUnitCompiler;
-      const Value: UnicodeString): ISepiReadableValue; overload;
-    class function MakeStringLiteral(Compiler: TSepiMethodCompiler;
+    class function MakeStringLiteral(Compiler: TSepiCompilerBase;
       const Value: UnicodeString): ISepiReadableValue; overload;
     {$ENDIF}
 
@@ -616,10 +598,8 @@ type
   public
     constructor Create(AVariable: TSepiVariable);
 
-    class function MakeValue(UnitCompiler: TSepiUnitCompiler;
-      Variable: TSepiVariable): ISepiValue; overload;
-    class function MakeValue(Compiler: TSepiMethodCompiler;
-      Variable: TSepiVariable): ISepiValue; overload;
+    class function MakeValue(Compiler: TSepiCompilerBase;
+      Variable: TSepiVariable): ISepiValue;
 
     property Variable: TSepiVariable read FVariable;
   end;
@@ -639,7 +619,7 @@ type
   public
     constructor Create(ALocalVar: TSepiLocalVar);
 
-    class function MakeValue(Compiler: TSepiMethodCompiler;
+    class function MakeValue(Compiler: TSepiCompilerBase;
       LocalVar: TSepiLocalVar): ISepiValue;
 
     property LocalVar: TSepiLocalVar read FLocalVar;
@@ -1781,6 +1761,8 @@ type
     procedure ForceType(AValueType: TSepiType);
   public
     constructor Create(SepiRoot: TSepiRoot);
+
+    class function MakeValue(Compiler: TSepiCompilerBase): ISepiReadableValue;
   end;
 
   {*
@@ -2122,6 +2104,7 @@ begin
   begin
     FExpression := Pointer(ExprController);
     FSepiRoot := ExprController.SepiRoot;
+    FBaseCompiler := ExprController.BaseCompiler;
     FUnitCompiler := ExprController.UnitCompiler;
     FMethodCompiler := ExprController.MethodCompiler;
     FLanguageRules := ExprController.LanguageRules;
@@ -2139,6 +2122,7 @@ begin
   begin
     FExpression := nil;
     FSepiRoot := nil;
+    FBaseCompiler := nil;
     FUnitCompiler := nil;
     FMethodCompiler := nil;
     FLanguageRules := nil;
@@ -2680,31 +2664,13 @@ begin
 end;
 
 {*
-  Construit une expression valeur pour une valeur quelconque dans une unité
-  @param UnitCompiler   Compilateur d'unité
-  @param ValueType      Type de la valeur
-  @param Value          Valeur
-  @return Valeur représentant la valeur Value de type ValueType
-*}
-class function TSepiTrueConstValue.MakeAnyValue(UnitCompiler: TSepiUnitCompiler;
-  ValueType: TSepiType; const Value): ISepiReadableValue;
-var
-  TrueConstValue: TSepiTrueConstValue;
-begin
-  TrueConstValue := TSepiTrueConstValue.Create(ValueType);
-  ValueType.CopyData(Value, TrueConstValue.ConstValuePtr^);
-  Result := TrueConstValue;
-  Result.AttachToExpression(TSepiExpression.Create(UnitCompiler));
-end;
-
-{*
-  Construit une expression valeur pour une valeur quelconque dans une méthode
-  @param Compiler    Compilateur de méthode
+  Construit une expression valeur pour une valeur quelconque
+  @param Compiler    Compilateur
   @param ValueType   Type de la valeur
   @param Value       Valeur
   @return Valeur représentant la valeur Value de type ValueType
 *}
-class function TSepiTrueConstValue.MakeAnyValue(Compiler: TSepiMethodCompiler;
+class function TSepiTrueConstValue.MakeAnyValue(Compiler: TSepiCompilerBase;
   ValueType: TSepiType; const Value): ISepiReadableValue;
 var
   TrueConstValue: TSepiTrueConstValue;
@@ -2716,25 +2682,12 @@ begin
 end;
 
 {*
-  Construit une expression valeur pour une constante globale dans une unité
-  @param UnitCompiler   Compilateur d'unité
-  @param Constant       Constante globale
-  @return Valeur représentant la constante globale
-*}
-class function TSepiTrueConstValue.MakeValue(UnitCompiler: TSepiUnitCompiler;
-  Constant: TSepiConstant): ISepiReadableValue;
-begin
-  Result := TSepiTrueConstValue.Create(Constant);
-  Result.AttachToExpression(TSepiExpression.Create(UnitCompiler));
-end;
-
-{*
-  Construit une expression valeur pour une constante globale dans une méthode
-  @param Compiler   Compilateur de méthode
+  Construit une expression valeur pour une constante globale
+  @param Compiler   Compilateur
   @param Constant   Constante globale
   @return Valeur représentant la constante globale
 *}
-class function TSepiTrueConstValue.MakeValue(Compiler: TSepiMethodCompiler;
+class function TSepiTrueConstValue.MakeValue(Compiler: TSepiCompilerBase;
   Constant: TSepiConstant): ISepiReadableValue;
 begin
   Result := TSepiTrueConstValue.Create(Constant);
@@ -2742,217 +2695,108 @@ begin
 end;
 
 {*
-  Construit une expression constante ordinale dans une unité
-  @param UnitCompiler   Compilateur d'unité
-  @param ValueType      Type de valeur
-  @param Value          Valeur
-  @return Valeur ordinale constante
-*}
-class function TSepiTrueConstValue.MakeOrdinalValue(
-  UnitCompiler: TSepiUnitCompiler; ValueType: TSepiOrdType;
-  Value: Integer): ISepiReadableValue;
-begin
-  Result := TSepiTrueConstValue.Create(ValueType, Value);
-  Result.AttachToExpression(TSepiExpression.Create(UnitCompiler));
-end;
-
-{*
-  Construit une expression constante ordinale dans une méthode
-  @param Compiler    Compilateur de méthode
+  Construit une expression constante ordinale
+  @param Compiler    Compilateur
   @param ValueType   Type de valeur
   @param Value       Valeur
   @return Valeur ordinale constante
 *}
-class function TSepiTrueConstValue.MakeOrdinalValue(
-  Compiler: TSepiMethodCompiler; ValueType: TSepiOrdType;
-  Value: Integer): ISepiReadableValue;
+class function TSepiTrueConstValue.MakeOrdinalValue(Compiler: TSepiCompilerBase;
+  ValueType: TSepiOrdType; Value: Integer): ISepiReadableValue;
 begin
   Result := TSepiTrueConstValue.Create(ValueType, Value);
   Result.AttachToExpression(TSepiExpression.Create(Compiler));
 end;
 
 {*
-  Construit une expression valeur pour un littéral entier dans une unité
-  @param UnitCompiler   Compilateur d'unité
-  @param Value          Valeur littérale
-  @return Valeur représentant la constante littérale
-*}
-class function TSepiTrueConstValue.MakeIntegerLiteral(
-  UnitCompiler: TSepiUnitCompiler; Value: Int64): ISepiReadableValue;
-begin
-  Result := TSepiTrueConstValue.Create(UnitCompiler.SepiUnit.Root, Value);
-  Result.AttachToExpression(TSepiExpression.Create(UnitCompiler));
-end;
-
-{*
-  Construit une expression valeur pour un littéral entier dans une méthode
-  @param Compiler   Compilateur de méthode
+  Construit une expression valeur pour un littéral entier
+  @param Compiler   Compilateur
   @param Value      Valeur littérale
   @return Valeur représentant la constante littérale
 *}
 class function TSepiTrueConstValue.MakeIntegerLiteral(
-  Compiler: TSepiMethodCompiler; Value: Int64): ISepiReadableValue;
+  Compiler: TSepiCompilerBase; Value: Int64): ISepiReadableValue;
 begin
-  Result := TSepiTrueConstValue.Create(Compiler.SepiMethod.Root, Value);
+  Result := TSepiTrueConstValue.Create(Compiler.SepiRoot, Value);
   Result.AttachToExpression(TSepiExpression.Create(Compiler));
 end;
 
 {*
-  Construit une expression valeur pour un littéral flottant dans une unité
-  @param UnitCompiler   Compilateur d'unité
-  @param Value          Valeur littérale
-  @return Valeur représentant la constante littérale
-*}
-class function TSepiTrueConstValue.MakeExtendedLiteral(
-  UnitCompiler: TSepiUnitCompiler; Value: Extended): ISepiReadableValue;
-begin
-  Result := TSepiTrueConstValue.Create(UnitCompiler.SepiUnit.Root, Value);
-  Result.AttachToExpression(TSepiExpression.Create(UnitCompiler));
-end;
-
-{*
-  Construit une expression valeur pour un littéral flottant dans une méthode
-  @param Compiler   Compilateur de méthode
+  Construit une expression valeur pour un littéral flottant
+  @param Compiler   Compilateur
   @param Value      Valeur littérale
   @return Valeur représentant la constante littérale
 *}
 class function TSepiTrueConstValue.MakeExtendedLiteral(
-  Compiler: TSepiMethodCompiler; Value: Extended): ISepiReadableValue;
+  Compiler: TSepiCompilerBase; Value: Extended): ISepiReadableValue;
 begin
-  Result := TSepiTrueConstValue.Create(Compiler.SepiMethod.Root, Value);
+  Result := TSepiTrueConstValue.Create(Compiler.SepiRoot, Value);
   Result.AttachToExpression(TSepiExpression.Create(Compiler));
 end;
 
 {*
-  Construit une expression valeur pour un littéral caractère dans une unité
-  @param UnitCompiler   Compilateur d'unité
-  @param Value          Valeur littérale
-  @return Valeur représentant la constante littérale
-*}
-class function TSepiTrueConstValue.MakeCharLiteral(
-  UnitCompiler: TSepiUnitCompiler; Value: AnsiChar): ISepiReadableValue;
-begin
-  Result := TSepiTrueConstValue.Create(UnitCompiler.SepiUnit.Root, Value);
-  Result.AttachToExpression(TSepiExpression.Create(UnitCompiler));
-end;
-
-{*
-  Construit une expression valeur pour un littéral caractère dans une méthode
-  @param Compiler   Compilateur de méthode
+  Construit une expression valeur pour un littéral caractère
+  @param Compiler   Compilateur
   @param Value      Valeur littérale
   @return Valeur représentant la constante littérale
 *}
-class function TSepiTrueConstValue.MakeCharLiteral(
-  Compiler: TSepiMethodCompiler; Value: AnsiChar): ISepiReadableValue;
+class function TSepiTrueConstValue.MakeCharLiteral(Compiler: TSepiCompilerBase;
+  Value: AnsiChar): ISepiReadableValue;
 begin
-  Result := TSepiTrueConstValue.Create(Compiler.SepiMethod.Root, Value);
+  Result := TSepiTrueConstValue.Create(Compiler.SepiRoot, Value);
   Result.AttachToExpression(TSepiExpression.Create(Compiler));
 end;
 
 {*
-  Construit une expression valeur pour un littéral caractère dans une unité
-  @param UnitCompiler   Compilateur d'unité
-  @param Value          Valeur littérale
-  @return Valeur représentant la constante littérale
-*}
-class function TSepiTrueConstValue.MakeCharLiteral(
-  UnitCompiler: TSepiUnitCompiler; Value: WideChar): ISepiReadableValue;
-begin
-  Result := TSepiTrueConstValue.Create(UnitCompiler.SepiUnit.Root, Value);
-  Result.AttachToExpression(TSepiExpression.Create(UnitCompiler));
-end;
-
-{*
-  Construit une expression valeur pour un littéral caractère dans une méthode
-  @param Compiler   Compilateur de méthode
+  Construit une expression valeur pour un littéral caractère
+  @param Compiler   Compilateur
   @param Value      Valeur littérale
   @return Valeur représentant la constante littérale
 *}
-class function TSepiTrueConstValue.MakeCharLiteral(
-  Compiler: TSepiMethodCompiler; Value: WideChar): ISepiReadableValue;
+class function TSepiTrueConstValue.MakeCharLiteral(Compiler: TSepiCompilerBase;
+  Value: WideChar): ISepiReadableValue;
 begin
-  Result := TSepiTrueConstValue.Create(Compiler.SepiMethod.Root, Value);
+  Result := TSepiTrueConstValue.Create(Compiler.SepiRoot, Value);
   Result.AttachToExpression(TSepiExpression.Create(Compiler));
 end;
 
 {*
-  Construit une expression valeur pour un littéral chaîne dans une unité
-  @param UnitCompiler   Compilateur d'unité
-  @param Value          Valeur littérale
-  @return Valeur représentant la constante littérale
-*}
-class function TSepiTrueConstValue.MakeStringLiteral(
-  UnitCompiler: TSepiUnitCompiler; const Value: AnsiString): ISepiReadableValue;
-begin
-  Result := TSepiTrueConstValue.Create(UnitCompiler.SepiUnit.Root, Value);
-  Result.AttachToExpression(TSepiExpression.Create(UnitCompiler));
-end;
-
-{*
-  Construit une expression valeur pour un littéral chaîne dans une méthode
-  @param Compiler   Compilateur de méthode
+  Construit une expression valeur pour un littéral chaîne
+  @param Compiler   Compilateur
   @param Value      Valeur littérale
   @return Valeur représentant la constante littérale
 *}
 class function TSepiTrueConstValue.MakeStringLiteral(
-  Compiler: TSepiMethodCompiler; const Value: AnsiString): ISepiReadableValue;
+  Compiler: TSepiCompilerBase; const Value: AnsiString): ISepiReadableValue;
 begin
-  Result := TSepiTrueConstValue.Create(Compiler.SepiMethod.Root, Value);
+  Result := TSepiTrueConstValue.Create(Compiler.SepiRoot, Value);
   Result.AttachToExpression(TSepiExpression.Create(Compiler));
 end;
 
 {*
-  Construit une expression valeur pour un littéral chaîne dans une unité
-  @param UnitCompiler   Compilateur d'unité
-  @param Value          Valeur littérale
-  @return Valeur représentant la constante littérale
-*}
-class function TSepiTrueConstValue.MakeStringLiteral(
-  UnitCompiler: TSepiUnitCompiler; const Value: WideString): ISepiReadableValue;
-begin
-  Result := TSepiTrueConstValue.Create(UnitCompiler.SepiUnit.Root, Value);
-  Result.AttachToExpression(TSepiExpression.Create(UnitCompiler));
-end;
-
-{*
-  Construit une expression valeur pour un littéral chaîne dans une méthode
-  @param Compiler   Compilateur de méthode
+  Construit une expression valeur pour un littéral chaîne
+  @param Compiler   Compilateur
   @param Value      Valeur littérale
   @return Valeur représentant la constante littérale
 *}
 class function TSepiTrueConstValue.MakeStringLiteral(
-  Compiler: TSepiMethodCompiler; const Value: WideString): ISepiReadableValue;
+  Compiler: TSepiCompilerBase; const Value: WideString): ISepiReadableValue;
 begin
-  Result := TSepiTrueConstValue.Create(Compiler.SepiMethod.Root, Value);
+  Result := TSepiTrueConstValue.Create(Compiler.SepiRoot, Value);
   Result.AttachToExpression(TSepiExpression.Create(Compiler));
 end;
 
 {$IFDEF UNICODE}
 {*
-  Construit une expression valeur pour un littéral chaîne dans une unité
-  @param UnitCompiler   Compilateur d'unité
-  @param Value          Valeur littérale
-  @return Valeur représentant la constante littérale
-*}
-class function TSepiTrueConstValue.MakeStringLiteral(
-  UnitCompiler: TSepiUnitCompiler;
-  const Value: UnicodeString): ISepiReadableValue;
-begin
-  Result := TSepiTrueConstValue.Create(UnitCompiler.SepiUnit.Root, Value);
-  Result.AttachToExpression(TSepiExpression.Create(UnitCompiler));
-end;
-
-{*
-  Construit une expression valeur pour un littéral chaîne dans une méthode
-  @param Compiler   Compilateur de méthode
+  Construit une expression valeur pour un littéral chaîne
+  @param Compiler   Compilateur
   @param Value      Valeur littérale
   @return Valeur représentant la constante littérale
 *}
 class function TSepiTrueConstValue.MakeStringLiteral(
-  Compiler: TSepiMethodCompiler;
-  const Value: UnicodeString): ISepiReadableValue;
+  Compiler: TSepiCompilerBase; const Value: UnicodeString): ISepiReadableValue;
 begin
-  Result := TSepiTrueConstValue.Create(Compiler.SepiMethod.Root, Value);
+  Result := TSepiTrueConstValue.Create(Compiler.SepiRoot, Value);
   Result.AttachToExpression(TSepiExpression.Create(Compiler));
 end;
 {$ENDIF}
@@ -3129,25 +2973,12 @@ begin
 end;
 
 {*
-  Construit une expression valeur pour une variable globale dans une unité
-  @param UnitCompiler   Compilateur d'unité
-  @param Variable       Variable globale
-  @return Valeur représentant la variable globale
-*}
-class function TSepiVariableValue.MakeValue(UnitCompiler: TSepiUnitCompiler;
-  Variable: TSepiVariable): ISepiValue;
-begin
-  Result := TSepiVariableValue.Create(Variable);
-  Result.AttachToExpression(TSepiExpression.Create(UnitCompiler));
-end;
-
-{*
-  Construit une expression valeur pour une variable globale dans une méthode
-  @param Compiler   Compilateur de méthode
+  Construit une expression valeur pour une variable globale
+  @param Compiler   Compilateur
   @param Variable   Variable globale
   @return Valeur représentant la variable globale
 *}
-class function TSepiVariableValue.MakeValue(Compiler: TSepiMethodCompiler;
+class function TSepiVariableValue.MakeValue(Compiler: TSepiCompilerBase;
   Variable: TSepiVariable): ISepiValue;
 begin
   Result := TSepiVariableValue.Create(Variable);
@@ -3197,7 +3028,7 @@ end;
   @param LocalVar   Variable locale
   @return Valeur représentant la variable locale
 *}
-class function TSepiLocalVarValue.MakeValue(Compiler: TSepiMethodCompiler;
+class function TSepiLocalVarValue.MakeValue(Compiler: TSepiCompilerBase;
   LocalVar: TSepiLocalVar): ISepiValue;
 begin
   Result := TSepiLocalVarValue.Create(LocalVar);
@@ -9315,6 +9146,18 @@ begin
     FValueType := AValueType
   else
     Assert(False);
+end;
+
+{*
+  Construit une valeur nil
+  @param Compiler   Compilateur
+  @return Valeur nil créée
+*}
+class function TSepiNilValue.MakeValue(
+  Compiler: TSepiCompilerBase): ISepiReadableValue;
+begin
+  Result := TSepiNilValue.Create(Compiler.SepiRoot);
+  Result.AttachToExpression(TSepiExpression.Create(Compiler));
 end;
 
 {--------------------------------}
