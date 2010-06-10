@@ -2640,7 +2640,7 @@ end;
 *}
 function TSepiConstIntegerNode.CompileAsValue: ISepiValue;
 begin
-  Result := TSepiTrueConstValue.Create(SepiRoot, CompileAsInteger);
+  Result := TSepiIntegerLiteralValue.Create(SepiRoot, CompileAsInteger);
 end;
 
 {---------------------------}
@@ -2692,15 +2692,8 @@ end;
   [@inheritDoc]
 *}
 function TSepiConstStringNode.CompileAsValue: ISepiValue;
-var
-  StrValue: string;
 begin
-  StrValue := CompileAsString;
-
-  if Length(StrValue) = 1 then
-    Result := TSepiTrueConstValue.Create(SepiRoot, StrValue[1])
-  else
-    Result := TSepiTrueConstValue.Create(SepiRoot, StrValue);
+  Result := TSepiStringLiteralValue.Create(SepiRoot, CompileAsString);
 end;
 
 {-------------------------------------}

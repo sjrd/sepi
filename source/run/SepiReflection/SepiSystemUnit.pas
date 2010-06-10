@@ -136,6 +136,9 @@ type
 
     procedure CreateBuiltinTypes;
 
+    class function Get(SepiRoot: TSepiRoot): TSepiSystemUnit;
+      {$IF CompilerVersion >= 20} static; {$IFEND}
+
     property Types: TSepiSystemTypes read FTypes;
 
     // Special types
@@ -447,6 +450,16 @@ end;
 procedure TSepiSystemUnit.CreateBuiltinTypes;
 begin
   InternalCreateBuiltinTypes(Self);
+end;
+
+{*
+  Obtient l'unité System pour une racine Sepi donnée
+  @param SepiRoot   Racine Sepi
+  @return Unité System de la racine Sepi
+*}
+class function TSepiSystemUnit.Get(SepiRoot: TSepiRoot): TSepiSystemUnit;
+begin
+  Result := SepiRoot.SystemUnit as TSepiSystemUnit;
 end;
 
 end.

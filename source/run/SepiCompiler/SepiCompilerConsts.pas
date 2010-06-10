@@ -130,6 +130,8 @@ resourcestring
   // Valeurs particulières requise
   SBadStringLength =
     'La taille des chaînes doit être comprise entre 0 et 255 inclus';
+  SShortStringTooLong =
+    'La chaîne de caractère est trop longue (%d au lieu de %s)';
 
   // Erreurs sur les ensembles
   SUntypedEmptySetNotSupported = 'Ensemble vide non typé non supporté';

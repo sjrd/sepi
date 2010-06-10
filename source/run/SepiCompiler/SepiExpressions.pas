@@ -334,6 +334,7 @@ type
     FExpression: Pointer; /// Référence faible à l'expression contrôleur
 
     FSepiRoot: TSepiRoot;                 /// Racine Sepi
+    FSystemUnit: TSepiSystemUnit;         /// Unité System
     FBaseCompiler: TSepiCompilerBase;     /// Compilateur de base
     FUnitCompiler: TSepiUnitCompiler;     /// Compilateur d'unité
     FMethodCompiler: TSepiMethodCompiler; /// Compilateur de méthode
@@ -352,6 +353,7 @@ type
     property Expression: ISepiExpression read GetExpression;
 
     property SepiRoot: TSepiRoot read FSepiRoot;
+    property SystemUnit: TSepiSystemUnit read FSystemUnit;
     property BaseCompiler: TSepiCompilerBase read FBaseCompiler;
     property UnitCompiler: TSepiUnitCompiler read FUnitCompiler;
     property MethodCompiler: TSepiMethodCompiler read FMethodCompiler;
@@ -536,6 +538,63 @@ type
 
     property Constant: TSepiConstant read FConstant;
     property ConstValuePtr;
+  end;
+
+  {*
+    Valeur constante litérale
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiLiteralValue = class(TSepiCustomDirectValue)
+  protected
+    function CompileAsMemoryRef(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList;
+      TempVars: TSepiTempVarsLifeManager): TSepiMemoryReference; override;
+  public
+    constructor Create(AType: TSepiType);
+  end;
+
+  {*
+    Valeur constante litérale entière
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiIntegerLiteralValue = class(TSepiLiteralValue, ISepiTypeForceableValue)
+  private
+    FValue: Int64; /// Valeur constante
+  protected
+    function CanForceType(AValueType: TSepiType;
+      Explicit: Boolean = False): Boolean;
+    procedure ForceType(AValueType: TSepiType);
+  public
+    constructor Create(ASepiRoot: TSepiRoot; AValue: Int64);
+
+    class function MakeValue(Compiler: TSepiCompilerBase;
+      Value: Int64): ISepiReadableValue;
+
+    property Value: Int64 read FValue;
+  end;
+
+  {*
+    Valeur constante litérale chaîne
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiStringLiteralValue = class(TSepiLiteralValue, ISepiTypeForceableValue)
+  private
+    FValue: string; /// Valeur constante
+  protected
+    function CanForceType(AValueType: TSepiType;
+      Explicit: Boolean = False): Boolean;
+    procedure ForceType(AValueType: TSepiType);
+  public
+    constructor Create(ASepiRoot: TSepiRoot; const AValue: string);
+    destructor Destroy; override;
+
+    class function MakeValue(Compiler: TSepiCompilerBase;
+      const Value: string): ISepiReadableValue;
+
+    property Value: string read FValue;
   end;
 
   {*
@@ -1907,6 +1966,8 @@ function SepiTypeToBaseType(SepiType: TSepiType): TSepiBaseType; overload;
 function DefaultSepiTypeFor(BaseType: TSepiBaseType;
   SepiRoot: TSepiRoot): TSepiType;
 
+function SmallestIntegerTypeFor(SepiRoot: TSepiRoot; Value: Int64): TSepiType;
+
 implementation
 
 uses
@@ -2079,6 +2140,43 @@ begin
   end;
 end;
 
+{*
+  Plus petit type entier pouvant contenir l'entier spécifié
+  @param SepiRoot   Racine Sepi (pour trouver le type Sepi)
+  @param Value      Valeur entière
+  @return Plus petit type entier pouvant contenir l'entier Value
+*}
+function SmallestIntegerTypeFor(SepiRoot: TSepiRoot; Value: Int64): TSepiType;
+var
+  SystemUnit: TSepiSystemUnit;
+begin
+  SystemUnit := SepiRoot.SystemUnit as TSepiSystemUnit;
+
+  if (Value < Int64(-MaxInt-1)) or (Value > Int64(MaxInt)) then
+    Result := SystemUnit.Int64
+  else if Value < 0 then
+  begin
+    case IntegerSize(Value) of
+      1: Result := SystemUnit.Shortint;
+      2: Result := SystemUnit.Smallint;
+      4: Result := SystemUnit.Longint;
+    else
+      Assert(False);
+      Result := SystemUnit.Int64;
+    end;
+  end else
+  begin
+    case CardinalSize(Value) of
+      1: Result := SystemUnit.Byte;
+      2: Result := SystemUnit.Word;
+      4: Result := SystemUnit.LongWord;
+    else
+      Assert(False);
+      Result := SystemUnit.Int64;
+    end;
+  end;
+end;
+
 {---------------------------------}
 { TSepiCustomExpressionPart class }
 {---------------------------------}
@@ -2104,6 +2202,7 @@ begin
   begin
     FExpression := Pointer(ExprController);
     FSepiRoot := ExprController.SepiRoot;
+    FSystemUnit := FSepiRoot.SystemUnit as TSepiSystemUnit;
     FBaseCompiler := ExprController.BaseCompiler;
     FUnitCompiler := ExprController.UnitCompiler;
     FMethodCompiler := ExprController.MethodCompiler;
@@ -2122,6 +2221,7 @@ begin
   begin
     FExpression := nil;
     FSepiRoot := nil;
+    FSystemUnit := nil;
     FBaseCompiler := nil;
     FUnitCompiler := nil;
     FMethodCompiler := nil;
@@ -2717,8 +2817,7 @@ end;
 class function TSepiTrueConstValue.MakeIntegerLiteral(
   Compiler: TSepiCompilerBase; Value: Int64): ISepiReadableValue;
 begin
-  Result := TSepiTrueConstValue.Create(Compiler.SepiRoot, Value);
-  Result.AttachToExpression(TSepiExpression.Create(Compiler));
+  Result := TSepiIntegerLiteralValue.MakeValue(Compiler, Value);
 end;
 
 {*
@@ -2800,6 +2899,230 @@ begin
   Result.AttachToExpression(TSepiExpression.Create(Compiler));
 end;
 {$ENDIF}
+
+{-------------------}
+{ TSepiLiteralValue }
+{-------------------}
+
+{*
+  Crée une constante littérale
+  @param AType   Type de la constante
+*}
+constructor TSepiLiteralValue.Create(AType: TSepiType);
+begin
+  inherited Create;
+
+  SetValueType(AType);
+
+  IsReadable := True;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiLiteralValue.CompileAsMemoryRef(Compiler: TSepiMethodCompiler;
+  Instructions: TSepiInstructionList;
+  TempVars: TSepiTempVarsLifeManager): TSepiMemoryReference;
+begin
+  Result := TSepiMemoryReference.Create(Compiler, aoAcceptAllConsts,
+    ValueType.Size);
+  try
+    if IsZeroMemory(ConstValuePtr, ValueType.Size) then
+      Result.SetSpace(msZero)
+    else if ValueType.NeedInit then
+    begin
+      Result.SetSpace(Compiler.MakeUnnamedTrueConst(
+        ValueType, ConstValuePtr^));
+    end else
+    begin
+      Result.SetSpace(msConstant);
+      Result.SetConstant(ConstValuePtr^);
+    end;
+
+    Result.Seal;
+  except
+    Result.Free;
+    raise;
+  end;
+end;
+
+{--------------------------------}
+{ TSepiIntegerLiteralValue class }
+{--------------------------------}
+
+{*
+  Crée une valeur constante litérale entière
+  @param ASepiRoot   Racine Sepi
+  @param AValue      Valeur constante
+*}
+constructor TSepiIntegerLiteralValue.Create(ASepiRoot: TSepiRoot;
+  AValue: Int64);
+begin
+  inherited Create(SmallestIntegerTypeFor(ASepiRoot, AValue));
+
+  FValue := AValue;
+  ConstValuePtr := @FValue;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiIntegerLiteralValue.CanForceType(AValueType: TSepiType;
+  Explicit: Boolean): Boolean;
+begin
+  if not IsIntegerType(AValueType) then
+    Result := False
+  else if Explicit then
+    Result := True
+  else if AValueType is TSepiIntegerType then
+    Result := TSepiIntegerType(AValueType).InRange(Value)
+  else
+    Result := TSepiInt64Type(AValueType).InRange(Value);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiIntegerLiteralValue.ForceType(AValueType: TSepiType);
+begin
+  Assert(CanForceType(AValueType, True));
+
+  SetValueType(AValueType);
+end;
+
+{*
+  Construit une valeur constante litérale entière
+  @param Compiler   Compilateur
+  @param Value      Valeur constante
+  @return Valeur constante litérale entière
+*}
+class function TSepiIntegerLiteralValue.MakeValue(Compiler: TSepiCompilerBase;
+  Value: Int64): ISepiReadableValue;
+begin
+  Result := TSepiIntegerLiteralValue.Create(Compiler.SepiRoot, Value);
+  Result.AttachToExpression(TSepiExpression.Create(Compiler));
+end;
+
+{-------------------------------}
+{ TSepiStringLiteralValue class }
+{-------------------------------}
+
+{*
+  Crée une valeur constante litérale chaîne
+  @param ASepiRoot   Racine Sepi
+  @param AValue      Valeur constante
+*}
+constructor TSepiStringLiteralValue.Create(ASepiRoot: TSepiRoot;
+  const AValue: string);
+var
+  SystemUnit: TSepiSystemUnit;
+begin
+  SystemUnit := TSepiSystemUnit.Get(ASepiRoot);
+
+  inherited Create(SystemUnit.LongString);
+
+  FValue := AValue;
+
+  ConstValuePtr := ValueType.NewValue;
+  string(ConstValuePtr^) := FValue;
+
+  if Length(Value) = 1 then
+  begin
+    if Value[1] <= Chr($FF) then
+      ForceType(SystemUnit.AnsiChar)
+    else
+      ForceType(SystemUnit.WideChar);
+  end;
+end;
+
+{*
+  [@inheritDoc]
+*}
+destructor TSepiStringLiteralValue.Destroy;
+begin
+  if ConstValuePtr <> nil then
+    ValueType.DisposeValue(ConstValuePtr);
+
+  inherited;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiStringLiteralValue.CanForceType(AValueType: TSepiType;
+  Explicit: Boolean): Boolean;
+begin
+  if AValueType is TSepiCharType then
+    Result := Length(Value) = 1
+  else
+    Result := (AValueType is TSepiStringType) or
+      (AValueType is TSepiShortStringType);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiStringLiteralValue.ForceType(AValueType: TSepiType);
+var
+  AnsiValue: AnsiString;
+  Len, MaxLength: Integer;
+begin
+  Assert(CanForceType(AValueType, True));
+
+  ValueType.DisposeValue(ConstValuePtr);
+  SetValueType(AValueType);
+  ConstValuePtr := ValueType.NewValue;
+
+  case ValueType.Kind of
+    // Characters
+    tkChar: AnsiChar(ConstValuePtr^) := AnsiChar(Value[1]);
+    tkWChar: WideChar(ConstValuePtr^) := WideChar(Value[1]);
+
+    // Short string
+    tkString:
+    begin
+      AnsiValue := AnsiString(Value);
+      Len := Length(AnsiValue);
+      MaxLength := (ValueType as TSepiShortStringType).MaxLength;
+
+      if Len > MaxLength then
+      begin
+        MakeError(Format(SShortStringTooLong, [Len, MaxLength]));
+        AnsiValue := Copy(AnsiValue, 1, MaxLength);
+      end;
+
+      ShortString(ConstValuePtr^) := AnsiValue;
+    end;
+
+    {$IFNDEF UNICODE}
+    // Long strings in non-Unicode mode
+    tkLString: AnsiString(ConstValuePtr^) := AnsiString(Value);
+    tkWString: WideString(ConstValuePtr^) := WideString(Value);
+    {$ELSE}
+    // Long strings in Unicode mode
+    tkLString:
+      LStrFromUStr(PAnsiString(ConstValuePtr)^, Value,
+        TSepiStringType(ValueType).CodePage);
+    tkWString: WideString(ConstValuePtr^) := WideString(Value);
+    tkUString: UnicodeString(ConstValuePtr^) := Value;
+    {$ENDIF}
+  else
+    Assert(False);
+  end;
+end;
+
+{*
+  Construit une valeur constante litérale chaîne
+  @param Compiler   Compilateur
+  @param Value      Valeur constante
+  @return Valeur constante litérale chaîne
+*}
+class function TSepiStringLiteralValue.MakeValue(Compiler: TSepiCompilerBase;
+  const Value: string): ISepiReadableValue;
+begin
+  Result := TSepiStringLiteralValue.Create(Compiler.SepiRoot, Value);
+  Result.AttachToExpression(TSepiExpression.Create(Compiler));
+end;
 
 {---------------------------}
 { TSepiErroneousValue class }
@@ -3604,7 +3927,8 @@ begin
       (ValueType is TSepiBooleanType)) then
     begin
       ErrorTypeNotApplicable;
-      Operand := TSepiTrueConstValue.MakeIntegerLiteral(UnitCompiler, 0);
+      Operand := TSepiErroneousValue.MakeReplacementValue(
+        Operand as ISepiExpression, SystemUnit.Boolean);
       SetValueType(Operand.ValueType);
     end;
   end else
@@ -3612,7 +3936,8 @@ begin
     if not (ValueType.Kind in [tkInteger, tkFloat, tkVariant, tkInt64]) then
     begin
       ErrorTypeNotApplicable;
-      Operand := TSepiTrueConstValue.MakeIntegerLiteral(UnitCompiler, 0);
+      Operand := TSepiErroneousValue.MakeReplacementValue(
+        Operand as ISepiExpression, SystemUnit.Integer);
       SetValueType(Operand.ValueType);
     end;
   end;
@@ -8711,7 +9036,7 @@ begin
 
   // Write VType constant into VTypeValue
   VTypeValue.CompileWrite(Compiler, Instructions,
-    TSepiTrueConstValue.MakeOrdinalValue(Compiler, SystemUnit.Byte, VType));
+    TSepiTrueConstValue.MakeIntegerLiteral(Compiler, VType));
 end;
 
 {*

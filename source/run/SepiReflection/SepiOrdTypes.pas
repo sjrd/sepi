@@ -112,7 +112,8 @@ type
     constructor Clone(AOwner: TSepiComponent; const AName: string;
       Source: TSepiType); override;
 
-    function InRange(Value: Longint): Boolean;
+    function InRange(Value: Longint): Boolean; overload;
+    function InRange(Value: Int64): Boolean; overload;
     procedure CheckInRange(Value: Longint);
 
     property Signed: Boolean read FSigned;
@@ -446,6 +447,8 @@ function ValueAsCardinal(const Value; OrdType: TOrdType): Cardinal; overload;
 function ValueAsInteger(const Value; Size: Integer): Integer; overload;
 function ValueAsCardinal(const Value; Size: Integer): Cardinal; overload;
 
+function IsIntegerType(SepiType: TSepiType): Boolean; inline;
+
 implementation
 
 uses
@@ -573,6 +576,16 @@ const
   SizeToOrdType: array[1..4] of TOrdType = (otUByte, otUWord, otULong, otULong);
 begin
   Result := ValueAsCardinal(Value, SizeToOrdType[Size]);
+end;
+
+{*
+  Teste si un type donné est un type entier (TSepiIntegerType ou TSepiInt64Type)
+  @param SepiType   Type à tester
+  @return True si SepiType est un type entier, False sinon
+*}
+function IsIntegerType(SepiType: TSepiType): Boolean;
+begin
+  Result := (SepiType is TSepiIntegerType) or (SepiType is TSepiInt64Type);
 end;
 
 {---------------------}
@@ -761,6 +774,16 @@ end;
   @return True si Value est dans l'intervalle supporté, False sinon
 *}
 function TSepiIntegerType.InRange(Value: Longint): Boolean;
+begin
+  Result := (Value >= FMinValue) and (Value <= FMaxValue);
+end;
+
+{*
+  Teste si une valeur est dans l'intervalle supporté par le type
+  @param Value   Valeur à tester
+  @return True si Value est dans l'intervalle supporté, False sinon
+*}
+function TSepiIntegerType.InRange(Value: Int64): Boolean;
 begin
   Result := (Value >= FMinValue) and (Value <= FMaxValue);
 end;
