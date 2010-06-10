@@ -582,7 +582,8 @@ type
   *}
   TSepiStringLiteralValue = class(TSepiLiteralValue, ISepiTypeForceableValue)
   private
-    FValue: string; /// Valeur constante
+    FValue: string;       /// Valeur constante
+    FPCharValue: Pointer; /// Valeur constante PChar
   protected
     function CanForceType(AValueType: TSepiType;
       Explicit: Boolean = False): Boolean;
@@ -3040,6 +3041,9 @@ end;
 *}
 destructor TSepiStringLiteralValue.Destroy;
 begin
+  if FPCharValue <> nil then
+    FreeMem(FPCharValue);
+
   if ConstValuePtr <> nil then
     ValueType.DisposeValue(ConstValuePtr);
 
@@ -3054,6 +3058,8 @@ function TSepiStringLiteralValue.CanForceType(AValueType: TSepiType;
 begin
   if AValueType is TSepiCharType then
     Result := Length(Value) = 1
+  else if AValueType is TSepiPointerType then
+    Result := TSepiPointerType(AValueType).PointTo is TSepiCharType
   else
     Result := (AValueType is TSepiStringType) or
       (AValueType is TSepiShortStringType);
@@ -3065,15 +3071,43 @@ end;
 procedure TSepiStringLiteralValue.ForceType(AValueType: TSepiType);
 var
   AnsiValue: AnsiString;
-  Len, MaxLength: Integer;
+  WideValue: WideString;
+  Size, Len, MaxLength: Integer;
 begin
   Assert(CanForceType(AValueType, True));
+
+  if FPCharValue <> nil then
+    FreeMem(FPCharValue);
 
   ValueType.DisposeValue(ConstValuePtr);
   SetValueType(AValueType);
   ConstValuePtr := ValueType.NewValue;
 
   case ValueType.Kind of
+    // PChar
+    tkUnknown:
+    begin
+      case (ValueType as TSepiPointerType).PointTo.Kind of
+        tkChar:
+        begin
+          AnsiValue := AnsiString(Value);
+          Size := SizeOf(AnsiChar) * (Length(AnsiValue)+1);
+          GetMem(FPCharValue, Size);
+          Move(AnsiValue[1], FPCharValue^, Size);
+        end;
+
+        tkWChar:
+        begin
+          WideValue := WideString(Value);
+          Size := SizeOf(WideChar) * (Length(WideValue)+1);
+          GetMem(FPCharValue, Size);
+          Move(WideValue[1], FPCharValue^, Size);
+        end;
+      else
+        Assert(False);
+      end;
+    end;
+
     // Characters
     tkChar: AnsiChar(ConstValuePtr^) := AnsiChar(Value[1]);
     tkWChar: WideChar(ConstValuePtr^) := WideChar(Value[1]);
