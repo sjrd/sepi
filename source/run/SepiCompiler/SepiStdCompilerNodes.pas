@@ -2671,7 +2671,7 @@ end;
 *}
 function TSepiConstFloatNode.CompileAsValue: ISepiValue;
 begin
-  Result := TSepiTrueConstValue.Create(SepiRoot, CompileAsExtended);
+  Result := TSepiFloatLiteralValue.Create(SepiRoot, CompileAsExtended);
 end;
 
 {----------------------------}

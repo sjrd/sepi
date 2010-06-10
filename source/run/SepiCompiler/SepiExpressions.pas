@@ -576,6 +576,28 @@ type
   end;
 
   {*
+    Valeur constante litérale entière
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiFloatLiteralValue = class(TSepiLiteralValue, ISepiTypeForceableValue)
+  private
+    FValue: Extended;            /// Valeur constante
+    FConstValueBuffer: Extended; /// Buffer pour la valeur constante typée
+  protected
+    function CanForceType(AValueType: TSepiType;
+      Explicit: Boolean = False): Boolean;
+    procedure ForceType(AValueType: TSepiType);
+  public
+    constructor Create(ASepiRoot: TSepiRoot; AValue: Extended);
+
+    class function MakeValue(Compiler: TSepiCompilerBase;
+      Value: Extended): ISepiReadableValue;
+
+    property Value: Extended read FValue;
+  end;
+
+  {*
     Valeur constante litérale chaîne
     @author sjrd
     @version 1.0
@@ -3001,6 +3023,67 @@ class function TSepiIntegerLiteralValue.MakeValue(Compiler: TSepiCompilerBase;
   Value: Int64): ISepiReadableValue;
 begin
   Result := TSepiIntegerLiteralValue.Create(Compiler.SepiRoot, Value);
+  Result.AttachToExpression(TSepiExpression.Create(Compiler));
+end;
+
+{------------------------------}
+{ TSepiFloatLiteralValue class }
+{------------------------------}
+
+{*
+  Crée une valeur constante litérale flottante
+  @param ASepiRoot   Racine Sepi
+  @param AValue      Valeur constante
+*}
+constructor TSepiFloatLiteralValue.Create(ASepiRoot: TSepiRoot;
+  AValue: Extended);
+begin
+  inherited Create(TSepiSystemUnit.Get(ASepiRoot).Extended);
+
+  FValue := AValue;
+  FConstValueBuffer := FValue;
+  ConstValuePtr := @FConstValueBuffer;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiFloatLiteralValue.CanForceType(AValueType: TSepiType;
+  Explicit: Boolean): Boolean;
+begin
+  Result := AValueType is TSepiFloatType;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiFloatLiteralValue.ForceType(AValueType: TSepiType);
+begin
+  Assert(CanForceType(AValueType, True));
+
+  SetValueType(AValueType);
+
+  case TSepiFloatType(ValueType).FloatType of
+    ftSingle:   Single  (ConstValuePtr^) := FValue;
+    ftDouble:   Double  (ConstValuePtr^) := FValue;
+    ftExtended: Extended(ConstValuePtr^) := FValue;
+    ftComp:     Comp    (ConstValuePtr^) := FValue;
+    ftCurr:     Currency(ConstValuePtr^) := FValue;
+  else
+    Assert(False);
+  end;
+end;
+
+{*
+  Construit une valeur constante litérale flottante
+  @param Compiler   Compilateur
+  @param Value      Valeur constante
+  @return Valeur constante litérale entière
+*}
+class function TSepiFloatLiteralValue.MakeValue(Compiler: TSepiCompilerBase;
+  Value: Extended): ISepiReadableValue;
+begin
+  Result := TSepiFloatLiteralValue.Create(Compiler.SepiRoot, Value);
   Result.AttachToExpression(TSepiExpression.Create(Compiler));
 end;
 
