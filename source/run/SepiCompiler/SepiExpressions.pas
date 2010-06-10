@@ -472,7 +472,7 @@ type
   end;
 
   {*
-    Valeur constante (vraie constante ou constante litérale)
+    Valeur constante
     @author sjrd
     @version 1.0
   *}
@@ -485,56 +485,14 @@ type
       TempVars: TSepiTempVarsLifeManager): TSepiMemoryReference; override;
   public
     constructor Create(AType: TSepiType); overload;
-
     constructor Create(Constant: TSepiConstant); overload;
-
-    constructor Create(ValueType: TSepiOrdType; Value: Integer); overload;
-
-    constructor Create(SepiRoot: TSepiRoot; Value: Int64); overload;
-
-    constructor Create(SepiRoot: TSepiRoot; Value: Extended); overload;
-
-    constructor Create(SepiRoot: TSepiRoot; Value: AnsiChar); overload;
-    constructor Create(SepiRoot: TSepiRoot; Value: WideChar); overload;
-
-    constructor Create(SepiRoot: TSepiRoot; const Value: AnsiString); overload;
-    constructor Create(SepiRoot: TSepiRoot; const Value: WideString); overload;
-    {$IFDEF UNICODE}
-    constructor Create(SepiRoot: TSepiRoot;
-      const Value: UnicodeString); overload;
-    {$ENDIF}
-
     destructor Destroy; override;
 
-    class function MakeAnyValue(Compiler: TSepiCompilerBase;
-      ValueType: TSepiType; const Value): ISepiReadableValue;
+    class function MakeValue(Compiler: TSepiCompilerBase;
+      ValueType: TSepiType; const Value): ISepiReadableValue; overload;
 
     class function MakeValue(Compiler: TSepiCompilerBase;
-      Constant: TSepiConstant): ISepiReadableValue;
-
-    class function MakeOrdinalValue(Compiler: TSepiCompilerBase;
-      ValueType: TSepiOrdType; Value: Integer): ISepiReadableValue;
-
-    class function MakeIntegerLiteral(Compiler: TSepiCompilerBase;
-      Value: Int64): ISepiReadableValue;
-
-    class function MakeExtendedLiteral(Compiler: TSepiCompilerBase;
-      Value: Extended): ISepiReadableValue;
-
-    class function MakeCharLiteral(Compiler: TSepiCompilerBase;
-      Value: AnsiChar): ISepiReadableValue; overload;
-    class function MakeCharLiteral(Compiler: TSepiCompilerBase;
-      Value: WideChar): ISepiReadableValue; overload;
-
-    class function MakeStringLiteral(Compiler: TSepiCompilerBase;
-      const Value: AnsiString): ISepiReadableValue; overload;
-    class function MakeStringLiteral(Compiler: TSepiCompilerBase;
-      const Value: WideString): ISepiReadableValue; overload;
-
-    {$IFDEF UNICODE}
-    class function MakeStringLiteral(Compiler: TSepiCompilerBase;
-      const Value: UnicodeString): ISepiReadableValue; overload;
-    {$ENDIF}
+      Constant: TSepiConstant): ISepiReadableValue; overload;
 
     property Constant: TSepiConstant read FConstant;
     property ConstValuePtr;
@@ -2609,141 +2567,6 @@ begin
 end;
 
 {*
-  Crée une constante ordinale
-  @param ValueType   Type de valeur
-  @param Value       Valeur de la constante
-*}
-constructor TSepiTrueConstValue.Create(ValueType: TSepiOrdType;
-  Value: Integer);
-begin
-  Create(ValueType);
-
-  Move(Value, ConstValuePtr^, ValueType.Size);
-end;
-
-{*
-  Crée une constante litérale entière
-  @param SepiRoot   Racine Sepi (pour trouver le type Sepi)
-  @param Value      Valeur de la constante
-*}
-constructor TSepiTrueConstValue.Create(SepiRoot: TSepiRoot;
-  Value: Int64);
-var
-  SystemUnit: TSepiSystemUnit;
-  ValueType: TSepiType;
-begin
-  SystemUnit := SepiRoot.SystemUnit as TSepiSystemUnit;
-
-  if (Value < Int64(-MaxInt-1)) or (Value > Int64(MaxInt)) then
-    ValueType := SystemUnit.Int64
-  else if Value < 0 then
-  begin
-    case IntegerSize(Value) of
-      1: ValueType := SystemUnit.Shortint;
-      2: ValueType := SystemUnit.Smallint;
-      4: ValueType := SystemUnit.Longint;
-    else
-      Assert(False);
-      ValueType := SystemUnit.Int64;
-    end;
-  end else
-  begin
-    case CardinalSize(Value) of
-      1: ValueType := SystemUnit.Byte;
-      2: ValueType := SystemUnit.Word;
-      4: ValueType := SystemUnit.LongWord;
-    else
-      Assert(False);
-      ValueType := SystemUnit.Int64;
-    end;
-  end;
-
-  Create(ValueType);
-
-  Int64(ConstValuePtr^) := Value;
-end;
-
-{*
-  Crée une constante litérale flottante
-  @param SepiRoot   Racine Sepi (pour trouver le type Sepi)
-  @param Value      Valeur de la constante
-*}
-constructor TSepiTrueConstValue.Create(SepiRoot: TSepiRoot;
-  Value: Extended);
-begin
-  Create((SepiRoot.SystemUnit as TSepiSystemUnit).Extended);
-
-  Extended(ConstValuePtr^) := Value;
-end;
-
-{*
-  Crée une constante litérale caractère ANSI
-  @param SepiRoot   Racine Sepi (pour trouver le type Sepi)
-  @param Value      Valeur de la constante
-*}
-constructor TSepiTrueConstValue.Create(SepiRoot: TSepiRoot;
-  Value: AnsiChar);
-begin
-  Create((SepiRoot.SystemUnit as TSepiSystemUnit).AnsiChar);
-
-  AnsiChar(ConstValuePtr^) := Value;
-end;
-
-{*
-  Crée une constante litérale caractère Unicode
-  @param SepiRoot   Racine Sepi (pour trouver le type Sepi)
-  @param Value      Valeur de la constante
-*}
-constructor TSepiTrueConstValue.Create(SepiRoot: TSepiRoot;
-  Value: WideChar);
-begin
-  Create((SepiRoot.SystemUnit as TSepiSystemUnit).WideChar);
-
-  WideChar(ConstValuePtr^) := Value;
-end;
-
-{*
-  Crée une constante litérale chaîne ANSI
-  @param SepiRoot   Racine Sepi (pour trouver le type Sepi)
-  @param Value      Valeur de la constante
-*}
-constructor TSepiTrueConstValue.Create(SepiRoot: TSepiRoot;
-  const Value: AnsiString);
-begin
-  Create((SepiRoot.SystemUnit as TSepiSystemUnit).AnsiString);
-
-  AnsiString(ConstValuePtr^) := Value;
-end;
-
-{*
-  Crée une constante litérale chaîne Wide
-  @param SepiRoot   Racine Sepi (pour trouver le type Sepi)
-  @param Value      Valeur de la constante
-*}
-constructor TSepiTrueConstValue.Create(SepiRoot: TSepiRoot;
-  const Value: WideString);
-begin
-  Create((SepiRoot.SystemUnit as TSepiSystemUnit).WideString);
-
-  WideString(ConstValuePtr^) := Value;
-end;
-
-{$IFDEF UNICODE}
-{*
-  Crée une constante litérale chaîne Unicode
-  @param SepiRoot   Racine Sepi (pour trouver le type Sepi)
-  @param Value      Valeur de la constante
-*}
-constructor TSepiTrueConstValue.Create(SepiRoot: TSepiRoot;
-  const Value: UnicodeString);
-begin
-  Create((SepiRoot.SystemUnit as TSepiSystemUnit).UnicodeString);
-
-  UnicodeString(ConstValuePtr^) := Value;
-end;
-{$ENDIF}
-
-{*
   [@inheritDoc]
 *}
 destructor TSepiTrueConstValue.Destroy;
@@ -2793,7 +2616,7 @@ end;
   @param Value       Valeur
   @return Valeur représentant la valeur Value de type ValueType
 *}
-class function TSepiTrueConstValue.MakeAnyValue(Compiler: TSepiCompilerBase;
+class function TSepiTrueConstValue.MakeValue(Compiler: TSepiCompilerBase;
   ValueType: TSepiType; const Value): ISepiReadableValue;
 var
   TrueConstValue: TSepiTrueConstValue;
@@ -2816,112 +2639,6 @@ begin
   Result := TSepiTrueConstValue.Create(Constant);
   Result.AttachToExpression(TSepiExpression.Create(Compiler));
 end;
-
-{*
-  Construit une expression constante ordinale
-  @param Compiler    Compilateur
-  @param ValueType   Type de valeur
-  @param Value       Valeur
-  @return Valeur ordinale constante
-*}
-class function TSepiTrueConstValue.MakeOrdinalValue(Compiler: TSepiCompilerBase;
-  ValueType: TSepiOrdType; Value: Integer): ISepiReadableValue;
-begin
-  Result := TSepiTrueConstValue.Create(ValueType, Value);
-  Result.AttachToExpression(TSepiExpression.Create(Compiler));
-end;
-
-{*
-  Construit une expression valeur pour un littéral entier
-  @param Compiler   Compilateur
-  @param Value      Valeur littérale
-  @return Valeur représentant la constante littérale
-*}
-class function TSepiTrueConstValue.MakeIntegerLiteral(
-  Compiler: TSepiCompilerBase; Value: Int64): ISepiReadableValue;
-begin
-  Result := TSepiIntegerLiteralValue.MakeValue(Compiler, Value);
-end;
-
-{*
-  Construit une expression valeur pour un littéral flottant
-  @param Compiler   Compilateur
-  @param Value      Valeur littérale
-  @return Valeur représentant la constante littérale
-*}
-class function TSepiTrueConstValue.MakeExtendedLiteral(
-  Compiler: TSepiCompilerBase; Value: Extended): ISepiReadableValue;
-begin
-  Result := TSepiTrueConstValue.Create(Compiler.SepiRoot, Value);
-  Result.AttachToExpression(TSepiExpression.Create(Compiler));
-end;
-
-{*
-  Construit une expression valeur pour un littéral caractère
-  @param Compiler   Compilateur
-  @param Value      Valeur littérale
-  @return Valeur représentant la constante littérale
-*}
-class function TSepiTrueConstValue.MakeCharLiteral(Compiler: TSepiCompilerBase;
-  Value: AnsiChar): ISepiReadableValue;
-begin
-  Result := TSepiTrueConstValue.Create(Compiler.SepiRoot, Value);
-  Result.AttachToExpression(TSepiExpression.Create(Compiler));
-end;
-
-{*
-  Construit une expression valeur pour un littéral caractère
-  @param Compiler   Compilateur
-  @param Value      Valeur littérale
-  @return Valeur représentant la constante littérale
-*}
-class function TSepiTrueConstValue.MakeCharLiteral(Compiler: TSepiCompilerBase;
-  Value: WideChar): ISepiReadableValue;
-begin
-  Result := TSepiTrueConstValue.Create(Compiler.SepiRoot, Value);
-  Result.AttachToExpression(TSepiExpression.Create(Compiler));
-end;
-
-{*
-  Construit une expression valeur pour un littéral chaîne
-  @param Compiler   Compilateur
-  @param Value      Valeur littérale
-  @return Valeur représentant la constante littérale
-*}
-class function TSepiTrueConstValue.MakeStringLiteral(
-  Compiler: TSepiCompilerBase; const Value: AnsiString): ISepiReadableValue;
-begin
-  Result := TSepiTrueConstValue.Create(Compiler.SepiRoot, Value);
-  Result.AttachToExpression(TSepiExpression.Create(Compiler));
-end;
-
-{*
-  Construit une expression valeur pour un littéral chaîne
-  @param Compiler   Compilateur
-  @param Value      Valeur littérale
-  @return Valeur représentant la constante littérale
-*}
-class function TSepiTrueConstValue.MakeStringLiteral(
-  Compiler: TSepiCompilerBase; const Value: WideString): ISepiReadableValue;
-begin
-  Result := TSepiTrueConstValue.Create(Compiler.SepiRoot, Value);
-  Result.AttachToExpression(TSepiExpression.Create(Compiler));
-end;
-
-{$IFDEF UNICODE}
-{*
-  Construit une expression valeur pour un littéral chaîne
-  @param Compiler   Compilateur
-  @param Value      Valeur littérale
-  @return Valeur représentant la constante littérale
-*}
-class function TSepiTrueConstValue.MakeStringLiteral(
-  Compiler: TSepiCompilerBase; const Value: UnicodeString): ISepiReadableValue;
-begin
-  Result := TSepiTrueConstValue.Create(Compiler.SepiRoot, Value);
-  Result.AttachToExpression(TSepiExpression.Create(Compiler));
-end;
-{$ENDIF}
 
 {-------------------}
 { TSepiLiteralValue }
@@ -6398,8 +6115,8 @@ begin
     Expression.MakeError(SOperationNotApplicableToType);
 
     if Operation in opComparisonOps then
-      Result := TSepiTrueConstValue.MakeOrdinalValue(Expression.UnitCompiler,
-        Expression.UnitCompiler.SystemUnit.Boolean, 1)
+      Result := TSepiErroneousValue.MakeReplacementValue(Expression,
+        Expression.UnitCompiler.SystemUnit.Boolean)
     else
       Result := TSepiErroneousValue.MakeReplacementValue(Expression);
   end;
@@ -8026,7 +7743,7 @@ begin
         if ParamValue = nil then
         begin
           Assert(SignatureParam.HasDefaultValue);
-          ParamValue := TSepiTrueConstValue.MakeAnyValue(Compiler,
+          ParamValue := TSepiTrueConstValue.MakeValue(Compiler,
             SignatureParam.ParamType, SignatureParam.DefaultValuePtr^);
         end;
 
@@ -8630,10 +8347,13 @@ end;
 function TSepiPropertyValue.MakeIndexValue(
   Compiler: TSepiMethodCompiler; Method: TSepiMethod): ISepiReadableValue;
 var
+  Index: Integer;
   Signature: TSepiSignature;
   IndexType: TSepiType;
 begin
-  if FProperty.Index = NoIndex then
+  Index := FProperty.Index;
+
+  if Index = NoIndex then
   begin
     Result := nil;
     Exit;
@@ -8642,8 +8362,8 @@ begin
   Signature := Method.Signature;
   IndexType := Signature.Params[Signature.ParamCount-1].ParamType;
 
-  Result := TSepiTrueConstValue.MakeOrdinalValue(Compiler,
-    IndexType as TSepiOrdType, FProperty.Index);
+  Result := TSepiTrueConstValue.MakeValue(Compiler,
+    IndexType as TSepiOrdType, Index);
 end;
 
 {*
@@ -9153,7 +8873,7 @@ begin
 
   // Write VType constant into VTypeValue
   VTypeValue.CompileWrite(Compiler, Instructions,
-    TSepiTrueConstValue.MakeIntegerLiteral(Compiler, VType));
+    TSepiIntegerLiteralValue.MakeValue(Compiler, VType));
 end;
 
 {*
@@ -9287,7 +9007,7 @@ begin
   for I := 0 to ItemCount-1 do
   begin
     Item := Items[I];
-    IndexValue := TSepiTrueConstValue.MakeIntegerLiteral(Compiler, I);
+    IndexValue := TSepiIntegerLiteralValue.MakeValue(Compiler, I);
     ItemValue := TSepiArrayItemValue.MakeArrayItemValue(StaticArrayValue,
       IndexValue) as ISepiWritableValue;
 
