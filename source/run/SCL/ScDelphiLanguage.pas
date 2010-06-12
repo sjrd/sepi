@@ -80,19 +80,21 @@ function GetObjectDynamicCode(AObject: TObject; DMTIndex: Integer): Pointer;
 function GetObjectDynamicMethod(AObject: TObject;
   DMTIndex: Integer): TMethod;
 
-function StrToStrRepres(const Str: AnsiString;
-  ExcludedChars: TSysCharSet = []): AnsiString;
-function StrRepresToStr(Str: AnsiString): AnsiString;
+function StrToStrRepres(const Str: string;
+  ExcludedChars: TSysCharSet = []): string;
+function StrRepresToStr(Str: string): string;
 
 function CharToCharRepres(Chr: AnsiChar;
-  ExcludedChars: TSysCharSet = []): AnsiString;
-function CharRepresToChar(Str: AnsiString): AnsiChar;
+  ExcludedChars: TSysCharSet = []): string; overload;
+function CharToCharRepres(Chr: WideChar;
+  ExcludedChars: TSysCharSet = []): string; overload;
+function CharRepresToChar(Str: string): WideChar;
 
-function CharSetToStr(const CharSet: TSysCharSet): AnsiString;
-function StrToCharSet(Str: AnsiString): TSysCharSet;
+function CharSetToStr(const CharSet: TSysCharSet): string;
+function StrToCharSet(Str: string): TSysCharSet;
 
-function EnumSetToStr(const EnumSet; TypeInfo: PTypeInfo): AnsiString;
-procedure StrToEnumSet(const Str: AnsiString; TypeInfo: PTypeInfo; out EnumSet);
+function EnumSetToStr(const EnumSet; TypeInfo: PTypeInfo): string;
+procedure StrToEnumSet(const Str: string; TypeInfo: PTypeInfo; out EnumSet);
 
 function SkipPackedShortString(Value: PShortstring): Pointer;
 
@@ -111,6 +113,9 @@ procedure FreeProcOfMethod(Proc: Pointer);
 implementation
 
 uses
+{$IFDEF UNICODE}
+  Character,
+{$ENDIF}
   Windows, ScConsts;
 
 type
@@ -446,8 +451,17 @@ end;
   @param ExcludedChars   Ensemble des caractères qu'il faut échapper
   @return Représentation Pascal de Str
 *}
-function StrToStrRepres(const Str: AnsiString;
-  ExcludedChars: TSysCharSet = []): AnsiString;
+function StrToStrRepres(const Str: string;
+  ExcludedChars: TSysCharSet = []): string;
+
+  function IsExcluded(C: Char): Boolean;
+  begin
+    Result := CharInSet(C, ExcludedChars);
+    {$IFDEF UNICODE}
+    Result := Result or TCharacter.IsControl(C);
+    {$ENDIF}
+  end;
+
 var
   I: Integer;
 begin
@@ -460,17 +474,17 @@ begin
     ExcludedChars := ExcludedChars + [#0..#31];
     while I <= Length(Str) do
     begin
-      if Str[I] in ExcludedChars then
+      if IsExcluded(Str[I]) then
       begin
         if I mod 256 = 0 then
           Result := Result+'+';
 
-        Result := Result+'#'+AnsiString(IntToStr(Byte(Str[I])));
+        Result := Result+'#'+IntToStr(Integer(Str[I]));
         Inc(I);
       end else
       begin
         Result := Result+'''';
-        while (I <= Length(Str)) and (not (Str[I] in ExcludedChars)) do
+        while (I <= Length(Str)) and (not IsExcluded(Str[I])) do
         begin
           if I mod 256 = 0 then
             Result := Result+'''+''';
@@ -497,14 +511,14 @@ end;
   @return Chaîne représentée par Str en Pascal
   @throws EConvertError Chaîne de caractère incorrecte
 *}
-function StrRepresToStr(Str: AnsiString): AnsiString;
+function StrRepresToStr(Str: string): string;
 var
-  CharStr: AnsiString;
+  CharStr: string;
   I, IntChar: Integer;
   NumChars: TSysCharSet;
 begin
   Result := '';
-  Str := AnsiString(Trim(string(Str)));
+  Str := Trim(Str);
   I := 1;
   repeat
     if I > 1 then
@@ -552,9 +566,9 @@ begin
           CharStr := CharStr+Str[I];
           Inc(I);
         end;
-        IntChar := StrToIntDef(string(CharStr), -1);
-        if (IntChar >= 0) and (IntChar <= 255) then
-          Result := Result+AnsiChar(IntChar)
+        IntChar := StrToIntDef(CharStr, -1);
+        if (IntChar >= 0) and (IntChar <= Integer(High(Char))) then
+          Result := Result+Char(IntChar)
         else
           raise EConvertError.CreateFmt(sScWrongString, [Str]);
       end;
@@ -571,15 +585,33 @@ end;
   @return Représentation Pascal de Chr
 *}
 function CharToCharRepres(Chr: AnsiChar;
-  ExcludedChars: TSysCharSet = []): AnsiString;
+  ExcludedChars: TSysCharSet = []): string;
 begin
-  ExcludedChars := ExcludedChars + [#0..#31];
-  if Chr in ExcludedChars then
-    Result := '#'+AnsiString(IntToStr(Byte(Chr)))
+  Result := CharToCharRepres(WideChar(Chr), ExcludedChars);
+end;
+
+{*
+  Détermine la représentation Pascal d'un caractère
+  @param Chr             Caractère à traiter
+  @param ExcludedChars   Ensemble des caractères qu'il faut échapper
+  @return Représentation Pascal de Chr
+*}
+function CharToCharRepres(Chr: WideChar;
+  ExcludedChars: TSysCharSet = []): string;
+var
+  Excluded: Boolean;
+begin
+  Excluded := CharInSet(Chr, ExcludedChars + [#0..#31]);
+  {$IFDEF UNICODE}
+  Excluded := Excluded or TCharacter.IsControl(Chr);
+  {$ENDIF}
+
+  if Excluded then
+    Result := '#'+IntToStr(Integer(Chr))
   else if Chr = '''' then
     Result := ''''''''''
   else
-    Result := AnsiString(''''+Chr+'''');
+    Result := ''''+Chr+'''';
 end;
 
 {*
@@ -588,10 +620,10 @@ end;
   @return Caractère représenté par Str en Pascal
   @throws EConvertError Caractère incorrect
 *}
-function CharRepresToChar(Str: AnsiString): AnsiChar;
+function CharRepresToChar(Str: string): WideChar;
 begin
   try
-    Str := AnsiString(Trim(string(Str)));
+    Str := Trim(Str);
     if Str = '' then
       raise EConvertError.Create('');
     case Str[1] of
@@ -599,8 +631,7 @@ begin
       begin
         // Le résultat est le caractère dont le code ASCII est l'entier
         // spécifié à la suite
-        Delete(Str, 1, 1);
-        Result := AnsiChar(StrToInt(string(Str)));
+        Result := WideChar(StrToInt(Copy(Str, 2, MaxInt)));
       end;
       '''':
       begin
@@ -627,7 +658,7 @@ begin
     end;
   except
     on Error: EConvertError do
-      raise EConvertError.CreateFmt(sSjrdWrongChar, [Str]);
+      raise EConvertError.CreateFmt(sScWrongChar, [Str]);
   end;
 end;
 
@@ -636,9 +667,9 @@ end;
   @param CharSet   Ensemble de caractères à traiter
   @return Représentation Pascal de CharSet
 *}
-function CharSetToStr(const CharSet: TSysCharSet): AnsiString;
+function CharSetToStr(const CharSet: TSysCharSet): string;
 var
-  I, From: Word;
+  I, From: Integer;
 begin
   Result := '';
   I := 0;
@@ -679,7 +710,7 @@ end;
   @return Ensemble de caractères représenté par CharSet
   @throws EConvertError Ensemble de caractères incorrect
 *}
-function StrToCharSet(Str: AnsiString): TSysCharSet;
+function StrToCharSet(Str: string): TSysCharSet;
 var
   I: Integer;
 
@@ -695,8 +726,8 @@ var
         From := I+1;
         repeat
           Inc(I);
-        until (I > Length(Str)) or (not (Str[I] in ['0'..'9']));
-        Result := AnsiChar(StrToInt(string(Copy(Str, From, I-From))));
+        until (I > Length(Str)) or (not CharInSet(Str[I], ['0'..'9']));
+        Result := AnsiChar(StrToInt(Copy(Str, From, I-From)));
       end;
       '''':
       begin
@@ -717,7 +748,7 @@ var
             raise EConvertError.Create('');
           if Str[I+1] <> '''' then
             raise EConvertError.Create('');
-          Result := Str[I];
+          Result := AnsiChar(Str[I]);
           Inc(I, 2);
         end;
       end;
@@ -731,13 +762,13 @@ var
 begin
   try
     Result := [];
-    Str := AnsiString(Trim(string(Str)));
+    Str := Trim(Str);
     // Si Str est vide, il n'y a aucun caractère dans l'ensemble
     if Str = '' then
       Exit;
     // Si il y des [] aux extrémités, on les supprime
     if (Str[1] = '[') and (Str[Length(Str)] = ']') then
-      Str := AnsiString(Trim(string(Copy(Str, 2, Length(Str)-2))));
+      Str := Trim(Copy(Str, 2, Length(Str)-2));
 
     I := 1;
     while I <= Length(Str) do
@@ -828,7 +859,7 @@ end;
   @param TypeInfo   RTTI du type ensemble ou du type énumération
   @return Chaîne représentant l'ensemble EnumSet
 *}
-function EnumSetToStr(const EnumSet; TypeInfo: PTypeInfo): AnsiString;
+function EnumSetToStr(const EnumSet; TypeInfo: PTypeInfo): string;
 var
   TypeData: PTypeData;
   ByteValue: Byte;
@@ -841,8 +872,8 @@ begin
 
   for ByteValue := TypeData.MinValue to TypeData.MaxValue do
   begin
-    if ByteValue in TSysByteSet(EnumSet) then
-      Result := Result + AnsiString(GetEnumName(TypeInfo, ByteValue) + ', ');
+    if ByteValue-TypeData.MinValue in TSysByteSet(EnumSet) then
+      Result := Result + GetEnumName(TypeInfo, ByteValue) + ', ';
   end;
 
   if Result <> '' then
@@ -858,7 +889,7 @@ end;
   @param EnumSet    Ensemble converti en sortie
   @return Chaîne représentant l'ensemble EnumSet
 *}
-procedure StrToEnumSet(const Str: AnsiString; TypeInfo: PTypeInfo; out EnumSet);
+procedure StrToEnumSet(const Str: string; TypeInfo: PTypeInfo; out EnumSet);
 type
   TSetAsBytes = array[0..31] of Byte;
 var

@@ -83,7 +83,7 @@ resourcestring
   sScWrongInteger = 'Impossible de convertir "%s" en entier';
   sScWrongFloat = 'Impossible de convertir "%s" en valeur à virgule flottante';
   sScWrongString = 'Impossible de convertir "%s" en chaîne de caractères';
-  sSjrdWrongChar = 'Impossible de convertir "%s" en caractère';
+  sScWrongChar = 'Impossible de convertir "%s" en caractère';
   sScWrongCharSet = 'Impossible de convertir "%s" en ensemble de caractères';
   sScSetOf = 'ensemble de %s';
   sScWrongEnumSet = 'Impossible de convertir "%s" en %s';
