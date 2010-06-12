@@ -66,6 +66,9 @@ resourcestring
 
   SUntypedTypeDescription = '(non typé)';
 
+  SUnknownValue = '(%s)';
+  SOutOfBoundsEnumValue = 'Hors bornes (%d)';
+
 implementation
 
 end.

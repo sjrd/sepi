@@ -42,7 +42,7 @@ unit SepiStrTypes;
 interface
 
 uses
-  SysUtils, Classes, TypInfo, ScTypInfo, SepiReflectionCore;
+  SysUtils, Classes, TypInfo, ScTypInfo, ScDelphiLanguage, SepiReflectionCore;
 
 type
   {*
@@ -73,6 +73,8 @@ type
       Source: TSepiType); override;
 
     function Equals(Other: TSepiType): Boolean; override;
+
+    function ValueToString(const Value): string; override;
 
     property MaxLength: Integer read FMaxLength;
   end;
@@ -127,6 +129,8 @@ type
       Source: TSepiType); override;
 
     function Equals(Other: TSepiType): Boolean; override;
+
+    function ValueToString(const Value): string; override;
 
     property StringKind: TSepiStringKind read FStringKind;
 
@@ -260,6 +264,14 @@ begin
     (MaxLength = TSepiShortStringType(Other).MaxLength);
 end;
 
+{*
+  [@inheritDoc]
+*}
+function TSepiShortStringType.ValueToString(const Value): string;
+begin
+  Result := StrToStrRepres(ShortString(Value));
+end;
+
 {------------------------}
 { Classe TSepiStringType }
 {------------------------}
@@ -391,6 +403,24 @@ begin
   Result := (ClassType = Other.ClassType) and
     (StringKind = TSepiStringType(Other).StringKind) and
     (CodePage = TSepiStringType(Other).CodePage);
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiStringType.ValueToString(const Value): string;
+begin
+  case StringKind of
+    skAnsiString: Result := AnsiString(Value);
+    skWideString: Result := WideString(Value);
+    {$IFDEF UNICODE}
+    skUnicodeString: Result := UnicodeString(Value);
+    {$ENDIF}
+  else
+    Result := '';
+  end;
+
+  Result := StrToStrRepres(Result);
 end;
 
 initialization

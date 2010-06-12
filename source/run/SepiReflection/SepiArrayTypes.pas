@@ -60,6 +60,8 @@ type
 
     procedure WriteDigestData(Stream: TStream); override;
 
+    function InternalValueToString(Items: Pointer; Count: Integer): string;
+
     {*
       Type de l'index
       @return Type de l'index
@@ -123,6 +125,8 @@ type
     function Equals(Other: TSepiType): Boolean; override;
     function CompatibleWith(AType: TSepiType): Boolean; override;
 
+    function ValueToString(const Value): string; override;
+
     property LowerBound: Integer read FLowerBound;
     property HigherBound: Integer read FHigherBound;
     property ArrayLength: Integer read GetLength;
@@ -155,6 +159,8 @@ type
     procedure SetElementType(const AElementTypeName: string); overload;
 
     function CompatibleWith(AType: TSepiType): Boolean; override;
+
+    function ValueToString(const Value): string; override;
   end;
 
   {*
@@ -179,6 +185,8 @@ type
 
     function CompatibleWith(AType: TSepiType): Boolean; override;
 
+    function ValueToString(const Value): string; override;
+
     property IsArrayOfConst: Boolean read FIsArrayOfConst;
     property HighVarName: string read FHighVarName;
   end;
@@ -186,7 +194,7 @@ type
 implementation
 
 uses
-  SepiSystemUnit;
+  ScCompilerMagic, SepiSystemUnit;
 
 type
   PArrayTypeData = ^TArrayTypeData;
@@ -269,6 +277,37 @@ function TSepiArrayType.Equals(Other: TSepiType): Boolean;
 begin
   Result := (ClassType = Other.ClassType) and
     (ElementType = TSepiArrayType(Other).ElementType);
+end;
+
+{*
+  Représentation sous forme de chaîne d'un tableau de ce type
+  @param Items   Pointeur sur le premier élément du tableau
+  @param Count   Nombre d'éléments
+  @return Représentation sous forme de chaîne du tableau
+*}
+function TSepiArrayType.InternalValueToString(Items: Pointer;
+  Count: Integer): string;
+var
+  I: Integer;
+  Item: Pointer;
+begin
+  if Count = 0 then
+  begin
+    Result := '()';
+    Exit;
+  end;
+
+  Result := '';
+  Item := Items;
+
+  for I := 0 to Count-1 do
+  begin
+    Result := Result + ' ' + ElementType.ValueToString(Item^) + ',';
+    Inc(Cardinal(Item), ElementType.Size);
+  end;
+
+  Result[1] := '(';
+  Result[Length(Result)] := ')';
 end;
 
 {-----------------------------}
@@ -540,6 +579,14 @@ begin
   Result := False;
 end;
 
+{*
+  [@inheritDoc]
+*}
+function TSepiStaticArrayType.ValueToString(const Value): string;
+begin
+  Result := InternalValueToString(@Value, ArrayLength);
+end;
+
 {--------------------------}
 { Classe TSepiDynArrayType }
 {--------------------------}
@@ -700,6 +747,14 @@ begin
   Result := False;
 end;
 
+{*
+  [@inheritDoc]
+*}
+function TSepiDynArrayType.ValueToString(const Value): string;
+begin
+  Result := InternalValueToString(Pointer(Value), DynArrayLength(Value));
+end;
+
 {--------------------------}
 { TSepiOpenArrayType class }
 {--------------------------}
@@ -777,6 +832,14 @@ function TSepiOpenArrayType.CompatibleWith(AType: TSepiType): Boolean;
 begin
   Result := (AType is TSepiArrayType) and
     TSepiArrayType(AType).ElementType.Equals(ElementType);
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiOpenArrayType.ValueToString(const Value): string;
+begin
+  Result := Description;
 end;
 
 initialization

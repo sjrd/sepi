@@ -396,6 +396,7 @@ type
     function NewValue: Pointer;
     procedure DisposeValue(Value: Pointer);
     procedure CopyData(const Source; var Dest);
+    function ValueToString(const Value): string; virtual;
 
     function Equals(Other: TSepiType): Boolean;
       {$IF RTLVersion >= 20.0} reintroduce; {$IFEND} virtual;
@@ -2228,6 +2229,17 @@ end;
 procedure TSepiType.CopyData(const Source; var Dest);
 begin
   ScTypInfo.CopyData(Source, Dest, Size, TypeInfo);
+end;
+
+{*
+  String representation of a value of this type
+  This method is useful for debugging purpose
+  @param Value   Value to represent
+  @return String representation of Value
+*}
+function TSepiType.ValueToString(const Value): string;
+begin
+  Result := Format(SUnknownValue, [DisplayName]);
 end;
 
 {*

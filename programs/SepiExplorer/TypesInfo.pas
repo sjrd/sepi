@@ -279,53 +279,7 @@ end;
 procedure PrintValue(Output: TOutputWriter; Value: Pointer;
   ValueType: TSepiType);
 begin
-  case ValueType.Kind of
-    tkUnknown:
-      if ValueType is TSepiPointerType then
-      begin
-        if Assigned(TSepiPointerType(ValueType).PointTo) and
-          (TSepiPointerType(ValueType).PointTo.TypeInfo = TypeInfo(Char)) and
-          (Cardinal(Value^) > $100) then
-          Output.Write(PChar(Value^))
-        else
-          Output.Write('$'+IntToHex(PLongWord(Value)^, 8));
-      end else if ValueType is TSepiFakeEnumType then
-      begin
-        Output.Write(IntToStr(
-          TSepiFakeEnumType(ValueType).ValueAsInteger(Value^)));
-      end else
-        Output.Write('(unknown)');
-    tkInteger:
-      case ValueType.TypeData.OrdType of
-        otUByte: Output.Write(IntToStr(PByte(Value)^));
-        otSByte: Output.Write(IntToStr(PShortInt(Value)^));
-        otUWord: Output.Write(IntToStr(PWord(Value)^));
-        otSWord: Output.Write(IntToStr(PSmallInt(Value)^));
-        otULong: Output.Write(IntToStr(Int64(PLongWord(Value)^)));
-        otSLong: Output.Write(IntToStr(PLongInt(Value)^));
-      end;
-    tkInt64: Output.Write(IntToStr(PInt64(Value)^));
-    tkFloat:
-      case TSepiFloatType(ValueType).FloatType of
-        ftSingle: Output.Write(FloatToStr(PSingle(Value)^));
-        ftDouble: Output.Write(FloatToStr(PDouble(Value)^));
-        ftExtended: Output.Write(FloatToStr(PExtended(Value)^));
-        ftComp: Output.Write(FloatToStr(PComp(Value)^));
-        ftCurr: Output.Write(FloatToStr(PCurrency(Value)^));
-      end;
-    tkLString: Output.Write(AnsiString(Value^));
-    tkWString: Output.Write(WideString(Value^));
-    tkEnumeration:
-      case ValueType.Size of
-        1: Output.Write(GetEnumName(ValueType.TypeInfo, PByte(Value)^));
-        2: Output.Write(GetEnumName(ValueType.TypeInfo, PWord(Value)^));
-      end;
-    {$IF Declared(tkUString)}
-    tkUString: Output.Write(UnicodeString(Value^));
-    {$IFEND}
-  else
-    Output.Write('(unknown)');
-  end;
+  Output.Write(ValueType.ValueToString(Value^));
 end;
 
 procedure PrintConstInfo(Output: TOutputWriter; Constant: TSepiConstant);

@@ -721,6 +721,8 @@ type
     function Equals(Other: TSepiType): Boolean; override;
     function CompatibleWith(AType: TSepiType): Boolean; override;
 
+    function ValueToString(const Value): string; override;
+
     property IsPacked: Boolean read FPacked;
     property Completed: Boolean read FCompleted;
   end;
@@ -3676,6 +3678,37 @@ end;
 function TSepiRecordType.CompatibleWith(AType: TSepiType): Boolean;
 begin
   Result := Self = AType;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiRecordType.ValueToString(const Value): string;
+var
+  ValuePtr: Cardinal;
+  I: Integer;
+  Field: TSepiField;
+  FieldValue: string;
+begin
+  ValuePtr := Cardinal(@Value);
+  Result := '';
+
+  for I := 0 to ChildCount-1 do
+  begin
+    if not (Children[I] is TSepiField) then
+      Continue;
+
+    Field := TSepiField(Children[I]);
+    FieldValue := Field.FieldType.ValueToString(
+      Pointer(ValuePtr+Field.Offset)^);
+    Result := Result + Format(' %s: %s;', [Field.Name, FieldValue]);
+  end;
+
+  if Result <> '' then
+  begin
+    Result[1] := '(';
+    Result[Length(Result)] := ')';
+  end;
 end;
 
 {-------------------------------------}

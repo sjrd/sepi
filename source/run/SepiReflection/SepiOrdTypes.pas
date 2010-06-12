@@ -43,7 +43,7 @@ interface
 
 uses
   Classes, SysUtils, SysConst, TypInfo, ScUtils, ScTypInfo, ScDelphiLanguage,
-  ScSerializer, SepiReflectionCore;
+  ScSerializer, SepiReflectionCore, SepiReflectionConsts;
 
 const
   MinInt64 = Int64($FFFFFFFFFFFFFFFF);
@@ -112,6 +112,8 @@ type
     constructor Clone(AOwner: TSepiComponent; const AName: string;
       Source: TSepiType); override;
 
+    function ValueToString(const Value): string; override;
+
     function InRange(Value: Longint): Boolean; overload;
     function InRange(Value: Int64): Boolean; overload;
     procedure CheckInRange(Value: Longint);
@@ -149,6 +151,8 @@ type
     constructor Clone(AOwner: TSepiComponent; const AName: string;
       Source: TSepiType); override;
 
+    function ValueToString(const Value): string; override;
+
     function InRange(Value: WideChar): Boolean;
     procedure CheckInRange(Value: WideChar);
 
@@ -185,6 +189,8 @@ type
     constructor Clone(AOwner: TSepiComponent; const AName: string;
       Source: TSepiType); override;
 
+    function ValueToString(const Value): string; override;
+
     function InRange(Value: Int64): Boolean;
     procedure CheckInRange(Value: Int64);
 
@@ -220,6 +226,8 @@ type
 
     function Equals(Other: TSepiType): Boolean; override;
 
+    function ValueToString(const Value): string; override;
+
     function ValueAsExtended(const Value): Extended;
     procedure SetValueAsExtended(var Dest; Source: Extended);
 
@@ -247,6 +255,10 @@ type
     constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
     constructor Clone(AOwner: TSepiComponent; const AName: string;
       Source: TSepiType); override;
+
+    function ValueToString(const Value): string; override;
+
+    function ValueAsBoolean(const Value): Boolean;
 
     property BooleanKind: TBooleanKind read FBooleanKind;
   end;
@@ -290,6 +302,8 @@ type
 
     function Equals(Other: TSepiType): Boolean; override;
     function CompatibleWith(AType: TSepiType): Boolean; override;
+
+    function ValueToString(const Value): string; override;
 
     property BaseType: TSepiEnumType read FBaseType;
     property ValueCount: Integer read FValueCount;
@@ -344,6 +358,8 @@ type
     function Equals(Other: TSepiType): Boolean; override;
     function CompatibleWith(AType: TSepiType): Boolean; override;
 
+    function ValueToString(const Value): string; override;
+
     property ValueCount: Integer read FValueCount;
     property Values[Index: Integer]: TSepiFakeEnumValue read GetValues;
   end;
@@ -380,6 +396,8 @@ type
 
     function Equals(Other: TSepiType): Boolean; override;
     function CompatibleWith(AType: TSepiType): Boolean; override;
+
+    function ValueToString(const Value): string; override;
 
     property CompType: TSepiOrdType read FCompType;
   end;
@@ -432,6 +450,8 @@ type
     class function NewInstance: TObject; override;
 
     function Equals(Other: TSepiType): Boolean; override;
+
+    function ValueToString(const Value): string; override;
 
     property PointTo: TSepiType read FPointTo;
     property IsUntyped: Boolean read FIsUntyped;
@@ -769,6 +789,17 @@ begin
 end;
 
 {*
+  [@inheritDoc]
+*}
+function TSepiIntegerType.ValueToString(const Value): string;
+begin
+  if Signed then
+    Result := IntToStr(ValueAsInteger(Value))
+  else
+    Result := IntToStr(Int64(ValueAsCardinal(Value)));
+end;
+
+{*
   Teste si une valeur est dans l'intervalle supporté par le type
   @param Value   Valeur à tester
   @return True si Value est dans l'intervalle supporté, False sinon
@@ -926,6 +957,17 @@ begin
 end;
 
 {*
+  [@inheritDoc]
+*}
+function TSepiCharType.ValueToString(const Value): string;
+begin
+  if (not IsUnicode) or (WideChar(Value) < #$100) then
+    Result := CharToCharRepres(AnsiChar(Value))
+  else
+    Result := '#'+IntToStr(Word(Value));
+end;
+
+{*
   Teste si une valeur est dans l'intervalle supporté par le type
   @param Value   Valeur à tester
   @return True si Value est dans l'intervalle supporté, False sinon
@@ -1049,6 +1091,14 @@ end;
 function TSepiInt64Type.GetDescription: string;
 begin
   Result := IntToStr(MinInt64)+'..'+IntToStr(MaxInt64);
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiInt64Type.ValueToString(const Value): string;
+begin
+  Result := IntToStr(Int64(Value));
 end;
 
 {*
@@ -1185,6 +1235,14 @@ function TSepiFloatType.Equals(Other: TSepiType): Boolean;
 begin
   Result := (ClassType = Other.ClassType) and
     (FloatType = TSepiFloatType(Other).FloatType);
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiFloatType.ValueToString(const Value): string;
+begin
+  Result := FloatToStr(ValueAsExtended(Value));
 end;
 
 {*
@@ -1331,6 +1389,24 @@ begin
   else
     FBooleanKind := bkBoolean;
   end;
+end;
+
+{*
+  [@inheritedDoc]
+*}
+function TSepiBooleanType.ValueToString(const Value): string;
+begin
+  Result := BooleanIdents[ValueAsBoolean(Value)];
+end;
+
+{*
+  Lit une valeur de ce type comme valeur Boolean
+  @param Value   Valeur à lire
+  @return Valeur comme Boolean
+*}
+function TSepiBooleanType.ValueAsBoolean(const Value): Boolean;
+begin
+  Result := ValueAsInteger(Value) <> 0;
 end;
 
 {----------------------}
@@ -1639,6 +1715,21 @@ begin
   Result := Equals(AType);
 end;
 
+{*
+  [@inheritDoc]
+*}
+function TSepiEnumType.ValueToString(const Value): string;
+var
+  IntValue: Integer;
+begin
+  IntValue := ValueAsInteger(Value);
+
+  if (IntValue >= 0) and (IntValue < ValueCount) then
+    Result := Names[IntValue]
+  else
+    Result := Format(SOutOfBoundsEnumValue, [IntValue]);
+end;
+
 {-------------------------}
 { TSepiFakeEnumType class }
 {-------------------------}
@@ -1821,6 +1912,14 @@ end;
 function TSepiFakeEnumType.CompatibleWith(AType: TSepiType): Boolean;
 begin
   Result := AType = Self;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiFakeEnumType.ValueToString(const Value): string;
+begin
+  Result := Format('%s(%d)', [Name, ValueAsInteger(Value)]);
 end;
 
 {---------------------}
@@ -2006,6 +2105,52 @@ function TSepiSetType.CompatibleWith(AType: TSepiType): Boolean;
 begin
   Result := (AType.Kind = tkSet) and
     FCompType.CompatibleWith(TSepiSetType(AType).FCompType);
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiSetType.ValueToString(const Value): string;
+type
+  TSet = set of Byte;
+var
+  Min, Max, Current: Integer;
+begin
+  Result := '[';
+
+  Min := CompType.MinValue;
+  Max := CompType.MaxValue;
+  Current := Min;
+
+  while Current <= Max do
+  begin
+    if not (Current-Min in TSet(Value)) then
+    begin
+      Inc(Current);
+      Continue;
+    end;
+
+    Result := Result + CompType.ValueToString(Current);
+    Inc(Current);
+
+    if Current-Min in TSet(Value) then
+    begin
+      repeat
+        Inc(Current);
+      until (Current > Max) or not (Current-Min in TSet(Value));
+
+      Dec(Current);
+      Result := Result + '..' + CompType.ValueToString(Current);
+    end;
+
+    Result := Result + ', ';
+    Inc(Current);
+  end;
+
+  if Length(Result) > 1 then
+    SetLength(Result, Length(Result)-2);
+
+  Result := Result + ']';
 end;
 
 {-------------------------}
@@ -2215,6 +2360,14 @@ begin
   Result := (ClassType = Other.ClassType) and
     (PointTo.Equals(TSepiPointerType(Other).PointTo) or
     IsUntyped or TSepiPointerType(Other).IsUntyped);
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiPointerType.ValueToString(const Value): string;
+begin
+  Result := Format('%s($%s)', [Name, IntToHex(LongWord(Value), 8)]);
 end;
 
 initialization
