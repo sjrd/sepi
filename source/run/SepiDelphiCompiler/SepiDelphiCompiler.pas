@@ -708,6 +708,7 @@ begin
 
   NonTerminalClasses[ntMethodImpl]       := TSepiMethodImplementationNode;
   NonTerminalClasses[ntMethodImplHeader] := TSepiMethodImplHeaderNode;
+  NonTerminalClasses[ntMethodImplKind]   := TSepiSignatureKindNode;
   NonTerminalClasses[ntForwardMarker]    := TSepiForwardMarkerNode;
   NonTerminalClasses[ntMethodBody]       := TSepiMethodBodyNode;
   NonTerminalClasses[ntLocalVar]         := TSepiLocalVarNode;

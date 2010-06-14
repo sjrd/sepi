@@ -850,7 +850,18 @@ ntMethodImpl	MethodImpl
 	MethodImplHeader ForwardOrMethodBody
 
 ntMethodImplHeader	MethodImplHeader
-	MethodKind QualifiedIdent MethodSignature (RoutineModifier)* ';'* (RoutineModifier ';'*)*
+	MethodImplKind QualifiedIdent MethodSignature (RoutineModifier)* ';'* (RoutineModifier ';'*)*
+
+ntMethodImplKind	MethodImplKind	AsText
+	'procedure'
+	'function'
+	'class' ClassMethodImplKind
+	'constructor'
+	'destructor'
+
+ntClassMethodImplKind	ClassMethodImplKind	Simplify
+	'procedure'
+	'function'
 
 ntForwardOrMethodBody	ForwardOrMethodBody	Simplify
 	ForwardMarker
