@@ -2758,6 +2758,8 @@ begin
   FForeignRefCounts := TStringList.Create;
 
   inherited Create;
+
+  LoadUnit(SystemUnitName);
 end;
 
 {*
@@ -4064,6 +4066,9 @@ begin
       varInt64:    ATypeInfo := System.TypeInfo(Int64);
 
       varOleStr, varStrArg, varString: ATypeInfo := System.TypeInfo(string);
+      {$IF Declared(varUString)}
+      varUString: ATypeInfo := System.TypeInfo(string);
+      {$IFEND}
     else
       raise ESepiBadConstTypeError.CreateFmt(
         SSepiBadConstType, [VarType(AValue)]);
