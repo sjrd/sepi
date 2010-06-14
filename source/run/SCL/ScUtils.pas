@@ -112,8 +112,18 @@ procedure WaitProcessMessages(Milliseconds: Integer);
 
 function IntToStr0(Value, Digits: Integer): string;
 
+{$IF not Declared(TEncoding)}
 function ReadStrFromStream(Stream: TStream): string;
 procedure WriteStrToStream(Stream: TStream; const Str: string);
+{$ELSE}
+function ReadStrFromStream(Stream: TStream): string; overload;
+procedure WriteStrToStream(Stream: TStream; const Str: string); overload;
+
+function ReadStrFromStream(Stream: TStream;
+  Encoding: TEncoding): string; overload;
+procedure WriteStrToStream(Stream: TStream; const Str: string;
+  Encoding: TEncoding); overload;
+{$IFEND}
 
 function CorrectFileName(const FileName: string;
   AcceptPathDelim: Boolean = False;
@@ -528,6 +538,45 @@ begin
   Stream.WriteBuffer(Len, 4);
   Stream.WriteBuffer(Str[1], Len * SizeOf(Char));
 end;
+
+{$IF Declared(TEncoding)}
+{*
+  Lit une chaîne de caractères depuis un flux
+  Cette chaîne doit avoir été écrite avec WriteStrToStream.
+  @param Stream     Flux depuis lequel lire la chaîne
+  @param Encoding   Encodage utilisé pour stocker la chaîne
+  @return La chaîne lue
+*}
+function ReadStrFromStream(Stream: TStream; Encoding: TEncoding): string;
+var
+  Buffer: TBytes;
+  Len: Integer;
+begin
+  Stream.ReadBuffer(Len, 4);
+  SetLength(Buffer, Len);
+  Stream.ReadBuffer(Buffer[0], Len);
+  Result := Encoding.GetString(Buffer);
+end;
+
+{*
+  Écrit une chaîne de caractères dans un flux
+  Cette chaine pourra être relue avec ReadStrFromStream.
+  @param Stream     Flux dans lequel enregistrer la chaîne
+  @param Str        Chaîne de caractères à écrire
+  @param Encoding   Encodage utilisé pour stocker la chaîne
+*}
+procedure WriteStrToStream(Stream: TStream; const Str: string;
+  Encoding: TEncoding);
+var
+  Buffer: TBytes;
+  Len: Integer;
+begin
+  Buffer := Encoding.GetBytes(Str);
+  Len := Length(Buffer);
+  Stream.WriteBuffer(Len, 4);
+  Stream.WriteBuffer(Buffer[0], Len);
+end;
+{$IFEND}
 
 {*
   Teste si une chaîne de caractères est un nom de fichier correct
