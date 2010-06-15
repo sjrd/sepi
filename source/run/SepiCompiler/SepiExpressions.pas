@@ -8494,6 +8494,9 @@ begin
   begin
     RightValue := TSepiVariableValue.Create(FProperty.ReadAccess.ClassField);
     RightValue.AttachToExpression(RightExpression);
+  end else
+  begin
+    Assert(False);
   end;
 
   RightValue.CompileRead(Compiler, Instructions, Destination, TempVars);
@@ -8517,7 +8520,7 @@ begin
       FProperty.WriteAccess.Field);
     LeftValue.AttachToExpression(TSepiExpression.Create(Expression));
     LeftValue.CompileWrite(Compiler, Instructions, Source);
-  end else if FProperty.ReadAccess.Kind = pakMethod then
+  end else if FProperty.WriteAccess.Kind = pakMethod then
   begin
     Method := FProperty.WriteAccess.Method;
     MethodCall := TSepiMethodCall.Create(Method, ObjectValue);
@@ -8535,11 +8538,14 @@ begin
     MethodCall.CompleteParams;
 
     (MethodCall as ISepiExecutable).CompileExecute(Compiler, Instructions);
-  end else if FProperty.ReadAccess.Kind = pakClassField then
+  end else if FProperty.WriteAccess.Kind = pakClassField then
   begin
     LeftValue := TSepiVariableValue.Create(FProperty.WriteAccess.ClassField);
     LeftValue.AttachToExpression(TSepiExpression.Create(Expression));
     LeftValue.CompileWrite(Compiler, Instructions, Source);
+  end else
+  begin
+    Assert(False);
   end;
 end;
 
