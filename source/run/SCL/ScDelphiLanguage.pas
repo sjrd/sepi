@@ -639,7 +639,7 @@ begin
           // Si 3 caractères, le troisième doit être ' et le deuxième
           // est le caractère résultat
           3: if Str[3] = '''' then
-              Result := Str[2]
+              Result := WideChar(Str[2])
             else
               raise EConvertError.Create('');
           // Si 4 caractères, ce doit être '''', auquel cas le caractère

@@ -37,7 +37,8 @@ contains
   SepiImportsTypes in '..\..\source\run\SepiRTLSysImport\SepiImportsTypes.pas',
   SepiImportsVariants in '..\..\source\run\SepiRTLSysImport\SepiImportsVariants.pas',
   SepiImportsVarUtils in '..\..\source\run\SepiRTLSysImport\SepiImportsVarUtils.pas',
-  SepiImportsWindows in '..\..\source\run\SepiRTLSysImport\SepiImportsWindows.pas';
+  SepiImportsWindows in '..\..\source\run\SepiRTLSysImport\SepiImportsWindows.pas',
+  SepiImportsSystem in '..\..\source\run\SepiRTLSysImport\SepiImportsSystem.pas';
 
 end.
 

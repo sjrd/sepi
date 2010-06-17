@@ -43,7 +43,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, StrUtils, Contnrs, IniFiles, TypInfo, ScStrUtils,
-  ScConsts;
+  ScUtils, ScConsts;
 
 type
   {*
