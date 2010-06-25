@@ -2064,10 +2064,14 @@ end;
 *}
 function TSepiSetType.GetAlignment: Integer;
 begin
-  if Size <= 4 then
-    Result := Size
-  else
-    Result := 8;
+  {$IF CompilerVersion < 20}
+    if Size <= 4 then
+      Result := Size
+    else
+      Result := 8;
+  {$ELSE}
+    Result := 1;
+  {$IFEND}
 end;
 
 {*
