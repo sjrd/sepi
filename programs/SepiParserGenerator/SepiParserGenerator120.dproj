@@ -83,7 +83,7 @@
 						<Parameters Name="UseLauncher">False</Parameters>
 						<Parameters Name="LoadAllSymbols">True</Parameters>
 						<Parameters Name="LoadUnspecifiedSymbols">False</Parameters>
-						<Parameters Name="RunParams"> -i SepiDelphiGrammar.gra -o . -l Delphi</Parameters>
+						<Parameters Name="RunParams">-i SepiDelphiGrammar.gra -o . -l Delphi</Parameters>
 						<Parameters Name="DebugCWD">C:\Projets\Sepi\source\run\SepiDelphiCompiler</Parameters>
 					</Parameters>
 					<VersionInfo>

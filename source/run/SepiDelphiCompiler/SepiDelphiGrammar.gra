@@ -137,35 +137,35 @@ tkPreProcessor  Directive de compilation
 
 #####
 
-ntSource	Source
+Source
 	'unit'* Identifier ';'* Interface (Implementation 'end'* '.'*)? tkEof*
 
-ntInPreProcessorExpression	InPreProcessorExpression
+InPreProcessorExpression
 	ConstExpression tkEof*
 
-ntInterface	Interface
+Interface
 	'interface'* UsesSection (IntfSection)*
 
-ntImplementation	Implementation
+Implementation
 	'implementation'* (ImplSection)* InitFinit
 
-ntIntfSection	IntfSection	Simplify
+IntfSection	Simplify
 	TypeSection
 	ConstSection
 	VarSection
 	RoutineDecl
 
-ntImplSection	ImplSection	Simplify
+ImplSection	Simplify
 	TypeSection
 	ConstSection
 	VarSection
 	MethodImpl
 
-ntInitFinit	InitFinit	Simplify
+InitFinit	Simplify
 	UnitInitialization (UnitFinalization)?
 	@
 
-ntIdentifier	Identifier
+Identifier
 	tkIdentifier
 	'register'
 	'cdecl'
@@ -196,130 +196,130 @@ ntIdentifier	Identifier
 	'reintroduce'
 	'inline'
 
-ntUsesSection	UsesSection
+UsesSection
 	'uses'* CommaIdentList ';'*
 	@
 
-ntCommaIdentList	CommaIdentList	Simplify
+CommaIdentList	Simplify
 	Identifier (','* Identifier)*
 
-ntCommaIdentDeclList	CommaIdentDeclList
+CommaIdentDeclList
 	IdentifierDecl (','* IdentifierDecl)*
 
-ntQualifiedIdent	QualifiedIdent	AsText
+QualifiedIdent	AsText
 	Identifier ('.'* Identifier)*
 
-ntIdentifierDecl	IdentifierDecl	AsText
+IdentifierDecl	AsText
 	Identifier
 
-ntInitializationExpression	InitializationExpression
+InitializationExpression
 	0 ArrayInitializationExpression
 	1 RecordInitializationExpression
 	2 GUIDInitializationExpression
 	3 OtherInitializationExpression
 
-ntArrayInitializationExpression	ArrayInitializationExpression
+ArrayInitializationExpression
 	ArrayInitialization
 
-ntArrayInitialization	ArrayInitialization
+ArrayInitialization
 	'('* InitializationExpression (','* InitializationExpression)* ')'*
 
-ntRecordInitializationExpression	RecordInitializationExpression
+RecordInitializationExpression
 	RecordInitialization
 
-ntRecordInitialization	RecordInitialization
+RecordInitialization
 	'('* Identifier ':'* InitializationExpression RecordInitEx ')'*
 
-ntRecordInitEx	RecordInitEx	Simplify
+RecordInitEx	Simplify
 	';'* (Identifier ':'* InitializationExpression RecordInitEx)?
 	@
 
-ntGUIDInitializationExpression	GUIDInitializationExpression
+GUIDInitializationExpression
 	GUIDInitialization
 
-ntGUIDInitialization	GUIDInitialization
+GUIDInitialization
 	RecordInitialization
 	tkStringCst
 
-ntOtherInitializationExpression	OtherInitializationExpression
+OtherInitializationExpression
 	OtherInitialization
 
-ntOtherInitialization	OtherInitialization
+OtherInitialization
 	ConstExpression
 
-ntExpression	Expression
+Expression
 	SingleExpr (BinaryOp SingleExpr)*
 
-ntExpressionNoEquals	ExpressionNoEquals
+ExpressionNoEquals
 	SingleExpr (BinaryOpNoEquals SingleExpr)*
 
-ntConstExpression	ConstExpression
+ConstExpression
 	Expression
 
-ntConstExpressionNoEquals	ConstExpressionNoEquals
+ConstExpressionNoEquals
 	ExpressionNoEquals
 
-ntConstOrType	ConstOrType
+ConstOrType
 	Expression
 
-ntConstOrTypeNoEquals	ConstOrTypeNoEquals
+ConstOrTypeNoEquals
 	ExpressionNoEquals
 
-ntSingleExpr	SingleExpr
+SingleExpr
 	ParenthesizedExpr (NextExpr)*
 	SingleValue (NextExpr)*
 	UnaryOpExpr
 
-ntUnaryOpExpr	UnaryOpExpr
+UnaryOpExpr
 	UnaryOp SingleExpr
 	AddressOfOp SingleExpr
 
-ntParenthesizedExpr	ParenthesizedExpr
+ParenthesizedExpr
 	'('* Expression ')'*
 
-ntNextExpr	NextExpr	Simplify
+NextExpr	Simplify
 	UnaryOpModifier
 	Parameters
 	ArrayIndices
 	FieldSelection
 
-ntUnaryOpModifier	UnaryOpModifier
+UnaryOpModifier
 	DereferenceOp
 
-ntDereferenceOp	DereferenceOp
+DereferenceOp
 	'^'
 
-ntParameters	Parameters
+Parameters
 	'('* InnerParameters ')'*
 
-ntInnerParameters	InnerParameters	Simplify
+InnerParameters	Simplify
 	Parameter (','* Parameter)*
 	@
 
-ntParameter	Parameter	Simplify
+Parameter	Simplify
 	Expression
 	1 '['* SetOrOpenArrayBuilder ']'*
 
-ntSetOrOpenArrayBuilder	SetOrOpenArrayBuilder
+SetOrOpenArrayBuilder
 	SetOrOpenArrayRange (','* SetOrOpenArrayRange)*
 	@
 
-ntSetOrOpenArrayRange	SetOrOpenArrayRange
+SetOrOpenArrayRange
 	Expression ('..'* Expression)?
 
-ntIdentTestParam	IdentTestParam
+IdentTestParam
 	'('* Identifier ')'*
 
-ntArrayIndices	ArrayIndices
+ArrayIndices
 	'['* ExprList ']'*
 
-ntExprList	ExprList	Simplify
+ExprList	Simplify
 	Expression (','* Expression)*
 
-ntFieldSelection	FieldSelection
+FieldSelection
 	'.'* Identifier
 
-ntSingleValue	SingleValue
+SingleValue
 	IntegerConst
 	FloatConst
 	StringConst
@@ -328,54 +328,54 @@ ntSingleValue	SingleValue
 	NilValue
 	'['* SetValue ']'*
 
-ntIntegerConst	IntegerConst
+IntegerConst
 	tkInteger
 
-ntFloatConst	FloatConst
+FloatConst
 	tkFloat
 
-ntStringConst	StringConst
+StringConst
 	tkStringCst
 
-ntIdentifierSingleValue	IdentifierSingleValue
+IdentifierSingleValue
 	Identifier
 
-ntInheritedSingleValue	InheritedSingleValue	Simplify
+InheritedSingleValue	Simplify
 	1 InheritedExpression
 	0 PureInheritedExpression
 
-ntInheritedExpression	InheritedExpression
+InheritedExpression
 	Identifier
 
-ntPureInheritedExpression	PureInheritedExpression
+PureInheritedExpression
 	@
 
-ntNilValue	NilValue
+NilValue
 	'nil'
 
-ntSetValue	SetValue
+SetValue
 	SetRange (','* SetRange)*
 	@
 
-ntCaseOfSetValue	CaseOfSetValue
+CaseOfSetValue
 	SetRange (','* SetRange)*
 
-ntSetRange	SetRange
+SetRange
 	Expression ('..'* Expression)?
 
-ntBinaryOp	BinaryOp	Simplify
+BinaryOp	Simplify
 	ArithmeticLogicOp
 	InOperation
 	IsOperation
 	AsOperation
 
-ntBinaryOpNoEquals	BinaryOpNoEquals	Simplify
+BinaryOpNoEquals	Simplify
 	ArithmeticLogicOpNoEquals
 	InOperation
 	IsOperation
 	AsOperation
 
-ntArithmeticLogicOp	ArithmeticLogicOp
+ArithmeticLogicOp
 	'+'
 	'-'
 	'*'
@@ -394,7 +394,7 @@ ntArithmeticLogicOp	ArithmeticLogicOp
 	'>='
 	'<>'
 
-ntArithmeticLogicOpNoEquals	ArithmeticLogicOpNoEquals
+ArithmeticLogicOpNoEquals
 	'+'
 	'-'
 	'*'
@@ -412,63 +412,63 @@ ntArithmeticLogicOpNoEquals	ArithmeticLogicOpNoEquals
 	'>='
 	'<>'
 
-ntInOperation	InOperation
+InOperation
 	'in'
 
-ntIsOperation	IsOperation
+IsOperation
 	'is'
 
-ntAsOperation	AsOperation
+AsOperation
 	'as'
 
-ntUnaryOp	UnaryOp
+UnaryOp
 	'+'
 	'-'
 	'not'
 
-ntAddressOfOp	AddressOfOp
+AddressOfOp
 	'@'
 
-ntConstSection	ConstSection
+ConstSection
 	ConstKeyWord* (ConstDecl)+
 
-ntConstKeyWord	ConstKeyWord
+ConstKeyWord
 	'const'
 	'resourcestring'
 
-ntConstDecl	ConstDecl
+ConstDecl
 	IdentifierDecl InnerConstDecl TypeModifiers ';'*
 
-ntInnerConstDecl	InnerConstDecl	Simplify
+InnerConstDecl	Simplify
 	':'* TypeDesc '='* InitializationExpression
 	'='* ConstExpression
 
-ntVarSection	VarSection
+VarSection
 	'var'* (GlobalVar)+
 
-ntGlobalVar	GlobalVar
+GlobalVar
 	IdentifierDecl InnerGlobalVar TypeModifiers ';'*
 
-ntInnerGlobalVar	InnerGlobalVar	Simplify
+InnerGlobalVar	Simplify
 	':'* TypeDesc ('='* InitializationExpression)?
 	(','* IdentifierDecl)+ ':'* TypeDesc
 
-ntTypeSection	TypeSection
+TypeSection
 	'type'* (TypeDecl)+
 
-ntTypeDecl	TypeDecl
+TypeDecl
 	Attributes* IdentifierDecl '='* TypeDesc TypeModifiers ';'*
 
-ntAttributes	Attributes
+Attributes
 	(Attribute)*
 
-ntAttribute	Attribute
+Attribute
 	'['* QualifiedIdent ('('* AttributeParams ')'*)? ']'*
 
-ntAttributeParams	AttributeParams
+AttributeParams
 	ConstExpression (','* ConstExpression)*
 
-ntTypeDesc	TypeDesc	Simplify
+TypeDesc	Simplify
 	CloneDesc
 	RangeOrEnumDesc
 	SetDesc
@@ -482,200 +482,200 @@ ntTypeDesc	TypeDesc	Simplify
 	DispInterfaceDesc
 	EventDesc
 
-ntTypeName	TypeName
+TypeName
 	QualifiedIdent
 
-ntPackedDesc	PackedDesc	Simplify
+PackedDesc	Simplify
 	PackedArrayDesc
 	PackedRecordDesc
 
-ntArrayDesc	ArrayDesc
+ArrayDesc
 	'array'* ArrayDims 'of'* TypeDesc
 
-ntPackedArrayDesc	PackedArrayDesc
+PackedArrayDesc
 	'array'* ArrayDims 'of'* TypeDesc
 
-ntArrayDims	ArrayDims
+ArrayDims
 	'['* ArrayRange (','* ArrayRange)* ']'*
 	@
 
-ntArrayRange	ArrayRange
+ArrayRange
 	ConstOrType ('..'* ConstExpression)?
 
-ntTypeModifiers	TypeModifiers
+TypeModifiers
 	(TypeModifier)*
 
-ntTypeModifier	TypeModifier	Simplify
+TypeModifier	Simplify
 	1 'deprecated' (tkStringCst*)?
 	Identifier
 
-ntCloneDesc	CloneDesc
+CloneDesc
 	'type'* TypeName (AnsiStringCodePage)?
 
-ntAnsiStringCodePage	AnsiStringCodePage	Simplify
+AnsiStringCodePage	Simplify
 	'('* ConstExpression ')'*
 
-ntRangeOrEnumDesc	RangeOrEnumDesc	SuccessiveTries
+RangeOrEnumDesc	SuccessiveTries
 	EnumDesc
 	FakeEnumDesc
 	RangeDesc
 
-ntRangeDesc	RangeDesc
+RangeDesc
 	ConstOrTypeNoEquals ('..'* ConstExpressionNoEquals)?
 
-ntEnumDesc	EnumDesc
+EnumDesc
 	'('* CommaIdentList ')'*
 
-ntFakeEnumDesc	FakeEnumDesc
+FakeEnumDesc
 	'('* FakeEnumValue (','* FakeEnumValue)* ')'*
 
-ntFakeEnumValue	FakeEnumValue
+FakeEnumValue
 	Identifier ('='* ConstExpression)?
 
-ntSetDesc	SetDesc
+SetDesc
 	'set'* 'of'* TypeDesc
 
-ntStringDesc	StringDesc
+StringDesc
 	'string' ('['* ConstExpression ']'*)?
 
-ntPointerDesc	PointerDesc
+PointerDesc
 	'^'* QualifiedIdent
 
-ntRecordDesc	RecordDesc
+RecordDesc
 	'record'* RecordContents 'end'*
 
-ntPackedRecordDesc	PackedRecordDesc
+PackedRecordDesc
 	'record'* RecordContents 'end'*
 
-ntRecordContents	RecordContents
+RecordContents
 	(RecordField)* RecordCaseBlock
 
-ntRecordCaseBlock	RecordCaseBlock
+RecordCaseBlock
 	'case'* Identifier* (':'* Identifier*)? 'of'* (RecordCase)*
 	@
 
-ntRecordCase	RecordCase	Simplify
+RecordCase	Simplify
 	CaseLabels* ':'* '('* RecordCaseContents ')'* (';'*)?
 
-ntCaseLabels	CaseLabels	AsText
+CaseLabels	AsText
 	ConstExpression (',' ConstExpression)*
 
-ntRecordCaseContents	RecordCaseContents
+RecordCaseContents
 	NextRecordCaseContentsEx
 
-ntNextRecordCaseContents	NextRecordCaseContents	Simplify
+NextRecordCaseContents	Simplify
 	';'* NextRecordCaseContentsEx
 	RecordCaseBlock
 
-ntNextRecordCaseContentsEx	NextRecordCaseContentsEx	Simplify
+NextRecordCaseContentsEx	Simplify
 	RecordCaseField NextRecordCaseContents
 	RecordCaseBlock
 
-ntRecordField	RecordField
+RecordField
 	CommaIdentDeclList ':'* TypeDesc TypeModifiers ';'*
 
-ntRecordCaseField	RecordCaseField
+RecordCaseField
 	CommaIdentDeclList ':'* TypeDesc TypeModifiers
 
-ntField	Field
+Field
 	CommaIdentDeclList ':'* TypeDesc TypeModifiers ';'*
 
-ntClassDesc	ClassDesc
+ClassDesc
 	'class'* ClassExDesc
 
-ntClassExDesc	ClassExDesc	Simplify
+ClassExDesc	Simplify
 	ClassHeritage ClassContents
 	1 'of' QualifiedIdent
 
-ntClassContents	ClassContents	Simplify
+ClassContents	Simplify
 	1 ClassMemberLists 'end'*
 	@
 
-ntClassHeritage	ClassHeritage
+ClassHeritage
 	'('* QualifiedIdent (','* QualifiedIdent)* ')'*
 	@
 
-ntClassMemberLists	ClassMemberLists
+ClassMemberLists
 	ClassMemberList (Visibility ClassMemberList)*
 
-ntVisibility	Visibility
+Visibility
 	'private'
 	'protected'
 	'public'
 	'published'
 	'strict' StrictVisibility
 
-ntStrictVisibility	StrictVisibility	Simplify
+StrictVisibility	Simplify
 	'private'
 	'protected'
 
-ntClassMemberList	ClassMemberList	Simplify
+ClassMemberList	Simplify
 	(Field)* (ClassMethodProp)*
 
-ntInterfaceDesc	InterfaceDesc
+InterfaceDesc
 	'interface'* (InterfaceHeritage InterfaceGUID InterfaceMemberList 'end'*)?
 
-ntInterfaceHeritage	InterfaceHeritage
+InterfaceHeritage
 	'('* QualifiedIdent ')'*
 	@
 
-ntDispInterfaceDesc	DispInterfaceDesc
+DispInterfaceDesc
 	'dispinterface'* (DispInterfaceHeritage InterfaceGUID InterfaceMemberList 'end'*)?
 
-ntDispInterfaceHeritage	DispInterfaceHeritage
+DispInterfaceHeritage
 	@
 
-ntInterfaceGUID	InterfaceGUID	AsText
+InterfaceGUID	AsText
 	'['* ConstExpression ']'*
 	@
 
-ntInterfaceMemberList	InterfaceMemberList
+InterfaceMemberList
 	(IntfMethodProp)*
 
-ntClassMethodProp	ClassMethodProp	Simplify
+ClassMethodProp	Simplify
 	ClassMethodDecl
 	PropertyDecl
 	'class'* ClassClassMethodProp
 	TypeSection
 	ConstSection
 
-ntClassMethodDecl	ClassMethodDecl	SuccessiveTries
+ClassMethodDecl	SuccessiveTries
 	IntfMethodRedirector
 	MethodDecl
 
-ntClassClassMethodProp	ClassClassMethodProp
+ClassClassMethodProp
 	MethodDecl
 	PropertyDecl
 	VarSection
 
-ntIntfMethodProp	IntfMethodProp	Simplify
+IntfMethodProp	Simplify
 	MethodDecl
 	PropertyDecl
 
-ntIntfMethodRedirector	IntfMethodRedirector
+IntfMethodRedirector
 	IntfMethodRedirKind* Identifier '.'* Identifier '='* Identifier ';'*
 
-ntIntfMethodRedirKind	IntfMethodRedirKind
+IntfMethodRedirKind
 	'procedure'
 	'function'
 
-ntMethodDecl	MethodDecl
+MethodDecl
 	MethodKind MethodNameDeclaration MethodSignature ';'* (MethodModifier ';'*)*
 
-ntPropertyDecl	PropertyDecl
+PropertyDecl
 	PropertyKind IdentifierDecl PropertyNextDecl (PropInfo)* ';'* (PropertyModifier ';'*)*
 
-ntPropertyKind	PropertyKind	AsText
+PropertyKind	AsText
 	'property'
 
-ntPropertyNextDecl	PropertyNextDecl	Simplify
+PropertyNextDecl	Simplify
 	PropertySignature
 	RedefineMarker
 
-ntRedefineMarker	RedefineMarker
+RedefineMarker
 	@
 
-ntPropInfo	PropInfo	Simplify
+PropInfo	Simplify
 	PropReadAccess
 	PropWriteAccess
 	PropIndex
@@ -683,71 +683,71 @@ ntPropInfo	PropInfo	Simplify
 	PropStorage
 	IgnoredPropInfo
 
-ntPropReadAccess	PropReadAccess
+PropReadAccess
 	'read'* QualifiedIdent
 
-ntPropWriteAccess	PropWriteAccess
+PropWriteAccess
 	'write'* QualifiedIdent
 
-ntPropIndex	PropIndex
+PropIndex
 	'index'* ConstExpression
 
-ntPropDefaultValue	PropDefaultValue
+PropDefaultValue
 	'default'* ConstExpression
 	'nodefault'*
 
-ntPropStorage	PropStorage
+PropStorage
 	'stored'* Expression
 
-ntIgnoredPropInfo	IgnoredPropInfo
+IgnoredPropInfo
 	'readonly'
 	'writeonly'
 	'dispid' ConstExpression
 
-ntPropertyModifier	PropertyModifier	Simplify
+PropertyModifier	Simplify
 	DefaultMarker
 	IgnoredPropertyModifier
 
-ntDefaultMarker	DefaultMarker
+DefaultMarker
 	'default'
 
-ntIgnoredPropertyModifier	IgnoredPropertyModifier
+IgnoredPropertyModifier
 	'deprecated' (tkStringCst)?
 
-ntEventDesc	EventDesc	AsText
+EventDesc	AsText
 	RoutineKind MethodSignature EventModifiers
 
-ntEventModifiers	EventModifiers	SuccessiveTries
+EventModifiers	SuccessiveTries
 	CallingConvention EventModifiers
 	EventIsOfObject EventModifiers
 	';'* CallingConvention EventModifiers
 	@
 
-ntEventIsOfObject	EventIsOfObject	AsText
+EventIsOfObject	AsText
 	'of' 'object'
 
-ntRoutineDecl	RoutineDecl
+RoutineDecl
 	RoutineKind MethodNameDeclaration MethodSignature (RoutineModifier)* ';'* (RoutineModifier ';'*)*
 
-ntRoutineKind	RoutineKind	AsText
+RoutineKind	AsText
 	'procedure'
 	'function'
 
-ntMethodKind	MethodKind	AsText
+MethodKind	AsText
 	'procedure'
 	'function'
 	'constructor'
 	'destructor'
 
-ntMethodNameDeclaration	MethodNameDeclaration
+MethodNameDeclaration
 	Identifier
 
-ntRoutineModifier	RoutineModifier	Simplify
+RoutineModifier	Simplify
 	CallingConvention
 	OverloadMarker
 	IgnoredRoutineModifier
 
-ntMethodModifier	MethodModifier	Simplify
+MethodModifier	Simplify
 	CallingConvention
 	OverloadMarker
 	StaticMarker
@@ -755,7 +755,7 @@ ntMethodModifier	MethodModifier	Simplify
 	AbstractMarker
 	IgnoredMethodModifier
 
-ntCallingConvention	CallingConvention
+CallingConvention
 	'register'
 	'cdecl'
 	'pascal'
@@ -763,137 +763,137 @@ ntCallingConvention	CallingConvention
 	'safecall'
 	'assembler'
 
-ntMethodLinkKind	MethodLinkKind
+MethodLinkKind
 	'virtual'
 	'dynamic'
 	'message' ConstExpression
 	'override'
 
-ntAbstractMarker	AbstractMarker
+AbstractMarker
 	'abstract'
 
-ntOverloadMarker	OverloadMarker
+OverloadMarker
 	'overload'
 
-ntStaticMarker	StaticMarker
+StaticMarker
 	'static'
 
-ntIgnoredRoutineModifier	IgnoredRoutineModifier
+IgnoredRoutineModifier
 	'deprecated' (tkStringCst)?
 	'platform'
 	'inline'
 
-ntIgnoredMethodModifier	IgnoredMethodModifier
+IgnoredMethodModifier
 	'deprecated' (tkStringCst)?
 	'platform'
 	'inline'
 	'reintroduce'
 	'dispid' ConstExpression
 
-ntMethodSignature	MethodSignature
+MethodSignature
 	('('* MethodParamList ')'*)? ReturnType
 
-ntPropertySignature	PropertySignature
+PropertySignature
 	('['* ParamList ']'*)? PropType
 
-ntMethodParamList	MethodParamList	Simplify
+MethodParamList	Simplify
 	ParamList
 	@
 
-ntParamList	ParamList	Simplify
+ParamList	Simplify
 	Param (';'* Param)*
 
-ntReturnType	ReturnType
+ReturnType
 	':'* QualifiedIdent
 	@
 
-ntPropType	PropType
+PropType
 	':'* QualifiedIdent
 
-ntParam	Param
+Param
 	ParamKind ParamNameList ParamTypeAndDefault
 
-ntParamKind	ParamKind
+ParamKind
 	'const'
 	'var'
 	'out'
 	@
 
-ntParamNameList	ParamNameList
+ParamNameList
 	ParamName (','* ParamName)*
 
-ntParamName	ParamName
+ParamName
 	Identifier
 
-ntParamTypeAndDefault	ParamTypeAndDefault	Simplify
+ParamTypeAndDefault	Simplify
 	':'* ComplexParamType (ParamDefault)?
 	@
 
-ntComplexParamType	ComplexParamType	Simplify
+ComplexParamType	Simplify
 	ParamIsArray ParamArrayType
 	ParamType
 
-ntParamIsArray	ParamIsArray	AsText
+ParamIsArray	AsText
 	'array' 'of'
 
-ntParamArrayType	ParamArrayType	Simplify
+ParamArrayType	Simplify
 	TypeName
 	'const'*
 
-ntParamType	ParamType	Simplify
+ParamType	Simplify
 	TypeName
 
-ntParamDefault	ParamDefault	Simplify
+ParamDefault	Simplify
 	'='* InitializationExpression
 
-ntMethodImpl	MethodImpl
+MethodImpl
 	MethodImplHeader ForwardOrMethodBody
 
-ntMethodImplHeader	MethodImplHeader
+MethodImplHeader
 	MethodImplKind QualifiedIdent MethodSignature (RoutineModifier)* ';'* (RoutineModifier ';'*)*
 
-ntMethodImplKind	MethodImplKind	AsText
+MethodImplKind	AsText
 	'procedure'
 	'function'
 	'class' ClassMethodImplKind
 	'constructor'
 	'destructor'
 
-ntClassMethodImplKind	ClassMethodImplKind	Simplify
+ClassMethodImplKind	Simplify
 	'procedure'
 	'function'
 
-ntForwardOrMethodBody	ForwardOrMethodBody	Simplify
+ForwardOrMethodBody	Simplify
 	ForwardMarker
 	MethodBody
 
-ntMethodBody	MethodBody
+MethodBody
 	(InMethodSection)* BeginEndBlock ';'*
 
-ntInMethodSection	InMethodSection	Simplify
+InMethodSection	Simplify
 	TypeSection
 	ConstSection
 	LocalVarSection
 
-ntForwardMarker	ForwardMarker
+ForwardMarker
 	'forward' ';'*
 
-ntUnitInitialization	UnitInitialization
+UnitInitialization
 	'initialization'* InstructionList
 
-ntUnitFinalization	UnitFinalization
+UnitFinalization
 	'finalization'* InstructionList
 
-ntLocalVarSection	LocalVarSection
+LocalVarSection
 	'var'* (LocalVar)+
 
-ntLocalVar	LocalVar
+LocalVar
 	CommaIdentDeclList ':'* TypeDesc ';'*
 
-ntInstructionList	InstructionList
+InstructionList
 	(Instruction ';'*)*
 
-ntInstruction	Instruction	Simplify
+Instruction	Simplify
 	NoInstruction
 	BeginEndBlock
 	IfThenElseInstruction
@@ -906,99 +906,99 @@ ntInstruction	Instruction	Simplify
 	ExpressionInstruction
 	WithInstruction
 
-ntNoInstruction	NoInstruction
+NoInstruction
 	@
 
-ntBeginEndBlock	BeginEndBlock
+BeginEndBlock
 	'begin'* InstructionList 'end'*
 
-ntIfThenElseInstruction	IfThenElseInstruction
+IfThenElseInstruction
 	'if'* Expression 'then'* Instruction ElseBranch
 
-ntElseBranch	ElseBranch	Simplify
+ElseBranch	Simplify
 	1 'else'* Instruction
 	NoInstruction
 
-ntCaseOfInstruction	CaseOfInstruction
+CaseOfInstruction
 	'case'* Expression 'of'* (CaseOfClause)+ CaseOfElseClause 'end'*
 
-ntCaseOfClause	CaseOfClause
+CaseOfClause
 	CaseOfSetValue ':'* Instruction ';'*
 
-ntCaseOfElseClause	CaseOfElseClause
+CaseOfElseClause
 	'else'* InstructionList
 	@
 
-ntWhileInstruction	WhileInstruction
+WhileInstruction
 	'while'* Expression 'do'* Instruction
 
-ntRepeatInstruction	RepeatInstruction
+RepeatInstruction
 	'repeat'* InstructionList 'until'* Expression
 
-ntForInstruction	ForInstruction
+ForInstruction
 	'for'* ForControlVar ':='* Expression ForToDownTo Expression 'do'* Instruction
 
-ntForControlVar	ForControlVar
+ForControlVar
 	Identifier
 
-ntForToDownTo	ForToDownTo	Simplify
+ForToDownTo	Simplify
 	ForTo
 	ForDownTo
 
-ntForTo	ForTo
+ForTo
 	'to'
 
-ntForDownTo	ForDownTo
+ForDownTo
 	'downto'
 
-ntTryInstruction	TryInstruction
+TryInstruction
 	'try'* InstructionList NextTryInstruction 'end'*
 
-ntNextTryInstruction	NextTryInstruction	Simplify
+NextTryInstruction	Simplify
 	ExceptClause
 	FinallyClause
 
-ntExceptClause	ExceptClause
+ExceptClause
 	'except'* NextExceptClause
 
-ntNextExceptClause	NextExceptClause	Simplify
+NextExceptClause	Simplify
 	InstructionList
 	MultiOn
 
-ntMultiOn	MultiOn
+MultiOn
 	(OnClause)+ MultiOnElseClause
 
-ntOnClause	OnClause
+OnClause
 	'on'* ExceptionVarAndType 'do'* InstructionList
 
-ntExceptionVarAndType	ExceptionVarAndType
+ExceptionVarAndType
 	QualifiedIdent (':'* QualifiedIdent)?
 
-ntMultiOnElseClause	MultiOnElseClause
+MultiOnElseClause
 	'else'* InstructionList
 	@
 
-ntFinallyClause	FinallyClause
+FinallyClause
 	'finally'* InstructionList
 
-ntRaiseInstruction	RaiseInstruction
+RaiseInstruction
 	'raise'* (Expression)?
 
-ntExpressionInstruction	ExpressionInstruction
+ExpressionInstruction
 	ExecutableExpression
 
-ntExecutableExpression	ExecutableExpression
+ExecutableExpression
 	Expression (AssignmentOp Expression)?
 
-ntAssignmentOp	AssignmentOp
+AssignmentOp
 	':='
 
-ntWithInstruction	WithInstruction
+WithInstruction
 	'with'* Expression WithEx
 
-ntWithEx	WithEx	Simplify
+WithEx	Simplify
 	InnerWith
 	'do'* Instruction
 
-ntInnerWith	InnerWith
+InnerWith
 	','* Expression WithEx

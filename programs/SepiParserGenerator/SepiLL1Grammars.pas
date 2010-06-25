@@ -37,7 +37,7 @@ unit SepiLL1Grammars;
 interface
 
 uses
-  SysUtils, Classes, StrUtils, Contnrs, Math, ScStrUtils, ScIntegerSets;
+  Types, SysUtils, Classes, StrUtils, Contnrs, Math, ScStrUtils, ScIntegerSets;
 
 type
   {*
@@ -146,7 +146,7 @@ type
     FName: string;
     FPremSet: TPremSet;
   public
-    constructor Create(AID: TSymbolClass; Str: string);
+    constructor Create(AID: TSymbolClass; const AStrID, AName: string);
     destructor Destroy; override;
 
     property ID: TSymbolClass read FID;
@@ -162,7 +162,7 @@ type
   *}
   TTerminal = class(TGramSymbol)
   public
-    constructor Create(AID: TSymbolClass; Str: string);
+    constructor Create(AID: TSymbolClass; const Str: string);
   end;
 
   {*
@@ -184,7 +184,7 @@ type
     function GetChoiceCount: Integer;
     function GetChoices(Index: Integer): TChoice;
   public
-    constructor Create(AID: TSymbolClass; Str: string);
+    constructor Create(AID: TSymbolClass; const Str: string);
     destructor Destroy; override;
 
     property Simplify: Boolean read FSimplify;
@@ -487,13 +487,13 @@ end;
 { TGramSymbol class }
 {-------------------}
 
-constructor TGramSymbol.Create(AID: TSymbolClass; Str: string);
+constructor TGramSymbol.Create(AID: TSymbolClass; const AStrID, AName: string);
 begin
   inherited Create;
 
   FID := AID;
-  if SplitToken(Str, #9, FStrID, FName) then
-    FName := GetFirstToken(FName, #9);
+  FStrID := AStrID;
+  FName := AName;
 
   FPremSet := TPremSet.Create;
 end;
@@ -512,9 +512,13 @@ end;
 { TTerminal class }
 {-----------------}
 
-constructor TTerminal.Create(AID: TSymbolClass; Str: string);
+constructor TTerminal.Create(AID: TSymbolClass; const Str: string);
+var
+  AStrID, AName: string;
 begin
-  inherited;
+  SplitToken(Str, #9, AStrID, AName);
+
+  inherited Create(AID, AStrID, AName);
 
   PremSet.Include(ID);
 end;
@@ -523,12 +527,25 @@ end;
 { TNonTerminal class }
 {--------------------}
 
-constructor TNonTerminal.Create(AID: TSymbolClass; Str: string);
+constructor TNonTerminal.Create(AID: TSymbolClass; const Str: string);
+const
+  NonTerminalPrefix = 'nt';
+var
+  Parts: TStringDynArray;
 begin
-  inherited;
-  FSimplify := GetXToken(Str, #9, 3) = 'Simplify';
-  FShowAsText := GetXToken(Str, #9, 3) = 'AsText';
-  FSuccessiveTries := GetXToken(Str, #9, 3) = 'SuccessiveTries';
+  Parts := SplitTokenAll(Str, #9);
+
+  inherited Create(AID, NonTerminalPrefix+Parts[0], Parts[0]);
+
+  if Length(Parts) >= 2 then
+  begin
+    case AnsiIndexStr(Parts[1], ['Simplify', 'AsText', 'SuccessiveTries']) of
+      0: FSimplify := True;
+      1: FShowAsText := True;
+      2: FSuccessiveTries := True;
+    end;
+  end;
+
   FSuivSet := TSuivSet.Create;
   FChoices := TObjectList.Create(False);
 end;
@@ -856,7 +873,7 @@ begin
   else
     Result := Name;
 
-  Strings.Add(Format('nt%s'#9'%0:s'#9'Simplify', [Name]));
+  Strings.Add(Format('%s'#9'Simplify', [Name]));
   if Kind = ntkZeroOne then
     Strings.Add(#9 + Contents)
   else
