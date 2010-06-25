@@ -41,6 +41,9 @@ unit ScStrUtils;
 
 interface
 
+uses
+  Types;
+
 type
   {*
     Option de comparaison de chaînes
@@ -75,6 +78,7 @@ function GetLastToken(const S: string; Token: Char): string;
 function ExtractLastToken(var S: string; Token: Char): string;
 function SplitToken(const S: string; Token: Char;
   out LeftStr, RightStr: string): Boolean;
+function SplitTokenAll(const S: string; Token: Char): TStringDynArray;
 
 function GetXToken(const S: string; Token: Char; X: Integer): string;
 function GetXWord(const S: string; X: Integer): string;
@@ -89,7 +93,7 @@ uses
 {$IFDEF MSWINDOWS}
   Windows,
 {$ENDIF}
-  StrUtils, IniFiles;
+  StrUtils, Classes, IniFiles;
 
 {*
   Cherche un caractère dans une chaîne à partir de la fin de celle-ci
@@ -265,6 +269,39 @@ begin
     LeftStr := S;
     RightStr := '';
   end;
+end;
+
+{*
+  Découpe une chaîne en morceaux selon un délimiteur
+  @param S          Chaîne à découper
+  @param Token      Délimiteur
+  @return Tableau des morceaux de la chaîne
+*}
+function SplitTokenAll(const S: string; Token: Char): TStringDynArray;
+var
+  Count, I: Integer;
+  Pos, SavedPos: PChar;
+begin
+  Count := 1;
+
+  for I := 1 to Length(S) do
+    if S[I] = Token then
+      Inc(Count);
+
+  SetLength(Result, Count);
+  Pos := PChar(S);
+
+  for I := 0 to Count-2 do
+  begin
+    SavedPos := Pos;
+    while Pos^ <> Token do
+      Inc(Pos);
+
+    SetString(Result[I], SavedPos, Pos-SavedPos);
+    Inc(Pos);
+  end;
+
+  Result[Count-1] := string(Pos);
 end;
 
 {*
