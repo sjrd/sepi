@@ -87,13 +87,15 @@ function PosWord(const Wrd, Str: string; Index: Integer = 1): Integer;
 
 function HashOfStr(const Str: string): Cardinal;
 
+function CompareVersion(const Left, Right: string): TValueRelationship;
+
 implementation
 
 uses
 {$IFDEF MSWINDOWS}
   Windows,
 {$ENDIF}
-  StrUtils, Classes, IniFiles;
+  SysUtils, StrUtils, Classes, IniFiles, ScUtils;
 
 {*
   Cherche un caractère dans une chaîne à partir de la fin de celle-ci
@@ -390,6 +392,81 @@ end;
 function HashOfStr(const Str: string): Cardinal;
 begin
   Result := TProtectedStringHash(nil).HashOf(Str);
+end;
+
+{*
+  Identifie l'élément suivant d'un numéro de version
+  @param Version   Numéro de version sur lequel avancer
+  @return Valeur de l'élément suivant
+*}
+function GetNextVersionItem(var Version: PChar): Integer;
+const
+  vikTilde = $1000000;
+  vikEmpty = $2000000;
+  vikNumber = $3000000;
+  vikChar = $4000000;
+var
+  SavedPos: PChar;
+  NumberString: string;
+begin
+  case Version^ of
+    '~':
+    begin
+      Result := vikTilde;
+      Inc(Version);
+    end;
+
+    #0:
+    begin
+      Result := vikEmpty;
+    end;
+
+    '0'..'9':
+    begin
+      SavedPos := Version;
+      repeat
+        Inc(Version);
+      until (Version^ < '0') or (Version^ > '9');
+
+      SetString(NumberString, SavedPos, Version-SavedPos);
+      Result := vikNumber + StrToInt(NumberString);
+    end;
+  else
+    Result := vikChar + Ord(Version^);
+    Inc(Version);
+  end;
+end;
+
+{*
+  Compare deux numéros de version selon les règles de comparaison GNU
+  @param Left    Numéro de version de gauche
+  @param Right   Numéro de version de droite
+  @return -1 si Left < Right, 1 si Left > Right, 0 si Left = Right
+*}
+function CompareVersion(const Left, Right: string): TValueRelationship;
+var
+  LeftPos, RightPos: PChar;
+  Diff: Integer;
+begin
+  LeftPos := PChar(Left);
+  RightPos := PChar(Right);
+
+  while (LeftPos^ <> #0) or (RightPos^ <> #0) do
+  begin
+    Diff := GetNextVersionItem(LeftPos) - GetNextVersionItem(RightPos);
+
+    if Diff < 0 then
+    begin
+      Result := -1;
+      Exit;
+    end else if Diff > 0 then
+    begin
+      Result := 1;
+      Exit;
+    end;
+  end;
+
+  Result := 0;
 end;
 
 end.
