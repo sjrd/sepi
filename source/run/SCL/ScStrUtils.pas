@@ -395,6 +395,29 @@ begin
 end;
 
 {*
+  Identifie le numéro d'ère d'un numéro de version
+  @param Version   Numéro de version sur lequel avancer
+  @return Numéro d'ère
+*}
+function GetEra(var Version: PChar): Integer;
+var
+  ColonPos: PChar;
+  EraString: string;
+begin
+  ColonPos := Version;
+  while (ColonPos^ >= '0') and (ColonPos^ <= '9') do
+    Inc(ColonPos);
+
+  if ColonPos^ = ':' then
+  begin
+    SetString(EraString, Version, ColonPos-Version);
+    Result := StrToInt(EraString);
+    Version := ColonPos + 1;
+  end else
+    Result := 0;
+end;
+
+{*
   Identifie l'élément suivant d'un numéro de version
   @param Version   Numéro de version sur lequel avancer
   @return Valeur de l'élément suivant
@@ -451,22 +474,17 @@ begin
   LeftPos := PChar(Left);
   RightPos := PChar(Right);
 
-  while (LeftPos^ <> #0) or (RightPos^ <> #0) do
-  begin
+  Diff := GetEra(LeftPos) - GetEra(RightPos);
+
+  while (Diff = 0) and ((LeftPos^ <> #0) or (RightPos^ <> #0)) do
     Diff := GetNextVersionItem(LeftPos) - GetNextVersionItem(RightPos);
 
-    if Diff < 0 then
-    begin
-      Result := -1;
-      Exit;
-    end else if Diff > 0 then
-    begin
-      Result := 1;
-      Exit;
-    end;
-  end;
-
-  Result := 0;
+  if Diff < 0 then
+    Result := -1
+  else if Diff > 0 then
+    Result := 1
+  else
+    Result := 0;
 end;
 
 end.
