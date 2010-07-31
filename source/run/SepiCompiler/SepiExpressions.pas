@@ -7749,7 +7749,8 @@ begin
 
         if Supports(ParamValue, ISepiReadableValue, ReadableParam) then
         begin
-          if not ReadableParam.ValueType.Equals(SignatureParam.ParamType) then
+          if (not ReadableParam.ValueType.Equals(SignatureParam.ParamType)) and
+            (not SignatureParam.IsUntyped) then
           begin
             ReadableParam := TSepiConvertOperation.ConvertValue(
               SignatureParam.ParamType, ReadableParam);
