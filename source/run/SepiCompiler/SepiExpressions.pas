@@ -2379,8 +2379,6 @@ begin
       Destination.Seal;
     end else
     begin
-      TempVars.EndAllLifes(Instructions.GetCurrentEndRef);
-
       LoadAddressInstr := TSepiAsmLoadAddress.Create(Compiler);
       LoadAddressInstr.SourcePos := Expression.SourcePos;
 
