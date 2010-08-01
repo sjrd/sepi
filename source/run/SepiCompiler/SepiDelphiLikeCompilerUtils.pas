@@ -1111,6 +1111,10 @@ begin
 
     BackingValue := TSepiErroneousValue.Create(DestType);
     BackingValue.AttachToExpression(TSepiExpression.Create(Expression));
+  end else if Source.ValueType is TSepiUntypedType then
+  begin
+    // Give a type to an untyped variable
+    BackingValue := TSepiCastOperator.CastValue(DestType, Source, True);
   end else
   begin
     // OK, we have a value source to work on

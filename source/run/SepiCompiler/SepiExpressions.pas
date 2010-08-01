@@ -2323,7 +2323,8 @@ var
   Destination, TempDest: TSepiMemoryReference;
   MoveInstr: TSepiAsmMove;
 begin
-  if not Source.ValueType.Equals(ValueType) then
+  if (not Source.ValueType.Equals(ValueType)) and
+    (not (ValueType is TSepiUntypedType)) then
   begin
     MakeError(Format(STypeMismatch,
       [Source.ValueType.DisplayName, ValueType.DisplayName]));
@@ -2342,7 +2343,7 @@ begin
 
       if TempDest <> Destination then
       begin
-        MoveInstr := TSepiAsmMove.Create(Compiler, ValueType);
+        MoveInstr := TSepiAsmMove.Create(Compiler, Source.ValueType);
         MoveInstr.SourcePos := Expression.SourcePos;
         MoveInstr.Destination.Assign(Destination);
         MoveInstr.Source.Assign(TempDest);
@@ -3157,8 +3158,8 @@ begin
   FLocalVar := ALocalVar;
   SetValueType(LocalVar.VarType);
 
-  IsReadable := ValueType <> nil;
-  IsWritable := (ValueType <> nil) and (not LocalVar.IsConstant);
+  IsReadable := True;
+  IsWritable := not LocalVar.IsConstant;
   IsAddressable := True;
 end;
 
