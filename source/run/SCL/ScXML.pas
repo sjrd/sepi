@@ -52,11 +52,14 @@ procedure Base64Decode(Input, Output: TStream);
 
 function LoadXMLDocumentFromStream(Stream: TStream): IXMLDOMDocument;
 procedure SaveXMLDocumentToStream(const Document: IXMLDOMDocument;
-  Stream: TStream);
+  Stream: TStream; Indent: Boolean = True);
 
 function LoadXMLDocumentFromFile(const FileName: TFileName): IXMLDOMDocument;
 procedure SaveXMLDocumentToFile(const Document: IXMLDOMDocument;
-  const FileName: TFileName);
+  const FileName: TFileName; Indent: Boolean = True);
+
+procedure CreateXMLHeaderIfNotExists(const Document: IXMLDOMDocument);
+function IndentXMLDocument(const Document: IXMLDOMDocument): IXMLDOMDocument;
 
 implementation
 
@@ -186,16 +189,20 @@ end;
   @param Stream     Flux dans lequel enregistrer le document
 *}
 procedure SaveXMLDocumentToStream(const Document: IXMLDOMDocument;
-  Stream: TStream);
-const
-  XMLHeader: AnsiString = '<?xml version="1.0" encoding="UTF-8"?>'#13#10;
+  Stream: TStream; Indent: Boolean = True);
 var
+  ADocument: IXMLDOMDocument;
   StreamAdapter: IStream;
 begin
-  Stream.WriteBuffer(XMLHeader[1], Length(XMLHeader));
+  if Indent then
+    ADocument := IndentXMLDocument(Document)
+  else
+    ADocument := Document;
+
+  CreateXMLHeaderIfNotExists(ADocument);
 
   StreamAdapter := TStreamAdapter.Create(Stream);
-  Document.save(StreamAdapter);
+  ADocument.save(StreamAdapter);
 end;
 
 {*
@@ -221,16 +228,63 @@ end;
   @param FileName   Nom du fichier destination
 *}
 procedure SaveXMLDocumentToFile(const Document: IXMLDOMDocument;
-  const FileName: TFileName);
+  const FileName: TFileName; Indent: Boolean = True);
 var
   Stream: TStream;
 begin
   Stream := TFileStream.Create(FileName, fmCreate);
   try
-    SaveXMLDocumentToStream(Document, Stream);
+    SaveXMLDocumentToStream(Document, Stream, Indent);
   finally
     Stream.Free;
   end;
+end;
+
+{*
+  Crée le header XML pour un document XML s'il n'est pas déjà présent
+  @param Document   Document pour lequel créer le header
+*}
+procedure CreateXMLHeaderIfNotExists(const Document: IXMLDOMDocument);
+const
+  XMLHeaderTarget = 'xml';
+  XMLHeaderData = 'version="1.0" encoding="UTF-8"';
+begin
+  if not Supports(Document.childNodes[0], IXMLDOMProcessingInstruction) then
+  begin
+    Document.insertBefore(
+      Document.createProcessingInstruction(XMLHeaderTarget, XMLHeaderData),
+      Document.childNodes[0]);
+  end;
+end;
+
+{*
+  Indente un document XML
+  @param Document   Document XML à indenter
+  @return Document indenté
+*}
+function IndentXMLDocument(const Document: IXMLDOMDocument): IXMLDOMDocument;
+const
+  IndentStylesheetCode =
+    '<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" '+
+      'version="1.0">'#10+
+    '  <xsl:output method="xml" encoding="UTF-8" indent="yes"/>'#10+
+    '  <xsl:template match="@* | node()">'#10+
+    '    <xsl:copy>'#10+
+    '      <xsl:apply-templates select="@* | node()"/>'#10+
+    '   </xsl:copy>'#10+
+    '  </xsl:template>'#10+
+    '</xsl:stylesheet>'#10;
+var
+  IndentStylesheet: IXMLDOMDocument;
+begin
+  IndentStylesheet := CoDOMDocument.Create;
+  IndentStylesheet.async := False;
+  IndentStylesheet.loadXML(IndentStylesheetCode);
+
+  Result := CoDOMDocument.Create;
+  Result.async := False;
+
+  Document.transformNodeToObject(IndentStylesheet, Result);
 end;
 
 initialization
