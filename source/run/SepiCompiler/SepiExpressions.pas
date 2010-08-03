@@ -816,6 +816,10 @@ type
     function ConvertLeftOperand(NewType: TSepiBaseType): TSepiType;
     function ConvertRightOperand(NewType: TSepiBaseType): TSepiType;
 
+    procedure CompileReadOperandInto(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList; Destination: TSepiMemoryReference;
+      const Operand: ISepiReadableValue);
+
     procedure CompileShortCircuitAndOr(Compiler: TSepiMethodCompiler;
       Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
       TempVars: TSepiTempVarsLifeManager); virtual;
@@ -4216,6 +4220,47 @@ begin
 end;
 
 {*
+  Compile la lecture d'un opérande dans une référence mémoire spécifique
+  @param Compiler       Compilateur
+  @param Instructions   Liste d'instructions
+  @param Destination    Référence mémoire où stocker le résultat
+  @param Operand        Opérande à lire
+*}
+procedure TSepiBinaryOperation.CompileReadOperandInto(
+  Compiler: TSepiMethodCompiler; Instructions: TSepiInstructionList;
+  Destination: TSepiMemoryReference; const Operand: ISepiReadableValue);
+var
+  OperandMemory: TSepiMemoryReference;
+  SrcTempVars: TSepiTempVarsLifeManager;
+  MoveInstr: TSepiAsmMove;
+begin
+  OperandMemory := Destination;
+  try
+    // Read operand
+    SrcTempVars := TSepiTempVarsLifeManager.Create;
+    try
+      Operand.CompileRead(Compiler, Instructions, OperandMemory, SrcTempVars);
+    finally
+      SrcTempVars.EndAllLifes(Instructions.GetCurrentEndRef);
+      SrcTempVars.Free;
+    end;
+
+    // Copy to destination
+    if OperandMemory <> Destination then
+    begin
+      MoveInstr := TSepiAsmMove.Create(Compiler, ValueType);
+      MoveInstr.Destination.Assign(Destination);
+      MoveInstr.Source.Assign(OperandMemory);
+
+      Instructions.Add(MoveInstr);
+    end;
+  finally
+    if OperandMemory <> Destination then
+      OperandMemory.Free;
+  end;
+end;
+
+{*
   [@inheritDoc]
 *}
 procedure TSepiBinaryOperation.CompileShortCircuitAndOr(
@@ -4224,13 +4269,16 @@ procedure TSepiBinaryOperation.CompileShortCircuitAndOr(
 var
   JumpInstr: TSepiAsmCondJump;
 begin
-  LeftOperand.CompileRead(Compiler, Instructions, Destination, TempVars);
+  NeedDestination(Destination, ValueType, Compiler, TempVars,
+    Instructions.GetCurrentEndRef);
+
+  CompileReadOperandInto(Compiler, Instructions, Destination, LeftOperand);
 
   JumpInstr := TSepiAsmCondJump.Create(Compiler, Operation = opOr);
   JumpInstr.Test.Assign(Destination);
   Instructions.Add(JumpInstr);
 
-  RightOperand.CompileRead(Compiler, Instructions, Destination, TempVars);
+  CompileReadOperandInto(Compiler, Instructions, Destination, RightOperand);
 
   JumpInstr.Destination.InstructionRef := Instructions.GetCurrentEndRef;
 end;
