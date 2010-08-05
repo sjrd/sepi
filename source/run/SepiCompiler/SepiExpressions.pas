@@ -4269,6 +4269,8 @@ procedure TSepiBinaryOperation.CompileShortCircuitAndOr(
 var
   JumpInstr: TSepiAsmCondJump;
 begin
+  // In the general case, we need a totally independant variable, unfortunately
+  Destination := nil;
   NeedDestination(Destination, ValueType, Compiler, TempVars,
     Instructions.GetCurrentEndRef);
 
