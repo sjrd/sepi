@@ -1213,19 +1213,19 @@ begin
     aoPlusConstShortint:
     begin
       // Read a Shortint from code, and add it to the address
-      Instructions.ReadBuffer(ShortOffset, 1);
+      Instructions.ReadBuffer(ShortOffset, SizeOf(Shortint));
       Address := Address + '+' + IntToStr(ShortOffset);
     end;
     aoPlusConstSmallint:
     begin
       // Read a Smallint from code, and add it to the address
-      Instructions.ReadBuffer(SmallOffset, 1);
+      Instructions.ReadBuffer(SmallOffset, SizeOf(Smallint));
       Address := Address + '+' + IntToStr(SmallOffset);
     end;
     aoPlusConstLongint:
     begin
       // Read a Longint from code, and add it to the address
-      Instructions.ReadBuffer(LongOffset, 1);
+      Instructions.ReadBuffer(LongOffset, SizeOf(Longint));
       Address := Address + '+' + IntToStr(LongOffset);
     end;
     aoPlusMemShortint:
