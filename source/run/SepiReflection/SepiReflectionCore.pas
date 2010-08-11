@@ -681,6 +681,23 @@ type
   end;
 
   {*
+    Alias d'unité
+    Un alias d'unité permet de regrouper une à plusieurs unités réelle sous un
+    même nom d'unité. Les unités réelles sont en fait stockées comme les uses de
+    l'alias d'unité.
+    Ainsi, lorsqu'on cherche un composant dans un alias d'unité, la recherche
+    s'effectue aussi dans les unités utilisées par cet alias, même si on vient
+    d'une autre unité.
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiUnitAlias = class(TSepiUnit)
+  protected
+    function InternalLookFor(const Name: string;
+      FromComponent: TSepiComponent): TSepiComponent; override;
+  end;
+
+  {*
     Alias de type
     @author sjrd
     @version 1.0
@@ -3889,6 +3906,38 @@ begin
   if Result = nil then
     raise ESepiComponentNotFoundError.CreateFmt(
       SSepiComponentNotFound, [DelphiClass.ClassName]);
+end;
+
+{-----------------------}
+{ Classe TSepiUnitAlias }
+{-----------------------}
+
+{*
+  [@inheritDoc]
+*}
+function TSepiUnitAlias.InternalLookFor(const Name: string;
+  FromComponent: TSepiComponent): TSepiComponent;
+var
+  I: Integer;
+begin
+  // Basic search
+  Result := inherited InternalLookFor(Name, FromComponent);
+  if Result <> nil then
+    Exit;
+
+  // If coming from this unit, stop there (already handled in inherited method)
+  if FromComponent.OwningUnit = Self then
+    Exit;
+
+  // Search in used units
+  for I := UsedUnitCount-1 downto 1 {ignore System} do
+  begin
+    Result := UsedUnits[I].InternalLookFor(Name, FromComponent);
+    if Result <> nil then
+      Exit;
+  end;
+
+  Result := nil;
 end;
 
 {-----------------------}
