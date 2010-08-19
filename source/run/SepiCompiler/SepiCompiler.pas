@@ -2139,18 +2139,16 @@ end;
 *}
 function TSepiTempVarsLifeManager.FindVarFromMemoryRef(
   MemoryRef: TSepiMemoryReference): TSepiLocalVar;
-var
-  I: Integer;
 begin
-  for I := 0 to FTempVars.Count-1 do
+  if (MemoryRef.Space = msUnresolvedLocalVar) and
+    (MemoryRef.OperationCount = 0) and
+    (FTempVars.IndexOf(MemoryRef.FUnresolvedLocalVar) >= 0) then
   begin
-    Result := TSepiLocalVar(FTempVars[I]);
-
-    if MemoryRef.FUnresolvedLocalVar = Result then
-      Exit;
+    Result := MemoryRef.FUnresolvedLocalVar;
+  end else
+  begin
+    Result := nil;
   end;
-
-  Result := nil;
 end;
 
 {--------------------------}
