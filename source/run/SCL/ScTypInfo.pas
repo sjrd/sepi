@@ -142,6 +142,7 @@ const
   TypeKindToSize: array[TTypeKind] of Integer = (
     -1, 0, 1, 0, 0, 0, 0, 4, 8, 2, 4, 4, 16, 0, 0, 4, 8, 4
     {$IF Declared(tkUString)}, 4 {$IFEND}
+    {$IF Declared(tkProcedure)}, 4, 4, 4 {$IFEND}
   );
   OrdTypeToSize: array[TOrdType] of Integer = (1, 1, 2, 2, 4, 4);
   FloatTypeToSize: array[TFloatType] of Integer = (4, 8, 10, 8, 8);
