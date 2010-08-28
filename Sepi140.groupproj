@@ -1,0 +1,170 @@
+﻿	<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+		<PropertyGroup>
+			<ProjectGuid>{c656d1e4-e89f-4bf8-9640-28c843ba4be0}</ProjectGuid>
+		</PropertyGroup>
+		<ItemGroup>
+			<Projects Include="packages\140\SCL140.dproj">
+				<Dependencies/>
+			</Projects>
+			<Projects Include="packages\140\SVCL140.dproj">
+				<Dependencies/>
+			</Projects>
+			<Projects Include="packages\140\DclSVCL140.dproj">
+				<Dependencies/>
+			</Projects>
+			<Projects Include="packages\140\SDL140.dproj">
+				<Dependencies/>
+			</Projects>
+			<Projects Include="packages\140\DclSDL140.dproj">
+				<Dependencies/>
+			</Projects>
+			<Projects Include="packages\140\SepiCore140.dproj">
+				<Dependencies/>
+			</Projects>
+			<Projects Include="packages\140\DclSepiCore140.dproj">
+				<Dependencies/>
+			</Projects>
+			<Projects Include="packages\140\SepiReflection140.dproj">
+				<Dependencies/>
+			</Projects>
+			<Projects Include="packages\140\SepiInterpreter140.dproj">
+				<Dependencies/>
+			</Projects>
+			<Projects Include="packages\140\SepiCompiler140.dproj">
+				<Dependencies/>
+			</Projects>
+			<Projects Include="packages\140\SepiEditor140.dproj">
+				<Dependencies/>
+			</Projects>
+			<Projects Include="packages\140\SepiDelphiCompiler140.dproj">
+				<Dependencies/>
+			</Projects>
+		</ItemGroup>
+		<ProjectExtensions>
+			<Borland.Personality>Default.Personality.12</Borland.Personality>
+			<Borland.ProjectType/>
+			<BorlandProject>
+				<BorlandProject>
+					<Default.Personality/>
+				</BorlandProject>
+			</BorlandProject>
+		</ProjectExtensions>
+		<Target Name="SCL140">
+			<MSBuild Projects="packages\140\SCL140.dproj"/>
+		</Target>
+		<Target Name="SCL140:Clean">
+			<MSBuild Targets="Clean" Projects="packages\140\SCL140.dproj"/>
+		</Target>
+		<Target Name="SCL140:Make">
+			<MSBuild Targets="Make" Projects="packages\140\SCL140.dproj"/>
+		</Target>
+		<Target Name="SVCL140">
+			<MSBuild Projects="packages\140\SVCL140.dproj"/>
+		</Target>
+		<Target Name="SVCL140:Clean">
+			<MSBuild Targets="Clean" Projects="packages\140\SVCL140.dproj"/>
+		</Target>
+		<Target Name="SVCL140:Make">
+			<MSBuild Targets="Make" Projects="packages\140\SVCL140.dproj"/>
+		</Target>
+		<Target Name="DclSVCL140">
+			<MSBuild Projects="packages\140\DclSVCL140.dproj"/>
+		</Target>
+		<Target Name="DclSVCL140:Clean">
+			<MSBuild Targets="Clean" Projects="packages\140\DclSVCL140.dproj"/>
+		</Target>
+		<Target Name="DclSVCL140:Make">
+			<MSBuild Targets="Make" Projects="packages\140\DclSVCL140.dproj"/>
+		</Target>
+		<Target Name="SDL140">
+			<MSBuild Projects="packages\140\SDL140.dproj"/>
+		</Target>
+		<Target Name="SDL140:Clean">
+			<MSBuild Targets="Clean" Projects="packages\140\SDL140.dproj"/>
+		</Target>
+		<Target Name="SDL140:Make">
+			<MSBuild Targets="Make" Projects="packages\140\SDL140.dproj"/>
+		</Target>
+		<Target Name="DclSDL140">
+			<MSBuild Projects="packages\140\DclSDL140.dproj"/>
+		</Target>
+		<Target Name="DclSDL140:Clean">
+			<MSBuild Targets="Clean" Projects="packages\140\DclSDL140.dproj"/>
+		</Target>
+		<Target Name="DclSDL140:Make">
+			<MSBuild Targets="Make" Projects="packages\140\DclSDL140.dproj"/>
+		</Target>
+		<Target Name="SepiCore140">
+			<MSBuild Projects="packages\140\SepiCore140.dproj"/>
+		</Target>
+		<Target Name="SepiCore140:Clean">
+			<MSBuild Targets="Clean" Projects="packages\140\SepiCore140.dproj"/>
+		</Target>
+		<Target Name="SepiCore140:Make">
+			<MSBuild Targets="Make" Projects="packages\140\SepiCore140.dproj"/>
+		</Target>
+		<Target Name="DclSepiCore140">
+			<MSBuild Projects="packages\140\DclSepiCore140.dproj"/>
+		</Target>
+		<Target Name="DclSepiCore140:Clean">
+			<MSBuild Targets="Clean" Projects="packages\140\DclSepiCore140.dproj"/>
+		</Target>
+		<Target Name="DclSepiCore140:Make">
+			<MSBuild Targets="Make" Projects="packages\140\DclSepiCore140.dproj"/>
+		</Target>
+		<Target Name="SepiReflection140">
+			<MSBuild Projects="packages\140\SepiReflection140.dproj"/>
+		</Target>
+		<Target Name="SepiReflection140:Clean">
+			<MSBuild Targets="Clean" Projects="packages\140\SepiReflection140.dproj"/>
+		</Target>
+		<Target Name="SepiReflection140:Make">
+			<MSBuild Targets="Make" Projects="packages\140\SepiReflection140.dproj"/>
+		</Target>
+		<Target Name="SepiInterpreter140">
+			<MSBuild Projects="packages\140\SepiInterpreter140.dproj"/>
+		</Target>
+		<Target Name="SepiInterpreter140:Clean">
+			<MSBuild Targets="Clean" Projects="packages\140\SepiInterpreter140.dproj"/>
+		</Target>
+		<Target Name="SepiInterpreter140:Make">
+			<MSBuild Targets="Make" Projects="packages\140\SepiInterpreter140.dproj"/>
+		</Target>
+		<Target Name="SepiCompiler140">
+			<MSBuild Projects="packages\140\SepiCompiler140.dproj"/>
+		</Target>
+		<Target Name="SepiCompiler140:Clean">
+			<MSBuild Targets="Clean" Projects="packages\140\SepiCompiler140.dproj"/>
+		</Target>
+		<Target Name="SepiCompiler140:Make">
+			<MSBuild Targets="Make" Projects="packages\140\SepiCompiler140.dproj"/>
+		</Target>
+		<Target Name="SepiEditor140">
+			<MSBuild Projects="packages\140\SepiEditor140.dproj"/>
+		</Target>
+		<Target Name="SepiEditor140:Clean">
+			<MSBuild Targets="Clean" Projects="packages\140\SepiEditor140.dproj"/>
+		</Target>
+		<Target Name="SepiEditor140:Make">
+			<MSBuild Targets="Make" Projects="packages\140\SepiEditor140.dproj"/>
+		</Target>
+		<Target Name="SepiDelphiCompiler140">
+			<MSBuild Projects="packages\140\SepiDelphiCompiler140.dproj"/>
+		</Target>
+		<Target Name="SepiDelphiCompiler140:Clean">
+			<MSBuild Targets="Clean" Projects="packages\140\SepiDelphiCompiler140.dproj"/>
+		</Target>
+		<Target Name="SepiDelphiCompiler140:Make">
+			<MSBuild Targets="Make" Projects="packages\140\SepiDelphiCompiler140.dproj"/>
+		</Target>
+		<Target Name="Build">
+			<CallTarget Targets="SCL140;SVCL140;DclSVCL140;SDL140;DclSDL140;SepiCore140;DclSepiCore140;SepiReflection140;SepiInterpreter140;SepiCompiler140;SepiEditor140;SepiDelphiCompiler140"/>
+		</Target>
+		<Target Name="Clean">
+			<CallTarget Targets="SCL140:Clean;SVCL140:Clean;DclSVCL140:Clean;SDL140:Clean;DclSDL140:Clean;SepiCore140:Clean;DclSepiCore140:Clean;SepiReflection140:Clean;SepiInterpreter140:Clean;SepiCompiler140:Clean;SepiEditor140:Clean;SepiDelphiCompiler140:Clean"/>
+		</Target>
+		<Target Name="Make">
+			<CallTarget Targets="SCL140:Make;SVCL140:Make;DclSVCL140:Make;SDL140:Make;DclSDL140:Make;SepiCore140:Make;DclSepiCore140:Make;SepiReflection140:Make;SepiInterpreter140:Make;SepiCompiler140:Make;SepiEditor140:Make;SepiDelphiCompiler140:Make"/>
+		</Target>
+		<Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+	</Project>
