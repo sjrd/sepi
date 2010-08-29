@@ -427,6 +427,8 @@ type
     FIsUntyped: Boolean; /// Indique si c'est un pointeur non typé
 
     FForwardInfo: PSepiForwardPointerInfo; /// Infos conservées en forward
+
+    procedure MakeTypeInfo;
   protected
     procedure Loaded; override;
 
@@ -488,6 +490,10 @@ const
   EnumTypeDataLength = SizeOf(TOrdType) + 2*SizeOf(Longint) + SizeOf(Pointer);
   BooleanTypeDataLength = EnumTypeDataLength + SizeOf(PackedShortStrFalseTrue);
   SetTypeDataLength = SizeOf(TOrdType) + SizeOf(Pointer);
+
+  {$IF CompilerVersion >= 21}
+  PointerTypeDataLength = SizeOf(PPTypeInfo);
+  {$IFEND}
 
 {-----------------}
 { Global routines }
@@ -2171,6 +2177,9 @@ begin
   FSize := 4;
   OwningUnit.ReadRef(Stream, FPointTo);
   FIsUntyped := FPointTo is TSepiUntypedType;
+
+  if not Native then
+    MakeTypeInfo;
 end;
 
 {*
@@ -2185,11 +2194,13 @@ begin
   if APointTo = nil then
     APointTo := (AOwner.Root.SystemUnit as TSepiSystemUnit).Untyped;
 
-  inherited Create(AOwner, AName, tkUnknown);
+  inherited Create(AOwner, AName, tkPointerOrUnknown);
 
   FSize := 4;
   FPointTo := APointTo;
   FIsUntyped := APointTo is TSepiUntypedType;
+
+  MakeTypeInfo;
 
   if AIsNative then
     ForceNative;
@@ -2277,6 +2288,18 @@ begin
         Create(Owner, AName, PointToName);
     end;
   end;
+end;
+
+{*
+  Crée les RTTI de ce type
+*}
+procedure TSepiPointerType.MakeTypeInfo;
+begin
+  {$IF CompilerVersion >= 21}
+  AllocateTypeInfo(PointerTypeDataLength);
+
+  TypeData.RefType := TSepiPointerType(PointTo).TypeInfoRef;
+  {$IFEND}
 end;
 
 {*

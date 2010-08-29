@@ -212,6 +212,9 @@ type
 
     function GetWasForward: Boolean;
 
+    function GetTypeInfoName: TypeInfoString;
+    function GetTypeInfoNameSize: Integer;
+
     function GetDigest: TSepiDigest;
 
     function GetChildCount: Integer;
@@ -275,6 +278,8 @@ type
       FromComponent: TSepiComponent): TSepiComponent; overload;
     function LookFor(const Name: string): TSepiComponent; overload;
 
+    function StoreTypeInfoName(Dest: PTypeInfoString): Pointer;
+
     procedure WriteDigestToStream(Stream: TStream);
 
     function CheckDigest(const ADigest: TSepiDigest): Boolean; overload;
@@ -293,6 +298,8 @@ type
     property Root: TSepiRoot read FRoot;
     property OwningUnit: TSepiUnit read FOwningUnit;
     property Name: string read FName;
+    property TypeInfoName: TypeInfoString read GetTypeInfoName;
+    property TypeInfoNameSize: Integer read GetTypeInfoNameSize;
     property DisplayName: string read GetDisplayName;
     property Visibility: TMemberVisibility read FVisibility write FVisibility;
     property CurrentVisibility: TMemberVisibility
@@ -1271,6 +1278,24 @@ begin
 end;
 
 {*
+  Nom à stocker dans les RTTI
+  @return Nom à stocker dans les RTTI
+*}
+function TSepiComponent.GetTypeInfoName: TypeInfoString;
+begin
+  Result := TypeInfoEncode(Name);
+end;
+
+{*
+  Taille du nom à stocker dans les RTTI
+  @return Taille du nom à stocker dans les RTTI
+*}
+function TSepiComponent.GetTypeInfoNameSize: Integer;
+begin
+  Result := Length(TypeInfoName) + 1;
+end;
+
+{*
   Digest de compatibilité
   @return Digest de compatibilité
 *}
@@ -1827,6 +1852,22 @@ begin
 end;
 
 {*
+  Enregistre le nom de ce composant dans des RTTI
+  @param Dest   Pointeur sur la destination
+  @return Adresse du premier octet après la chaîne
+*}
+function TSepiComponent.StoreTypeInfoName(Dest: PTypeInfoString): Pointer;
+var
+  AName: TypeInfoString;
+  Size: Integer;
+begin
+  AName := TypeInfoName;
+  Size := Length(AName)+1;
+  Move(AName[0], Dest^, Size);
+  Result := Pointer(Integer(Dest) + Size);
+end;
+
+{*
   Écrit le digest de compatibilité dans un flux
   @param Stream   Flux destination
 *}
@@ -2083,8 +2124,10 @@ begin
   ShortName := Name;
   NameLength := Length(Name)+1; // 1 byte for string length
 
-  FTypeInfoLength := SizeOf(TTypeKind) + NameLength + TypeDataLength;
+  FTypeInfoLength := SizeOf(TTypeKind) + NameLength + TypeDataLength
+    {$IF CompilerVersion >= 21} + SizeOf(TAttrData) {$IFEND};
   GetMem(FTypeInfo, FTypeInfoLength);
+  FillChar(FTypeInfo^, FTypeInfoLength, 0);
 
   FTypeInfo.Kind := FKind;
   Move(ShortName, FTypeInfo.Name, NameLength);
@@ -2165,6 +2208,7 @@ const
     TSepiCharType, TSepiStringType, TSepiStringType, TSepiVariantType,
     nil, nil, TSepiInterface, TSepiInt64Type, TSepiDynArrayType
     {$IF Declared(tkUString)}, TSepiStringType {$IFEND}
+    {$IF Declared(tkProcedure)}, nil, nil, nil {$IFEND}
   );
 var
   TypeClass: TSepiTypeClass;

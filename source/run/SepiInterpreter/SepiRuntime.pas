@@ -424,7 +424,7 @@ function AllocRecordTypeInfo(FieldCount: Integer): PTypeInfo;
 var
   Size: Integer;
 begin
-  Size := 2 + SizeOf(TRecordTypeData) + (FieldCount-1)*SizeOf(TRecordField);
+  Size := 2 + SizeOf(TRecordTypeData) + (FieldCount-1)*SizeOf(TManagedField);
   GetMem(Result, Size);
   PWord(Result)^ := Word(tkRecord); // second byte is name length (so 0)
 end;
@@ -654,7 +654,7 @@ procedure TSepiRuntimeMethod.MakeParamsAddRef;
 var
   Signature: TSepiSignature;
   I, Count: Integer;
-  AddRefInfo: array of TRecordField;
+  AddRefInfo: array of TManagedField;
 begin
   Signature := SepiMethod.Signature;
 
@@ -676,8 +676,8 @@ begin
       begin
         with AddRefInfo[Count] do
         begin
-          TypeInfo := TSepiAccessTypeInfoRef(ParamType).TypeInfoRef;
-          Offset := CallInfo.SepiStackOffset;
+          TypeRef := TSepiAccessTypeInfoRef(ParamType).TypeInfoRef;
+          FldOffset := CallInfo.SepiStackOffset;
         end;
 
         Inc(Count);
@@ -696,8 +696,8 @@ begin
   with PRecordTypeData(Integer(FParamsAddRef)+2)^ do
   begin
     Size := FParamsSize;
-    FieldCount := Count;
-    Move(AddRefInfo[0], Fields[0], Count * SizeOf(TRecordField));
+    ManagedCount := Count;
+    Move(AddRefInfo[0], ManagedFields[0], Count * SizeOf(TManagedField));
   end;
 end;
 
@@ -708,7 +708,7 @@ procedure TSepiRuntimeMethod.MakeLocalParams;
 var
   Signature: TSepiSignature;
   I, Count: Integer;
-  LocalParamsInfo: array of TRecordField;
+  LocalParamsInfo: array of TManagedField;
 begin
   Signature := SepiMethod.Signature;
 
@@ -738,8 +738,8 @@ begin
 
         with LocalParamsInfo[Count] do
         begin
-          TypeInfo := TSepiAccessTypeInfoRef(ParamType).TypeInfoRef;
-          Offset := FLocalParamsSize;
+          TypeRef := TSepiAccessTypeInfoRef(ParamType).TypeInfoRef;
+          FldOffset := FLocalParamsSize;
         end;
 
         Inc(FLocalParamsSize, ParamType.Size);
@@ -763,8 +763,8 @@ begin
   with PRecordTypeData(Integer(FLocalParamsInfo)+2)^ do
   begin
     Size := FLocalParamsSize;
-    FieldCount := Count;
-    Move(LocalParamsInfo[0], Fields[0], Count * SizeOf(TRecordField));
+    ManagedCount := Count;
+    Move(LocalParamsInfo[0], ManagedFields[0], Count * SizeOf(TManagedField));
   end;
 end;
 
@@ -818,13 +818,13 @@ begin
   with PRecordTypeData(Integer(FLocalsInfo)+2)^ do
   begin
     Size := FLocalsSize;
-    FieldCount := Count;
+    ManagedCount := Count;
 
     for I := 0 to Count-1 do
     begin
       RuntimeUnit.ReadRef(Stream, SepiType);
-      Fields[I].TypeInfo := TSepiAccessTypeInfoRef(SepiType).TypeInfoRef;
-      Stream.ReadBuffer(Fields[I].Offset, SizeOf(Integer));
+      ManagedFields[I].TypeRef := TSepiAccessTypeInfoRef(SepiType).TypeInfoRef;
+      Stream.ReadBuffer(ManagedFields[I].FldOffset, SizeOf(Integer));
     end;
   end;
 end;
