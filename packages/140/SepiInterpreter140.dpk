@@ -28,8 +28,8 @@ package SepiInterpreter140;
 
 requires
   rtl,
-  SepiReflection120,
-  SCL120;
+  SepiReflection140,
+  SCL140;
 
 contains
   SepiDisassembler in '..\..\source\run\SepiInterpreter\SepiDisassembler.pas',

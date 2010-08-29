@@ -29,7 +29,7 @@ package DclSDL140;
 
 requires
   rtl,
-  SDL120;
+  SDL140;
 
 contains
   SDLReg in '..\..\source\design\SDL\SDLReg.pas';

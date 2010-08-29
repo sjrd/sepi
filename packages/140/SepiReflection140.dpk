@@ -28,8 +28,8 @@ package SepiReflection140;
 
 requires
   rtl,
-  SCL120,
-  SepiCore120;
+  SCL140,
+  SepiCore140;
 
 contains
   SepiArrayTypes in '..\..\source\run\SepiReflection\SepiArrayTypes.pas',

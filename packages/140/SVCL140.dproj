@@ -62,7 +62,7 @@
 			</DelphiCompile>
 			<DCCReference Include="rtl.dcp"/>
 			<DCCReference Include="vcl.dcp"/>
-			<DCCReference Include="SCL120.dcp"/>
+			<DCCReference Include="SCL140.dcp"/>
 			<DCCReference Include="..\..\source\run\SVCL\SvEdits.pas"/>
 			<DCCReference Include="..\..\source\run\SVCL\SvImages.pas"/>
 			<DCCReference Include="..\..\source\run\SVCL\SvLabels.pas"/>

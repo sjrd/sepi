@@ -28,9 +28,9 @@ package SepiCompiler140;
 
 requires
   rtl,
-  SepiInterpreter120,
-  SepiReflection120,
-  SCL120;
+  SepiInterpreter140,
+  SepiReflection140,
+  SCL140;
 
 contains
   SepiAsmInstructions in '..\..\source\run\SepiCompiler\SepiAsmInstructions.pas',

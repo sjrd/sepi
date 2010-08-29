@@ -65,7 +65,7 @@
 			</DelphiCompile>
 			<DCCReference Include="rtl.dcp"/>
 			<DCCReference Include="vcl.dcp"/>
-			<DCCReference Include="SDL120.dcp"/>
+			<DCCReference Include="SDL140.dcp"/>
 			<DCCReference Include="..\..\source\run\SepiCore\SepiAbout.pas"/>
 			<DCCReference Include="..\..\source\run\SepiCore\SepiConsts.pas"/>
 			<DCCReference Include="..\..\source\run\SepiCore\SepiCore.pas"/>

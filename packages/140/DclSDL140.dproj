@@ -63,7 +63,7 @@
 			</DelphiCompile>
 			<DCCReference Include="..\..\source\design\SDL\SDLReg.dcr"/>
 			<DCCReference Include="rtl.dcp"/>
-			<DCCReference Include="SDL120.dcp"/>
+			<DCCReference Include="SDL140.dcp"/>
 			<DCCReference Include="..\..\source\design\SDL\SDLReg.pas"/>
 			<BuildConfiguration Include="Base">
 				<Key>Base</Key>

@@ -63,7 +63,7 @@
 			</DelphiCompile>
 			<DCCReference Include="..\..\source\design\SepiCore\SepiCoreReg.dcr"/>
 			<DCCReference Include="rtl.dcp"/>
-			<DCCReference Include="SepiCore120.dcp"/>
+			<DCCReference Include="SepiCore140.dcp"/>
 			<DCCReference Include="..\..\source\design\SepiCore\SepiCoreReg.pas"/>
 			<BuildConfiguration Include="Base">
 				<Key>Base</Key>

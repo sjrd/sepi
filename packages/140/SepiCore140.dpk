@@ -29,7 +29,7 @@ package SepiCore140;
 requires
   rtl,
   vcl,
-  SDL120;
+  SDL140;
 
 contains
   SepiAbout in '..\..\source\run\SepiCore\SepiAbout.pas',

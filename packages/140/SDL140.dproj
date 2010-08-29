@@ -66,8 +66,8 @@
 			<DCCReference Include="vcl.dcp"/>
 			<DCCReference Include="VclSmp.dcp"/>
 			<DCCReference Include="vclx.dcp"/>
-			<DCCReference Include="SVCL120.dcp"/>
-			<DCCReference Include="SCL120.dcp"/>
+			<DCCReference Include="SVCL140.dcp"/>
+			<DCCReference Include="SCL140.dcp"/>
 			<DCCReference Include="..\..\source\run\SDL\SdAbout.pas"/>
 			<DCCReference Include="..\..\source\run\SDL\SdDialogs.pas"/>
 			<DCCReference Include="..\..\source\run\SDL\SdNumber.pas"/>

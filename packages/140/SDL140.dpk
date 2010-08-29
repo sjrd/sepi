@@ -31,8 +31,8 @@ requires
   vcl,
   VclSmp,
   vclx,
-  SVCL120,
-  SCL120;
+  SVCL140,
+  SCL140;
 
 contains
   SdAbout in '..\..\source\run\SDL\SdAbout.pas',

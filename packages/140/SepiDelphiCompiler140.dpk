@@ -28,9 +28,9 @@ package SepiDelphiCompiler140;
 
 requires
   rtl,
-  SepiCompiler120,
-  SepiReflection120,
-  SCL120;
+  SepiCompiler140,
+  SepiReflection140,
+  SCL140;
 
 contains
   SepiDelphiCompiler in '..\..\source\run\SepiDelphiCompiler\SepiDelphiCompiler.pas',

@@ -30,7 +30,7 @@ package DclSVCL140;
 requires
   rtl,
   vcl,
-  SVCL120;
+  SVCL140;
 
 contains
   SVCLReg in '..\..\source\design\SVCL\SVCLReg.pas';

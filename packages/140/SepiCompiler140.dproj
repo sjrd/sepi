@@ -65,9 +65,9 @@
 				<MainSource>MainSource</MainSource>
 			</DelphiCompile>
 			<DCCReference Include="rtl.dcp"/>
-			<DCCReference Include="SepiInterpreter120.dcp"/>
-			<DCCReference Include="SepiReflection120.dcp"/>
-			<DCCReference Include="SCL120.dcp"/>
+			<DCCReference Include="SepiInterpreter140.dcp"/>
+			<DCCReference Include="SepiReflection140.dcp"/>
+			<DCCReference Include="SCL140.dcp"/>
 			<DCCReference Include="..\..\source\run\SepiCompiler\SepiAsmInstructions.pas"/>
 			<DCCReference Include="..\..\source\run\SepiCompiler\SepiCompiler.pas"/>
 			<DCCReference Include="..\..\source\run\SepiCompiler\SepiCompilerConsts.pas"/>

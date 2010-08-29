@@ -29,7 +29,7 @@ package DclSepiCore140;
 
 requires
   rtl,
-  SepiCore120;
+  SepiCore140;
 
 contains
   SepiCoreReg in '..\..\source\design\SepiCore\SepiCoreReg.pas';

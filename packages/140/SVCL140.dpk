@@ -30,7 +30,7 @@ package SVCL140;
 requires
   rtl,
   vcl,
-  SCL120;
+  SCL140;
 
 contains
   SvEdits in '..\..\source\run\SVCL\SvEdits.pas',

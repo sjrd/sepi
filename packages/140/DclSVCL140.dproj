@@ -64,7 +64,7 @@
 			<DCCReference Include="..\..\source\design\SVCL\SVCLReg.dcr"/>
 			<DCCReference Include="rtl.dcp"/>
 			<DCCReference Include="vcl.dcp"/>
-			<DCCReference Include="SVCL120.dcp"/>
+			<DCCReference Include="SVCL140.dcp"/>
 			<DCCReference Include="..\..\source\design\SVCL\SVCLReg.pas"/>
 			<BuildConfiguration Include="Base">
 				<Key>Base</Key>
