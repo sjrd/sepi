@@ -365,7 +365,6 @@ type
 
     procedure ForceNative(ATypeInfo: PTypeInfo = nil);
     procedure AllocateTypeInfo(TypeDataLength: Integer = 0);
-    procedure ExtractTypeData; virtual;
 
     function GetAlignment: Integer; virtual;
     function GetSafeResultBehavior: TSepiTypeResultBehavior;
@@ -2058,13 +2057,6 @@ begin
   FTypeInfo.Kind := FKind;
   Move(ShortName, FTypeInfo.Name, NameLength);
   FTypeData := GetTypeData(FTypeInfo);
-end;
-
-{*
-  Extrait les informations les plus importantes depuis les données de type
-*}
-procedure TSepiType.ExtractTypeData;
-begin
 end;
 
 {*

@@ -141,8 +141,6 @@ type
   private
     procedure MakeTypeInfo;
   protected
-    procedure ExtractTypeData; override;
-
     function GetIndexType: TSepiOrdType; override;
 
     function GetDescription: string; override;
@@ -610,8 +608,8 @@ end;
   @param AName          Nom du type
   @param AElementType   Type des éléments
 *}
-constructor TSepiDynArrayType.Create(AOwner: TSepiComponent; const AName: string;
-  AElementType: TSepiType);
+constructor TSepiDynArrayType.Create(AOwner: TSepiComponent;
+  const AName: string; AElementType: TSepiType);
 begin
   inherited Create(AOwner, AName, tkDynArray, AElementType);
 
@@ -667,18 +665,6 @@ begin
   // Unit name
   Byte(TypeData.DynUnitName[0]) := Length(UnitName);
   Move(UnitName[1], TypeData.DynUnitName[1], Length(UnitName));
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TSepiDynArrayType.ExtractTypeData;
-begin
-  inherited;
-
-  if Assigned(TypeData.elType2) then
-    FElementType := Root.FindType(TypeData.elType2^);
-  // Otherwise, the element type should be set with SetElementType
 end;
 
 {*

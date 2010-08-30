@@ -74,7 +74,7 @@ type
   protected
     procedure WriteDigestData(Stream: TStream); override;
 
-    procedure ExtractTypeData; override;
+    procedure ExtractTypeData; virtual;
 
     function GetOrdType: TOrdType; virtual;
   public
@@ -168,12 +168,13 @@ type
     FMinValue: Int64;         /// Valeur minimale
     FMaxValue: Int64;         /// Valeur maximale
     FNeedRangeCheck: Boolean; /// Indique s'il faut vérifier les étendues
+
+    procedure SetupProperties;
+    procedure MakeTypeInfo;
   protected
     procedure Save(Stream: TStream); override;
 
     procedure WriteDigestData(Stream: TStream); override;
-
-    procedure ExtractTypeData; override;
 
     function GetDescription: string; override;
   public
@@ -201,12 +202,13 @@ type
   TSepiFloatType = class(TSepiType)
   private
     FFloatType: TFloatType; /// Type de flottant
+
+    procedure SetupProperties;
+    procedure MakeTypeInfo;
   protected
     procedure Save(Stream: TStream); override;
 
     procedure WriteDigestData(Stream: TStream); override;
-
-    procedure ExtractTypeData; override;
 
     function GetAlignment: Integer; override;
   public
@@ -361,13 +363,14 @@ type
   TSepiSetType = class(TSepiType)
   private
     FCompType: TSepiOrdType;  /// Type des éléments
+
+    procedure SetupProperties;
+    procedure MakeTypeInfo;
   protected
     procedure ListReferences; override;
     procedure Save(Stream: TStream); override;
 
     procedure WriteDigestData(Stream: TStream); override;
-
-    procedure ExtractTypeData; override;
 
     function GetAlignment: Integer; override;
 
@@ -964,14 +967,13 @@ constructor TSepiInt64Type.Load(AOwner: TSepiComponent; Stream: TStream);
 begin
   inherited;
 
-  if not Native then
-  begin
-    AllocateTypeInfo(Int64TypeDataLength);
-    Stream.ReadBuffer(TypeData^, Int64TypeDataLength);
-  end else
-    Stream.Seek(Int64TypeDataLength, soFromCurrent);
+  Stream.ReadBuffer(FMinValue, SizeOf(Int64));
+  Stream.ReadBuffer(FMaxValue, SizeOf(Int64));
 
-  ExtractTypeData;
+  SetupProperties;
+
+  if not Native then
+    MakeTypeInfo;
 end;
 
 {*
@@ -986,12 +988,12 @@ constructor TSepiInt64Type.Create(AOwner: TSepiComponent; const AName: string;
 begin
   inherited Create(AOwner, AName, tkInt64);
 
-  AllocateTypeInfo(Int64TypeDataLength);
+  FMinValue := AMinValue;
+  FMaxValue := AMaxValue;
 
-  TypeData.MinInt64Value := AMinValue;
-  TypeData.MaxInt64Value := AMaxValue;
+  SetupProperties;
 
-  ExtractTypeData;
+  MakeTypeInfo;
 end;
 
 {*
@@ -1010,7 +1012,32 @@ end;
 procedure TSepiInt64Type.Save(Stream: TStream);
 begin
   inherited;
-  Stream.WriteBuffer(TypeData^, Int64TypeDataLength);
+
+  Stream.WriteBuffer(FMinValue, SizeOf(Int64));
+  Stream.WriteBuffer(FMaxValue, SizeOf(Int64));
+end;
+
+{*
+  [@inheritedDoc]
+*}
+procedure TSepiInt64Type.SetupProperties;
+begin
+  FSize := 8;
+  FParamBehavior.AlwaysByStack := True;
+  FResultBehavior := rbInt64;
+
+  FNeedRangeCheck := (FMinValue <> MinInt64) or (FMaxValue <> MaxInt64);
+end;
+
+{*
+  Crée les RTTI du type
+*}
+procedure TSepiInt64Type.MakeTypeInfo;
+begin
+  AllocateTypeInfo(Int64TypeDataLength);
+
+  TypeData.MinInt64Value := MinValue;
+  TypeData.MaxInt64Value := MaxValue;
 end;
 
 {*
@@ -1020,24 +1047,8 @@ procedure TSepiInt64Type.WriteDigestData(Stream: TStream);
 begin
   inherited;
 
-  Stream.WriteBuffer(FMinValue, 8);
-  Stream.WriteBuffer(FMaxValue, 8);
-end;
-
-{*
-  [@inheritedDoc]
-*}
-procedure TSepiInt64Type.ExtractTypeData;
-begin
-  inherited;
-
-  FSize := 8;
-  FParamBehavior.AlwaysByStack := True;
-  FResultBehavior := rbInt64;
-  FMinValue := TypeData.MinInt64Value;
-  FMaxValue := TypeData.MaxInt64Value;
-
-  FNeedRangeCheck := (FMinValue <> MinInt64) or (FMaxValue <> MaxInt64);
+  Stream.WriteBuffer(FMinValue, SizeOf(Int64));
+  Stream.WriteBuffer(FMaxValue, SizeOf(Int64));
 end;
 
 {*
@@ -1088,14 +1099,12 @@ constructor TSepiFloatType.Load(AOwner: TSepiComponent; Stream: TStream);
 begin
   inherited;
 
-  if not Native then
-  begin
-    AllocateTypeInfo(FloatTypeDataLength);
-    Stream.ReadBuffer(TypeData^, FloatTypeDataLength);
-  end else
-    Stream.Seek(FloatTypeDataLength, soFromCurrent);
+  Stream.ReadBuffer(FFloatType, SizeOf(TFloatType));
 
-  ExtractTypeData;
+  SetupProperties;
+
+  if not Native then
+    MakeTypeInfo;
 end;
 
 {*
@@ -1109,10 +1118,11 @@ constructor TSepiFloatType.Create(AOwner: TSepiComponent; const AName: string;
 begin
   inherited Create(AOwner, AName, tkFloat);
 
-  AllocateTypeInfo(FloatTypeDataLength);
-  TypeData.FloatType := AFloatType;
+  FFloatType := AFloatType;
 
-  ExtractTypeData;
+  SetupProperties;
+
+  MakeTypeInfo;
 end;
 
 {*
@@ -1125,12 +1135,38 @@ begin
 end;
 
 {*
+  Spécifie les propriétés du type
+*}
+procedure TSepiFloatType.SetupProperties;
+const
+  Sizes: array[TFloatType] of Integer = (4, 8, 10, 8, 8);
+  ResultBehaviors: array[TFloatType] of TSepiTypeResultBehavior = (
+    rbSingle, rbDouble, rbExtended, rbCurrency, rbCurrency
+  );
+begin
+  FSize := Sizes[FloatType];
+  FParamBehavior.AlwaysByStack := True;
+  FResultBehavior := ResultBehaviors[FloatType];
+end;
+
+{*
+  Crée les RTTI du type
+*}
+procedure TSepiFloatType.MakeTypeInfo;
+begin
+  AllocateTypeInfo(FloatTypeDataLength);
+
+  TypeData.FloatType := FloatType;
+end;
+
+{*
   [@inheritDoc]
 *}
 procedure TSepiFloatType.Save(Stream: TStream);
 begin
   inherited;
-  Stream.WriteBuffer(TypeData^, FloatTypeDataLength);
+
+  Stream.WriteBuffer(FFloatType, SizeOf(TFloatType));
 end;
 
 {*
@@ -1140,26 +1176,7 @@ procedure TSepiFloatType.WriteDigestData(Stream: TStream);
 begin
   inherited;
 
-  Stream.WriteBuffer(FFloatType, 1);
-end;
-
-{*
-  [@inheritedDoc]
-*}
-procedure TSepiFloatType.ExtractTypeData;
-const
-  Sizes: array[TFloatType] of Integer = (4, 8, 10, 8, 8);
-  ResultBehaviors: array[TFloatType] of TSepiTypeResultBehavior = (
-    rbSingle, rbDouble, rbExtended, rbCurrency, rbCurrency
-  );
-begin
-  inherited;
-
-  FFloatType := TypeData.FloatType;
-
-  FSize := Sizes[FFloatType];
-  FParamBehavior.AlwaysByStack := True;
-  FResultBehavior := ResultBehaviors[FFloatType];
+  Stream.WriteBuffer(FFloatType, SizeOf(TFloatType));
 end;
 
 {*
@@ -1265,12 +1282,7 @@ end;
 constructor TSepiBooleanType.Clone(AOwner: TSepiComponent; const AName: string;
   Source: TSepiType);
 begin
-  inherited Create(AOwner, AName, tkEnumeration);
-
-  FBooleanKind := (Source as TSepiBooleanType).BooleanKind;
-  MakeTypeInfo;
-
-  ExtractTypeData;
+  Create(AOwner, AName, (Source as TSepiBooleanType).BooleanKind);
 end;
 
 {*
@@ -1873,18 +1885,12 @@ constructor TSepiSetType.Load(AOwner: TSepiComponent; Stream: TStream);
 begin
   inherited;
 
-  if not Native then
-  begin
-    AllocateTypeInfo(SetTypeDataLength);
-    Stream.ReadBuffer(TypeData^, SetTypeDataLength);
-  end else
-    Stream.Seek(SetTypeDataLength, soFromCurrent);
-
   OwningUnit.ReadRef(Stream, FCompType);
-  if not Native then
-    TypeData.CompType := FCompType.TypeInfoRef;
 
-  ExtractTypeData;
+  SetupProperties;
+
+  if not Native then
+    MakeTypeInfo;
 end;
 
 {*
@@ -1900,19 +1906,9 @@ begin
 
   FCompType := ACompType;
 
-  AllocateTypeInfo(SetTypeDataLength);
+  SetupProperties;
 
-  case CompType.MaxValue - CompType.MinValue + 1 of
-    1..8: TypeData.OrdType := otUByte;
-    9..16: TypeData.OrdType := otUWord;
-    17..32: TypeData.OrdType := otULong;
-  else
-    TypeData.OrdType := otUnknown;
-  end;
-
-  TypeData.CompType := FCompType.TypeInfoRef;
-
-  ExtractTypeData;
+  MakeTypeInfo;
 end;
 
 {*
@@ -1938,11 +1934,44 @@ begin
 end;
 
 {*
+  Spécifie les propriétés du type
+*}
+procedure TSepiSetType.SetupProperties;
+begin
+  FSize := (CompType.MaxValue - CompType.MinValue) div 8 + 1;
+  if FSize = 3 then
+    FSize := 4;
+
+  FParamBehavior.AlwaysByAddress := Size > 4;
+  if FParamBehavior.AlwaysByAddress then
+    FResultBehavior := rbParameter;
+end;
+
+{*
+  Crée les RTTI de ce type
+*}
+procedure TSepiSetType.MakeTypeInfo;
+begin
+  AllocateTypeInfo(SetTypeDataLength);
+
+  case CompType.MaxValue - CompType.MinValue + 1 of
+    1..8: TypeData.OrdType := otUByte;
+    9..16: TypeData.OrdType := otUWord;
+    17..32: TypeData.OrdType := otULong;
+  else
+    TypeData.OrdType := otUnknown;
+  end;
+
+  TypeData.CompType := FCompType.TypeInfoRef;
+end;
+
+{*
   [@inheritDoc]
 *}
 procedure TSepiSetType.ListReferences;
 begin
   inherited;
+
   OwningUnit.AddRef(FCompType);
 end;
 
@@ -1952,7 +1981,7 @@ end;
 procedure TSepiSetType.Save(Stream: TStream);
 begin
   inherited;
-  Stream.WriteBuffer(TypeData^, SetTypeDataLength);
+
   OwningUnit.WriteRef(Stream, FCompType);
 end;
 
@@ -1964,22 +1993,6 @@ begin
   inherited;
 
   CompType.WriteDigestToStream(Stream);
-end;
-
-{*
-  [@inheritedDoc]
-*}
-procedure TSepiSetType.ExtractTypeData;
-begin
-  inherited;
-
-  FSize := (FCompType.MaxValue - FCompType.MinValue) div 8 + 1;
-  if FSize = 3 then
-    FSize := 4;
-
-  FParamBehavior.AlwaysByAddress := Size > 4;
-  if FParamBehavior.AlwaysByAddress then
-    FResultBehavior := rbParameter;
 end;
 
 {*
