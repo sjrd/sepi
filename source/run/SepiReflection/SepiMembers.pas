@@ -785,9 +785,7 @@ type
     class function NewInstance: TObject; override;
 
     class function ForwardDecl(AOwner: TSepiComponent;
-      ATypeInfo: PTypeInfo): TSepiInterface; overload;
-    class function ForwardDecl(AOwner: TSepiComponent;
-      const AName: string): TSepiInterface; overload;
+      const AName: string): TSepiInterface;
 
     function AddMethod(const MethodName: string;
       ASignature: TSepiSignature): TSepiMethod; overload;
@@ -927,9 +925,7 @@ type
     class function NewInstance: TObject; override;
 
     class function ForwardDecl(AOwner: TSepiComponent;
-      ATypeInfo: PTypeInfo): TSepiClass; overload;
-    class function ForwardDecl(AOwner: TSepiComponent;
-      const AName: string): TSepiClass; overload;
+      const AName: string): TSepiClass;
 
     procedure AddInterface(AInterface: TSepiInterface); overload;
     procedure AddInterface(AIntfTypeInfo: PTypeInfo); overload;
@@ -3845,27 +3841,6 @@ begin
 end;
 
 {*
-  [@inheritDoc]
-*}
-function TSepiInterface.Equals(Other: TSepiType): Boolean;
-begin
-  Result := Self = Other;
-end;
-
-{*
-  Déclare un type interface en forward
-  @param AOwner      Propriétaire du type
-  @param ATypeName   RTTI de l'interface
-*}
-class function TSepiInterface.ForwardDecl(AOwner: TSepiComponent;
-  ATypeInfo: PTypeInfo): TSepiInterface;
-begin
-  Result := TSepiInterface(NewInstance);
-  TSepiInterface(Result).TypeInfoRef^ := ATypeInfo;
-  TSepiInterface(AOwner).AddForward(ATypeInfo.Name, Result);
-end;
-
-{*
   Déclare un type interface en forward
   @param AOwner   Propriétaire du type
   @param AName    Nom de l'interface
@@ -3969,6 +3944,14 @@ begin
     MakeTypeInfo;
 
   TSepiInterface(Owner).ReAddChild(Self);
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiInterface.Equals(Other: TSepiType): Boolean;
+begin
+  Result := Self = Other;
 end;
 
 {*
@@ -5000,19 +4983,6 @@ begin
     FNeedInit := False;
     FResultBehavior := rbOrdinal;
   end;
-end;
-
-{*
-  Déclare un type classe en forward
-  @param AOwner      Propriétaire du type
-  @param ATypeInfo   RTTI de la classe
-*}
-class function TSepiClass.ForwardDecl(AOwner: TSepiComponent;
-  ATypeInfo: PTypeInfo): TSepiClass;
-begin
-  Result := TSepiClass(NewInstance);
-  TSepiClass(Result).TypeInfoRef^ := ATypeInfo;
-  TSepiClass(AOwner).AddForward(ATypeInfo.Name, Result);
 end;
 
 {*

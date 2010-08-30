@@ -397,10 +397,10 @@ type
   TSepiForwardPointerInfo = record
     Owner: TSepiComponent;
     Name: string;
-    PointToTypeInfo: PTypeInfo;
     PointToName: string;
-    IsNative: Boolean;
   end;
+
+  /// Pointeur sur TSepiForwardPointerInfo
   PSepiForwardPointerInfo = ^TSepiForwardPointerInfo;
 
   {*
@@ -426,11 +426,9 @@ type
   public
     constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
     constructor Create(AOwner: TSepiComponent; const AName: string;
-      APointTo: TSepiType; AIsNative: Boolean = False); overload;
-    constructor Create(AOwner: TSepiComponent; const AName: string;
-      APointTo: PTypeInfo; AIsNative: Boolean = False); overload;
-    constructor Create(AOwner: TSepiComponent; const AName, APointTo: string;
-      AIsNative: Boolean = False); overload;
+      APointTo: TSepiType); overload;
+    constructor Create(AOwner: TSepiComponent;
+      const AName, APointTo: string); overload;
     constructor Clone(AOwner: TSepiComponent; const AName: string;
       Source: TSepiType); override;
 
@@ -2105,7 +2103,7 @@ end;
   @param APointTo   Type vers lequel pointe le pointeur
 *}
 constructor TSepiPointerType.Create(AOwner: TSepiComponent; const AName: string;
-  APointTo: TSepiType; AIsNative: Boolean = False);
+  APointTo: TSepiType);
 begin
   if APointTo = nil then
     APointTo := (AOwner.Root.SystemUnit as TSepiSystemUnit).Untyped;
@@ -2115,40 +2113,6 @@ begin
   FSize := 4;
   FPointTo := APointTo;
   FIsUntyped := APointTo is TSepiUntypedType;
-
-  if AIsNative then
-    ForceNative;
-end;
-
-{*
-  Crée un nouveau type pointeur
-  @param AOwner     Propriétaire du type
-  @param AName      Nom du type
-  @param APointTo   RTTI tu type vers lequel pointe le pointeur
-*}
-constructor TSepiPointerType.Create(AOwner: TSepiComponent; const AName: string;
-  APointTo: PTypeInfo; AIsNative: Boolean = False);
-var
-  APointToType: TSepiType;
-begin
-  if FForwardInfo = nil then
-    APointToType := AOwner.Root.GetType(APointTo)
-  else
-    APointToType := AOwner.Root.FindType(APointTo);
-
-  if (APointTo = nil) or (APointToType <> nil) then
-    Create(AOwner, AName, APointToType, AIsNative)
-  else
-  begin
-    FPointTo := (AOwner.Root.SystemUnit as TSepiSystemUnit).Untyped;
-    New(FForwardInfo);
-    FForwardInfo.Owner := AOwner;
-    FForwardInfo.Name := AName;
-    FForwardInfo.PointToTypeInfo := APointTo;
-    Pointer(FForwardInfo.PointToName) := nil;
-    FForwardInfo.IsNative := AIsNative;
-    TSepiPointerType(AOwner).AddForward(AName, Self);
-  end;
 end;
 
 {*
@@ -2158,7 +2122,7 @@ end;
   @param APointTo   Nom tu type vers lequel pointe le pointeur
 *}
 constructor TSepiPointerType.Create(AOwner: TSepiComponent;
-  const AName, APointTo: string; AIsNative: Boolean = False);
+  const AName, APointTo: string);
 var
   APointToType: TSepiType;
 begin
@@ -2168,17 +2132,14 @@ begin
     APointToType := AOwner.Root.FindType(APointTo);
 
   if (APointTo = '') or (APointToType <> nil) then
-    Create(AOwner, AName, APointToType, AIsNative)
+    Create(AOwner, AName, APointToType)
   else
   begin
     FPointTo := (AOwner.Root.SystemUnit as TSepiSystemUnit).Untyped;
     New(FForwardInfo);
     FForwardInfo.Owner := AOwner;
     FForwardInfo.Name := AName;
-    FForwardInfo.PointToTypeInfo := nil;
-    Pointer(FForwardInfo.PointToName) := nil;
     FForwardInfo.PointToName := APointTo;
-    FForwardInfo.IsNative := AIsNative;
     TSepiPointerType(AOwner).AddForward(AName, Self);
   end;
 end;
@@ -2189,19 +2150,10 @@ end;
 constructor TSepiPointerType.Clone(AOwner: TSepiComponent; const AName: string;
   Source: TSepiType);
 begin
-  if not Source.IsForward then
-  begin
+  if Source.IsForward then
+    Create(AOwner, AName, (Source as TSepiPointerType).FForwardInfo.PointToName)
+  else
     Create(AOwner, AName, (Source as TSepiPointerType).PointTo);
-  end else
-  begin
-    with (Source as TSepiPointerType).FForwardInfo^ do
-    begin
-      if PointToTypeInfo <> nil then
-        Create(Owner, AName, PointToTypeInfo)
-      else
-        Create(Owner, AName, PointToName);
-    end;
-  end;
 end;
 
 {*
@@ -2212,13 +2164,9 @@ begin
   if IsForward and (FForwardInfo <> nil) then
   begin
     with FForwardInfo^ do
-    begin
-      if PointToTypeInfo <> nil then
-        Create(Owner, Name, PointToTypeInfo, IsNative)
-      else
-        Create(Owner, Name, PointToName, IsNative);
-      Dispose(FForwardInfo);
-    end;
+      Create(Owner, Name, PointToName);
+
+    Dispose(FForwardInfo);
 
     TSepiPointerType(Owner).ReAddChild(Self);
   end;
