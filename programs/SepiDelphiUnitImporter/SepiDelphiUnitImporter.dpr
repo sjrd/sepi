@@ -475,7 +475,7 @@ begin
   CopyFile(PChar(FileNames.Resource), PChar(FileNames.Cache), False);
 
   // Let the user know we finished that file
-  WriteLn(ExtractFileName(FileNames.Source), ' terminé');
+  WriteLn(ExtractFileName(FileNames.Source), ' done');
 end;
 
 {*
