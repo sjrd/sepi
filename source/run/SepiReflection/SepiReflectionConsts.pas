@@ -56,8 +56,7 @@ resourcestring
   SSepiIncompatibleUsedUnit =
     'L''unité ''%s'' a été compilée avec une version différente de l''unité '+
     'utilisée ''%s'', et doit être recompilée.';
-  SSepiNoRegisterTypeInfo = 'Ce type n''implémente pas RegisterTypeInfo';
-  SCantCloneType = 'Ne peut cloner le type %s';
+  SCantCloneType = 'Impossible de cloner le type %s';
   SSepiBadConstType = 'Impossible de créer une constante de type variant %d';
   SSignatureAlreadyCompleted = 'La signature est déjà complétée';
 

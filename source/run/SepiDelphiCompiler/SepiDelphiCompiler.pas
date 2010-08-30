@@ -784,7 +784,7 @@ begin
     begin
       Assert(SepiRoot.ChildCount = 0);
       SepiUnit := TSepiSystemUnit.Create(SepiRoot);
-      TSepiSystemUnit(SepiUnit).CreateBuiltinTypes;
+      TSepiSystemUnit(SepiUnit).CreateBuiltins;
     end else
     begin
       SepiUnit := TSepiUnit.Create(SepiRoot, UnitName, []);

@@ -147,8 +147,6 @@ type
 
     function GetDescription: string; override;
   public
-    constructor RegisterTypeInfo(AOwner: TSepiComponent;
-      ATypeInfo: PTypeInfo); override;
     constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
     constructor Create(AOwner: TSepiComponent; const AName: string;
       AElementType: TSepiType);
@@ -590,21 +588,6 @@ end;
 {--------------------------}
 { Classe TSepiDynArrayType }
 {--------------------------}
-
-{*
-  Recense un type tableau dynamique natif
-*}
-constructor TSepiDynArrayType.RegisterTypeInfo(AOwner: TSepiComponent;
-  ATypeInfo: PTypeInfo);
-begin
-  inherited;
-
-  FSize := 4;
-  FNeedInit := True;
-  FResultBehavior := rbParameter;
-
-  ExtractTypeData;
-end;
 
 {*
   Charge un type tableau dynamique depuis un flux

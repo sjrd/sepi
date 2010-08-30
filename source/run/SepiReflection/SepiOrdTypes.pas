@@ -46,7 +46,7 @@ uses
   ScSerializer, SepiReflectionCore, SepiReflectionConsts;
 
 const
-  MinInt64 = Int64($FFFFFFFFFFFFFFFF);
+  MinInt64 = Int64($8000000000000000);
   MaxInt64 = Int64($7FFFFFFFFFFFFFFF);
 
   otUnknown = TOrdType(-1);
@@ -104,8 +104,6 @@ type
 
     function GetDescription: string; override;
   public
-    constructor RegisterTypeInfo(AOwner: TSepiComponent;
-      ATypeInfo: PTypeInfo); override;
     constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
     constructor Create(AOwner: TSepiComponent; const AName: string;
       AMinValue: Longint = -MaxInt-1; AMaxValue: Longint = MaxInt);
@@ -142,8 +140,6 @@ type
 
     function GetDescription: string; override;
   public
-    constructor RegisterTypeInfo(AOwner: TSepiComponent;
-      ATypeInfo: PTypeInfo); override;
     constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
     constructor Create(AOwner: TSepiComponent; const AName: string;
       AMinValue: WideChar = #0; AMaxValue: WideChar = #255;
@@ -181,8 +177,6 @@ type
 
     function GetDescription: string; override;
   public
-    constructor RegisterTypeInfo(AOwner: TSepiComponent;
-      ATypeInfo: PTypeInfo); override;
     constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
     constructor Create(AOwner: TSepiComponent; const AName: string;
       AMinValue: Int64 = MinInt64; AMaxValue: Int64 = MaxInt64);
@@ -216,8 +210,6 @@ type
 
     function GetAlignment: Integer; override;
   public
-    constructor RegisterTypeInfo(AOwner: TSepiComponent;
-      ATypeInfo: PTypeInfo); override;
     constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
     constructor Create(AOwner: TSepiComponent; const AName: string;
       AFloatType: TFloatType = ftDouble);
@@ -236,7 +228,6 @@ type
 
   {*
     Type booléen
-    Note : il est impossible de créer un nouveau type booléen.
     @author sjrd
     @version 1.0
   *}
@@ -250,9 +241,9 @@ type
 
     procedure ExtractTypeData; override;
   public
-    constructor RegisterTypeInfo(AOwner: TSepiComponent;
-      ATypeInfo: PTypeInfo); override;
     constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
+    constructor Create(AOwner: TSepiComponent; const AName: string;
+      ABooleanKind: TBooleanKind = bkBoolean);
     constructor Clone(AOwner: TSepiComponent; const AName: string;
       Source: TSepiType); override;
 
@@ -289,8 +280,6 @@ type
 
     function GetDescription: string; override;
   public
-    constructor RegisterTypeInfo(AOwner: TSepiComponent;
-      ATypeInfo: PTypeInfo); override;
     constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
     constructor Create(AOwner: TSepiComponent; const AName: string;
       const AValues: array of string;
@@ -384,8 +373,6 @@ type
 
     function GetDescription: string; override;
   public
-    constructor RegisterTypeInfo(AOwner: TSepiComponent;
-      ATypeInfo: PTypeInfo); override;
     constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
     constructor Create(AOwner: TSepiComponent; const AName: string;
       ACompType: TSepiOrdType); overload;
@@ -683,16 +670,6 @@ end;
 {-------------------------}
 
 {*
-  Recense un type entier natif
-*}
-constructor TSepiIntegerType.RegisterTypeInfo(AOwner: TSepiComponent;
-  ATypeInfo: PTypeInfo);
-begin
-  inherited;
-  ExtractTypeData;
-end;
-
-{*
   Charge un type entier depuis un flux
 *}
 constructor TSepiIntegerType.Load(AOwner: TSepiComponent; Stream: TStream);
@@ -833,16 +810,6 @@ end;
 {----------------------}
 { Classe TSepiCharType }
 {----------------------}
-
-{*
-  Recense un type caractère natif
-*}
-constructor TSepiCharType.RegisterTypeInfo(AOwner: TSepiComponent;
-  ATypeInfo: PTypeInfo);
-begin
-  inherited;
-  ExtractTypeData;
-end;
 
 {*
   Charge un type caractère depuis un flux
@@ -993,16 +960,6 @@ end;
 {-----------------------}
 
 {*
-  Recense un type entier 64 bits natif
-*}
-constructor TSepiInt64Type.RegisterTypeInfo(AOwner: TSepiComponent;
-  ATypeInfo: PTypeInfo);
-begin
-  inherited;
-  ExtractTypeData;
-end;
-
-{*
   Charge un type entier 64 bits depuis un flux
 *}
 constructor TSepiInt64Type.Load(AOwner: TSepiComponent; Stream: TStream);
@@ -1033,8 +990,8 @@ begin
 
   AllocateTypeInfo(Int64TypeDataLength);
 
-  TypeData.MinValue := AMinValue;
-  TypeData.MaxValue := AMaxValue;
+  TypeData.MinInt64Value := AMinValue;
+  TypeData.MaxInt64Value := AMaxValue;
 
   ExtractTypeData;
 end;
@@ -1090,7 +1047,7 @@ end;
 *}
 function TSepiInt64Type.GetDescription: string;
 begin
-  Result := IntToStr(MinInt64)+'..'+IntToStr(MaxInt64);
+  Result := IntToStr(MinValue)+'..'+IntToStr(MaxValue);
 end;
 
 {*
@@ -1125,16 +1082,6 @@ end;
 {-----------------------}
 { Classe TSepiFloatType }
 {-----------------------}
-
-{*
-  Recense un type flottant natif
-*}
-constructor TSepiFloatType.RegisterTypeInfo(AOwner: TSepiComponent;
-  ATypeInfo: PTypeInfo);
-begin
-  inherited;
-  ExtractTypeData;
-end;
 
 {*
   Charge un type flottant depuis un flux
@@ -1284,16 +1231,6 @@ end;
 {-------------------------}
 
 {*
-  Recense un type booléen natif
-*}
-constructor TSepiBooleanType.RegisterTypeInfo(AOwner: TSepiComponent;
-  ATypeInfo: PTypeInfo);
-begin
-  inherited;
-  ExtractTypeData;
-end;
-
-{*
   Charge un type booléen depuis un flux
 *}
 constructor TSepiBooleanType.Load(AOwner: TSepiComponent; Stream: TStream);
@@ -1303,6 +1240,23 @@ begin
   Stream.ReadBuffer(FBooleanKind, SizeOf(TBooleanKind));
   if not Native then
     MakeTypeInfo;
+
+  ExtractTypeData;
+end;
+
+{*
+  Crée un type booléen
+  @param AOwner         Propriétaire
+  @param AName          Nom du type
+  @param ABooleanKind   Type de booléen (défaut : bkBoolean)
+*}
+constructor TSepiBooleanType.Create(AOwner: TSepiComponent; const AName: string;
+  ABooleanKind: TBooleanKind = bkBoolean);
+begin
+  inherited Create(AOwner, AName, tkEnumeration);
+
+  FBooleanKind := ABooleanKind;
+  MakeTypeInfo;
 
   ExtractTypeData;
 end;
@@ -1412,18 +1366,6 @@ end;
 {----------------------}
 { Classe TSepiEnumType }
 {----------------------}
-
-{*
-  Recense un type énuméré natif
-*}
-constructor TSepiEnumType.RegisterTypeInfo(AOwner: TSepiComponent;
-  ATypeInfo: PTypeInfo);
-begin
-  inherited;
-  TypeDataLength := 0; // not used
-  ExtractTypeData;
-  CreateConstants;
-end;
 
 {*
   Charge un type énuméré depuis un flux
@@ -1925,23 +1867,6 @@ end;
 {---------------------}
 { Classe TSepiSetType }
 {---------------------}
-
-{*
-  Recense un type ensemble natif
-*}
-constructor TSepiSetType.RegisterTypeInfo(AOwner: TSepiComponent;
-  ATypeInfo: PTypeInfo);
-begin
-  with GetTypeData(ATypeInfo)^ do
-    if CompType^.Name[1] = '.' then
-      TSepiType.LoadFromTypeInfo(AOwner, CompType^);
-
-  inherited;
-
-  FCompType := Root.FindType(TypeData.CompType^) as TSepiOrdType;
-
-  ExtractTypeData;
-end;
 
 {*
   Charge un type ensemble depuis un flux

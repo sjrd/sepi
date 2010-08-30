@@ -134,7 +134,7 @@ type
     constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
     constructor Create(AOwner: TSepiComponent);
 
-    procedure CreateBuiltinTypes;
+    procedure CreateBuiltins;
 
     class function Get(SepiRoot: TSepiRoot): TSepiSystemUnit;
       {$IF CompilerVersion >= 20} static; {$IFEND}
@@ -301,94 +301,124 @@ begin
   TSepiUntypedType.Create(Self, SUntypedTypeName);
 
   // Integer types
-  TSepiType.LoadFromTypeInfo(Self, TypeInfo(Integer));
-  TSepiType.LoadFromTypeInfo(Self, TypeInfo(Cardinal));
-  TSepiType.LoadFromTypeInfo(Self, TypeInfo(Shortint));
-  TSepiType.LoadFromTypeInfo(Self, TypeInfo(Smallint));
-  TSepiTypeAlias.Create(Self, 'Longint', TypeInfo(Longint));
-  TSepiType.LoadFromTypeInfo(Self, TypeInfo(Int64));
-  TSepiType.LoadFromTypeInfo(Self, TypeInfo(Byte));
-  TSepiType.LoadFromTypeInfo(Self, TypeInfo(Word));
-  TSepiTypeAlias.Create(Self, 'LongWord', TypeInfo(LongWord));
+  TSepiIntegerType.Create(Self, 'Integer', Low(Integer), High(Integer));
+  TSepiIntegerType.Create(Self, 'Cardinal', Low(Cardinal),
+    Integer(High(Cardinal)));
+  TSepiIntegerType.Create(Self, 'Shortint', Low(Shortint), High(Shortint));
+  TSepiIntegerType.Create(Self, 'Smallint', Low(Smallint), High(Smallint));
+  TSepiTypeAlias.Create(Self, 'Longint', Self.Integer);
+  TSepiInt64Type.Create(Self, 'Int64', Low(Int64), High(Int64));
+  TSepiIntegerType.Create(Self, 'Byte', Low(Byte), High(Byte));
+  TSepiIntegerType.Create(Self, 'Word', Low(Word), High(Word));
+  TSepiTypeAlias.Create(Self, 'LongWord', Self.Cardinal);
   {$IF Declared(UInt64)}
-  TSepiType.LoadFromTypeInfo(Self, TypeInfo(UInt64));
+  TSepiInt64Type.Create(Self, 'UInt64', Low(UInt64), Int64(High(UInt64)));
   {$IFEND}
 
   // Character types
-  TSepiType.LoadFromTypeInfo(Self, TypeInfo(AnsiChar));
-  TSepiType.LoadFromTypeInfo(Self, TypeInfo(WideChar));
-
-{$IFDEF UNICODE}
-  TSepiTypeAlias.Create(Self, 'WideChar', TypeInfo(WideChar));
-{$ELSE}
-  TSepiTypeAlias.Create(Self, 'AnsiChar', TypeInfo(AnsiChar));
-{$ENDIF}
+  TSepiCharType.Create(Self, 'Char', Low(Char), High(Char));
+  {$IFDEF UNICODE}
+  TSepiCharType.Create(Self, 'AnsiChar', Low(AnsiChar), High(AnsiChar));
+  TSepiTypeAlias.Create(Self, 'WideChar', Self.Char);
+  {$ELSE}
+  TSepiTypeAlias.Create(Self, 'AnsiChar', Self.Char);
+  TSepiCharType.Create(Self, 'WideChar', Low(WideChar), High(WideChar));
+  {$ENDIF}
 
   // Boolean types
-  TSepiType.LoadFromTypeInfo(Self, TypeInfo(Boolean));
-  TSepiType.LoadFromTypeInfo(Self, TypeInfo(ByteBool));
-  TSepiType.LoadFromTypeInfo(Self, TypeInfo(WordBool));
-  TSepiType.LoadFromTypeInfo(Self, TypeInfo(LongBool));
+  TSepiBooleanType.Create(Self, 'Boolean', bkBoolean);
+  TSepiBooleanType.Create(Self, 'ByteBool', bkByteBool);
+  TSepiBooleanType.Create(Self, 'WordBool', bkWordBool);
+  TSepiBooleanType.Create(Self, 'LongBool', bkLongBool);
 
   // Float types
-  TSepiType.LoadFromTypeInfo(Self, TypeInfo(Single));
-  TSepiType.LoadFromTypeInfo(Self, TypeInfo(Double));
-  TSepiType.LoadFromTypeInfo(Self, TypeInfo(Extended));
-  TSepiType.LoadFromTypeInfo(Self, TypeInfo(Comp));
-  TSepiType.LoadFromTypeInfo(Self, TypeInfo(Currency));
+  TSepiFloatType.Create(Self, 'Single', ftSingle);
+  TSepiFloatType.Create(Self, 'Double', ftDouble);
+  TSepiFloatType.Create(Self, 'Extended', ftExtended);
+  TSepiFloatType.Create(Self, 'Comp', ftComp);
+  TSepiFloatType.Create(Self, 'Currency', ftCurr);
 
   // String types
-  TSepiType.LoadFromTypeInfo(Self, TypeInfo(string));
-  TSepiType.LoadFromTypeInfo(Self, TypeInfo(ShortString));
-  TSepiType.LoadFromTypeInfo(Self, TypeInfo(WideString));
-
-{$IFDEF UNICODE}
-  TSepiType.LoadFromTypeInfo(Self, TypeInfo(AnsiString));
-  TSepiTypeAlias.Create(Self, 'UnicodeString', TypeInfo(UnicodeString));
-{$ELSE}
-  TSepiTypeAlias.Create(Self, 'AnsiString', TypeInfo(AnsiString));
-{$ENDIF}
+  TSepiStringType.Create(Self, 'string', DefaultStringKind);
+  TSepiShortStringType.Create(Self, 'ShortString');
+  {$IFDEF UNICODE}
+  TSepiStringType.Create(Self, 'AnsiString', skAnsiString,
+    GetTypeData(TypeInfo(AnsiString)).CodePage);
+  TSepiStringType.Create(Self, 'WideString', skWideString);
+  TSepiTypeAlias.Create(Self, 'UnicodeString', Self.LongString);
+  {$ELSE}
+  TSepiTypeAlias.Create(Self, 'AnsiString', Self.LongString);
+  TSepiStringType.Create(Self, 'WideString', skWideString);
+  {$ENDIF}
 
   // Variant types
-  TSepiType.LoadFromTypeInfo(Self, TypeInfo(Variant));
-  TSepiType.LoadFromTypeInfo(Self, TypeInfo(OleVariant));
+  TSepiVariantType.Create(Self, 'Variant');
+  TSepiVariantType.Create(Self, 'OleVariant');
 
   // Pointer types
-  TSepiPointerType.Create(Self, 'Pointer', TSepiType(nil), True);
-  TSepiPointerType.Create(Self, 'PChar', TypeInfo(Char), True);
-  TSepiPointerType.Create(Self, 'PAnsiChar', TypeInfo(AnsiChar), True);
-  TSepiPointerType.Create(Self, 'PWideChar', TypeInfo(WideChar), True);
+  TSepiPointerType.Create(Self, 'Pointer', Self.Untyped);
+  TSepiPointerType.Create(Self, 'PChar', Self.Char);
+  TSepiPointerType.Create(Self, 'PAnsiChar', Self.AnsiChar);
+  TSepiPointerType.Create(Self, 'PWideChar', Self.WideChar);
 
   // Text file type
-  TSepiStaticArrayType.Create(Self, 'Text', TypeInfo(Integer), 0,
-    SizeOf(TTextRec)-1, TypeInfo(Byte), True);
+  TSepiStaticArrayType.Create(Self, 'Text', Self.Integer, 0,
+    SizeOf(TTextRec)-1, Self.Byte);
+end;
 
-  { System constants }
+{*
+  Create builtin constants
+*}
+procedure InternalCreateBuiltinConstants(Self: TSepiSystemUnit);
+begin
   TSepiConstant.Create(Self, 'CompilerVersion', CompilerVersion);
   TSepiConstant.Create(Self, 'True', True);
   TSepiConstant.Create(Self, 'False', False);
   TSepiConstant.Create(Self, 'MaxInt', MaxInt);
   TSepiConstant.Create(Self, 'MaxLongint', MaxLongint);
 
+  { We declare Pi as a constant, though it is a method in the actual Delphi
+    compiler, because it makes no difference in appearence, and it is better
+    handled by Sepi as a constant.
+    Well, actually, we think that the Delphi compiler makes the opposite
+    reasoning, and declares it as a method because it handles it better that
+    way. }
+  TSepiConstant.Create(Self, 'Pi', Pi);
+
   { The pseudo-constant nil isn't declared here, for it has many different
     types, depending on the situation. Each compiler should understand the nil
     value for what it is: a special value, not a simple constant. }
+end;
 
-  { Write, Writeln and Readln routines }
-  TSepiMethod.CreateOverloaded(Self, 'Write', @Write,
-    'procedure(const S: string)');
-  TSepiMethod.CreateOverloaded(Self, 'Writeln', @Writeln,
-    'procedure(const S: string)');
-  TSepiMethod.CreateOverloaded(Self, 'Readln', @Readln,
-    'procedure(var S: string)');
-
-  { We create these three routines as overloaded, though there are only one of
+{*
+  Create builtin methods
+*}
+procedure InternalCreateBuiltinMethods(Self: TSepiSystemUnit);
+begin
+  { Write, Writeln and Readln routines
+    We create these three routines as overloaded, though there are only one of
     them each. This will force the unit importer to generate indirect calls to
     these methods, which is needed because they do not have an actual address
     in System.pas. Besides, these methods being overloaded better matches the
     actual implementation, since the Delphi compiler accepts many different
     kinds of argument. So, it appears like we simply do not support other
     types of argument. }
+  TSepiMethod.CreateOverloaded(Self, 'Write', @Write,
+    'procedure(const S: string)');
+  TSepiMethod.CreateOverloaded(Self, 'Writeln', @Writeln,
+    'procedure(const S: string)');
+  TSepiMethod.CreateOverloaded(Self, 'Readln', @Readln,
+    'procedure(var S: string)');
+end;
+
+{*
+  Create builtins
+*}
+procedure InternalCreateBuiltins(Self: TSepiSystemUnit);
+begin
+  InternalCreateBuiltinTypes(Self);
+  InternalCreateBuiltinConstants(Self);
+  InternalCreateBuiltinMethods(Self);
 end;
 
 {-----------------------}
@@ -445,11 +475,11 @@ begin
 end;
 
 {*
-  Create builtin types - those that are not even written in the System.pas file
+  Create builtins - components that are not even written in the System.pas file
 *}
-procedure TSepiSystemUnit.CreateBuiltinTypes;
+procedure TSepiSystemUnit.CreateBuiltins;
 begin
-  InternalCreateBuiltinTypes(Self);
+  InternalCreateBuiltins(Self);
 end;
 
 {*

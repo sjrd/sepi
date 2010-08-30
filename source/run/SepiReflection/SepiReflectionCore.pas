@@ -375,8 +375,6 @@ type
 
     property TypeInfoRef: PPTypeInfo read FTypeInfoRef;
   public
-    constructor RegisterTypeInfo(AOwner: TSepiComponent;
-      ATypeInfo: PTypeInfo); virtual;
     constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
     constructor Create(AOwner: TSepiComponent; const AName: string;
       AKind: TTypeKind);
@@ -385,9 +383,6 @@ type
     destructor Destroy; override;
 
     class function NewInstance: TObject; override;
-
-    class function LoadFromTypeInfo(AOwner: TSepiComponent;
-      ATypeInfo: PTypeInfo): TSepiType;
 
     procedure AlignOffset(var Offset: Integer);
 
@@ -1927,31 +1922,6 @@ end;
 {------------------}
 
 {*
-  Recense un type natif
-  @param AOwner      Propriétaire du type
-  @param ATypeInfo   RTTI du type à recenser
-*}
-constructor TSepiType.RegisterTypeInfo(AOwner: TSepiComponent;
-  ATypeInfo: PTypeInfo);
-var
-  AName: string;
-begin
-  AName := TypeInfoDecode(ATypeInfo.Name);
-  AName := AnsiReplaceStr(AName, '.', '$$');
-
-  inherited Create(AOwner, AName);
-
-  FKind := ATypeInfo.Kind;
-  FNative := True;
-  FTypeInfoLength := 0;
-  FTypeInfo := ATypeInfo;
-  FTypeData := GetTypeData(FTypeInfo);
-  FSize := 0;
-  FParamBehavior := DefaultTypeParamBehavior;
-  FResultBehavior := rbOrdinal;
-end;
-
-{*
   Charge un type depuis un flux
   @param AOwner   Propriétaire du type
   @param Stream   Flux depuis lequel charger le type
@@ -2148,41 +2118,6 @@ class function TSepiType.NewInstance: TObject;
 begin
   Result := inherited NewInstance;
   TSepiType(Result).FTypeInfoRef := @TSepiType(Result).FTypeInfo;
-end;
-
-{*
-  Recense un type natif à partir de ses RTTI
-  @param AOwner      Propriétaire du type
-  @param ATypeInfo   RTTI du type à recenser
-  @return Type nouvellement créé
-*}
-class function TSepiType.LoadFromTypeInfo(AOwner: TSepiComponent;
-  ATypeInfo: PTypeInfo): TSepiType;
-const
-  TypeClasses: array[TTypeKind] of TSepiTypeClass = (
-    nil, TSepiIntegerType, TSepiCharType, TSepiEnumType, TSepiFloatType,
-    TSepiShortStringType, TSepiSetType, TSepiClass, TSepiMethodRefType,
-    TSepiCharType, TSepiStringType, TSepiStringType, TSepiVariantType,
-    nil, nil, TSepiInterface, TSepiInt64Type, TSepiDynArrayType
-    {$IF Declared(tkUString)}, TSepiStringType {$IFEND}
-  );
-var
-  TypeClass: TSepiTypeClass;
-begin
-  TypeClass := TypeClasses[ATypeInfo.Kind];
-  if Assigned(TypeClass) then
-  begin
-    if TypeClass = TSepiEnumType then
-    begin
-      with GetTypeData(ATypeInfo)^ do
-        if (BaseType^ = System.TypeInfo(Boolean)) or
-          (GetTypeData(BaseType^).MinValue < 0) then
-          TypeClass := TSepiBooleanType;
-    end;
-
-    Result := TypeClass.RegisterTypeInfo(AOwner, ATypeInfo);
-  end else
-    raise EAbstractError.Create(SSepiNoRegisterTypeInfo);
 end;
 
 {*

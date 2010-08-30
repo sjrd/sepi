@@ -278,8 +278,6 @@ type
 
     constructor CreateHidden(AOwner: TSepiSignature;
       AHiddenKind: TSepiHiddenParamKind; AType: TSepiType = nil);
-    constructor RegisterParamData(AOwner: TSepiSignature;
-      var ParamData: Pointer);
     constructor Load(AOwner: TSepiSignature; Stream: TStream);
     class procedure CreateFromString(AOwner: TSepiSignature;
       const Definition: string);
@@ -384,7 +382,6 @@ type
 
     procedure WriteDigestData(Stream: TStream);
   public
-    constructor RegisterTypeData(AOwner: TSepiComponent; ATypeData: PTypeData);
     constructor Load(AOwner: TSepiComponent; Stream: TStream);
     constructor Create(AOwner: TSepiComponent; const ASignature: string;
       ACallingConvention: TCallingConvention = ccRegister);
@@ -780,8 +777,6 @@ type
     function GetDescription: string; override;
     function GetParentContainer: TSepiInheritableContainerType; override;
   public
-    constructor RegisterTypeInfo(AOwner: TSepiComponent;
-      ATypeInfo: PTypeInfo); override;
     constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
     constructor Create(AOwner: TSepiComponent; const AName: string;
       AParent: TSepiInterface; const AGUID: TGUID;
@@ -924,8 +919,6 @@ type
     property VMTEntries[Index: Integer]: Pointer
       read GetVMTEntries write SetVMTEntries;
   public
-    constructor RegisterTypeInfo(AOwner: TSepiComponent;
-      ATypeInfo: PTypeInfo); override;
     constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
     constructor Create(AOwner: TSepiComponent; const AName: string;
       AParent: TSepiClass);
@@ -1071,8 +1064,6 @@ type
 
     function GetDescription: string; override;
   public
-    constructor RegisterTypeInfo(AOwner: TSepiComponent;
-      ATypeInfo: PTypeInfo); override;
     constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
     constructor Create(AOwner: TSepiComponent; const AName, ASignature: string;
       AOfObject: Boolean = False;
@@ -1099,9 +1090,8 @@ type
   protected
     function GetAlignment: Integer; override;
   public
-    constructor RegisterTypeInfo(AOwner: TSepiComponent;
-      ATypeInfo: PTypeInfo); override;
     constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
+    constructor Create(AOwner: TSepiComponent; const AName: string);
     constructor Clone(AOwner: TSepiComponent; const AName: string;
       Source: TSepiType); override;
   end;
@@ -1369,57 +1359,6 @@ begin
   end;
 
   MakeFlags;
-end;
-
-{*
-  Crée un paramètre depuis les données de type d'une référence de méthode
-  En sortie, le pointeur ParamData a avancé jusqu'au paramètre suivant
-  @param AOwner      Propriétaire du paramètre
-  @param ParamData   Pointeur vers les données du paramètre
-*}
-constructor TSepiParam.RegisterParamData(AOwner: TSepiSignature;
-  var ParamData: Pointer);
-var
-  AFlags: TParamFlags;
-  AName, ATypeStr: string;
-  AKind: TSepiParamKind;
-  AOpenArray: Boolean;
-begin
-  FHiddenKind := hpNormal;
-  AFlags := TParamFlags(ParamData^);
-  Inc(Longint(ParamData), SizeOf(TParamFlags));
-  AName := TypeInfoDecode(PShortString(ParamData)^);
-  Inc(Longint(ParamData), PByte(ParamData)^ + 1);
-  ATypeStr := TypeInfoDecode(PShortString(ParamData)^);
-  Inc(Longint(ParamData), PByte(ParamData)^ + 1);
-
-  if pfVar in AFlags then
-    AKind := pkVar
-  else if pfConst in AFlags then
-    AKind := pkConst
-  else if pfOut in AFlags then
-    AKind := pkOut
-  else
-    AKind := pkValue;
-
-  AOpenArray := pfArray in AFlags;
-
-  { Work around of bug of the Delphi compiler with parameters written like:
-      var Param: ShortString
-    The compiler writes into the RTTI that it is a 'string', in this case.
-    Fortunately, this does not happen when the parameter is an open array, so
-    we can spot this by checking the pfReference flag, which is to be present
-    in case of ShortString, and not in case of string. }
-  if (AKind = pkVar) and (pfReference in AFlags) and (not AOpenArray) and
-    AnsiSameText(ATypeStr, 'string') then {don't localize}
-    ATypeStr := 'ShortString';
-
-  Create(AOwner, AName, AOwner.Root.FindType(ATypeStr), AKind, AOpenArray);
-
-  Assert(FFlags = AFlags, Format('FFlags (%s) <> AFlags (%s) for %s',
-    [EnumSetToStr(FFlags, TypeInfo(TParamFlags)),
-    EnumSetToStr(AFlags, TypeInfo(TParamFlags)),
-    Owner.Owner.GetFullName+'.'+Name]));
 end;
 
 {*
@@ -1796,41 +1735,6 @@ begin
 
   FParams := TObjectList.Create(False);
   FActualParams := TObjectList.Create;
-end;
-
-{*
-  Crée une signature à partir des données de type d'un type méthode
-  @param AOwner      Propriétaire de la signature
-  @param ATypeData   Données de type
-*}
-constructor TSepiSignature.RegisterTypeData(AOwner: TSepiComponent;
-  ATypeData: PTypeData);
-const
-  MethodKindToSignatureKind: array[TMethodKind] of TSepiSignatureKind = (
-    skObjectProcedure, skObjectFunction, skConstructor, skDestructor,
-    skClassProcedure, skClassFunction, skClassConstructor, skOperator,
-    skObjectProcedure, skObjectFunction
-  );
-var
-  ParamData: Pointer;
-  I: Integer;
-begin
-  BaseCreate(AOwner);
-
-  FKind := MethodKindToSignatureKind[ATypeData.MethodKind];
-  ParamData := @ATypeData.ParamList;
-
-  for I := 1 to ATypeData.ParamCount do
-    TSepiParam.RegisterParamData(Self, ParamData);
-
-  FCallingConvention := ccRegister;
-
-  if Kind in skWithReturnType then
-    FReturnType := Root.FindType(TypeInfoDecode(PShortString(ParamData)^))
-  else
-    FReturnType := nil;
-
-  Complete;
 end;
 
 {*
@@ -3773,44 +3677,6 @@ end;
 {-----------------------}
 
 {*
-  Recense une interface native
-*}
-constructor TSepiInterface.RegisterTypeInfo(AOwner: TSepiComponent;
-  ATypeInfo: PTypeInfo);
-var
-  Flags: TIntfFlags;
-begin
-  inherited;
-
-  FSize := 4;
-  FNeedInit := True;
-  FResultBehavior := rbParameter;
-
-  if Assigned(TypeData.IntfParent) then
-  begin
-    FParent := TSepiInterface(Root.FindType(TypeData.IntfParent^));
-    Assert(FParent.Completed);
-    FIMTSize := Parent.IMTSize;
-  end else
-  begin
-    // This is IInterface
-    FParent := nil;
-    FIMTSize := 0;
-  end;
-  FCompleted := False;
-
-  Flags := TypeData.IntfFlags;
-  FHasGUID := ifHasGuid in Flags;
-  FIsDispInterface := ifDispInterface in Flags;
-  FIsDispatch := ifDispatch in Flags;
-
-  if not FHasGUID then
-    FGUID := NoGUID
-  else
-    FGUID := TypeData.Guid;
-end;
-
-{*
   Charge une interface depuis un flux
 *}
 constructor TSepiInterface.Load(AOwner: TSepiComponent; Stream: TStream);
@@ -4120,24 +3986,6 @@ end;
 {-------------------}
 { Classe TSepiClass }
 {-------------------}
-
-{*
-  Recense une classe native
-*}
-constructor TSepiClass.RegisterTypeInfo(AOwner: TSepiComponent;
-  ATypeInfo: PTypeInfo);
-begin
-  inherited;
-
-  FSize := 4;
-  FDelphiClass := TypeData.ClassType;
-  if Assigned(TypeData.ParentInfo) then
-    FParent := TSepiClass(Root.FindType(TypeData.ParentInfo^));
-
-  LoadInitialDataFromParent;
-
-  FStoredInstSize := DelphiClass.InstanceSize - hfFieldSize;
-end;
 
 {*
   Charge une classe depuis un flux
@@ -5686,18 +5534,6 @@ end;
 {---------------------------}
 
 {*
-  Recense un type référence de méthode natif
-*}
-constructor TSepiMethodRefType.RegisterTypeInfo(AOwner: TSepiComponent;
-  ATypeInfo: PTypeInfo);
-begin
-  inherited;
-  FSignature := TSepiSignature.RegisterTypeData(Self, TypeData);
-
-  MakeSize;
-end;
-
-{*
   Charge un type référence de méthode depuis un flux
 *}
 constructor TSepiMethodRefType.Load(AOwner: TSepiComponent; Stream: TStream);
@@ -5841,20 +5677,6 @@ end;
 {-------------------------}
 
 {*
-  Recense un type variant natif
-*}
-constructor TSepiVariantType.RegisterTypeInfo(AOwner: TSepiComponent;
-  ATypeInfo: PTypeInfo);
-begin
-  inherited;
-
-  FSize := 16;
-  FNeedInit := True;
-  FParamBehavior.AlwaysByAddress := True;
-  FResultBehavior := rbParameter;
-end;
-
-{*
   Charge un type variant depuis un flux
 *}
 constructor TSepiVariantType.Load(AOwner: TSepiComponent; Stream: TStream);
@@ -5863,6 +5685,24 @@ begin
 
   if not Native then
     AllocateTypeInfo;
+
+  FSize := 16;
+  FNeedInit := True;
+  FParamBehavior.AlwaysByAddress := True;
+  FResultBehavior := rbParameter;
+end;
+
+{*
+  Crée un type variant
+  @param AOwner   Propriétaire
+  @param AName    Nom du type
+*}
+constructor TSepiVariantType.Create(AOwner: TSepiComponent;
+  const AName: string);
+begin
+  inherited Create(AOwner, AName, tkVariant);
+
+  AllocateTypeInfo;
 
   FSize := 16;
   FNeedInit := True;

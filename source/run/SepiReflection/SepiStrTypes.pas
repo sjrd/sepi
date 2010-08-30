@@ -64,8 +64,6 @@ type
 
     function GetDescription: string; override;
   public
-    constructor RegisterTypeInfo(AOwner: TSepiComponent;
-      ATypeInfo: PTypeInfo); override;
     constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
     constructor Create(AOwner: TSepiComponent; const AName: string;
       AMaxLength: Integer = 255);
@@ -119,8 +117,6 @@ type
 
     procedure ExtractTypeData; override;
   public
-    constructor RegisterTypeInfo(AOwner: TSepiComponent;
-      ATypeInfo: PTypeInfo); override;
     constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
     constructor Create(AOwner: TSepiComponent; const AName: string;
       AStringKind: TSepiStringKind = DefaultStringKind;
@@ -153,16 +149,6 @@ const
 {-----------------------------}
 { Classe TSepiShortStringType }
 {-----------------------------}
-
-{*
-  Recense un type chaîne courte natif
-*}
-constructor TSepiShortStringType.RegisterTypeInfo(AOwner: TSepiComponent;
-  ATypeInfo: PTypeInfo);
-begin
-  inherited;
-  ExtractTypeData;
-end;
 
 {*
   Charge un type chaîne courte depuis un flux
@@ -275,16 +261,6 @@ end;
 {------------------------}
 { Classe TSepiStringType }
 {------------------------}
-
-{*
-  Recense un type chaîne longue natif
-*}
-constructor TSepiStringType.RegisterTypeInfo(AOwner: TSepiComponent;
-  ATypeInfo: PTypeInfo);
-begin
-  inherited;
-  ExtractTypeData;
-end;
 
 {*
   Charge un type chaîne longue depuis un flux
