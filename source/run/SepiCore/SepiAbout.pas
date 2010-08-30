@@ -42,7 +42,7 @@ unit SepiAbout;
 interface
 
 uses
-  Classes, SysUtils, SepiCore, SepiConsts, SdDialogs;
+  Classes, SysUtils, ScUtils, SdDialogs, SepiConsts;
 
 type
   {*
@@ -68,18 +68,19 @@ implementation
 constructor TSepiAboutDialog.Create(AOwner: TComponent);
 begin
   inherited;
+
   FDialog := TSdAboutDialog.Create(Self);
-  FDialog.Title := sSepiAbout;
+  FDialog.Title := SSepiAbout;
+  FDialog.ProgramName := SSepiName;
+  FDialog.ProgramVersion := SepiVersion;
+  FDialog.AuthorName := SSepiAuthor;
+  FDialog.AuthorEMail := SSepiAuthorEMail;
+  FDialog.WebSite := SSepiWebSite;
+
   try
-    FDialog.ProgramIcon.LoadFromFile(Sepi.Path+'Sepi.ico'); {don't localize}
+    FDialog.ProgramIcon.LoadFromFile(Dir+'Sepi.ico'); {don't localize}
   except
   end;
-  FDialog.ProgramName := Sepi.Name;
-  FDialog.ProgramVersion := Format('%d.%d', {don't localize}
-    [Sepi.Version.MajVersion, Sepi.Version.MinVersion]);
-  FDialog.AuthorName := Sepi.Author;
-  FDialog.AuthorEMail := Sepi.AuthorEMail;
-  FDialog.WebSite := Sepi.WebSite;
 end;
 
 {*
