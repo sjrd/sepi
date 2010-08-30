@@ -69,8 +69,11 @@ type
   LongString = AnsiString;
 {$IFEND}
 
-  /// String type used in RTTI
+  /// Type chaîne utilisé dans les RTTI
   TypeInfoString = ShortString;
+
+  /// Pointeur sur un type chaîne utilisé dans les RTTI
+  PTypeInfoString = PShortString;
 
   /// Pointeur vers TRecordField
   PRecordField = ^TRecordField;

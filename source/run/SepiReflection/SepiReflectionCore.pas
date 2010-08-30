@@ -212,6 +212,9 @@ type
 
     function GetWasForward: Boolean;
 
+    function GetTypeInfoName: TypeInfoString;
+    function GetTypeInfoNameSize: Integer;
+
     function GetDigest: TSepiDigest;
 
     function GetChildCount: Integer;
@@ -275,6 +278,8 @@ type
       FromComponent: TSepiComponent): TSepiComponent; overload;
     function LookFor(const Name: string): TSepiComponent; overload;
 
+    function StoreTypeInfoName(Dest: PTypeInfoString): Pointer;
+
     procedure WriteDigestToStream(Stream: TStream);
 
     function CheckDigest(const ADigest: TSepiDigest): Boolean; overload;
@@ -293,6 +298,8 @@ type
     property Root: TSepiRoot read FRoot;
     property OwningUnit: TSepiUnit read FOwningUnit;
     property Name: string read FName;
+    property TypeInfoName: TypeInfoString read GetTypeInfoName;
+    property TypeInfoNameSize: Integer read GetTypeInfoNameSize;
     property DisplayName: string read GetDisplayName;
     property Visibility: TMemberVisibility read FVisibility write FVisibility;
     property CurrentVisibility: TMemberVisibility
@@ -1264,6 +1271,24 @@ begin
 end;
 
 {*
+  Nom à stocker dans les RTTI
+  @return Nom à stocker dans les RTTI
+*}
+function TSepiComponent.GetTypeInfoName: TypeInfoString;
+begin
+  Result := TypeInfoEncode(Name);
+end;
+
+{*
+  Taille du nom à stocker dans les RTTI
+  @return Taille du nom à stocker dans les RTTI
+*}
+function TSepiComponent.GetTypeInfoNameSize: Integer;
+begin
+  Result := Length(TypeInfoName) + 1;
+end;
+
+{*
   Digest de compatibilité
   @return Digest de compatibilité
 *}
@@ -1817,6 +1842,22 @@ end;
 function TSepiComponent.LookFor(const Name: string): TSepiComponent;
 begin
   Result := LookFor(Name, Self);
+end;
+
+{*
+  Enregistre le nom de ce composant dans des RTTI
+  @param Dest   Pointeur sur la destination
+  @return Adresse du premier octet après la chaîne
+*}
+function TSepiComponent.StoreTypeInfoName(Dest: PTypeInfoString): Pointer;
+var
+  AName: TypeInfoString;
+  Size: Integer;
+begin
+  AName := TypeInfoName;
+  Size := Length(AName)+1;
+  Move(AName[0], Dest^, Size);
+  Result := Pointer(Integer(Dest) + Size);
 end;
 
 {*
