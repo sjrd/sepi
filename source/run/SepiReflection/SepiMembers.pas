@@ -3113,7 +3113,7 @@ begin
   Assert(Signature.Kind = skProperty);
 
   // Property type RTTI
-  PropInfo.PropType := TSepiMetaClass(PropType).TypeInfoRef;
+  PropInfo.PropType := PropType.TypeInfoRef;
 
   // Read access
   with PropInfo^, ReadAccess do
@@ -3373,8 +3373,7 @@ begin
     begin
       with TSepiField(Fields[I]) do
       begin
-        FieldTable.Fields[I].TypeInfo :=
-          TSepiRecordType(FieldType).TypeInfoRef;
+        FieldTable.Fields[I].TypeInfo := FieldType.TypeInfoRef;
         FieldTable.Fields[I].Offset := Offset;
       end;
     end;
@@ -4523,8 +4522,7 @@ begin
     begin
       with TSepiField(Fields[I]) do
       begin
-        InitTable.Fields[I].TypeInfo :=
-          TSepiRecordType(FieldType).TypeInfoRef;
+        InitTable.Fields[I].TypeInfo := FieldType.TypeInfoRef;
         InitTable.Fields[I].Offset := Offset;
       end;
     end;

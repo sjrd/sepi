@@ -372,8 +372,6 @@ type
 
     function GetDisplayName: string; override;
     function GetDescription: string; virtual;
-
-    property TypeInfoRef: PPTypeInfo read FTypeInfoRef;
   public
     constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
     constructor Create(AOwner: TSepiComponent; const AName: string;
@@ -401,6 +399,7 @@ type
     property Native: Boolean read FNative;
     property TypeInfo: PTypeInfo read FTypeInfo;
     property TypeData: PTypeData read FTypeData;
+    property TypeInfoRef: PPTypeInfo read FTypeInfoRef;
     property Size: Integer read FSize;
     property NeedInit: Boolean read FNeedInit;
     property Alignment: Integer read GetAlignment;

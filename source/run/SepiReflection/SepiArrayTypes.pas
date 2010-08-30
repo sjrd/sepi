@@ -445,7 +445,7 @@ begin
   begin
     Size := FSize;
     Count := FSize div AElementType.Size;
-    ElemType := TSepiStaticArrayType(AElementType).TypeInfoRef;
+    ElemType := AElementType.TypeInfoRef;
     ElemOffset := 0;
   end;
 end;
@@ -649,7 +649,7 @@ begin
   // Element RTTI, if need initialization
   // Types which need initialization always have got RTTI
   if ElementType.NeedInit then
-    TypeData.elType := TSepiDynArrayType(ElementType).TypeInfoRef
+    TypeData.elType := ElementType.TypeInfoRef
   else
     TypeData.elType := nil;
 
@@ -658,9 +658,9 @@ begin
   TypeData.varType := -1;
 
   // Element RTTI, independant of cleanup
-  // Whe have to check for nul-RTTI, because of records and static arrays
+  // We have to check for nil RTTI, because of records and static arrays
   if Assigned(ElementType.TypeInfo) then
-    TypeData.elType2 := TSepiDynArrayType(ElementType).TypeInfoRef
+    TypeData.elType2 := ElementType.TypeInfoRef
   else
     TypeData.elType2 := nil;
 
