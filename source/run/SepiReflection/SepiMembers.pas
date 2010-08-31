@@ -248,8 +248,7 @@ type
 
   {*
     Paramètre de méthode
-    Les paramètres cachés ont aussi leur existence en tant que
-    TSepiComponentParam.
+    Les paramètres cachés ont aussi leur existence en tant que TSepiParam.
     Les cinq types de paramètres cachés sont Self (classe ou instance), Result
     (lorsqu'il est passé par adresse), le paramètre spécial $Alloc des
     constructeurs, le paramètre spécial $Free des destructeurs et les
@@ -334,10 +333,10 @@ type
   *}
   TSepiSignature = class
   private
-    FOwner: TSepiComponent; /// Propriétaire de la signature
-    FRoot: TSepiRoot;       /// Racine
-    FOwningUnit: TSepiUnit; /// Unité contenante
-    FContext: TSepiType;    /// Contexte
+    FOwner: TSepiComponent;   /// Propriétaire de la signature
+    FRoot: TSepiRoot;         /// Racine
+    FOwningUnit: TSepiUnit;   /// Unité contenante
+    FContext: TSepiComponent; /// Contexte
 
     FLoadingCloning: Boolean;   /// True si en chargement ou en clônage
     FAutoCreateHidden: Boolean; /// True pour créer automatiquement les cachés
@@ -385,8 +384,7 @@ type
     constructor Load(AOwner: TSepiComponent; Stream: TStream);
     constructor Create(AOwner: TSepiComponent; const ASignature: string;
       ACallingConvention: TCallingConvention = ccRegister);
-    constructor CreateConstructing(ASepiUnit: TSepiUnit;
-      AContext: TSepiType = nil);
+    constructor CreateConstructing(AContext: TSepiComponent);
     constructor Clone(AOwner: TSepiComponent; Source: TSepiSignature);
     destructor Destroy; override;
 
@@ -402,7 +400,7 @@ type
     property Owner: TSepiComponent read FOwner;
     property Root: TSepiRoot read FRoot;
     property OwningUnit: TSepiUnit read FOwningUnit;
-    property Context: TSepiType read FContext;
+    property Context: TSepiComponent read FContext;
     property Kind: TSepiSignatureKind read FKind write SetKind;
 
     property Completed: Boolean read FCompleted;
@@ -1466,7 +1464,7 @@ begin
 
   if AOpenArray then
   begin
-    AType := TSepiOpenArrayType.Create(AOwner.OwningUnit, '', AType,
+    AType := TSepiOpenArrayType.Create(AOwner.Context, '', AType,
       HiddenParamNames[hpOpenArrayHighValue]+AName);
   end else if AType = nil then
   begin
@@ -1723,9 +1721,7 @@ begin
   FOwner := AOwner;
   FRoot := FOwner.Root;
   FOwningUnit := FOwner.OwningUnit;
-
-  if FOwner.Owner is TSepiType then
-    FContext := TSepiType(FOwner.Owner);
+  FContext := FOwner.Owner;
 
   FAutoCreateHidden := True;
 
@@ -1829,17 +1825,15 @@ end;
 
 {*
   Crée une signature en construction
-  @param ASepiUnit   Unité contenante
-  @param AContext    Contexte (classe ou interface)
+  @param AContext   Contexte
 *}
-constructor TSepiSignature.CreateConstructing(ASepiUnit: TSepiUnit;
-  AContext: TSepiType = nil);
+constructor TSepiSignature.CreateConstructing(AContext: TSepiComponent);
 begin
   inherited Create;
 
   FOwner := nil;
-  FRoot := ASepiUnit.Root;
-  FOwningUnit := ASepiUnit;
+  FRoot := AContext.Root;
+  FOwningUnit := AContext.OwningUnit;
   FContext := AContext;
   FAutoCreateHidden := True;
 

@@ -3926,21 +3926,13 @@ end;
   [@inheritDoc]
 *}
 procedure TSepiMethodDeclarationNode.BeginParsing;
-var
-  SignatureContext: TSepiType;
 begin
   inherited;
 
-  if SepiContext is TSepiType then
-  begin
-    SignatureContext := TSepiType(SepiContext);
+  if SepiContext is TSepiInterface then
+    FLinkKind := mlkInterface;
 
-    if SignatureContext is TSepiInterface then
-      FLinkKind := mlkInterface;
-  end else
-    SignatureContext := nil;
-
-  FSignature := TSepiSignature.CreateConstructing(SepiUnit, SignatureContext);
+  FSignature := TSepiSignature.CreateConstructing(SepiContext);
 end;
 
 {*
@@ -4611,17 +4603,10 @@ end;
   [@inheritDoc]
 *}
 procedure TSepiMethodImplHeaderNode.BeginParsing;
-var
-  SignatureContext: TSepiType;
 begin
   inherited;
 
-  if SepiContext is TSepiType then
-    SignatureContext := TSepiType(SepiContext)
-  else
-    SignatureContext := nil;
-
-  FSignature := TSepiSignature.CreateConstructing(SepiUnit, SignatureContext);
+  FSignature := TSepiSignature.CreateConstructing(SepiContext);
 end;
 
 {*
