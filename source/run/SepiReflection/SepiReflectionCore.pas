@@ -61,7 +61,8 @@ type
   {*
     État d'un composant
   *}
-  TSepiComponentState = (msNormal, msConstructing, msLoading, msDestroying);
+  TSepiComponentState = (msForward, msLoading, msConstructing, msNormal,
+    msDestroying);
 
   {*
     Visibilité d'un composant
@@ -189,8 +190,6 @@ type
   *}
   TSepiComponent = class
   private
-    /// True tant que le composant n'a pas été construit
-    FIsForward: Boolean;
     FState: TSepiComponentState;    /// État
     FOwner: TSepiComponent;         /// Propriétaire
     FRoot: TSepiRoot;               /// Racine
@@ -210,6 +209,7 @@ type
 
     procedure EnsureDigestBuilt;
 
+    function GetIsForward: Boolean;
     function GetWasForward: Boolean;
 
     function GetTypeInfoName: TypeInfoString;
@@ -259,10 +259,9 @@ type
     constructor Load(AOwner: TSepiComponent; Stream: TStream); virtual;
     constructor Create(AOwner: TSepiComponent; const AName: string);
     destructor Destroy; override;
+
     procedure AfterConstruction; override;
     procedure BeforeDestruction; override;
-
-    class function NewInstance: TObject; override;
 
     function GetFullName: string;
     function GetShorterNameFrom(From: TSepiComponent): string;
@@ -292,7 +291,7 @@ type
     procedure AddPtrResource(Ptr: Pointer);
     procedure AcquirePtrResource(var Ptr);
 
-    property IsForward: Boolean read FIsForward;
+    property IsForward: Boolean read GetIsForward;
     property WasForward: Boolean read GetWasForward;
     property Owner: TSepiComponent read FOwner;
     property Root: TSepiRoot read FRoot;
@@ -1169,9 +1168,11 @@ end;
 constructor TSepiComponent.Load(AOwner: TSepiComponent; Stream: TStream);
 begin
   Create(AOwner, ReadStrFromStream(Stream));
+
+  FState := msLoading;
+
   Stream.ReadBuffer(FVisibility, 1);
   Stream.ReadBuffer(FTag, SizeOf(Integer));
-  FState := msLoading;
 end;
 
 {*
@@ -1187,7 +1188,6 @@ begin
 
   inherited Create;
 
-  FIsForward := False;
   FState := msConstructing;
   FOwner := AOwner;
 
@@ -1272,6 +1272,15 @@ begin
       Stream.Free;
     end;
   end;
+end;
+
+{*
+  Indique si le composant est encore en forward
+  @return True si le composant est encored en forward, False sinon
+*}
+function TSepiComponent.GetIsForward: Boolean;
+begin
+  Result := FState = msForward;
 end;
 
 {*
@@ -1678,15 +1687,6 @@ end;
 procedure TSepiComponent.WriteDigestData(Stream: TStream);
 begin
   WriteStrToStream(Stream, ClassName);
-end;
-
-{*
-  [@inheritDoc]
-*}
-class function TSepiComponent.NewInstance: TObject;
-begin
-  Result := inherited NewInstance;
-  TSepiComponent(Result).FIsForward := True;
 end;
 
 {*
