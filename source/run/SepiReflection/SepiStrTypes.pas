@@ -53,13 +53,13 @@ type
   TSepiShortStringType = class(TSepiType)
   private
     FMaxLength: Integer; /// Longueur maximale
-
-    procedure SetupProperties;
-    procedure MakeTypeInfo;
   protected
     procedure Save(Stream: TStream); override;
 
     procedure WriteDigestData(Stream: TStream); override;
+
+    procedure SetupProperties; override;
+    procedure MakeTypeInfo; override;
 
     function GetAlignment: Integer; override;
 
@@ -113,13 +113,13 @@ type
     FCodePage: Word; /// Code de page pour une chaîne Ansi
 
     function HasCodePage: Boolean;
-
-    procedure SetupProperties;
-    procedure MakeTypeInfo;
   protected
     procedure Save(Stream: TStream); override;
 
     procedure WriteDigestData(Stream: TStream); override;
+
+    procedure SetupProperties; override;
+    procedure MakeTypeInfo; override;
   public
     constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
     constructor Create(AOwner: TSepiComponent; const AName: string;
@@ -197,26 +197,6 @@ begin
 end;
 
 {*
-  Spécifie les différentes propriétés de ce type
-*}
-procedure TSepiShortStringType.SetupProperties;
-begin
-  FSize := MaxLength + 1;
-  FParamBehavior.AlwaysByAddress := True;
-  FResultBehavior := rbParameter;
-end;
-
-{*
-  Crée les RTTI de ce type
-*}
-procedure TSepiShortStringType.MakeTypeInfo;
-begin
-  AllocateTypeInfo(ShortStringTypeDataLength);
-
-  TypeData.MaxLength := MaxLength;
-end;
-
-{*
   [@inheritDoc]
 *}
 procedure TSepiShortStringType.Save(Stream: TStream);
@@ -233,6 +213,26 @@ begin
   inherited;
 
   Stream.WriteBuffer(FMaxLength, 1);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiShortStringType.SetupProperties;
+begin
+  FSize := MaxLength + 1;
+  FParamBehavior.AlwaysByAddress := True;
+  FResultBehavior := rbParameter;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiShortStringType.MakeTypeInfo;
+begin
+  AllocateTypeInfo(ShortStringTypeDataLength);
+
+  TypeData.MaxLength := MaxLength;
 end;
 
 {*
@@ -347,29 +347,6 @@ begin
 end;
 
 {*
-  Spécifie les propriétés du type
-*}
-procedure TSepiStringType.SetupProperties;
-begin
-  FSize := 4;
-  FNeedInit := True;
-  FResultBehavior := rbParameter;
-end;
-
-{*
-  Crée les RTTI de ce type
-*}
-procedure TSepiStringType.MakeTypeInfo;
-begin
-  AllocateTypeInfo(StringTypeDataLength[StringKind = skAnsiString]);
-
-  {$IFDEF UNICODE}
-  if HasCodePage then
-    TypeData.CodePage := CodePage;
-  {$ENDIF}
-end;
-
-{*
   [@inheritDoc]
 *}
 procedure TSepiStringType.Save(Stream: TStream);
@@ -389,6 +366,29 @@ begin
 
   Stream.WriteBuffer(FStringKind, 1);
   Stream.WriteBuffer(FCodePage, 2);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiStringType.SetupProperties;
+begin
+  FSize := 4;
+  FNeedInit := True;
+  FResultBehavior := rbParameter;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiStringType.MakeTypeInfo;
+begin
+  AllocateTypeInfo(StringTypeDataLength[StringKind = skAnsiString]);
+
+  {$IFDEF UNICODE}
+  if HasCodePage then
+    TypeData.CodePage := CodePage;
+  {$ENDIF}
 end;
 
 {*

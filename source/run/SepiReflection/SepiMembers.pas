@@ -669,13 +669,10 @@ type
   private
     FPacked: Boolean;    /// Indique si le record est packed
     FAlignment: Integer; /// Alignement
-    FCompleted: Boolean; /// Indique si le record est entièrement défini
 
     function PrivAddField(const FieldName: string; FieldType: TSepiType;
       After: TSepiField;
       ForcePack: Boolean = False): TSepiField;
-
-    procedure MakeTypeInfo;
   protected
     procedure ChildAdded(Child: TSepiComponent); override;
 
@@ -683,14 +680,17 @@ type
 
     procedure WriteDigestData(Stream: TStream); override;
 
+    function HasTypeInfo: Boolean; override;
+    procedure SetupProperties; override;
+    procedure MakeTypeInfo; override;
+
     function GetAlignment: Integer; override;
 
     function GetDescription: string; override;
   public
     constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
     constructor Create(AOwner: TSepiComponent; const AName: string;
-      APacked: Boolean = False; AIsNative: Boolean = False;
-      ATypeInfo: PTypeInfo = nil);
+      APacked: Boolean = False);
     constructor Clone(AOwner: TSepiComponent; const AName: string;
       Source: TSepiType); override;
 
@@ -711,7 +711,7 @@ type
       const After: string;
       ForcePack: Boolean = False): TSepiField; overload;
 
-    procedure Complete;
+    procedure Complete; override;
 
     function Equals(Other: TSepiType): Boolean; override;
     function CompatibleWith(AType: TSepiType): Boolean; override;
@@ -719,7 +719,6 @@ type
     function ValueToString(const Value): string; override;
 
     property IsPacked: Boolean read FPacked;
-    property Completed: Boolean read FCompleted;
   end;
 
   {*
@@ -755,8 +754,6 @@ type
   TSepiInterface = class(TSepiInheritableContainerType)
   private
     FParent: TSepiInterface; /// Interface parent (ou nil - IInterface)
-    FCompleted: Boolean;
-    /// Indique si l'interface est entièrement définie
 
     FHasGUID: Boolean;         /// Indique si l'interface possède un GUID
     FIsDispInterface: Boolean; /// Indique si c'est une disp interface
@@ -764,13 +761,13 @@ type
     FGUID: TGUID;              /// GUID de l'interface, si elle en a un
 
     FIMTSize: Integer; /// Taille de l'IMT
-
-    procedure MakeTypeInfo;
   protected
     procedure ListReferences; override;
     procedure Save(Stream: TStream); override;
 
     procedure WriteDigestData(Stream: TStream); override;
+
+    procedure MakeTypeInfo; override;
 
     function GetDescription: string; override;
     function GetParentContainer: TSepiInheritableContainerType; override;
@@ -802,14 +799,13 @@ type
       const AName, ASignature, AReadAccess, AWriteAccess: string;
       AIsDefault: Boolean): TSepiProperty; overload;
 
-    procedure Complete;
+    procedure Complete; override;
 
     function Equals(Other: TSepiType): Boolean; override;
 
     function IntfInheritsFrom(AParent: TSepiInterface): Boolean;
 
     property Parent: TSepiInterface read FParent;
-    property Completed: Boolean read FCompleted;
 
     property HasGUID: Boolean read FHasGUID;
     property IsDispInterface: Boolean read FIsDispInterface;
@@ -855,7 +851,6 @@ type
   private
     FDelphiClass: TClass; /// Classe Delphi
     FParent: TSepiClass;  /// Classe parent (nil si n'existe pas - TObject)
-    FCompleted: Boolean;  /// Indique si la classe est entièrement définie
 
     /// Interfaces supportées par la classe
     FInterfaces: array of TSepiInterfaceEntry;
@@ -881,7 +876,6 @@ type
     procedure MakeIMTs;
     procedure ReadNativeIMTs;
 
-    procedure MakeTypeInfo;
     procedure MakeIntfTable;
     procedure MakeInitTable;
     procedure MakeFieldTable;
@@ -901,6 +895,10 @@ type
 
     procedure ListReferences; override;
     procedure Save(Stream: TStream); override;
+
+    procedure SetupProperties; override;
+    procedure MakeTypeInfo; override;
+    procedure MakeRuntimeInfo; override;
 
     function GetDescription: string; override;
     function GetParentContainer: TSepiInheritableContainerType; override;
@@ -986,7 +984,7 @@ type
     procedure AddIntfMethodRedirector(Intf: TSepiInterface;
       IntfMethod: TSepiMethod; const RedirectorName: string);
 
-    procedure Complete;
+    procedure Complete; override;
 
     function Equals(Other: TSepiType): Boolean; override;
     function CompatibleWith(AType: TSepiType): Boolean; override;
@@ -996,7 +994,6 @@ type
 
     property DelphiClass: TClass read FDelphiClass;
     property Parent: TSepiClass read FParent;
-    property Completed: Boolean read FCompleted;
 
     property InterfaceCount: Integer read GetInterfaceCount;
     property Interfaces[Index: Integer]: TSepiInterface read GetInterfaces;
@@ -1026,11 +1023,11 @@ type
   public
     constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
     constructor Create(AOwner: TSepiComponent; const AName: string;
-      AClass: TSepiClass; AIsNative: Boolean = False); overload;
+      AClass: TSepiClass); overload;
     constructor Create(AOwner: TSepiComponent; const AName: string;
-      AClassInfo: PTypeInfo; AIsNative: Boolean = False); overload;
-    constructor Create(AOwner: TSepiComponent; const AName, AClassName: string;
-      AIsNative: Boolean = False); overload;
+      AClassInfo: PTypeInfo); overload;
+    constructor Create(AOwner: TSepiComponent;
+      const AName, AClassName: string); overload;
     constructor Clone(AOwner: TSepiComponent; const AName: string;
       Source: TSepiType); override;
 
@@ -3258,7 +3255,6 @@ begin
 
   Stream.ReadBuffer(FPacked, 1);
   FAlignment := 1;
-  FCompleted := False;
 
   LoadChildren(Stream);
 
@@ -3271,17 +3267,12 @@ end;
   @param AName    Nom du type
 *}
 constructor TSepiRecordType.Create(AOwner: TSepiComponent; const AName: string;
-  APacked: Boolean = False; AIsNative: Boolean = False;
-  ATypeInfo: PTypeInfo = nil);
+  APacked: Boolean = False);
 begin
   inherited Create(AOwner, AName, tkRecord);
 
   FPacked := APacked;
   FAlignment := 1;
-  FCompleted := False;
-
-  if AIsNative then
-    ForceNative(ATypeInfo);
 end;
 
 {*
@@ -3330,49 +3321,6 @@ begin
 end;
 
 {*
-  Construit les RTTI, si besoin
-*}
-procedure TSepiRecordType.MakeTypeInfo;
-var
-  Fields: TObjectList;
-  I: Integer;
-  FieldTable: PInitTable;
-begin
-  if not NeedInit then
-    Exit;
-
-  Fields := TObjectList.Create(False);
-  try
-    // Listings the fields which need initialization
-    for I := 0 to ChildCount-1 do
-      if (Children[I] is TSepiField) and
-        TSepiField(Children[I]).FieldType.NeedInit then
-        Fields.Add(Children[I]);
-
-    // Creating the RTTI
-    AllocateTypeInfo(
-      RecordTypeDataLengthBase + Fields.Count*SizeOf(TInitInfo));
-    FieldTable := PInitTable(TypeData);
-
-    // Basic information
-    FieldTable.Size := FSize;
-    FieldTable.Count := Fields.Count;
-
-    // Field information
-    for I := 0 to Fields.Count-1 do
-    begin
-      with TSepiField(Fields[I]) do
-      begin
-        FieldTable.Fields[I].TypeInfo := FieldType.TypeInfoRef;
-        FieldTable.Fields[I].Offset := Offset;
-      end;
-    end;
-  finally
-    Fields.Free;
-  end;
-end;
-
-{*
   [@inheritDoc]
 *}
 procedure TSepiRecordType.ChildAdded(Child: TSepiComponent);
@@ -3415,6 +3363,72 @@ begin
   for I := 0 to ChildCount-1 do
     if Children[I] is TSepiField then
       Children[I].WriteDigestToStream(Stream);
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiRecordType.HasTypeInfo: Boolean;
+begin
+  Result := NeedInit;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiRecordType.SetupProperties;
+begin
+  if not IsPacked then
+    AlignOffset(FSize);
+
+  if Size > 4 then
+  begin
+    FParamBehavior.AlwaysByAddress := True;
+    FResultBehavior := rbParameter;
+  end;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiRecordType.MakeTypeInfo;
+var
+  Fields: TObjectList;
+  I: Integer;
+  FieldTable: PInitTable;
+begin
+  if not NeedInit then
+    Exit;
+
+  Fields := TObjectList.Create(False);
+  try
+    // Listings the fields which need initialization
+    for I := 0 to ChildCount-1 do
+      if (Children[I] is TSepiField) and
+        TSepiField(Children[I]).FieldType.NeedInit then
+        Fields.Add(Children[I]);
+
+    // Creating the RTTI
+    AllocateTypeInfo(
+      RecordTypeDataLengthBase + Fields.Count*SizeOf(TInitInfo));
+    FieldTable := PInitTable(TypeData);
+
+    // Basic information
+    FieldTable.Size := FSize;
+    FieldTable.Count := Fields.Count;
+
+    // Field information
+    for I := 0 to Fields.Count-1 do
+    begin
+      with TSepiField(Fields[I]) do
+      begin
+        FieldTable.Fields[I].TypeInfo := FieldType.TypeInfoRef;
+        FieldTable.Fields[I].Offset := Offset;
+      end;
+    end;
+  finally
+    Fields.Free;
+  end;
 end;
 
 {*
@@ -3534,25 +3548,11 @@ begin
 end;
 
 {*
-  Termine le record et construit ses RTTI si ce n'est pas déjà fait
+  [@inheritDoc]
 *}
 procedure TSepiRecordType.Complete;
 begin
-  if FCompleted then
-    Exit;
-
-  FCompleted := True;
-  if not IsPacked then
-    AlignOffset(FSize);
-
-  if Size > 4 then
-  begin
-    FParamBehavior.AlwaysByAddress := True;
-    FResultBehavior := rbParameter;
-  end;
-
-  if not Native then
-    MakeTypeInfo;
+  inherited;
 end;
 
 {*
@@ -3676,7 +3676,6 @@ begin
 
   OwningUnit.ReadRef(Stream, FParent);
   Assert((FParent = nil) or FParent.Completed);
-  FCompleted := False;
 
   Stream.ReadBuffer(FHasGUID, 1);
   Stream.ReadBuffer(FIsDispInterface, 1);
@@ -3712,7 +3711,6 @@ begin
   else
     FParent := (Root.SystemUnit as TSepiSystemUnit).IInterface;
   Assert((FParent = nil) or FParent.Completed);
-  FCompleted := False;
 
   FHasGUID := not IsNoGUID(AGUID);
   FIsDispInterface := AIsDispInterface;
@@ -3725,7 +3723,43 @@ begin
 end;
 
 {*
-  Construit les RTTI
+  [@inheritDoc]
+*}
+procedure TSepiInterface.ListReferences;
+begin
+  inherited;
+  OwningUnit.AddRef(FParent);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiInterface.Save(Stream: TStream);
+begin
+  inherited;
+
+  OwningUnit.WriteRef(Stream, FParent);
+
+  Stream.WriteBuffer(FHasGUID, 1);
+  Stream.WriteBuffer(FIsDispInterface, 1);
+  Stream.WriteBuffer(FIsDispatch, 1);
+  Stream.WriteBuffer(FGUID, SizeOf(TGUID));
+
+  SaveChildren(Stream);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiInterface.WriteDigestData(Stream: TStream);
+begin
+  inherited;
+
+  Stream.WriteBuffer(FGUID, SizeOf(TGUID));
+end;
+
+{*
+  [@inheritDoc]
 *}
 procedure TSepiInterface.MakeTypeInfo;
 var
@@ -3763,42 +3797,6 @@ begin
   Count^ := ChildCount;
   Inc(Integer(Count), 2);
   Count^ := $FFFF; // no more information available
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TSepiInterface.ListReferences;
-begin
-  inherited;
-  OwningUnit.AddRef(FParent);
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TSepiInterface.Save(Stream: TStream);
-begin
-  inherited;
-
-  OwningUnit.WriteRef(Stream, FParent);
-
-  Stream.WriteBuffer(FHasGUID, 1);
-  Stream.WriteBuffer(FIsDispInterface, 1);
-  Stream.WriteBuffer(FIsDispatch, 1);
-  Stream.WriteBuffer(FGUID, SizeOf(TGUID));
-
-  SaveChildren(Stream);
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TSepiInterface.WriteDigestData(Stream: TStream);
-begin
-  inherited;
-
-  Stream.WriteBuffer(FGUID, SizeOf(TGUID));
 end;
 
 {*
@@ -3924,16 +3922,11 @@ begin
 end;
 
 {*
-  Termine l'interface et construit ses RTTI si ce n'est pas déjà fait
+  [@inheritDoc]
 *}
 procedure TSepiInterface.Complete;
 begin
-  if FCompleted then
-    Exit;
-
-  FCompleted := True;
-  if not Native then
-    MakeTypeInfo;
+  inherited;
 end;
 
 {*
@@ -4356,67 +4349,6 @@ begin
 
     if FInterfaces[I].Offset + 4 > FInstSize then
       FInstSize := FInterfaces[I].Offset + 4;
-  end;
-end;
-
-{*
-  Construit les RTTI
-*}
-procedure TSepiClass.MakeTypeInfo;
-var
-  OwningUnitName: TypeInfoString;
-  TypeDataLength, I: Integer;
-  Props: TObjectList;
-  Prop: TSepiProperty;
-  PropCount: PWord;
-  PropInfo: PPropInfo;
-begin
-  OwningUnitName := TypeInfoEncode(OwningUnit.Name);
-  Props := TObjectList.Create(False);
-  try
-    TypeDataLength := ClassTypeDataLengthBase;
-    Inc(TypeDataLength, Length(OwningUnitName)+1);
-
-    // Listing the published properties, and computing the type data length
-    for I := 0 to ChildCount-1 do
-    begin
-      if Children[I] is TSepiProperty then
-      begin
-        Prop := TSepiProperty(Children[I]);
-        if (Prop.Visibility <> mvPublished) or Prop.IsClassProperty then
-          Continue;
-
-        Props.Add(Prop);
-        Inc(TypeDataLength, PropInfoLengthBase);
-        Inc(TypeDataLength, Length(TypeInfoEncode(Prop.Name))+1);
-      end;
-    end;
-
-    // Creating the RTTI
-    AllocateTypeInfo(TypeDataLength);
-
-    // Basic information
-    TypeData.ClassType := DelphiClass;
-    if FParent = nil then
-      TypeData.ParentInfo := nil
-    else
-      TypeData.ParentInfo := FParent.TypeInfoRef;
-    TypeData.PropCount := FPublishedPropCount;
-    Move(OwningUnitName[0], TypeData.UnitName[0], Length(OwningUnitName)+1);
-
-    // Property count
-    PropCount := SkipPackedShortString(@TypeData.UnitName);
-    PropCount^ := Props.Count;
-
-    // Property information
-    PropInfo := PPropInfo(Integer(PropCount) + 2);
-    for I := 0 to Props.Count-1 do
-    begin
-      TSepiProperty(Props[I]).MakePropInfo(PropInfo);
-      PropInfo := SkipPackedShortString(@PropInfo.Name);
-    end;
-  finally
-    Props.Free;
   end;
 end;
 
@@ -4874,6 +4806,84 @@ end;
 {*
   [@inheritDoc]
 *}
+procedure TSepiClass.SetupProperties;
+begin
+  AlignOffset(FInstSize);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiClass.MakeTypeInfo;
+var
+  OwningUnitName: TypeInfoString;
+  TypeDataLength, I: Integer;
+  Props: TObjectList;
+  Prop: TSepiProperty;
+  PropCount: PWord;
+  PropInfo: PPropInfo;
+begin
+  OwningUnitName := TypeInfoEncode(OwningUnit.Name);
+  Props := TObjectList.Create(False);
+  try
+    TypeDataLength := ClassTypeDataLengthBase;
+    Inc(TypeDataLength, Length(OwningUnitName)+1);
+
+    // Listing the published properties, and computing the type data length
+    for I := 0 to ChildCount-1 do
+    begin
+      if Children[I] is TSepiProperty then
+      begin
+        Prop := TSepiProperty(Children[I]);
+        if (Prop.Visibility <> mvPublished) or Prop.IsClassProperty then
+          Continue;
+
+        Props.Add(Prop);
+        Inc(TypeDataLength, PropInfoLengthBase);
+        Inc(TypeDataLength, Length(TypeInfoEncode(Prop.Name))+1);
+      end;
+    end;
+
+    // Creating the RTTI
+    AllocateTypeInfo(TypeDataLength);
+
+    // Basic information
+    TypeData.ClassType := DelphiClass;
+    if FParent = nil then
+      TypeData.ParentInfo := nil
+    else
+      TypeData.ParentInfo := FParent.TypeInfoRef;
+    TypeData.PropCount := FPublishedPropCount;
+    Move(OwningUnitName[0], TypeData.UnitName[0], Length(OwningUnitName)+1);
+
+    // Property count
+    PropCount := SkipPackedShortString(@TypeData.UnitName);
+    PropCount^ := Props.Count;
+
+    // Property information
+    PropInfo := PPropInfo(Integer(PropCount) + 2);
+    for I := 0 to Props.Count-1 do
+    begin
+      TSepiProperty(Props[I]).MakePropInfo(PropInfo);
+      PropInfo := SkipPackedShortString(@PropInfo.Name);
+    end;
+  finally
+    Props.Free;
+  end;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiClass.MakeRuntimeInfo;
+begin
+  MakeIMTs;
+  MakeVMT;
+end;
+
+{*
+  [@inheritDoc]
+*}
 function TSepiClass.GetDescription: string;
 begin
   Result := 'class';
@@ -5297,23 +5307,17 @@ begin
 end;
 
 {*
-  Termine la classe et construit ses RTTI si ce n'est pas déjà fait
+  [@inheritDoc]
 *}
 procedure TSepiClass.Complete;
 begin
-  if FCompleted then
+  if Completed then
     Exit;
 
-  FCompleted := True;
-  AlignOffset(FInstSize);
+  inherited;
 
   if Native then
-    ReadNativeIMTs
-  else
-  begin
-    MakeIMTs;
-    MakeVMT;
-  end;
+    ReadNativeIMTs;
 end;
 
 {*
@@ -5386,14 +5390,12 @@ end;
   @param AClass   Classe correspondante
 *}
 constructor TSepiMetaClass.Create(AOwner: TSepiComponent; const AName: string;
-  AClass: TSepiClass; AIsNative: Boolean = False);
+  AClass: TSepiClass);
 begin
   inherited Create(AOwner, AName, tkClass);
+
   FSize := 4;
   FClass := AClass;
-
-  if AIsNative then
-    ForceNative;
 end;
 
 {*
@@ -5403,10 +5405,9 @@ end;
   @param AClassInfo   RTTI de la classe correspondante
 *}
 constructor TSepiMetaClass.Create(AOwner: TSepiComponent; const AName: string;
-  AClassInfo: PTypeInfo; AIsNative: Boolean = False);
+  AClassInfo: PTypeInfo);
 begin
-  Create(AOwner, AName, AOwner.Root.FindType(AClassInfo) as TSepiClass,
-    AIsNative);
+  Create(AOwner, AName, AOwner.Root.FindType(AClassInfo) as TSepiClass);
 end;
 
 {*
@@ -5416,10 +5417,9 @@ end;
   @param AClassName   Nom de la classe correspondante
 *}
 constructor TSepiMetaClass.Create(AOwner: TSepiComponent;
-  const AName, AClassName: string; AIsNative: Boolean = False);
+  const AName, AClassName: string);
 begin
-  Create(AOwner, AName, AOwner.Root.FindType(AClassName) as TSepiClass,
-    AIsNative);
+  Create(AOwner, AName, AOwner.Root.FindType(AClassName) as TSepiClass);
 end;
 
 {*

@@ -354,6 +354,7 @@ type
   TSepiType = class(TSepiComponent)
   private
     FKind: TTypeKind;         /// Type de type
+    FCompleted: Boolean;      /// Indique si le type est complet
     FNative: Boolean;         /// Indique si le type est un type natif Delphi
     FTypeInfoLength: Integer; /// Taille des RTTI créées (ou 0 si non créées)
     FTypeInfo: PTypeInfo;     /// RTTI (Runtime Type Information)
@@ -370,8 +371,15 @@ type
 
     procedure WriteDigestData(Stream: TStream); override;
 
-    procedure ForceNative(ATypeInfo: PTypeInfo = nil);
     procedure AllocateTypeInfo(TypeDataLength: Integer = 0);
+
+    function HasTypeInfo: Boolean; virtual;
+    procedure SetupProperties; virtual;
+    procedure MakeTypeInfo; virtual;
+    procedure MakeRuntimeInfo; virtual;
+
+    function IsComposite: Boolean; virtual;
+    procedure Complete; virtual;
 
     function GetAlignment: Integer; virtual;
     function GetSafeResultBehavior: TSepiTypeResultBehavior;
@@ -387,6 +395,7 @@ type
     destructor Destroy; override;
 
     class function NewInstance: TObject; override;
+    procedure AfterConstruction; override;
 
     procedure AlignOffset(var Offset: Integer);
 
@@ -402,6 +411,7 @@ type
     function CompatibleWith(AType: TSepiType): Boolean; virtual;
 
     property Kind: TTypeKind read FKind;
+    property Completed: Boolean read FCompleted;
     property Native: Boolean read FNative;
     property TypeInfo: PTypeInfo read FTypeInfo;
     property TypeData: PTypeData read FTypeData;
@@ -428,11 +438,12 @@ type
   *}
   TSepiUntypedType = class(TSepiType)
   protected
+    procedure SetupProperties; override;
+
     function GetAlignment: Integer; override;
 
     function GetDescription: string; override;
   public
-    constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
     constructor Create(AOwner: TSepiComponent; const AName: string);
 
     function Equals(Other: TSepiType): Boolean; override;
@@ -460,6 +471,8 @@ type
     @version 1.0
   *}
   TSepiContainerType = class(TSepiType)
+  protected
+    function IsComposite: Boolean; override;
   public
     function LookForMember(const MemberName: string;
       FromComponent: TSepiComponent): TSepiMember; overload; virtual;
@@ -2061,22 +2074,6 @@ begin
 end;
 
 {*
-  Force le type comme étant natif, en modifiant également les RTTI
-  Cette méthode est utilisée par les types record et tableau statique, qui n'ont
-  pas toujours, même natifs, de RTTI.
-  @param ATypeInfo   RTTI à fixer (peut être nil)
-*}
-procedure TSepiType.ForceNative(ATypeInfo: PTypeInfo = nil);
-begin
-  FNative := True;
-  FTypeInfo := ATypeInfo;
-  if FTypeInfo = nil then
-    FTypeData := nil
-  else
-    FTypeData := GetTypeData(FTypeInfo);
-end;
-
-{*
   Alloue une zone mémoire pour les RTTI
   Alloue une zone mémoire adaptée au nom du type et à la taille des données de
   type, et remplit les champs de TypeInfo (TypeData reste non initialisé).
@@ -2098,6 +2095,63 @@ begin
   FTypeInfo.Kind := FKind;
   Move(ShortName, FTypeInfo.Name, NameLength);
   FTypeData := GetTypeData(FTypeInfo);
+end;
+
+{*
+  Indique si ce type a des RTTI (TypeInfo)
+  @return True si ce type a des RTTI, False sinon
+*}
+function TSepiType.HasTypeInfo: Boolean;
+begin
+  Result := Kind <> tkUnknown;
+end;
+
+{*
+  Renseigne les propriétés de ce type
+*}
+procedure TSepiType.SetupProperties;
+begin
+end;
+
+{*
+  Construit les RTTI du type
+*}
+procedure TSepiType.MakeTypeInfo;
+begin
+end;
+
+{*
+  Construit les données de runtime du type
+*}
+procedure TSepiType.MakeRuntimeInfo;
+begin
+  if HasTypeInfo then
+    MakeTypeInfo;
+end;
+
+{*
+  Indique si ce type est un type composite
+  Les types composites ne sont pas complétés automatiquement dans
+  AfterConstruction.
+*}
+function TSepiType.IsComposite: Boolean;
+begin
+  Result := False;
+end;
+
+{*
+  Complète le type
+*}
+procedure TSepiType.Complete;
+begin
+  if Completed then
+    Exit;
+
+  FCompleted := True;
+
+  SetupProperties;
+  if not Native then
+    MakeRuntimeInfo;
 end;
 
 {*
@@ -2150,6 +2204,17 @@ class function TSepiType.NewInstance: TObject;
 begin
   Result := inherited NewInstance;
   TSepiType(Result).FTypeInfoRef := @TSepiType(Result).FTypeInfo;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiType.AfterConstruction;
+begin
+  inherited;
+
+  if not IsComposite then
+    Complete;
 end;
 
 {*
@@ -2256,17 +2321,6 @@ end;
 {------------------------}
 
 {*
-  [@inheritDoc]
-*}
-constructor TSepiUntypedType.Load(AOwner: TSepiComponent; Stream: TStream);
-begin
-  inherited;
-
-  FParamBehavior.AlwaysByAddress := True;
-  FResultBehavior := rbNone;
-end;
-
-{*
   Crée une instance de TSepiUntypedType
   @param AOwner   Propriétaire
   @param AName    Nom du type
@@ -2275,7 +2329,13 @@ constructor TSepiUntypedType.Create(AOwner: TSepiComponent;
   const AName: string);
 begin
   inherited Create(AOwner, AName, tkUnknown);
+end;
 
+{*
+  [@inheritDoc]
+*}
+procedure TSepiUntypedType.SetupProperties;
+begin
   FParamBehavior.AlwaysByAddress := True;
   FResultBehavior := rbNone;
 end;
@@ -2333,6 +2393,14 @@ end;
 {--------------------------}
 { TSepiContainerType class }
 {--------------------------}
+
+{*
+  [@inheritDoc]
+*}
+function TSepiContainerType.IsComposite: Boolean;
+begin
+  Result := True;
+end;
 
 {*
   Recherche un membre dans ce conteneur depuis celui-ci
