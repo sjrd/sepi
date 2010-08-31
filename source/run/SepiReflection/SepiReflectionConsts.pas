@@ -53,9 +53,12 @@ resourcestring
   SSepiUnitNotFound = 'Impossible de trouver l''unité %s';
   SSepiCantSaveLazyLoadUnit =
     'Impossible d''enregistrer une unité en mode lazy-load';
-  SSepiIncompatibleUsedUnit =
+  SSepiIncompatibleUsedUnitComponentNotFound =
     'L''unité ''%s'' a été compilée avec une version différente de l''unité '+
-    'utilisée ''%s'', et doit être recompilée.';
+    'utilisée ''%s'' (composant %s non trouvé), et doit être recompilée.';
+  SSepiIncompatibleUsedUnitIncompatibleComponent =
+    'L''unité ''%s'' a été compilée avec une version différente de l''unité '+
+    'utilisée ''%s'' (composant %s incompatible), et doit être recompilée.';
   SCantCloneType = 'Impossible de cloner le type %s';
   SSepiBadConstType = 'Impossible de créer une constante de type variant %d';
   SSignatureAlreadyCompleted = 'La signature est déjà complétée';

@@ -3745,6 +3745,7 @@ var
   UnitIndex, RefIndex: Integer;
   RefList: TStrings;
   SepiUnit: TSepiUnit;
+  ComponentName: string;
   Component: TSepiComponent;
   DigestOK: Boolean;
 begin
@@ -3770,16 +3771,21 @@ begin
     else
       SepiUnit := TSepiUnit(FUsesList.Objects[UnitIndex-1]);
 
-    Component := SepiUnit.GetComponent(RefList.Names[RefIndex]);
+    ComponentName := RefList.Names[RefIndex];
+    Component := SepiUnit.GetComponent(ComponentName);
 
-    if (Component = nil) or (UnitIndex = 0) then
-      DigestOK := True
-    else
-      DigestOK := Component.CheckDigest(RefList.ValueFromIndex[RefIndex]);
+    if Component = nil then
+      raise ESepiIncompatibleUsedUnitError.CreateFmt(
+        SSepiIncompatibleUsedUnitComponentNotFound,
+        [Name, SepiUnit.Name, ComponentName]);
 
-    if (Component = nil) or (not DigestOK) then
-      raise ESepiIncompatibleUsedUnitError.CreateFmt(SSepiIncompatibleUsedUnit,
-        [Name, SepiUnit.Name]);
+    DigestOK := (UnitIndex = 0) or
+      Component.CheckDigest(RefList.ValueFromIndex[RefIndex]);
+
+    if not DigestOK then
+      raise ESepiIncompatibleUsedUnitError.CreateFmt(
+        SSepiIncompatibleUsedUnitIncompatibleComponent,
+        [Name, SepiUnit.Name, ComponentName]);
 
     RefList.Objects[RefIndex] := Component;
     TObject(Ref) := Component;

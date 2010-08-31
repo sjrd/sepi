@@ -3553,8 +3553,6 @@ begin
 
   if not Native then
     MakeTypeInfo;
-
-  TSepiRecordType(Owner).ReAddChild(Self);
 end;
 
 {*
@@ -3936,8 +3934,6 @@ begin
   FCompleted := True;
   if not Native then
     MakeTypeInfo;
-
-  TSepiInterface(Owner).ReAddChild(Self);
 end;
 
 {*
@@ -5318,8 +5314,6 @@ begin
     MakeIMTs;
     MakeVMT;
   end;
-
-  TSepiClass(Owner).ReAddChild(Self);
 end;
 
 {*

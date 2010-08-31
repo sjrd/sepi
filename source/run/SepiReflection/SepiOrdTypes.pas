@@ -391,20 +391,6 @@ type
   end;
 
   {*
-    Information sur un pointeur déclaré en forward
-    @author sjrd
-    @version 1.0
-  *}
-  TSepiForwardPointerInfo = record
-    Owner: TSepiComponent;
-    Name: string;
-    PointToName: string;
-  end;
-
-  /// Pointeur sur TSepiForwardPointerInfo
-  PSepiForwardPointerInfo = ^TSepiForwardPointerInfo;
-
-  {*
     Type pointeur
     @author sjrd
     @version 1.0
@@ -413,11 +399,7 @@ type
   private
     FPointTo: TSepiType; /// Type vers lequel pointe le pointeur
     FIsUntyped: Boolean; /// Indique si c'est un pointeur non typé
-
-    FForwardInfo: PSepiForwardPointerInfo; /// Infos conservées en forward
   protected
-    procedure Loaded; override;
-
     procedure ListReferences; override;
     procedure Save(Stream: TStream); override;
 
@@ -427,13 +409,14 @@ type
   public
     constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
     constructor Create(AOwner: TSepiComponent; const AName: string;
-      APointTo: TSepiType); overload;
-    constructor Create(AOwner: TSepiComponent;
-      const AName, APointTo: string); overload;
+      APointTo: TSepiType);
     constructor Clone(AOwner: TSepiComponent; const AName: string;
       Source: TSepiType); override;
 
     class function NewInstance: TObject; override;
+
+    class function ForwardDecl(AOwner: TSepiComponent;
+      const AName: string): TSepiPointerType;
 
     function Equals(Other: TSepiType): Boolean; override;
 
@@ -2108,7 +2091,7 @@ constructor TSepiPointerType.Create(AOwner: TSepiComponent; const AName: string;
   APointTo: TSepiType);
 begin
   if APointTo = nil then
-    APointTo := (AOwner.Root.SystemUnit as TSepiSystemUnit).Untyped;
+    APointTo := TSepiSystemUnit.Get(AOwner.Root).Untyped;
 
   inherited Create(AOwner, AName, tkUnknown);
 
@@ -2118,62 +2101,12 @@ begin
 end;
 
 {*
-  Crée un nouveau type pointeur
-  @param AOwner     Propriétaire du type
-  @param AName      Nom du type
-  @param APointTo   Nom tu type vers lequel pointe le pointeur
-*}
-constructor TSepiPointerType.Create(AOwner: TSepiComponent;
-  const AName, APointTo: string);
-var
-  APointToType: TSepiType;
-begin
-  if FForwardInfo = nil then
-    APointToType := AOwner.Root.GetType(APointTo)
-  else
-    APointToType := AOwner.Root.FindType(APointTo);
-
-  if (APointTo = '') or (APointToType <> nil) then
-    Create(AOwner, AName, APointToType)
-  else
-  begin
-    FPointTo := (AOwner.Root.SystemUnit as TSepiSystemUnit).Untyped;
-    New(FForwardInfo);
-    FForwardInfo.Owner := AOwner;
-    FForwardInfo.Name := AName;
-    FForwardInfo.PointToName := APointTo;
-    TSepiPointerType(AOwner).AddForward(AName, Self);
-  end;
-end;
-
-{*
   [@inheritDoc]
 *}
 constructor TSepiPointerType.Clone(AOwner: TSepiComponent; const AName: string;
   Source: TSepiType);
 begin
-  if Source.IsForward then
-    Create(AOwner, AName, (Source as TSepiPointerType).FForwardInfo.PointToName)
-  else
-    Create(AOwner, AName, (Source as TSepiPointerType).PointTo);
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TSepiPointerType.Loaded;
-begin
-  if IsForward and (FForwardInfo <> nil) then
-  begin
-    with FForwardInfo^ do
-      Create(Owner, Name, PointToName);
-
-    Dispose(FForwardInfo);
-
-    TSepiPointerType(Owner).ReAddChild(Self);
-  end;
-
-  inherited;
+  Create(AOwner, AName, (Source as TSepiPointerType).PointTo);
 end;
 
 {*
@@ -2216,8 +2149,7 @@ begin
 end;
 
 {*
-  Crée une nouvelle instance de TSepiPointerType
-  @return Instance créée
+  [@inheritDoc]
 *}
 class function TSepiPointerType.NewInstance: TObject;
 begin
@@ -2227,8 +2159,21 @@ begin
     FSize := 4;
     FNeedInit := False;
     FResultBehavior := rbOrdinal;
-    FIsUntyped := True;
   end;
+end;
+
+{*
+  Déclare un type pointeur en forward
+  @param AOwner   Propriétaire du type
+  @param AName    Nom du type pointeur
+*}
+class function TSepiPointerType.ForwardDecl(AOwner: TSepiComponent;
+  const AName: string): TSepiPointerType;
+begin
+  Result := TSepiPointerType(NewInstance);
+  Result.FPointTo := TSepiSystemUnit.Get(AOwner.Root).Untyped;
+  Result.FIsUntyped := True;
+  TSepiPointerType(AOwner).AddForward(AName, Result);
 end;
 
 {*
