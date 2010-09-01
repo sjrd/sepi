@@ -106,17 +106,9 @@ type
     function GetDescription: string; override;
   public
     constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
-
     constructor Create(AOwner: TSepiComponent; const AName: string;
       AIndexType: TSepiOrdType; ALowerBound, AHigherBound: Integer;
-      AElementType: TSepiType); overload;
-    constructor Create(AOwner: TSepiComponent; const AName: string;
-      AIndexTypeInfo: PTypeInfo; ALowerBound, AHigherBound: Integer;
-      AElementTypeInfo: PTypeInfo); overload;
-    constructor Create(AOwner: TSepiComponent; const AName: string;
-      const AIndexTypeName: string; ALowerBound, AHigherBound: Integer;
-      const AElementTypeName: string); overload;
-
+      AElementType: TSepiType);
     constructor Clone(AOwner: TSepiComponent; const AName: string;
       Source: TSepiType); override;
 
@@ -148,9 +140,6 @@ type
       AElementType: TSepiType);
     constructor Clone(AOwner: TSepiComponent; const AName: string;
       Source: TSepiType); override;
-
-    procedure SetElementType(AElementType: TSepiType); overload;
-    procedure SetElementType(const AElementTypeName: string); overload;
 
     function CompatibleWith(AType: TSepiType): Boolean; override;
 
@@ -341,38 +330,6 @@ begin
   FHigherBound := AHigherBound;
 
   FElementType := AElementType;
-end;
-
-{*
-  Crée un nouveau type tableau
-  @param AOwner            Propriétaire du type
-  @param AIndexTypeInfo    RTTI du type de l'index
-  @param ALowerBound       Borne inférieure
-  @param AHigherBound      Borne supérieure
-  @param AElemenTypeInfo   RTTI du type des éléments
-*}
-constructor TSepiStaticArrayType.Create(AOwner: TSepiComponent;
-  const AName: string; AIndexTypeInfo: PTypeInfo;
-  ALowerBound, AHigherBound: Integer; AElementTypeInfo: PTypeInfo);
-begin
-  Create(AOwner, AName, AOwner.Root.FindType(AIndexTypeInfo) as TSepiOrdType,
-    ALowerBound, AHigherBound, AOwner.Root.FindType(AElementTypeInfo));
-end;
-
-{*
-  Crée un nouveau type tableau
-  @param AOwner            Propriétaire du type
-  @param AIndexTypeName    Nom du type de l'index
-  @param ALowerBound       Borne inférieure
-  @param AHigherBound      Borne supérieure
-  @param AElemenTypeName   Nom du type des éléments
-*}
-constructor TSepiStaticArrayType.Create(AOwner: TSepiComponent;
-  const AName: string; const AIndexTypeName: string;
-  ALowerBound, AHigherBound: Integer; const AElementTypeName: string);
-begin
-  Create(AOwner, AName, AOwner.Root.FindType(AIndexTypeName) as TSepiOrdType,
-    ALowerBound, AHigherBound, AOwner.Root.FindType(AElementTypeName));
 end;
 
 {*
@@ -655,31 +612,6 @@ end;
 function TSepiDynArrayType.GetDescription: string;
 begin
   Result := 'array of '+ElementType.DisplayName;
-end;
-
-{*
-  Renseigne le type des éléments
-  Cette méthode ne doit être appelée que pour un tableau dynamique natif, dont
-  les éléments n'ont pas de RTTI, et juste après le constructeur
-  RegisterTypeInfo.
-  @param AElementType   Type des éléments
-*}
-procedure TSepiDynArrayType.SetElementType(AElementType: TSepiType);
-begin
-  Assert(Native and (FElementType = nil));
-  FElementType := AElementType;
-end;
-
-{*
-  Renseigne le type des éléments
-  Cette méthode ne doit être appelée que pour un tableau dynamique natif, dont
-  les éléments n'ont pas de RTTI, et juste après le constructeur
-  RegisterTypeInfo.
-  @param AElementTypeName   Nom du type des éléments
-*}
-procedure TSepiDynArrayType.SetElementType(const AElementTypeName: string);
-begin
-  SetElementType(Root.FindType(AElementTypeName));
 end;
 
 {*

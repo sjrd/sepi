@@ -697,21 +697,10 @@ type
       Source: TSepiType); override;
 
     function AddField(const FieldName: string; FieldType: TSepiType;
-      ForcePack: Boolean = False): TSepiField; overload;
-    function AddField(const FieldName: string; FieldTypeInfo: PTypeInfo;
-      ForcePack: Boolean = False): TSepiField; overload;
-    function AddField(const FieldName, FieldTypeName: string;
-      ForcePack: Boolean = False): TSepiField; overload;
+      ForcePack: Boolean = False): TSepiField;
 
     function AddFieldAfter(const FieldName: string; FieldType: TSepiType;
-      const After: string;
-      ForcePack: Boolean = False): TSepiField; overload;
-    function AddFieldAfter(const FieldName: string; FieldTypeInfo: PTypeInfo;
-      const After: string;
-      ForcePack: Boolean = False): TSepiField; overload;
-    function AddFieldAfter(const FieldName, FieldTypeName: string;
-      const After: string;
-      ForcePack: Boolean = False): TSepiField; overload;
+      const After: string; ForcePack: Boolean = False): TSepiField;
 
     procedure Complete; override;
 
@@ -924,16 +913,10 @@ type
     class function ForwardDecl(AOwner: TSepiComponent;
       const AName: string): TSepiClass;
 
-    procedure AddInterface(AInterface: TSepiInterface); overload;
-    procedure AddInterface(AIntfTypeInfo: PTypeInfo); overload;
-    procedure AddInterface(const AIntfName: string); overload;
+    procedure AddInterface(AInterface: TSepiInterface);
 
     function AddField(const FieldName: string; FieldType: TSepiType;
-      ForcePack: Boolean = False): TSepiField; overload;
-    function AddField(const FieldName: string; FieldTypeInfo: PTypeInfo;
-      ForcePack: Boolean = False): TSepiField; overload;
-    function AddField(const FieldName, FieldTypeName: string;
-      ForcePack: Boolean = False): TSepiField; overload;
+      ForcePack: Boolean = False): TSepiField;
 
     function AddMethod(const MethodName: string; ACode: Pointer;
       ASignature: TSepiSignature; ALinkKind: TMethodLinkKind = mlkStatic;
@@ -1020,15 +1003,13 @@ type
 
     procedure WriteDigestData(Stream: TStream); override;
 
+    procedure SetupProperties; override;
+
     function GetDescription: string; override;
   public
     constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
     constructor Create(AOwner: TSepiComponent; const AName: string;
-      AClass: TSepiClass); overload;
-    constructor Create(AOwner: TSepiComponent; const AName: string;
-      AClassInfo: PTypeInfo); overload;
-    constructor Create(AOwner: TSepiComponent;
-      const AName, AClassName: string); overload;
+      AClass: TSepiClass);
     constructor Clone(AOwner: TSepiComponent; const AName: string;
       Source: TSepiType); override;
 
@@ -1046,22 +1027,19 @@ type
   TSepiMethodRefType = class(TSepiType)
   private
     FSignature: TSepiSignature; /// Signature
-
-    procedure MakeSize;
   protected
     procedure ListReferences; override;
     procedure Save(Stream: TStream); override;
 
     procedure WriteDigestData(Stream: TStream); override;
 
+    procedure SetupProperties; override;
+
     function GetDescription: string; override;
   public
     constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
-    constructor Create(AOwner: TSepiComponent; const AName, ASignature: string;
-      AOfObject: Boolean = False;
-      ACallingConvention: TCallingConvention = ccRegister); overload;
     constructor Create(AOwner: TSepiComponent; const AName: string;
-      ASignature: TSepiSignature); overload;
+      ASignature: TSepiSignature);
     constructor Clone(AOwner: TSepiComponent; const AName: string;
       Source: TSepiType); override;
     destructor Destroy; override;
@@ -1074,15 +1052,16 @@ type
 
   {*
     Type variant
-    Note : il est impossible de créer un nouveau type variant.
     @author sjrd
     @version 1.0
   *}
   TSepiVariantType = class(TSepiType)
   protected
+    procedure SetupProperties; override;
+    procedure MakeTypeInfo; override;
+
     function GetAlignment: Integer; override;
   public
-    constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
     constructor Create(AOwner: TSepiComponent; const AName: string);
     constructor Clone(AOwner: TSepiComponent; const AName: string;
       Source: TSepiType); override;
@@ -1187,21 +1166,6 @@ const
 
   vmtMinIndex = vmtSelfPtr;
   vmtMinMethodIndex = vmtParent + 4;
-
-function FullSignature(const Signature: string; OfObject: Boolean): string;
-begin
-  if AnsiStartsText('procedure', Signature) or
-    AnsiStartsText('function', Signature) then
-  begin
-    if OfObject then
-      Result := 'object '+Signature
-    else
-      Result := 'static '+Signature;
-  end else
-  begin
-    Result := Signature;
-  end;
-end;
 
 procedure MakePropertyAccessKind(var Access: TSepiPropertyAccess);
 begin
@@ -2370,8 +2334,7 @@ constructor TSepiMethod.Create(AOwner: TSepiComponent; const AName: string;
 begin
   inherited Create(AOwner, AName);
 
-  FSignature := TSepiSignature.Create(Self,
-    FullSignature(ASignature, not (Owner is TSepiUnit)), ACallingConvention);
+  FSignature := TSepiSignature.Create(Self, ASignature, ACallingConvention);
 
   CommonCreate(ACode, ALinkKind, AAbstract, AMsgID);
 end;
@@ -3477,32 +3440,6 @@ begin
 end;
 
 {*
-  Ajoute un champ au record
-  @param FieldName       Nom du champ
-  @param FieldTypeInto   RTTI du type du champ
-  @param ForcePack       Force un pack sur ce champ si True
-  @return Champ nouvellement ajouté
-*}
-function TSepiRecordType.AddField(const FieldName: string;
-  FieldTypeInfo: PTypeInfo; ForcePack: Boolean = False): TSepiField;
-begin
-  Result := AddField(FieldName, Root.FindType(FieldTypeInfo), ForcePack);
-end;
-
-{*
-  Ajoute un champ au record
-  @param FieldName       Nom du champ
-  @param FieldTypeName   Nom du type du champ
-  @param ForcePack       Force un pack sur ce champ si True
-  @return Champ nouvellement ajouté
-*}
-function TSepiRecordType.AddField(const FieldName, FieldTypeName: string;
-  ForcePack: Boolean = False): TSepiField;
-begin
-  Result := AddField(FieldName, Root.FindType(FieldTypeName), ForcePack);
-end;
-
-{*
   Ajoute un champ au record après un champ donné en mémoire
   @param FieldName   Nom du champ
   @param FieldType   Type du champ
@@ -3515,38 +3452,6 @@ function TSepiRecordType.AddFieldAfter(const FieldName: string;
   ForcePack: Boolean = False): TSepiField;
 begin
   Result := PrivAddField(FieldName, FieldType,
-    FindComponent(After) as TSepiField, ForcePack);
-end;
-
-{*
-  Ajoute un champ au record après un champ donné en mémoire
-  @param FieldName       Nom du champ
-  @param FieldTypeInfo   RTTI du type du champ
-  @param After           Nom du champ précédent en mémoire (vide pour le début)
-  @param ForcePack       Force un pack sur ce champ si True
-  @return Champ nouvellement ajouté
-*}
-function TSepiRecordType.AddFieldAfter(const FieldName: string;
-  FieldTypeInfo: PTypeInfo; const After: string;
-  ForcePack: Boolean = False): TSepiField;
-begin
-  Result := PrivAddField(FieldName, Root.FindType(FieldTypeInfo),
-    FindComponent(After) as TSepiField, ForcePack);
-end;
-
-{*
-  Ajoute un champ au record après un champ donné en mémoire
-  @param FieldName       Nom du champ
-  @param FieldTypeName   Nom du type du champ
-  @param After           Nom du champ précédent en mémoire (vide pour le début)
-  @param ForcePack       Force un pack sur ce champ si True
-  @return Champ nouvellement ajouté
-*}
-function TSepiRecordType.AddFieldAfter(
-  const FieldName, FieldTypeName, After: string;
-  ForcePack: Boolean = False): TSepiField;
-begin
-  Result := PrivAddField(FieldName, Root.FindType(FieldTypeName),
     FindComponent(After) as TSepiField, ForcePack);
 end;
 
@@ -5002,24 +4907,6 @@ begin
 end;
 
 {*
-  Ajoute le support d'une interface
-  @param AIntfTypeInfo   RTTI de l'interface à supporter
-*}
-procedure TSepiClass.AddInterface(AIntfTypeInfo: PTypeInfo);
-begin
-  AddInterface(Root.FindType(AIntfTypeInfo) as TSepiInterface);
-end;
-
-{*
-  Ajoute le support d'une interface
-  @param AIntfName   Nom de l'interface à supporter
-*}
-procedure TSepiClass.AddInterface(const AIntfName: string);
-begin
-  AddInterface(Root.FindType(AIntfName) as TSepiInterface);
-end;
-
-{*
   Ajoute un champ à la classe
   @param FieldName   Nom du champ
   @param FieldType   Type du champ
@@ -5036,32 +4923,6 @@ begin
     FieldType.AlignOffset(Offset);
 
   Result := TSepiField.Create(Self, FieldName, FieldType, Offset);
-end;
-
-{*
-  Ajoute un champ à la classe
-  @param FieldName       Nom du champ
-  @param FieldTypeInto   RTTI du type du champ
-  @param ForcePack       Force un pack sur ce champ si True
-  @return Champ nouvellement ajouté
-*}
-function TSepiClass.AddField(const FieldName: string;
-  FieldTypeInfo: PTypeInfo; ForcePack: Boolean = False): TSepiField;
-begin
-  Result := AddField(FieldName, Root.FindType(FieldTypeInfo), ForcePack);
-end;
-
-{*
-  Ajoute un champ à la classe
-  @param FieldName       Nom du champ
-  @param FieldTypeName   Nom du type du champ
-  @param ForcePack       Force un pack sur ce champ si True
-  @return Champ nouvellement ajouté
-*}
-function TSepiClass.AddField(const FieldName, FieldTypeName: string;
-  ForcePack: Boolean = False): TSepiField;
-begin
-  Result := AddField(FieldName, Root.FindType(FieldTypeName), ForcePack);
 end;
 
 {*
@@ -5364,7 +5225,7 @@ end;
 constructor TSepiMetaClass.Load(AOwner: TSepiComponent; Stream: TStream);
 begin
   inherited;
-  FSize := 4;
+
   OwningUnit.ReadRef(Stream, FClass);
 end;
 
@@ -5377,34 +5238,9 @@ end;
 constructor TSepiMetaClass.Create(AOwner: TSepiComponent; const AName: string;
   AClass: TSepiClass);
 begin
-  inherited Create(AOwner, AName, tkClass);
+  inherited Create(AOwner, AName, tkUnknown);
 
-  FSize := 4;
   FClass := AClass;
-end;
-
-{*
-  Crée une nouvelle meta-classe
-  @param AOwner       Propriétaire du type
-  @param AName        Nom du type
-  @param AClassInfo   RTTI de la classe correspondante
-*}
-constructor TSepiMetaClass.Create(AOwner: TSepiComponent; const AName: string;
-  AClassInfo: PTypeInfo);
-begin
-  Create(AOwner, AName, AOwner.Root.FindType(AClassInfo) as TSepiClass);
-end;
-
-{*
-  Crée une nouvelle meta-classe
-  @param AOwner       Propriétaire du type
-  @param AName        Nom du type
-  @param AClassName   Nom de la classe correspondante
-*}
-constructor TSepiMetaClass.Create(AOwner: TSepiComponent;
-  const AName, AClassName: string);
-begin
-  Create(AOwner, AName, AOwner.Root.FindType(AClassName) as TSepiClass);
 end;
 
 {*
@@ -5447,6 +5283,16 @@ end;
 {*
   [@inheritDoc]
 *}
+procedure TSepiMetaClass.SetupProperties;
+begin
+  inherited;
+
+  FSize := 4;
+end;
+
+{*
+  [@inheritDoc]
+*}
 function TSepiMetaClass.GetDescription: string;
 begin
   Result := 'class of '+SepiClass.DisplayName;
@@ -5480,29 +5326,8 @@ end;
 constructor TSepiMethodRefType.Load(AOwner: TSepiComponent; Stream: TStream);
 begin
   inherited;
+
   FSignature := TSepiSignature.Load(Self, Stream);
-
-  MakeSize;
-end;
-
-{*
-  Crée un nouveau type référence de méthode
-  @param AOwner               Propriétaire du type
-  @param AName                Nom du type
-  @param ASignature           Signature
-  @param AOfObject            Indique s'il s'agit d'une méthode
-  @param ACallingConvention   Convention d'appel
-*}
-constructor TSepiMethodRefType.Create(AOwner: TSepiComponent;
-  const AName, ASignature: string; AOfObject: Boolean = False;
-  ACallingConvention: TCallingConvention = ccRegister);
-begin
-  inherited Create(AOwner, AName, tkMethod);
-
-  FSignature := TSepiSignature.Create(Self,
-    FullSignature(ASignature, AOfObject), ACallingConvention);
-
-  MakeSize;
 end;
 
 {*
@@ -5517,8 +5342,6 @@ begin
   inherited Create(AOwner, AName, tkMethod);
 
   FSignature := TSepiSignature.Clone(Self, ASignature);
-
-  MakeSize;
 end;
 
 {*
@@ -5527,12 +5350,7 @@ end;
 constructor TSepiMethodRefType.Clone(AOwner: TSepiComponent;
   const AName: string; Source: TSepiType);
 begin
-  inherited Create(AOwner, AName, tkMethod);
-
-  FSignature := TSepiSignature.Clone(Self,
-    (Source as TSepiMethodRefType).Signature);
-
-  MakeSize;
+  Create(AOwner, AName, (Source as TSepiMethodRefType).Signature);
 end;
 
 {*
@@ -5543,20 +5361,6 @@ begin
   FSignature.Free;
 
   inherited Destroy;
-end;
-
-{*
-  Calcule la taille de ce type
-*}
-procedure TSepiMethodRefType.MakeSize;
-begin
-  if Signature.Kind in skWithSelfParam then
-  begin
-    FSize := 8;
-    FParamBehavior.AlwaysByStack := True;
-    FResultBehavior := rbParameter;
-  end else
-    FSize := 4;
 end;
 
 {*
@@ -5590,6 +5394,22 @@ end;
 {*
   [@inheritDoc]
 *}
+procedure TSepiMethodRefType.SetupProperties;
+begin
+  inherited;
+
+  if Signature.Kind in skWithSelfParam then
+  begin
+    FSize := 8;
+    FParamBehavior.AlwaysByStack := True;
+    FResultBehavior := rbParameter;
+  end else
+    FSize := 4;
+end;
+
+{*
+  [@inheritDoc]
+*}
 function TSepiMethodRefType.GetDescription: string;
 begin
   Result := 'method ref';
@@ -5618,22 +5438,6 @@ end;
 {-------------------------}
 
 {*
-  Charge un type variant depuis un flux
-*}
-constructor TSepiVariantType.Load(AOwner: TSepiComponent; Stream: TStream);
-begin
-  inherited;
-
-  if not Native then
-    AllocateTypeInfo;
-
-  FSize := 16;
-  FNeedInit := True;
-  FParamBehavior.AlwaysByAddress := True;
-  FResultBehavior := rbParameter;
-end;
-
-{*
   Crée un type variant
   @param AOwner   Propriétaire
   @param AName    Nom du type
@@ -5642,8 +5446,23 @@ constructor TSepiVariantType.Create(AOwner: TSepiComponent;
   const AName: string);
 begin
   inherited Create(AOwner, AName, tkVariant);
+end;
 
-  AllocateTypeInfo;
+{*
+  [@inheritDoc]
+*}
+constructor TSepiVariantType.Clone(AOwner: TSepiComponent; const AName: string;
+  Source: TSepiType);
+begin
+  Create(AOwner, AName);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiVariantType.SetupProperties;
+begin
+  inherited;
 
   FSize := 16;
   FNeedInit := True;
@@ -5654,17 +5473,9 @@ end;
 {*
   [@inheritDoc]
 *}
-constructor TSepiVariantType.Clone(AOwner: TSepiComponent; const AName: string;
-  Source: TSepiType);
+procedure TSepiVariantType.MakeTypeInfo;
 begin
-  inherited Create(AOwner, AName, tkVariant);
-
   AllocateTypeInfo;
-
-  FSize := 16;
-  FNeedInit := True;
-  FParamBehavior.AlwaysByAddress := True;
-  FResultBehavior := rbParameter;
 end;
 
 {*

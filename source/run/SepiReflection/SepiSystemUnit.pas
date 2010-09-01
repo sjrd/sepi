@@ -69,6 +69,7 @@ type
     Byte: TSepiOrdType;
     Word: TSepiOrdType;
     LongWord: TSepiOrdType;
+    UInt64: TSepiInt64Type;
 
     // Character types
     Char: TSepiCharType;
@@ -107,6 +108,9 @@ type
     PAnsiChar: TSepiPointerType;
     PWideChar: TSepiPointerType;
 
+    // HRESULT
+    HRESULT: TSepiIntegerType;
+
     // Special container types
     TObject: TSepiClass;
     TClass: TSepiMetaClass;
@@ -136,7 +140,7 @@ type
 
     procedure CreateBuiltins;
 
-    class function Get(SepiRoot: TSepiRoot): TSepiSystemUnit;
+    class function Get(Component: TSepiComponent): TSepiSystemUnit;
       {$IF CompilerVersion >= 20} static; {$IFEND}
 
     property Types: TSepiSystemTypes read FTypes;
@@ -144,7 +148,7 @@ type
     // Special types
     property Untyped: TSepiUntypedType read FTypes.Untyped;
 
-    // Integer types
+    // Integer types - warning: UInt64 may be nil
     property Integer: TSepiOrdType read FTypes.Integer;
     property Cardinal: TSepiOrdType read FTypes.Cardinal;
     property Shortint: TSepiOrdType read FTypes.Shortint;
@@ -154,6 +158,7 @@ type
     property Byte: TSepiOrdType read FTypes.Byte;
     property Word: TSepiOrdType read FTypes.Word;
     property LongWord: TSepiOrdType read FTypes.LongWord;
+    property UInt64: TSepiInt64Type read FTypes.UInt64;
 
     // Character types
     property Char: TSepiCharType read FTypes.Char;
@@ -192,6 +197,9 @@ type
     property PAnsiChar: TSepiPointerType read FTypes.PAnsiChar;
     property PWideChar: TSepiPointerType read FTypes.PWideChar;
 
+    // HRESULT
+    property HRESULT: TSepiIntegerType read FTypes.HRESULT;
+
     // Special container types
     property TObject: TSepiClass read FTypes.TObject;
     property TClass: TSepiMetaClass read FTypes.TClass;
@@ -224,6 +232,7 @@ const // don't localize
     'Byte',
     'Word',
     'LongWord',
+    'UInt64',
 
     // Character types
     'Char',
@@ -261,6 +270,9 @@ const // don't localize
     'PChar',
     'PAnsiChar',
     'PWideChar',
+
+    // HRESULT
+    'HRESULT',
 
     // Special container types
     'TObject',
@@ -404,11 +416,11 @@ begin
     kinds of argument. So, it appears like we simply do not support other
     types of argument. }
   TSepiMethod.CreateOverloaded(Self, 'Write', @Write,
-    'procedure(const S: string)');
+    'static procedure(const S: string)');
   TSepiMethod.CreateOverloaded(Self, 'Writeln', @Writeln,
-    'procedure(const S: string)');
+    'static procedure(const S: string)');
   TSepiMethod.CreateOverloaded(Self, 'Readln', @Readln,
-    'procedure(var S: string)');
+    'static procedure(var S: string)');
 end;
 
 {*
@@ -483,13 +495,13 @@ begin
 end;
 
 {*
-  Obtient l'unité System pour une racine Sepi donnée
-  @param SepiRoot   Racine Sepi
-  @return Unité System de la racine Sepi
+  Obtient l'unité System pour un composant Sepi donné
+  @param Component   Composant
+  @return Unité System correspondant au composant spécifié
 *}
-class function TSepiSystemUnit.Get(SepiRoot: TSepiRoot): TSepiSystemUnit;
+class function TSepiSystemUnit.Get(Component: TSepiComponent): TSepiSystemUnit;
 begin
-  Result := SepiRoot.SystemUnit as TSepiSystemUnit;
+  Result := Component.Root.SystemUnit as TSepiSystemUnit;
 end;
 
 end.

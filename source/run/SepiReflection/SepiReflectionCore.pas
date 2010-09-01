@@ -738,11 +738,7 @@ type
   public
     constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
     constructor Create(AOwner: TSepiComponent; const AName: string;
-      ADest: TSepiType); overload;
-    constructor Create(AOwner: TSepiComponent; const AName: string;
-      ADest: PTypeInfo); overload;
-    constructor Create(AOwner: TSepiComponent;
-      const AName, ADest: string); overload;
+      ADest: TSepiType);
 
     property Dest: TSepiType read FDest;
   end;
@@ -770,9 +766,7 @@ type
     constructor Create(AOwner: TSepiComponent; const AName: string;
       const AValue: Variant; AType: TSepiType); overload;
     constructor Create(AOwner: TSepiComponent; const AName: string;
-      const AValue: Variant; ATypeInfo: PTypeInfo = nil); overload;
-    constructor Create(AOwner: TSepiComponent; const AName: string;
-      const AValue: Variant; const ATypeName: string); overload;
+      const AValue: Variant); overload;
     destructor Destroy; override;
 
     property ConstType: TSepiType read FType;
@@ -801,23 +795,10 @@ type
     procedure WriteDigestData(Stream: TStream); override;
   public
     constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
-
     constructor Create(AOwner: TSepiComponent; const AName: string;
       const AValue; AType: TSepiType; AIsConst: Boolean = False); overload;
     constructor Create(AOwner: TSepiComponent; const AName: string;
-      const AValue; ATypeInfo: PTypeInfo;
-      AIsConst: Boolean = False); overload;
-    constructor Create(AOwner: TSepiComponent; const AName: string;
-      const AValue; const ATypeName: string;
-      AIsConst: Boolean = False); overload;
-
-    constructor Create(AOwner: TSepiComponent; const AName: string;
       AType: TSepiType; AIsConst: Boolean = False); overload;
-    constructor Create(AOwner: TSepiComponent; const AName: string;
-      ATypeInfo: PTypeInfo; AIsConst: Boolean = False); overload;
-    constructor Create(AOwner: TSepiComponent; const AName: string;
-      const ATypeName: string; AIsConst: Boolean = False); overload;
-
     destructor Destroy; override;
 
     property IsConst: Boolean read FIsConst;
@@ -926,7 +907,7 @@ const
 implementation
 
 uses
-  SepiOrdTypes, SepiStrTypes, SepiArrayTypes, SepiMembers;
+  SepiOrdTypes, SepiStrTypes, SepiArrayTypes, SepiMembers, SepiSystemUnit;
 
 var
   SepiComponentClasses: TStrings = nil;
@@ -4073,30 +4054,6 @@ begin
 end;
 
 {*
-  Crée un nouvel alias de type
-  @param AOwner   Propriétaire de l'alias de type
-  @param AName    Nom de l'alias de type
-  @param ADest    RTTI de la destination de l'alias
-*}
-constructor TSepiTypeAlias.Create(AOwner: TSepiComponent; const AName: string;
-  ADest: PTypeInfo);
-begin
-  Create(AOwner, AName, AOwner.Root.FindType(ADest));
-end;
-
-{*
-  Crée un nouvel alias de type
-  @param AOwner   Propriétaire de l'alias de type
-  @param AName    Nom de l'alias de type
-  @param ADest    Nom de la destination de l'alias
-*}
-constructor TSepiTypeAlias.Create(AOwner: TSepiComponent;
-  const AName, ADest: string);
-begin
-  Create(AOwner, AName, AOwner.Root.FindType(ADest));
-end;
-
-{*
   [@inheritDoc]
 *}
 procedure TSepiTypeAlias.ListReferences;
@@ -4195,55 +4152,46 @@ end;
 
 {*
   Crée une nouvelle vraie constante
-  @param AOwner      Propriétaire de la constante
-  @param AName       Nom de la constante
-  @param AValue      Valeur de la constante
-  @param ATypeInfo   RTTI du type de la constante (déterminé par VType si nil)
+  @param AOwner   Propriétaire de la constante
+  @param AName    Nom de la constante
+  @param AValue   Valeur de la constante
 *}
 constructor TSepiConstant.Create(AOwner: TSepiComponent;
-  const AName: string; const AValue: Variant; ATypeInfo: PTypeInfo = nil);
+  const AName: string; const AValue: Variant);
+var
+  SystemUnit: TSepiSystemUnit;
+  AType: TSepiType;
 begin
-  if ATypeInfo = nil then
-  begin
-    case VarType(AValue) of
-      varSmallint: ATypeInfo := System.TypeInfo(Smallint);
-      varInteger:  ATypeInfo := System.TypeInfo(Integer);
-      varSingle:   ATypeInfo := System.TypeInfo(Single);
-      varDouble:   ATypeInfo := System.TypeInfo(Double);
-      varCurrency: ATypeInfo := System.TypeInfo(Currency);
-      varDate:     ATypeInfo := System.TypeInfo(TDateTime);
-      varError:    ATypeInfo := System.TypeInfo(HRESULT);
-      varBoolean:  ATypeInfo := System.TypeInfo(Boolean);
-      varShortInt: ATypeInfo := System.TypeInfo(Shortint);
-      varByte:     ATypeInfo := System.TypeInfo(Byte);
-      varWord:     ATypeInfo := System.TypeInfo(Word);
-      varLongWord: ATypeInfo := System.TypeInfo(LongWord);
-      varInt64:    ATypeInfo := System.TypeInfo(Int64);
+  SystemUnit := TSepiSystemUnit.Get(AOwner);
 
-      varOleStr, varStrArg, varString: ATypeInfo := System.TypeInfo(string);
-      {$IF Declared(varUString)}
-      varUString: ATypeInfo := System.TypeInfo(string);
-      {$IFEND}
-    else
-      raise ESepiBadConstTypeError.CreateFmt(
-        SSepiBadConstType, [VarType(AValue)]);
-    end;
+  case VarType(AValue) of
+    varSmallint: AType := SystemUnit.Smallint;
+    varInteger:  AType := SystemUnit.Integer;
+    varSingle:   AType := SystemUnit.Single;
+    varDouble:   AType := SystemUnit.Double;
+    varCurrency: AType := SystemUnit.Currency;
+    varDate:     AType := SystemUnit.TDateTime;
+    varError:    AType := SystemUnit.HRESULT;
+    varBoolean:  AType := SystemUnit.Boolean;
+    varShortInt: AType := SystemUnit.Shortint;
+    varByte:     AType := SystemUnit.Byte;
+    varWord:     AType := SystemUnit.Word;
+    varLongWord: AType := SystemUnit.LongWord;
+    varInt64:    AType := SystemUnit.Int64;
+    {$IF Declared(varUInt64)}
+    varUInt64:   AType := SystemUnit.UInt64;
+    {$IFEND}
+
+    varOleStr, varStrArg, varString: AType := SystemUnit.LongString;
+    {$IF Declared(varUString)}
+    varUString: AType := SystemUnit.LongString;
+    {$IFEND}
+  else
+    raise ESepiBadConstTypeError.CreateFmt(
+      SSepiBadConstType, [VarType(AValue)]);
   end;
 
-  Create(AOwner, AName, AValue, AOwner.Root.FindType(ATypeInfo));
-end;
-
-{*
-  Crée une nouvelle vraie constante
-  @param AOwner      Propriétaire de la constante
-  @param AName       Nom de la constante
-  @param AValue      Valeur de la constante
-  @param ATypeName   Nom du type de la constante
-*}
-constructor TSepiConstant.Create(AOwner: TSepiComponent;
-  const AName: string; const AValue: Variant; const ATypeName: string);
-begin
-  Create(AOwner, AName, AValue, AOwner.Root.FindType(ATypeName));
+  Create(AOwner, AName, AValue, AType);
 end;
 
 {*
@@ -4356,34 +4304,6 @@ begin
 end;
 
 {*
-  Importe une variable ou constante typée native
-  @param AOwner      Propriétaire de la variable
-  @param AName       Nom de la variable
-  @param AValue      Valeur de la variable
-  @param ATypeInfo   RTTI du type de la variable
-  @param AIsConst    Indique si c'est une constante typée
-*}
-constructor TSepiVariable.Create(AOwner: TSepiComponent; const AName: string;
-  const AValue; ATypeInfo: PTypeInfo; AIsConst: Boolean = False);
-begin
-  Create(AOwner, AName, AValue, AOwner.Root.FindType(ATypeInfo), AIsConst);
-end;
-
-{*
-  Importe une variable ou constante typée native
-  @param AOwner      Propriétaire de la variable
-  @param AName       Nom de la variable
-  @param AValue      Valeur de la variable
-  @param ATypeName   Nom du type de la variable
-  @param AIsConst    Indique si c'est une constante typée
-*}
-constructor TSepiVariable.Create(AOwner: TSepiComponent; const AName: string;
-  const AValue; const ATypeName: string; AIsConst: Boolean = False);
-begin
-  Create(AOwner, AName, AValue, AOwner.Root.FindType(ATypeName), AIsConst);
-end;
-
-{*
   Crée une nouvelle variable ou constante typée
   @param AOwner     Propriétaire de la variable
   @param AName      Nom de la variable
@@ -4401,32 +4321,6 @@ begin
   GetMem(FValue, FType.Size);
   FillChar(FValue^, FType.Size, 0);
   FOwnValue := True;
-end;
-
-{*
-  Crée une nouvelle variable ou constante typée
-  @param AOwner      Propriétaire de la variable
-  @param AName       Nom de la variable
-  @param ATypeInfo   RTTI du type de la variable
-  @param AIsConst    Indique si c'est une constante typée
-*}
-constructor TSepiVariable.Create(AOwner: TSepiComponent; const AName: string;
-  ATypeInfo: PTypeInfo; AIsConst: Boolean = False);
-begin
-  Create(AOwner, AName, AOwner.Root.FindType(ATypeInfo), AIsConst);
-end;
-
-{*
-  Crée une nouvelle variable ou constante typée
-  @param AOwner      Propriétaire de la variable
-  @param AName       Nom de la variable
-  @param ATypeName   Nom du type de la variable
-  @param AIsConst    Indique si c'est une constante typée
-*}
-constructor TSepiVariable.Create(AOwner: TSepiComponent; const AName: string;
-  const ATypeName: string; AIsConst: Boolean = False);
-begin
-  Create(AOwner, AName, AOwner.Root.FindType(ATypeName), AIsConst);
 end;
 
 {*

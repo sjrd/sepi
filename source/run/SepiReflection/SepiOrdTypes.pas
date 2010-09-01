@@ -376,9 +376,7 @@ type
   public
     constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
     constructor Create(AOwner: TSepiComponent; const AName: string;
-      ACompType: TSepiOrdType); overload;
-    constructor Create(AOwner: TSepiComponent; const AName: string;
-      ACompType: PTypeInfo); overload;
+      ACompType: TSepiOrdType);
     constructor Clone(AOwner: TSepiComponent; const AName: string;
       Source: TSepiType); override;
 
@@ -1789,19 +1787,6 @@ begin
   inherited Create(AOwner, AName, tkSet);
 
   FCompType := ACompType;
-end;
-
-{*
-  Crée un nouveau type ensemble
-  @param AOwner      Propriétaire du type
-  @param AName       Nom du type
-  @param ACompType   RTTI du type des éléments de l'ensemble
-*}
-constructor TSepiSetType.Create(AOwner: TSepiComponent; const AName: string;
-  ACompType: PTypeInfo);
-begin
-  Create(AOwner, AName,
-    AOwner.Root.FindType(ACompType) as TSepiOrdType);
 end;
 
 {*
