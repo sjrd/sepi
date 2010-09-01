@@ -684,6 +684,8 @@ type
     procedure SetupProperties; override;
     procedure MakeTypeInfo; override;
 
+    function IsStrongComposite: Boolean; override;
+
     function GetAlignment: Integer; override;
 
     function GetDescription: string; override;
@@ -736,6 +738,8 @@ type
     function GetParentContainer:
       TSepiInheritableContainerType; virtual; abstract;
   public
+    constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
+
     function LookForMember(const MemberName: string;
       FromComponent: TSepiComponent): TSepiMember; override;
 
@@ -767,6 +771,7 @@ type
 
     procedure WriteDigestData(Stream: TStream); override;
 
+    procedure SetupProperties; override;
     procedure MakeTypeInfo; override;
 
     function GetDescription: string; override;
@@ -776,8 +781,6 @@ type
     constructor Create(AOwner: TSepiComponent; const AName: string;
       AParent: TSepiInterface; const AGUID: TGUID;
       AIsDispInterface: Boolean = False);
-
-    class function NewInstance: TObject; override;
 
     class function ForwardDecl(AOwner: TSepiComponent;
       const AName: string): TSepiInterface;
@@ -917,8 +920,6 @@ type
     constructor Create(AOwner: TSepiComponent; const AName: string;
       AParent: TSepiClass);
     destructor Destroy; override;
-
-    class function NewInstance: TObject; override;
 
     class function ForwardDecl(AOwner: TSepiComponent;
       const AName: string): TSepiClass;
@@ -3255,10 +3256,6 @@ begin
 
   Stream.ReadBuffer(FPacked, 1);
   FAlignment := 1;
-
-  LoadChildren(Stream);
-
-  Complete;
 end;
 
 {*
@@ -3378,8 +3375,7 @@ end;
 *}
 procedure TSepiRecordType.SetupProperties;
 begin
-  if not IsPacked then
-    AlignOffset(FSize);
+  inherited;
 
   if Size > 4 then
   begin
@@ -3397,8 +3393,7 @@ var
   I: Integer;
   FieldTable: PInitTable;
 begin
-  if not NeedInit then
-    Exit;
+  Assert(HasTypeInfo);
 
   Fields := TObjectList.Create(False);
   try
@@ -3429,6 +3424,14 @@ begin
   finally
     Fields.Free;
   end;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiRecordType.IsStrongComposite: Boolean;
+begin
+  Result := True;
 end;
 
 {*
@@ -3552,6 +3555,12 @@ end;
 *}
 procedure TSepiRecordType.Complete;
 begin
+  if Completed then
+    Exit;
+
+  if not IsPacked then
+    AlignOffset(FSize);
+
   inherited;
 end;
 
@@ -3605,6 +3614,18 @@ end;
 {-------------------------------------}
 { TSepiInheritableContainerType class }
 {-------------------------------------}
+
+{*
+  [@inheritDoc]
+*}
+constructor TSepiInheritableContainerType.Load(AOwner: TSepiComponent;
+  Stream: TStream);
+begin
+  inherited;
+
+  if not IsReady then
+    SetupProperties;
+end;
 
 {*
   [@inheritDoc]
@@ -3670,10 +3691,6 @@ constructor TSepiInterface.Load(AOwner: TSepiComponent; Stream: TStream);
 begin
   inherited;
 
-  FSize := 4;
-  FNeedInit := True;
-  FResultBehavior := rbParameter;
-
   OwningUnit.ReadRef(Stream, FParent);
   Assert((FParent = nil) or FParent.Completed);
 
@@ -3684,10 +3701,6 @@ begin
 
   if Parent <> nil then
     FIMTSize := Parent.IMTSize;
-
-  LoadChildren(Stream);
-
-  Complete;
 end;
 
 {*
@@ -3701,10 +3714,6 @@ constructor TSepiInterface.Create(AOwner: TSepiComponent; const AName: string;
   AIsDispInterface: Boolean = False);
 begin
   inherited Create(AOwner, AName, tkInterface);
-
-  FSize := 4;
-  FNeedInit := True;
-  FResultBehavior := rbParameter;
 
   if Assigned(AParent) then
     FParent := AParent
@@ -3761,16 +3770,25 @@ end;
 {*
   [@inheritDoc]
 *}
+procedure TSepiInterface.SetupProperties;
+begin
+  inherited;
+
+  FSize := 4;
+  FNeedInit := True;
+  FResultBehavior := rbParameter;
+end;
+
+{*
+  [@inheritDoc]
+*}
 procedure TSepiInterface.MakeTypeInfo;
 var
   Flags: TIntfFlags;
-  OwningUnitName: TypeInfoString;
   Count: PWord;
 begin
-  OwningUnitName := TypeInfoEncode(OwningUnit.Name);
-
   // Creating the RTTI
-  AllocateTypeInfo(IntfTypeDataLengthBase + Length(OwningUnitName) + 1);
+  AllocateTypeInfo(IntfTypeDataLengthBase + OwningUnit.TypeInfoNameSize);
   if Parent = nil then
     TypeData.IntfParent := nil
   else
@@ -3790,10 +3808,9 @@ begin
   TypeData.Guid := FGUID;
 
   // Owning unit name
-  Move(OwningUnitName[0], TypeData.IntfUnit[0], Length(OwningUnitName)+1);
+  Count := OwningUnit.StoreTypeInfoName(@TypeData.IntfUnit);
 
   // Method count in the interface
-  Count := SkipPackedShortString(@TypeData.IntfUnit);
   Count^ := ChildCount;
   Inc(Integer(Count), 2);
   Count^ := $FFFF; // no more information available
@@ -3816,21 +3833,6 @@ begin
 end;
 
 {*
-  Crée une nouvelle instance de TSepiInterface
-  @return Instance créée
-*}
-class function TSepiInterface.NewInstance: TObject;
-begin
-  Result := inherited NewInstance;
-  with TSepiInterface(Result) do
-  begin
-    FSize := 4;
-    FNeedInit := True;
-    FResultBehavior := rbParameter;
-  end;
-end;
-
-{*
   Déclare un type interface en forward
   @param AOwner   Propriétaire du type
   @param AName    Nom de l'interface
@@ -3838,8 +3840,7 @@ end;
 class function TSepiInterface.ForwardDecl(AOwner: TSepiComponent;
   const AName: string): TSepiInterface;
 begin
-  Result := TSepiInterface(NewInstance);
-  TSepiInterface(AOwner).AddForward(AName, Result);
+  Result := TSepiInterface(inherited ForwardDecl(AOwner, AName));
 end;
 
 {*
@@ -3961,7 +3962,6 @@ var
 begin
   inherited;
 
-  FSize := 4;
   if Native then
     FDelphiClass := TypeData.ClassType
   else
@@ -4005,10 +4005,6 @@ begin
     end;
   end;
   {$ENDIF}
-
-  LoadChildren(Stream);
-
-  Complete;
 end;
 
 {*
@@ -4022,7 +4018,6 @@ constructor TSepiClass.Create(AOwner: TSepiComponent; const AName: string;
 begin
   inherited Create(AOwner, AName, tkClass);
 
-  FSize := 4;
   FDelphiClass := nil;
   if Assigned(AParent) then
     FParent := AParent
@@ -4808,7 +4803,11 @@ end;
 *}
 procedure TSepiClass.SetupProperties;
 begin
-  AlignOffset(FInstSize);
+  inherited;
+
+  FSize := 4;
+  FNeedInit := False;
+  FResultBehavior := rbOrdinal;
 end;
 
 {*
@@ -4971,21 +4970,6 @@ begin
 end;
 
 {*
-  Crée une nouvelle instance de TSepiClass
-  @return Instance créée
-*}
-class function TSepiClass.NewInstance: TObject;
-begin
-  Result := inherited NewInstance;
-  with TSepiClass(Result) do
-  begin
-    FSize := 4;
-    FNeedInit := False;
-    FResultBehavior := rbOrdinal;
-  end;
-end;
-
-{*
   Déclare un type classe en forward
   @param AOwner   Propriétaire du type
   @param AName    Nom de la classe
@@ -4993,8 +4977,7 @@ end;
 class function TSepiClass.ForwardDecl(AOwner: TSepiComponent;
   const AName: string): TSepiClass;
 begin
-  Result := TSepiClass(NewInstance);
-  TSepiClass(AOwner).AddForward(AName, Result);
+  Result := TSepiClass(inherited ForwardDecl(AOwner, AName));
 end;
 
 {*
@@ -5313,6 +5296,8 @@ procedure TSepiClass.Complete;
 begin
   if Completed then
     Exit;
+
+  AlignOffset(FInstSize);
 
   inherited;
 

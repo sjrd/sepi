@@ -89,8 +89,6 @@ type
     FLowerBound: Integer;     /// Borne inférieure
     FHigherBound: Integer;    /// Borne supérieure
 
-    procedure MakeSize;
-
     function GetLength: Integer;
   protected
     procedure ListReferences; override;
@@ -99,6 +97,7 @@ type
     procedure WriteDigestData(Stream: TStream); override;
 
     function HasTypeInfo: Boolean; override;
+    procedure SetupProperties; override;
     procedure MakeTypeInfo; override;
 
     function GetAlignment: Integer; override;
@@ -138,13 +137,13 @@ type
   *}
   TSepiDynArrayType = class(TSepiArrayType)
   protected
+    procedure SetupProperties; override;
     procedure MakeTypeInfo; override;
 
     function GetIndexType: TSepiOrdType; override;
 
     function GetDescription: string; override;
   public
-    constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
     constructor Create(AOwner: TSepiComponent; const AName: string;
       AElementType: TSepiType);
     constructor Clone(AOwner: TSepiComponent; const AName: string;
@@ -169,6 +168,8 @@ type
     FHighVarName: string;     /// Nom de la variable reprenant la valeur de High
   protected
     procedure Save(Stream: TStream); override;
+
+    procedure SetupProperties; override;
 
     function GetIndexType: TSepiOrdType; override;
 
@@ -319,15 +320,6 @@ begin
   OwningUnit.ReadRef(Stream, FIndexType);
   Stream.ReadBuffer(FLowerBound, 4);
   Stream.ReadBuffer(FHigherBound, 4);
-
-  MakeSize;
-  FNeedInit := FElementType.NeedInit;
-  FParamBehavior.AlwaysByAddress := Size > 4;
-  if FParamBehavior.AlwaysByAddress then
-    FResultBehavior := rbParameter;
-
-  if not Native then
-    MakeTypeInfo;
 end;
 
 {*
@@ -349,14 +341,6 @@ begin
   FHigherBound := AHigherBound;
 
   FElementType := AElementType;
-
-  MakeSize;
-  FNeedInit := FElementType.NeedInit;
-  FParamBehavior.AlwaysByAddress := Size > 4;
-  if FParamBehavior.AlwaysByAddress then
-    FResultBehavior := rbParameter;
-
-  MakeTypeInfo;
 end;
 
 {*
@@ -399,14 +383,6 @@ constructor TSepiStaticArrayType.Clone(AOwner: TSepiComponent;
 begin
   with Source as TSepiStaticArrayType do
     Create(AOwner, AName, IndexType, LowerBound, HigherBound, ElementType);
-end;
-
-{*
-  Calcule la taille du tableau et la range dans FSize
-*}
-procedure TSepiStaticArrayType.MakeSize;
-begin
-  FSize := ArrayLength * FElementType.Size;
 end;
 
 {*
@@ -454,6 +430,21 @@ end;
 {*
   [@inheritDoc]
 *}
+procedure TSepiStaticArrayType.SetupProperties;
+begin
+  inherited;
+
+  FSize := ArrayLength * FElementType.Size;
+  FNeedInit := FElementType.NeedInit;
+
+  FParamBehavior.AlwaysByAddress := Size > 4;
+  if FParamBehavior.AlwaysByAddress then
+    FResultBehavior := rbParameter;
+end;
+
+{*
+  [@inheritDoc]
+*}
 function TSepiStaticArrayType.HasTypeInfo: Boolean;
 begin
   Result := NeedInit;
@@ -466,8 +457,7 @@ procedure TSepiStaticArrayType.MakeTypeInfo;
 var
   AElementType: TSepiType;
 begin
-  if not NeedInit then
-    Exit;
+  Assert(HasTypeInfo);
 
   AElementType := ElementType;
   while AElementType is TSepiStaticArrayType do
@@ -581,21 +571,6 @@ end;
 {--------------------------}
 
 {*
-  Charge un type tableau dynamique depuis un flux
-*}
-constructor TSepiDynArrayType.Load(AOwner: TSepiComponent; Stream: TStream);
-begin
-  inherited;
-
-  FSize := 4;
-  FNeedInit := True;
-  FResultBehavior := rbParameter;
-
-  if not Native then
-    MakeTypeInfo;
-end;
-
-{*
   Crée un nouveau type tableau dynamique
   @param AOwner         Propriétaire du type
   @param AName          Nom du type
@@ -605,12 +580,6 @@ constructor TSepiDynArrayType.Create(AOwner: TSepiComponent;
   const AName: string; AElementType: TSepiType);
 begin
   inherited Create(AOwner, AName, tkDynArray, AElementType);
-
-  FSize := 4;
-  FNeedInit := True;
-  FResultBehavior := rbParameter;
-
-  MakeTypeInfo;
 end;
 
 {*
@@ -620,6 +589,18 @@ constructor TSepiDynArrayType.Clone(AOwner: TSepiComponent; const AName: string;
   Source: TSepiType);
 begin
   Create(AOwner, AName, (Source as TSepiDynArrayType).ElementType);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiDynArrayType.SetupProperties;
+begin
+  inherited;
+
+  FSize := 4;
+  FNeedInit := True;
+  FResultBehavior := rbParameter;
 end;
 
 {*
@@ -730,9 +711,6 @@ begin
 
   Stream.ReadBuffer(FIsArrayOfConst, SizeOf(Boolean));
   FHighVarName := ReadStrFromStream(Stream);
-
-  FParamBehavior.AlwaysByAddress := True;
-  FResultBehavior := rbNone;
 end;
 
 {*
@@ -752,9 +730,6 @@ begin
   inherited Create(AOwner, AName, tkUnknown, AElementType);
 
   FHighVarName := AHighVarName;
-
-  FParamBehavior.AlwaysByAddress := True;
-  FResultBehavior := rbNone;
 end;
 
 {*
@@ -766,6 +741,17 @@ begin
 
   Stream.WriteBuffer(FIsArrayOfConst, SizeOf(Boolean));
   WriteStrToStream(Stream, FHighVarName);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiOpenArrayType.SetupProperties;
+begin
+  inherited;
+
+  FParamBehavior.AlwaysByAddress := True;
+  FResultBehavior := rbNone;
 end;
 
 {*

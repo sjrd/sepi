@@ -209,6 +209,8 @@ type
 
     procedure EnsureDigestBuilt;
 
+    procedure AddForward(Child: TSepiComponent);
+
     function GetIsForward: Boolean;
     function GetWasForward: Boolean;
 
@@ -234,7 +236,6 @@ type
     procedure LoadChildren(Stream: TStream); virtual;
     procedure SaveChildren(Stream: TStream); virtual;
 
-    procedure AddForward(const ChildName: string; Child: TObject);
     procedure ChildAdded(Child: TSepiComponent); virtual;
     procedure ChildRemoving(Child: TSepiComponent); virtual;
 
@@ -354,6 +355,7 @@ type
   private
     FKind: TTypeKind;         /// Type de type
     FCompleted: Boolean;      /// Indique si le type est complet
+    FIsReady: Boolean;        /// Indique si le type est prêt
     FNative: Boolean;         /// Indique si le type est un type natif Delphi
     FTypeInfoLength: Integer; /// Taille des RTTI créées (ou 0 si non créées)
     FTypeInfo: PTypeInfo;     /// RTTI (Runtime Type Information)
@@ -370,6 +372,9 @@ type
 
     procedure WriteDigestData(Stream: TStream); override;
 
+    class function ForwardDecl(AOwner: TSepiComponent;
+      const AName: string): TSepiType;
+
     procedure AllocateTypeInfo(TypeDataLength: Integer = 0);
 
     function HasTypeInfo: Boolean; virtual;
@@ -378,6 +383,7 @@ type
     procedure MakeRuntimeInfo; virtual;
 
     function IsComposite: Boolean; virtual;
+    function IsStrongComposite: Boolean; virtual;
     procedure Complete; virtual;
 
     function GetAlignment: Integer; virtual;
@@ -411,6 +417,7 @@ type
 
     property Kind: TTypeKind read FKind;
     property Completed: Boolean read FCompleted;
+    property IsReady: Boolean read FIsReady;
     property Native: Boolean read FNative;
     property TypeInfo: PTypeInfo read FTypeInfo;
     property TypeData: PTypeData read FTypeData;
@@ -470,9 +477,15 @@ type
     @version 1.0
   *}
   TSepiContainerType = class(TSepiType)
+  private
+    FLoadingStream: TStream; /// Flux de chargement
   protected
     function IsComposite: Boolean; override;
   public
+    constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
+
+    procedure AfterConstruction; override;
+
     function LookForMember(const MemberName: string;
       FromComponent: TSepiComponent): TSepiMember; overload; virtual;
     function LookForMember(const MemberName: string): TSepiMember; overload;
@@ -1202,7 +1215,6 @@ begin
     FVisibility := Owner.CurrentVisibility;
     
   FCurrentVisibility := mvPublic;
-  FTag := 0;
   FForwards := THashedStringList.Create;
   FChildren := TSepiComponentList.Create;
   FObjResources := TObjectList.Create;
@@ -1272,6 +1284,15 @@ begin
       Stream.Free;
     end;
   end;
+end;
+
+{*
+  Ajoute un enfant forward
+  @param Child   Enfant à ajouter
+*}
+procedure TSepiComponent.AddForward(Child: TSepiComponent);
+begin
+  FForwards.AddObject(Child.Name, Child);
 end;
 
 {*
@@ -1409,13 +1430,17 @@ end;
 procedure TSepiComponent.LoadForwards(Stream: TStream);
 var
   Count, I: Integer;
-  ForwardChild: TObject;
+  ChildClass: TSepiTypeClass;
+  ChildName: string;
 begin
   Stream.ReadBuffer(Count, 4);
   for I := 0 to Count-1 do
   begin
-    ForwardChild := SepiFindComponentClass(ReadStrFromStream(Stream)).NewInstance;
-    AddForward(ReadStrFromStream(Stream), ForwardChild);
+    ChildClass := TSepiTypeClass(SepiFindComponentClass(
+      ReadStrFromStream(Stream)));
+    ChildName := ReadStrFromStream(Stream);
+
+    ChildClass.ForwardDecl(Self, ChildName);
   end;
 end;
 
@@ -1514,18 +1539,6 @@ begin
 end;
 
 {*
-  Ajoute un enfant forward
-  @param ChildName   Nom de l'enfant
-  @param Child       Enfant à ajouter
-*}
-procedure TSepiComponent.AddForward(const ChildName: string; Child: TObject);
-begin
-  (Child as TSepiComponent).Visibility := CurrentVisibility;
-  TSepiComponent(Child).FName := ChildName;
-  FForwards.AddObject(ChildName, Child);
-end;
-
-{*
   Appelé lorsqu'un enfant vient d'être ajouté
   @param Child   Enfant qui vient d'être ajouté
 *}
@@ -1604,6 +1617,7 @@ end;
 procedure TSepiComponent.AfterConstruction;
 begin
   inherited;
+
   if Assigned(Owner) then
     Owner.ChildAdded(Self);
 end;
@@ -1983,14 +1997,6 @@ begin
   inherited;
 
   Stream.ReadBuffer(FKind, SizeOf(TTypeKind));
-  FNative := False;
-  FTypeInfoLength := 0;
-  FTypeInfo := nil;
-  FTypeData := nil;
-  FSize := 0;
-  FNeedInit := False;
-  FParamBehavior := DefaultTypeParamBehavior;
-  FResultBehavior := rbOrdinal;
 
   if Assigned(OwningUnit.OnGetTypeInfo) then
   begin
@@ -2015,14 +2021,6 @@ begin
   inherited Create(AOwner, AName);
 
   FKind := AKind;
-  FNative := False;
-  FTypeInfoLength := 0;
-  FTypeInfo := nil;
-  FTypeData := nil;
-  FSize := 0;
-  FNeedInit := False;
-  FParamBehavior := DefaultTypeParamBehavior;
-  FResultBehavior := rbOrdinal;
 end;
 
 {*
@@ -2054,6 +2052,7 @@ end;
 procedure TSepiType.Save(Stream: TStream);
 begin
   inherited;
+
   Stream.WriteBuffer(FKind, 1);
 end;
 
@@ -2071,6 +2070,25 @@ begin
   Stream.WriteBuffer(FKind, 1);
   Stream.WriteBuffer(FSize, SizeOf(Integer));
   Stream.WriteBuffer(Alignment, SizeOf(Integer));
+end;
+
+{*
+  Déclare un type en forward
+  @param AOwner   Propriétaire
+  @param AName    Nom du type
+  @return Type créé
+*}
+class function TSepiType.ForwardDecl(AOwner: TSepiComponent;
+  const AName: string): TSepiType;
+begin
+  Result := TSepiType(NewInstance);
+  Result.FOwner := AOwner;
+  Result.FName := AName;
+  Result.FVisibility := AOwner.CurrentVisibility;
+
+  AOwner.AddForward(Result);
+
+  Result.SetupProperties;
 end;
 
 {*
@@ -2111,6 +2129,10 @@ end;
 *}
 procedure TSepiType.SetupProperties;
 begin
+  FIsReady := True;
+
+  FParamBehavior := DefaultTypeParamBehavior;
+  FResultBehavior := rbOrdinal;
 end;
 
 {*
@@ -2140,6 +2162,17 @@ begin
 end;
 
 {*
+  Indique si ce type est un type composite fort
+  Les types composites forts sont des types composites dont les propriétés
+  dépendent des composés. La méthode SetupProperties ne peut donc pas être
+  appelée tant que le type n'a pas été complété.
+*}
+function TSepiType.IsStrongComposite: Boolean;
+begin
+  Result := False;
+end;
+
+{*
   Complète le type
 *}
 procedure TSepiType.Complete;
@@ -2149,7 +2182,9 @@ begin
 
   FCompleted := True;
 
-  SetupProperties;
+  if not IsReady then
+    SetupProperties;
+
   if not Native then
     MakeRuntimeInfo;
 end;
@@ -2214,7 +2249,9 @@ begin
   inherited;
 
   if not IsComposite then
-    Complete;
+    Complete
+  else if (not IsReady) and (not IsStrongComposite) then
+    SetupProperties;
 end;
 
 {*
@@ -2336,6 +2373,8 @@ end;
 *}
 procedure TSepiUntypedType.SetupProperties;
 begin
+  inherited;
+
   FParamBehavior.AlwaysByAddress := True;
   FResultBehavior := rbNone;
 end;
@@ -2397,9 +2436,35 @@ end;
 {*
   [@inheritDoc]
 *}
+constructor TSepiContainerType.Load(AOwner: TSepiComponent; Stream: TStream);
+begin
+  inherited;
+
+  FLoadingStream := Stream;
+end;
+
+{*
+  [@inheritDoc]
+*}
 function TSepiContainerType.IsComposite: Boolean;
 begin
   Result := True;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiContainerType.AfterConstruction;
+begin
+  inherited;
+
+  if State = msLoading then
+  begin
+    LoadChildren(FLoadingStream);
+    FLoadingStream := nil;
+
+    Complete;
+  end;
 end;
 
 {*

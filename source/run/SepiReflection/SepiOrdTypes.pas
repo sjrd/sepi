@@ -281,6 +281,8 @@ type
     function GetDescription: string; override;
 
     procedure MakeTypeInfo; override;
+
+    procedure Complete; override;
   public
     constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
     constructor Create(AOwner: TSepiComponent; const AName: string;
@@ -290,8 +292,6 @@ type
       ABaseType: TSepiEnumType; AMinValue, AMaxValue: Integer); overload;
     constructor Clone(AOwner: TSepiComponent; const AName: string;
       Source: TSepiType); override;
-
-    procedure AfterConstruction; override;
 
     function Equals(Other: TSepiType): Boolean; override;
     function CompatibleWith(AType: TSepiType): Boolean; override;
@@ -335,14 +335,14 @@ type
 
     procedure WriteDigestData(Stream: TStream); override;
 
+    procedure Complete; override;
+
     function GetDescription: string; override;
   public
     constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
     constructor Create(AOwner: TSepiComponent; const AName: string;
       const AValues: array of TSepiFakeEnumValue;
       AMinEnumSize: TSepiMinEnumSize = mesByte);
-
-    procedure AfterConstruction; override;
 
     function Equals(Other: TSepiType): Boolean; override;
     function CompatibleWith(AType: TSepiType): Boolean; override;
@@ -414,8 +414,6 @@ type
       APointTo: TSepiType);
     constructor Clone(AOwner: TSepiComponent; const AName: string;
       Source: TSepiType); override;
-
-    class function NewInstance: TObject; override;
 
     class function ForwardDecl(AOwner: TSepiComponent;
       const AName: string): TSepiPointerType;
@@ -697,6 +695,8 @@ procedure TSepiOrdType.SetupProperties;
 const
   OrdTypeToSize: array[TOrdType] of Integer = (1, 1, 2, 2, 4, 4);
 begin
+  inherited;
+
   FSize := OrdTypeToSize[OrdType];
 end;
 
@@ -705,12 +705,11 @@ end;
 *}
 procedure TSepiOrdType.MakeTypeInfo;
 begin
-  if TypeInfo <> nil then
-  begin
-    TypeData.OrdType := OrdType;
-    TypeData.MinValue := MinValue;
-    TypeData.MaxValue := MaxValue;
-  end;
+  Assert(HasTypeInfo);
+
+  TypeData.OrdType := OrdType;
+  TypeData.MinValue := MinValue;
+  TypeData.MaxValue := MaxValue;
 end;
 
 {*
@@ -1027,6 +1026,8 @@ end;
 *}
 procedure TSepiInt64Type.SetupProperties;
 begin
+  inherited;
+
   FSize := 8;
   FParamBehavior.AlwaysByStack := True;
   FResultBehavior := rbInt64;
@@ -1149,6 +1150,8 @@ const
     rbSingle, rbDouble, rbExtended, rbCurrency, rbCurrency
   );
 begin
+  inherited;
+
   FSize := Sizes[FloatType];
   FParamBehavior.AlwaysByStack := True;
   FResultBehavior := ResultBehaviors[FloatType];
@@ -1570,7 +1573,7 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiEnumType.AfterConstruction;
+procedure TSepiEnumType.Complete;
 begin
   inherited;
 
@@ -1714,6 +1717,17 @@ end;
 {*
   [@inheritDoc]
 *}
+procedure TSepiFakeEnumType.Complete;
+begin
+  inherited;
+
+  if State = msConstructing then
+    CreateConstants;
+end;
+
+{*
+  [@inheritDoc]
+*}
 function TSepiFakeEnumType.GetDescription: string;
 var
   I: Integer;
@@ -1723,17 +1737,6 @@ begin
       Result := Result + ' ' + Name + ' = ' + IntToStr(Value) + ',';
   Result[1] := '(';
   Result[Length(Result)] := ')';
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TSepiFakeEnumType.AfterConstruction;
-begin
-  inherited;
-
-  if State = msConstructing then
-    CreateConstants;
 end;
 
 {*
@@ -1845,6 +1848,8 @@ end;
 *}
 procedure TSepiSetType.SetupProperties;
 begin
+  inherited;
+
   FSize := (CompType.MaxValue - CompType.MinValue) div 8 + 1;
   if FSize = 3 then
     FSize := 4;
@@ -2045,6 +2050,8 @@ end;
 *}
 procedure TSepiPointerType.SetupProperties;
 begin
+  inherited;
+
   FSize := 4;
   FNeedInit := False;
   FResultBehavior := rbOrdinal;
@@ -2062,15 +2069,6 @@ begin
 end;
 
 {*
-  [@inheritDoc]
-*}
-class function TSepiPointerType.NewInstance: TObject;
-begin
-  Result := inherited NewInstance;
-  TSepiPointerType(Result).SetupProperties;
-end;
-
-{*
   Déclare un type pointeur en forward
   @param AOwner   Propriétaire du type
   @param AName    Nom du type pointeur
@@ -2078,10 +2076,7 @@ end;
 class function TSepiPointerType.ForwardDecl(AOwner: TSepiComponent;
   const AName: string): TSepiPointerType;
 begin
-  Result := TSepiPointerType(NewInstance);
-  Result.FPointTo := TSepiSystemUnit.Get(AOwner.Root).Untyped;
-  Result.FIsUntyped := True;
-  TSepiPointerType(AOwner).AddForward(AName, Result);
+  Result := TSepiPointerType(inherited ForwardDecl(AOwner, AName));
 end;
 
 {*

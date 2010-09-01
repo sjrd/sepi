@@ -162,11 +162,6 @@ begin
   inherited;
 
   Stream.ReadBuffer(FMaxLength, SizeOf(Byte));
-
-  SetupProperties;
-
-  if not Native then
-    MakeTypeInfo;
 end;
 
 {*
@@ -181,10 +176,6 @@ begin
   inherited Create(AOwner, AName, tkString);
 
   FMaxLength := AMaxLength;
-
-  SetupProperties;
-
-  MakeTypeInfo;
 end;
 
 {*
@@ -202,7 +193,8 @@ end;
 procedure TSepiShortStringType.Save(Stream: TStream);
 begin
   inherited;
-  Stream.WriteBuffer(TypeData^, ShortStringTypeDataLength);
+
+  Stream.WriteBuffer(FMaxLength, SizeOf(Byte));
 end;
 
 {*
@@ -212,7 +204,7 @@ procedure TSepiShortStringType.WriteDigestData(Stream: TStream);
 begin
   inherited;
 
-  Stream.WriteBuffer(FMaxLength, 1);
+  Stream.WriteBuffer(FMaxLength, SizeOf(Byte));
 end;
 
 {*
@@ -220,6 +212,8 @@ end;
 *}
 procedure TSepiShortStringType.SetupProperties;
 begin
+  inherited;
+
   FSize := MaxLength + 1;
   FParamBehavior.AlwaysByAddress := True;
   FResultBehavior := rbParameter;
@@ -288,11 +282,6 @@ begin
 
   if HasCodePage then
     Stream.ReadBuffer(FCodePage, SizeOf(Word));
-
-  SetupProperties;
-
-  if not Native then
-    MakeTypeInfo;
 end;
 
 {*
@@ -316,10 +305,6 @@ begin
     else
       FCodePage := ACodePage;
   end;
-
-  SetupProperties;
-
-  MakeTypeInfo;
 end;
 
 {*
@@ -327,11 +312,9 @@ end;
 *}
 constructor TSepiStringType.Clone(AOwner: TSepiComponent; const AName: string;
   Source: TSepiType);
-var
-  SourceString: TSepiStringType;
 begin
-  SourceString := Source as TSepiStringType;
-  Create(AOwner, AName, SourceString.StringKind, SourceString.CodePage);
+  with Source as TSepiStringType do
+    Self.Create(AOwner, AName, StringKind, CodePage);
 end;
 
 {*
@@ -373,6 +356,8 @@ end;
 *}
 procedure TSepiStringType.SetupProperties;
 begin
+  inherited;
+
   FSize := 4;
   FNeedInit := True;
   FResultBehavior := rbParameter;
