@@ -37,8 +37,13 @@ SHFolder.pas
 TlHelp32.pas
 UrlMon.pas
 UxTheme.pas
+StructuredQueryCondition.pas
+PropSys.pas
+ObjectArray.pas
 ShlObj.pas
 CommDlg.pas
 ComSvcs.pas
 ComObj.pas
 AspTlb.pas
+Wincodec.pas
+Dwmapi.pas

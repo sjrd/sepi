@@ -1,3 +1,9 @@
+Around line 293 in Delphi 2010
+----------
+  TArray<T> = array of T;
+----------
+----------
+
 Around line 359 in Delphi 2009
 ----------
   TMonitor = record
@@ -78,6 +84,18 @@ Around line 468 in Delphi 2009
   end;
 
   IEquatable<T> = interface
+    function Equals(Value: T): Boolean;
+  end;
+----------
+----------
+
+Around line 495 in Delphi 2010
+----------
+  IComparable<T> = interface(IComparable)
+    function CompareTo(Value: T): Integer;
+  end;
+
+  IEquatable<T> = interface(IInterface)
     function Equals(Value: T): Boolean;
   end;
 ----------
