@@ -112,8 +112,13 @@ begin
 
     Source := Context.SearchBDSFile(Source);
     if Source = '' then
+    begin
+      if Context.SkipIfNotExists then
+        Exit;
+
       Context.Errors.MakeError(Format(SCantFindSourceFile,
         [GetXToken(Line, CSVSep, 1)]), ekFatalError);
+    end;
 
     UnitName := ChangeFileExt(ExtractFileName(Source), '');
     Cache := Context.CacheDir + UnitName + CompiledIntfExt;
@@ -525,6 +530,9 @@ begin
       // Process
       for I := 0 to Length(FileNames)-1 do
       begin
+        if FileNames[I].Source = '' then
+          Continue;
+
         ProcessFileImport(Context, SepiRoot, FileNames[I]);
 
         { While Sepi compiler is in development, we don't want errors to
@@ -584,6 +592,7 @@ begin
         Context.SepiBrowsingPath :=
           Options.CacheDir + PathSep + Options.OutputDir;
 
+        Context.SkipIfNotExists := Options.SkipIfNotExists;
         Context.ProduceLazyLoad := Options.ProduceLazyLoad;
         Context.ExcludeRoutines := Options.ExcludeRoutines;
       except

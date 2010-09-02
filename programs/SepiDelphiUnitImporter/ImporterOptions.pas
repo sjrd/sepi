@@ -55,14 +55,15 @@ type
     FFileNames: TStrings;       /// Noms des fichiers à traiter
     FWaitWhenFinished: Boolean; /// Indique s'il faut attendre quand terminé
 
-    FBDSVersion: string; /// Version de BDS utilisée (défaut = '3.0')
+    FBDSVersion: string; /// Version de BDS utilisée
 
     FCacheDir: TFileName;     /// Dossier de cache
     FOutputDir: TFileName;    /// Dossier de destination
     FResourcesDir: TFileName; /// Dossier de destination des ressources
 
-    FProduceLazyLoad: Boolean; /// Indique s'il faut produire du code lazy-load
-    FExcludeRoutines: Boolean; /// Indique s'il faut exclure les routines
+    FSkipIfNotExists: Boolean; /// Ignorer les unités non trouvées
+    FProduceLazyLoad: Boolean; /// Produire du code lazy-load
+    FExcludeRoutines: Boolean; /// Exclure les routines
   public
     constructor Create;
     destructor Destroy; override;
@@ -78,6 +79,7 @@ type
     property OutputDir: TFileName read FOutputDir;
     property ResourcesDir: TFileName read FResourcesDir;
 
+    property SkipIfNotExists: Boolean read FSkipIfNotExists;
     property ProduceLazyLoad: Boolean read FProduceLazyLoad;
     property ExcludeRoutines: Boolean read FExcludeRoutines;
   end;
@@ -96,13 +98,23 @@ begin
 
   // Default values
 
-  FBDSVersion := '5.0';
+  {$IF CompilerVersion = 17}
+    FBDSVersion := '3.0';
+  {$ELSEIF CompilerVersion = 18}
+    FBDSVersion := '4.0';
+  {$ELSEIF CompilerVersion = 18.5}
+    FBDSVersion := '5.0';
+  {$ELSEIF CompilerVersion = 20}
+    FBDSVersion := '6.0';
+  {$ELSEIF CompilerVersion = 21}
+    FBDSVersion := '7.0';
+  {$ELSE}
+    FBDSVersion := 'Unknown';
+  {$IFEND}
 
   FCacheDir := Dir+DefaultCacheDir;
   FOutputDir := Dir+DefaultOutputDir;
   FResourcesDir := Dir+DefaultResourcesDir;
-
-  FProduceLazyLoad := False;
 
   // Create options
 
@@ -116,6 +128,9 @@ begin
     True, nil, True));
   AddOption(TStringOption.Create('resource', ['r'], @FResourcesDir,
     True, nil, True));
+
+  AddOption(TCommandLineSwitch.Create('skip-if-not-exists', [],
+    @FSkipIfNotExists));
 
   AddOption(TEnumOption.Create('lazy-load', [], @FProduceLazyLoad,
     TypeInfo(Boolean), '', True, nil, True));

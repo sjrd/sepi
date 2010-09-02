@@ -70,8 +70,9 @@ type
     FOutputDir: TFileName;    /// Dossier de destination
     FResourcesDir: TFileName; /// Dossier de destination des ressources
 
-    FProduceLazyLoad: Boolean; /// Indique s'il faut produire du code lazy-load
-    FExcludeRoutines: Boolean; /// Indique s'il faut exclure les routines
+    FSkipIfNotExists: Boolean; /// Ignorer les unités non trouvées
+    FProduceLazyLoad: Boolean; /// Produire du code lazy-load
+    FExcludeRoutines: Boolean; /// Exclure les routines
 
     class function FindVendor(Errors: TSepiCompilerErrorList;
       const BDSVersion: string): string;
@@ -109,6 +110,8 @@ type
     property OutputDir: TFileName read FOutputDir write FOutputDir;
     property ResourcesDir: TFileName read FResourcesDir write FResourcesDir;
 
+    property SkipIfNotExists: Boolean
+      read FSkipIfNotExists write FSkipIfNotExists;
     property ProduceLazyLoad: Boolean
       read FProduceLazyLoad write FProduceLazyLoad;
     property ExcludeRoutines: Boolean
