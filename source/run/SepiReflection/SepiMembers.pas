@@ -1077,6 +1077,22 @@ type
       Source: TSepiType); override;
   end;
 
+  {*
+    Type fichier texte (Text)
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiTextFileType = class(TSepiType)
+  protected
+    procedure SetupProperties; override;
+
+    function GetAlignment: Integer; override;
+  public
+    constructor Create(AOwner: TSepiComponent; const AName: string);
+    constructor Clone(AOwner: TSepiComponent; const AName: string;
+      Source: TSepiType); override;
+  end;
+
 const
   /// Format du nom d'une méthode surchargée
   OverloadedNameFormat = 'OL$%s$%d';
@@ -5601,11 +5617,55 @@ begin
   Result := 8;
 end;
 
+{--------------------------}
+{ Classe TSepiTextFileType }
+{--------------------------}
+
+{*
+  Crée un type variant
+  @param AOwner   Propriétaire
+  @param AName    Nom du type
+*}
+constructor TSepiTextFileType.Create(AOwner: TSepiComponent;
+  const AName: string);
+begin
+  inherited Create(AOwner, AName, tkUnknown);
+end;
+
+{*
+  [@inheritDoc]
+*}
+constructor TSepiTextFileType.Clone(AOwner: TSepiComponent; const AName: string;
+  Source: TSepiType);
+begin
+  Create(AOwner, AName);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiTextFileType.SetupProperties;
+begin
+  inherited;
+
+  FSize := SizeOf(Text);
+  FParamBehavior.AlwaysByAddress := True;
+  FResultBehavior := rbParameter;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiTextFileType.GetAlignment: Integer;
+begin
+  Result := 4;
+end;
+
 initialization
   SepiRegisterComponentClasses([
     TSepiField, TSepiMethod, TSepiOverloadedMethod, TSepiProperty,
     TSepiRecordType, TSepiInterface, TSepiClass, TSepiMetaClass,
-    TSepiMethodRefType, TSepiVariantType
+    TSepiMethodRefType, TSepiVariantType, TSepiTextFileType
   ]);
 end.
 

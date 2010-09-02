@@ -374,8 +374,7 @@ begin
   TSepiPointerType.Create(Self, 'PWideChar', Self.WideChar);
 
   // Text file type
-  TSepiStaticArrayType.Create(Self, 'Text', Self.Integer, 0,
-    SizeOf(TTextRec)-1, Self.Byte);
+  TSepiTextFileType.Create(Self, 'Text');
 end;
 
 {*
