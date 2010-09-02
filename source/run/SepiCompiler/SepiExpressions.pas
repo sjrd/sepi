@@ -2888,7 +2888,7 @@ begin
 
   case ValueType.Kind of
     // PChar
-    tkUnknown:
+    tkPointerOrUnknown:
     begin
       case (ValueType as TSepiPointerType).PointTo.Kind of
         tkChar:
@@ -8772,7 +8772,7 @@ begin
   SystemUnit := ValueType.Root.SystemUnit as TSepiSystemUnit;
 
   case ValueType.Kind of
-    tkUnknown:
+    tkUnknown {$IF Declared(tkPointer)}, tkPointer, tkClassRef {$IFEND}:
     begin
       if ValueType is TSepiMetaClass then
         Result := vtClass

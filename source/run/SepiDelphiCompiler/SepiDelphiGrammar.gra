@@ -238,8 +238,8 @@ GUIDInitializationExpression
 	GUIDInitialization
 
 GUIDInitialization
-	RecordInitialization
-	tkStringCst
+	1 RecordInitialization
+	ConstExpression
 
 OtherInitializationExpression
 	OtherInitialization

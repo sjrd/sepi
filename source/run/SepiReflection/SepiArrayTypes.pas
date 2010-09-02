@@ -179,20 +179,12 @@ type
 implementation
 
 uses
-  ScCompilerMagic, SepiSystemUnit;
-
-type
-  PArrayTypeData = ^TArrayTypeData;
-  TArrayTypeData = packed record
-    Size: Cardinal;
-    Count: Cardinal;
-    ElemType: PPTypeInfo;
-    ElemOffset: Cardinal; // always 0
-  end;
+  ScCompilerMagic, ScDelphiLanguage, SepiSystemUnit;
 
 const
   // Tailles de structure TTypeData en fonction des types
-  ArrayTypeDataLength = SizeOf(TArrayTypeData);
+  ArrayTypeDataLengthBase = 2*SizeOf(Integer) + SizeOf(PPTypeInfo)
+    {$IF CompilerVersion >= 21} + SizeOf(Byte) {$IFEND};
   DynArrayTypeDataLengthBase =
     SizeOf(Longint) + 2*SizeOf(Pointer) + SizeOf(Integer);
 
@@ -404,7 +396,11 @@ end;
 *}
 function TSepiStaticArrayType.HasTypeInfo: Boolean;
 begin
+{$IF CompilerVersion < 21}
   Result := NeedInit;
+{$ELSE}
+  Result := True;
+{$IFEND}
 end;
 
 {*
@@ -413,21 +409,47 @@ end;
 procedure TSepiStaticArrayType.MakeTypeInfo;
 var
   AElementType: TSepiType;
+  TypeDataLength: Integer;
+  ArrayTypeData: PArrayTypeData;
+{$IF CompilerVersion >= 21}
+  DimCount, I: Integer;
+{$IFEND}
 begin
   Assert(HasTypeInfo);
 
   AElementType := ElementType;
-  while AElementType is TSepiStaticArrayType do
-    AElementType := TSepiStaticArrayType(AElementType).ElementType;
+  {$IF CompilerVersion >= 21}
+  DimCount := 1;
+  {$IFEND}
 
-  AllocateTypeInfo(ArrayTypeDataLength);
-  with PArrayTypeData(TypeData)^ do
+  while AElementType is TSepiStaticArrayType do
   begin
-    Size := FSize;
-    Count := FSize div AElementType.Size;
-    ElemType := AElementType.TypeInfoRef;
-    ElemOffset := 0;
+    AElementType := TSepiStaticArrayType(AElementType).ElementType;
+    {$IF CompilerVersion >= 21}
+    Inc(DimCount);
+    {$IFEND}
   end;
+
+  TypeDataLength := ArrayTypeDataLengthBase
+    {$IF CompilerVersion >= 21} + DimCount * SizeOf(PPTypeInfo) {$IFEND};
+
+  AllocateTypeInfo(TypeDataLength);
+  ArrayTypeData := PArrayTypeData(TypeData);
+
+  ArrayTypeData.Size := FSize;
+  ArrayTypeData.ElCount := FSize div AElementType.Size;
+  ArrayTypeData.ElType := TSepiStaticArrayType(AElementType).TypeInfoRef;
+
+{$IF CompilerVersion >= 21}
+  ArrayTypeData.DimCount := DimCount;
+
+  AElementType := Self;
+  for I := 0 to DimCount-1 do
+  begin
+    AElementType := TSepiStaticArrayType(AElementType).ElementType;
+    ArrayTypeData.Dims[I] := TSepiStaticArrayType(AElementType).TypeInfoRef;
+  end;
+{$IFEND}
 end;
 
 {*
@@ -567,9 +589,13 @@ procedure TSepiDynArrayType.MakeTypeInfo;
 var
   UnitName: TypeInfoString;
   TypeDataLength: Integer;
+{$IF CompilerVersion >= 21}
+  DynArrElTypePtr: ^PPTypeInfo;
+{$IFEND}
 begin
   UnitName := TypeInfoEncode(OwningUnit.Name);
-  TypeDataLength := DynArrayTypeDataLengthBase + Length(UnitName) + 1;
+  TypeDataLength := DynArrayTypeDataLengthBase + Length(UnitName) + 1
+    {$IF CompilerVersion >= 21} + SizeOf(PPTypeInfo) {$IFEND};
   AllocateTypeInfo(TypeDataLength);
 
   // Element size
@@ -583,7 +609,7 @@ begin
     TypeData.elType := nil;
 
   // OLE Variant equivalent - always set to -1 at the moment
-  { TODO 1 -cComponentunités : OLE Variant dans les RTTI des dyn array }
+  { TODO 1 : OLE Variant dans les RTTI des dyn array }
   TypeData.varType := -1;
 
   // Element RTTI, independant of cleanup
@@ -596,6 +622,13 @@ begin
   // Unit name
   Byte(TypeData.DynUnitName[0]) := Length(UnitName);
   Move(UnitName[1], TypeData.DynUnitName[1], Length(UnitName));
+
+  {$IF CompilerVersion >= 21}
+  // DynArrElType
+  DynArrElTypePtr := SkipPackedShortString(@TypeData.DynUnitName);
+  DynArrElTypePtr^ := TypeData.elType2;
+  { TODO 1 : Understand difference between elType2 and DynArrElType }
+  {$IFEND}
 end;
 
 {*

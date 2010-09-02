@@ -790,7 +790,7 @@ end;
 procedure TThreadTransformationStream.AfterConstruction;
 begin
   inherited;
-  FThread.Resume;
+  FThread.Suspended := False;
 end;
 
 {*

@@ -470,8 +470,7 @@ begin
   end;
 
   FReady := False;
-  if Suspended then
-    Resume;
+  Suspended := False;
 end;
 
 {*
@@ -525,7 +524,7 @@ begin
       if Task = nil then
       begin
         FReady := True;
-        Suspend;
+        Suspended := True;
         Continue;
       end;
 
@@ -572,8 +571,7 @@ begin
   inherited;
 
   Terminate;
-  if Suspended then
-    Resume;
+  Suspended := False;
   WaitFor;
 end;
 

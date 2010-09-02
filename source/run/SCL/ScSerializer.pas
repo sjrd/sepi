@@ -188,9 +188,9 @@ var
   I, ElSize: Integer;
 begin
   TypeData := PArrayTypeData(GetTypeData(TypeInfo));
-  ElSize := TypeData.Size div TypeData.Count;
+  ElSize := TypeData.Size div TypeData.ElCount;
 
-  for I := 0 to TypeData.Count-1 do
+  for I := 0 to TypeData.ElCount-1 do
   begin
     WriteDataToStream(Stream,
       Pointer(Cardinal(@Data) + I*ElSize)^, TypeData.ElType^);
@@ -210,9 +210,9 @@ var
   I, ElSize: Integer;
 begin
   TypeData := PArrayTypeData(GetTypeData(TypeInfo));
-  ElSize := TypeData.Size div TypeData.Count;
+  ElSize := TypeData.Size div TypeData.ElCount;
 
-  for I := 0 to TypeData.Count-1 do
+  for I := 0 to TypeData.ElCount-1 do
   begin
     ReadDataFromStream(Stream,
       Pointer(Cardinal(@Data) + I*ElSize)^, TypeData.ElType^);
@@ -237,24 +237,24 @@ begin
   DataPtr := @Data;
   OldOffset := 0;
 
-  for I := 0 to TypeData.FieldCount-1 do
+  for I := 0 to TypeData.ManagedCount-1 do
   begin
-    with TypeData.Fields[I] do
+    with TypeData.ManagedFields[I] do
     begin
       // Data which don't need initialization
-      if Offset > OldOffset then
+      if FldOffset > OldOffset then
       begin
-        Stream.WriteBuffer(DataPtr^, Offset-OldOffset);
-        Inc(Cardinal(DataPtr), Offset-OldOffset);
+        Stream.WriteBuffer(DataPtr^, FldOffset-OldOffset);
+        Inc(Cardinal(DataPtr), FldOffset-OldOffset);
       end;
 
       // Field which requires initialization
-      WriteDataToStream(Stream, DataPtr^, TypeInfo^);
-      FieldSize := TypeSize(TypeInfo^);
+      WriteDataToStream(Stream, DataPtr^, TypeRef^);
+      FieldSize := TypeSize(TypeRef^);
 
       // Next iteration
       Inc(Cardinal(DataPtr), FieldSize);
-      OldOffset := Offset + FieldSize;
+      OldOffset := FldOffset + FieldSize;
     end;
   end;
 
@@ -281,24 +281,24 @@ begin
   DataPtr := @Data;
   OldOffset := 0;
 
-  for I := 0 to TypeData.FieldCount-1 do
+  for I := 0 to TypeData.ManagedCount-1 do
   begin
-    with TypeData.Fields[I] do
+    with TypeData.ManagedFields[I] do
     begin
       // Data which don't need initialization
-      if Offset > OldOffset then
+      if FldOffset > OldOffset then
       begin
-        Stream.ReadBuffer(DataPtr^, Offset-OldOffset);
-        Inc(Cardinal(DataPtr), Offset-OldOffset);
+        Stream.ReadBuffer(DataPtr^, FldOffset-OldOffset);
+        Inc(Cardinal(DataPtr), FldOffset-OldOffset);
       end;
 
       // Field which requires initialization
-      ReadDataFromStream(Stream, DataPtr^, TypeInfo^);
-      FieldSize := TypeSize(TypeInfo^);
+      ReadDataFromStream(Stream, DataPtr^, TypeRef^);
+      FieldSize := TypeSize(TypeRef^);
 
       // Next iteration
       Inc(Cardinal(DataPtr), FieldSize);
-      OldOffset := Offset + FieldSize;
+      OldOffset := FldOffset + FieldSize;
     end;
   end;
 

@@ -52,6 +52,27 @@ const
   tkUStringOrUnknown = tkUnknown;
 {$IFEND}
 
+  /// tkClassRef sous Delphi 2010+, tkUnknown sinon
+{$IF Declared(tkClassRef)}
+  tkClassRefOrUnknown = tkClassRef;
+{$ELSE}
+  tkClassRefOrUnknown = tkUnknown;
+{$IFEND}
+
+  /// tkPointer sous Delphi 2010+, tkUnknown sinon
+{$IF Declared(tkPointer)}
+  tkPointerOrUnknown = tkPointer;
+{$ELSE}
+  tkPointerOrUnknown = tkUnknown;
+{$IFEND}
+
+  /// tkProcedure sous Delphi 2010+, tkUnknown sinon
+{$IF Declared(tkProcedure)}
+  tkProcedureOrUnknown = tkProcedure;
+{$ELSE}
+  tkProcedureOrUnknown = tkUnknown;
+{$IFEND}
+
   /// Types qui requièrent une initialisation
   { tkArray and tkRecord are listed here, though static arrays and record don't
     always need initialization, because these types have got RTTI if and only
@@ -75,18 +96,20 @@ type
   /// Pointeur sur un type chaîne utilisé dans les RTTI
   PTypeInfoString = PShortString;
 
-  /// Pointeur vers TRecordField
-  PRecordField = ^TRecordField;
+{$IF CompilerVersion < 21}
+  /// Pointeur vers TManagedField
+  PManagedField = ^TManagedField;
 
   {*
-    Champ d'un record (qui requiert une initialisation)
+    Champ managé d'un record (qui requiert une initialisation)
     @author sjrd
     @version 1.0
   *}
-  TRecordField = packed record
-    TypeInfo: PPTypeInfo; /// RTTI du type du champ
-    Offset: Integer;      /// Offset du champ dans le record
+  TManagedField = packed record
+    TypeRef: PPTypeInfo; /// RTTI du type du champ
+    FldOffset: Integer;  /// Offset du champ dans le record
   end;
+{$IFEND}
 
   /// Pointeur vers TRecordTypeData
   PRecordTypeData = ^TRecordTypeData;
@@ -97,11 +120,12 @@ type
     @version 1.0
   *}
   TRecordTypeData = packed record
-    Size: Integer;                       /// Taille du type
-    FieldCount: Integer;                 /// Nombre de champs
-    Fields: array[0..0] of TRecordField; /// Champs (0..FieldCount-1)
+    Size: Integer;                               /// Taille du type
+    ManagedCount: Integer;                       /// Nombre de champs managés
+    ManagedFields: array[0..0] of TManagedField; /// Champs (0..ManagedCount-1)
   end;
 
+{$IF CompilerVersion < 21}
   /// Pointeur vers TArrayTypeData
   PArrayTypeData = ^TArrayTypeData;
 
@@ -112,9 +136,10 @@ type
   *}
   TArrayTypeData = packed record
     Size: Integer;      /// Taille du type
-    Count: Integer;     /// Nombre d'éléments (linéarisés)
+    ElCount: Integer;   /// Nombre d'éléments (linéarisés)
     ElType: PPTypeInfo; /// RTTI du type des éléments
   end;
+{$IFEND}
 
 function TypeSize(TypeInfo: PTypeInfo): Integer;
 
@@ -145,6 +170,7 @@ const
   TypeKindToSize: array[TTypeKind] of Integer = (
     -1, 0, 1, 0, 0, 0, 0, 4, 8, 2, 4, 4, 16, 0, 0, 4, 8, 4
     {$IF Declared(tkUString)}, 4 {$IFEND}
+    {$IF Declared(tkProcedure)}, 4, 4, 4 {$IFEND}
   );
   OrdTypeToSize: array[TOrdType] of Integer = (1, 1, 2, 2, 4, 4);
   FloatTypeToSize: array[TFloatType] of Integer = (4, 8, 10, 8, 8);
@@ -212,7 +238,7 @@ begin
     tkVariant: Variant(Dest) := Variant(Source);
     tkArray:
       with PArrayTypeData(GetTypeData(TypeInfo))^ do
-        CopyArray(@Dest, @Source, ElType^, Count);
+        CopyArray(@Dest, @Source, ElType^, ElCount);
     tkRecord: CopyRecord(@Dest, @Source, TypeInfo);
     tkInterface: IInterface(Dest) := IInterface(Source);
     tkDynArray: DynArrayAsg(Pointer(Dest), Pointer(Source), TypeInfo);
@@ -233,7 +259,7 @@ end;
 *}
 function AreArraysInitFinitCompatible(Left, Right: PArrayTypeData): Boolean;
 begin
-  Result := (Left.Size = Right.Size) and (Left.Count = Right.Count) and
+  Result := (Left.Size = Right.Size) and (Left.ElCount = Right.ElCount) and
     AreInitFinitCompatible(Left.ElType^, Right.ElType^);
 end;
 
@@ -249,15 +275,15 @@ var
 begin
   Result := False;
 
-  if Left.FieldCount <> Right.FieldCount then
+  if Left.ManagedCount <> Right.ManagedCount then
     Exit;
 
-  for I := 0 to Left.FieldCount-1 do
+  for I := 0 to Left.ManagedCount-1 do
   begin
-    if Left.Fields[I].Offset <> Right.Fields[I].Offset then
+    if Left.ManagedFields[I].FldOffset <> Right.ManagedFields[I].FldOffset then
       Exit;
     if not AreInitFinitCompatible(
-      Left.Fields[I].TypeInfo^, Right.Fields[I].TypeInfo^) then
+      Left.ManagedFields[I].TypeRef^, Right.ManagedFields[I].TypeRef^) then
       Exit;
   end;
 

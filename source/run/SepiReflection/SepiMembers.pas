@@ -72,12 +72,13 @@ type
     - skOperator : surcharge d'opérateur (pour usage futur) ;
     - skProperty : propriété ;
     - skClassProperty : propriété de classe ;
+    - skClassDestructor : destructeur de classe (pour usage futur).
   *}
   TSepiSignatureKind = (
     skStaticProcedure, skStaticFunction,
     skObjectProcedure, skObjectFunction, skConstructor, skDestructor,
     skClassProcedure, skClassFunction, skClassConstructor,
-    skOperator, skProperty, skClassProperty
+    skOperator, skProperty, skClassProperty, skClassDestructor
   );
 
 const
@@ -333,9 +334,9 @@ type
   *}
   TSepiSignature = class
   private
-    FOwner: TSepiComponent;   /// Propriétaire de la signature
-    FRoot: TSepiRoot;         /// Racine
-    FOwningUnit: TSepiUnit;   /// Unité contenante
+    FOwner: TSepiComponent; /// Propriétaire de la signature
+    FRoot: TSepiRoot;       /// Racine
+    FOwningUnit: TSepiUnit; /// Unité contenante
     FContext: TSepiComponent; /// Contexte
 
     FLoadingCloning: Boolean;   /// True si en chargement ou en clônage
@@ -667,12 +668,16 @@ type
   *}
   TSepiRecordType = class(TSepiContainerType)
   private
-    FPacked: Boolean;    /// Indique si le record est packed
-    FAlignment: Integer; /// Alignement
+    FPacked: Boolean;     /// Indique si le record est packed
+    FAlignment: Integer;  /// Alignement
+    FFields: TObjectList; /// Champs
 
     function PrivAddField(const FieldName: string; FieldType: TSepiType;
       After: TSepiField;
       ForcePack: Boolean = False): TSepiField;
+
+    function GetFieldCount: Integer;
+    function GetFields(Index: Integer): TSepiField;
   protected
     procedure ChildAdded(Child: TSepiComponent); override;
 
@@ -695,6 +700,7 @@ type
       APacked: Boolean = False);
     constructor Clone(AOwner: TSepiComponent; const AName: string;
       Source: TSepiType); override;
+    destructor Destroy; override;
 
     function AddField(const FieldName: string; FieldType: TSepiType;
       ForcePack: Boolean = False): TSepiField;
@@ -710,6 +716,9 @@ type
     function ValueToString(const Value): string; override;
 
     property IsPacked: Boolean read FPacked;
+
+    property FieldCount: Integer read GetFieldCount;
+    property Fields[Index: Integer]: TSepiField read GetFields;
   end;
 
   {*
@@ -1004,6 +1013,7 @@ type
     procedure WriteDigestData(Stream: TStream); override;
 
     procedure SetupProperties; override;
+    procedure MakeTypeInfo; override;
 
     function GetDescription: string; override;
   public
@@ -1086,7 +1096,7 @@ const
     'static procedure', 'static function',
     'object procedure', 'object function', 'constructor', 'destructor',
     'class procedure', 'class function', 'class constructor',
-    'operator', 'property', 'class property'
+    'operator', 'property', 'class property', 'class destructor'
   );
 
   /// Chaînes des types de liaison de méthodes
@@ -1154,7 +1164,8 @@ type
 
 const
   // Tailles de structure TTypeData en fonction des types
-  RecordTypeDataLengthBase = 2*SizeOf(Cardinal);
+  RecordTypeDataLengthBase = 2*SizeOf(Cardinal)
+    {$IF CompilerVersion >= 21} + SizeOf(Byte) + SizeOf(Integer) {$IFEND};
   IntfTypeDataLengthBase =
     SizeOf(Pointer) + SizeOf(TIntfFlagsBase) + SizeOf(TGUID) + 2*SizeOf(Word);
   ClassTypeDataLengthBase =
@@ -1163,6 +1174,10 @@ const
   InitTableLengthBase = 2*SizeOf(Byte) + 2*SizeOf(Cardinal);
   FieldTableLengthBase = SizeOf(TFieldTable);
   MethodTableLengthBase = SizeOf(TMethodTable);
+
+  {$IF CompilerVersion >= 21}
+  MetaClassTypeDataLength = SizeOf(PPTypeInfo);
+  {$IFEND}
 
   vmtMinIndex = vmtSelfPtr;
   vmtMinMethodIndex = vmtParent + 4;
@@ -3217,6 +3232,8 @@ constructor TSepiRecordType.Load(AOwner: TSepiComponent; Stream: TStream);
 begin
   inherited;
 
+  FFields := TObjectList.Create(False);
+
   Stream.ReadBuffer(FPacked, 1);
   FAlignment := 1;
 end;
@@ -3230,6 +3247,8 @@ constructor TSepiRecordType.Create(AOwner: TSepiComponent; const AName: string;
   APacked: Boolean = False);
 begin
   inherited Create(AOwner, AName, tkRecord);
+
+  FFields := TObjectList.Create(False);
 
   FPacked := APacked;
   FAlignment := 1;
@@ -3257,6 +3276,16 @@ begin
 end;
 
 {*
+  [@inheritDoc]
+*}
+destructor TSepiRecordType.Destroy;
+begin
+  FFields.Free;
+
+  inherited;
+end;
+
+{*
   Ajoute un champ au record
   @param FieldName   Nom du champ
   @param FieldType   Type du champ
@@ -3281,6 +3310,25 @@ begin
 end;
 
 {*
+  Nombre de champs
+  @return Nombre de champs
+*}
+function TSepiRecordType.GetFieldCount: Integer;
+begin
+  Result := FFields.Count;
+end;
+
+{*
+  Tableau zero-based des champs
+  @param Index   Index de champ compris entre 0 inclus et FieldCount exclu
+  @return Champ à l'index spécifié
+*}
+function TSepiRecordType.GetFields(Index: Integer): TSepiField;
+begin
+  Result := TSepiField(FFields[Index]);
+end;
+
+{*
   [@inheritDoc]
 *}
 procedure TSepiRecordType.ChildAdded(Child: TSepiComponent);
@@ -3289,6 +3337,8 @@ begin
 
   if Child is TSepiField then
   begin
+    FFields.Add(Child);
+
     with TSepiField(Child) do
     begin
       if FieldType.NeedInit then
@@ -3330,7 +3380,11 @@ end;
 *}
 function TSepiRecordType.HasTypeInfo: Boolean;
 begin
+{$IF CompilerVersion < 21}
   Result := NeedInit;
+{$ELSE}
+  Result := True;
+{$IFEND}
 end;
 
 {*
@@ -3351,41 +3405,82 @@ end;
   [@inheritDoc]
 *}
 procedure TSepiRecordType.MakeTypeInfo;
+{$IF CompilerVersion >= 21}
+type
+  PDataEx = ^TDataEx;
+  TDataEx = packed record
+    OpCount: Byte; // always 0
+    FieldCount: Integer;
+    FieldList: array[0..0] of TRecordTypeField;
+  end;
+{$IFEND}
 var
-  Fields: TObjectList;
-  I: Integer;
-  FieldTable: PInitTable;
+  Field: TSepiField;
+  I, ManagedCount, TypeDataLength: Integer;
+  RecordData: PRecordTypeData;
+  ManagedField: PManagedField;
+{$IF CompilerVersion >= 21}
+  DataEx: PDataEx;
+  FieldData: PRecordTypeField;
+{$IFEND}
 begin
   Assert(HasTypeInfo);
 
-  Fields := TObjectList.Create(False);
-  try
-    // Listings the fields which need initialization
-    for I := 0 to ChildCount-1 do
-      if (Children[I] is TSepiField) and
-        TSepiField(Children[I]).FieldType.NeedInit then
-        Fields.Add(Children[I]);
+  // Measurements
+  ManagedCount := 0;
+  TypeDataLength := RecordTypeDataLengthBase;
 
-    // Creating the RTTI
-    AllocateTypeInfo(
-      RecordTypeDataLengthBase + Fields.Count*SizeOf(TInitInfo));
-    FieldTable := PInitTable(TypeData);
+  for I := 0 to FieldCount-1 do
+  begin
+    Field := Fields[I];
 
-    // Basic information
-    FieldTable.Size := FSize;
-    FieldTable.Count := Fields.Count;
-
-    // Field information
-    for I := 0 to Fields.Count-1 do
+    if Field.FieldType.NeedInit then
     begin
-      with TSepiField(Fields[I]) do
-      begin
-        FieldTable.Fields[I].TypeInfo := FieldType.TypeInfoRef;
-        FieldTable.Fields[I].Offset := Offset;
-      end;
+      Inc(ManagedCount);
+      Inc(TypeDataLength, SizeOf(TManagedField));
     end;
-  finally
-    Fields.Free;
+
+    {$IF CompilerVersion >= 21}
+    Inc(TypeDataLength, SizeOf(TManagedField) + SizeOf(Byte) +
+      Field.TypeInfoNameSize);
+    {$IFEND}
+  end;
+
+  // Allocate type info
+  AllocateTypeInfo(TypeDataLength);
+  RecordData := PRecordTypeData(TypeData);
+  ManagedField := @RecordData.ManagedFields[0];
+  {$IF CompilerVersion >= 21}
+  DataEx := PDataEx(@RecordData.ManagedFields[ManagedCount]);
+  FieldData := @DataEx.FieldList[0];
+  {$IFEND}
+
+  // Basic information
+  RecordData.Size := FSize;
+  RecordData.ManagedCount := ManagedCount;
+  {$IF CompilerVersion >= 21}
+  DataEx.OpCount := 0; // Sepi does not know about record ops anyway
+  DataEx.FieldCount := FieldCount;
+  {$IFEND}
+
+  // Field information
+  for I := 0 to FieldCount-1 do
+  begin
+    Field := Fields[I];
+
+    if Field.FieldType.NeedInit then
+    begin
+      ManagedField.TypeRef := TSepiRecordType(Field.FieldType).TypeInfoRef;
+      ManagedField.FldOffset := Field.Offset;
+      Inc(ManagedField);
+    end;
+
+    {$IF CompilerVersion >= 21}
+    FieldData.Field.TypeRef := TSepiRecordType(Field.FieldType).TypeInfoRef;
+    FieldData.Field.FldOffset := Field.Offset;
+    FieldData.Flags := 0; // Unknown
+    FieldData := Field.StoreTypeInfoName(@FieldData.Name);
+    {$IFEND}
   end;
 end;
 
@@ -3424,17 +3519,11 @@ function TSepiRecordType.AddField(const FieldName: string;
   FieldType: TSepiType; ForcePack: Boolean = False): TSepiField;
 var
   LastField: TSepiField;
-  I: Integer;
 begin
-  LastField := nil;
-  for I := ChildCount-1 downto 0 do
-  begin
-    if Children[I] is TSepiField then
-    begin
-      LastField := TSepiField(Children[I]);
-      Break;
-    end;
-  end;
+  if FieldCount = 0 then
+    LastField := nil
+  else
+    LastField := Fields[FieldCount-1];
 
   Result := PrivAddField(FieldName, FieldType, LastField, ForcePack);
 end;
@@ -3495,25 +3584,25 @@ var
   Field: TSepiField;
   FieldValue: string;
 begin
+  if FieldCount = 0 then
+  begin
+    Result := '()';
+    Exit;
+  end;
+
   ValuePtr := Cardinal(@Value);
   Result := '';
 
-  for I := 0 to ChildCount-1 do
+  for I := 0 to FieldCount-1 do
   begin
-    if not (Children[I] is TSepiField) then
-      Continue;
-
-    Field := TSepiField(Children[I]);
+    Field := Fields[I];
     FieldValue := Field.FieldType.ValueToString(
       Pointer(ValuePtr+Field.Offset)^);
     Result := Result + Format(' %s: %s;', [Field.Name, FieldValue]);
   end;
 
-  if Result <> '' then
-  begin
-    Result[1] := '(';
-    Result[Length(Result)] := ')';
-  end;
+  Result[1] := '(';
+  Result[Length(Result)] := ')';
 end;
 
 {-------------------------------------}
@@ -4347,7 +4436,9 @@ var
   Component: TSepiComponent;
   FieldTable: PFieldTable;
   FieldInfo: PFieldInfo;
-  EncName: TypeInfoString;
+{$IF CompilerVersion >= 21}
+  InfoEx: PWord;
+{$IFEND}
 begin
   Fields := TObjectList.Create(False);
   try
@@ -4364,7 +4455,8 @@ begin
       Exit;
 
     // Creating the field table
-    GetMem(FieldTable, FieldTableLengthBase + Fields.Count*SizeOf(TFieldInfo));
+    GetMem(FieldTable, FieldTableLengthBase + Fields.Count*SizeOf(TFieldInfo)
+      {$IF CompilerVersion >= 21} + SizeOf(Word) {$IFEND});
     VMTEntries[vmtFieldTable] := FieldTable;
 
     // Basic information
@@ -4379,12 +4471,15 @@ begin
       begin
         FieldInfo.Offset := Offset;
         FieldInfo.Index := I;
-        EncName := TypeInfoEncode(Name);
-        Move(EncName[0], FieldInfo.Name[0], Length(EncName)+1);
-
-        Inc(Integer(FieldInfo), 7 + Length(EncName));
+        FieldInfo := StoreTypeInfoName(@FieldInfo.Name);
       end;
     end;
+
+    {$IF CompilerVersion >= 21}
+    // Extended information - we write nothing at the moment
+    InfoEx := PWord(FieldInfo);
+    InfoEx^ := 0;
+    {$IFEND}
   finally
     Fields.Free;
   end;
@@ -4400,8 +4495,10 @@ var
   I: Integer;
   Component: TSepiComponent;
   MethodTable: PMethodTable;
-  MethodInfo: PMethodInfo;
-  EncName: TypeInfoString;
+  MethodInfo, NextMethodInfo: PMethodInfo;
+{$IF CompilerVersion >= 21}
+  InfoEx: PWord;
+{$IFEND}
 begin
   Methods := TObjectList.Create(False);
   try
@@ -4432,14 +4529,20 @@ begin
     begin
       with TSepiMethod(Methods[I]) do
       begin
-        EncName := TypeInfoEncode(Name);
-        MethodInfo.Size := 7 + Length(EncName);
-        MethodInfo.Code := Code;
-        Move(EncName[0], MethodInfo.Name[0], Length(EncName)+1);
+        NextMethodInfo := StoreTypeInfoName(@MethodInfo.Name);
 
-        Inc(Integer(MethodInfo), MethodInfo.Size);
+        MethodInfo.Size := Integer(NextMethodInfo) - Integer(MethodInfo);
+        MethodInfo.Code := Code;
+
+        MethodInfo := NextMethodInfo;
       end;
     end;
+
+    {$IF CompilerVersion >= 21}
+    // Extended information - we write nothing at the moment
+    InfoEx := PWord(MethodInfo);
+    InfoEx^ := 0;
+    {$IFEND}
   finally
     Methods.Free;
   end;
@@ -4876,7 +4979,7 @@ end;
 
 {*
   Déclare un type classe en forward
-  @param AOwner   Propriétaire du type
+  @param AOwner      Propriétaire du type
   @param AName    Nom de la classe
 *}
 class function TSepiClass.ForwardDecl(AOwner: TSepiComponent;
@@ -5238,7 +5341,7 @@ end;
 constructor TSepiMetaClass.Create(AOwner: TSepiComponent; const AName: string;
   AClass: TSepiClass);
 begin
-  inherited Create(AOwner, AName, tkUnknown);
+  inherited Create(AOwner, AName, tkClassRefOrUnknown);
 
   FClass := AClass;
 end;
@@ -5293,6 +5396,18 @@ end;
 {*
   [@inheritDoc]
 *}
+procedure TSepiMetaClass.MakeTypeInfo;
+begin
+  {$IF CompilerVersion >= 21}
+  AllocateTypeInfo(MetaClassTypeDataLength);
+
+  TypeData.InstanceType := TSepiMetaClass(SepiClass).TypeInfoRef;
+  {$IFEND}
+end;
+
+{*
+  [@inheritDoc]
+*}
 function TSepiMetaClass.GetDescription: string;
 begin
   Result := 'class of '+SepiClass.DisplayName;
@@ -5332,9 +5447,9 @@ end;
 
 {*
   Crée un nouveau type référence de méthode
-  @param AOwner       Propriétaire du type
-  @param AName        Nom du type
-  @param ASignature   Signature
+  @param AOwner               Propriétaire du type
+  @param AName                Nom du type
+  @param ASignature           Signature
 *}
 constructor TSepiMethodRefType.Create(AOwner: TSepiComponent;
   const AName: string; ASignature: TSepiSignature);

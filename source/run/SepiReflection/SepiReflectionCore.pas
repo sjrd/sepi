@@ -2081,18 +2081,15 @@ end;
   @param TypeDataLength   Taille des données de type
 *}
 procedure TSepiType.AllocateTypeInfo(TypeDataLength: Integer = 0);
-var
-  ShortName: ShortString;
-  NameLength: Integer;
 begin
-  ShortName := Name;
-  NameLength := Length(Name)+1; // 1 byte for string length
-
-  FTypeInfoLength := SizeOf(TTypeKind) + NameLength + TypeDataLength;
+  FTypeInfoLength := SizeOf(TTypeKind) + TypeInfoNameSize + TypeDataLength
+    {$IF CompilerVersion >= 21} + SizeOf(TAttrData) {$IFEND};
   GetMem(FTypeInfo, FTypeInfoLength);
+  FillChar(FTypeInfo^, FTypeInfoLength, 0);
 
   FTypeInfo.Kind := FKind;
-  Move(ShortName, FTypeInfo.Name, NameLength);
+  StoreTypeInfoName(@FTypeInfo.Name);
+
   FTypeData := GetTypeData(FTypeInfo);
 end;
 
@@ -4152,9 +4149,9 @@ end;
 
 {*
   Crée une nouvelle vraie constante
-  @param AOwner   Propriétaire de la constante
-  @param AName    Nom de la constante
-  @param AValue   Valeur de la constante
+  @param AOwner      Propriétaire de la constante
+  @param AName       Nom de la constante
+  @param AValue      Valeur de la constante
 *}
 constructor TSepiConstant.Create(AOwner: TSepiComponent;
   const AName: string; const AValue: Variant);
@@ -4164,7 +4161,7 @@ var
 begin
   SystemUnit := TSepiSystemUnit.Get(AOwner);
 
-  case VarType(AValue) of
+    case VarType(AValue) of
     varSmallint: AType := SystemUnit.Smallint;
     varInteger:  AType := SystemUnit.Integer;
     varSingle:   AType := SystemUnit.Single;
@@ -4183,13 +4180,13 @@ begin
     {$IFEND}
 
     varOleStr, varStrArg, varString: AType := SystemUnit.LongString;
-    {$IF Declared(varUString)}
+      {$IF Declared(varUString)}
     varUString: AType := SystemUnit.LongString;
-    {$IFEND}
-  else
-    raise ESepiBadConstTypeError.CreateFmt(
-      SSepiBadConstType, [VarType(AValue)]);
-  end;
+      {$IFEND}
+    else
+      raise ESepiBadConstTypeError.CreateFmt(
+        SSepiBadConstType, [VarType(AValue)]);
+    end;
 
   Create(AOwner, AName, AValue, AType);
 end;

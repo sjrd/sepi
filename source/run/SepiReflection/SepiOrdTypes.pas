@@ -264,8 +264,8 @@ type
   *}
   TSepiEnumType = class(TSepiOrdType)
   private
-    FBaseType: TSepiEnumType; /// Type de base (peut être Self)
-    FValueCount: Integer;     /// Nombre de valeurs
+    FBaseType: TSepiEnumType;       /// Type de base (peut être Self)
+    FValueCount: Integer;           /// Nombre de valeurs
     FValues: TStringDynArray; /// Noms des valeurs
 
     procedure CreateConstants;
@@ -404,6 +404,7 @@ type
     procedure WriteDigestData(Stream: TStream); override;
 
     procedure SetupProperties; override;
+    procedure MakeTypeInfo; override;
 
     function GetDescription: string; override;
   public
@@ -456,6 +457,10 @@ const
   BooleanTypeDataLength = EnumTypeDataLengthBase +
     SizeOf(PackedShortStrFalseTrue);
   SetTypeDataLength = SizeOf(TOrdType) + SizeOf(Pointer);
+
+  {$IF CompilerVersion >= 21}
+  PointerTypeDataLength = SizeOf(PPTypeInfo);
+  {$IFEND}
 
 {-----------------}
 { Global routines }
@@ -1285,13 +1290,13 @@ begin
   inherited;
 
   // Find base type
-  case BooleanKind of
-    bkByteBool: BaseTypeInfo := System.TypeInfo(ByteBool);
-    bkWordBool: BaseTypeInfo := System.TypeInfo(WordBool);
-    bkLongBool: BaseTypeInfo := System.TypeInfo(LongBool);
-  else
-    BaseTypeInfo := System.TypeInfo(Boolean);
-  end;
+    case BooleanKind of
+      bkByteBool: BaseTypeInfo := System.TypeInfo(ByteBool);
+      bkWordBool: BaseTypeInfo := System.TypeInfo(WordBool);
+      bkLongBool: BaseTypeInfo := System.TypeInfo(LongBool);
+    else
+      BaseTypeInfo := System.TypeInfo(Boolean);
+    end;
 
   // Fill type data
   TypeData.BaseType := GetTypeData(BaseTypeInfo).BaseType;
@@ -1350,7 +1355,7 @@ begin
     FValueCount := Length(FValues);
   end else
   begin
-    OwningUnit.ReadRef(Stream, FBaseType);
+  OwningUnit.ReadRef(Stream, FBaseType);
     FValueCount := FBaseType.ValueCount;
   end;
 end;
@@ -1481,7 +1486,7 @@ begin
   if IsBaseEnum then
     WriteDataToStream(Stream, FValues, System.TypeInfo(TStringDynArray))
   else
-    OwningUnit.WriteRef(Stream, FBaseType);
+  OwningUnit.WriteRef(Stream, FBaseType);
 end;
 
 {*
@@ -1540,10 +1545,10 @@ begin
     SetLength(EncValues, ValueCount);
 
     for I := 0 to ValueCount-1 do
-    begin
+  begin
       EncValues[I] := TypeInfoEncode(FValues[I]);
       Inc(TypeDataLength, Length(EncValues[I])+1);
-    end;
+  end;
   end;
 
   // Allocate type info
@@ -1987,7 +1992,7 @@ begin
   if APointTo = nil then
     APointTo := TSepiSystemUnit.Get(AOwner.Root).Untyped;
 
-  inherited Create(AOwner, AName, tkUnknown);
+  inherited Create(AOwner, AName, tkPointerOrUnknown);
 
   FPointTo := APointTo;
   FIsUntyped := APointTo is TSepiUntypedType;
@@ -2028,6 +2033,18 @@ begin
   inherited;
 
   WriteStrToStream(Stream, PointTo.GetFullName);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiPointerType.MakeTypeInfo;
+begin
+  {$IF CompilerVersion >= 21}
+  AllocateTypeInfo(PointerTypeDataLength);
+
+  TypeData.RefType := TSepiPointerType(PointTo).TypeInfoRef;
+  {$IFEND}
 end;
 
 {*
