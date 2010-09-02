@@ -83,6 +83,9 @@ const
   /// GUID nul
   NoGUID: TGUID = (D1: 0; D2: 0; D3: 0; D4: (0, 0, 0, 0, 0, 0, 0, 0));
 
+  /// Verbe par défaut pour RunURL
+  DefaultRunURLVerb = 'open';
+
 function Dir: string;
 
 // Fonctions de If Immédiat
@@ -153,7 +156,8 @@ function Point3DToString(const Point3D: T3DPoint;
   const Delim: string = ' '): string;
 
 {$IFDEF MSWINDOWS}
-procedure RunURL(const URL: string; const Verb: string = 'open');
+procedure RunURL(const URL: string; const Verb: string = DefaultRunURLVerb;
+  const Parameters: string = '');
 {$ENDIF}
 
 {$IFDEF NEED_CHARINSET}
@@ -779,10 +783,11 @@ end;
   @param URL    URL à lancer
   @param Verb   Verbe à utiliser pour lancer l'URL
 *}
-procedure RunURL(const URL: string; const Verb: string = 'open');
+procedure RunURL(const URL: string; const Verb: string = DefaultRunURLVerb;
+  const Parameters: string = '');
 begin
   ShellExecute(GetDesktopWindow(), PChar(Verb), PChar(URL),
-    nil, nil, SW_SHOWNORMAL);
+    PChar(Parameters), nil, SW_SHOWNORMAL);
 end;
 {$ENDIF}
 
