@@ -1545,10 +1545,10 @@ begin
     SetLength(EncValues, ValueCount);
 
     for I := 0 to ValueCount-1 do
-  begin
+    begin
       EncValues[I] := TypeInfoEncode(FValues[I]);
       Inc(TypeDataLength, Length(EncValues[I])+1);
-  end;
+    end;
   end;
 
   // Allocate type info
@@ -1557,6 +1557,9 @@ begin
 
   // Fill in ordinal type data
   inherited;
+
+  // Base type
+  TypeData.BaseType := BaseType.TypeInfoRef;
 
   // Store enumeration names
   if BaseType = Self then
