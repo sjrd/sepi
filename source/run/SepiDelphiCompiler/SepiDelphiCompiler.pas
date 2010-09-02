@@ -384,6 +384,11 @@ type
     @version 1.0
   *}
   TDelphiPointerTypeNode = class(TSepiTypeDefinitionNode)
+  private
+    function GetPointedType: TSepiType;
+
+    procedure CMNotifyTypeCreated(var Msg: TCMNotifyTypeCreated);
+      message CM_NOTIFYTYPECREATED;
   public
     procedure EndParsing; override;
   end;
@@ -784,7 +789,7 @@ begin
     begin
       Assert(SepiRoot.ChildCount = 0);
       SepiUnit := TSepiSystemUnit.Create(SepiRoot);
-      TSepiSystemUnit(SepiUnit).CreateBuiltinTypes;
+      TSepiSystemUnit(SepiUnit).CreateBuiltins;
     end else
     begin
       SepiUnit := TSepiUnit.Create(SepiRoot, UnitName, []);
@@ -1634,20 +1639,48 @@ end;
 {------------------------------}
 
 {*
+  Récupère le type pointé
+  @return Type pointé, ou nil si non trouvé
+*}
+function TDelphiPointerTypeNode.GetPointedType: TSepiType;
+begin
+  Result := TSepiType(LookFor(Children[0], TSepiType));
+end;
+
+{*
+  Gestionnaire du message CM_NOTIFYTYPECREATED
+  @param Msg   Message
+*}
+procedure TDelphiPointerTypeNode.CMNotifyTypeCreated(
+  var Msg: TCMNotifyTypeCreated);
+var
+  PointedType: TSepiType;
+begin
+  PointedType := GetPointedType;
+
+  if PointedType <> nil then
+  begin
+    TSepiPointerType(SepiType).Create(SepiContext, TypeName, PointedType);
+    RootNode.UnregisterMessageHandler(CM_NOTIFYTYPECREATED, Self);
+  end;
+end;
+
+{*
   [@inheritDoc]
 *}
 procedure TDelphiPointerTypeNode.EndParsing;
 var
-  PointedName: string;
   PointedType: TSepiType;
 begin
-  PointedName := Children[0].AsText;
-  PointedType := TSepiType(LookFor(Children[0], TSepiType));
+  PointedType := GetPointedType;
 
   if PointedType <> nil then
     SetSepiType(TSepiPointerType.Create(SepiContext, TypeName, PointedType))
   else
-    SetSepiType(TSepiPointerType.Create(SepiContext, TypeName, PointedName));
+  begin
+    SetSepiType(TSepiPointerType.ForwardDecl(SepiContext, TypeName));
+    RootNode.RegisterMessageHandler(CM_NOTIFYTYPECREATED, Self);
+  end;
 
   inherited;
 end;

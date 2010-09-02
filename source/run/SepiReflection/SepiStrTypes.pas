@@ -58,14 +58,13 @@ type
 
     procedure WriteDigestData(Stream: TStream); override;
 
-    procedure ExtractTypeData; override;
+    procedure SetupProperties; override;
+    procedure MakeTypeInfo; override;
 
     function GetAlignment: Integer; override;
 
     function GetDescription: string; override;
   public
-    constructor RegisterTypeInfo(AOwner: TSepiComponent;
-      ATypeInfo: PTypeInfo); override;
     constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
     constructor Create(AOwner: TSepiComponent; const AName: string;
       AMaxLength: Integer = 255);
@@ -112,15 +111,16 @@ type
     FStringKind: TSepiStringKind; /// Type de chaîne longue
 
     FCodePage: Word; /// Code de page pour une chaîne Ansi
+
+    function HasCodePage: Boolean;
   protected
     procedure Save(Stream: TStream); override;
 
     procedure WriteDigestData(Stream: TStream); override;
 
-    procedure ExtractTypeData; override;
+    procedure SetupProperties; override;
+    procedure MakeTypeInfo; override;
   public
-    constructor RegisterTypeInfo(AOwner: TSepiComponent;
-      ATypeInfo: PTypeInfo); override;
     constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
     constructor Create(AOwner: TSepiComponent; const AName: string;
       AStringKind: TSepiStringKind = DefaultStringKind;
@@ -155,30 +155,13 @@ const
 {-----------------------------}
 
 {*
-  Recense un type chaîne courte natif
-*}
-constructor TSepiShortStringType.RegisterTypeInfo(AOwner: TSepiComponent;
-  ATypeInfo: PTypeInfo);
-begin
-  inherited;
-  ExtractTypeData;
-end;
-
-{*
   Charge un type chaîne courte depuis un flux
 *}
 constructor TSepiShortStringType.Load(AOwner: TSepiComponent; Stream: TStream);
 begin
   inherited;
 
-  if not Native then
-  begin
-    AllocateTypeInfo(ShortStringTypeDataLength);
-    Stream.ReadBuffer(TypeData^, ShortStringTypeDataLength);
-  end else
-    Stream.Seek(ShortStringTypeDataLength, soFromCurrent);
-
-  ExtractTypeData;
+  Stream.ReadBuffer(FMaxLength, SizeOf(Byte));
 end;
 
 {*
@@ -192,10 +175,7 @@ constructor TSepiShortStringType.Create(AOwner: TSepiComponent;
 begin
   inherited Create(AOwner, AName, tkString);
 
-  AllocateTypeInfo(ShortStringTypeDataLength);
-  TypeData.MaxLength := AMaxLength;
-
-  ExtractTypeData;
+  FMaxLength := AMaxLength;
 end;
 
 {*
@@ -213,7 +193,8 @@ end;
 procedure TSepiShortStringType.Save(Stream: TStream);
 begin
   inherited;
-  Stream.WriteBuffer(TypeData^, ShortStringTypeDataLength);
+
+  Stream.WriteBuffer(FMaxLength, SizeOf(Byte));
 end;
 
 {*
@@ -223,20 +204,29 @@ procedure TSepiShortStringType.WriteDigestData(Stream: TStream);
 begin
   inherited;
 
-  Stream.WriteBuffer(FMaxLength, 1);
+  Stream.WriteBuffer(FMaxLength, SizeOf(Byte));
 end;
 
 {*
-  [@inheritedDoc]
+  [@inheritDoc]
 *}
-procedure TSepiShortStringType.ExtractTypeData;
+procedure TSepiShortStringType.SetupProperties;
 begin
   inherited;
 
-  FMaxLength := TypeData.MaxLength;
-  FSize := FMaxLength + 1;
+  FSize := MaxLength + 1;
   FParamBehavior.AlwaysByAddress := True;
   FResultBehavior := rbParameter;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiShortStringType.MakeTypeInfo;
+begin
+  AllocateTypeInfo(ShortStringTypeDataLength);
+
+  TypeData.MaxLength := MaxLength;
 end;
 
 {*
@@ -277,34 +267,21 @@ end;
 {------------------------}
 
 {*
-  Recense un type chaîne longue natif
-*}
-constructor TSepiStringType.RegisterTypeInfo(AOwner: TSepiComponent;
-  ATypeInfo: PTypeInfo);
-begin
-  inherited;
-  ExtractTypeData;
-end;
-
-{*
   Charge un type chaîne longue depuis un flux
 *}
 constructor TSepiStringType.Load(AOwner: TSepiComponent; Stream: TStream);
-var
-  TypeDataLength: Integer;
 begin
   inherited;
 
-  TypeDataLength := StringTypeDataLength[Kind = tkLString];
+  case Kind of
+    tkLString: FStringKind := skAnsiString;
+    tkWString: FStringKind := skWideString;
+  else
+    FStringKind := skUnicodeString;
+  end;
 
-  if not Native then
-  begin
-    AllocateTypeInfo(TypeDataLength);
-    Stream.ReadBuffer(TypeData^, TypeDataLength);
-  end else
-    Stream.Seek(TypeDataLength, soFromCurrent);
-
-  ExtractTypeData;
+  if HasCodePage then
+    Stream.ReadBuffer(FCodePage, SizeOf(Word));
 end;
 
 {*
@@ -319,19 +296,15 @@ constructor TSepiStringType.Create(AOwner: TSepiComponent; const AName: string;
 begin
   inherited Create(AOwner, AName, StringKindToTypeKind[AStringKind]);
 
-  AllocateTypeInfo(StringTypeDataLength[AStringKind = skAnsiString]);
+  FStringKind := AStringKind;
 
-  {$IFDEF UNICODE}
-  if AStringKind = skAnsiString then
+  if HasCodePage then
   begin
     if ACodePage < 0 then
-      TypeData.CodePage := DefaultSystemCodePage
+      FCodePage := DefaultSystemCodePage
     else
-      TypeData.CodePage := ACodePage;
+      FCodePage := ACodePage;
   end;
-  {$ENDIF}
-
-  ExtractTypeData;
 end;
 
 {*
@@ -339,11 +312,21 @@ end;
 *}
 constructor TSepiStringType.Clone(AOwner: TSepiComponent; const AName: string;
   Source: TSepiType);
-var
-  SourceString: TSepiStringType;
 begin
-  SourceString := Source as TSepiStringType;
-  Create(AOwner, AName, SourceString.StringKind, SourceString.CodePage);
+  with Source as TSepiStringType do
+    Self.Create(AOwner, AName, StringKind, CodePage);
+end;
+
+{*
+  Teste si ce type de chaîne possède une code page
+*}
+function TSepiStringType.HasCodePage: Boolean;
+begin
+  {$IFDEF UNICODE}
+  Result := StringKind = skAnsiString;
+  {$ELSE}
+  Result := False;
+  {$ENDIF}
 end;
 
 {*
@@ -352,8 +335,9 @@ end;
 procedure TSepiStringType.Save(Stream: TStream);
 begin
   inherited;
-  Stream.WriteBuffer(TypeData^,
-    StringTypeDataLength[StringKind = skAnsiString]);
+
+  if HasCodePage then
+    Stream.WriteBuffer(FCodePage, SizeOf(Word));
 end;
 
 {*
@@ -368,31 +352,28 @@ begin
 end;
 
 {*
-  [@inheritedDoc]
+  [@inheritDoc]
 *}
-procedure TSepiStringType.ExtractTypeData;
+procedure TSepiStringType.SetupProperties;
 begin
   inherited;
 
   FSize := 4;
   FNeedInit := True;
   FResultBehavior := rbParameter;
+end;
 
-  case Kind of
-    tkLString: FStringKind := skAnsiString;
-    tkWString: FStringKind := skWideString;
-  else
-    FStringKind := skUnicodeString;
-  end;
+{*
+  [@inheritDoc]
+*}
+procedure TSepiStringType.MakeTypeInfo;
+begin
+  AllocateTypeInfo(StringTypeDataLength[StringKind = skAnsiString]);
 
-{$IFDEF UNICODE}
-  if StringKind = skAnsiString then
-    FCodePage := TypeData.CodePage
-  else
-    FCodePage := DefaultSystemCodePage;
-{$ELSE}
-  FCodePage := DefaultSystemCodePage;
-{$ENDIF}
+  {$IFDEF UNICODE}
+  if HasCodePage then
+    TypeData.CodePage := CodePage;
+  {$ENDIF}
 end;
 
 {*

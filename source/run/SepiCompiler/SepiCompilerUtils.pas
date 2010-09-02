@@ -472,7 +472,7 @@ constructor TSepiPropertyBuilder.Create(AOwner: TSepiComponent);
 begin
   inherited Create(AOwner);
 
-  FSignature := TSepiSignature.CreateConstructing(Owner.OwningUnit, OwnerType);
+  FSignature := TSepiSignature.CreateConstructing(Owner);
   FSignature.Kind := skProperty;
 
   FIndex := NoIndex;

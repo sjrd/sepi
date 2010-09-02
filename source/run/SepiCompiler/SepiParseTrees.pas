@@ -240,6 +240,19 @@ type
   TSepiNonTerminalClass = class of TSepiNonTerminal;
 
   {*
+    Enregistrement d'un gestionnaire de message
+    @author sjrd
+    @version 1.0
+  *}
+  TMessageHandlerRec = record
+    MsgID: Word;      /// ID du message géré
+    Handler: TObject; /// Objet qui gère ce message
+  end;
+
+  /// Tableau dynamique de TMessageHandlerRec
+  TMessageHandlerRecDynArray = array of TMessageHandlerRec;
+
+  {*
     Noeud racine d'un arbre syntaxique Sepi
     @author sjrd
     @version 1.0
@@ -251,6 +264,8 @@ type
     FSepiUnit: TSepiUnit;             /// Unité Sepi en cours de compilation
 
     FErrors: TSepiCompilerErrorList; /// Gestionnaire d'erreurs de compilation
+
+    FMessageHandlers: TMessageHandlerRecDynArray; /// Gestionnaires de messages
   protected
     procedure SetUnitCompiler(AUnitCompiler: TSepiUnitCompiler);
     procedure SetSepiUnit(ASepiUnit: TSepiUnit;
@@ -258,6 +273,11 @@ type
   public
     constructor Create(AClass: TSepiSymbolClass; ASepiRoot: TSepiRoot;
       AErrors: TSepiCompilerErrorList); virtual;
+
+    procedure DefaultHandler(var Msg); override;
+
+    procedure RegisterMessageHandler(MsgID: Word; Handler: TObject);
+    procedure UnregisterMessageHandler(MsgID: Word; Handler: TObject);
 
     property UnitCompiler: TSepiUnitCompiler read FUnitCompiler;
     property SepiRoot: TSepiRoot read FSepiRoot;
@@ -1079,6 +1099,84 @@ begin
   FUnitCompiler := TSepiUnitCompiler.Create(Errors, ASepiUnit,
     LanguageRulesClass);
   FSepiUnit := ASepiUnit;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiParseTreeRootNode.DefaultHandler(var Msg);
+var
+  I: Integer;
+begin
+  for I := 0 to Length(FMessageHandlers)-1 do
+  begin
+    with FMessageHandlers[I] do
+      if (MsgID = TDispatchMessage(Msg).MsgID) and (Handler <> nil) then
+        Handler.Dispatch(Msg);
+  end;
+end;
+
+{*
+  Enregistre un gestionnaire de message
+  @param MsgID     ID du message géré
+  @param Handler   Objet qui gère le message
+*}
+procedure TSepiParseTreeRootNode.RegisterMessageHandler(MsgID: Word;
+  Handler: TObject);
+var
+  I, Len: Integer;
+begin
+  Len := Length(FMessageHandlers);
+
+  // First registration
+  if Len = 0 then
+  begin
+    SetLength(FMessageHandlers, 4);
+    FillChar(FMessageHandlers[0], 4*SizeOf(TMessageHandlerRec), 0);
+
+    FMessageHandlers[0].MsgID := MsgID;
+    FMessageHandlers[0].Handler := Handler;
+    Exit;
+  end;
+
+  // Reuse an empty bucket
+  for I := 0 to Len-1 do
+  begin
+    if FMessageHandlers[I].Handler = nil then
+    begin
+      FMessageHandlers[I].MsgID := MsgID;
+      FMessageHandlers[I].Handler := Handler;
+      Exit;
+    end;
+  end;
+
+  // Grow the array
+  SetLength(FMessageHandlers, 2*Len);
+  FillChar(FMessageHandlers[Len], Len*SizeOf(TMessageHandlerRec), 0);
+
+  FMessageHandlers[Len].MsgID := MsgID;
+  FMessageHandlers[Len].Handler := Handler;
+end;
+
+{*
+  Enregistre un gestionnaire de message
+  @param MsgID     ID du message géré
+  @param Handler   Objet qui gère le message
+*}
+procedure TSepiParseTreeRootNode.UnregisterMessageHandler(MsgID: Word;
+  Handler: TObject);
+var
+  I: Integer;
+begin
+  for I := 0 to Length(FMessageHandlers)-1 do
+  begin
+    if (FMessageHandlers[I].MsgID = MsgID) and
+      (FMessageHandlers[I].Handler = Handler) then
+    begin
+      FMessageHandlers[I].Handler := nil;
+      Exit;
+    end;
+  end;
 end;
 
 {------------------------------}

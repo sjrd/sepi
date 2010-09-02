@@ -484,8 +484,9 @@ begin
     Stream.ReadBuffer(Digest, SizeOf(TSepiDigest));
 
     if not FReferences[I].CheckDigest(Digest) then
-      raise ESepiIncompatibleUsedUnitError.CreateFmt(SSepiIncompatibleUsedUnit,
-        [SepiUnit.Name, FReferences[I].OwningUnit.Name]);
+      raise ESepiIncompatibleUsedUnitError.CreateFmt(
+        SSepiIncompatibleUsedUnitIncompatibleComponent,
+        [SepiUnit.Name, FReferences[I].OwningUnit.Name, FReferences[I].Name]);
   end;
 
   // Read locals information

@@ -25,11 +25,11 @@
 		<PropertyGroup Condition="'$(Base)'!=''">
 			<UsePackages>true</UsePackages>
 			<DCC_IMPLICIT_STRING_CAST>false</DCC_IMPLICIT_STRING_CAST>
-			<DCC_DependencyCheckOutputName>SepiDelphiUnitImporter.exe</DCC_DependencyCheckOutputName>
+			<DCC_DependencyCheckOutputName>..\..\bin\SepiDelphiUnitImporter\SepiDelphiUnitImporter.exe</DCC_DependencyCheckOutputName>
 			<DCC_UsePackage>vcl;rtl;vclx;dbrtl;vcldb;VclSmp;SCL140;SVCL140;SDL140;SepiCore140;SepiReflection140;SepiInterpreter140;SepiCompiler140;SepiDelphiCompiler140</DCC_UsePackage>
+			<DCC_ExeOutput>$(SEPISDK)\bin\SepiDelphiUnitImporter</DCC_ExeOutput>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Cfg_1)'!=''">
-			<DCC_DependencyCheckOutputName>..\..\bin\SepiDelphiUnitImporter\SepiDelphiUnitImporter.exe</DCC_DependencyCheckOutputName>
 			<Version>7.0</Version>
 			<DCC_Define>RELEASE;$(DCC_Define)</DCC_Define>
 			<DCC_SYMBOL_PLATFORM>False</DCC_SYMBOL_PLATFORM>
@@ -37,10 +37,8 @@
 			<DCC_COMPARING_SIGNED_UNSIGNED>False</DCC_COMPARING_SIGNED_UNSIGNED>
 			<DCC_COMBINING_SIGNED_UNSIGNED>False</DCC_COMBINING_SIGNED_UNSIGNED>
 			<DCC_DUPLICATE_CTOR_DTOR>False</DCC_DUPLICATE_CTOR_DTOR>
-			<DCC_ExeOutput>C:\Projets\Sepi\bin\SepiDelphiUnitImporter</DCC_ExeOutput>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Cfg_2)'!=''">
-			<DCC_DependencyCheckOutputName>..\..\bin\SepiDelphiUnitImporter\SepiDelphiUnitImporter.exe</DCC_DependencyCheckOutputName>
 			<Version>7.0</Version>
 			<DCC_Define>DEBUG;$(DCC_Define)</DCC_Define>
 			<DCC_SYMBOL_PLATFORM>False</DCC_SYMBOL_PLATFORM>
@@ -48,12 +46,16 @@
 			<DCC_COMPARING_SIGNED_UNSIGNED>False</DCC_COMPARING_SIGNED_UNSIGNED>
 			<DCC_COMBINING_SIGNED_UNSIGNED>False</DCC_COMBINING_SIGNED_UNSIGNED>
 			<DCC_DUPLICATE_CTOR_DTOR>False</DCC_DUPLICATE_CTOR_DTOR>
-			<DCC_ExeOutput>$(SEPISDK)\bin\SepiDelphiUnitImporter</DCC_ExeOutput>
 		</PropertyGroup>
 		<ItemGroup>
 			<DelphiCompile Include="SepiDelphiUnitImporter.dpr">
 				<MainSource>MainSource</MainSource>
 			</DelphiCompile>
+			<DCCReference Include="ImporterConsts.pas"/>
+			<DCCReference Include="ImporterContext.pas"/>
+			<DCCReference Include="ImporterOptions.pas"/>
+			<DCCReference Include="ImporterProducer.pas"/>
+			<DCCReference Include="ImporterTemplates.pas"/>
 			<BuildConfiguration Include="Base">
 				<Key>Base</Key>
 			</BuildConfiguration>
@@ -76,8 +78,8 @@
 						<Parameters Name="UseLauncher">False</Parameters>
 						<Parameters Name="LoadAllSymbols">True</Parameters>
 						<Parameters Name="LoadUnspecifiedSymbols">False</Parameters>
-						<Parameters Name="RunParams">System.pas -w -v6.0</Parameters>
-						<Parameters Name="DebugSourceDirs">C:\Projets\Sepi\source\run\SepiCompiler\</Parameters>
+						<Parameters Name="RunParams">System.pas -w -v7.0</Parameters>
+						<Parameters Name="DebugSourceDirs">$(SEPISDK)\source\run\SepiCompiler\</Parameters>
 					</Parameters>
 					<VersionInfo>
 						<VersionInfo Name="IncludeVerInfo">False</VersionInfo>

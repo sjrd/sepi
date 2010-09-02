@@ -41,25 +41,17 @@ unit SepiConsts;
 
 interface
 
-const
-  SepiMajVersion = 1; /// Version majeure de Sepi
-  SepiMinVersion = 0; /// Version mineure de Sepi
-
-  /// Dossier racine de Sepi dans la base de registre
-  regSepiBase = '\Software\SJRDoeraene\Sepi\'; {don't localize}
+const {don't localize}
+  SepiVersion = '1.0~alpha1'; /// Version de Sepi
+  SepiEnvVarName = 'SEPI';    /// Variable d'environnement de Sepi
 
 resourcestring
-  sSepiName = 'Projet Sepi';
-  sSepiAuthor = 'L''équipe Sepi';
-  sSepiAuthorEMail = 'sjrd@redaction-developpez.com';
-  sSepiWebSite = 'http://sjrd.developpez.com/sepi/';
-  sSepiCopyright = 'Sepi v%d.%d - Copyright © 2005-2006 SJRDoeraene';
-  sSepiAbout = 'À propos de Sepi';
-
-  sSepiInstanceAlreadyExists = 'Seule une instance de TSepi peut être créée';
-  sSepiDifferentVersion =
-    'Versions majeures différentes : incompatibilité de format';
-  sSepiUnexistingFile = 'Le fichier spécifié n''existe pas';
+  SSepiName = 'Moteur de script Sepi';
+  SSepiAuthor = 'Sébastien Doeraene';
+  SSepiAuthorEMail = 'sjrd@redaction-developpez.com';
+  SSepiWebSite = 'http://sjrd.developpez.com/sepi/';
+  SSepiCopyright = 'Sepi v%s - Copyright © 2005-2010 Sébastien Doeraene';
+  SSepiAbout = 'À propos de Sepi';
 
 implementation
 

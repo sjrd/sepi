@@ -61,7 +61,8 @@ type
   {*
     État d'un composant
   *}
-  TSepiComponentState = (msNormal, msConstructing, msLoading, msDestroying);
+  TSepiComponentState = (msForward, msLoading, msConstructing, msNormal,
+    msDestroying);
 
   {*
     Visibilité d'un composant
@@ -189,8 +190,6 @@ type
   *}
   TSepiComponent = class
   private
-    /// True tant que le composant n'a pas été construit
-    FIsForward: Boolean;
     FState: TSepiComponentState;    /// État
     FOwner: TSepiComponent;         /// Propriétaire
     FRoot: TSepiRoot;               /// Racine
@@ -210,6 +209,9 @@ type
 
     procedure EnsureDigestBuilt;
 
+    procedure AddForward(Child: TSepiComponent);
+
+    function GetIsForward: Boolean;
     function GetWasForward: Boolean;
 
     function GetTypeInfoName: TypeInfoString;
@@ -234,7 +236,6 @@ type
     procedure LoadChildren(Stream: TStream); virtual;
     procedure SaveChildren(Stream: TStream); virtual;
 
-    procedure AddForward(const ChildName: string; Child: TObject);
     procedure ChildAdded(Child: TSepiComponent); virtual;
     procedure ChildRemoving(Child: TSepiComponent); virtual;
 
@@ -259,10 +260,9 @@ type
     constructor Load(AOwner: TSepiComponent; Stream: TStream); virtual;
     constructor Create(AOwner: TSepiComponent; const AName: string);
     destructor Destroy; override;
+
     procedure AfterConstruction; override;
     procedure BeforeDestruction; override;
-
-    class function NewInstance: TObject; override;
 
     function GetFullName: string;
     function GetShorterNameFrom(From: TSepiComponent): string;
@@ -292,7 +292,7 @@ type
     procedure AddPtrResource(Ptr: Pointer);
     procedure AcquirePtrResource(var Ptr);
 
-    property IsForward: Boolean read FIsForward;
+    property IsForward: Boolean read GetIsForward;
     property WasForward: Boolean read GetWasForward;
     property Owner: TSepiComponent read FOwner;
     property Root: TSepiRoot read FRoot;
@@ -354,6 +354,8 @@ type
   TSepiType = class(TSepiComponent)
   private
     FKind: TTypeKind;         /// Type de type
+    FCompleted: Boolean;      /// Indique si le type est complet
+    FIsReady: Boolean;        /// Indique si le type est prêt
     FNative: Boolean;         /// Indique si le type est un type natif Delphi
     FTypeInfoLength: Integer; /// Taille des RTTI créées (ou 0 si non créées)
     FTypeInfo: PTypeInfo;     /// RTTI (Runtime Type Information)
@@ -370,20 +372,26 @@ type
 
     procedure WriteDigestData(Stream: TStream); override;
 
-    procedure ForceNative(ATypeInfo: PTypeInfo = nil);
+    class function ForwardDecl(AOwner: TSepiComponent;
+      const AName: string): TSepiType;
+
     procedure AllocateTypeInfo(TypeDataLength: Integer = 0);
-    procedure ExtractTypeData; virtual;
+
+    function HasTypeInfo: Boolean; virtual;
+    procedure SetupProperties; virtual;
+    procedure MakeTypeInfo; virtual;
+    procedure MakeRuntimeInfo; virtual;
+
+    function IsComposite: Boolean; virtual;
+    function IsStrongComposite: Boolean; virtual;
+    procedure Complete; virtual;
 
     function GetAlignment: Integer; virtual;
     function GetSafeResultBehavior: TSepiTypeResultBehavior;
 
     function GetDisplayName: string; override;
     function GetDescription: string; virtual;
-
-    property TypeInfoRef: PPTypeInfo read FTypeInfoRef;
   public
-    constructor RegisterTypeInfo(AOwner: TSepiComponent;
-      ATypeInfo: PTypeInfo); virtual;
     constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
     constructor Create(AOwner: TSepiComponent; const AName: string;
       AKind: TTypeKind);
@@ -392,9 +400,7 @@ type
     destructor Destroy; override;
 
     class function NewInstance: TObject; override;
-
-    class function LoadFromTypeInfo(AOwner: TSepiComponent;
-      ATypeInfo: PTypeInfo): TSepiType;
+    procedure AfterConstruction; override;
 
     procedure AlignOffset(var Offset: Integer);
 
@@ -410,9 +416,12 @@ type
     function CompatibleWith(AType: TSepiType): Boolean; virtual;
 
     property Kind: TTypeKind read FKind;
+    property Completed: Boolean read FCompleted;
+    property IsReady: Boolean read FIsReady;
     property Native: Boolean read FNative;
     property TypeInfo: PTypeInfo read FTypeInfo;
     property TypeData: PTypeData read FTypeData;
+    property TypeInfoRef: PPTypeInfo read FTypeInfoRef;
     property Size: Integer read FSize;
     property NeedInit: Boolean read FNeedInit;
     property Alignment: Integer read GetAlignment;
@@ -435,11 +444,12 @@ type
   *}
   TSepiUntypedType = class(TSepiType)
   protected
+    procedure SetupProperties; override;
+
     function GetAlignment: Integer; override;
 
     function GetDescription: string; override;
   public
-    constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
     constructor Create(AOwner: TSepiComponent; const AName: string);
 
     function Equals(Other: TSepiType): Boolean; override;
@@ -467,7 +477,15 @@ type
     @version 1.0
   *}
   TSepiContainerType = class(TSepiType)
+  private
+    FLoadingStream: TStream; /// Flux de chargement
+  protected
+    function IsComposite: Boolean; override;
   public
+    constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
+
+    procedure AfterConstruction; override;
+
     function LookForMember(const MemberName: string;
       FromComponent: TSepiComponent): TSepiMember; overload; virtual;
     function LookForMember(const MemberName: string): TSepiMember; overload;
@@ -720,11 +738,7 @@ type
   public
     constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
     constructor Create(AOwner: TSepiComponent; const AName: string;
-      ADest: TSepiType); overload;
-    constructor Create(AOwner: TSepiComponent; const AName: string;
-      ADest: PTypeInfo); overload;
-    constructor Create(AOwner: TSepiComponent;
-      const AName, ADest: string); overload;
+      ADest: TSepiType);
 
     property Dest: TSepiType read FDest;
   end;
@@ -752,9 +766,7 @@ type
     constructor Create(AOwner: TSepiComponent; const AName: string;
       const AValue: Variant; AType: TSepiType); overload;
     constructor Create(AOwner: TSepiComponent; const AName: string;
-      const AValue: Variant; ATypeInfo: PTypeInfo = nil); overload;
-    constructor Create(AOwner: TSepiComponent; const AName: string;
-      const AValue: Variant; const ATypeName: string); overload;
+      const AValue: Variant); overload;
     destructor Destroy; override;
 
     property ConstType: TSepiType read FType;
@@ -783,23 +795,10 @@ type
     procedure WriteDigestData(Stream: TStream); override;
   public
     constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
-
     constructor Create(AOwner: TSepiComponent; const AName: string;
       const AValue; AType: TSepiType; AIsConst: Boolean = False); overload;
     constructor Create(AOwner: TSepiComponent; const AName: string;
-      const AValue; ATypeInfo: PTypeInfo;
-      AIsConst: Boolean = False); overload;
-    constructor Create(AOwner: TSepiComponent; const AName: string;
-      const AValue; const ATypeName: string;
-      AIsConst: Boolean = False); overload;
-
-    constructor Create(AOwner: TSepiComponent; const AName: string;
       AType: TSepiType; AIsConst: Boolean = False); overload;
-    constructor Create(AOwner: TSepiComponent; const AName: string;
-      ATypeInfo: PTypeInfo; AIsConst: Boolean = False); overload;
-    constructor Create(AOwner: TSepiComponent; const AName: string;
-      const ATypeName: string; AIsConst: Boolean = False); overload;
-
     destructor Destroy; override;
 
     property IsConst: Boolean read FIsConst;
@@ -908,7 +907,7 @@ const
 implementation
 
 uses
-  SepiOrdTypes, SepiStrTypes, SepiArrayTypes, SepiMembers;
+  SepiOrdTypes, SepiStrTypes, SepiArrayTypes, SepiMembers, SepiSystemUnit;
 
 var
   SepiComponentClasses: TStrings = nil;
@@ -1163,9 +1162,11 @@ end;
 constructor TSepiComponent.Load(AOwner: TSepiComponent; Stream: TStream);
 begin
   Create(AOwner, ReadStrFromStream(Stream));
+
+  FState := msLoading;
+
   Stream.ReadBuffer(FVisibility, 1);
   Stream.ReadBuffer(FTag, SizeOf(Integer));
-  FState := msLoading;
 end;
 
 {*
@@ -1181,7 +1182,6 @@ begin
 
   inherited Create;
 
-  FIsForward := False;
   FState := msConstructing;
   FOwner := AOwner;
 
@@ -1196,7 +1196,6 @@ begin
     FVisibility := Owner.CurrentVisibility;
     
   FCurrentVisibility := mvPublic;
-  FTag := 0;
   FForwards := THashedStringList.Create;
   FChildren := TSepiComponentList.Create;
   FObjResources := TObjectList.Create;
@@ -1266,6 +1265,24 @@ begin
       Stream.Free;
     end;
   end;
+end;
+
+{*
+  Ajoute un enfant forward
+  @param Child   Enfant à ajouter
+*}
+procedure TSepiComponent.AddForward(Child: TSepiComponent);
+begin
+  FForwards.AddObject(Child.Name, Child);
+end;
+
+{*
+  Indique si le composant est encore en forward
+  @return True si le composant est encored en forward, False sinon
+*}
+function TSepiComponent.GetIsForward: Boolean;
+begin
+  Result := FState = msForward;
 end;
 
 {*
@@ -1394,13 +1411,17 @@ end;
 procedure TSepiComponent.LoadForwards(Stream: TStream);
 var
   Count, I: Integer;
-  ForwardChild: TObject;
+  ChildClass: TSepiTypeClass;
+  ChildName: string;
 begin
   Stream.ReadBuffer(Count, 4);
   for I := 0 to Count-1 do
   begin
-    ForwardChild := SepiFindComponentClass(ReadStrFromStream(Stream)).NewInstance;
-    AddForward(ReadStrFromStream(Stream), ForwardChild);
+    ChildClass := TSepiTypeClass(SepiFindComponentClass(
+      ReadStrFromStream(Stream)));
+    ChildName := ReadStrFromStream(Stream);
+
+    ChildClass.ForwardDecl(Self, ChildName);
   end;
 end;
 
@@ -1499,18 +1520,6 @@ begin
 end;
 
 {*
-  Ajoute un enfant forward
-  @param ChildName   Nom de l'enfant
-  @param Child       Enfant à ajouter
-*}
-procedure TSepiComponent.AddForward(const ChildName: string; Child: TObject);
-begin
-  (Child as TSepiComponent).Visibility := CurrentVisibility;
-  TSepiComponent(Child).FName := ChildName;
-  FForwards.AddObject(ChildName, Child);
-end;
-
-{*
   Appelé lorsqu'un enfant vient d'être ajouté
   @param Child   Enfant qui vient d'être ajouté
 *}
@@ -1589,6 +1598,7 @@ end;
 procedure TSepiComponent.AfterConstruction;
 begin
   inherited;
+
   if Assigned(Owner) then
     Owner.ChildAdded(Self);
 end;
@@ -1672,15 +1682,6 @@ end;
 procedure TSepiComponent.WriteDigestData(Stream: TStream);
 begin
   WriteStrToStream(Stream, ClassName);
-end;
-
-{*
-  [@inheritDoc]
-*}
-class function TSepiComponent.NewInstance: TObject;
-begin
-  Result := inherited NewInstance;
-  TSepiComponent(Result).FIsForward := True;
 end;
 
 {*
@@ -1968,31 +1969,6 @@ end;
 {------------------}
 
 {*
-  Recense un type natif
-  @param AOwner      Propriétaire du type
-  @param ATypeInfo   RTTI du type à recenser
-*}
-constructor TSepiType.RegisterTypeInfo(AOwner: TSepiComponent;
-  ATypeInfo: PTypeInfo);
-var
-  AName: string;
-begin
-  AName := TypeInfoDecode(ATypeInfo.Name);
-  AName := AnsiReplaceStr(AName, '.', '$$');
-
-  inherited Create(AOwner, AName);
-
-  FKind := ATypeInfo.Kind;
-  FNative := True;
-  FTypeInfoLength := 0;
-  FTypeInfo := ATypeInfo;
-  FTypeData := GetTypeData(FTypeInfo);
-  FSize := 0;
-  FParamBehavior := DefaultTypeParamBehavior;
-  FResultBehavior := rbOrdinal;
-end;
-
-{*
   Charge un type depuis un flux
   @param AOwner   Propriétaire du type
   @param Stream   Flux depuis lequel charger le type
@@ -2002,14 +1978,6 @@ begin
   inherited;
 
   Stream.ReadBuffer(FKind, SizeOf(TTypeKind));
-  FNative := False;
-  FTypeInfoLength := 0;
-  FTypeInfo := nil;
-  FTypeData := nil;
-  FSize := 0;
-  FNeedInit := False;
-  FParamBehavior := DefaultTypeParamBehavior;
-  FResultBehavior := rbOrdinal;
 
   if Assigned(OwningUnit.OnGetTypeInfo) then
   begin
@@ -2034,14 +2002,6 @@ begin
   inherited Create(AOwner, AName);
 
   FKind := AKind;
-  FNative := False;
-  FTypeInfoLength := 0;
-  FTypeInfo := nil;
-  FTypeData := nil;
-  FSize := 0;
-  FNeedInit := False;
-  FParamBehavior := DefaultTypeParamBehavior;
-  FResultBehavior := rbOrdinal;
 end;
 
 {*
@@ -2073,6 +2033,7 @@ end;
 procedure TSepiType.Save(Stream: TStream);
 begin
   inherited;
+
   Stream.WriteBuffer(FKind, 1);
 end;
 
@@ -2093,19 +2054,22 @@ begin
 end;
 
 {*
-  Force le type comme étant natif, en modifiant également les RTTI
-  Cette méthode est utilisée par les types record et tableau statique, qui n'ont
-  pas toujours, même natifs, de RTTI.
-  @param ATypeInfo   RTTI à fixer (peut être nil)
+  Déclare un type en forward
+  @param AOwner   Propriétaire
+  @param AName    Nom du type
+  @return Type créé
 *}
-procedure TSepiType.ForceNative(ATypeInfo: PTypeInfo = nil);
+class function TSepiType.ForwardDecl(AOwner: TSepiComponent;
+  const AName: string): TSepiType;
 begin
-  FNative := True;
-  FTypeInfo := ATypeInfo;
-  if FTypeInfo = nil then
-    FTypeData := nil
-  else
-    FTypeData := GetTypeData(FTypeInfo);
+  Result := TSepiType(NewInstance);
+  Result.FOwner := AOwner;
+  Result.FName := AName;
+  Result.FVisibility := AOwner.CurrentVisibility;
+
+  AOwner.AddForward(Result);
+
+  Result.SetupProperties;
 end;
 
 {*
@@ -2117,28 +2081,90 @@ end;
   @param TypeDataLength   Taille des données de type
 *}
 procedure TSepiType.AllocateTypeInfo(TypeDataLength: Integer = 0);
-var
-  ShortName: ShortString;
-  NameLength: Integer;
 begin
-  ShortName := Name;
-  NameLength := Length(Name)+1; // 1 byte for string length
-
-  FTypeInfoLength := SizeOf(TTypeKind) + NameLength + TypeDataLength
+  FTypeInfoLength := SizeOf(TTypeKind) + TypeInfoNameSize + TypeDataLength
     {$IF CompilerVersion >= 21} + SizeOf(TAttrData) {$IFEND};
   GetMem(FTypeInfo, FTypeInfoLength);
   FillChar(FTypeInfo^, FTypeInfoLength, 0);
 
   FTypeInfo.Kind := FKind;
-  Move(ShortName, FTypeInfo.Name, NameLength);
+  StoreTypeInfoName(@FTypeInfo.Name);
+
   FTypeData := GetTypeData(FTypeInfo);
 end;
 
 {*
-  Extrait les informations les plus importantes depuis les données de type
+  Indique si ce type a des RTTI (TypeInfo)
+  @return True si ce type a des RTTI, False sinon
 *}
-procedure TSepiType.ExtractTypeData;
+function TSepiType.HasTypeInfo: Boolean;
 begin
+  Result := Kind <> tkUnknown;
+end;
+
+{*
+  Renseigne les propriétés de ce type
+*}
+procedure TSepiType.SetupProperties;
+begin
+  FIsReady := True;
+
+  FParamBehavior := DefaultTypeParamBehavior;
+  FResultBehavior := rbOrdinal;
+end;
+
+{*
+  Construit les RTTI du type
+*}
+procedure TSepiType.MakeTypeInfo;
+begin
+end;
+
+{*
+  Construit les données de runtime du type
+*}
+procedure TSepiType.MakeRuntimeInfo;
+begin
+  if HasTypeInfo then
+    MakeTypeInfo;
+end;
+
+{*
+  Indique si ce type est un type composite
+  Les types composites ne sont pas complétés automatiquement dans
+  AfterConstruction.
+*}
+function TSepiType.IsComposite: Boolean;
+begin
+  Result := False;
+end;
+
+{*
+  Indique si ce type est un type composite fort
+  Les types composites forts sont des types composites dont les propriétés
+  dépendent des composés. La méthode SetupProperties ne peut donc pas être
+  appelée tant que le type n'a pas été complété.
+*}
+function TSepiType.IsStrongComposite: Boolean;
+begin
+  Result := False;
+end;
+
+{*
+  Complète le type
+*}
+procedure TSepiType.Complete;
+begin
+  if Completed then
+    Exit;
+
+  FCompleted := True;
+
+  if not IsReady then
+    SetupProperties;
+
+  if not Native then
+    MakeRuntimeInfo;
 end;
 
 {*
@@ -2194,39 +2220,16 @@ begin
 end;
 
 {*
-  Recense un type natif à partir de ses RTTI
-  @param AOwner      Propriétaire du type
-  @param ATypeInfo   RTTI du type à recenser
-  @return Type nouvellement créé
+  [@inheritDoc]
 *}
-class function TSepiType.LoadFromTypeInfo(AOwner: TSepiComponent;
-  ATypeInfo: PTypeInfo): TSepiType;
-const
-  TypeClasses: array[TTypeKind] of TSepiTypeClass = (
-    nil, TSepiIntegerType, TSepiCharType, TSepiEnumType, TSepiFloatType,
-    TSepiShortStringType, TSepiSetType, TSepiClass, TSepiMethodRefType,
-    TSepiCharType, TSepiStringType, TSepiStringType, TSepiVariantType,
-    nil, nil, TSepiInterface, TSepiInt64Type, TSepiDynArrayType
-    {$IF Declared(tkUString)}, TSepiStringType {$IFEND}
-    {$IF Declared(tkProcedure)}, nil, nil, nil {$IFEND}
-  );
-var
-  TypeClass: TSepiTypeClass;
+procedure TSepiType.AfterConstruction;
 begin
-  TypeClass := TypeClasses[ATypeInfo.Kind];
-  if Assigned(TypeClass) then
-  begin
-    if TypeClass = TSepiEnumType then
-    begin
-      with GetTypeData(ATypeInfo)^ do
-        if (BaseType^ = System.TypeInfo(Boolean)) or
-          (GetTypeData(BaseType^).MinValue < 0) then
-          TypeClass := TSepiBooleanType;
-    end;
+  inherited;
 
-    Result := TypeClass.RegisterTypeInfo(AOwner, ATypeInfo);
-  end else
-    raise EAbstractError.Create(SSepiNoRegisterTypeInfo);
+  if not IsComposite then
+    Complete
+  else if (not IsReady) and (not IsStrongComposite) then
+    SetupProperties;
 end;
 
 {*
@@ -2333,17 +2336,6 @@ end;
 {------------------------}
 
 {*
-  [@inheritDoc]
-*}
-constructor TSepiUntypedType.Load(AOwner: TSepiComponent; Stream: TStream);
-begin
-  inherited;
-
-  FParamBehavior.AlwaysByAddress := True;
-  FResultBehavior := rbNone;
-end;
-
-{*
   Crée une instance de TSepiUntypedType
   @param AOwner   Propriétaire
   @param AName    Nom du type
@@ -2352,6 +2344,14 @@ constructor TSepiUntypedType.Create(AOwner: TSepiComponent;
   const AName: string);
 begin
   inherited Create(AOwner, AName, tkUnknown);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiUntypedType.SetupProperties;
+begin
+  inherited;
 
   FParamBehavior.AlwaysByAddress := True;
   FResultBehavior := rbNone;
@@ -2410,6 +2410,40 @@ end;
 {--------------------------}
 { TSepiContainerType class }
 {--------------------------}
+
+{*
+  [@inheritDoc]
+*}
+constructor TSepiContainerType.Load(AOwner: TSepiComponent; Stream: TStream);
+begin
+  inherited;
+
+  FLoadingStream := Stream;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiContainerType.IsComposite: Boolean;
+begin
+  Result := True;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiContainerType.AfterConstruction;
+begin
+  inherited;
+
+  if State = msLoading then
+  begin
+    LoadChildren(FLoadingStream);
+    FLoadingStream := nil;
+
+    Complete;
+  end;
+end;
 
 {*
   Recherche un membre dans ce conteneur depuis celui-ci
@@ -3822,6 +3856,7 @@ var
   UnitIndex, RefIndex: Integer;
   RefList: TStrings;
   SepiUnit: TSepiUnit;
+  ComponentName: string;
   Component: TSepiComponent;
   DigestOK: Boolean;
 begin
@@ -3847,16 +3882,21 @@ begin
     else
       SepiUnit := TSepiUnit(FUsesList.Objects[UnitIndex-1]);
 
-    Component := SepiUnit.GetComponent(RefList.Names[RefIndex]);
+    ComponentName := RefList.Names[RefIndex];
+    Component := SepiUnit.GetComponent(ComponentName);
 
-    if (Component = nil) or (UnitIndex = 0) then
-      DigestOK := True
-    else
-      DigestOK := Component.CheckDigest(RefList.ValueFromIndex[RefIndex]);
+    if Component = nil then
+      raise ESepiIncompatibleUsedUnitError.CreateFmt(
+        SSepiIncompatibleUsedUnitComponentNotFound,
+        [Name, SepiUnit.Name, ComponentName]);
 
-    if (Component = nil) or (not DigestOK) then
-      raise ESepiIncompatibleUsedUnitError.CreateFmt(SSepiIncompatibleUsedUnit,
-        [Name, SepiUnit.Name]);
+    DigestOK := (UnitIndex = 0) or
+      Component.CheckDigest(RefList.ValueFromIndex[RefIndex]);
+
+    if not DigestOK then
+      raise ESepiIncompatibleUsedUnitError.CreateFmt(
+        SSepiIncompatibleUsedUnitIncompatibleComponent,
+        [Name, SepiUnit.Name, ComponentName]);
 
     RefList.Objects[RefIndex] := Component;
     TObject(Ref) := Component;
@@ -4011,30 +4051,6 @@ begin
 end;
 
 {*
-  Crée un nouvel alias de type
-  @param AOwner   Propriétaire de l'alias de type
-  @param AName    Nom de l'alias de type
-  @param ADest    RTTI de la destination de l'alias
-*}
-constructor TSepiTypeAlias.Create(AOwner: TSepiComponent; const AName: string;
-  ADest: PTypeInfo);
-begin
-  Create(AOwner, AName, AOwner.Root.FindType(ADest));
-end;
-
-{*
-  Crée un nouvel alias de type
-  @param AOwner   Propriétaire de l'alias de type
-  @param AName    Nom de l'alias de type
-  @param ADest    Nom de la destination de l'alias
-*}
-constructor TSepiTypeAlias.Create(AOwner: TSepiComponent;
-  const AName, ADest: string);
-begin
-  Create(AOwner, AName, AOwner.Root.FindType(ADest));
-end;
-
-{*
   [@inheritDoc]
 *}
 procedure TSepiTypeAlias.ListReferences;
@@ -4136,52 +4152,43 @@ end;
   @param AOwner      Propriétaire de la constante
   @param AName       Nom de la constante
   @param AValue      Valeur de la constante
-  @param ATypeInfo   RTTI du type de la constante (déterminé par VType si nil)
 *}
 constructor TSepiConstant.Create(AOwner: TSepiComponent;
-  const AName: string; const AValue: Variant; ATypeInfo: PTypeInfo = nil);
+  const AName: string; const AValue: Variant);
+var
+  SystemUnit: TSepiSystemUnit;
+  AType: TSepiType;
 begin
-  if ATypeInfo = nil then
-  begin
-    case VarType(AValue) of
-      varSmallint: ATypeInfo := System.TypeInfo(Smallint);
-      varInteger:  ATypeInfo := System.TypeInfo(Integer);
-      varSingle:   ATypeInfo := System.TypeInfo(Single);
-      varDouble:   ATypeInfo := System.TypeInfo(Double);
-      varCurrency: ATypeInfo := System.TypeInfo(Currency);
-      varDate:     ATypeInfo := System.TypeInfo(TDateTime);
-      varError:    ATypeInfo := System.TypeInfo(HRESULT);
-      varBoolean:  ATypeInfo := System.TypeInfo(Boolean);
-      varShortInt: ATypeInfo := System.TypeInfo(Shortint);
-      varByte:     ATypeInfo := System.TypeInfo(Byte);
-      varWord:     ATypeInfo := System.TypeInfo(Word);
-      varLongWord: ATypeInfo := System.TypeInfo(LongWord);
-      varInt64:    ATypeInfo := System.TypeInfo(Int64);
+  SystemUnit := TSepiSystemUnit.Get(AOwner);
 
-      varOleStr, varStrArg, varString: ATypeInfo := System.TypeInfo(string);
+    case VarType(AValue) of
+    varSmallint: AType := SystemUnit.Smallint;
+    varInteger:  AType := SystemUnit.Integer;
+    varSingle:   AType := SystemUnit.Single;
+    varDouble:   AType := SystemUnit.Double;
+    varCurrency: AType := SystemUnit.Currency;
+    varDate:     AType := SystemUnit.TDateTime;
+    varError:    AType := SystemUnit.HRESULT;
+    varBoolean:  AType := SystemUnit.Boolean;
+    varShortInt: AType := SystemUnit.Shortint;
+    varByte:     AType := SystemUnit.Byte;
+    varWord:     AType := SystemUnit.Word;
+    varLongWord: AType := SystemUnit.LongWord;
+    varInt64:    AType := SystemUnit.Int64;
+    {$IF Declared(varUInt64)}
+    varUInt64:   AType := SystemUnit.UInt64;
+    {$IFEND}
+
+    varOleStr, varStrArg, varString: AType := SystemUnit.LongString;
       {$IF Declared(varUString)}
-      varUString: ATypeInfo := System.TypeInfo(string);
+    varUString: AType := SystemUnit.LongString;
       {$IFEND}
     else
       raise ESepiBadConstTypeError.CreateFmt(
         SSepiBadConstType, [VarType(AValue)]);
     end;
-  end;
 
-  Create(AOwner, AName, AValue, AOwner.Root.FindType(ATypeInfo));
-end;
-
-{*
-  Crée une nouvelle vraie constante
-  @param AOwner      Propriétaire de la constante
-  @param AName       Nom de la constante
-  @param AValue      Valeur de la constante
-  @param ATypeName   Nom du type de la constante
-*}
-constructor TSepiConstant.Create(AOwner: TSepiComponent;
-  const AName: string; const AValue: Variant; const ATypeName: string);
-begin
-  Create(AOwner, AName, AValue, AOwner.Root.FindType(ATypeName));
+  Create(AOwner, AName, AValue, AType);
 end;
 
 {*
@@ -4294,34 +4301,6 @@ begin
 end;
 
 {*
-  Importe une variable ou constante typée native
-  @param AOwner      Propriétaire de la variable
-  @param AName       Nom de la variable
-  @param AValue      Valeur de la variable
-  @param ATypeInfo   RTTI du type de la variable
-  @param AIsConst    Indique si c'est une constante typée
-*}
-constructor TSepiVariable.Create(AOwner: TSepiComponent; const AName: string;
-  const AValue; ATypeInfo: PTypeInfo; AIsConst: Boolean = False);
-begin
-  Create(AOwner, AName, AValue, AOwner.Root.FindType(ATypeInfo), AIsConst);
-end;
-
-{*
-  Importe une variable ou constante typée native
-  @param AOwner      Propriétaire de la variable
-  @param AName       Nom de la variable
-  @param AValue      Valeur de la variable
-  @param ATypeName   Nom du type de la variable
-  @param AIsConst    Indique si c'est une constante typée
-*}
-constructor TSepiVariable.Create(AOwner: TSepiComponent; const AName: string;
-  const AValue; const ATypeName: string; AIsConst: Boolean = False);
-begin
-  Create(AOwner, AName, AValue, AOwner.Root.FindType(ATypeName), AIsConst);
-end;
-
-{*
   Crée une nouvelle variable ou constante typée
   @param AOwner     Propriétaire de la variable
   @param AName      Nom de la variable
@@ -4339,32 +4318,6 @@ begin
   GetMem(FValue, FType.Size);
   FillChar(FValue^, FType.Size, 0);
   FOwnValue := True;
-end;
-
-{*
-  Crée une nouvelle variable ou constante typée
-  @param AOwner      Propriétaire de la variable
-  @param AName       Nom de la variable
-  @param ATypeInfo   RTTI du type de la variable
-  @param AIsConst    Indique si c'est une constante typée
-*}
-constructor TSepiVariable.Create(AOwner: TSepiComponent; const AName: string;
-  ATypeInfo: PTypeInfo; AIsConst: Boolean = False);
-begin
-  Create(AOwner, AName, AOwner.Root.FindType(ATypeInfo), AIsConst);
-end;
-
-{*
-  Crée une nouvelle variable ou constante typée
-  @param AOwner      Propriétaire de la variable
-  @param AName       Nom de la variable
-  @param ATypeName   Nom du type de la variable
-  @param AIsConst    Indique si c'est une constante typée
-*}
-constructor TSepiVariable.Create(AOwner: TSepiComponent; const AName: string;
-  const ATypeName: string; AIsConst: Boolean = False);
-begin
-  Create(AOwner, AName, AOwner.Root.FindType(ATypeName), AIsConst);
 end;
 
 {*

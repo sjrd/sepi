@@ -89,9 +89,6 @@ type
     FLowerBound: Integer;     /// Borne inférieure
     FHigherBound: Integer;    /// Borne supérieure
 
-    procedure MakeSize;
-    procedure MakeTypeInfo;
-
     function GetLength: Integer;
   protected
     procedure ListReferences; override;
@@ -99,26 +96,19 @@ type
 
     procedure WriteDigestData(Stream: TStream); override;
 
+    function HasTypeInfo: Boolean; override;
+    procedure SetupProperties; override;
+    procedure MakeTypeInfo; override;
+
     function GetAlignment: Integer; override;
     function GetIndexType: TSepiOrdType; override;
 
     function GetDescription: string; override;
   public
     constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
-
     constructor Create(AOwner: TSepiComponent; const AName: string;
       AIndexType: TSepiOrdType; ALowerBound, AHigherBound: Integer;
-      AElementType: TSepiType; AIsNative: Boolean = False;
-      ATypeInfo: PTypeInfo = nil); overload;
-    constructor Create(AOwner: TSepiComponent; const AName: string;
-      AIndexTypeInfo: PTypeInfo; ALowerBound, AHigherBound: Integer;
-      AElementTypeInfo: PTypeInfo; AIsNative: Boolean = False;
-      ATypeInfo: PTypeInfo = nil); overload;
-    constructor Create(AOwner: TSepiComponent; const AName: string;
-      const AIndexTypeName: string; ALowerBound, AHigherBound: Integer;
-      const AElementTypeName: string; AIsNative: Boolean = False;
-      ATypeInfo: PTypeInfo = nil); overload;
-
+      AElementType: TSepiType);
     constructor Clone(AOwner: TSepiComponent; const AName: string;
       Source: TSepiType); override;
 
@@ -138,25 +128,18 @@ type
     @version 1.0
   *}
   TSepiDynArrayType = class(TSepiArrayType)
-  private
-    procedure MakeTypeInfo;
   protected
-    procedure ExtractTypeData; override;
+    procedure SetupProperties; override;
+    procedure MakeTypeInfo; override;
 
     function GetIndexType: TSepiOrdType; override;
 
     function GetDescription: string; override;
   public
-    constructor RegisterTypeInfo(AOwner: TSepiComponent;
-      ATypeInfo: PTypeInfo); override;
-    constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
     constructor Create(AOwner: TSepiComponent; const AName: string;
       AElementType: TSepiType);
     constructor Clone(AOwner: TSepiComponent; const AName: string;
       Source: TSepiType); override;
-
-    procedure SetElementType(AElementType: TSepiType); overload;
-    procedure SetElementType(const AElementTypeName: string); overload;
 
     function CompatibleWith(AType: TSepiType): Boolean; override;
 
@@ -174,6 +157,8 @@ type
     FHighVarName: string;     /// Nom de la variable reprenant la valeur de High
   protected
     procedure Save(Stream: TStream); override;
+
+    procedure SetupProperties; override;
 
     function GetIndexType: TSepiOrdType; override;
 
@@ -316,15 +301,6 @@ begin
   OwningUnit.ReadRef(Stream, FIndexType);
   Stream.ReadBuffer(FLowerBound, 4);
   Stream.ReadBuffer(FHigherBound, 4);
-
-  MakeSize;
-  FNeedInit := FElementType.NeedInit;
-  FParamBehavior.AlwaysByAddress := Size > 4;
-  if FParamBehavior.AlwaysByAddress then
-    FResultBehavior := rbParameter;
-
-  if not Native then
-    MakeTypeInfo;
 end;
 
 {*
@@ -334,13 +310,10 @@ end;
   @param ALowerBound    Borne inférieure
   @param AHigherBound   Borne supérieure
   @param AElemenType    Type des éléments
-  @param AIsNative      Indique si le type tableau est natif
-  @param ATypeInfo      RTTI du type tableau natif
 *}
 constructor TSepiStaticArrayType.Create(AOwner: TSepiComponent;
   const AName: string; AIndexType: TSepiOrdType;
-  ALowerBound, AHigherBound: Integer; AElementType: TSepiType;
-  AIsNative: Boolean = False; ATypeInfo: PTypeInfo = nil);
+  ALowerBound, AHigherBound: Integer; AElementType: TSepiType);
 begin
   inherited Create(AOwner, AName, tkArray, AElementType);
 
@@ -349,57 +322,6 @@ begin
   FHigherBound := AHigherBound;
 
   FElementType := AElementType;
-
-  MakeSize;
-  FNeedInit := FElementType.NeedInit;
-  FParamBehavior.AlwaysByAddress := Size > 4;
-  if FParamBehavior.AlwaysByAddress then
-    FResultBehavior := rbParameter;
-
-  if AIsNative then
-    ForceNative(ATypeInfo);
-  if ATypeInfo = nil then
-    MakeTypeInfo;
-end;
-
-{*
-  Crée un nouveau type tableau
-  @param AOwner            Propriétaire du type
-  @param AIndexTypeInfo    RTTI du type de l'index
-  @param ALowerBound       Borne inférieure
-  @param AHigherBound      Borne supérieure
-  @param AElemenTypeInfo   RTTI du type des éléments
-  @param AIsNative         Indique si le type tableau est natif
-  @param ATypeInfo         RTTI du type tableau natif
-*}
-constructor TSepiStaticArrayType.Create(AOwner: TSepiComponent;
-  const AName: string; AIndexTypeInfo: PTypeInfo;
-  ALowerBound, AHigherBound: Integer; AElementTypeInfo: PTypeInfo;
-  AIsNative: Boolean = False; ATypeInfo: PTypeInfo = nil);
-begin
-  Create(AOwner, AName, AOwner.Root.FindType(AIndexTypeInfo) as TSepiOrdType,
-    ALowerBound, AHigherBound, AOwner.Root.FindType(AElementTypeInfo),
-    AIsNative, ATypeInfo);
-end;
-
-{*
-  Crée un nouveau type tableau
-  @param AOwner            Propriétaire du type
-  @param AIndexTypeName    Nom du type de l'index
-  @param ALowerBound       Borne inférieure
-  @param AHigherBound      Borne supérieure
-  @param AElemenTypeName   Nom du type des éléments
-  @param AIsNative         Indique si le type tableau est natif
-  @param ATypeInfo         RTTI du type tableau natif
-*}
-constructor TSepiStaticArrayType.Create(AOwner: TSepiComponent;
-  const AName: string; const AIndexTypeName: string;
-  ALowerBound, AHigherBound: Integer; const AElementTypeName: string;
-  AIsNative: Boolean = False; ATypeInfo: PTypeInfo = nil);
-begin
-  Create(AOwner, AName, AOwner.Root.FindType(AIndexTypeName) as TSepiOrdType,
-    ALowerBound, AHigherBound, AOwner.Root.FindType(AElementTypeName),
-    AIsNative, ATypeInfo);
 end;
 
 {*
@@ -413,15 +335,72 @@ begin
 end;
 
 {*
-  Calcule la taille du tableau et la range dans FSize
+  Longueur du tableau
+  @return Longueur du tableau
 *}
-procedure TSepiStaticArrayType.MakeSize;
+function TSepiStaticArrayType.GetLength: Integer;
 begin
-  FSize := ArrayLength * FElementType.Size;
+  Result := HigherBound - LowerBound + 1;
 end;
 
 {*
-  Construit les RTTI (si besoin)
+  [@inheritDoc]
+*}
+procedure TSepiStaticArrayType.ListReferences;
+begin
+  inherited;
+  OwningUnit.AddRef(FIndexType);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiStaticArrayType.Save(Stream: TStream);
+begin
+  inherited;
+
+  OwningUnit.WriteRef(Stream, FIndexType);
+  Stream.WriteBuffer(FLowerBound, 4);
+  Stream.WriteBuffer(FHigherBound, 4);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiStaticArrayType.WriteDigestData(Stream: TStream);
+begin
+  inherited;
+
+  IndexType.WriteDigestToStream(Stream);
+  Stream.WriteBuffer(FLowerBound, 4);
+  Stream.WriteBuffer(FHigherBound, 4);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiStaticArrayType.SetupProperties;
+begin
+  inherited;
+
+  FSize := ArrayLength * FElementType.Size;
+  FNeedInit := FElementType.NeedInit;
+
+  FParamBehavior.AlwaysByAddress := Size > 4;
+  if FParamBehavior.AlwaysByAddress then
+    FResultBehavior := rbParameter;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiStaticArrayType.HasTypeInfo: Boolean;
+begin
+  Result := NeedInit;
+end;
+
+{*
+  [@inheritDoc]
 *}
 procedure TSepiStaticArrayType.MakeTypeInfo;
 var
@@ -467,48 +446,6 @@ begin
     ArrayTypeData.Dims[I] := TSepiStaticArrayType(AElementType).TypeInfoRef;
   end;
 {$IFEND}
-end;
-
-{*
-  Longueur du tableau
-  @return Longueur du tableau
-*}
-function TSepiStaticArrayType.GetLength: Integer;
-begin
-  Result := HigherBound - LowerBound + 1;
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TSepiStaticArrayType.ListReferences;
-begin
-  inherited;
-  OwningUnit.AddRef(FIndexType);
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TSepiStaticArrayType.Save(Stream: TStream);
-begin
-  inherited;
-
-  OwningUnit.WriteRef(Stream, FIndexType);
-  Stream.WriteBuffer(FLowerBound, 4);
-  Stream.WriteBuffer(FHigherBound, 4);
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TSepiStaticArrayType.WriteDigestData(Stream: TStream);
-begin
-  inherited;
-
-  IndexType.WriteDigestToStream(Stream);
-  Stream.WriteBuffer(FLowerBound, 4);
-  Stream.WriteBuffer(FHigherBound, 4);
 end;
 
 {*
@@ -609,51 +546,15 @@ end;
 {--------------------------}
 
 {*
-  Recense un type tableau dynamique natif
-*}
-constructor TSepiDynArrayType.RegisterTypeInfo(AOwner: TSepiComponent;
-  ATypeInfo: PTypeInfo);
-begin
-  inherited;
-
-  FSize := 4;
-  FNeedInit := True;
-  FResultBehavior := rbParameter;
-
-  ExtractTypeData;
-end;
-
-{*
-  Charge un type tableau dynamique depuis un flux
-*}
-constructor TSepiDynArrayType.Load(AOwner: TSepiComponent; Stream: TStream);
-begin
-  inherited;
-
-  FSize := 4;
-  FNeedInit := True;
-  FResultBehavior := rbParameter;
-
-  if not Native then
-    MakeTypeInfo;
-end;
-
-{*
   Crée un nouveau type tableau dynamique
   @param AOwner         Propriétaire du type
   @param AName          Nom du type
   @param AElementType   Type des éléments
 *}
-constructor TSepiDynArrayType.Create(AOwner: TSepiComponent; const AName: string;
-  AElementType: TSepiType);
+constructor TSepiDynArrayType.Create(AOwner: TSepiComponent;
+  const AName: string; AElementType: TSepiType);
 begin
   inherited Create(AOwner, AName, tkDynArray, AElementType);
-
-  FSize := 4;
-  FNeedInit := True;
-  FResultBehavior := rbParameter;
-
-  MakeTypeInfo;
 end;
 
 {*
@@ -666,7 +567,19 @@ begin
 end;
 
 {*
-  Construit les RTTI du type tableau dynamique
+  [@inheritDoc]
+*}
+procedure TSepiDynArrayType.SetupProperties;
+begin
+  inherited;
+
+  FSize := 4;
+  FNeedInit := True;
+  FResultBehavior := rbParameter;
+end;
+
+{*
+  [@inheritDoc]
 *}
 procedure TSepiDynArrayType.MakeTypeInfo;
 var
@@ -687,7 +600,7 @@ begin
   // Element RTTI, if need initialization
   // Types which need initialization always have got RTTI
   if ElementType.NeedInit then
-    TypeData.elType := TSepiDynArrayType(ElementType).TypeInfoRef
+    TypeData.elType := ElementType.TypeInfoRef
   else
     TypeData.elType := nil;
 
@@ -696,9 +609,9 @@ begin
   TypeData.varType := -1;
 
   // Element RTTI, independant of cleanup
-  // Whe have to check for nul-RTTI, because of records and static arrays
+  // We have to check for nil RTTI, because of records and static arrays
   if Assigned(ElementType.TypeInfo) then
-    TypeData.elType2 := TSepiDynArrayType(ElementType).TypeInfoRef
+    TypeData.elType2 := ElementType.TypeInfoRef
   else
     TypeData.elType2 := nil;
 
@@ -717,18 +630,6 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiDynArrayType.ExtractTypeData;
-begin
-  inherited;
-
-  if Assigned(TypeData.elType2) then
-    FElementType := Root.FindType(TypeData.elType2^);
-  // Otherwise, the element type should be set with SetElementType
-end;
-
-{*
-  [@inheritDoc]
-*}
 function TSepiDynArrayType.GetIndexType: TSepiOrdType;
 begin
   Result := (Root.SystemUnit as TSepiSystemUnit).Integer;
@@ -740,31 +641,6 @@ end;
 function TSepiDynArrayType.GetDescription: string;
 begin
   Result := 'array of '+ElementType.DisplayName;
-end;
-
-{*
-  Renseigne le type des éléments
-  Cette méthode ne doit être appelée que pour un tableau dynamique natif, dont
-  les éléments n'ont pas de RTTI, et juste après le constructeur
-  RegisterTypeInfo.
-  @param AElementType   Type des éléments
-*}
-procedure TSepiDynArrayType.SetElementType(AElementType: TSepiType);
-begin
-  Assert(Native and (FElementType = nil));
-  FElementType := AElementType;
-end;
-
-{*
-  Renseigne le type des éléments
-  Cette méthode ne doit être appelée que pour un tableau dynamique natif, dont
-  les éléments n'ont pas de RTTI, et juste après le constructeur
-  RegisterTypeInfo.
-  @param AElementTypeName   Nom du type des éléments
-*}
-procedure TSepiDynArrayType.SetElementType(const AElementTypeName: string);
-begin
-  SetElementType(Root.FindType(AElementTypeName));
 end;
 
 {*
@@ -796,9 +672,6 @@ begin
 
   Stream.ReadBuffer(FIsArrayOfConst, SizeOf(Boolean));
   FHighVarName := ReadStrFromStream(Stream);
-
-  FParamBehavior.AlwaysByAddress := True;
-  FResultBehavior := rbNone;
 end;
 
 {*
@@ -818,9 +691,6 @@ begin
   inherited Create(AOwner, AName, tkUnknown, AElementType);
 
   FHighVarName := AHighVarName;
-
-  FParamBehavior.AlwaysByAddress := True;
-  FResultBehavior := rbNone;
 end;
 
 {*
@@ -832,6 +702,17 @@ begin
 
   Stream.WriteBuffer(FIsArrayOfConst, SizeOf(Boolean));
   WriteStrToStream(Stream, FHighVarName);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiOpenArrayType.SetupProperties;
+begin
+  inherited;
+
+  FParamBehavior.AlwaysByAddress := True;
+  FResultBehavior := rbNone;
 end;
 
 {*
