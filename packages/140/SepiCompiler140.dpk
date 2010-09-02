@@ -1,0 +1,51 @@
+package SepiCompiler140;
+
+{$R *.res}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO ON}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION ON}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES OFF}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DESCRIPTION 'Sepi Compiler'}
+{$RUNONLY}
+{$IMPLICITBUILD OFF}
+
+requires
+  rtl,
+  SepiInterpreter140,
+  SepiReflection140,
+  SCL140;
+
+contains
+  SepiAsmInstructions in '..\..\source\run\SepiCompiler\SepiAsmInstructions.pas',
+  SepiCompiler in '..\..\source\run\SepiCompiler\SepiCompiler.pas',
+  SepiCompilerConsts in '..\..\source\run\SepiCompiler\SepiCompilerConsts.pas',
+  SepiCompilerErrors in '..\..\source\run\SepiCompiler\SepiCompilerErrors.pas',
+  SepiCompilerUtils in '..\..\source\run\SepiCompiler\SepiCompilerUtils.pas',
+  SepiDelphiLikeCompilerUtils in '..\..\source\run\SepiCompiler\SepiDelphiLikeCompilerUtils.pas',
+  SepiExpressions in '..\..\source\run\SepiCompiler\SepiExpressions.pas',
+  SepiInstructions in '..\..\source\run\SepiCompiler\SepiInstructions.pas',
+  SepiLexerUtils in '..\..\source\run\SepiCompiler\SepiLexerUtils.pas',
+  SepiLL1ParserUtils in '..\..\source\run\SepiCompiler\SepiLL1ParserUtils.pas',
+  SepiParserUtils in '..\..\source\run\SepiCompiler\SepiParserUtils.pas',
+  SepiParseTrees in '..\..\source\run\SepiCompiler\SepiParseTrees.pas',
+  SepiStdCompilerNodes in '..\..\source\run\SepiCompiler\SepiStdCompilerNodes.pas';
+
+end.
+

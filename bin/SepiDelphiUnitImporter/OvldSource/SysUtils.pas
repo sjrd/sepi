@@ -1,3 +1,10 @@
+Around line 267 in Delphi 2010
+----------
+    class constructor Create;
+    class destructor Destroy;
+----------
+----------
+
 Around line 3601 in Delphi 2009
 ----------
 // Generic Anonymous method declarations

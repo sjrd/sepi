@@ -13,6 +13,7 @@ Registry.pas
 RTLConsts.pas
 StdConvs.pas
 StdVCL.pas
+TimeSpan.pas
 StrUtils.pas
 SyncObjs.pas
 VarCmplx.pas

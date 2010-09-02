@@ -1,0 +1,42 @@
+package SepiInterpreter140;
+
+{$R *.res}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO ON}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION ON}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES OFF}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DESCRIPTION 'Sepi Interpreter'}
+{$RUNONLY}
+{$IMPLICITBUILD OFF}
+
+requires
+  rtl,
+  SepiReflection140,
+  SCL140;
+
+contains
+  SepiDisassembler in '..\..\source\run\SepiInterpreter\SepiDisassembler.pas',
+  SepiInCalls in '..\..\source\run\SepiInterpreter\SepiInCalls.pas',
+  SepiOpCodes in '..\..\source\run\SepiInterpreter\SepiOpCodes.pas',
+  SepiRuntime in '..\..\source\run\SepiInterpreter\SepiRuntime.pas',
+  SepiRuntimeOperations in '..\..\source\run\SepiInterpreter\SepiRuntimeOperations.pas';
+
+end.
+
