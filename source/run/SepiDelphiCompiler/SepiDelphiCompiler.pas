@@ -1024,7 +1024,9 @@ begin
 
   if Child is TDelphiRecordInitializationNode then
     TDelphiRecordInitializationNode(Child).SetValueTypeAndPtr(
-      ValueType, ValuePtr);
+      ValueType, ValuePtr)
+  else if Child is TSepiConstExpressionNode then
+    TSepiConstExpressionNode(Child).ValueType := SystemUnit.LongString;
 end;
 
 {*
@@ -1032,11 +1034,14 @@ end;
 *}
 procedure TDelphiGUIDInitializationNode.ChildEndParsing(
   Child: TSepiParseTreeNode);
+var
+  GUIDStr: string;
 begin
-  if Child.SymbolClass = tkStringCst then
+  if Child is TSepiConstExpressionNode then
   begin
+    TSepiConstExpressionNode(Child).CompileConst(GUIDStr);
     try
-      TGUID(ValuePtr^) := StringToGUID(StrRepresToStr(Child.AsText));
+      TGUID(ValuePtr^) := StringToGUID(GUIDStr);
     except
       on Error: EConvertError do
         Child.MakeError(Error.Message);
