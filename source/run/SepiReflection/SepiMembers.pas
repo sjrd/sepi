@@ -3412,7 +3412,7 @@ type
 {$IFEND}
 var
   Field: TSepiField;
-  I, FieldCount, ManagedCount, TypeDataLength: Integer;
+  I, ManagedCount, TypeDataLength: Integer;
   RecordData: PRecordTypeData;
   ManagedField: PManagedField;
 {$IF CompilerVersion >= 21}
@@ -3426,14 +3426,12 @@ begin
 {$IFEND}
 
   // Measurements
-  FieldCount := 0;
   ManagedCount := 0;
   TypeDataLength := RecordTypeDataLengthBase;
 
   for I := 0 to FieldCount-1 do
   begin
     Field := Fields[I];
-    Inc(FieldCount);
 
     if Field.FieldType.NeedInit then
     begin
