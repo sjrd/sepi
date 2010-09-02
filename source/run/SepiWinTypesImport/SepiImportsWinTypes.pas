@@ -37,6 +37,13 @@ unit SepiImportsWinTypes;
 interface
 
 uses
+{$IF RTLVersion >= 21}
+  SepiImportsDwmapi,
+  SepiImportsObjectArray,
+  SepiImportsPropSys,
+  SepiImportsStructuredQueryCondition,
+  SepiImportsWincodec,
+{$IFEND}
   SepiImportsAccCtrl,
   SepiImportsAclAPI,
   SepiImportsActiveX,

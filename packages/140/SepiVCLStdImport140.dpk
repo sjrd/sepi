@@ -1,0 +1,57 @@
+package SepiVCLStdImport140;
+
+{$R *.res}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO ON}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION ON}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES OFF}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DESCRIPTION 'Sepi importer for VCL standart units'}
+{$RUNONLY}
+{$IMPLICITBUILD OFF}
+
+requires
+  rtl,
+  vcl,
+  VclSmp,
+  vclx,
+  SepiReflection140;
+
+contains
+  SepiImportsVCLStd in '..\..\source\run\SepiVCLStdImport\SepiImportsVCLStd.pas',
+  SepiImportsActnList in '..\..\source\run\SepiVCLStdImport\SepiImportsActnList.pas',
+  SepiImportsButtons in '..\..\source\run\SepiVCLStdImport\SepiImportsButtons.pas',
+  SepiImportsClipBrd in '..\..\source\run\SepiVCLStdImport\SepiImportsClipBrd.pas',
+  SepiImportsComCtrls in '..\..\source\run\SepiVCLStdImport\SepiImportsComCtrls.pas',
+  SepiImportsControls in '..\..\source\run\SepiVCLStdImport\SepiImportsControls.pas',
+  SepiImportsDialogs in '..\..\source\run\SepiVCLStdImport\SepiImportsDialogs.pas',
+  SepiImportsExtCtrls in '..\..\source\run\SepiVCLStdImport\SepiImportsExtCtrls.pas',
+  SepiImportsForms in '..\..\source\run\SepiVCLStdImport\SepiImportsForms.pas',
+  SepiImportsGraphics in '..\..\source\run\SepiVCLStdImport\SepiImportsGraphics.pas',
+  SepiImportsImgList in '..\..\source\run\SepiVCLStdImport\SepiImportsImgList.pas',
+  SepiImportsListActns in '..\..\source\run\SepiVCLStdImport\SepiImportsListActns.pas',
+  SepiImportsMenus in '..\..\source\run\SepiVCLStdImport\SepiImportsMenus.pas',
+  SepiImportsPrinters in '..\..\source\run\SepiVCLStdImport\SepiImportsPrinters.pas',
+  SepiImportsSpin in '..\..\source\run\SepiVCLStdImport\SepiImportsSpin.pas',
+  SepiImportsStdCtrls in '..\..\source\run\SepiVCLStdImport\SepiImportsStdCtrls.pas',
+  SepiImportsToolWin in '..\..\source\run\SepiVCLStdImport\SepiImportsToolWin.pas',
+  SepiImportsGraphUtil in '..\..\source\run\SepiVCLStdImport\SepiImportsGraphUtil.pas';
+
+end.
+

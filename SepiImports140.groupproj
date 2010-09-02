@@ -1,0 +1,110 @@
+﻿	<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+		<PropertyGroup>
+			<ProjectGuid>{99aa7b4f-ef37-4ab5-bf5d-b702f5ca3ea4}</ProjectGuid>
+		</PropertyGroup>
+		<ItemGroup>
+			<Projects Include="packages\140\SepiRTLSysImport140.dproj">
+				<Dependencies/>
+			</Projects>
+			<Projects Include="packages\140\SepiWinTypesImport140.dproj">
+				<Dependencies/>
+			</Projects>
+			<Projects Include="packages\140\SepiRTLCommonImport140.dproj">
+				<Dependencies/>
+			</Projects>
+			<Projects Include="packages\140\SepiSCLImport140.dproj">
+				<Dependencies/>
+			</Projects>
+			<Projects Include="packages\140\SepiVCLStdImport140.dproj">
+				<Dependencies/>
+			</Projects>
+			<Projects Include="packages\140\SepiSVCLImport140.dproj">
+				<Dependencies/>
+			</Projects>
+			<Projects Include="packages\140\SepiSDLImport140.dproj">
+				<Dependencies/>
+			</Projects>
+		</ItemGroup>
+		<ProjectExtensions>
+			<Borland.Personality>Default.Personality.12</Borland.Personality>
+			<Borland.ProjectType/>
+			<BorlandProject>
+				<BorlandProject>
+					<Default.Personality/>
+				</BorlandProject>
+			</BorlandProject>
+		</ProjectExtensions>
+		<Target Name="SepiRTLSysImport140">
+			<MSBuild Projects="packages\140\SepiRTLSysImport140.dproj"/>
+		</Target>
+		<Target Name="SepiRTLSysImport140:Clean">
+			<MSBuild Targets="Clean" Projects="packages\140\SepiRTLSysImport140.dproj"/>
+		</Target>
+		<Target Name="SepiRTLSysImport140:Make">
+			<MSBuild Targets="Make" Projects="packages\140\SepiRTLSysImport140.dproj"/>
+		</Target>
+		<Target Name="SepiWinTypesImport140">
+			<MSBuild Projects="packages\140\SepiWinTypesImport140.dproj"/>
+		</Target>
+		<Target Name="SepiWinTypesImport140:Clean">
+			<MSBuild Targets="Clean" Projects="packages\140\SepiWinTypesImport140.dproj"/>
+		</Target>
+		<Target Name="SepiWinTypesImport140:Make">
+			<MSBuild Targets="Make" Projects="packages\140\SepiWinTypesImport140.dproj"/>
+		</Target>
+		<Target Name="SepiRTLCommonImport140">
+			<MSBuild Projects="packages\140\SepiRTLCommonImport140.dproj"/>
+		</Target>
+		<Target Name="SepiRTLCommonImport140:Clean">
+			<MSBuild Targets="Clean" Projects="packages\140\SepiRTLCommonImport140.dproj"/>
+		</Target>
+		<Target Name="SepiRTLCommonImport140:Make">
+			<MSBuild Targets="Make" Projects="packages\140\SepiRTLCommonImport140.dproj"/>
+		</Target>
+		<Target Name="SepiSCLImport140">
+			<MSBuild Projects="packages\140\SepiSCLImport140.dproj"/>
+		</Target>
+		<Target Name="SepiSCLImport140:Clean">
+			<MSBuild Targets="Clean" Projects="packages\140\SepiSCLImport140.dproj"/>
+		</Target>
+		<Target Name="SepiSCLImport140:Make">
+			<MSBuild Targets="Make" Projects="packages\140\SepiSCLImport140.dproj"/>
+		</Target>
+		<Target Name="SepiVCLStdImport140">
+			<MSBuild Projects="packages\140\SepiVCLStdImport140.dproj"/>
+		</Target>
+		<Target Name="SepiVCLStdImport140:Clean">
+			<MSBuild Targets="Clean" Projects="packages\140\SepiVCLStdImport140.dproj"/>
+		</Target>
+		<Target Name="SepiVCLStdImport140:Make">
+			<MSBuild Targets="Make" Projects="packages\140\SepiVCLStdImport140.dproj"/>
+		</Target>
+		<Target Name="SepiSVCLImport140">
+			<MSBuild Projects="packages\140\SepiSVCLImport140.dproj"/>
+		</Target>
+		<Target Name="SepiSVCLImport140:Clean">
+			<MSBuild Targets="Clean" Projects="packages\140\SepiSVCLImport140.dproj"/>
+		</Target>
+		<Target Name="SepiSVCLImport140:Make">
+			<MSBuild Targets="Make" Projects="packages\140\SepiSVCLImport140.dproj"/>
+		</Target>
+		<Target Name="SepiSDLImport140">
+			<MSBuild Projects="packages\140\SepiSDLImport140.dproj"/>
+		</Target>
+		<Target Name="SepiSDLImport140:Clean">
+			<MSBuild Targets="Clean" Projects="packages\140\SepiSDLImport140.dproj"/>
+		</Target>
+		<Target Name="SepiSDLImport140:Make">
+			<MSBuild Targets="Make" Projects="packages\140\SepiSDLImport140.dproj"/>
+		</Target>
+		<Target Name="Build">
+			<CallTarget Targets="SepiRTLSysImport140;SepiWinTypesImport140;SepiRTLCommonImport140;SepiSCLImport140;SepiVCLStdImport140;SepiSVCLImport140;SepiSDLImport140"/>
+		</Target>
+		<Target Name="Clean">
+			<CallTarget Targets="SepiRTLSysImport140:Clean;SepiWinTypesImport140:Clean;SepiRTLCommonImport140:Clean;SepiSCLImport140:Clean;SepiVCLStdImport140:Clean;SepiSVCLImport140:Clean;SepiSDLImport140:Clean"/>
+		</Target>
+		<Target Name="Make">
+			<CallTarget Targets="SepiRTLSysImport140:Make;SepiWinTypesImport140:Make;SepiRTLCommonImport140:Make;SepiSCLImport140:Make;SepiVCLStdImport140:Make;SepiSVCLImport140:Make;SepiSDLImport140:Make"/>
+		</Target>
+		<Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+	</Project>

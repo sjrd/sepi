@@ -37,6 +37,9 @@ unit SepiImportsRTLCommon;
 interface
 
 uses
+{$IF RTLVersion >= 21}
+  SepiImportsTimeSpan,
+{$IFEND}
   SepiImportsClasses,
   SepiImportsComConst,
   SepiImportsContnrs,
