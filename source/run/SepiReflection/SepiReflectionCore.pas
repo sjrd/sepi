@@ -2084,13 +2084,16 @@ procedure TSepiType.AllocateTypeInfo(TypeDataLength: Integer = 0);
 begin
   FTypeInfoLength := SizeOf(TTypeKind) + TypeInfoNameSize + TypeDataLength
     {$IF CompilerVersion >= 21} + SizeOf(TAttrData) {$IFEND};
-  GetMem(FTypeInfo, FTypeInfoLength);
-  FillChar(FTypeInfo^, FTypeInfoLength, 0);
+  FTypeInfo := AllocMem(FTypeInfoLength);
 
   FTypeInfo.Kind := FKind;
   StoreTypeInfoName(@FTypeInfo.Name);
 
   FTypeData := GetTypeData(FTypeInfo);
+
+  {$IF CompilerVersion >= 21}
+  PWord(Cardinal(FTypeInfo) + FTypeInfoLength - SizeOf(TAttrData))^ := 2;
+  {$IFEND}
 end;
 
 {*
