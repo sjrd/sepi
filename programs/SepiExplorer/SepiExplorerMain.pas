@@ -14,8 +14,8 @@ unit SepiExplorerMain;
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, ActnList, ImgList, Menus, VirtualTrees, SdDialogs,
+  Types, Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls,
+  Forms, Dialogs, ActnList, ImgList, Menus, VirtualTrees, SdDialogs,
   SepiReflectionCore, SepiMembers, SepiSystemUnit, SepiRuntime, ExplorerOptions,
   ExplorerConsts, ExtCtrls, ComponentExplorer;
 
@@ -141,11 +141,19 @@ end;
 function TExplorerForm.RootLoadUnit(Sender: TSepiRoot;
   const UnitName: string): TSepiUnit;
 var
+  AliasNames: TStringDynArray;
   UnitFileName: string;
   Stream: TStream;
   DisableLazyLoad, LazyLoad: Boolean;
   RuntimeUnit: TSepiRuntimeUnit;
 begin
+  if Options.ResolveAlias(UnitName, AliasNames) then
+  begin
+    Result := TSepiUnitAlias.Create(Sender, UnitName, AliasNames);
+    Result.Complete;
+    Exit;
+  end;
+
   UnitFileName := Options.SearchFile(UnitName + CompiledIntfExt);
 
   DisableLazyLoad := FDisableLazyLoad;
