@@ -42,7 +42,7 @@ unit ScTypInfo;
 interface
 
 uses
-  TypInfo;
+  Classes, TypInfo;
 
 const
   /// tkUString sous Delphi 2009+, tkUnknown sinon
@@ -151,6 +151,9 @@ function AreInitFinitCompatible(Left, Right: PTypeInfo): Boolean;
 
 function TypeInfoEncode(const Str: string): TypeInfoString; inline;
 function TypeInfoDecode(const Str: TypeInfoString): string; inline;
+
+function ReadTypeInfoStringFromStream(Stream: TStream): string;
+procedure WriteTypeInfoStringToStream(Stream: TStream; const Str: string);
 
 implementation
 
@@ -360,7 +363,7 @@ begin
 end;
 
 {*
-  Dcode a string coming from RTTI
+  Decode a string coming from RTTI
   @param Str   String to decode
   @return The string Str decoded using the encoding of RTTI
 *}
@@ -371,6 +374,35 @@ begin
 {$ELSE}
   Result := string(Str);
 {$ENDIF}
+end;
+
+{*
+  Lit une chaîne de caractères de RTTI depuis un flux
+  Cette chaîne doit avoir été écrite avec WriteTypeInfoStringToStream.
+  @param Stream   Flux depuis lequel lire la chaîne
+  @return La chaîne lue
+*}
+function ReadTypeInfoStringFromStream(Stream: TStream): string;
+var
+  TypeInfoStr: TypeInfoString;
+begin
+  Stream.ReadBuffer(TypeInfoStr, SizeOf(Byte));
+  Stream.ReadBuffer(TypeInfoStr[1], Length(TypeInfoStr));
+  Result := TypeInfoDecode(TypeInfoStr);
+end;
+
+{*
+  Écrit une chaîne de caractères de RTTI dans un flux
+  Cette chaine pourra être relue avec ReadTypeInfoStringFromStream.
+  @param Stream   Flux dans lequel enregistrer la chaîne
+  @param Str      Chaîne de caractères à écrire
+*}
+procedure WriteTypeInfoStringToStream(Stream: TStream; const Str: string);
+var
+  TypeInfoStr: TypeInfoString;
+begin
+  TypeInfoStr := TypeInfoEncode(Str);
+  Stream.WriteBuffer(TypeInfoStr, Length(TypeInfoStr)+1);
 end;
 
 end.
