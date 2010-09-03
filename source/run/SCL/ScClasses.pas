@@ -68,6 +68,26 @@ type
   end;
 
   {*
+    Flux virtuel qui ne lit/enregistre rien, mais retient la taille requise
+    TMeasureStream peut être utilisé pour mesurer a priori la taille requise
+    par une méthode qui écrit dans un flux.
+    @author sjrd
+    @version 1.0
+  *}
+  TMeasureStream = class(TStream)
+  private
+    FSize: Int64;     /// Taille
+    FPosition: Int64; /// Position
+  protected
+    function GetSize: Int64; override;
+    procedure SetSize(const NewSize: Int64); override;
+  public
+    function Read(var Buffer; Count: Longint): Longint; override;
+    function Write(const Buffer; Count: Longint): Longint; override;
+    function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; override;
+  end;
+
+  {*
     Prototype d'une méthode d'exécution d'un thread
     @param Thread   Objet thread qui contrôle le thread de la méthode
   *}
@@ -150,6 +170,83 @@ begin
     soFromCurrent: Inc(Integer(FPosition), Offset);
   end;
   Result := Longint(FPosition);
+end;
+
+{----------------------}
+{ TMeasureStream class }
+{----------------------}
+
+{*
+  [@inheritDoc]
+*}
+function TMeasureStream.GetSize: Int64;
+begin
+  Result := FSize;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TMeasureStream.SetSize(const NewSize: Int64);
+begin
+  FSize := NewSize;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TMeasureStream.Read(var Buffer; Count: Integer): Longint;
+begin
+  if (FPosition >= 0) and (Count >= 0) then
+  begin
+    Result := FSize - FPosition;
+
+    if Result > 0 then
+    begin
+      if Result > Count then
+        Result := Count;
+      Inc(FPosition, Result);
+    end else
+      Result := 0;
+  end else
+    Result := 0;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TMeasureStream.Write(const Buffer; Count: Integer): Longint;
+var
+  Pos: Int64;
+begin
+  if (FPosition >= 0) and (Count >= 0) then
+  begin
+    Pos := FPosition + Count;
+    if Pos > 0 then
+    begin
+      if Pos > FSize then
+        FSize := Pos;
+
+      FPosition := Pos;
+      Result := Count;
+    end else
+      Result := 0;
+  end else
+    Result := 0;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TMeasureStream.Seek(const Offset: Int64; Origin: TSeekOrigin): Int64;
+begin
+  case Origin of
+    soBeginning: FPosition := Offset;
+    soCurrent: Inc(FPosition, Offset);
+    soEnd: FPosition := FSize + Offset;
+  end;
+
+  Result := FPosition;
 end;
 
 {---------------------}
