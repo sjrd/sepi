@@ -45,8 +45,9 @@ interface
 
 uses
   Types, Windows, SysUtils, Classes, Contnrs, RTLConsts, IniFiles, TypInfo,
-  Variants, StrUtils, ScUtils, ScStrUtils, ScSyncObjs, ScCompilerMagic,
-  ScSerializer, ScTypInfo, ScMD5, SepiCore, SepiReflectionConsts;
+  Variants, StrUtils, ScUtils, ScClasses, ScStrUtils, ScSyncObjs,
+  ScCompilerMagic, ScSerializer, ScTypInfo, ScMD5, SepiCore,
+  SepiReflectionConsts;
 
 type
   TSepiComponent = class;
@@ -375,11 +376,12 @@ type
     class function ForwardDecl(AOwner: TSepiComponent;
       const AName: string): TSepiType;
 
-    procedure AllocateTypeInfo(TypeDataLength: Integer = 0);
+    procedure SetupProperties; virtual;
 
     function HasTypeInfo: Boolean; virtual;
-    procedure SetupProperties; virtual;
-    procedure MakeTypeInfo; virtual;
+    procedure WriteTypeInfo(Stream: TStream); virtual;
+    procedure WriteAttrData(Stream: TStream);
+    procedure MakeTypeInfo;
     procedure MakeRuntimeInfo; virtual;
 
     function IsComposite: Boolean; virtual;
@@ -410,6 +412,8 @@ type
     procedure DisposeValue(Value: Pointer);
     procedure CopyData(const Source; var Dest);
     function ValueToString(const Value): string; virtual;
+
+    procedure WriteTypeInfoRefToStream(Stream: TStream);
 
     function Equals(Other: TSepiType): Boolean;
       {$IF RTLVersion >= 20.0} reintroduce; {$IFEND} virtual;
@@ -2073,27 +2077,14 @@ begin
 end;
 
 {*
-  Alloue une zone mémoire pour les RTTI
-  Alloue une zone mémoire adaptée au nom du type et à la taille des données de
-  type, et remplit les champs de TypeInfo (TypeData reste non initialisé).
-  La zone mémoire ainsi allouée sera automatiquement libérée à la destruction du
-  type.
-  @param TypeDataLength   Taille des données de type
+  Renseigne les propriétés de ce type
 *}
-procedure TSepiType.AllocateTypeInfo(TypeDataLength: Integer = 0);
+procedure TSepiType.SetupProperties;
 begin
-  FTypeInfoLength := SizeOf(TTypeKind) + TypeInfoNameSize + TypeDataLength
-    {$IF CompilerVersion >= 21} + SizeOf(TAttrData) {$IFEND};
-  FTypeInfo := AllocMem(FTypeInfoLength);
+  FIsReady := True;
 
-  FTypeInfo.Kind := FKind;
-  StoreTypeInfoName(@FTypeInfo.Name);
-
-  FTypeData := GetTypeData(FTypeInfo);
-
-  {$IF CompilerVersion >= 21}
-  PWord(Cardinal(FTypeInfo) + FTypeInfoLength - SizeOf(TAttrData))^ := 2;
-  {$IFEND}
+  FParamBehavior := DefaultTypeParamBehavior;
+  FResultBehavior := rbOrdinal;
 end;
 
 {*
@@ -2106,21 +2097,62 @@ begin
 end;
 
 {*
-  Renseigne les propriétés de ce type
+  Écrit les RTTI du type dans un flux
 *}
-procedure TSepiType.SetupProperties;
+procedure TSepiType.WriteTypeInfo(Stream: TStream);
 begin
-  FIsReady := True;
+  Assert(HasTypeInfo);
 
-  FParamBehavior := DefaultTypeParamBehavior;
-  FResultBehavior := rbOrdinal;
+  Stream.WriteBuffer(FKind, SizeOf(Byte));
+  WriteTypeInfoStringToStream(Stream, Name);
+end;
+
+{*
+  Écrit les données d'attribut dans un flux
+*}
+procedure TSepiType.WriteAttrData(Stream: TStream);
+{$IF CompilerVersion >= 21}
+const
+  EmptyAttrDataLen: Word = SizeOf(Word);
+{$IFEND}
+begin
+  {$IF CompilerVersion >= 21}
+  Stream.WriteBuffer(EmptyAttrDataLen, SizeOf(Word));
+  {$IFEND}
 end;
 
 {*
   Construit les RTTI du type
 *}
 procedure TSepiType.MakeTypeInfo;
+var
+  Stream: TStream;
 begin
+  Assert(HasTypeInfo);
+
+  // Measure
+  Stream := TMeasureStream.Create;
+  try
+    WriteTypeInfo(Stream);
+    WriteAttrData(Stream);
+
+    FTypeInfoLength := Stream.Size;
+  finally
+    Stream.Free;
+  end;
+
+  // Allocate type info
+  FTypeInfo := AllocMem(FTypeInfoLength);
+  FTypeData := PTypeData(Cardinal(FTypeInfo) + SizeOf(Byte) + TypeInfoNameSize);
+
+  // Write type info
+  Stream := TAbsoluteMemoryStream.Create(FTypeInfo);
+  try
+    WriteTypeInfo(Stream);
+    WriteAttrData(Stream);
+  finally
+    Stream.Free;
+  end;
 end;
 
 {*
@@ -2307,6 +2339,20 @@ end;
 function TSepiType.ValueToString(const Value): string;
 begin
   Result := Format(SUnknownValue, [DisplayName]);
+end;
+
+{*
+  Écrit une référence aux RTTI de ce type dans un flux
+  @param Stream   Flux destination
+*}
+procedure TSepiType.WriteTypeInfoRefToStream(Stream: TStream);
+const
+  NilTypeInfoRef: PPTypeInfo = nil;
+begin
+  if (Self = nil) or (not HasTypeInfo) then
+    Stream.WriteBuffer(NilTypeInfoRef, SizeOf(PPTypeInfo))
+  else
+    Stream.WriteBuffer(FTypeInfoRef, SizeOf(PPTypeInfo));
 end;
 
 {*

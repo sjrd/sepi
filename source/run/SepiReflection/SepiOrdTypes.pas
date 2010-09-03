@@ -78,7 +78,7 @@ type
     procedure WriteDigestData(Stream: TStream); override;
 
     procedure SetupProperties; override;
-    procedure MakeTypeInfo; override;
+    procedure WriteTypeInfo(Stream: TStream); override;
   public
     constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
     constructor Create(AOwner: TSepiComponent; const AName: string;
@@ -110,7 +110,6 @@ type
     function GetDescription: string; override;
 
     procedure SetupProperties; override;
-    procedure MakeTypeInfo; override;
   public
     constructor Create(AOwner: TSepiComponent; const AName: string;
       AMinValue: Longint = -MaxInt-1; AMaxValue: Longint = MaxInt);
@@ -142,7 +141,6 @@ type
     function GetDescription: string; override;
 
     procedure SetupProperties; override;
-    procedure MakeTypeInfo; override;
   public
     constructor Create(AOwner: TSepiComponent; const AName: string;
       AMinValue: WideChar = #0; AMaxValue: WideChar = #255;
@@ -177,7 +175,7 @@ type
     procedure WriteDigestData(Stream: TStream); override;
 
     procedure SetupProperties; override;
-    procedure MakeTypeInfo; override;
+    procedure WriteTypeInfo(Stream: TStream); override;
 
     function GetDescription: string; override;
   public
@@ -211,7 +209,7 @@ type
     procedure WriteDigestData(Stream: TStream); override;
 
     procedure SetupProperties; override;
-    procedure MakeTypeInfo; override;
+    procedure WriteTypeInfo(Stream: TStream); override;
 
     function GetAlignment: Integer; override;
   public
@@ -242,7 +240,7 @@ type
   protected
     procedure Save(Stream: TStream); override;
 
-    procedure MakeTypeInfo; override;
+    procedure WriteTypeInfo(Stream: TStream); override;
   public
     constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
     constructor Create(AOwner: TSepiComponent; const AName: string;
@@ -280,7 +278,7 @@ type
 
     function GetDescription: string; override;
 
-    procedure MakeTypeInfo; override;
+    procedure WriteTypeInfo(Stream: TStream); override;
 
     procedure Complete; override;
   public
@@ -368,7 +366,7 @@ type
     procedure WriteDigestData(Stream: TStream); override;
 
     procedure SetupProperties; override;
-    procedure MakeTypeInfo; override;
+    procedure WriteTypeInfo(Stream: TStream); override;
 
     function GetAlignment: Integer; override;
 
@@ -404,7 +402,7 @@ type
     procedure WriteDigestData(Stream: TStream); override;
 
     procedure SetupProperties; override;
-    procedure MakeTypeInfo; override;
+    procedure WriteTypeInfo(Stream: TStream); override;
 
     function GetDescription: string; override;
   public
@@ -704,15 +702,16 @@ begin
 end;
 
 {*
-  Crée les RTTI du type
+  [@inheritDoc]
 *}
-procedure TSepiOrdType.MakeTypeInfo;
+procedure TSepiOrdType.WriteTypeInfo(Stream: TStream);
 begin
-  Assert(HasTypeInfo);
+  inherited;
 
-  TypeData.OrdType := OrdType;
-  TypeData.MinValue := MinValue;
-  TypeData.MaxValue := MaxValue;
+  // TTypeData.tkInteger
+  Stream.WriteBuffer(FOrdType, SizeOf(TOrdType));
+  Stream.WriteBuffer(FMinValue, SizeOf(Longint));
+  Stream.WriteBuffer(FMaxValue, SizeOf(Longint));
 end;
 
 {*
@@ -789,16 +788,6 @@ begin
 
   FSigned := OrdType in [otSByte, otSWord, otSLong];
   FNeedRangeCheck := (FMinValue <> -MaxInt-1) or (FMaxValue <> MaxInt);
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TSepiIntegerType.MakeTypeInfo;
-begin
-  AllocateTypeInfo(IntegerTypeDataLength);
-
-  inherited;
 end;
 
 {*
@@ -920,16 +909,6 @@ begin
 end;
 
 {*
-  [@inheritedDoc]
-*}
-procedure TSepiCharType.MakeTypeInfo;
-begin
-  AllocateTypeInfo(CharTypeDataLength);
-
-  inherited;
-end;
-
-{*
   [@inheritDoc]
 *}
 function TSepiCharType.ValueToString(const Value): string;
@@ -1041,12 +1020,12 @@ end;
 {*
   [@inheritedDoc]
 *}
-procedure TSepiInt64Type.MakeTypeInfo;
+procedure TSepiInt64Type.WriteTypeInfo(Stream: TStream);
 begin
-  AllocateTypeInfo(Int64TypeDataLength);
+  inherited;
 
-  TypeData.MinInt64Value := MinValue;
-  TypeData.MaxInt64Value := MaxValue;
+  Stream.WriteBuffer(FMinValue, SizeOf(Int64));
+  Stream.WriteBuffer(FMaxValue, SizeOf(Int64));
 end;
 
 {*
@@ -1163,11 +1142,12 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiFloatType.MakeTypeInfo;
+procedure TSepiFloatType.WriteTypeInfo(Stream: TStream);
 begin
-  AllocateTypeInfo(FloatTypeDataLength);
+  inherited;
 
-  TypeData.FloatType := FloatType;
+  // TTypeData.tkFloat
+  Stream.WriteBuffer(FFloatType, SizeOf(TFloatType));
 end;
 
 {*
@@ -1281,28 +1261,28 @@ end;
 {*
   Construit les RTTI
 *}
-procedure TSepiBooleanType.MakeTypeInfo;
+procedure TSepiBooleanType.WriteTypeInfo(Stream: TStream);
 var
   BaseTypeInfo: PTypeInfo;
+  BaseTypeInfoRef: PPTypeInfo;
 begin
-  AllocateTypeInfo(BooleanTypeDataLength);
-
   inherited;
 
   // Find base type
-    case BooleanKind of
-      bkByteBool: BaseTypeInfo := System.TypeInfo(ByteBool);
-      bkWordBool: BaseTypeInfo := System.TypeInfo(WordBool);
-      bkLongBool: BaseTypeInfo := System.TypeInfo(LongBool);
-    else
-      BaseTypeInfo := System.TypeInfo(Boolean);
-    end;
+  case BooleanKind of
+    bkByteBool: BaseTypeInfo := System.TypeInfo(ByteBool);
+    bkWordBool: BaseTypeInfo := System.TypeInfo(WordBool);
+    bkLongBool: BaseTypeInfo := System.TypeInfo(LongBool);
+  else
+    BaseTypeInfo := System.TypeInfo(Boolean);
+  end;
 
-  // Fill type data
-  TypeData.BaseType := GetTypeData(BaseTypeInfo).BaseType;
+  // TTypeData.BaseType
+  BaseTypeInfoRef := GetTypeData(BaseTypeInfo).BaseType;
+  Stream.WriteBuffer(BaseTypeInfoRef, SizeOf(PPTypeInfo));
 
-  Move(PackedShortStrFalseTrue, TypeData.NameList,
-    SizeOf(PackedShortStrFalseTrue));
+  // TTypeData.NameList
+  Stream.WriteBuffer(PackedShortStrFalseTrue, SizeOf(PackedShortStrFalseTrue));
 end;
 
 {*
@@ -1530,50 +1510,24 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiEnumType.MakeTypeInfo;
+procedure TSepiEnumType.WriteTypeInfo(Stream: TStream);
 var
-  EncValues: array of TypeInfoString;
-  TypeDataLength: Integer;
-  I, Size: Integer;
-  Current: PTypeInfoString;
+  I: Integer;
 begin
-  // Compute TypeDataLength
-  TypeDataLength := EnumTypeDataLengthBase + OwningUnit.TypeInfoNameSize;
-
-  if BaseType = Self then
-  begin
-    SetLength(EncValues, ValueCount);
-
-    for I := 0 to ValueCount-1 do
-    begin
-      EncValues[I] := TypeInfoEncode(FValues[I]);
-      Inc(TypeDataLength, Length(EncValues[I])+1);
-    end;
-  end;
-
-  // Allocate type info
-  AllocateTypeInfo(TypeDataLength);
-  Current := @TypeData.NameList;
-
-  // Fill in ordinal type data
   inherited;
 
-  // Base type
-  TypeData.BaseType := BaseType.TypeInfoRef;
+  // TTypeData.BaseType
+  BaseType.WriteTypeInfoRefToStream(Stream);
 
-  // Store enumeration names
+  // TTypeData.NameList
   if BaseType = Self then
   begin
     for I := 0 to ValueCount-1 do
-    begin
-      Size := Length(EncValues[I]) + 1;
-      Move(EncValues[I], Current^, Size);
-      Inc(Cardinal(Current), Size);
-    end;
+      WriteTypeInfoStringToStream(Stream, FValues[I]);
   end;
 
-  // Store unit name
-  OwningUnit.StoreTypeInfoName(Current);
+  // TTypeData.EnumUnitName
+  WriteTypeInfoStringToStream(Stream, OwningUnit.Name);
 end;
 
 {*
@@ -1855,19 +1809,24 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiSetType.MakeTypeInfo;
+procedure TSepiSetType.WriteTypeInfo(Stream: TStream);
+var
+  OrdType: TOrdType;
 begin
-  AllocateTypeInfo(SetTypeDataLength);
+  inherited;
 
+  // Compute OrdType
   case CompType.MaxValue - CompType.MinValue + 1 of
-    1..8: TypeData.OrdType := otUByte;
-    9..16: TypeData.OrdType := otUWord;
-    17..32: TypeData.OrdType := otULong;
+    1..8: OrdType := otUByte;
+    9..16: OrdType := otUWord;
+    17..32: OrdType := otULong;
   else
-    TypeData.OrdType := otUnknown;
+    OrdType := otUnknown;
   end;
 
-  TypeData.CompType := FCompType.TypeInfoRef;
+  // TTypeData.tkSet
+  Stream.WriteBuffer(OrdType, SizeOf(TOrdType));
+  CompType.WriteTypeInfoRefToStream(Stream);
 end;
 
 {*
@@ -2041,12 +2000,12 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiPointerType.MakeTypeInfo;
+procedure TSepiPointerType.WriteTypeInfo(Stream: TStream);
 begin
   {$IF CompilerVersion >= 21}
-  AllocateTypeInfo(PointerTypeDataLength);
+  inherited;
 
-  TypeData.RefType := TSepiPointerType(PointTo).TypeInfoRef;
+  PointTo.WriteTypeInfoRefToStream(Stream);
   {$IFEND}
 end;
 

@@ -89,6 +89,9 @@ type
     FLowerBound: Integer;     /// Borne inférieure
     FHigherBound: Integer;    /// Borne supérieure
 
+    FBaseElementType: TSepiType; /// Type d'élément de base
+    FDimCount: Integer;          /// Nombre de dimensions
+
     function GetLength: Integer;
   protected
     procedure ListReferences; override;
@@ -98,7 +101,7 @@ type
 
     function HasTypeInfo: Boolean; override;
     procedure SetupProperties; override;
-    procedure MakeTypeInfo; override;
+    procedure WriteTypeInfo(Stream: TStream); override;
 
     function GetAlignment: Integer; override;
     function GetIndexType: TSepiOrdType; override;
@@ -120,6 +123,9 @@ type
     property LowerBound: Integer read FLowerBound;
     property HigherBound: Integer read FHigherBound;
     property ArrayLength: Integer read GetLength;
+
+    property BaseElementType: TSepiType read FBaseElementType;
+    property DimCount: Integer read FDimCount;
   end;
 
   {*
@@ -130,7 +136,7 @@ type
   TSepiDynArrayType = class(TSepiArrayType)
   protected
     procedure SetupProperties; override;
-    procedure MakeTypeInfo; override;
+    procedure WriteTypeInfo(Stream: TStream); override;
 
     function GetIndexType: TSepiOrdType; override;
 
@@ -389,6 +395,16 @@ begin
   FParamBehavior.AlwaysByAddress := Size > 4;
   if FParamBehavior.AlwaysByAddress then
     FResultBehavior := rbParameter;
+
+  if ElementType is TSepiStaticArrayType then
+  begin
+    FBaseElementType := TSepiStaticArrayType(ElementType).BaseElementType;
+    FDimCount := TSepiStaticArrayType(ElementType).DimCount + 1;
+  end else
+  begin
+    FBaseElementType := ElementType;
+    FDimCount := 1;
+  end;
 end;
 
 {*
@@ -406,48 +422,30 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiStaticArrayType.MakeTypeInfo;
+procedure TSepiStaticArrayType.WriteTypeInfo(Stream: TStream);
 var
-  AElementType: TSepiType;
-  TypeDataLength: Integer;
-  ArrayTypeData: PArrayTypeData;
+  ElCount: Integer;
 {$IF CompilerVersion >= 21}
-  DimCount, I: Integer;
+  AElementType: TSepiType;
 {$IFEND}
 begin
-  Assert(HasTypeInfo);
+  inherited;
 
-  AElementType := ElementType;
-  {$IF CompilerVersion >= 21}
-  DimCount := 1;
-  {$IFEND}
+  // TArrayTypeData
+  Stream.WriteBuffer(FSize, SizeOf(Integer));
+  ElCount := Size div BaseElementType.Size;
+  Stream.WriteBuffer(ElCount, SizeOf(Integer));
+  BaseElementType.WriteTypeInfoRefToStream(Stream);
 
+{$IF CompilerVersion >= 21}
+  // TArrayTypeData
+  Stream.WriteBuffer(FDimCount, SizeOf(Byte));
+
+  AElementType := Self;
   while AElementType is TSepiStaticArrayType do
   begin
     AElementType := TSepiStaticArrayType(AElementType).ElementType;
-    {$IF CompilerVersion >= 21}
-    Inc(DimCount);
-    {$IFEND}
-  end;
-
-  TypeDataLength := ArrayTypeDataLengthBase
-    {$IF CompilerVersion >= 21} + DimCount * SizeOf(PPTypeInfo) {$IFEND};
-
-  AllocateTypeInfo(TypeDataLength);
-  ArrayTypeData := PArrayTypeData(TypeData);
-
-  ArrayTypeData.Size := FSize;
-  ArrayTypeData.ElCount := FSize div AElementType.Size;
-  ArrayTypeData.ElType := TSepiStaticArrayType(AElementType).TypeInfoRef;
-
-{$IF CompilerVersion >= 21}
-  ArrayTypeData.DimCount := DimCount;
-
-  AElementType := Self;
-  for I := 0 to DimCount-1 do
-  begin
-    AElementType := TSepiStaticArrayType(AElementType).ElementType;
-    ArrayTypeData.Dims[I] := TSepiStaticArrayType(AElementType).TypeInfoRef;
+    AElementType.WriteTypeInfoRefToStream(Stream);
   end;
 {$IFEND}
 end;
@@ -585,50 +583,40 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiDynArrayType.MakeTypeInfo;
+procedure TSepiDynArrayType.WriteTypeInfo(Stream: TStream);
+const
+  NilTypeInfoRef: PPTypeInfo = nil;
+  VarTypeUnknown: Integer = -1;
 var
-  UnitName: TypeInfoString;
-  TypeDataLength: Integer;
-{$IF CompilerVersion >= 21}
-  DynArrElTypePtr: ^PPTypeInfo;
-{$IFEND}
+  ElSize: Longint;
 begin
-  UnitName := TypeInfoEncode(OwningUnit.Name);
-  TypeDataLength := DynArrayTypeDataLengthBase + Length(UnitName) + 1
-    {$IF CompilerVersion >= 21} + SizeOf(PPTypeInfo) {$IFEND};
-  AllocateTypeInfo(TypeDataLength);
+  inherited;
 
-  // Element size
-  TypeData.elSize := ElementType.Size;
+  // TTypeData.elSize
+  ElSize := ElementType.Size;
+  Stream.WriteBuffer(ElSize, SizeOf(Longint));
 
-  // Element RTTI, if need initialization
-  // Types which need initialization always have got RTTI
+  // TTypeData.elType
   if ElementType.NeedInit then
-    TypeData.elType := ElementType.TypeInfoRef
+    ElementType.WriteTypeInfoRefToStream(Stream)
   else
-    TypeData.elType := nil;
+    Stream.WriteBuffer(NilTypeInfoRef, SizeOf(PPTypeInfo));
 
-  // OLE Variant equivalent - always set to -1 at the moment
+  // TTypeData.varType
   { TODO 1 : OLE Variant dans les RTTI des dyn array }
-  TypeData.varType := -1;
+  Stream.WriteBuffer(VarTypeUnknown, SizeOf(Integer));
 
-  // Element RTTI, independant of cleanup
-  // We have to check for nil RTTI, because of records and static arrays
-  if Assigned(ElementType.TypeInfo) then
-    TypeData.elType2 := ElementType.TypeInfoRef
-  else
-    TypeData.elType2 := nil;
+  // TTypeData.elType2
+  ElementType.WriteTypeInfoRefToStream(Stream);
 
-  // Unit name
-  Byte(TypeData.DynUnitName[0]) := Length(UnitName);
-  Move(UnitName[1], TypeData.DynUnitName[1], Length(UnitName));
+  // TTypeData.DynUnitName
+  WriteTypeInfoStringToStream(Stream, OwningUnit.Name);
 
-  {$IF CompilerVersion >= 21}
-  // DynArrElType
-  DynArrElTypePtr := SkipPackedShortString(@TypeData.DynUnitName);
-  DynArrElTypePtr^ := TypeData.elType2;
+{$IF CompilerVersion >= 21}
+  // TTypeData.DynArrElType
   { TODO 1 : Understand difference between elType2 and DynArrElType }
-  {$IFEND}
+  ElementType.WriteTypeInfoRefToStream(Stream);
+{$IFEND}
 end;
 
 {*

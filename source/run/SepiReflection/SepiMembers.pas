@@ -607,7 +607,7 @@ type
 
     FNameIndex: Integer; /// Index de cette propriété dans les PropInfos
 
-    procedure MakePropInfo(PropInfo: PPropInfo);
+    procedure WritePropInfo(Stream: TStream);
 
     function GetPropType: TSepiType;
     function GetIsClassProperty: Boolean;
@@ -687,7 +687,7 @@ type
 
     function HasTypeInfo: Boolean; override;
     procedure SetupProperties; override;
-    procedure MakeTypeInfo; override;
+    procedure WriteTypeInfo(Stream: TStream); override;
 
     function IsStrongComposite: Boolean; override;
 
@@ -770,7 +770,7 @@ type
     procedure WriteDigestData(Stream: TStream); override;
 
     procedure SetupProperties; override;
-    procedure MakeTypeInfo; override;
+    procedure WriteTypeInfo(Stream: TStream); override;
 
     function GetDescription: string; override;
     function GetParentContainer: TSepiInheritableContainerType; override;
@@ -898,7 +898,7 @@ type
     procedure Save(Stream: TStream); override;
 
     procedure SetupProperties; override;
-    procedure MakeTypeInfo; override;
+    procedure WriteTypeInfo(Stream: TStream); override;
     procedure MakeRuntimeInfo; override;
 
     function GetDescription: string; override;
@@ -1013,7 +1013,7 @@ type
     procedure WriteDigestData(Stream: TStream); override;
 
     procedure SetupProperties; override;
-    procedure MakeTypeInfo; override;
+    procedure WriteTypeInfo(Stream: TStream); override;
 
     function GetDescription: string; override;
   public
@@ -1044,6 +1044,7 @@ type
     procedure WriteDigestData(Stream: TStream); override;
 
     procedure SetupProperties; override;
+    function HasTypeInfo: Boolean; override;
 
     function GetDescription: string; override;
   public
@@ -1068,7 +1069,6 @@ type
   TSepiVariantType = class(TSepiType)
   protected
     procedure SetupProperties; override;
-    procedure MakeTypeInfo; override;
 
     function GetAlignment: Integer; override;
   public
@@ -3087,9 +3087,9 @@ end;
   des propriétés d'interface ou de classe.
   @param PropInfo   Destination des informations
 *}
-procedure TSepiProperty.MakePropInfo(PropInfo: PPropInfo);
+procedure TSepiProperty.WritePropInfo(Stream: TStream);
 var
-  EncName: TypeInfoString;
+  PropInfo: TPropInfo;
 begin
   Assert(Owner is TSepiClass);
   Assert(Signature.Kind = skProperty);
@@ -3098,7 +3098,7 @@ begin
   PropInfo.PropType := PropType.TypeInfoRef;
 
   // Read access
-  with PropInfo^, ReadAccess do
+  with PropInfo, ReadAccess do
   begin
     case Kind of
       pakNone: GetProc := nil;
@@ -3114,7 +3114,7 @@ begin
   end;
 
   // Write access
-  with PropInfo^, WriteAccess do
+  with PropInfo, WriteAccess do
   begin
     case Kind of
       pakNone: SetProc := nil;
@@ -3130,7 +3130,7 @@ begin
   end;
 
   // Storage
-  with PropInfo^, Storage do
+  with PropInfo, Storage do
   begin
     case Kind of
       pskConstant: StoredProc := Pointer(Stored);
@@ -3150,9 +3150,9 @@ begin
   PropInfo.Default := DefaultValue;
   PropInfo.NameIndex := FNameIndex;
 
-  // Property name
-  EncName := TypeInfoEncode(Name);
-  Move(EncName[0], PropInfo.Name[0], Length(EncName)+1);
+  // Write everything
+  Stream.WriteBuffer(PropInfo, SizeOf(TPropInfo) - SizeOf(ShortString));
+  WriteTypeInfoStringToStream(Stream, Name);
 end;
 
 {*
@@ -3420,84 +3420,64 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiRecordType.MakeTypeInfo;
+procedure TSepiRecordType.WriteTypeInfo(Stream: TStream);
 {$IF CompilerVersion >= 21}
-type
-  PDataEx = ^TDataEx;
-  TDataEx = packed record
-    OpCount: Byte; // always 0
-    FieldCount: Integer;
-    FieldList: array[0..0] of TRecordTypeField;
-  end;
+const
+  OpCount: Byte = 0; // Sepi does not know about record ops anyway
+  Flags: Byte = 0;   // Unknown
 {$IFEND}
 var
   Field: TSepiField;
-  I, ManagedCount, TypeDataLength: Integer;
-  RecordData: PRecordTypeData;
-  ManagedField: PManagedField;
-{$IF CompilerVersion >= 21}
-  DataEx: PDataEx;
-  FieldData: PRecordTypeField;
-{$IFEND}
+  I, FieldCount, ManagedCount: Integer;
+  ManagedField: TManagedField;
 begin
-  Assert(HasTypeInfo);
+  inherited;
 
-  // Measurements
+  FieldCount := Self.FieldCount;
+
+  // Count managed field count
   ManagedCount := 0;
-  TypeDataLength := RecordTypeDataLengthBase;
-
   for I := 0 to FieldCount-1 do
-  begin
-    Field := Fields[I];
-
-    if Field.FieldType.NeedInit then
-    begin
+    if Fields[I].FieldType.NeedInit then
       Inc(ManagedCount);
-      Inc(TypeDataLength, SizeOf(TManagedField));
-    end;
 
-    {$IF CompilerVersion >= 21}
-    Inc(TypeDataLength, SizeOf(TManagedField) + SizeOf(Byte) +
-      Field.TypeInfoNameSize);
-    {$IFEND}
+  // TRecordTypeData
+  Stream.WriteBuffer(FSize, SizeOf(Integer));
+  Stream.WriteBuffer(ManagedCount, SizeOf(Integer));
+
+  // Managed fields
+  for I := 0 to FieldCount-1 do
+  begin
+    Field := Fields[I];
+    if not Field.FieldType.NeedInit then
+      Continue;
+
+    // TManagedField
+    ManagedField.TypeRef := Field.FieldType.TypeInfoRef;
+    ManagedField.FldOffset := Field.Offset;
+    Stream.WriteBuffer(ManagedField, SizeOf(TManagedField));
   end;
 
-  // Allocate type info
-  AllocateTypeInfo(TypeDataLength);
-  RecordData := PRecordTypeData(TypeData);
-  ManagedField := @RecordData.ManagedFields[0];
-  {$IF CompilerVersion >= 21}
-  DataEx := PDataEx(@RecordData.ManagedFields[ManagedCount]);
-  FieldData := @DataEx.FieldList[0];
-  {$IFEND}
+{$IF CompilerVersion >= 21}
+  // TRecordTypeDataEx
+  Stream.WriteBuffer(OpCount, SizeOf(Byte));
+  Stream.WriteBuffer(FieldCount, SizeOf(Integer));
 
-  // Basic information
-  RecordData.Size := FSize;
-  RecordData.ManagedCount := ManagedCount;
-  {$IF CompilerVersion >= 21}
-  DataEx.OpCount := 0; // Sepi does not know about record ops anyway
-  DataEx.FieldCount := FieldCount;
-  {$IFEND}
-
-  // Field information
+  // Fields
   for I := 0 to FieldCount-1 do
   begin
     Field := Fields[I];
 
-    if Field.FieldType.NeedInit then
-    begin
-      ManagedField.TypeRef := TSepiRecordType(Field.FieldType).TypeInfoRef;
-      ManagedField.FldOffset := Field.Offset;
-      Inc(ManagedField);
-    end;
+    // TRecordFieldType.Field
+    ManagedField.TypeRef := Field.FieldType.TypeInfoRef;
+    ManagedField.FldOffset := Field.Offset;
+    Stream.WriteBuffer(ManagedField, SizeOf(TManagedField));
 
-    {$IF CompilerVersion >= 21}
-    FieldData.Field.TypeRef := TSepiRecordType(Field.FieldType).TypeInfoRef;
-    FieldData.Field.FldOffset := Field.Offset;
-    FieldData.Flags := 0; // Unknown
-    FieldData := Field.StoreTypeInfoName(@FieldData.Name);
-    {$IFEND}
+    // TRecordFieldType
+    Stream.WriteBuffer(Flags, SizeOf(Byte));
+    WriteTypeInfoStringToStream(Stream, Field.Name);
   end;
+{$IFEND}
 end;
 
 {*
@@ -3792,19 +3772,17 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiInterface.MakeTypeInfo;
+procedure TSepiInterface.WriteTypeInfo(Stream: TStream);
 var
   Flags: TIntfFlags;
-  Count: PWord;
+  Count, I: Integer;
 begin
-  // Creating the RTTI
-  AllocateTypeInfo(IntfTypeDataLengthBase + OwningUnit.TypeInfoNameSize);
-  if Parent = nil then
-    TypeData.IntfParent := nil
-  else
-    TypeData.IntfParent := Parent.TypeInfoRef;
+  inherited;
 
-  // Interface flags
+  // TTypeData.IntfParent
+  Parent.WriteTypeInfoRefToStream(Stream);
+
+  // TTypeData.IntfFlags
   Flags := [];
   if FHasGUID then
     Include(Flags, ifHasGuid);
@@ -3812,18 +3790,26 @@ begin
     Include(Flags, ifDispInterface);
   if FIsDispatch then
     Include(Flags, ifDispatch);
-  TypeData.IntfFlags := Flags;
+  Stream.WriteBuffer(Flags, SizeOf(TIntfFlags));
 
-  // GUID
-  TypeData.Guid := FGUID;
+  // TTypeData.Guid
+  Stream.WriteBuffer(FGUID, SizeOf(TGUID));
 
-  // Owning unit name
-  Count := OwningUnit.StoreTypeInfoName(@TypeData.IntfUnit);
+  // TTypeData.IntfUnit
+  WriteTypeInfoStringToStream(Stream, OwningUnit.Name);
 
-  // Method count in the interface
-  Count^ := ChildCount;
-  Inc(Integer(Count), 2);
-  Count^ := $FFFF; // no more information available
+  // TIntfMethodTable.Count
+  Count := 0;
+  for I := 0 to ChildCount-1 do
+    if Children[I] is TSepiMethod then
+      Inc(Count);
+  Stream.WriteBuffer(Count, SizeOf(Word));
+
+{$IF CompilerVersion >= 21}
+  // TIntfMethodTable.RttiCount
+  Count := $FFFF; // no more information available
+  Stream.WriteBuffer(Count, SizeOf(Word));
+{$IFEND}
 end;
 
 {*
@@ -4837,22 +4823,18 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiClass.MakeTypeInfo;
+procedure TSepiClass.WriteTypeInfo(Stream: TStream);
 var
-  OwningUnitName: TypeInfoString;
-  TypeDataLength, I: Integer;
+  I: Integer;
   Props: TObjectList;
   Prop: TSepiProperty;
-  PropCount: PWord;
-  PropInfo: PPropInfo;
+  PropCount: Word;
 begin
-  OwningUnitName := TypeInfoEncode(OwningUnit.Name);
+  inherited;
+
   Props := TObjectList.Create(False);
   try
-    TypeDataLength := ClassTypeDataLengthBase;
-    Inc(TypeDataLength, Length(OwningUnitName)+1);
-
-    // Listing the published properties, and computing the type data length
+    // List the published properties
     for I := 0 to ChildCount-1 do
     begin
       if Children[I] is TSepiProperty then
@@ -4862,34 +4844,22 @@ begin
           Continue;
 
         Props.Add(Prop);
-        Inc(TypeDataLength, PropInfoLengthBase);
-        Inc(TypeDataLength, Length(TypeInfoEncode(Prop.Name))+1);
       end;
     end;
 
-    // Creating the RTTI
-    AllocateTypeInfo(TypeDataLength);
+    // TTypeData.tkClass
+    Stream.WriteBuffer(FDelphiClass, SizeOf(TClass));
+    Parent.WriteTypeInfoRefToStream(Stream);
+    Stream.WriteBuffer(FPublishedPropCount, SizeOf(Smallint));
+    WriteTypeInfoStringToStream(Stream, OwningUnit.Name);
 
-    // Basic information
-    TypeData.ClassType := DelphiClass;
-    if FParent = nil then
-      TypeData.ParentInfo := nil
-    else
-      TypeData.ParentInfo := FParent.TypeInfoRef;
-    TypeData.PropCount := FPublishedPropCount;
-    Move(OwningUnitName[0], TypeData.UnitName[0], Length(OwningUnitName)+1);
+    // TPropData.PropCount
+    PropCount := Props.Count;
+    Stream.WriteBuffer(PropCount, SizeOf(Word));
 
-    // Property count
-    PropCount := SkipPackedShortString(@TypeData.UnitName);
-    PropCount^ := Props.Count;
-
-    // Property information
-    PropInfo := PPropInfo(Integer(PropCount) + 2);
+    // TPropData.PropList
     for I := 0 to Props.Count-1 do
-    begin
-      TSepiProperty(Props[I]).MakePropInfo(PropInfo);
-      PropInfo := SkipPackedShortString(@PropInfo.Name);
-    end;
+      TSepiProperty(Props[I]).WritePropInfo(Stream);
   finally
     Props.Free;
   end;
@@ -5412,12 +5382,12 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiMetaClass.MakeTypeInfo;
+procedure TSepiMetaClass.WriteTypeInfo(Stream: TStream);
 begin
   {$IF CompilerVersion >= 21}
-  AllocateTypeInfo(MetaClassTypeDataLength);
+  inherited;
 
-  TypeData.InstanceType := TSepiMetaClass(SepiClass).TypeInfoRef;
+  SepiClass.WriteTypeInfoRefToStream(Stream);
   {$IFEND}
 end;
 
@@ -5541,6 +5511,14 @@ end;
 {*
   [@inheritDoc]
 *}
+function TSepiMethodRefType.HasTypeInfo: Boolean;
+begin
+  Result := Signature.Kind in [skObjectProcedure, skObjectFunction];
+end;
+
+{*
+  [@inheritDoc]
+*}
 function TSepiMethodRefType.GetDescription: string;
 begin
   Result := 'method ref';
@@ -5599,14 +5577,6 @@ begin
   FNeedInit := True;
   FParamBehavior.AlwaysByAddress := True;
   FResultBehavior := rbParameter;
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TSepiVariantType.MakeTypeInfo;
-begin
-  AllocateTypeInfo;
 end;
 
 {*

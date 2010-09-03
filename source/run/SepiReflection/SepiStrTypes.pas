@@ -59,7 +59,7 @@ type
     procedure WriteDigestData(Stream: TStream); override;
 
     procedure SetupProperties; override;
-    procedure MakeTypeInfo; override;
+    procedure WriteTypeInfo(Stream: TStream); override;
 
     function GetAlignment: Integer; override;
 
@@ -119,7 +119,7 @@ type
     procedure WriteDigestData(Stream: TStream); override;
 
     procedure SetupProperties; override;
-    procedure MakeTypeInfo; override;
+    procedure WriteTypeInfo(Stream: TStream); override;
   public
     constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
     constructor Create(AOwner: TSepiComponent; const AName: string;
@@ -222,11 +222,11 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiShortStringType.MakeTypeInfo;
+procedure TSepiShortStringType.WriteTypeInfo(Stream: TStream);
 begin
-  AllocateTypeInfo(ShortStringTypeDataLength);
+  inherited;
 
-  TypeData.MaxLength := MaxLength;
+  Stream.WriteBuffer(FMaxLength, SizeOf(Byte));
 end;
 
 {*
@@ -366,14 +366,12 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiStringType.MakeTypeInfo;
+procedure TSepiStringType.WriteTypeInfo(Stream: TStream);
 begin
-  AllocateTypeInfo(StringTypeDataLength[StringKind = skAnsiString]);
+  inherited;
 
-  {$IFDEF UNICODE}
   if HasCodePage then
-    TypeData.CodePage := CodePage;
-  {$ENDIF}
+    Stream.WriteBuffer(FCodePage, SizeOf(Word));
 end;
 
 {*
