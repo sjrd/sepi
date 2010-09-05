@@ -528,7 +528,9 @@ type
     constructor Create(ASepiRoot: TSepiRoot; AValue: Int64);
 
     class function MakeValue(Compiler: TSepiCompilerBase;
-      Value: Int64): ISepiReadableValue;
+      Value: Int64): ISepiReadableValue; overload;
+    class function MakeValue(Compiler: TSepiCompilerBase;
+      Value: Int64; ValueType: TSepiType): ISepiReadableValue; overload;
 
     property Value: Int64 read FValue;
   end;
@@ -2747,6 +2749,20 @@ class function TSepiIntegerLiteralValue.MakeValue(Compiler: TSepiCompilerBase;
 begin
   Result := TSepiIntegerLiteralValue.Create(Compiler.SepiRoot, Value);
   Result.AttachToExpression(TSepiExpression.Create(Compiler));
+end;
+
+{*
+  Construit une valeur constante litérale entière
+  @param Compiler    Compilateur
+  @param Value       Valeur constante
+  @param ValueType   Type de la valeur
+  @return Valeur constante litérale entière
+*}
+class function TSepiIntegerLiteralValue.MakeValue(Compiler: TSepiCompilerBase;
+  Value: Int64; ValueType: TSepiType): ISepiReadableValue;
+begin
+  Result := MakeValue(Compiler, Value);
+  (Result as ISepiTypeForceableValue).ForceType(ValueType);
 end;
 
 {------------------------------}
@@ -8932,7 +8948,7 @@ begin
 
   // Write VType constant into VTypeValue
   VTypeValue.CompileWrite(Compiler, Instructions,
-    TSepiIntegerLiteralValue.MakeValue(Compiler, VType));
+    TSepiIntegerLiteralValue.MakeValue(Compiler, VType, VTypeValue.ValueType));
 end;
 
 {*
