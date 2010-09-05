@@ -128,3 +128,16 @@ Around line 1250 in Delphi 2009
 ----------
   CoreDumpEnabled: Boolean = False;
 ----------
+
+Around line 2404 in Delphi 2010
+----------
+  UnloadDelayLoadedDLLPtr: Pointer = @__FUnloadDelayLoadedDLL;
+  DelayLoadHelper: Pointer = @__delayLoadHelper;
+  pfnDliNotifyHook: Pointer = @___pfnDliNotifyHook;
+  pfnDliFailureHook: Pointer = @___pfnDliFailureHook;
+----------
+  UnloadDelayLoadedDLLPtr: Pointer;
+  DelayLoadHelper: Pointer;
+  pfnDliNotifyHook: Pointer;
+  pfnDliFailureHook: Pointer;
+----------
