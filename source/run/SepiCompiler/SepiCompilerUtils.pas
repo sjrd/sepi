@@ -106,8 +106,10 @@ type
 
     function ValidateFieldAccess(Field: TSepiField): Boolean;
     function ValidateMethodAccess(Method: TSepiMethod;
+      IsWriteAccess, ShowError: Boolean): Boolean;
+    function ValidateOverloadedMethodAccess(var Access: TSepiMember;
       IsWriteAccess: Boolean): Boolean;
-    function ValidateAccess(Access: TSepiMember;
+    function ValidateAccess(var Access: TSepiMember;
       IsWriteAccess: Boolean): Boolean;
 
     function IsTypeValidForDefault(PropType: TSepiType): Boolean;
@@ -588,10 +590,11 @@ end;
   Valide un accès via une méthode
   @param Method          Méthode accesseur
   @param IsWriteAccess   Indique si c'est l'accès en écriture
+  @param ShowError       Montrer les erreurs
   @return True si la méthode est valide, False sinon
 *}
 function TSepiPropertyBuilder.ValidateMethodAccess(Method: TSepiMethod;
-  IsWriteAccess: Boolean): Boolean;
+  IsWriteAccess, ShowError: Boolean): Boolean;
 var
   ParamCount, I: Integer;
   Param: TSepiParam;
@@ -604,7 +607,8 @@ begin
 
   if Method.Signature.ParamCount <> ParamCount then
   begin
-    MakeError(SParametersMismatch);
+    if ShowError then
+      MakeError(SParametersMismatch);
     Result := False;
     Exit;
   end;
@@ -653,8 +657,36 @@ begin
   end;
 
   // Error message
-  if not Result then
+  if (not Result) and ShowError then
     MakeError(SParametersMismatch);
+end;
+
+{*
+  Valide un accès via une méthode surchargée
+  @param OverloadedMethod   Méthode surchargée accesseur
+  @param IsWriteAccess      Indique si c'est l'accès en écriture
+  @return True si la méthode est valide, False sinon
+*}
+function TSepiPropertyBuilder.ValidateOverloadedMethodAccess(
+  var Access: TSepiMember; IsWriteAccess: Boolean): Boolean;
+var
+  I: Integer;
+  OvldMethod: TSepiOverloadedMethod;
+begin
+  OvldMethod := Access as TSepiOverloadedMethod;
+
+  for I := 0 to OvldMethod.MethodCount-1 do
+  begin
+    if ValidateMethodAccess(OvldMethod.Methods[I], IsWriteAccess, False) then
+    begin
+      Access := OvldMethod.Methods[I];
+      Result := True;
+      Exit;
+    end;
+  end;
+
+  Result := False;
+  MakeError(SParametersMismatch);
 end;
 
 {*
@@ -663,7 +695,7 @@ end;
   @param IsWriteAccess   Indique si c'est l'accès en écriture
   @return True si l'accesseur est valide, False sinon
 *}
-function TSepiPropertyBuilder.ValidateAccess(Access: TSepiMember;
+function TSepiPropertyBuilder.ValidateAccess(var Access: TSepiMember;
   IsWriteAccess: Boolean): Boolean;
 begin
   if Access = nil then
@@ -671,7 +703,9 @@ begin
   else if Access is TSepiField then
     Result := ValidateFieldAccess(TSepiField(Access))
   else if Access is TSepiMethod then
-    Result := ValidateMethodAccess(TSepiMethod(Access), IsWriteAccess)
+    Result := ValidateMethodAccess(TSepiMethod(Access), IsWriteAccess, True)
+  else if Access is TSepiOverloadedMethod then
+    Result := ValidateOverloadedMethodAccess(Access, IsWriteAccess)
   else
   begin
     MakeError(SFieldOrMethodRequired);
