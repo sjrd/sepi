@@ -1156,6 +1156,15 @@ type
   end;
 
   {*
+    Noeud header de case dans un record
+    Le contexte Sepi d'un tel noeud doit toujours être de type TSepiRecordType.
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiRecordCaseHeaderNode = class(TSepiRecordContentsNode)
+  end;
+
+  {*
     Noeud d'un champ de record
     Le contexte Sepi d'un tel noeud doit toujours être de type TSepiRecordType.
     @author sjrd
@@ -4480,6 +4489,9 @@ begin
   begin
     if TSepiRecordFieldNode(Child).LastField <> nil then
       FAfterField := TSepiRecordFieldNode(Child).LastField.Name;
+  end else if Child is TSepiRecordCaseHeaderNode then
+  begin
+    FAfterField := TSepiRecordCaseHeaderNode(Child).AfterField;
   end;
 
   inherited;

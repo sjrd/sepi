@@ -669,6 +669,7 @@ begin
 
   NonTerminalClasses[ntRecordContents]     := TSepiRecordContentsNode;
   NonTerminalClasses[ntRecordCaseBlock]    := TSepiRecordContentsNode;
+  NonTerminalClasses[ntRecordCaseHeader]   := TSepiRecordCaseHeaderNode;
   NonTerminalClasses[ntRecordCaseContents] := TSepiRecordContentsNode;
 
   NonTerminalClasses[ntInterfaceGUID] := TDelphiInterfaceGUIDNode;
