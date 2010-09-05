@@ -1855,7 +1855,7 @@ var
   ReadableValue: ISepiReadableValue;
 begin
   Result := Supports(Value, ISepiReadableValue, ReadableValue) and
-    TSepiConvertOperation.ConvertionExists(ValueType, Value.ValueType);
+    TSepiConvertOperation.ConversionExists(ValueType, Value.ValueType);
 
   if Result then
     Value := TSepiConvertOperation.ConvertValue(ValueType, ReadableValue);

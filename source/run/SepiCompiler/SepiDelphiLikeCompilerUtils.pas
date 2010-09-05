@@ -1123,7 +1123,7 @@ begin
     SourceType := Source.ValueType;
 
     if (ReadableSource <> nil) and
-      TSepiConvertOperation.ConvertionExists(DestType, ReadableSource) then
+      TSepiConvertOperation.ConversionExists(DestType, ReadableSource) then
     begin
       // Convertion is possible
       BackingValue := TSepiConvertOperation.ConvertValue(

@@ -735,9 +735,9 @@ type
 
     procedure Complete;
 
-    class function ConvertionExists(
+    class function ConversionExists(
       DestType, SrcType: TSepiType): Boolean; overload;
-    class function ConvertionExists(DestType: TSepiType;
+    class function ConversionExists(DestType: TSepiType;
       const Source: ISepiReadableValue): Boolean; overload;
     class function ConvertValue(DestType: TSepiType;
       const Value: ISepiReadableValue): ISepiReadableValue;
@@ -3595,7 +3595,7 @@ var
 begin
   Assert(FSource <> nil);
 
-  if not ConvertionExists(ValueType, Source) then
+  if not ConversionExists(ValueType, Source) then
   begin
     MakeError(Format(STypeMismatch,
       [ValueType.DisplayName, Source.ValueType.DisplayName]));
@@ -3618,7 +3618,7 @@ end;
   @param SrcType    Type source
   @return True si une conversion est possible, False sinon
 *}
-class function TSepiConvertOperation.ConvertionExists(
+class function TSepiConvertOperation.ConversionExists(
   DestType, SrcType: TSepiType): Boolean;
 var
   DestBase, SrcBase: TSepiBaseType;
@@ -3680,7 +3680,7 @@ end;
   @param Source     Valeur source
   @return True si une conversion est possible, False sinon
 *}
-class function TSepiConvertOperation.ConvertionExists(DestType: TSepiType;
+class function TSepiConvertOperation.ConversionExists(DestType: TSepiType;
   const Source: ISepiReadableValue): Boolean;
 var
   SrcType: TSepiType;
@@ -3694,7 +3694,7 @@ begin
     TypeForceableSrc.CanForceType(DestType) then
     Result := True
   else
-    Result := ConvertionExists(DestType, SrcType);
+    Result := ConversionExists(DestType, SrcType);
 end;
 
 {*
@@ -4554,7 +4554,7 @@ begin
 
   if not SetType.CompType.Equals(ItemType) then
   begin
-    if TSepiConvertOperation.ConvertionExists(SetType.CompType,
+    if TSepiConvertOperation.ConversionExists(SetType.CompType,
       ItemOperand) then
     begin
       ItemOperand := TSepiConvertOperation.ConvertValue(SetType.CompType,
@@ -7709,7 +7709,7 @@ begin
         end else
         begin
           // Otherwise, types must be compatible
-          if not TSepiConvertOperation.ConvertionExists(
+          if not TSepiConvertOperation.ConversionExists(
             SignatureParam.ParamType, ParamValue as ISepiReadableValue) then
           begin
             Error(Format(STypeMismatch,
@@ -8896,7 +8896,7 @@ begin
   // Convert item value to expected value type
   if not ItemValue.ValueType.Equals(ValueType) then
   begin
-    Assert(TSepiConvertOperation.ConvertionExists(ValueType, ItemValue));
+    Assert(TSepiConvertOperation.ConversionExists(ValueType, ItemValue));
     ItemValue := TSepiConvertOperation.ConvertValue(ValueType, ItemValue);
   end;
 
