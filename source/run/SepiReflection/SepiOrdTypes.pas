@@ -391,7 +391,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TSepiPointerType = class(TSepiOrdType)
+  TSepiPointerType = class(TSepiType)
   private
     FPointTo: TSepiType; /// Type vers lequel pointe le pointeur
     FIsUntyped: Boolean; /// Indique si c'est un pointeur non typé
