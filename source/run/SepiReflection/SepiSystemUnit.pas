@@ -143,6 +143,11 @@ type
     class function Get(Component: TSepiComponent): TSepiSystemUnit;
       {$IF CompilerVersion >= 20} static; {$IFEND}
 
+    function GetSystemType(TypeKind: TTypeKind): TSepiType; overload;
+    function GetSystemType(TypeInfo: PTypeInfo): TSepiType; overload;
+    function GetSystemType(OrdType: TOrdType): TSepiOrdType; overload;
+    function GetSystemType(FloatType: TFloatType): TSepiFloatType; overload;
+
     property Types: TSepiSystemTypes read FTypes;
 
     // Special types
@@ -501,6 +506,84 @@ end;
 class function TSepiSystemUnit.Get(Component: TSepiComponent): TSepiSystemUnit;
 begin
   Result := Component.Root.SystemUnit as TSepiSystemUnit;
+end;
+
+{*
+  Trouve le type système par défaut pour un type de type donné
+  @param TypeKind   Type de type attendu
+  @return Type système par défaut du type attendu
+*}
+function TSepiSystemUnit.GetSystemType(TypeKind: TTypeKind): TSepiType;
+begin
+  case TypeKind of
+    tkInteger: Result := Integer;
+    tkChar: Result := AnsiChar;
+    tkFloat: Result := Extended;
+    tkString: Result := ShortString;
+    tkClass: Result := TObject;
+    tkWChar: Result := WideChar;
+    tkLString: Result := AnsiString;
+    tkWString: Result := WideString;
+    tkVariant: Result := Variant;
+    tkInterface: Result := IInterface;
+    tkInt64: Result := Int64;
+    {$IF Declared(tkUString)}
+    tkUString: Result := UnicodeString;
+    {$IFEND}
+  else
+    Assert(False, 'No system type found');
+    Result := nil;
+  end;
+end;
+
+{*
+  Trouve le type système par défaut correspondant à un type donné
+  @param TypeInfo   RTTI d'un type
+  @return Type système par défaut correspondant au type spécifié
+*}
+function TSepiSystemUnit.GetSystemType(TypeInfo: PTypeInfo): TSepiType;
+begin
+  Assert(TypeInfo <> nil, 'No system type found');
+  Result := GetSystemType(TypeInfo.Kind);
+end;
+
+{*
+  Trouve le type ordinal par défaut pour un type d'ordinal donné
+  @param OrdType   Type d'ordinal attendu
+  @return Type ordinal par défaut du type attendu
+*}
+function TSepiSystemUnit.GetSystemType(OrdType: TOrdType): TSepiOrdType;
+begin
+  case OrdType of
+    otSByte: Result := Shortint;
+    otUByte: Result := Byte;
+    otSWord: Result := Smallint;
+    otUWord: Result := Word;
+    otSLong: Result := Longint;
+    otULong: Result := LongWord;
+  else
+    Assert(False, 'No system type found');
+    Result := nil;
+  end;
+end;
+
+{*
+  Trouve le type flottant par défaut pour un type de flottant donné
+  @param FloatType   Type de flottant attendu
+  @return Type flottant par défaut du type attendu
+*}
+function TSepiSystemUnit.GetSystemType(FloatType: TFloatType): TSepiFloatType;
+begin
+  case FloatType of
+    ftSingle: Result := Single;
+    ftDouble: Result := Double;
+    ftExtended: Result := Extended;
+    ftComp: Result := Comp;
+    ftCurr: Result := Currency;
+  else
+    Assert(False, 'No system type found');
+    Result := nil;
+  end;
 end;
 
 end.
