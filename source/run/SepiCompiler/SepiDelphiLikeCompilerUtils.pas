@@ -218,6 +218,11 @@ type
   TSepiCastOrConvertPseudoRoutine = class(TSepiOneParamValueBackedPseudoRoutine)
   private
     FDestType: TSepiType; /// Type de destination
+
+    function IsConversionAllowedBeforeCast(DestType, SourceType: TSepiType;
+      out MiddleType: TSepiType): Boolean;
+    function IsConversionAllowedAfterCast(DestType, SourceType: TSepiType;
+      out MiddleType: TSepiType): Boolean;
   protected
     procedure CompleteParams; override;
   public
@@ -1093,13 +1098,53 @@ begin
 end;
 
 {*
+  Teste si une conversion est autorisée avant de faire un cast
+  @param DestType     Type destination
+  @param SourceType   Type source
+  @param MiddleType   En sortie : type transitoire pour la conversion
+  @return True si la conversion est autorisée, False sinon
+*}
+function TSepiCastOrConvertPseudoRoutine.IsConversionAllowedBeforeCast(
+  DestType, SourceType: TSepiType; out MiddleType: TSepiType): Boolean;
+begin
+  Result := IsConversionAllowedAfterCast(SourceType, DestType, MiddleType);
+end;
+
+{*
+  Teste si une conversion est autorisée après avoir fait un cast
+  @param DestType     Type destination
+  @param SourceType   Type source
+  @param MiddleType   En sortie : type transitoire pour la conversion
+  @return True si la conversion est autorisée, False sinon
+*}
+function TSepiCastOrConvertPseudoRoutine.IsConversionAllowedAfterCast(
+  DestType, SourceType: TSepiType; out MiddleType: TSepiType): Boolean;
+begin
+  Result := False;
+
+  if (DestType is TSepiIntegerType) or (DestType is TSepiInt64Type) then
+  begin
+    if SourceType is TSepiOrdType then
+    begin
+      MiddleType := SystemUnit.GetSystemType(TSepiOrdType(SourceType).OrdType);
+      Result := True;
+    end else if (SourceType is TSepiPointerType) or
+      (SourceType is TSepiClass) then
+    begin
+      MiddleType := SystemUnit.Cardinal;
+      Result := True;
+    end;
+  end;
+end;
+
+{*
   [@inheritDoc]
 *}
 procedure TSepiCastOrConvertPseudoRoutine.CompleteParams;
 var
   Source: ISepiValue;
   ReadableSource: ISepiReadableValue;
-  SourceType: TSepiType;
+  SourceType, MiddleType: TSepiType;
 begin
   inherited;
 
@@ -1130,21 +1175,34 @@ begin
         DestType, ReadableSource);
     end else
     begin
-      // No convertion possible : cast
+      // No conversion possible : cast
 
-      { Integer type to Pointer/Class type cast may first convert the integer
-        value to have a size equal to SizeOf(Pointer). }
-      if (SourceType <> nil) and (SourceType.Size <> DestType.Size) and
-        ((DestType is TSepiPointerType) or (DestType is TSepiClass)) and
-        ((SourceType is TSepiIntegerType) or (SourceType is TSepiInt64Type)) and
-        (ReadableSource <> nil) then
+      // Optional conversion in addition to the cast
+      if (SourceType.Size <> DestType.Size) and (ReadableSource <> nil) then
       begin
-        Source := TSepiConvertOperation.ConvertValue(
-          UnitCompiler.SystemUnit.Integer, ReadableSource);
+        if IsConversionAllowedBeforeCast(DestType, SourceType, MiddleType) then
+        begin
+          // Convert then cast
+          Source := TSepiConvertOperation.ConvertValue(
+            MiddleType, ReadableSource);
+          BackingValue := TSepiCastOperator.CastValue(DestType, Source);
+        end else if IsConversionAllowedAfterCast(DestType, SourceType,
+          MiddleType) then
+        begin
+          // Cast then convert
+          Source := TSepiCastOperator.CastValue(MiddleType, Source);
+          BackingValue := TSepiConvertOperation.ConvertValue(DestType,
+            Source as ISepiReadableValue);
+        end else
+        begin
+          // Just cast
+          BackingValue := TSepiCastOperator.CastValue(DestType, Source);
+        end;
+      end else
+      begin
+        // Just cast
+        BackingValue := TSepiCastOperator.CastValue(DestType, Source);
       end;
-
-      // Make cast
-      BackingValue := TSepiCastOperator.CastValue(DestType, Source);
     end;
   end;
 
