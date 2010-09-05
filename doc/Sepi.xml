@@ -4,31 +4,32 @@
   <ClassName>TDOCOptions</ClassName>
   <TDOCOptions>
     <BoolsAsChecks>TRUE</BoolsAsChecks>
-    <LaunchBrowser>FALSE</LaunchBrowser>
+    <LaunchBrowser>TRUE</LaunchBrowser>
     <Name>Sepi</Name>
     <Title>Insert your project&apos;s title here</Title>
-    <Summary>Moteur de script pour Delphi</Summary>
+    <Summary>Moteur de script orienté objet pour Delphi</Summary>
     <Description>
       <Count>1</Count>
-      <Item0>Sepi est un moteur de script multi-langages pour Delphi.</Item0>
+      <Item0>Sepi est un moteur de script orienté objet pour Delphi.</Item0>
     </Description>
-    <Author>S&#xE9;bastien Doeraene</Author>
+    <Author>Sébastien Doeraene</Author>
     <HTMLlink>http://dephicodetodoc.sf.net (Replace by your webpage for example)</HTMLlink>
-    <Copyright>S&#xE9;bastien Doeraene - 2006-2008 - Under GNU GPLv3 License</Copyright>
+    <Copyright>Copyright (c) 2006-2010 Sébastien Doeraene</Copyright>
     <RecurseDirectory>TRUE</RecurseDirectory>
     <ConditionalDefines>
-      <Count>4</Count>
+      <Count>5</Count>
       <Item0>MSWINDOWS</Item0>
       <Item1>WIN32</Item1>
       <Item2>DELPHI5_UP</Item2>
-      <Item3>DCTD</Item3>
+      <Item3>UNICODE</Item3>
+      <Item4>DCTD</Item4>
     </ConditionalDefines>
     <ParseImplementationSection>TRUE</ParseImplementationSection>
     <CustomHeader>UNDER CONSTRUCTION</CustomHeader>
     <CustomFooter>UNDER CONSTRUCTION</CustomFooter>
     <Language>lEnglish</Language>
     <OutputFormat>ofCHM</OutputFormat>
-    <OutputFolder>.\</OutputFolder>
+    <OutputFolder>C:\Projets\Sepi\doc\</OutputFolder>
     <VisibilitySet>
       <mvPrivate>TRUE</mvPrivate>
       <mvProtected>TRUE</mvProtected>
@@ -43,7 +44,7 @@
       <tcXMLDoc>FALSE</tcXMLDoc>
     </TagCommentSet>
     <AlphaSort>TRUE</AlphaSort>
-    <WarnEmptyTAG>FALSE</WarnEmptyTAG>
+    <WarnEmptyTAG>TRUE</WarnEmptyTAG>
     <HideEmptyTAGSection>FALSE</HideEmptyTAGSection>
     <HideEmptyOutputBlock>TRUE</HideEmptyOutputBlock>
     <OutputFilteringCategory>
@@ -58,6 +59,7 @@
       <ocEvents>TRUE</ocEvents>
       <ocRecords>TRUE</ocRecords>
       <ocUnits>TRUE</ocUnits>
+      <ocResourcestrings>TRUE</ocResourcestrings>
     </OutputFilteringCategory>
     <SkipFirstTAGLine>TRUE</SkipFirstTAGLine>
     <SkipLastTAGLine>TRUE</SkipLastTAGLine>
@@ -66,16 +68,17 @@
     <BracketStarJavaDocCharPrefix>42</BracketStarJavaDocCharPrefix>
     <FilesIncludeList>
       <Count>1</Count>
-      <Item0>.\..\</Item0>
+      <Item0>C:\Projets\Sepi\</Item0>
     </FilesIncludeList>
     <FilesExcludeList>
-      <Count>2</Count>
-      <Item0>*\SepiImports*.pas</Item0>
-      <Item1>*\bin\*</Item1>
+      <Count>1</Count>
+      <Item0>C:\Projets\Sepi\bin\</Item0>
     </FilesExcludeList>
     <AllowHtmlInDescription>FALSE</AllowHtmlInDescription>
     <PropertyCommentFromAssessors>TRUE</PropertyCommentFromAssessors>
     <DisplayHiddenItems>FALSE</DisplayHiddenItems>
     <MethodCommentFromAncestor>TRUE</MethodCommentFromAncestor>
+    <CssConfiguration>ccInternal</CssConfiguration>
+    <CssCustomFile/>
   </TDOCOptions>
 </DelphiCodeToDoc_Project>
