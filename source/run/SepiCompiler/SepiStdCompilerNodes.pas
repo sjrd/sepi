@@ -3968,11 +3968,8 @@ begin
     FName := TSepiIdentifierDeclarationNode(Child).Identifier;
   end else if Child is TSepiOverloadMarkerNode then
   begin
-    // Overloaded method - not valid in interface
-    if LinkKind = mlkInterface then
-      Child.MakeError(SIntfMethodCantBeOverloaded)
-    else
-      FIsOverloaded := True;
+    // Overloaded method
+    FIsOverloaded := True;
   end else if Child is TSepiStaticMarkerNode then
   begin
     // Static marker, i.e. class method without a Self parameter
@@ -4015,9 +4012,12 @@ procedure TSepiMethodDeclarationNode.EndParsing;
 begin
   Signature.Complete;
 
-  if (not IsOverloaded) and (LinkKind = mlkOverride) and
-    (TSepiClass(SepiContext).LookForMember(Name) is TSepiOverloadedMethod) then
-    FIsOverloaded := True;
+  if (not IsOverloaded) and (LinkKind = mlkOverride) then
+  begin
+    if TSepiInheritableContainerType(SepiContext).LookForMember(
+      Name) is TSepiOverloadedMethod then
+      FIsOverloaded := True;
+  end;
 
   if IsOverloaded then
   begin

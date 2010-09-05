@@ -4925,6 +4925,7 @@ function TSepiClass.FindIntfMethodImpl(Intf: TSepiInterface;
   IntfMethod: TSepiMethod; FromClass: TSepiClass): TSepiMethod;
 var
   I: Integer;
+  MethodBase: TSepiMethodBase;
 begin
   for I := 0 to Length(FIntfMethodRedirectors)-1 do
   begin
@@ -4940,7 +4941,19 @@ begin
   if Parent <> nil then
     Result := Parent.FindIntfMethodImpl(Intf, IntfMethod, FromClass)
   else
-    Result := FromClass.LookForMember(IntfMethod.Name) as TSepiMethod;
+  begin
+    MethodBase := FromClass.LookForMember(
+      IntfMethod.RealName) as TSepiMethodBase;
+
+    if MethodBase is TSepiOverloadedMethod then
+    begin
+      MethodBase := TSepiOverloadedMethod(MethodBase).FindMethod(
+        IntfMethod.Signature, scoCompatibility);
+    end;
+
+    Assert(MethodBase is TSepiMethod);
+    Result := MethodBase as TSepiMethod;
+  end;
 end;
 
 {*
