@@ -466,7 +466,17 @@ Attribute
 	'['* QualifiedIdent ('('* AttributeParams ')'*)? ']'*
 
 AttributeParams
-	ConstExpression (','* ConstExpression)*
+	AttributeParam (','* AttributeParam)*
+
+AttributeParam
+	AttrParamPart ('='* AttrParamPart)?
+
+AttrParamPart
+	QualifiedIdent
+	tkInteger
+	tkFloat
+	tkStringCst
+	tkNil
 
 TypeDesc	Simplify
 	CloneDesc
