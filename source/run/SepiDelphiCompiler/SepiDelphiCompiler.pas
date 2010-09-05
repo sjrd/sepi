@@ -1931,8 +1931,9 @@ end;
 procedure TDelphiClassTypeNode.ChildEndParsing(Child: TSepiParseTreeNode);
 var
   I: Integer;
-  ParentClass, ReferencedClass: TSepiClass;
+  ParentClass: TSepiClass;
   ImplementedIntf: TSepiInterface;
+  ReferencedClass: TSepiComponent;
 begin
   if (Child.SymbolClass = ntClassHeritage) and (Child.ChildCount > 0) then
   begin
@@ -1959,14 +1960,20 @@ begin
     // Make meta-class
     Assert(IsMetaClass);
 
-    ReferencedClass := TSepiClass(LookForOrError(Child,
-      TSepiClass, SClassTypeRequired));
+    ReferencedClass := LookFor(Child);
 
     if ReferencedClass = nil then
+    begin
+      // Auto forward decl
+      ReferencedClass := TSepiClass.ForwardDecl(SepiContext, Child.AsText);
+    end else if not (ReferencedClass is TSepiClass) then
+    begin
+      Child.MakeError(SClassTypeRequired);
       ReferencedClass := SystemUnit.TObject;
+    end;
 
     FSepiMetaClass := TSepiMetaClass.Create(SepiContext, TypeName,
-      ReferencedClass);
+      TSepiClass(ReferencedClass));
   end;
 
   inherited;
