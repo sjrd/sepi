@@ -2701,7 +2701,10 @@ end;
 constructor TSepiIntegerLiteralValue.Create(ASepiRoot: TSepiRoot;
   AValue: Int64);
 begin
-  inherited Create(SmallestIntegerTypeFor(ASepiRoot, AValue));
+  if (AValue < -MaxInt-1) or (AValue > MaxInt) then
+    inherited Create(TSepiSystemUnit.Get(ASepiRoot).Int64)
+  else
+    inherited Create(TSepiSystemUnit.Get(ASepiRoot).Integer);
 
   FValue := AValue;
   ConstValuePtr := @FValue;

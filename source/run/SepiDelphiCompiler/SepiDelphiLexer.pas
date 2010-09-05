@@ -197,6 +197,9 @@ const
   /// ID message Directive du Compilateur : $MINEMUMSIZE ou $Z
   CDM_MINENUMSIZE = 1;
 
+  /// ID message Direction du Compilateur : $ALIGN ou $A
+  CDM_ALIGN = 2;
+
 type
   TSepiDelphiBaseLexer = class;
   TSepiDelphiLexer = class;
@@ -212,13 +215,23 @@ type
   end;
 
   {*
+    Type de message Directive du Compilateur : $ALIGN ou $A
+    @author sjrd
+    @version 1.0
+  *}
+  TCDMAlign = record
+    MsgID: Word;       /// ID du message (CDM_ALIGN)
+    MaxAlign: Integer; /// Nouvel alignment maximal
+  end;
+
+  {*
     Type d'instruction du pré-processuer
   *}
   TPreProcInstruction = (
     ppUnknown, ppToggles,
     ppDefine, ppUndef,
     ppIfDef, ppIfNDef, ppIf, ppElse, ppElseIf, ppEndIf, ppIfEnd,
-    ppMinEnumSize,
+    ppMinEnumSize, ppAlign,
     ppInclude
   );
 
@@ -300,6 +313,7 @@ type
     function EvalCondition(const Condition: string): Boolean;
 
     procedure DoMinEnumSize(const Param: string);
+    procedure DoAlign(const Param: string);
 
     procedure DoInclude(const Param: string);
 
@@ -358,13 +372,13 @@ const
     '', '',
     'DEFINE', 'UNDEF',
     'IFDEF', 'IFNDEF', 'IF', 'ELSE', 'ELSEIF', 'ENDIF', 'IFEND',
-    'MINENUMSIZE',
+    'MINENUMSIZE', 'ALIGN',
     'INCLUDE'
   );
 
   PreProcShortInstrs: array[TPreProcInstruction] of string = (
     '', '', '', '', '', '', '', '', '', '', '', '',
-    'I'
+    'A', 'I'
   );
 
 {-------------------------------}
@@ -1134,6 +1148,26 @@ begin
 end;
 
 {*
+  Applique la directive $ALIGN ou $A
+  @param Param   Paramètre
+*}
+procedure TSepiDelphiLexer.DoAlign(const Param: string);
+var
+  AlignMsg: TCDMAlign;
+begin
+  AlignMsg.MsgID := CDM_ALIGN;
+
+  if Param = '+' then
+    AlignMsg.MaxAlign := 8
+  else if Param = '-' then
+    AlignMsg.MaxAlign := 1
+  else
+    AlignMsg.MaxAlign := StrToIntDef(Param, 8);
+
+  Context.Dispatch(AlignMsg);
+end;
+
+{*
   Applique la directive $INCLUDE ou $I
   @param Param   Paramètre
 *}
@@ -1156,8 +1190,10 @@ end;
 *}
 procedure TSepiDelphiLexer.HandleToggle(Toggle, Value: Char);
 begin
-  if Toggle = 'Z' then
-    DoMinEnumSize(Value);
+  case Toggle of
+    'A': DoAlign(Value);
+    'Z': DoMinEnumSize(Value);
+  end;
 end;
 
 {*

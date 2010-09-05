@@ -669,6 +669,7 @@ type
   TSepiRecordType = class(TSepiContainerType)
   private
     FPacked: Boolean;     /// Indique si le record est packed
+    FMaxAlign: Integer;   /// Alignement maximum
     FAlignment: Integer;  /// Alignement
     FFields: TObjectList; /// Champs
 
@@ -716,6 +717,7 @@ type
     function ValueToString(const Value): string; override;
 
     property IsPacked: Boolean read FPacked;
+    property MaxAlign: Integer read FMaxAlign write FMaxAlign;
 
     property FieldCount: Integer read GetFieldCount;
     property Fields[Index: Integer]: TSepiField read GetFields;
@@ -1136,7 +1138,7 @@ const
 implementation
 
 uses
-  SepiSystemUnit;
+  Math, SepiSystemUnit;
 
 type
   TInitInfo = packed record
@@ -3251,6 +3253,7 @@ begin
   FFields := TObjectList.Create(False);
 
   Stream.ReadBuffer(FPacked, 1);
+  Stream.ReadBuffer(FMaxAlign, 1);
   FAlignment := 1;
 end;
 
@@ -3267,6 +3270,7 @@ begin
   FFields := TObjectList.Create(False);
 
   FPacked := APacked;
+  FMaxAlign := 8;
   FAlignment := 1;
 end;
 
@@ -3282,6 +3286,8 @@ begin
   SrcRec := Source as TSepiRecordType;
 
   Create(AOwner, AName, SrcRec.IsPacked);
+
+  MaxAlign := SrcRec.MaxAlign;
 
   for I := 0 to SrcRec.ChildCount-1 do
     if SrcRec.Children[I] is TSepiField then
@@ -3313,14 +3319,19 @@ function TSepiRecordType.PrivAddField(const FieldName: string;
   FieldType: TSepiType; After: TSepiField;
   ForcePack: Boolean = False): TSepiField;
 var
-  Offset: Integer;
+  Offset, Align: Integer;
 begin
   if After = nil then
     Offset := 0
   else
     Offset := After.Offset + After.FieldType.Size;
+
   if (not IsPacked) and (not ForcePack) then
-    FieldType.AlignOffset(Offset);
+  begin
+    Align := Min(FieldType.Alignment, MaxAlign);
+    if Offset mod Align <> 0 then
+      Offset := Offset + Align - Offset mod Align;
+  end;
 
   Result := TSepiField.Create(Self, FieldName, FieldType, Offset);
 end;
@@ -3362,7 +3373,7 @@ begin
       if Offset + FieldType.Size > FSize then
         FSize := Offset + FieldType.Size;
       if (not IsPacked) and (FieldType.Alignment > FAlignment) then
-        FAlignment := FieldType.Alignment;
+        FAlignment := Min(FieldType.Alignment, MaxAlign);
     end;
   end;
 end;
@@ -3373,7 +3384,10 @@ end;
 procedure TSepiRecordType.Save(Stream: TStream);
 begin
   inherited;
+
   Stream.WriteBuffer(FPacked, 1);
+  Stream.WriteBuffer(FMaxAlign, 1);
+
   SaveChildren(Stream);
 end;
 

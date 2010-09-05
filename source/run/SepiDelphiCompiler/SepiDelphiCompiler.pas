@@ -59,8 +59,10 @@ type
   TDelphiRootNode = class(TSepiParseTreeRootNode)
   private
     FMinEnumSize: TSepiMinEnumSize; /// Taille minimale d'énumération
+    FMaxAlign: Integer;             /// Alignment maximum des champs
 
     procedure CDMMinEnumSize(var Msg: TCDMMinEnumSize); message CDM_MINENUMSIZE;
+    procedure CDMAlign(var Msg: TCDMAlign); message CDM_ALIGN;
   protected
     procedure ChildEndParsing(Child: TSepiParseTreeNode); override;
   public
@@ -72,6 +74,7 @@ type
     function ResolveIdent(const Identifier: string): ISepiExpression; override;
 
     property MinEnumSize: TSepiMinEnumSize read FMinEnumSize;
+    property MaxAlign: Integer read FMaxAlign;
   end;
 
   {*
@@ -763,6 +766,7 @@ begin
   inherited;
 
   FMinEnumSize := mesByte;
+  FMaxAlign := 8;
 end;
 
 {*
@@ -772,6 +776,15 @@ end;
 procedure TDelphiRootNode.CDMMinEnumSize(var Msg: TCDMMinEnumSize);
 begin
   FMinEnumSize := Msg.MinEmumSize;
+end;
+
+{*
+  Gestionnaire de message CDM_ALIGN
+  @param Msg   Message
+*}
+procedure TDelphiRootNode.CDMAlign(var Msg: TCDMAlign);
+begin
+  FMaxAlign := Msg.MaxAlign;
 end;
 
 {*
@@ -1846,6 +1859,7 @@ begin
   inherited;
 
   FRecordType := TSepiRecordType.Create(SepiContext, TypeName, IsPacked);
+  FRecordType.MaxAlign := (RootNode as TDelphiRootNode).MaxAlign;
 end;
 
 {*
