@@ -642,6 +642,7 @@ type
     function IsRedeclaredInCurrentList: Boolean;
 
     function GetIdentifier: string;
+    function GetDeclarationLocation: TSepiSourcePosition;
   protected
     procedure SetIdentifier(const AIdentifier: string);
 
@@ -651,6 +652,8 @@ type
     procedure EndParsing; override;
 
     property Identifier: string read GetIdentifier;
+    property DeclarationLocation: TSepiSourcePosition
+      read GetDeclarationLocation;
   end;
 
   {*
@@ -675,16 +678,21 @@ type
     FIdentifierCount: Integer; /// Nombre d'identificateurs
 
     function GetIdentifiers(Index: Integer): string;
+    function GetDeclarationLocations(Index: Integer): TSepiSourcePosition;
   protected
     procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
     procedure ChildEndParsing(Child: TSepiParseTreeNode); override;
   public
     function IsDeclared(const Identifier: string): Boolean; virtual;
 
-    procedure GetIdentifierList(out IdentifierList: TStringDynArray);
+    procedure GetIdentifierList(out IdentifierList: TStringDynArray;
+      out DeclarationLocationList: TSepiSourcePosDynArray); overload;
+    procedure GetIdentifierList(out IdentifierList: TStringDynArray); overload;
 
     property IdentifierCount: Integer read FIdentifierCount;
     property Identifiers[Index: Integer]: string read GetIdentifiers;
+    property DeclarationLocations[Index: Integer]: TSepiSourcePosition
+      read GetDeclarationLocations;
   end;
 
   {*
@@ -799,11 +807,12 @@ type
   *}
   TSepiParamNode = class(TSepiSignatureBuilderNode)
   private
-    FKind: TSepiParamKind;     /// Type de paramètre
-    FNames: TStringDynArray;   /// Noms des paramètres
-    FOpenArray: Boolean;       /// True si c'est un tableau ouvert
-    FType: TSepiType;          /// Type du paramètre
-    FDefaultValuePtr: Pointer; /// Pointeur sur la valeur par défaut
+    FKind: TSepiParamKind;          /// Type de paramètre
+    FNames: TStringDynArray;        /// Noms des paramètres
+    FDecls: TSepiSourcePosDynArray; /// Positions des déclarations
+    FOpenArray: Boolean;            /// True si c'est un tableau ouvert
+    FType: TSepiType;               /// Type du paramètre
+    FDefaultValuePtr: Pointer;      /// Pointeur sur la valeur par défaut
   protected
     procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
     procedure ChildEndParsing(Child: TSepiParseTreeNode); override;
@@ -891,6 +900,8 @@ type
     FAbstract: Boolean;         /// Indique si la méthode est abstraite
     FMsgID: Integer;            /// Message intercepté
     FIsOverloaded: Boolean;     /// True si surchargée
+
+    FDeclarationLocation: TSepiSourcePosition; /// Position de la déclaration
   protected
     procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
     procedure ChildEndParsing(Child: TSepiParseTreeNode); override;
@@ -906,6 +917,8 @@ type
     property IsAbstract: Boolean read FAbstract;
     property MsgID: Integer read FMsgID;
     property IsOverloaded: Boolean read FIsOverloaded;
+    property DeclarationLocation: TSepiSourcePosition
+      read FDeclarationLocation;
   end;
 
   {*
@@ -1123,16 +1136,25 @@ type
   private
     FTypeName: string; /// Nom du type à définir (peut être '')
 
+    FDeclarationLocation: TSepiSourcePosition; /// Position de la déclaration
+
     function GetIsAnonymous: Boolean;
   protected
+    procedure SetSepiType(ASepiType: TSepiType;
+      DontSetDeclLocation: Boolean = False);
+
     procedure MakeErroneousType; override;
   public
-    procedure SetTypeName(const ATypeName: string);
+    procedure SetTypeName(const ATypeName: string;
+      const ADeclarationLocation: TSepiSourcePosition); overload;
+    procedure SetTypeName(const ATypeName: string); overload;
 
     procedure EndParsing; override;
 
     property IsAnonymous: Boolean read GetIsAnonymous;
     property TypeName: string read FTypeName;
+    property DeclarationLocation: TSepiSourcePosition
+      read FDeclarationLocation;
   end;
 
   {*
@@ -1215,7 +1237,9 @@ type
     FOverloaded: TSepiOverloadedMethod; /// Méthode surchargée correspondante
 
     FSepiMethod: TSepiMethod; /// Méthode Sepi
-    FJustDeclared: Boolean;   /// True si la méthode a été déclarée par ce noeud
+    FJustDeclared: Boolean;   /// True si la méthode a été déclarée par ce
+
+    FDeclarationLocation: TSepiSourcePosition; /// Position de la déclaration
   protected
     procedure DeclareMethod; virtual;
 
@@ -1227,6 +1251,9 @@ type
     property IsOverloaded: Boolean read FIsOverloaded;
 
     property Overloaded: TSepiOverloadedMethod read FOverloaded;
+
+    property DeclarationLocation: TSepiSourcePosition
+      read FDeclarationLocation;
   public
     destructor Destroy; override;
 
@@ -3346,6 +3373,16 @@ begin
 end;
 
 {*
+  Position de la déclaration de l'identificateur représenté par ce noeud
+  @return Position de la déclaration de l'identificateur représenté par ce noeud
+*}
+function TSepiIdentifierDeclarationNode.GetDeclarationLocation:
+  TSepiSourcePosition;
+begin
+  Result := SourcePos;
+end;
+
+{*
   Modifie l'identificateur représenté par ce noeud
   @param AIdentifier   Nouvel identificateur
 *}
@@ -3445,6 +3482,17 @@ begin
 end;
 
 {*
+  Tableau zero-based des positions des déclarations des identificateurs
+  @param Index   Index d'un identificateur
+  @return Position de la déclaration de cet identificateur
+*}
+function TSepiIdentifierDeclListNode.GetDeclarationLocations(
+  Index: Integer): TSepiSourcePosition;
+begin
+  Result := TSepiIdentifierDeclarationNode(Children[Index]).DeclarationLocation;
+end;
+
+{*
   Teste si un identificateur donné est déclaré dans cette liste
   @param Identifier   Identificateur à tester
   @return True si l'identificateur est déclaré, False sinon
@@ -3467,18 +3515,36 @@ begin
 end;
 
 {*
+  Obtient une liste des identificateurs avec leurs positions de déclaration
+  @param IdentifierList            En sortie : liste des identificateurs
+  @param DeclarationLocationList   En sortie : positions de déclarations
+*}
+procedure TSepiIdentifierDeclListNode.GetIdentifierList(
+  out IdentifierList: TStringDynArray;
+  out DeclarationLocationList: TSepiSourcePosDynArray);
+var
+  I: Integer;
+begin
+  SetLength(IdentifierList, IdentifierCount);
+  SetLength(DeclarationLocationList, IdentifierCount);
+
+  for I := 0 to IdentifierCount-1 do
+  begin
+    IdentifierList[I] := Identifiers[I];
+    DeclarationLocationList[I] := DeclarationLocations[I];
+  end;
+end;
+
+{*
   Obtient une liste des identificateurs
   @param IdentifierList   En sortie : liste des identificateurs
 *}
 procedure TSepiIdentifierDeclListNode.GetIdentifierList(
   out IdentifierList: TStringDynArray);
 var
-  I: Integer;
+  Dummy: TSepiSourcePosDynArray;
 begin
-  SetLength(IdentifierList, IdentifierCount);
-
-  for I := 0 to IdentifierCount-1 do
-    IdentifierList[I] := Identifiers[I];
+  GetIdentifierList(IdentifierList, Dummy);
 end;
 
 {---------------------------------}
@@ -3531,7 +3597,10 @@ begin
   SepiClass := SepiContext as TSepiClass;
 
   for I := 0 to IdentList.IdentifierCount-1 do
-    SepiClass.AddField(IdentList.Identifiers[I], FieldType, I > 0);
+  begin
+    SepiClass.AddField(IdentList.Identifiers[I], FieldType,
+      I > 0).DeclarationLocation := IdentList.DeclarationLocations[I];
+  end;
 
   inherited;
 end;
@@ -3708,7 +3777,7 @@ begin
   if Child is TSepiParamKindNode then
     FKind := TSepiParamKindNode(Child).Kind
   else if Child is TSepiIdentifierDeclListNode then
-    TSepiIdentifierDeclListNode(Child).GetIdentifierList(FNames)
+    TSepiIdentifierDeclListNode(Child).GetIdentifierList(FNames, FDecls)
   else if Child is TSepiParamIsArrayMarkerNode then
     FOpenArray := True
   else if Child is TSepiTypeNode then
@@ -3730,6 +3799,8 @@ begin
   for I := 0 to Length(Names)-1 do
   begin
     Param := TSepiParam.Create(Signature, Names[I], ParamType, Kind, OpenArray);
+
+    Param.DeclarationLocation := FDecls[I];
 
     if FDefaultValuePtr <> nil then
     begin
@@ -3975,6 +4046,8 @@ begin
   begin
     // Method name
     FName := TSepiIdentifierDeclarationNode(Child).Identifier;
+    FDeclarationLocation := TSepiIdentifierDeclarationNode(
+      Child).DeclarationLocation;
   end else if Child is TSepiOverloadMarkerNode then
   begin
     // Overloaded method
@@ -4018,6 +4091,8 @@ end;
   [@inheritDoc]
 *}
 procedure TSepiMethodDeclarationNode.EndParsing;
+var
+  SepiMethod: TSepiMethod;
 begin
   Signature.Complete;
 
@@ -4030,13 +4105,15 @@ begin
 
   if IsOverloaded then
   begin
-    TSepiMethod.CreateOverloaded(SepiContext, Name, nil, Signature,
-      LinkKind, IsAbstract, MsgID);
+    SepiMethod := TSepiMethod.CreateOverloaded(SepiContext, Name, nil,
+      Signature, LinkKind, IsAbstract, MsgID);
   end else
   begin
-    TSepiMethod.Create(SepiContext, Name, nil, Signature,
-      LinkKind, IsAbstract, MsgID);
+    SepiMethod := TSepiMethod.Create(SepiContext, Name, nil,
+      Signature, LinkKind, IsAbstract, MsgID);
   end;
+
+  SepiMethod.DeclarationLocation := DeclarationLocation;
 
   inherited;
 end;
@@ -4127,7 +4204,13 @@ end;
 procedure TSepiPropertyNode.ChildEndParsing(Child: TSepiParseTreeNode);
 begin
   if Child is TSepiIdentifierDeclarationNode then
-    Builder.Name := TSepiIdentifierDeclarationNode(Child).Identifier;
+  begin
+    with TSepiIdentifierDeclarationNode(Child) do
+    begin
+      Builder.Name := Identifier;
+      Builder.DeclarationLocation := DeclarationLocation;
+    end;
+  end;
 
   inherited;
 end;
@@ -4419,9 +4502,33 @@ end;
 {*
   [@inheritDoc]
 *}
+procedure TSepiTypeDefinitionNode.SetSepiType(ASepiType: TSepiType;
+  DontSetDeclLocation: Boolean = False);
+begin
+  if not DontSetDeclLocation then
+    ASepiType.DeclarationLocation := DeclarationLocation;
+
+  inherited SetSepiType(ASepiType);
+end;
+
+{*
+  [@inheritDoc]
+*}
 procedure TSepiTypeDefinitionNode.MakeErroneousType;
 begin
   SetSepiType(UnitCompiler.MakeErroneousTypeAlias(TypeName));
+end;
+
+{*
+  Spécifie le nom type à définir
+  @param ATypeName              Nom du type à définir
+  @param ADeclarationLocation   Position de la déclaration
+*}
+procedure TSepiTypeDefinitionNode.SetTypeName(const ATypeName: string;
+  const ADeclarationLocation: TSepiSourcePosition);
+begin
+  FTypeName := ATypeName;
+  FDeclarationLocation := ADeclarationLocation;
 end;
 
 {*
@@ -4533,9 +4640,15 @@ begin
       FLastField := RecordType.AddFieldAfter(
         IdentList.Identifiers[0], FieldType, AfterField);
 
+    FLastField.DeclarationLocation := IdentList.DeclarationLocations[0];
+
     for I := 1 to IdentList.IdentifierCount-1 do
+    begin
       FLastField := RecordType.AddField(
         IdentList.Identifiers[I], FieldType, True);
+
+      FLastField.DeclarationLocation := IdentList.DeclarationLocations[I];
+    end;
   end;
 
   inherited;
@@ -4633,6 +4746,8 @@ begin
     FSepiMethod := TSepiMethod.Create(SepiContext,
       Name, nil, Signature);
   end;
+
+  FSepiMethod.DeclarationLocation := DeclarationLocation;
 end;
 
 {*
@@ -4663,8 +4778,10 @@ end;
 procedure TSepiMethodImplHeaderNode.ChildEndParsing(Child: TSepiParseTreeNode);
 begin
   if Child is TSepiQualifiedIdentNode then
-    FName := TSepiQualifiedIdentNode(Child).AsText
-  else if Child is TSepiOverloadMarkerNode then
+  begin
+    FName := TSepiQualifiedIdentNode(Child).AsText;
+    FDeclarationLocation := Child.SourcePos;
+  end else if Child is TSepiOverloadMarkerNode then
     FIsOverloaded := True;
 
   inherited;

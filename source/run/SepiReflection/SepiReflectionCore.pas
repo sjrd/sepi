@@ -1219,7 +1219,9 @@ begin
   else
   begin
     FVisibility := Owner.CurrentVisibility;
-    FDeclarationLocation.FileName := Owner.DeclarationLocation.FileName;
+
+    if FDeclarationLocation.FileName = '' then
+      FDeclarationLocation.FileName := Owner.DeclarationLocation.FileName;
   end;
 
   FCurrentVisibility := mvPublic;

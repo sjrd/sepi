@@ -258,6 +258,8 @@ type
     FConstType: TSepiType;    /// Type de la constante
     FConstant: TSepiConstant; /// Constante Sepi (peut être nil)
     FConstVar: TSepiVariable; /// Variable constante Sepi (peut être nil)
+
+    FDeclarationLocation: TSepiSourcePosition; /// Position de la déclaration
   protected
     procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
     procedure ChildEndParsing(Child: TSepiParseTreeNode); override;
@@ -266,6 +268,9 @@ type
     property ConstType: TSepiType read FConstType;
     property Constant: TSepiConstant read FConstant;
     property ConstVar: TSepiVariable read FConstVar;
+
+    property DeclarationLocation: TSepiSourcePosition
+      read FDeclarationLocation;
   end;
 
   {*
@@ -809,6 +814,8 @@ begin
       SepiUnit := TSepiUnit.Create(SepiRoot, UnitName, []);
     end;
 
+    SepiUnit.DeclarationLocation := Child.SourcePos;
+
     SetSepiUnit(SepiUnit, TSepiDelphiLanguageRules);
   end;
 
@@ -1225,8 +1232,13 @@ begin
   inherited;
 
   if Child is TSepiTypeDefinitionNode then
-    TSepiTypeDefinitionNode(Child).SetTypeName(
-      (Children[0] as TSepiIdentifierDeclarationNode).Identifier);
+  begin
+    with Children[0] as TSepiIdentifierDeclarationNode do
+    begin
+      TSepiTypeDefinitionNode(Child).SetTypeName(Identifier,
+        DeclarationLocation);
+    end;
+  end;
 end;
 
 {-------------------------------}
@@ -1259,11 +1271,18 @@ var
   ReadableValue: ISepiReadableValue;
 begin
   if Child is TSepiIdentifierDeclarationNode then
-    FName := TSepiIdentifierDeclarationNode(Child).Identifier
-  else if Child is TSepiTypeNode then
+  begin
+    with TSepiIdentifierDeclarationNode(Child) do
+    begin
+      FName := Identifier;
+      FDeclarationLocation := DeclarationLocation;
+    end;
+  end else if Child is TSepiTypeNode then
   begin
     FConstType := TSepiTypeNode(Child).SepiType;
     FConstVar := TSepiVariable.Create(SepiContext, Name, ConstType, True);
+
+    FConstVar.DeclarationLocation := DeclarationLocation;
   end else if Child is TSepiConstExpressionNode then
   begin
     ReadableValue := TSepiConstExpressionNode(Child).AsReadableValue;
@@ -1277,6 +1296,8 @@ begin
 
     FConstant := TSepiConstant.Create(SepiContext, Name,
       ReadableValue.ValueType, ReadableValue.ConstValuePtr^);
+
+    FConstant.DeclarationLocation := DeclarationLocation;
   end;
 
   inherited;
@@ -1332,11 +1353,16 @@ begin
     FVarType := TSepiTypeNode(Child).SepiType;
 
     if Names.Count = 1 then
-      FVariable := TSepiVariable.Create(SepiContext, Names[0], VarType)
-    else
+    begin
+      FVariable := TSepiVariable.Create(SepiContext, Names[0], VarType);
+      FVariable.DeclarationLocation := Children[0].SourcePos;
+    end else
     begin
       for I := 0 to Names.Count-1 do
-        TSepiVariable.Create(SepiContext, Names[I], VarType);
+      begin
+        TSepiVariable.Create(SepiContext, Names[I],
+          VarType).DeclarationLocation := Children[I].SourcePos;
+      end;
     end;
   end;
 
@@ -1373,7 +1399,7 @@ begin
         on Error: ESepiError do
         begin
           MakeError(Error.Message);
-          SetSepiType(UnitCompiler.MakeErroneousTypeAlias(TypeName));
+          SetSepiType(UnitCompiler.MakeErroneousTypeAlias(TypeName), True);
         end;
       end;
     end;
@@ -1467,7 +1493,7 @@ begin
 
     if Supports(Expression, ISepiTypeExpression, TypeExpression) then
     begin
-      SetSepiType(TypeExpression.ExprType);
+      SetSepiType(TypeExpression.ExprType, True);
 
       if TypeName <> '' then
         TSepiTypeAlias.Create(SepiContext, TypeName, SepiType);
@@ -1644,7 +1670,7 @@ begin
     SetSepiType(TSepiShortStringType.Create(SepiContext, TypeName, MaxLength));
   end else
   begin
-    SetSepiType(SystemUnit.LongString);
+    SetSepiType(SystemUnit.LongString, True);
 
     if TypeName <> '' then
       TSepiTypeAlias.Create(SepiContext, TypeName, SepiType);

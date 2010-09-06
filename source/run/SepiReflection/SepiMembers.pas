@@ -263,6 +263,8 @@ type
     FName: string;          /// Nom
     FLoading: Boolean;      /// True si en chargement depuis un flux
 
+    FDeclarationLocation: TSepiSourcePosition; /// Position de la déclaration
+
     FHiddenKind: TSepiHiddenParamKind; /// Type de paramètre caché
     FKind: TSepiParamKind;             /// Type de paramètre
     FByRef: Boolean;                   /// True si passé par référence
@@ -309,6 +311,9 @@ type
 
     property Owner: TSepiSignature read FOwner;
     property Name: string read FName;
+
+    property DeclarationLocation: TSepiSourcePosition
+      read FDeclarationLocation write FDeclarationLocation;
 
     property HiddenKind: TSepiHiddenParamKind read FHiddenKind;
     property Kind: TSepiParamKind read FKind;
@@ -1363,6 +1368,12 @@ begin
   FName := ReadStrFromStream(Stream);
   FLoading := True;
 
+  ReadDataFromStream(Stream, FDeclarationLocation,
+    TypeInfo(TSepiSourcePosition));
+
+  if FDeclarationLocation.FileName = '' then
+    FDeclarationLocation.FileName := Owner.Owner.DeclarationLocation.FileName;
+
   Stream.ReadBuffer(FHiddenKind, 1);
   Stream.ReadBuffer(FKind, 1);
   Owner.OwningUnit.ReadRef(Stream, FType);
@@ -1472,6 +1483,11 @@ begin
   FName := AName;
   FLoading := False;
 
+  if Owner.Owner <> nil then
+    FDeclarationLocation := Owner.Owner.DeclarationLocation
+  else
+    FDeclarationLocation := Owner.Context.DeclarationLocation;
+
   FHiddenKind := hpNormal;
   FKind := AKind;
   FType := AType;
@@ -1499,8 +1515,10 @@ begin
 
   FOwner := AOwner;
 
-  FName        := Source.Name;
-  FLoading     := True;
+  FName := Source.Name;
+  FLoading := True;
+  FDeclarationLocation := Source.DeclarationLocation;
+
   FHiddenKind  := Source.HiddenKind;
   FKind        := Source.Kind;
   FByRef       := Source.ByRef;
@@ -1568,9 +1586,20 @@ end;
 *}
 procedure TSepiParam.Save(Stream: TStream);
 var
+  ADeclLocOwner: TSepiComponent;
+  ADeclarationLoc: TSepiSourcePosition;
   AHasDefaultValue: Boolean;
 begin
   WriteStrToStream(Stream, Name);
+
+  ADeclLocOwner := TSepiComponent(IIF(Owner.Owner <> nil,
+    Owner.Owner, Owner.OwningUnit));
+  ADeclarationLoc := DeclarationLocation;
+
+  if ADeclarationLoc.FileName = ADeclLocOwner.DeclarationLocation.FileName then
+    ADeclarationLoc.FileName := '';
+
+  WriteDataToStream(Stream, ADeclarationLoc, TypeInfo(TSepiSourcePosition));
 
   Stream.WriteBuffer(FHiddenKind, 1);
   Stream.WriteBuffer(FKind, 1);

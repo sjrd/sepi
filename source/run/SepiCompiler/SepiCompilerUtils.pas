@@ -43,6 +43,9 @@ uses
   SepiCompilerErrors, SepiCompiler, SepiCompilerConsts;
 
 type
+  /// Tableau de TSepiSourcePosition
+  TSepiSourcePosDynArray = array of TSepiSourcePosition;
+
   {*
     Classe de base pour les constructeurs de membres de type composites
     @author sjrd
@@ -58,6 +61,8 @@ type
     FOwnerIntf: TSepiInterface;     /// Interface propriétaire (si applicable)
 
     FName: string; /// Nom du membre à construire
+
+    FDeclarationLocation: TSepiSourcePosition; /// Position de la déclaration
 
     FCurrentNode: TSepiParseTreeNode; /// Noeud courant pour les erreurs
   protected
@@ -81,6 +86,9 @@ type
 
     property Owner: TSepiComponent read FOwner;
     property Name: string read FName write FName;
+
+    property DeclarationLocation: TSepiSourcePosition
+      read FDeclarationLocation write FDeclarationLocation;
 
     property CurrentNode: TSepiParseTreeNode
       read FCurrentNode write FCurrentNode;
@@ -1004,9 +1012,14 @@ end;
   [@inheritDoc]
 *}
 procedure TSepiPropertyBuilder.Build;
+var
+  SepiProperty: TSepiProperty;
 begin
-  TSepiProperty.Create(Owner, Name, Signature, ReadAccess, WriteAccess,
-    Index, DefaultValue, Storage, IsDefault);
+  SepiProperty := TSepiProperty.Create(Owner, Name, Signature,
+    ReadAccess, WriteAccess, Index, DefaultValue, Storage, IsDefault);
+
+  if DeclarationLocation.FileName <> '' then
+    SepiProperty.DeclarationLocation := DeclarationLocation;
 end;
 
 {----------------------------------}
