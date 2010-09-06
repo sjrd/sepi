@@ -44,8 +44,8 @@ interface
 {$D-,L-}
 
 uses
-  SysUtils, Classes, Contnrs, ScUtils, SepiCore, SepiCompilerErrors,
-  SepiParseTrees, SepiCompilerConsts;
+  SysUtils, Classes, Contnrs, ScUtils, SepiCore, SepiReflectionCore,
+  SepiCompilerErrors, SepiParseTrees, SepiCompilerConsts;
 
 const
   tkEof = 0;     /// Lexème fin de fichier

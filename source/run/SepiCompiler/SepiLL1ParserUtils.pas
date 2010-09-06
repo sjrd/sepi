@@ -44,8 +44,8 @@ interface
 {$D-,L-}
 
 uses
-  SysUtils, Contnrs, SepiParseTrees, SepiCompilerErrors, SepiCompilerConsts,
-  SepiLexerUtils, SepiParserUtils;
+  SysUtils, Contnrs, SepiReflectionCore, SepiParseTrees, SepiCompilerErrors,
+  SepiCompilerConsts, SepiLexerUtils, SepiParserUtils;
 
 type
   {*

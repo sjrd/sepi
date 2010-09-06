@@ -57,17 +57,6 @@ type
   TSepiErrorKind = (ekHint, ekWarning, ekError, ekFatalError);
 
   {*
-    Position dans un source Sepi
-    @author sjrd
-    @version 1.0
-  *}
-  TSepiSourcePosition = record
-    FileName: TFileName; /// Nom du fichier
-    Line: Integer;       /// Ligne
-    Col: Integer;        /// Colonne
-  end;
-
-  {*
     Erreur de compilation Sepi
     @author sjrd
     @version 1.0

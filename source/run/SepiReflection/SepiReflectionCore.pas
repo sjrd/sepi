@@ -156,6 +156,17 @@ type
   ESepiAlreadyCompleted = class(ESepiError);
 
   {*
+    Position dans un source Sepi
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiSourcePosition = record
+    FileName: TFileName; /// Nom du fichier
+    Line: Integer;       /// Ligne
+    Col: Integer;        /// Colonne
+  end;
+
+  {*
     Liste de composants Sepi
     @author sjrd
     @version 1.0
@@ -202,6 +213,7 @@ type
     FDigestBuilt: Boolean;          /// True ssi FDigest a déjà été construit
     FDigest: TSepiDigest;           /// Digest de compatibilité
     FTag: Integer;                  /// Tag
+    FDeclarationLocation: TSepiSourcePosition; /// Endroit où est la déclaration
     FForwards: TStrings;            /// Liste des enfants forwards
     FChildren: TSepiComponentList;  /// Liste des enfants
     FUnnamedChildCount: Integer;    /// Nombre d'enfants créés anonymes
@@ -307,6 +319,8 @@ type
       read FCurrentVisibility write FCurrentVisibility;
     property Digest: TSepiDigest read GetDigest;
     property Tag: Integer read FTag write FTag;
+    property DeclarationLocation: TSepiSourcePosition
+      read FDeclarationLocation write FDeclarationLocation;
 
     property ChildCount: Integer read GetChildCount;
     property Children[Index: Integer]: TSepiComponent read GetChildren;
@@ -1171,6 +1185,12 @@ begin
 
   Stream.ReadBuffer(FVisibility, 1);
   Stream.ReadBuffer(FTag, SizeOf(Integer));
+
+  ReadDataFromStream(Stream, FDeclarationLocation,
+    TypeInfo(TSepiSourcePosition));
+
+  if (FDeclarationLocation.FileName = '') and (Owner <> nil) then
+    FDeclarationLocation.FileName := Owner.DeclarationLocation.FileName;
 end;
 
 {*
@@ -1197,8 +1217,11 @@ begin
   if Owner = nil then
     FVisibility := mvPublic
   else
+  begin
     FVisibility := Owner.CurrentVisibility;
-    
+    FDeclarationLocation.FileName := Owner.DeclarationLocation.FileName;
+  end;
+
   FCurrentVisibility := mvPublic;
   FForwards := THashedStringList.Create;
   FChildren := TSepiComponentList.Create;
@@ -1576,10 +1599,21 @@ end;
   @param Stream   Flux dans lequel enregistrer le composant
 *}
 procedure TSepiComponent.Save(Stream: TStream);
+var
+  ADeclarationLoc: TSepiSourcePosition;
 begin
   WriteStrToStream(Stream, Name);
   Stream.WriteBuffer(FVisibility, 1);
   Stream.WriteBuffer(FTag, SizeOf(Integer));
+
+  ADeclarationLoc := DeclarationLocation;
+  if (Owner <> nil) and
+    (DeclarationLocation.FileName = Owner.DeclarationLocation.FileName) then
+  begin
+    ADeclarationLoc.FileName := '';
+  end;
+
+  WriteDataToStream(Stream, ADeclarationLoc, TypeInfo(TSepiSourcePosition));
 end;
 
 {*
@@ -3585,6 +3619,7 @@ begin
 
   FOwningUnit := Self;
   FCurrentVisibility := mvPublic;
+  FDeclarationLocation.FileName := Name + '.pas';
 end;
 
 {*

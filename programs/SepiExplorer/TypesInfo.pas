@@ -217,9 +217,6 @@ procedure PrintTypeInfo(Output: TOutputWriter; SepiType: TSepiType);
 begin
   Output.Write('  ' + GetEnumName(TypeInfo(TTypeKind), Integer(SepiType.Kind)) +
     ';'#9);
-  if not SepiType.Native then
-    Output.Write('not ');
-  Output.Write('native; '#9);
   Output.Write(IntToStr(SepiType.Size) + ' bytes-wide');
   if SepiType.NeedInit then
     Output.Write(';'#9'needs initialization');
@@ -308,9 +305,20 @@ end;
 
 procedure PrintComponentInfo(Output: TOutputWriter; Component: TSepiComponent);
 begin
-  Output.Write(Component.Name + ': ' + Component.ClassName + ' - ');
-  Output.Write(VisibilityStrings[Component.Visibility]);
-  Output.WriteLn(' - Digest: ' + MD5DigestToStr(Component.Digest));
+  Output.WriteLn(Component.Name + ': ' + Component.ClassName);
+  Output.WriteLn(StringOfChar('-',
+    Length(Component.Name) + 2 + Length(Component.ClassName)));
+
+  Output.WriteLn;
+
+  Output.WriteLn('Visibility: ' + VisibilityStrings[Component.Visibility]);
+  Output.WriteLn('Digest: ' + MD5DigestToStr(Component.Digest));
+
+  with Component.DeclarationLocation do
+    Output.WriteLn(Format('Declared in %s at line %d, column %d',
+      [ExtractFileName(FileName), Line, Col]));
+
+  Output.WriteLn;
 
   if Component is TSepiType then
     PrintTypeInfo(Output, TSepiType(Component))
