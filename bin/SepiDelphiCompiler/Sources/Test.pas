@@ -45,7 +45,7 @@ begin
     WriteLn('');
 
   WriteLn(Title);
-  WriteLn(StringOfChar('-', Length(Title)));
+  WriteLn(StringOfChar('-', System.Length(Title)));
   WriteLn('');
 
   IsFirstTitle := False;

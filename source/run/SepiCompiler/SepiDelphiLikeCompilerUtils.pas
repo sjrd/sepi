@@ -631,6 +631,10 @@ begin
     begin
       AddComponentToExpression(Result, Component);
       CancelResult := False;
+    end else if ComponentExpression.Component is TSepiSystemUnit then
+    begin
+      if AddPseudoRoutineToExpression(Result, FieldName) then
+        CancelResult := False;
     end;
   end;
 
