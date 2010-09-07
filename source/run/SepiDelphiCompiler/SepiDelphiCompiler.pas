@@ -2225,10 +2225,13 @@ end;
   [@inheritDoc]
 *}
 function TDelphiRoutineNameDeclarationNode.GetAsText: string;
+const
+  CompilerMagicUnitNames: array[0..1] of string = ('System', 'Variants');
 begin
   Result := inherited GetAsText;
 
-  if (Result <> '') and (Result[1] = '_') then
+  if (Result <> '') and (Result[1] = '_') and
+    AnsiMatchText(SepiUnit.Name, CompilerMagicUnitNames) then
     Result[1] := '@';
 end;
 
