@@ -40,12 +40,19 @@ var
   IsFirstTitle: Boolean = True;
 
 procedure WriteTitle(const Title: string);
+var
+  Dashes: string;
+  I: Integer;
 begin
   if not IsFirstTitle then
     WriteLn('');
 
   WriteLn(Title);
-  WriteLn(StringOfChar('-', System.Length(Title)));
+
+  Dashes := '';
+  for I := 0 to System.Length(Title)-1 do
+    Dashes := Dashes + '-';
+  WriteLn(Dashes);
   WriteLn('');
 
   IsFirstTitle := False;

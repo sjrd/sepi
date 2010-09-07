@@ -940,7 +940,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TSepiAssignmentOperation = class(TSepiCustomExpressionPart, ISepiExecutable)
+  TSepiAssignmentOperation = class(TSepiCustomExecutable)
   private
     FDestination: ISepiWritableValue; /// Destination
     FSource: ISepiReadableValue;      /// Source
@@ -948,10 +948,8 @@ type
     /// Si True, l'opérande source est automatiquement converti
     FAutoConvert: Boolean;
   protected
-    procedure AttachToExpression(const Expression: ISepiExpression); override;
-
     procedure CompileExecute(Compiler: TSepiMethodCompiler;
-      Instructions: TSepiInstructionList);
+      Instructions: TSepiInstructionList); override;
   public
     constructor Create(AAutoConvert: Boolean = True);
 
@@ -973,12 +971,10 @@ type
     @author sjrd
     @version 1.0
   *}
-  TSepiPureInheritedCall = class(TSepiCustomExpressionPart, ISepiExecutable)
+  TSepiPureInheritedCall = class(TSepiCustomExecutable)
   protected
-    procedure AttachToExpression(const Expression: ISepiExpression); override;
-
     procedure CompileExecute(Compiler: TSepiMethodCompiler;
-      Instructions: TSepiInstructionList);
+      Instructions: TSepiInstructionList); override;
   end;
 
   {*
@@ -4936,19 +4932,6 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiAssignmentOperation.AttachToExpression(
-  const Expression: ISepiExpression);
-var
-  AsExpressionPart: ISepiExpressionPart;
-begin
-  AsExpressionPart := Self;
-
-  Expression.Attach(ISepiExecutable, AsExpressionPart);
-end;
-
-{*
-  [@inheritDoc]
-*}
 procedure TSepiAssignmentOperation.CompileExecute(Compiler: TSepiMethodCompiler;
   Instructions: TSepiInstructionList);
 begin
@@ -5003,19 +4986,6 @@ end;
 {------------------------------}
 { TSepiPureInheritedCall class }
 {------------------------------}
-
-{*
-  [@inheritDoc]
-*}
-procedure TSepiPureInheritedCall.AttachToExpression(
-  const Expression: ISepiExpression);
-var
-  AsExpressionPart: ISepiExpressionPart;
-begin
-  AsExpressionPart := Self;
-
-  Expression.Attach(ISepiExecutable, AsExpressionPart);
-end;
 
 {*
   [@inheritDoc]

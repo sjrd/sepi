@@ -823,6 +823,7 @@ type
     FSize: Integer; /// Taille de la référence mémoire dans le code
 
     procedure CheckUnsealed;
+    procedure EnsureResolved;
 
     function GetOperationCount: Integer;
     function GetOperations(Index: Integer): TSepiAddressDerefAndOpRec;
@@ -862,6 +863,9 @@ type
       SealAfter: Boolean = True);
 
     procedure Seal;
+
+    function Equals(Other: TSepiMemoryReference): Boolean;
+      {$IF RTLVersion >= 20} reintroduce; {$IFEND}
 
     procedure Make;
 
@@ -3079,6 +3083,18 @@ begin
 end;
 
 {*
+  S'assure que la référence mémoire est résolue
+*}
+procedure TSepiMemoryReference.EnsureResolved;
+begin
+  if Space = msUnresolvedLocalVar then
+  begin
+    FIsSealed := False;
+    SetSpace(FUnresolvedLocalVar);
+  end;
+end;
+
+{*
   Nombre d'opérations
   @return Nombre d'opérations
 *}
@@ -3536,6 +3552,50 @@ begin
 end;
 
 {*
+  Teste si cette référence mémoire et égale à une autre
+  @param Other   Autre référence mémoire
+  @return True si Self et Other référencent le même emplacement mémoire
+*}
+function TSepiMemoryReference.Equals(Other: TSepiMemoryReference): Boolean;
+
+  function SameOperation(const Left, Right: TSepiAddressDerefAndOpRec): Boolean;
+  begin
+    Result := (Left.Dereference = Right.Dereference) and
+      (Left.Operation = Right.Operation) and
+      (Left.ConstOperationArg = Right.ConstOperationArg) and
+      Left.MemOperationArg.Equals(Right.MemOperationArg);
+  end;
+
+var
+  I: Integer;
+begin
+  if (Self = nil) or (Other = nil) then
+  begin
+    Result := Self = Other;
+    Exit;
+  end;
+
+  EnsureResolved;
+  Other.EnsureResolved;
+  Result := False;
+
+  // Space
+  if (Space <> Other.Space) or (SpaceArgument <> Other.SpaceArgument) then
+    Exit;
+
+  // Operation count
+  if OperationCount <> Other.OperationCount then
+    Exit;
+
+  // Operations
+  for I := 0 to OperationCount-1 do
+    if not SameOperation(Operations[I], Other.Operations[I]) then
+      Exit;
+
+  Result := True;
+end;
+
+{*
   Construit la référence mémoire
 *}
 procedure TSepiMemoryReference.Make;
@@ -3543,11 +3603,7 @@ var
   I: Integer;
 begin
   // Resolve the local var, if needed
-  if Space = msUnresolvedLocalVar then
-  begin
-    FIsSealed := False;
-    SetSpace(FUnresolvedLocalVar);
-  end;
+  EnsureResolved;
 
   // Seal the memory reference
   Seal;

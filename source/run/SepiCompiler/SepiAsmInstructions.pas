@@ -374,6 +374,8 @@ type
     FDestination: TSepiMemoryReference; /// Destination
     FLeft: TSepiMemoryReference;        /// Opérande gauche
     FRight: TSepiMemoryReference;       /// Opérande droit
+
+    procedure Optimize;
   public
     constructor Create(AMethodCompiler: TSepiMethodCompiler;
       AOpCode: TSepiOpCode; AVarType: TSepiBaseType);
@@ -2003,11 +2005,28 @@ begin
 end;
 
 {*
+  Optimise l'instruction
+*}
+procedure TSepiAsmOperation.Optimize;
+begin
+  if UseLeft and Left.Equals(Destination) then
+  begin
+    // Destination and Left operand are the same: make it a self-op
+    FreeAndNil(FLeft);
+    FUseLeft := False;
+    Dec(FOpCode, ocOtherInc - ocSelfInc);
+    FLeft := FDestination;
+  end;
+end;
+
+{*
   [@inheritDoc]
 *}
 procedure TSepiAsmOperation.Make;
 begin
   inherited;
+
+  Optimize;
 
   Inc(FSize, SizeOf(TSepiBaseType));
 
