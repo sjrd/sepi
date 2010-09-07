@@ -248,6 +248,10 @@ resourcestring
   STopOfStackIsNotATry = 'Le sommet de la pile n''est pas un try';
   SNotInTry = 'La pile n''est pas dans un try';
 
+  // Conseils
+  SLocalVarIsNeverUsed =
+    'La variable locale %s est déclarée mais jamais utilisée';
+
 implementation
 
 end.

@@ -577,7 +577,7 @@ begin
   // Field selection on Self
   if Compiler.SepiMethod.Signature.SelfParam <> nil then
   begin
-    LocalVar := Compiler.Locals.GetVarByName(HiddenParamNames[hpSelf]);
+    LocalVar := Compiler.Locals.SelfVar;
     SelfExpression := TSepiExpression.Create(Result);
     ISepiExpressionPart(
       TSepiLocalVarValue.Create(LocalVar)).AttachToExpression(SelfExpression);

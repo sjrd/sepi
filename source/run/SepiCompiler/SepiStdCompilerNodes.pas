@@ -3443,7 +3443,7 @@ var
   FirstDecl: TSepiComponent;
 begin
   if (MethodCompiler <> nil) and
-    (MethodCompiler.Locals.GetVarByName(Identifier) <> nil) then
+    MethodCompiler.Locals.Exists(Identifier) then
   begin
     Result := True;
   end else
@@ -5048,7 +5048,10 @@ begin
   Assert((NamesNode <> nil) and (VarType <> nil));
 
   for I := 0 to NamesNode.IdentifierCount-1 do
-    MethodCompiler.Locals.AddLocalVar(NamesNode.Identifiers[I], VarType);
+  begin
+    MethodCompiler.Locals.AddLocalVar(NamesNode.Identifiers[I],
+      VarType).DeclarationLocation := NamesNode.DeclarationLocations[I];
+  end;
 
   inherited;
 end;

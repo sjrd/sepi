@@ -303,6 +303,10 @@ type
     FLife: TSepiLocalVarLife;           /// Vie de la variable (peut être vide)
     FOffset: Integer;                   /// Offset
 
+    FDeclarationLocation: TSepiSourcePosition; /// Position de la déclaration
+
+    FIsUseful: Boolean; /// True dès que la variable a été utilisée
+
     procedure AddAbsolute(AbsVar: TSepiLocalVar);
     procedure SetLife(ALife: TSepiLocalVarLife);
 
@@ -315,7 +319,7 @@ type
     constructor CreateVar(const AName: string; AType: TSepiType);
     constructor CreateTempVar(AType: TSepiType);
     constructor CreateParam(Param: TSepiParam);
-    constructor CreateResult(AType: TSepiType);
+    constructor CreateResult(Signature: TSepiSignature);
     constructor CreateAbsolute(const AName: string; AType: TSepiType;
       AAbsoluteTo: TSepiLocalVar);
     destructor Destroy; override;
@@ -325,6 +329,8 @@ type
 
     function InterfereWith(Other: TSepiLocalVar): Boolean;
     procedure SetOffset(AOffset: Integer);
+
+    procedure CheckUseful(Errors: TSepiCompilerErrorList);
 
     property Name: string read FName;
     property VarType: TSepiType read FType;
@@ -339,6 +345,11 @@ type
     property IsLifeHandled: Boolean read GetIsLifeHandled;
     property Life: TSepiLocalVarLife read FLife;
     property Offset: Integer read FOffset;
+
+    property DeclarationLocation: TSepiSourcePosition
+      read FDeclarationLocation write FDeclarationLocation;
+
+    property IsUseful: Boolean read FIsUseful write FIsUseful;
   end;
 
   {*
@@ -386,6 +397,7 @@ type
     function AddAbsolute(const AName: string; AType: TSepiType;
       AAbsoluteTo: TSepiLocalVar): TSepiLocalVar;
 
+    function Exists(const Name: string): Boolean;
     function GetVarByName(const Name: string): TSepiLocalVar;
 
     procedure Compile;
@@ -1574,20 +1586,26 @@ begin
   FIsParam := True;
   FParamKind := Param.Kind;
   FOffset := Param.CallInfo.SepiStackOffset;
+
+  FDeclarationLocation := Param.DeclarationLocation;
 end;
 
 {*
   Crée la variable résultat d'une méthode
-  @param AType   Type de retour
+  @param Signature   Signature de la méthode
 *}
-constructor TSepiLocalVar.CreateResult(AType: TSepiType);
+constructor TSepiLocalVar.CreateResult(Signature: TSepiSignature);
 begin
   inherited Create;
 
   FName := ResultFieldName;
-  FType := AType;
+  FType := Signature.ReturnType;
   FIsFixed := True;
   FOffset := 0;
+
+  FDeclarationLocation := Signature.Owner.DeclarationLocation;
+
+  FIsUseful := True;
 end;
 
 {*
@@ -1774,6 +1792,19 @@ begin
     FAbsolutes[I].SetOffset(AOffset);
 end;
 
+{*
+  Vérifie si cette variable est utile, et produit un conseil sinon
+*}
+procedure TSepiLocalVar.CheckUseful(Errors: TSepiCompilerErrorList);
+begin
+  if not ((Name = '') or IsParam or IsUseful) then
+  begin
+    // The variable is never used
+    Errors.MakeError(Format(SLocalVarIsNeverUsed, [Name]), ekHint,
+      DeclarationLocation);
+  end;
+end;
+
 {---------------------------}
 { TSepiLocalVariables class }
 {---------------------------}
@@ -1919,7 +1950,7 @@ begin
       FVariables.Add(TSepiLocalVar.CreateParam(ActualParams[I]));
 
     if not (ReturnType.SafeResultBehavior in [rbNone, rbParameter]) then
-      FVariables.Add(TSepiLocalVar.CreateResult(ReturnType));
+      FVariables.Add(TSepiLocalVar.CreateResult(Signature));
   end;
 end;
 
@@ -1987,6 +2018,24 @@ begin
 end;
 
 {*
+  Teste si une variable locale existe
+  @param Name   Nom de la variable recherchée
+  @return True si la variable existe, False sinon
+*}
+function TSepiLocalVariables.Exists(const Name: string): Boolean;
+var
+  I: Integer;
+begin
+  Result := True;
+
+  for I := 0 to Count-1 do
+    if AnsiSameText(Variables[I].Name, Name) then
+      Exit;
+
+  Result := False;
+end;
+
+{*
   Récupère une variable locale par son nom
   @param Name   Nom de la variable recherchée
   @return Variable correspondante, ou nil si non trouvée
@@ -1998,8 +2047,12 @@ begin
   for I := 0 to Count-1 do
   begin
     Result := Variables[I];
+
     if AnsiSameText(Result.Name, Name) then
+    begin
+      Result.IsUseful := True;
       Exit;
+    end;
   end;
 
   Result := nil;
@@ -2013,7 +2066,10 @@ var
   I: Integer;
 begin
   for I := 0 to Count-1 do
+  begin
     Variables[I].CompileLife;
+    Variables[I].CheckUseful(Compiler.Errors);
+  end;
 
   AllocateOffsets;
   MakeInitInfo;
