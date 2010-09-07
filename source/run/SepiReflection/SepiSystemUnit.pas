@@ -44,8 +44,8 @@ interface
 {$ASSERTIONS ON}
 
 uses
-  Classes, StrUtils, TypInfo, SepiReflectionCore, SepiOrdTypes, SepiStrTypes,
-  SepiArrayTypes, SepiMembers, SepiReflectionConsts;
+  SysUtils, Classes, StrUtils, TypInfo, SepiReflectionCore, SepiOrdTypes,
+  SepiStrTypes, SepiArrayTypes, SepiMembers, SepiReflectionConsts;
 
 type
   {*
@@ -410,6 +410,16 @@ end;
   Create builtin methods
 *}
 procedure InternalCreateBuiltinMethods(Self: TSepiSystemUnit);
+const
+{$IFNDEF UNICODE}
+  StringTypeNames: array[0..2] of string =
+    ('ShortString', 'AnsiString', 'WideString');
+{$ELSE}
+  StringTypeNames: array[0..3] of string =
+    ('ShortString', 'AnsiString', 'WideString', 'UnicodeString');
+{$ENDIF}
+var
+  I: Integer;
 begin
   { Write, Writeln and Readln routines
     We create these three routines as overloaded, though there are only one of
@@ -425,6 +435,18 @@ begin
     'static procedure(const S: string)');
   TSepiMethod.CreateOverloaded(Self, 'Readln', @Readln,
     'static procedure(var S: string)');
+
+  { Insert and Delete routines }
+  for I := Low(StringTypeNames) to High(StringTypeNames) do
+  begin
+    TSepiMethod.CreateOverloaded(Self, 'Insert', nil, Format(
+      'static procedure(const Substr: %s; var Dest: %0:s; Index: Integer)',
+      [StringTypeNames[I]]));
+
+    TSepiMethod.CreateOverloaded(Self, 'Delete', nil, Format(
+      'static procedure(var S: %s; Index, Count: Integer)',
+      [StringTypeNames[I]]));
+  end;
 end;
 
 {*

@@ -273,6 +273,13 @@ begin
   WriteLn(Copy(Str, 7, MaxInt));
   SetLength(Str, 5);
   WriteLn(Str);
+
+  WriteLn('');
+  Str := 'Hello world!';
+  Insert('all the ', Str, 7);
+  WriteLn(Str);
+  Delete(Str, 1, 6);
+  WriteLn(Str);
 end;
 
 procedure TestStringChars;
