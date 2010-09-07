@@ -6488,22 +6488,16 @@ end;
 procedure TSepiStringCharValue.CompileUniqueStringCall(
   Compiler: TSepiMethodCompiler; Instructions: TSepiInstructionList;
   StringMemoryRef: TSepiMemoryReference);
-const
-  StringKindToOvldIndex: array[TSepiStringKind] of Integer = (0, 1, 2);
-  UniqueStringName = 'UniqueString'; {don't localize}
+const {don't localize}
+  StringKindToMethodName: array[TSepiStringKind] of string =
+    ('@UniqueStringA', '@UniqueStringW', '@UniqueStringU');
 var
-  OvldMethod: TSepiOverloadedMethod;
-  Method: TSepiMethod;
   CallInstr: TSepiAsmStaticCall;
 begin
-  // Find the appropriate UniqueString overload
-  OvldMethod := SystemUnit.FindComponent(
-    UniqueStringName) as TSepiOverloadedMethod;
-  Method := OvldMethod.Methods[StringKindToOvldIndex[StringType.StringKind]];
-
   // Call UniqueString
   CallInstr := TSepiAsmStaticCall.Create(Compiler);
-  CallInstr.SetMethod(Method);
+  CallInstr.SetMethod(SystemUnit.FindComponent(
+    StringKindToMethodName[StringType.StringKind]) as TSepiMethod);
   CallInstr.Parameters.Parameters[0].MemoryRef.Clone(StringMemoryRef);
   Instructions.Add(CallInstr);
 end;

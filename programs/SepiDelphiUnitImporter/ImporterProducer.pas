@@ -87,6 +87,8 @@ type
       Method: TSepiMethod; const AClassName: string = ''): string;
     function ResolveOverloadedMethod(Template: TTemplate;
       Method: TSepiMethod; const AClassName: string = ''): string;
+    function ResolveCompilerMagicRoutine(Template: TTemplate;
+      Method: TSepiMethod): string;
 
     function NextTypeID: Integer;
     function NextMethodID: Integer;
@@ -113,6 +115,7 @@ const // don't localize
   ClassDeclTemplateFileName = 'ClassDecl.pas';
   ClassImplTemplateFileName = 'ClassImpl.pas';
   MethodTemplateFileName = 'Method.pas';
+  CompilerMagicRoutineTemplateFileName = 'CompilerMagicRoutine.pas';
 
   UnitNameParam = 'UnitName';
   UnitName2Param = 'UnitName2';
@@ -139,6 +142,9 @@ const // don't localize
 
   SignatureParam = 'Signature';
   StatementsParam = 'Statements';
+
+  ResolvedNameParam = 'ResolvedName';
+  RoutineFullNameParam = 'RoutineFullName';
 
   CRLF = #13#10;
 
@@ -539,13 +545,16 @@ var
 begin
   with Routine do
   begin
-    // Compiler magic routines must not be imported
-    if Name[1] = '_' then
+    { Hum.  We must not reference coverage routines, because they are imported
+      from a DLL that might be linked. }
+    if AnsiStartsText('@CVR_', Name) then
       Exit;
 
     Tag := NextMethodID;
 
-    if IsOverloaded then
+    if Name[1] = '@' then
+      StrAddress := ResolveCompilerMagicRoutine(Template, Routine)
+    else if IsOverloaded then
       StrAddress := ResolveOverloadedMethod(Template, Routine)
     else if AnsiSameText(GetFullName, 'System.Error') then // see below
       StrAddress := GetFullName
@@ -934,6 +943,32 @@ begin
         SetParam(StatementsParam, Statement);
       end;
     end;
+
+    Template.AddToParam(OverloadedsParam, ResolveTpl.Process);
+  finally
+    ResolveTpl.Free;
+  end;
+end;
+
+{*
+  Résoud l'importation d'une routine de compiler magic
+  @param Template     Template de l'importeur d'unité
+  @param Method       Méthode à résoudre
+  @return Nom d'import de la méthode
+*}
+function TSepiImporterProducer.ResolveCompilerMagicRoutine(Template: TTemplate;
+  Method: TSepiMethod): string;
+var
+  ResolveTpl: TTemplate;
+begin
+  ResolveTpl := TTemplate.Create(
+    TemplateDir+CompilerMagicRoutineTemplateFileName);
+  try
+    Result := Method.Name;
+    Result[1] := '_';
+
+    ResolveTpl.SetParam(ResolvedNameParam, Result);
+    ResolveTpl.SetParam(RoutineFullNameParam, Method.GetFullName);
 
     Template.AddToParam(OverloadedsParam, ResolveTpl.Process);
   finally

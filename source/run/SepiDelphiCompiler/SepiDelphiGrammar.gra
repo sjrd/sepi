@@ -741,7 +741,7 @@ EventIsOfObject	AsText
 	'of' 'object'
 
 RoutineDecl
-	RoutineKind MethodNameDeclaration MethodSignature (RoutineModifier)* ';'* (RoutineModifier ';'*)*
+	RoutineKind RoutineNameDeclaration MethodSignature (RoutineModifier)* ';'* (RoutineModifier ';'*)*
 
 RoutineKind	AsText
 	'procedure'
@@ -752,6 +752,9 @@ MethodKind	AsText
 	'function'
 	'constructor'
 	'destructor'
+
+RoutineNameDeclaration
+	Identifier
 
 MethodNameDeclaration
 	Identifier

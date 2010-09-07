@@ -534,6 +534,16 @@ type
   end;
 
   {*
+    Noeud déclaration du nom d'une méthode
+    @author sjrd
+    @version 1.0
+  *}
+  TDelphiRoutineNameDeclarationNode = class(TSepiUncheckedIdentifierDeclNode)
+  protected
+    function GetAsText: string; override;
+  end;
+
+  {*
     Noeud descripteur d'un type référence de méthode
     @author sjrd
     @version 1.0
@@ -693,6 +703,8 @@ begin
 
   NonTerminalClasses[ntMethodNameDeclaration] :=
     TSepiUncheckedIdentifierDeclNode;
+  NonTerminalClasses[ntRoutineNameDeclaration] :=
+    TDelphiRoutineNameDeclarationNode;
   NonTerminalClasses[ntRoutineKind]       := TSepiSignatureKindNode;
   NonTerminalClasses[ntMethodKind]        := TSepiSignatureKindNode;
   NonTerminalClasses[ntCallingConvention] := TSepiCallingConventionNode;
@@ -2203,6 +2215,21 @@ end;
 procedure TDelphiInterfaceGUIDNode.SetValuePtr(AValuePtr: PGUID);
 begin
   SetValueTypeAndPtr(SystemUnit.TGUID, AValuePtr);
+end;
+
+{-----------------------------------------}
+{ TDelphiRoutineNameDeclarationNode class }
+{-----------------------------------------}
+
+{*
+  [@inheritDoc]
+*}
+function TDelphiRoutineNameDeclarationNode.GetAsText: string;
+begin
+  Result := inherited GetAsText;
+
+  if (Result <> '') and (Result[1] = '_') then
+    Result[1] := '@';
 end;
 
 {--------------------------------}
