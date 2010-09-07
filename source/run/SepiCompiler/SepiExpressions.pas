@@ -1227,6 +1227,42 @@ type
   end;
 
   {*
+    Valeur caractère d'une chaîne
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiStringCharValue = class(TSepiCustomDirectValue)
+  private
+    FStringValue: ISepiValue;        /// Valeur chaîne
+    FIndexValue: ISepiReadableValue; /// Valeur index
+
+    FStringType: TSepiStringType; /// Type de chaîne
+
+    FWriting: Boolean; /// True ssi dans CompileWrite
+  protected
+    procedure CompileUniqueStringCall(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList;
+      StringMemoryRef: TSepiMemoryReference);
+
+    function CompileAsMemoryRef(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList;
+      TempVars: TSepiTempVarsLifeManager): TSepiMemoryReference; override;
+
+    procedure CompileWrite(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList; Source: ISepiReadableValue); override;
+
+    property StringType: TSepiStringType read FStringType;
+  public
+    procedure Complete;
+
+    class function MakeStringCharValue(const StringValue: ISepiValue;
+      const IndexValue: ISepiReadableValue): ISepiValue;
+
+    property StringValue: ISepiValue read FStringValue write FStringValue;
+    property IndexValue: ISepiReadableValue read FIndexValue write FIndexValue;
+  end;
+
+  {*
     Valeur champ de record
     @author sjrd
     @version 1.0
@@ -6396,7 +6432,7 @@ begin
 
       if IndexMemory <> nil then
       begin
-        Result.AddOperation(OrdTypeToOperation[IntIndexType.TypeData.OrdType],
+        Result.AddOperation(OrdTypeToOperation[IntIndexType.OrdType],
           ConstFactor).Assign(IndexMemory);
       end;
 
@@ -6461,6 +6497,173 @@ begin
   ArrayItemValue.ArrayValue := ArrayValue;
   ArrayItemValue.IndexValue := IndexValue;
   ArrayItemValue.Complete;
+  Result.AttachToExpression(Result as ISepiExpression);
+end;
+
+{----------------------------}
+{ TSepiStringCharValue class }
+{----------------------------}
+
+{*
+  Compile l'appel à UniqueString
+  @param Compiler          Compilateur
+  @param Instructions      Instructions
+  @param StringMemoryRef   Référence mémoire de la chaîne
+*}
+procedure TSepiStringCharValue.CompileUniqueStringCall(
+  Compiler: TSepiMethodCompiler; Instructions: TSepiInstructionList;
+  StringMemoryRef: TSepiMemoryReference);
+const
+  StringKindToOvldIndex: array[TSepiStringKind] of Integer = (0, 1, 2);
+  UniqueStringName = 'UniqueString'; {don't localize}
+var
+  OvldMethod: TSepiOverloadedMethod;
+  Method: TSepiMethod;
+  CallInstr: TSepiAsmStaticCall;
+begin
+  // Find the appropriate UniqueString overload
+  OvldMethod := SystemUnit.FindComponent(
+    UniqueStringName) as TSepiOverloadedMethod;
+  Method := OvldMethod.Methods[StringKindToOvldIndex[StringType.StringKind]];
+
+  // Call UniqueString
+  CallInstr := TSepiAsmStaticCall.Create(Compiler);
+  CallInstr.SetMethod(Method);
+  CallInstr.Parameters.Parameters[0].MemoryRef.Clone(StringMemoryRef);
+  Instructions.Add(CallInstr);
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiStringCharValue.CompileAsMemoryRef(Compiler: TSepiMethodCompiler;
+  Instructions: TSepiInstructionList;
+  TempVars: TSepiTempVarsLifeManager): TSepiMemoryReference;
+const
+  OrdTypeToOperation: array[TOrdType] of TSepiAddressOperation = (
+    aoPlusConstTimesMemShortint, aoPlusConstTimesMemByte,
+    aoPlusConstTimesMemSmallint, aoPlusConstTimesMemWord,
+    aoPlusConstTimesMemLongint, aoPlusConstTimesMemLongWord
+  );
+var
+  IndexType: TSepiIntegerType;
+  SourceMemory, IndexMemory: TSepiMemoryReference;
+  ConstIndex, ConstFactor: Integer;
+begin
+  IndexType := IndexValue.ValueType as TSepiIntegerType;
+  ConstFactor := ValueType.Size;
+
+  SourceMemory := nil;
+  IndexMemory := nil;
+  try
+    { Accessing a single character of a string always requires to *read* the
+      string value. }
+
+    // Read the string value
+    (StringValue as ISepiReadableValue).CompileRead(Compiler, Instructions,
+      SourceMemory, TempVars);
+
+    // Call UniqueString if we are writing (copy-on-write)
+    if FWriting then
+      CompileUniqueStringCall(Compiler, Instructions, SourceMemory);
+
+    // Unfortunately, string indices begin at 1
+    ConstIndex := -1;
+
+    // If the index value is constant, use ConstIndex, otherwise read it
+    if IndexValue.IsConstant then
+      Inc(ConstIndex, IndexType.ValueAsInteger(IndexValue.ConstValuePtr^))
+    else
+      IndexValue.CompileRead(Compiler, Instructions, IndexMemory, TempVars);
+
+    // Finally, construct the memory reference for the item value
+    Result := TSepiMemoryReference.Clone(SourceMemory);
+    try
+      // Dereference
+      Result.AddOperation(adSimple);
+
+      // Add the constant and variable offsets
+
+      if ConstIndex <> 0 then // may be 0 if index is a constant 1
+        Result.AddOperation(aoPlusConstShortint, ConstFactor * ConstIndex);
+
+      if IndexMemory <> nil then
+      begin
+        Result.AddOperation(OrdTypeToOperation[IndexType.OrdType],
+          ConstFactor).Assign(IndexMemory);
+      end;
+
+      Result.Seal;
+    except
+      Result.Free;
+      raise;
+    end;
+  finally
+    IndexMemory.Free;
+    SourceMemory.Free;
+  end;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiStringCharValue.CompileWrite(Compiler: TSepiMethodCompiler;
+  Instructions: TSepiInstructionList; Source: ISepiReadableValue);
+begin
+  FWriting := True;
+  try
+    inherited;
+  finally
+    FWriting := False;
+  end;
+end;
+
+{*
+  Complète la valeur
+  Doit avoir été attaché à une expression au préalable, pour bénéficier du
+  contexte.
+*}
+procedure TSepiStringCharValue.Complete;
+begin
+  Assert(StringValue <> nil);
+  Assert(IndexValue <> nil);
+
+  // Fetch types
+  FStringType := StringValue.ValueType as TSepiStringType;
+  SetValueType(StringType.CharType);
+
+  // Convert index
+  if not (IndexValue.ValueType is TSepiIntegerType) then
+  begin
+    IndexValue := TSepiConvertOperation.ConvertValue(SystemUnit.Integer,
+      IndexValue);
+  end;
+
+  // Set accesses
+  IsReadable := Supports(StringValue, ISepiReadableValue);
+  IsWritable := IsReadable and Supports(StringValue, ISepiWritableValue) and
+    Supports(StringValue, ISepiAddressableValue);
+  IsAddressable := IsReadable;
+end;
+
+{*
+  Construit une valeur élément de tableau
+  @param StringValue   Valeur tableau
+  @param IndexValue   Valeur index
+*}
+class function TSepiStringCharValue.MakeStringCharValue(
+  const StringValue: ISepiValue;
+  const IndexValue: ISepiReadableValue): ISepiValue;
+var
+  StringCharValue: TSepiStringCharValue;
+begin
+  StringCharValue := TSepiStringCharValue.Create;
+  Result := StringCharValue;
+  Result.AttachToExpression(TSepiExpression.Create(
+    StringValue as ISepiExpression));
+  StringCharValue.StringValue := StringValue;
+  StringCharValue.IndexValue := IndexValue;
+  StringCharValue.Complete;
   Result.AttachToExpression(Result as ISepiExpression);
 end;
 

@@ -281,7 +281,11 @@ begin
     Include(Node.States, vsHasChildren);
 
   if Pos('$', Component.Name) > 0 then
-    Exclude(Node.States, vsVisible);
+  begin
+    if not ((Component is TSepiMethod) and
+      TSepiMethod(Component).IsOverloaded) then
+      Exclude(Node.States, vsVisible);
+  end;
 end;
 
 {*

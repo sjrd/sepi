@@ -42,7 +42,8 @@ unit SepiStrTypes;
 interface
 
 uses
-  SysUtils, Classes, TypInfo, ScTypInfo, ScDelphiLanguage, SepiReflectionCore;
+  SysUtils, Classes, TypInfo, ScTypInfo, ScDelphiLanguage, SepiReflectionCore,
+  SepiOrdTypes;
 
 type
   {*
@@ -113,6 +114,8 @@ type
     FCodePage: Word; /// Code de page pour une chaîne Ansi
 
     function HasCodePage: Boolean;
+
+    function GetCharType: TSepiCharType;
   protected
     procedure Save(Stream: TStream); override;
 
@@ -135,9 +138,14 @@ type
     property StringKind: TSepiStringKind read FStringKind;
 
     property CodePage: Word read FCodePage;
+
+    property CharType: TSepiCharType read GetCharType;
   end;
 
 implementation
+
+uses
+  SepiSystemUnit;
 
 const
   // Tailles de structure TTypeData en fonction des types
@@ -327,6 +335,18 @@ begin
   {$ELSE}
   Result := False;
   {$ENDIF}
+end;
+
+{*
+  Type des caractères de la chaîne
+  @return Type des caractères de la chaîne
+*}
+function TSepiStringType.GetCharType: TSepiCharType;
+begin
+  if StringKind = skAnsiString then
+    Result := TSepiSystemUnit.Get(Self).AnsiChar
+  else
+    Result := TSepiSystemUnit.Get(Self).WideChar;
 end;
 
 {*

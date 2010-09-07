@@ -267,6 +267,27 @@ begin
   WriteLn(Str);
 end;
 
+procedure TestStringChars;
+var
+  Str, Str2: string;
+  I: Integer;
+begin
+  WriteTitle('Test selection of characters of a string');
+
+  Str := 'Hello world!';
+  WriteLn(Str);
+  WriteLn('Str[1] = ' + Str[1]);
+
+  Str2 := Str;
+  Str[3] := '_';
+  WriteLn(Str);
+  WriteLn(Str2);
+
+  for I := 1 to Length(Str) do
+    Write(Str[I] + ', ');
+  WriteLn('');
+end;
+
 procedure Main;
 begin
   Randomize;
@@ -278,6 +299,7 @@ begin
   TestIsAs;
   TestOpenArray;
   TestSetLengthAndCopy;
+  TestStringChars;
   TestExceptionsAndClassDef;
 end;
 

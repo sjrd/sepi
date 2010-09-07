@@ -606,6 +606,7 @@ type
   protected
     procedure CompileProperty(const Prop: ISepiProperty); virtual;
     procedure CompileArrayItem(const BaseValue: ISepiValue); virtual;
+    procedure CompileStringChar(const BaseValue: ISepiValue); virtual;
     procedure CompileDefaultProperty(
       const ObjectValue: ISepiReadableValue); virtual;
   public
@@ -3269,6 +3270,42 @@ begin
 end;
 
 {*
+  Compile l'accès à un caractère d'une chaîne
+  @param BaseValue   Valeur chaîne de base
+*}
+procedure TSepiArrayIndicesModifierNode.CompileStringChar(
+  const BaseValue: ISepiValue);
+var
+  IndexChild: TSepiExpressionNode;
+  IndexExpression: ISepiExpression;
+  IndexValue: ISepiReadableValue;
+  StringCharValue: ISepiValue;
+begin
+  // Get index value
+  IndexChild := (Children[0] as TSepiExpressionNode);
+  IndexExpression := IndexChild.Expression;
+
+  if not Supports(IndexExpression, ISepiReadableValue, IndexValue) then
+  begin
+    IndexExpression.MakeError(SReadableValueRequired);
+
+    IndexValue := TSepiErroneousValue.MakeReplacementValue(IndexExpression,
+      SystemUnit.Integer);
+    Byte(IndexValue.ConstValuePtr^) := 1;
+  end;
+
+  // Make string char value
+  StringCharValue := TSepiStringCharValue.MakeStringCharValue(BaseValue,
+    IndexValue);
+
+  // Check that there is no more than one index
+  if ChildCount > 1 then
+    Children[1].MakeError(STooManyArrayIndices);
+
+  SetExpression(StringCharValue as ISepiExpression);
+end;
+
+{*
   Compile les indices de la propriété par défaut d'un objet
   @param ObjectValue   Valeur objet
 *}
@@ -3307,6 +3344,11 @@ begin
     begin
       // True array indices
       CompileArrayItem(BaseValue);
+    end else if Supports(Base, ISepiValue, BaseValue) and
+      (BaseValue.ValueType is TSepiStringType) then
+    begin
+      // Select a character from a string
+      CompileStringChar(BaseValue);
     end else if Supports(Base, ISepiReadableValue, ObjectValue) and
       (ObjectValue.ValueType is TSepiClass) and
       (TSepiClass(ObjectValue.ValueType).DefaultProperty <> nil) then
