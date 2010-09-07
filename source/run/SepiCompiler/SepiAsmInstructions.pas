@@ -2008,6 +2008,8 @@ end;
   Optimise l'instruction
 *}
 procedure TSepiAsmOperation.Optimize;
+const
+  PurgeRightOpCodes = [ocSelfAdd, ocSelfSubtract, ocOtherAdd, ocOtherSubtract];
 begin
   if UseLeft and Left.Equals(Destination) then
   begin
@@ -2016,6 +2018,15 @@ begin
     FUseLeft := False;
     Dec(FOpCode, ocOtherInc - ocSelfInc);
     FLeft := FDestination;
+  end;
+
+  if UseRight and (OpCode in PurgeRightOpCodes) and Right.IsConstantOne then
+  begin
+    // Right part is 1: make Add/Subtract be Inc/Dec, respectively
+    FreeAndNil(FRight);
+    FUseRight := False;
+    Dec(FOpCode, ocSelfAdd - ocSelfInc);
+    FRight := FLeft;
   end;
 end;
 

@@ -858,6 +858,7 @@ type
 
     procedure GetConstant(var AConstant);
     procedure SetConstant(const AConstant);
+    function IsConstantOne: Boolean;
 
     procedure Assign(Source: TSepiMemoryReference;
       SealAfter: Boolean = True);
@@ -3479,6 +3480,29 @@ begin
   CheckUnsealed;
 
   Move(AConstant, FConstant^, ConstSize);
+end;
+
+{*
+  Teste si la référence mémoire vaut en fait la constante 1
+  @return True si la référence mémoire vaut la constante 1, False sinon
+*}
+function TSepiMemoryReference.IsConstantOne: Boolean;
+var
+  I: Integer;
+begin
+  Result := False;
+
+  if (Space <> msConstant) or (OperationCount <> 0) then
+    Exit;
+
+  if Byte(FConstant^) <> 1 then
+    Exit;
+
+  for I := 1 to ConstSize-1 do
+    if TByteArray(FConstant^)[I] <> 0 then
+      Exit;
+
+  Result := True;
 end;
 
 {*
