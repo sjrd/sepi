@@ -232,6 +232,22 @@ type
   end;
 
   {*
+    Pseudo-routine Inc ou Dec
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiIncDecPseudoRoutine = class(TSepiExecutableBackedPseudoRoutine)
+  private
+    FIsDec: Boolean; /// True pour Dec, False pour Inc
+  protected
+    procedure CompleteParams; override;
+  public
+    constructor Create(AIsDec: Boolean);
+
+    property IsDec: Boolean read FIsDec;
+  end;
+
+  {*
     Pseudo-routine SetLength
     @author sjrd
     @version 1.0
@@ -313,6 +329,12 @@ const
 
   /// Nom de la pseudo-routine Chr
   ChrName = 'Chr';
+
+  /// Nom de la pseudo-routine Inc
+  IncName = 'Inc';
+
+  /// Nom de la pseudo-routine Dec
+  DecName = 'Dec';
 
   /// Nom de la pseudo-routine SetLength
   SetLengthName = 'SetLength';
@@ -409,6 +431,22 @@ begin
   begin
     ISepiExpressionPart(TSepiCastPseudoRoutine.CreateChr).AttachToExpression(
       Expression);
+    Exit;
+  end;
+
+  // Inc pseudo-routine
+  if AnsiSameText(Identifier, IncName) then
+  begin
+    ISepiExpressionPart(TSepiIncDecPseudoRoutine.Create(
+      False)).AttachToExpression(Expression);
+    Exit;
+  end;
+
+  // Dec pseudo-routine
+  if AnsiSameText(Identifier, DecName) then
+  begin
+    ISepiExpressionPart(TSepiIncDecPseudoRoutine.Create(
+      True)).AttachToExpression(Expression);
     Exit;
   end;
 
@@ -1211,6 +1249,123 @@ begin
   end;
 
   AttachToExpression(Expression);
+end;
+
+{--------------------------------}
+{ TSepiIncDecPseudoRoutine class }
+{--------------------------------}
+
+{*
+  Crée une instance de TSepiIncDecPseudoRoutine
+  @param AIsDec   True pour Dec, False pour Inc
+*}
+constructor TSepiIncDecPseudoRoutine.Create(AIsDec: Boolean);
+begin
+  inherited Create;
+
+  FIsDec := AIsDec;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiIncDecPseudoRoutine.CompleteParams;
+var
+  DestValue: ISepiValue;
+  DestType: TSepiType;
+  IncrementValue, SizeValue: ISepiReadableValue;
+  OpValue: ISepiReadableValue;
+begin
+  inherited;
+
+  // Check param count
+  if ParamCount = 0 then
+  begin
+    MakeError(SNotEnoughActualParameters);
+    Exit;
+  end else if ParamCount > 2 then
+    Params[2].MakeError(STooManyActualParameters);
+
+  // Get DestValue
+  if not Supports(Params[0], ISepiValue, DestValue) then
+  begin
+    Params[0].MakeError(SIntegerCharOrTypedPointerTypeRequired);
+    Exit;
+  end;
+
+  // Make sure DestValue is readable, writeable *and* addressable
+  if not (Supports(DestValue, ISepiReadableValue) and
+    Supports(DestValue, ISepiWritableValue) and
+    Supports(DestValue, ISepiAddressableValue)) then
+  begin
+    Params[0].MakeError(SVarValueRequired);
+    Exit;
+  end;
+
+  // Get DestType
+  DestType := DestValue.ValueType;
+
+  // Character DestType must be treated as integer
+  if DestType is TSepiCharType then
+  begin
+    DestType := SystemUnit.GetSystemType(TSepiCharType(DestType).OrdType);
+    DestValue := TSepiCastOperator.CastValue(DestType, DestValue);
+  end;
+
+  // Get IncrementValue
+  if ParamCount = 2 then
+  begin
+    if not Supports(Params[1], ISepiReadableValue, IncrementValue) then
+      Params[1].MakeError(SReadableValueRequired);
+  end;
+
+  // Make default IncrementValue
+  if IncrementValue = nil then
+    IncrementValue := TSepiIntegerLiteralValue.MakeValue(BaseCompiler, 1);
+
+  // Adapt DestValue and IncrementValue following the types
+  if DestType.Kind in [tkInteger, tkInt64] then
+  begin
+    // Convert to DestType
+    if not IncrementValue.ValueType.Equals(DestType) then
+    begin
+      IncrementValue := TSepiConvertOperation.ConvertValue(DestType,
+        IncrementValue);
+    end;
+  end else if (DestType is TSepiPointerType) and
+    (not TSepiPointerType(DestType).IsUntyped) then
+  begin
+    // Typed pointer
+    DestValue := TSepiCastOperator.CastValue(SystemUnit.Integer, DestValue);
+
+    if not IncrementValue.ValueType.Equals(SystemUnit.Integer) then
+    begin
+      IncrementValue := TSepiConvertOperation.ConvertValue(SystemUnit.Integer,
+        IncrementValue);
+    end;
+
+    if TSepiPointerType(DestType).PointTo.Size <> 1 then
+    begin
+      SizeValue := TSepiIntegerLiteralValue.MakeValue(BaseCompiler,
+        TSepiPointerType(DestType).PointTo.Size, SystemUnit.Integer);
+
+      IncrementValue := TSepiBinaryOperation.MakeOperation(opMultiply,
+        IncrementValue, SizeValue);
+    end;
+  end else
+  begin
+    // Error
+    Params[0].MakeError(SIntegerCharOrTypedPointerTypeRequired);
+    Exit;
+  end;
+
+  // Make the operation value
+  OpValue := TSepiBinaryOperation.MakeOperation(IIF(IsDec, opSubtract, opAdd),
+    DestValue as ISepiReadableValue, IncrementValue);
+
+  // Make the assignment
+  BackingExecutable := TSepiAssignmentOperation.MakeOperation(
+    DestValue as ISepiWritableValue, OpValue);
 end;
 
 {-----------------------------------}

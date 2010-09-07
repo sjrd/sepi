@@ -536,7 +536,7 @@ type
   end;
 
   {*
-    Valeur constante litérale entière
+    Valeur constante litérale flottante
     @author sjrd
     @version 1.0
   *}
@@ -3403,8 +3403,13 @@ end;
 procedure TSepiCastOperator.CompileWrite(Compiler: TSepiMethodCompiler;
   Instructions: TSepiInstructionList; Source: ISepiReadableValue);
 begin
-  (Operand as ISepiWritableValue).CompileWrite(Compiler, Instructions,
-    Source);
+  if not (Operand.ValueType is TSepiUntypedType) then
+  begin
+    Source := TSepiCastOperator.CastValue(Operand.ValueType,
+      Source) as ISepiReadableValue;
+  end;
+
+  (Operand as ISepiWritableValue).CompileWrite(Compiler, Instructions, Source);
 end;
 
 {*

@@ -71,6 +71,7 @@ begin
   ShorterVar := 10;
 
   C := '0';
+  Inc(C);
   D := 'D';
   WriteLn(CharSetToStr(SwitchChars + [C, 'A'..D] - ['B', 'Q'] * ['B'..'E'] +
     [Chr(ShorterConst)..Chr(ShorterVar)] + EmptySet + (['Z']-[])));
@@ -295,6 +296,31 @@ begin
   WriteLn('');
 end;
 
+procedure TestSomePseudoRoutines;
+var
+  I: Integer;
+  P: PInteger;
+begin
+  WriteTitle('Test Inc and Dec');
+
+  I := 1;
+  WriteLn(IntToStr(I));
+  Inc(I);
+  WriteLn(IntToStr(I));
+
+  Inc(I, 5);
+  WriteLn(IntToStr(I));
+  Dec(I);
+  WriteLn(IntToStr(I));
+
+  P := @I;
+  WriteLn(IntToStr(P^));
+  Inc(P);
+  Inc(P, 2);
+  Dec(P, 3);
+  WriteLn(IntToStr(P^));
+end;
+
 procedure Main;
 begin
   Randomize;
@@ -307,6 +333,7 @@ begin
   TestOpenArray;
   TestSetLengthAndCopy;
   TestStringChars;
+  TestSomePseudoRoutines;
   TestExceptionsAndClassDef;
 end;
 
