@@ -58,6 +58,9 @@ begin
   IsFirstTitle := False;
 end;
 
+type
+  TSomeSet = set of (ssOne, ssTwo, ssThree);
+
 procedure TestSets;
 const
   ShorterConst: TShorterInt = 5;
@@ -65,6 +68,7 @@ const
 var
   C, D: AnsiChar;
   ShorterVar: TShorterInt;
+  SomeSet: TSomeSet;
 begin
   WriteTitle('Test set construction and operations');
 
@@ -76,6 +80,13 @@ begin
   WriteLn(CharSetToStr(SwitchChars + [C, 'A'..D] - ['B', 'Q'] * ['B'..'E'] +
     [Chr(ShorterConst)..Chr(ShorterVar)] + EmptySet + (['Z']-[])));
   WriteLn(CharSetToStr(['1', '9']));
+
+  SomeSet := [ssOne];
+  WriteLn(EnumSetToStr(SomeSet, TypeInfo(TSomeSet)));
+  Include(SomeSet, ssTwo);
+  WriteLn(EnumSetToStr(SomeSet, TypeInfo(TSomeSet)));
+  Exclude(SomeSet, ssOne);
+  WriteLn(EnumSetToStr(SomeSet, TypeInfo(TSomeSet)));
 end;
 
 procedure TestChangeGlobalVar;

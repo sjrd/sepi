@@ -268,6 +268,22 @@ type
   end;
 
   {*
+    Pseudo-routine Include ou Exclude
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiIncludeExcludePseudoRoutine = class(TSepiExecutableBackedPseudoRoutine)
+  private
+    FIsInclude: Boolean; /// True pour Include, False pour Exclude
+  protected
+    procedure CompleteParams; override;
+  public
+    constructor Create(AIsInclude: Boolean);
+
+    property IsInclude: Boolean read FIsInclude;
+  end;
+
+  {*
     Pseudo-routine de jump spécial (Continue, Break ou Exit)
     @author sjrd
     @version 1.0
@@ -341,6 +357,12 @@ const
 
   /// Nom de la pseudo-routine Copy
   CopyName = 'Copy';
+
+  /// Nom de la pseudo-routine Include
+  IncludeName = 'Include';
+
+  /// Nom de la pseudo-routine Exclude
+  ExcludeName = 'Exclude';
 
   /// Nom des pseudo-routines de jump spécial
   SpecialJumpNames: array[TSepiSpecialJumpKind] of string = (
@@ -463,6 +485,22 @@ begin
   begin
     ISepiExpressionPart(TSepiCopyPseudoRoutine.Create).AttachToExpression(
       Expression);
+    Exit;
+  end;
+
+  // Include pseudo-routine
+  if AnsiSameText(Identifier, IncludeName) then
+  begin
+    ISepiExpressionPart(TSepiIncludeExcludePseudoRoutine.Create(
+      True)).AttachToExpression(Expression);
+    Exit;
+  end;
+
+  // Exclude pseudo-routine
+  if AnsiSameText(Identifier, ExcludeName) then
+  begin
+    ISepiExpressionPart(TSepiIncludeExcludePseudoRoutine.Create(
+      False)).AttachToExpression(Expression);
     Exit;
   end;
 
@@ -1478,6 +1516,60 @@ begin
   begin
     Params[0].MakeError(SStringOrDynArrayTypeRequired);
   end;
+end;
+
+{----------------------------------------}
+{ TSepiIncludeExcludePseudoRoutine class }
+{----------------------------------------}
+
+{*
+  Crée une instance de TSepiIncludeExcludePseudoRoutine
+  @param AIsInclude   True pour Include, False pour Exclude
+*}
+constructor TSepiIncludeExcludePseudoRoutine.Create(AIsInclude: Boolean);
+begin
+  inherited Create;
+
+  FIsInclude := AIsInclude;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiIncludeExcludePseudoRoutine.CompleteParams;
+var
+  SetValue: ISepiValue;
+  ItemValue: ISepiReadableValue;
+begin
+  inherited;
+
+  // Check ParamCount
+  if ParamCount < 2 then
+  begin
+    MakeError(SNotEnoughActualParameters);
+    Exit;
+  end else if ParamCount > 2 then
+    Params[2].MakeError(STooManyActualParameters);
+
+  // Get DestValue
+  if not (Supports(Params[0], ISepiValue, SetValue) and
+    (SetValue.ValueType is TSepiSetType)) then
+  begin
+    Params[0].MakeError(SVarValueRequired);
+    Exit;
+  end;
+
+  // Get ItemValue
+  if not Supports(Params[1], ISepiReadableValue, ItemValue) then
+  begin
+    Params[1].MakeError(SReadableValueRequired);
+    ItemValue := TSepiErroneousValue.MakeReplacementValue(Params[1]);
+  end;
+
+  // Make backing executable
+  BackingExecutable :=
+    TSepiSetIncludeExcludeExpression.MakeSetIncludeExcludeExpression(
+      IsInclude, SetValue, ItemValue);
 end;
 
 {-------------------------------------}

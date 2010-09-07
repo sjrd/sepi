@@ -1497,6 +1497,43 @@ type
   end;
 
   {*
+    Expression d'inclusion ou exclusion d'un élément dans un ensemble
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiSetIncludeExcludeExpression = class(TSepiCustomExecutable)
+  private
+    FIsInclude: Boolean; /// True pour Include, False pour Exclude
+
+    FSetValue: ISepiValue;          /// Chaîne dont modifier la longueur
+    FItemValue: ISepiReadableValue; /// Nouvelle longueur
+
+    procedure CheckTypes;
+  protected
+    procedure CompileExecute(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList); override;
+  public
+    constructor Create(AIsInclude: Boolean);
+
+    procedure Complete;
+
+    class function MakeSetIncludeExcludeExpression(IsInclude: Boolean;
+      const SetValue: ISepiValue;
+      const ItemValue: ISepiReadableValue): ISepiExecutable;
+
+    class function MakeSetIncludeExpression(const SetValue: ISepiValue;
+      const ItemValue: ISepiReadableValue): ISepiExecutable;
+
+    class function MakeSetExcludeExpression(const SetValue: ISepiValue;
+      const ItemValue: ISepiReadableValue): ISepiExecutable;
+
+    property IsInclude: Boolean read FIsInclude;
+
+    property SetValue: ISepiValue read FSetValue write FSetValue;
+    property ItemValue: ISepiReadableValue read FItemValue write FItemValue;
+  end;
+
+  {*
     Classe de base pour les expressions qui ont des paramètres
     @author sjrd
     @version 1.0
@@ -7685,6 +7722,154 @@ begin
   DynArrayCopy.IndexValue := IndexValue;
   DynArrayCopy.CountValue := CountValue;
   DynArrayCopy.Complete;
+end;
+
+{----------------------------------------}
+{ TSepiSetIncludeExcludeExpression class }
+{----------------------------------------}
+
+{*
+  Crée une instance de TSepiSetIncludeExcludeExpression
+  @param AIsInclude   True pour Include, False pour Exclude
+*}
+constructor TSepiSetIncludeExcludeExpression.Create(AIsInclude: Boolean);
+begin
+  inherited Create;
+
+  FIsInclude := AIsInclude;
+end;
+
+{*
+  Vérification de type
+*}
+procedure TSepiSetIncludeExcludeExpression.CheckTypes;
+var
+  SetExpression: ISepiExpression;
+  SetType: TSepiSetType;
+  ItemType: TSepiOrdType;
+begin
+  SetExpression := SetValue as ISepiExpression;
+
+  // Set operand
+
+  if not (SetValue.ValueType is TSepiSetType) then
+  begin
+    // Not a set
+    SetExpression.MakeError(SSetTypeRequired);
+    SetValue := TSepiErroneousValue.MakeReplacementValue(SetExpression,
+      UnitCompiler.MakeSetType(SystemUnit.Byte));
+  end else if not (Supports(SetValue, ISepiReadableValue) and
+    Supports(SetValue, ISepiWritableValue) and
+    Supports(SetValue, ISepiAddressableValue)) then
+  begin
+    // Not a variable
+    SetExpression.MakeError(SVarValueRequired);
+    SetValue := TSepiErroneousValue.MakeReplacementValue(SetExpression,
+      UnitCompiler.MakeSetType(SystemUnit.Byte));
+  end;
+
+  SetType := SetValue.ValueType as TSepiSetType;
+  ItemType := SetType.CompType;
+
+  // Item operand
+
+  if not ItemValue.ValueType.Equals(ItemType) then
+    ItemValue := TSepiConvertOperation.ConvertValue(ItemType, ItemValue);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiSetIncludeExcludeExpression.CompileExecute(
+  Compiler: TSepiMethodCompiler; Instructions: TSepiInstructionList);
+var
+  ReadableSetValue: ISepiReadableValue;
+  SetMemory, ItemMemory: TSepiMemoryReference;
+  TempVars: TSepiTempVarsLifeManager;
+  AsmInstr: TSepiAsmSetIncludeExclude;
+begin
+  ReadableSetValue := SetValue as ISepiReadableValue;
+
+  SetMemory := nil;
+  ItemMemory := nil;
+  TempVars := TSepiTempVarsLifeManager.Create;
+  try
+    // Read operands
+
+    ReadableSetValue.CompileRead(Compiler, Instructions, SetMemory, TempVars);
+    ItemValue.CompileRead(Compiler, Instructions, ItemMemory, TempVars);
+
+    TempVars.EndAllLifes(Instructions.GetCurrentEndRef);
+
+    // Make asm instruction
+
+    AsmInstr := TSepiAsmSetIncludeExclude.Create(Compiler, IsInclude);
+    AsmInstr.SourcePos := Expression.SourcePos;
+    AsmInstr.Destination.Assign(SetMemory);
+    AsmInstr.Element.Assign(ItemMemory);
+
+    Instructions.Add(AsmInstr);
+  finally
+    SetMemory.Free;
+    ItemMemory.Free;
+    TempVars.Free;
+  end;
+end;
+
+{*
+  Complète l'expression
+*}
+procedure TSepiSetIncludeExcludeExpression.Complete;
+begin
+  Assert(SetValue <> nil);
+  Assert(ItemValue <> nil);
+
+  CheckTypes;
+end;
+
+{*
+  Construit une expression d'inclusion ou exclusion d'un élément d'un ensemble
+  @param IsInclude   True pour inclure l'élément, False pour l'exclure
+  @param SetValue    Valeur ensemble
+  @param ItemValue   Élément à inclure ou exclure
+*}
+class function TSepiSetIncludeExcludeExpression.MakeSetIncludeExcludeExpression(
+  IsInclude: Boolean; const SetValue: ISepiValue;
+  const ItemValue: ISepiReadableValue): ISepiExecutable;
+var
+  SetIncludeExclude: TSepiSetIncludeExcludeExpression;
+begin
+  SetIncludeExclude := TSepiSetIncludeExcludeExpression.Create(IsInclude);
+  Result := SetIncludeExclude;
+  Result.AttachToExpression(TSepiExpression.Create(
+    SetValue as ISepiExpression));
+  SetIncludeExclude.SetValue := SetValue;
+  SetIncludeExclude.ItemValue := ItemValue;
+  SetIncludeExclude.Complete;
+end;
+
+{*
+  Construit une expression d'inclusion d'un élément d'un ensemble
+  @param SetValue    Valeur ensemble
+  @param ItemValue   Élément à inclure
+*}
+class function TSepiSetIncludeExcludeExpression.MakeSetIncludeExpression(
+  const SetValue: ISepiValue;
+  const ItemValue: ISepiReadableValue): ISepiExecutable;
+begin
+  Result := MakeSetIncludeExcludeExpression(True, SetValue, ItemValue);
+end;
+
+{*
+  Construit une expression d'exclusion d'un élément d'un ensemble
+  @param SetValue    Valeur ensemble
+  @param ItemValue   Élément à exclure
+*}
+class function TSepiSetIncludeExcludeExpression.MakeSetExcludeExpression(
+  const SetValue: ISepiValue;
+  const ItemValue: ISepiReadableValue): ISepiExecutable;
+begin
+  Result := MakeSetIncludeExcludeExpression(False, SetValue, ItemValue);
 end;
 
 {-----------------------------}
