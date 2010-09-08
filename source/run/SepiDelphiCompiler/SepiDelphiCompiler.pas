@@ -1207,12 +1207,12 @@ end;
   [@inheritDoc]
 *}
 procedure TDelphiSingleExprNode.EndParsing;
-var
-  WantingParams: ISepiWantingParams;
+{var
+  WantingParams: ISepiWantingParams;}
 begin
-  if Supports(Expression, ISepiWantingParams, WantingParams) and
+  {if Supports(Expression, ISepiWantingParams, WantingParams) and
     (not WantingParams.ParamsCompleted) then
-    WantingParams.CompleteParams;
+    WantingParams.CompleteParams;}
 
   inherited;
 end;

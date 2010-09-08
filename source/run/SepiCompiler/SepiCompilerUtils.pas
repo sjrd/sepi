@@ -173,6 +173,14 @@ type
   end;
 
   {*
+    Type transient pour les valeurs qui requièrent qu'on les type-force
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiTypeForceMeType = class(TSepiCompilerTransientType)
+  end;
+
+  {*
     Type transient ensemble vide
     @author sjrd
     @version 1.0

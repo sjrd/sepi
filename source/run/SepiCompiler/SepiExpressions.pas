@@ -818,10 +818,6 @@ type
     function ConvertLeftOperand(NewType: TSepiBaseType): TSepiType;
     function ConvertRightOperand(NewType: TSepiBaseType): TSepiType;
 
-    procedure CompileReadOperandInto(Compiler: TSepiMethodCompiler;
-      Instructions: TSepiInstructionList; Destination: TSepiMemoryReference;
-      const Operand: ISepiReadableValue);
-
     procedure CompileShortCircuitAndOr(Compiler: TSepiMethodCompiler;
       Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
       TempVars: TSepiTempVarsLifeManager); virtual;
@@ -1598,7 +1594,7 @@ type
       APrepareParams: Boolean = False);
 
     function GetReturnType: TSepiType; virtual;
-    function GetValueType: TSepiType;
+    function GetValueType: TSepiType; virtual;
 
     function GetIsConstant: Boolean;
     function GetConstValuePtr: Pointer;
@@ -1614,10 +1610,10 @@ type
       Destination: TSepiMemoryReference); virtual; abstract;
 
     procedure CompileExecute(Compiler: TSepiMethodCompiler;
-      Instructions: TSepiInstructionList);
+      Instructions: TSepiInstructionList); virtual;
     procedure CompileRead(Compiler: TSepiMethodCompiler;
       Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
-      TempVars: TSepiTempVarsLifeManager);
+      TempVars: TSepiTempVarsLifeManager); virtual;
 
     property Signature: TSepiSignature read FSignature;
     property ReturnType: TSepiType read GetReturnType;
@@ -1631,7 +1627,7 @@ type
     @author sjrd
     @version 1.0
   *}
-  TSepiMethodCall = class(TSepiCustomCallable)
+  TSepiMethodCall = class(TSepiCustomCallable, ISepiTypeForceableValue)
   private
     FMethod: TSepiMethod;                     /// Méthode à appeler
     FOverloadedMethod: TSepiOverloadedMethod; /// Méthode surchargée à appeler
@@ -1640,15 +1636,42 @@ type
 
     FFreeParamValue: Boolean; /// Valeur de l'éventuel paramètre $Free
 
+    FMethodRefType: TSepiType; /// Type référence à cette méthode
+    FIsMethodRef: Boolean;     /// True si est définitivement une référence
+
     procedure CheckSelfValueType;
+    procedure UpdateExpression;
+
+    function GetActualReturnType(Signature: TSepiSignature): TSepiType;
+    function FindMethodByReturnType(AReturnType: TSepiType): TSepiMethod;
   protected
+    function QueryInterface(const IID: TGUID;
+      out Obj): HResult; override; stdcall;
+
+    procedure AttachTo(const Controller: IInterface); override;
+
+    procedure AttachToExpression(const Expression: ISepiExpression); override;
+
     function GetReturnType: TSepiType; override;
+    function GetValueType: TSepiType; override;
 
     procedure CompleteParams; override;
 
     procedure CompileCall(Compiler: TSepiMethodCompiler;
       Instructions: TSepiInstructionList;
       Destination: TSepiMemoryReference); override;
+
+    procedure CompileReadMethodRef(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
+      TempVars: TSepiTempVarsLifeManager); virtual;
+
+    procedure CompileRead(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
+      TempVars: TSepiTempVarsLifeManager); override;
+
+    function CanForceType(AValueType: TSepiType;
+      Explicit: Boolean = False): Boolean;
+    procedure ForceType(AValueType: TSepiType);
   public
     constructor Create(AMethod: TSepiMethodBase;
       const ASelfValue: ISepiReadableValue = nil;
@@ -1661,6 +1684,8 @@ type
     property ForceStaticCall: Boolean
       read FForceStaticCall write FForceStaticCall;
     property FreeParamValue: Boolean read FFreeParamValue write FFreeParamValue;
+
+    property IsMethodRef: Boolean read FIsMethodRef;
   end;
 
   {*
@@ -2013,6 +2038,10 @@ procedure NeedDestination(var Destination: TSepiMemoryReference;
   ValueType: TSepiType; Compiler: TSepiMethodCompiler;
   TempVars: TSepiTempVarsLifeManager; BeginLifeAt: TSepiInstructionRef);
 
+procedure CompileReadInto(Compiler: TSepiMethodCompiler;
+  Instructions: TSepiInstructionList; Destination: TSepiMemoryReference;
+  const Value: ISepiReadableValue);
+
 function IsZeroMemory(Address: Pointer; Size: Integer): Boolean;
 
 function SepiTypeToBaseType(SepiType: TSepiType;
@@ -2072,6 +2101,48 @@ begin
   Destination := TSepiMemoryReference.Create(Compiler);
   Destination.SetSpace(TempVar);
   Destination.Seal;
+end;
+
+{*
+  Compile la lecture d'une valeur dans une référence mémoire spécifique
+  @param Compiler       Compilateur
+  @param Instructions   Liste d'instructions
+  @param Destination    Référence mémoire où stocker le résultat
+  @param Value          Valeur à lire
+*}
+procedure CompileReadInto(Compiler: TSepiMethodCompiler;
+  Instructions: TSepiInstructionList; Destination: TSepiMemoryReference;
+  const Value: ISepiReadableValue);
+var
+  ValueMemory: TSepiMemoryReference;
+  SrcTempVars: TSepiTempVarsLifeManager;
+  MoveInstr: TSepiAsmMove;
+begin
+  ValueMemory := Destination;
+  try
+    // Read Value
+    SrcTempVars := TSepiTempVarsLifeManager.Create;
+    try
+      Value.CompileRead(Compiler, Instructions, ValueMemory, SrcTempVars);
+    finally
+      SrcTempVars.EndAllLifes(Instructions.GetCurrentEndRef);
+      SrcTempVars.Free;
+    end;
+
+    // Copy to destination
+    if ValueMemory <> Destination then
+    begin
+      MoveInstr := TSepiAsmMove.Create(Compiler, Value.ValueType);
+      MoveInstr.SourcePos := (Value as ISepiExpression).SourcePos;
+      MoveInstr.Destination.Assign(Destination);
+      MoveInstr.Source.Assign(ValueMemory);
+
+      Instructions.Add(MoveInstr);
+    end;
+  finally
+    if ValueMemory <> Destination then
+      ValueMemory.Free;
+  end;
 end;
 
 {*
@@ -4313,47 +4384,6 @@ begin
 end;
 
 {*
-  Compile la lecture d'un opérande dans une référence mémoire spécifique
-  @param Compiler       Compilateur
-  @param Instructions   Liste d'instructions
-  @param Destination    Référence mémoire où stocker le résultat
-  @param Operand        Opérande à lire
-*}
-procedure TSepiBinaryOperation.CompileReadOperandInto(
-  Compiler: TSepiMethodCompiler; Instructions: TSepiInstructionList;
-  Destination: TSepiMemoryReference; const Operand: ISepiReadableValue);
-var
-  OperandMemory: TSepiMemoryReference;
-  SrcTempVars: TSepiTempVarsLifeManager;
-  MoveInstr: TSepiAsmMove;
-begin
-  OperandMemory := Destination;
-  try
-    // Read operand
-    SrcTempVars := TSepiTempVarsLifeManager.Create;
-    try
-      Operand.CompileRead(Compiler, Instructions, OperandMemory, SrcTempVars);
-    finally
-      SrcTempVars.EndAllLifes(Instructions.GetCurrentEndRef);
-      SrcTempVars.Free;
-    end;
-
-    // Copy to destination
-    if OperandMemory <> Destination then
-    begin
-      MoveInstr := TSepiAsmMove.Create(Compiler, ValueType);
-      MoveInstr.Destination.Assign(Destination);
-      MoveInstr.Source.Assign(OperandMemory);
-
-      Instructions.Add(MoveInstr);
-    end;
-  finally
-    if OperandMemory <> Destination then
-      OperandMemory.Free;
-  end;
-end;
-
-{*
   [@inheritDoc]
 *}
 procedure TSepiBinaryOperation.CompileShortCircuitAndOr(
@@ -4367,13 +4397,13 @@ begin
   NeedDestination(Destination, ValueType, Compiler, TempVars,
     Instructions.GetCurrentEndRef);
 
-  CompileReadOperandInto(Compiler, Instructions, Destination, LeftOperand);
+  CompileReadInto(Compiler, Instructions, Destination, LeftOperand);
 
   JumpInstr := TSepiAsmCondJump.Create(Compiler, Operation = opOr);
   JumpInstr.Test.Assign(Destination);
   Instructions.Add(JumpInstr);
 
-  CompileReadOperandInto(Compiler, Instructions, Destination, RightOperand);
+  CompileReadInto(Compiler, Instructions, Destination, RightOperand);
 
   JumpInstr.Destination.InstructionRef := Instructions.GetCurrentEndRef;
 end;
@@ -8276,9 +8306,14 @@ end;
 function TSepiCustomCallable.QueryInterface(const IID: TGUID;
   out Obj): HResult;
 begin
+  if Self is TSepiMethodCall then
+  begin
+    // Yes, I know, this is totally anti-OO.  But it's the easiest way.
+    Result := inherited QueryInterface(IID, Obj);
+    Exit;
+  end;
+
   if SameGUID(IID, ISepiWantingParams) and ParamsCompleted then
-    Result := E_NOINTERFACE
-  else if SameGUID(IID, ISepiExecutable) and (not ParamsCompleted) then
     Result := E_NOINTERFACE
   else if (SameGUID(IID, ISepiValue) or SameGUID(IID, ISepiReadableValue)) and
     ((not ParamsCompleted) or (ReturnType = nil)) then
@@ -8471,6 +8506,9 @@ var
   DestTempVar: TSepiLocalVar;
   Destination: TSepiMemoryReference;
 begin
+  if not ParamsCompleted then
+    CompleteParams;
+
   DestTempVar := nil;
   Destination := nil;
   try
@@ -8581,17 +8619,157 @@ begin
 end;
 
 {*
+  Met à jour l'expression
+*}
+procedure TSepiMethodCall.UpdateExpression;
+var
+  TempExpression: ISepiExpression;
+  ExpressionPart: ISepiExpressionPart;
+begin
+  if Expression = nil then
+    Exit;
+
+  TempExpression := Expression;
+  ExpressionPart := ISepiExpressionPart(Self);
+
+  TempExpression.Detach(ISepiExecutable);
+  TempExpression.Detach(ISepiValue);
+  TempExpression.Detach(ISepiReadableValue);
+  TempExpression.Detach(ISepiTypeForceableValue);
+  TempExpression.Detach(ISepiWantingParams);
+
+  ExpressionPart.AttachToExpression(TempExpression);
+end;
+
+{*
+  Retourne le type de retour réel, dans ce contexte, pour une signature
+  @param Signature   Signature
+  @return Type de retour réel
+*}
+function TSepiMethodCall.GetActualReturnType(
+  Signature: TSepiSignature): TSepiType;
+begin
+  if (Signature.Kind = skConstructor) and (SelfValue <> nil) and
+    (SelfValue.ValueType is TSepiMetaClass) then
+    Result := TSepiMetaClass(SelfValue.ValueType).SepiClass
+  else
+    Result := Signature.ReturnType;
+end;
+
+{*
+  Retrouve une méthode possible d'après son type de retour
+  @param AReturnType   Type de retour attendu
+*}
+function TSepiMethodCall.FindMethodByReturnType(
+  AReturnType: TSepiType): TSepiMethod;
+var
+  I: Integer;
+  SepiMethod: TSepiMethod;
+  MethReturnType: TSepiType;
+begin
+  Result := nil;
+
+  if Method <> nil then
+  begin
+    // Méthode déjà sélectionnée
+    if TSepiConvertOperation.ConversionExists(AReturnType,
+      GetActualReturnType(Method.Signature)) then
+      Result := Method;
+  end else
+  begin
+    // Méthode surchargée
+    for I := 0 to OverloadedMethod.MethodCount-1 do
+    begin
+      SepiMethod := OverloadedMethod.Methods[I];
+      MethReturnType := GetActualReturnType(SepiMethod.Signature);
+
+      if (MethReturnType <> nil) and
+        TSepiConvertOperation.ConversionExists(AReturnType, MethReturnType) then
+      begin
+        if (SepiMethod.Signature.ParamCount = 0) or (Result = nil) then
+          Result := SepiMethod;
+      end;
+    end;
+  end;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiMethodCall.QueryInterface(const IID: TGUID; out Obj): HResult;
+begin
+  if SameGUID(IID, ISepiWantingParams) and (ParamsCompleted or IsMethodRef) then
+    Result := E_NOINTERFACE
+  else if SameGUID(IID, ISepiExecutable) and IsMethodRef then
+    Result := E_NOINTERFACE
+  else if (SameGUID(IID, ISepiValue) or SameGUID(IID, ISepiReadableValue)) and
+    (GetValueType = nil) then
+    Result := E_NOINTERFACE
+  else if SameGUID(IID, ISepiTypeForceableValue) and
+    (ParamsCompleted or IsMethodRef) then
+    Result := E_NOINTERFACE
+  else
+    Result := inherited QueryInterface(IID, Obj);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiMethodCall.AttachTo(const Controller: IInterface);
+begin
+  inherited;
+
+  if (FMethodRefType = nil) and (UnitCompiler <> nil) then
+    FMethodRefType := UnitCompiler.GetMethodRefType;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiMethodCall.AttachToExpression(const Expression: ISepiExpression);
+var
+  AsExpressionPart: ISepiExpressionPart;
+begin
+  AsExpressionPart := Self;
+
+  if not IsMethodRef then
+  begin
+    if not ParamsCompleted then
+    begin
+      Expression.Attach(ISepiWantingParams, AsExpressionPart);
+      Expression.Attach(ISepiTypeForceableValue, AsExpressionPart);
+    end;
+
+    Expression.Attach(ISepiExecutable, AsExpressionPart);
+  end;
+
+  if GetValueType <> nil then
+  begin
+    Expression.Attach(ISepiValue, AsExpressionPart);
+    Expression.Attach(ISepiReadableValue, AsExpressionPart);
+  end;
+end;
+
+{*
   [@inheritDoc]
 *}
 function TSepiMethodCall.GetReturnType: TSepiType;
 begin
   if Signature = nil then
     Result := nil
-  else if (Signature.Kind = skConstructor) and (SelfValue <> nil) and
-    (SelfValue.ValueType is TSepiMetaClass) then
-    Result := TSepiMetaClass(SelfValue.ValueType).SepiClass
   else
-    Result := Signature.ReturnType;
+    Result := GetActualReturnType(Signature);
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiMethodCall.GetValueType: TSepiType;
+begin
+  if ParamsCompleted then
+    Result := ReturnType
+  else
+    Result := FMethodRefType;
 end;
 
 {*
@@ -8602,6 +8780,8 @@ var
   I: Integer;
   AMethod: TSepiMethod;
 begin
+  Assert(not (ParamsCompleted or IsMethodRef));
+
   inherited;
 
   if Method <> nil then
@@ -8626,8 +8806,7 @@ begin
 
   CheckSelfValueType;
 
-  if Expression <> nil then
-    AttachToExpression(Expression);
+  UpdateExpression;
 end;
 
 {*
@@ -8660,6 +8839,188 @@ begin
     SelfValue, SelfMem, FreeParamValue);
 
   Instructions.Add(CallInstr);
+end;
+
+{*
+  Compile la lecture d'une référence à la méthode
+  @param Compiler       Compilateur
+  @param Instructions   Instructions
+  @param Destination    Destination de la lecture
+  @param TempVars       Gestionnaire de variables temporaires
+*}
+procedure TSepiMethodCall.CompileReadMethodRef(Compiler: TSepiMethodCompiler;
+  Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
+  TempVars: TSepiTempVarsLifeManager);
+const
+  VirtualDeref: array[Boolean] of TSepiAddressDereference =
+    (adDouble, adSimple);
+  FindDynaMethodNames: array[Boolean] of string =
+    ('@FindDynaInst', '@FindDynaClass');
+var
+  ValueType: TSepiMethodRefType;
+  SelfMem: TSepiMemoryReference;
+  SelfIsMetaClass: Boolean;
+  IsStaticRef: Boolean;
+  GetMethodCodeInstr: TSepiAsmGetRunInfo;
+  MoveInstr: TSepiAsmMove;
+  FindDynaMethod: TSepiMethod;
+  CallInstr: TSepiAsmStaticCall;
+begin
+  ValueType := FMethodRefType as TSepiMethodRefType;
+
+  // Need a destination
+  NeedDestination(Destination, ValueType, Compiler, TempVars,
+    Instructions.GetCurrentEndRef);
+
+  // Create SelfMem
+  SelfMem := nil;
+  SelfIsMetaClass := False;
+  if ValueType.Signature.Kind in skWithSelfParam then
+  begin
+    Assert(SelfValue <> nil);
+    SelfIsMetaClass := SelfValue.ValueType is TSepiMetaClass;
+    SelfMem := TSepiMemoryReference.Clone(Destination);
+  end;
+
+  try
+    // Read Self value
+    if SelfMem <> nil then
+    begin
+      SelfMem.AddOperation(aoPlusConstShortint, SizeOf(Pointer));
+      SelfMem.Seal;
+
+      CompileReadInto(Compiler, Instructions, SelfMem, SelfValue);
+    end;
+
+    // Static reference?
+    IsStaticRef := (Method.LinkKind = mlkStatic) or
+      (ForceStaticCall and (Method.LinkKind <> mlkInterface));
+
+    // Read method code
+    if IsStaticRef then
+    begin
+      // Static reference: use a GetMethodCode opcode
+      GetMethodCodeInstr := TSepiAsmGetRunInfo.Create(Compiler,
+        ocGetMethodCode);
+      GetMethodCodeInstr.SourcePos := Expression.SourcePos;
+      GetMethodCodeInstr.Destination.Assign(Destination);
+      GetMethodCodeInstr.SetReference(Method);
+
+      Instructions.Add(GetMethodCodeInstr);
+    end else if Method.LinkKind = mlkVirtual then
+    begin
+      // Virtual method: read VMT
+      MoveInstr := TSepiAsmMove.Create(Compiler, SizeOf(Pointer));
+      MoveInstr.SourcePos := Expression.SourcePos;
+      MoveInstr.Destination.Assign(Destination);
+
+      with MoveInstr.Source do
+      begin
+        Assign(SelfMem, False);
+        AddOperation(VirtualDeref[SelfIsMetaClass],
+          aoPlusConstSmallint, Method.VMTOffset);
+        Seal;
+      end;
+
+      Instructions.Add(MoveInstr);
+    end else if Method.LinkKind in [mlkDynamic, mlkMessage] then
+    begin
+      // Dynamic method: call @FindDynaInst or @FindDynaClass
+      FindDynaMethod := SystemUnit.FindComponent(
+        FindDynaMethodNames[SelfIsMetaClass]) as TSepiMethod;
+
+      CallInstr := TSepiAsmStaticCall.Create(Compiler);
+      CallInstr.SetMethod(FindDynaMethod);
+      CallInstr.Parameters.Parameters[0].MemoryRef.Assign(SelfMem);
+      CallInstr.Parameters.Parameters[1].MemoryRef.SetAsConst(Method.DMTIndex);
+      CallInstr.Parameters.Result.Assign(Destination);
+      Instructions.Add(CallInstr);
+    end else
+    begin
+      Assert(False);
+    end;
+  finally
+    SelfMem.Free;
+  end;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiMethodCall.CompileRead(Compiler: TSepiMethodCompiler;
+  Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
+  TempVars: TSepiTempVarsLifeManager);
+begin
+  if IsMethodRef then
+    CompileReadMethodRef(Compiler, Instructions, Destination, TempVars)
+  else
+    inherited;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiMethodCall.CanForceType(AValueType: TSepiType;
+  Explicit: Boolean = False): Boolean;
+var
+  ASignature: TSepiSignature;
+begin
+  if AValueType.Equals(GetValueType) then
+  begin
+    Result := True;
+    Exit;
+  end;
+
+  Result := False;
+
+  if ParamsCompleted or IsMethodRef then
+    Exit;
+
+  if AValueType is TSepiMethodRefType then
+  begin
+    ASignature := TSepiMethodRefType(AValueType).Signature;
+
+    if Method <> nil then
+      Result := ASignature.Equals(Method.Signature, scoCompatibility)
+    else
+      Result := OverloadedMethod.FindMethod(ASignature,
+        scoCompatibility) <> nil;
+  end;
+
+  if (not Result) and (FindMethodByReturnType(AValueType) <> nil) then
+    Result := True;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiMethodCall.ForceType(AValueType: TSepiType);
+var
+  ASignature: TSepiSignature;
+begin
+  Assert(CanForceType(AValueType, True));
+
+  if AValueType.Equals(GetValueType) then
+    Exit;
+
+  if AValueType is TSepiMethodRefType then
+  begin
+    ASignature := TSepiMethodRefType(AValueType).Signature;
+
+    if Method = nil then
+      FMethod := OverloadedMethod.FindMethod(ASignature, scoCompatibility);
+
+    if (Method <> nil) and
+      ASignature.Equals(Method.Signature, scoCompatibility) then
+    begin
+      FMethodRefType := TSepiMethodRefType(AValueType);
+      FIsMethodRef := True;
+      UpdateExpression;
+    end;
+  end;
+
+  if not IsMethodRef then
+    CompleteParams;
 end;
 
 {--------------------------}

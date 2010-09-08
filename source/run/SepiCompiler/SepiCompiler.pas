@@ -766,6 +766,7 @@ type
 
     function GetPointerType(PointTo: TSepiType): TSepiPointerType;
     function GetMetaClass(SepiClass: TSepiClass): TSepiMetaClass;
+    function GetMethodRefType: TSepiType;
     function GetEmptySetType: TSepiType;
 
     function MakeSetType(CompType: TSepiOrdType): TSepiSetType;
@@ -2855,6 +2856,20 @@ begin
   if Result = nil then
     Result := TSepiMetaClass.Create(FCompileTimeTypes,
       MetaClassName, SepiClass);
+end;
+
+{*
+  Obtient un type générique référence de méthode pour la compilation
+  @return Type générique référence de méthode
+*}
+function TSepiUnitCompiler.GetMethodRefType: TSepiType;
+const
+  MethodRefTypeName = '$MethodRef';
+begin
+  NeedCompileTimeTypes;
+  Result := FCompileTimeTypes.GetComponent(MethodRefTypeName) as TSepiType;
+  if Result = nil then
+    Result := TSepiTypeForceMeType.Create(FCompileTimeTypes, MethodRefTypeName);
 end;
 
 {*

@@ -9,7 +9,9 @@ type
   TPrintOnAddStrings = class(TStringList)
   public
     constructor Create;
+
     function Add(const Str: string): Integer; override;
+    procedure DynamicMethod; dynamic;
   end;
 
 implementation
@@ -23,6 +25,11 @@ function TPrintOnAddStrings.Add(const Str: string): Integer;
 begin
   inherited;
   WriteLn(Str);
+end;
+
+procedure TPrintOnAddStrings.DynamicMethod;
+begin
+  Add('DynamicMethod entered');
 end;
 
 procedure Test(const Str: string; Strings: TStrings);
@@ -122,25 +129,26 @@ end;
 
 procedure TestMethodRef;
 type
-  TStringEvent = procedure(const Str: string) of object;
+  TStringEvent = function(const Str: string): Integer of object;
+  TProc = procedure of object;
 var
-  Strings: TStrings;
+  Strings: TPrintOnAddStrings;
   Add: TStringEvent;
+  DoSomething: TProc;
   I: Integer;
 begin
   WriteTitle('Test method references');
 
-  Strings := TStringList.Create;
+  Strings := TPrintOnAddStrings.Create;
   try
-    TMethod(Add).Code := nil;
-    TMethod(Add).Data := Pointer(Strings);
+    Add := Strings.Add;
 
     for I := 1 to 3 do
       if @Add <> nil then
         Add(IntToStr(I));
 
-    for I := 0 to Strings.Count-1 do
-      WriteLn(Strings[I]);
+    DoSomething := Strings.DynamicMethod;
+    DoSomething();
   finally
     Strings.Free;
   end;
@@ -150,6 +158,8 @@ procedure TestIsAs;
 var
   Strings: TStrings;
 begin
+  WriteTitle('Test is and as operators');
+
   Strings := TStringList.Create;
   try
     if Strings is TStringList then

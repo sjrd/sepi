@@ -1,3 +1,12 @@
+Around line 1917 in Delphi 2009
+----------
+procedure _FindDynaInst;
+procedure _FindDynaClass;
+----------
+function _FindDynaInst(Obj: TObject; DMTIndex: Integer): Pointer;
+function _FindDynaClass(Cls: TClass; DMTIndex: Integer): Pointer;
+----------
+
 Around line 293 in Delphi 2010
 ----------
   TArray<T> = array of T;
