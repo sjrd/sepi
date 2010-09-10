@@ -1,19 +1,13 @@
-Around line 6 in Delphi 2010
+Around line 22 in Delphi 2010
 ----------
-  TTimeSpan = record
-  private
-    FTicks: Int64;
+    class constructor Create;
 ----------
-  TTimeSpan = record
-
-  FTicks: Int64; {$IFNDEF SEPIPARSER}
 ----------
 
-Around line 11258 in Delphi 2010
+Around line 93 in Delphi 2010
 ----------
+    class property MinValue: TTimeSpan read FMinValue;
+    class property MaxValue: TTimeSpan read FMaxValue;
     class property Zero: TTimeSpan read FZero;
-  end;
 ----------
-    class property Zero: TTimeSpan read FZero; {$ENDIF}
-  end;
 ----------

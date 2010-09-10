@@ -689,6 +689,9 @@ type
 
     procedure Save(Stream: TStream); override;
 
+    function InternalLookFor(const Name: string;
+      FromComponent: TSepiComponent): TSepiComponent; override;
+
     procedure WriteDigestData(Stream: TStream); override;
 
     function HasTypeInfo: Boolean; override;
@@ -3418,6 +3421,33 @@ begin
   Stream.WriteBuffer(FMaxAlign, 1);
 
   SaveChildren(Stream);
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiRecordType.InternalLookFor(const Name: string;
+  FromComponent: TSepiComponent): TSepiComponent;
+begin
+  if Completed or (FromComponent <> Self) then
+    Result := inherited InternalLookFor(Name, FromComponent)
+  else
+  begin
+    // Basic search
+    Result := GetComponent(Name);
+
+    // Ignore fields
+    if Result is TSepiField then
+      Result := nil;
+
+    // Check for visibility
+    if (Result <> nil) and (not Result.IsVisibleFrom(FromComponent)) then
+      Result := nil;
+
+    // If not found, continue search a level up
+    if (Result = nil) and (Owner <> nil) then
+      Result := TSepiRecordType(Owner).InternalLookFor(Name, FromComponent);
+  end;
 end;
 
 {*

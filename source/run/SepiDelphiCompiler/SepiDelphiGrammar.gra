@@ -56,6 +56,7 @@ tkFunction	function
 tkProperty	property
 tkConstructor	constructor
 tkDestructor	destructor
+tkOperator	operator
 
 tkPlus	+
 tkMinus	-
@@ -186,6 +187,7 @@ Identifier
 	'string'
 	'deprecated'
 	'platform'
+	'operator'
 	'overload'
 	'virtual'
 	'dynamic'
@@ -558,7 +560,14 @@ PackedRecordDesc
 	'record'* RecordContents 'end'*
 
 RecordContents
-	(RecordField)* RecordCaseBlock
+	(RecordField)* RecordContentsEx
+
+RecordContentsEx	Simplify
+	RecordCaseBlockOuterMost
+	AdvRecordContents
+
+RecordCaseBlockOuterMost
+	'case'* RecordCaseHeader 'of'* (RecordCase)*
 
 RecordCaseBlock
 	'case'* RecordCaseHeader 'of'* (RecordCase)*
@@ -590,6 +599,29 @@ RecordField
 
 RecordCaseField
 	CommaIdentDeclList ':'* TypeDesc TypeModifiers
+
+AdvRecordContents	Simplify
+	(RecordMethodProp)* (VisibilityOrVar RecordMemberList)*
+
+VisibilityOrVar	Simplify
+	Visibility
+	'var'*
+
+RecordMemberList	Simplify
+	(RecordField)* (RecordMethodProp)*
+
+RecordMethodProp	Simplify
+	MethodDecl
+	PropertyDecl
+	'class'* RecordStaticMethodProp
+	TypeSection
+	ConstSection
+
+RecordStaticMethodProp
+	MethodDecl
+	OperatorDecl
+	PropertyDecl
+	VarSection
 
 Field
 	CommaIdentDeclList ':'* TypeDesc TypeModifiers ';'*
@@ -676,6 +708,12 @@ IntfMethodRedirKind
 MethodDecl
 	MethodKind MethodNameDeclaration MethodSignature ';'* (MethodModifier ';'*)*
 
+OperatorDecl
+	OperatorKind MethodNameDeclaration MethodSignature ';'*
+
+OperatorKind	AsText
+	'operator'
+
 PropertyDecl
 	PropertyKind IdentifierDecl PropertyNextDecl (PropInfo)* ';'* (PropertyModifier ';'*)*
 
@@ -729,7 +767,11 @@ IgnoredPropertyModifier
 	'deprecated' (tkStringCst)?
 
 EventDesc	AsText
-	RoutineKind MethodSignature EventModifiers
+	EventKind MethodSignature EventModifiers
+
+EventKind
+	'procedure'
+	'function'
 
 EventModifiers	SuccessiveTries
 	CallingConvention EventModifiers

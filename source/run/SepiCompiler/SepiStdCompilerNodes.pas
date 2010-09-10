@@ -735,6 +735,14 @@ type
   end;
 
   {*
+    Noeud marqueur que ses enfants sont déclarés comme membres statiques
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiStaticMemberDefinitionNode = class(TSepiClassMemberDefinitionNode)
+  end;
+
+  {*
     Classe de base pour les noeuds qui doivent construire une signature
     TSepiSignatureBuilderNode ne crée pas elle-même d'instance de
     TSepiSignature. Elle est prévue pour construire une signature créée par un
@@ -782,6 +790,17 @@ type
     @version 1.0
   *}
   TSepiPropertyKindNode = class(TSepiSignatureKindNode)
+  protected
+    function GetKind: TSepiSignatureKind; override;
+  end;
+
+  {*
+    Noeud représentant un type de signature pour une référence de méthode
+    Cette classe admet que Signature ne soit pas renseignée.
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiMethodRefKindNode = class(TSepiSignatureKindNode)
   protected
     function GetKind: TSepiSignatureKind; override;
   end;
@@ -968,6 +987,32 @@ type
     @version 1.0
   *}
   TSepiForwardMarkerNode = class(TSepiNonTerminal)
+  end;
+
+  {*
+    Noeud déclaration d'opérateur
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiOperatorDeclarationNode = class(TSepiNonTerminal)
+  private
+    FName: string;              /// Nom de l'opérateur
+    FSignature: TSepiSignature; /// Signature
+
+    FDeclarationLocation: TSepiSourcePosition; /// Position de la déclaration
+  protected
+    procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
+    procedure ChildEndParsing(Child: TSepiParseTreeNode); override;
+  public
+    destructor Destroy; override;
+
+    procedure BeginParsing; override;
+    procedure EndParsing; override;
+
+    property Name: string read FName;
+    property Signature: TSepiSignature read FSignature;
+    property DeclarationLocation: TSepiSourcePosition
+      read FDeclarationLocation;
   end;
 
   {*
@@ -3690,9 +3735,11 @@ begin
 
   if OrdKind < 0 then
   begin
-    if IsAncestor(TSepiClassMemberDefinitionNode) then
+    if IsAncestor(TSepiStaticMemberDefinitionNode) then
+      StrKind := 'static '+StrKind
+    else if IsAncestor(TSepiClassMemberDefinitionNode) then
       StrKind := 'class '+StrKind
-    else if (SepiContext is TSepiClass) or (SepiContext is TSepiInterface) then
+    else if (SepiContext is TSepiContainerType) then
       StrKind := 'object '+AsText
     else
       StrKind := 'static '+StrKind;
@@ -3717,9 +3764,9 @@ begin
   inherited;
 end;
 
-{------------------------------}
+{-----------------------------}
 { TSepiPropertyKindNode class }
-{------------------------------}
+{-----------------------------}
 
 {*
   [@inheritDoc]
@@ -3730,6 +3777,26 @@ begin
     Result := skClassProperty
   else
     Result := skProperty;
+end;
+
+{------------------------------}
+{ TSepiMethodRefKindNode class }
+{------------------------------}
+
+{*
+  [@inheritDoc]
+*}
+function TSepiMethodRefKindNode.GetKind: TSepiSignatureKind;
+var
+  StrKind: string;
+  OrdKind: Integer;
+begin
+  StrKind := 'static ' + AsText;
+  OrdKind := AnsiIndexText(StrKind, SignatureKindStrings);
+
+  Assert(OrdKind >= 0);
+
+  Result := TSepiSignatureKind(OrdKind);
 end;
 
 {----------------------------------}
@@ -4101,7 +4168,8 @@ begin
       skClassProcedure: Signature.Kind := skStaticProcedure;
       skClassFunction: Signature.Kind := skStaticFunction;
     else
-      Child.MakeError(SStaticMarkerOnlyWithClassMethods);
+      if not IsAncestor(TSepiStaticMemberDefinitionNode) then
+        Child.MakeError(SStaticMarkerOnlyWithClassMethods);
     end;
   end else if Child is TSepiMethodLinkKindNode then
   begin
@@ -4201,6 +4269,74 @@ begin
 
   if Child is TSepiConstExpressionNode then
     TSepiConstExpressionNode(Child).ValueType := SystemUnit.Integer;
+end;
+
+{------------------------------------}
+{ TSepiOperatorDeclarationNode class }
+{------------------------------------}
+
+{*
+  [@inheritDoc]
+*}
+destructor TSepiOperatorDeclarationNode.Destroy;
+begin
+  FSignature.Free;
+
+  inherited;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiOperatorDeclarationNode.BeginParsing;
+begin
+  inherited;
+
+  Assert(SepiContext is TSepiRecordType);
+
+  FSignature := TSepiSignature.CreateConstructing(SepiContext);
+  FSignature.Kind := skOperator;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiOperatorDeclarationNode.ChildBeginParsing(
+  Child: TSepiParseTreeNode);
+begin
+  inherited;
+
+  if Child is TSepiSignatureBuilderNode then
+    TSepiSignatureBuilderNode(Child).SetSignature(Signature);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiOperatorDeclarationNode.ChildEndParsing(
+  Child: TSepiParseTreeNode);
+begin
+  if Child is TSepiIdentifierDeclarationNode then
+  begin
+    // Operator name
+    FName := TSepiIdentifierDeclarationNode(Child).Identifier;
+    FDeclarationLocation := TSepiIdentifierDeclarationNode(
+      Child).DeclarationLocation;
+  end;
+
+  inherited;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiOperatorDeclarationNode.EndParsing;
+begin
+  Signature.Complete;
+
+  { TODO Declare operator }
+
+  inherited;
 end;
 
 {-------------------------}

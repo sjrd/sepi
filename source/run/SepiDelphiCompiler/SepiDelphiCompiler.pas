@@ -444,6 +444,8 @@ type
     procedure BeginParsing; override;
     procedure EndParsing; override;
 
+    function ResolveIdent(const Identifier: string): ISepiExpression; override;
+
     property RecordType: TSepiRecordType read FRecordType;
   end;
 
@@ -682,22 +684,27 @@ begin
   NonTerminalClasses[ntDispInterfaceDesc] := TDelphiInterfaceTypeNode;
   NonTerminalClasses[ntEventDesc]         := TDelphiMethodRefTypeNode;
 
+  NonTerminalClasses[ntEventKind]       := TSepiMethodRefKindNode;
   NonTerminalClasses[ntEventModifiers]  := TSepiChildThroughNonTerminal;
   NonTerminalClasses[ntEventIsOfObject] := TDelphiOfObjectMarkerNode;
 
-  NonTerminalClasses[ntRecordContents]     := TSepiRecordContentsNode;
-  NonTerminalClasses[ntRecordCaseBlock]    := TSepiRecordContentsNode;
-  NonTerminalClasses[ntRecordCaseHeader]   := TSepiRecordCaseHeaderNode;
-  NonTerminalClasses[ntRecordCaseContents] := TSepiRecordContentsNode;
+  NonTerminalClasses[ntRecordContents]           := TSepiRecordContentsNode;
+  NonTerminalClasses[ntRecordCaseBlockOuterMost] := TSepiRecordContentsNode;
+  NonTerminalClasses[ntRecordCaseBlock]          := TSepiRecordContentsNode;
+  NonTerminalClasses[ntRecordCaseHeader]         := TSepiRecordCaseHeaderNode;
+  NonTerminalClasses[ntRecordCaseContents]       := TSepiRecordContentsNode;
 
   NonTerminalClasses[ntInterfaceGUID] := TDelphiInterfaceGUIDNode;
 
   NonTerminalClasses[ntRecordField]          := TSepiRecordFieldNode;
   NonTerminalClasses[ntRecordCaseField]      := TSepiRecordFieldNode;
   NonTerminalClasses[ntClassClassMethodProp] := TSepiClassMemberDefinitionNode;
+  NonTerminalClasses[ntRecordStaticMethodProp] :=
+    TSepiStaticMemberDefinitionNode;
   NonTerminalClasses[ntField]                := TSepiClassFieldNode;
   NonTerminalClasses[ntIntfMethodRedirector] := TSepiIntfMethodRedirectorNode;
   NonTerminalClasses[ntMethodDecl]           := TSepiMethodDeclarationNode;
+  NonTerminalClasses[ntOperatorDecl]         := TSepiOperatorDeclarationNode;
   NonTerminalClasses[ntPropertyDecl]         := TSepiPropertyNode;
   NonTerminalClasses[ntVisibility]           := TSepiChangeVisibilityNode;
 
@@ -1909,6 +1916,18 @@ begin
   SetSepiType(RecordType);
 
   inherited;
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TDelphiRecordTypeNode.ResolveIdent(
+  const Identifier: string): ISepiExpression;
+begin
+  if RecordType <> nil then
+    Result := LanguageRules.ResolveIdent(SepiContext, Identifier)
+  else
+    Result := inherited ResolveIdent(Identifier);
 end;
 
 {-----------------------------------}
