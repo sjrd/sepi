@@ -550,6 +550,11 @@ begin
     if AnsiStartsText('@CVR_', Name) then
       Exit;
 
+    { It also seems that compiler magic routines with 3 leading underscores
+      (thus, renamed as @__Something) are more magical still. }
+    if AnsiStartsStr('@__', Name) then
+      Exit;
+
     Tag := NextMethodID;
 
     if Name[1] = '@' then
