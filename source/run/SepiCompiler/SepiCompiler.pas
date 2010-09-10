@@ -1897,7 +1897,7 @@ begin
     { Ignore parameters, absolute variables and variables whose type doesn't
       require initialization. }
     if LocalVar.IsParam or LocalVar.IsAbsolute or
-      (not LocalVar.VarType.NeedInit) then
+      (not LocalVar.VarType.IsManaged) then
       Continue;
 
     // Add an item to locals info
@@ -3217,7 +3217,7 @@ procedure TSepiMemoryReference.SetSpace(Constant: TSepiConstant);
 begin
   with Constant do
   begin
-    if (not ConstType.NeedInit) and (ConstType.Size <= SizeOf(Extended)) then
+    if (not ConstType.IsManaged) and (ConstType.Size <= SizeOf(Extended)) then
     begin
       { Small constants which do not require initialization are directly
         written in the code. }

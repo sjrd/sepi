@@ -218,8 +218,7 @@ begin
   Output.Write('  ' + GetEnumName(TypeInfo(TTypeKind), Integer(SepiType.Kind)) +
     ';'#9);
   Output.Write(IntToStr(SepiType.Size) + ' bytes-wide');
-  if SepiType.NeedInit then
-    Output.Write(';'#9'needs initialization');
+  Output.Write(IIF(SepiType.IsManaged, ';'#9'managed', ';'#9'not managed'));
   Output.Write(';'#9'alignment: ' + IntToStr(SepiType.Alignment));
   Output.WriteLn;
 

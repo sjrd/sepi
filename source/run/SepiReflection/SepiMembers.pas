@@ -3397,8 +3397,8 @@ begin
 
     with TSepiField(Child) do
     begin
-      if FieldType.NeedInit then
-        FNeedInit := True;
+      if FieldType.IsManaged then
+        FIsManaged := True;
       if Offset + FieldType.Size > FSize then
         FSize := Offset + FieldType.Size;
       if (not IsPacked) and (FieldType.Alignment > FAlignment) then
@@ -3481,7 +3481,7 @@ begin
   // Count managed field count
   ManagedCount := 0;
   for I := 0 to FieldCount-1 do
-    if Fields[I].FieldType.NeedInit then
+    if Fields[I].FieldType.IsManaged then
       Inc(ManagedCount);
 
   // TRecordTypeData
@@ -3492,7 +3492,7 @@ begin
   for I := 0 to FieldCount-1 do
   begin
     Field := Fields[I];
-    if not Field.FieldType.NeedInit then
+    if not Field.FieldType.IsManaged then
       Continue;
 
     // TManagedField
@@ -3808,7 +3808,7 @@ begin
   inherited;
 
   FSize := 4;
-  FNeedInit := True;
+  FIsManaged := True;
   FResultBehavior := rbParameter;
 end;
 
@@ -4438,7 +4438,7 @@ begin
     begin
       Component := Children[I];
       if (Component is TSepiField) and
-        TSepiField(Component).FieldType.NeedInit then
+        TSepiField(Component).FieldType.IsManaged then
         Fields.Add(Component);
     end;
 
@@ -4859,7 +4859,7 @@ begin
   inherited;
 
   FSize := 4;
-  FNeedInit := False;
+  FIsManaged := False;
   FResultBehavior := rbOrdinal;
 end;
 
@@ -5630,7 +5630,7 @@ begin
   inherited;
 
   FSize := 16;
-  FNeedInit := True;
+  FIsManaged := True;
   FParamBehavior.AlwaysByAddress := True;
   FResultBehavior := rbParameter;
 end;

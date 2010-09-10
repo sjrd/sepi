@@ -379,7 +379,7 @@ begin
   inherited;
 
   FSize := 4;
-  FNeedInit := True;
+  FIsManaged := True;
   FResultBehavior := rbParameter;
 end;
 

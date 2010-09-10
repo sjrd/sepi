@@ -390,7 +390,7 @@ begin
   inherited;
 
   FSize := ArrayLength * FElementType.Size;
-  FNeedInit := FElementType.NeedInit;
+  FIsManaged := FElementType.IsManaged;
 
   FParamBehavior.AlwaysByAddress := Size > 4;
   if FParamBehavior.AlwaysByAddress then
@@ -576,7 +576,7 @@ begin
   inherited;
 
   FSize := 4;
-  FNeedInit := True;
+  FIsManaged := True;
   FResultBehavior := rbParameter;
 end;
 
@@ -597,7 +597,7 @@ begin
   Stream.WriteBuffer(ElSize, SizeOf(Longint));
 
   // TTypeData.elType
-  if ElementType.NeedInit then
+  if ElementType.IsManaged then
     ElementType.WriteTypeInfoRefToStream(Stream)
   else
     Stream.WriteBuffer(NilTypeInfoRef, SizeOf(PPTypeInfo));

@@ -2647,7 +2647,7 @@ begin
 
     if IsZeroMemory(ConstValuePtr, ValueType.Size) then
       Destination.SetSpace(msZero)
-    else if ValueType.NeedInit or (ValueType is TSepiSetType) then
+    else if ValueType.IsManaged or (ValueType is TSepiSetType) then
     begin
       Destination.SetSpace(Compiler.MakeUnnamedTrueConst(
         ValueType, ConstValuePtr^));
@@ -2737,7 +2737,7 @@ begin
     else if Constant <> nil then
     begin
       Result.SetSpace(Constant);
-    end else if ValueType.NeedInit then
+    end else if ValueType.IsManaged then
     begin
       Result.SetSpace(Compiler.MakeUnnamedTrueConst(
         ValueType, ConstValuePtr^));
@@ -2814,7 +2814,7 @@ begin
   try
     if IsZeroMemory(ConstValuePtr, ValueType.Size) then
       Result.SetSpace(msZero)
-    else if ValueType.NeedInit then
+    else if ValueType.IsManaged then
     begin
       Result.SetSpace(Compiler.MakeUnnamedTrueConst(
         ValueType, ConstValuePtr^));
@@ -3462,7 +3462,7 @@ begin
     Exit;
 
   // Can't collapse a cast on a need-init-type (unless operand is zero-memory)
-  if (OpType.NeedInit or ValueType.NeedInit) and
+  if (OpType.IsManaged or ValueType.IsManaged) and
     (not IsZeroMemory(ConstOp.ConstValuePtr, OpType.Size)) then
     Exit;
 

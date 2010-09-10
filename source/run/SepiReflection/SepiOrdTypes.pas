@@ -2017,7 +2017,7 @@ begin
   inherited;
 
   FSize := 4;
-  FNeedInit := False;
+  FIsManaged := False;
   FResultBehavior := rbOrdinal;
 end;
 

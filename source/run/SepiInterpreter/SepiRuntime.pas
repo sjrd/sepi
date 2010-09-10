@@ -285,14 +285,6 @@ var
   /// Tableau des méthodes de traitement des OpCodes
   OpCodeProcs: array[TSepiOpCode] of TOpCodeProc;
 
-type
-  /// Accès à la propriété TypeInfoRef de TSepiType
-  TSepiAccessTypeInfoRef = class(TSepiType)
-  public
-    // I swear I won't use this property in order to modify the pointed value.
-    property TypeInfoRef;
-  end;
-
 const
   /// Zero memory, big enough to accept a Variant
   ZeroMemory: array[0..3] of Integer = (0, 0, 0, 0);
@@ -673,11 +665,11 @@ begin
         - It is transmitted by value (and not by address, e.g. big records) ;
         - Its type requires initialization. }
       if (Kind = pkValue) and (not CallInfo.ByAddress) and
-        ParamType.NeedInit then
+        ParamType.IsManaged then
       begin
         with AddRefInfo[Count] do
         begin
-          TypeRef := TSepiAccessTypeInfoRef(ParamType).TypeInfoRef;
+          TypeRef := ParamType.TypeInfoRef;
           FldOffset := CallInfo.SepiStackOffset;
         end;
 
@@ -739,7 +731,7 @@ begin
 
         with LocalParamsInfo[Count] do
         begin
-          TypeRef := TSepiAccessTypeInfoRef(ParamType).TypeInfoRef;
+          TypeRef := ParamType.TypeInfoRef;
           FldOffset := FLocalParamsSize;
         end;
 
@@ -824,7 +816,7 @@ begin
     for I := 0 to Count-1 do
     begin
       RuntimeUnit.ReadRef(Stream, SepiType);
-      ManagedFields[I].TypeRef := TSepiAccessTypeInfoRef(SepiType).TypeInfoRef;
+      ManagedFields[I].TypeRef := SepiType.TypeInfoRef;
       Stream.ReadBuffer(ManagedFields[I].FldOffset, SizeOf(Integer));
     end;
   end;

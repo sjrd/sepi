@@ -377,8 +377,8 @@ type
     FTypeData: PTypeData;     /// RTTD (Runtime Type Data)
     FTypeInfoRef: PPTypeInfo; /// Référence aux RTTI
   protected
-    FSize: Integer;     /// Taille d'une variable de ce type
-    FNeedInit: Boolean; /// Indique si ce type requiert une initialisation
+    FSize: Integer;      /// Taille d'une variable de ce type
+    FIsManaged: Boolean; /// Indique si ce type est managé
 
     FParamBehavior: TSepiTypeParamBehavior;   /// Comportement comme paramètre
     FResultBehavior: TSepiTypeResultBehavior; /// Comportement comme résultat
@@ -441,7 +441,7 @@ type
     property TypeData: PTypeData read FTypeData;
     property TypeInfoRef: PPTypeInfo read FTypeInfoRef;
     property Size: Integer read FSize;
-    property NeedInit: Boolean read FNeedInit;
+    property IsManaged: Boolean read FIsManaged;
     property Alignment: Integer read GetAlignment;
     property ParamBehavior: TSepiTypeParamBehavior read FParamBehavior;
     property ResultBehavior: TSepiTypeResultBehavior read FResultBehavior;
@@ -2322,7 +2322,7 @@ end;
 *}
 procedure TSepiType.InitializeValue(var Value);
 begin
-  if NeedInit then
+  if IsManaged then
     Initialize(Value, TypeInfo);
 end;
 
@@ -2332,7 +2332,7 @@ end;
 *}
 procedure TSepiType.FinalizeValue(var Value);
 begin
-  if NeedInit then
+  if IsManaged then
     Finalize(Value, TypeInfo);
 end;
 

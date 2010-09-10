@@ -1762,7 +1762,7 @@ const
     tkLString, tkWString {$IF Declared(tkUString)}, tkUString {$IFEND}
   ];
 begin
-  if (not ADataType.NeedInit) and
+  if (not ADataType.IsManaged) and
     (CardinalSize(ADataType.Size) <= SizeOf(Word)) then
   begin
     Create(AMethodCompiler, ADataType.Size);
