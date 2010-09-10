@@ -413,7 +413,7 @@ end;
 function TSepiStaticArrayType.HasTypeInfo: Boolean;
 begin
 {$IF CompilerVersion < 21}
-  Result := NeedInit;
+  Result := IsManaged;
 {$ELSE}
   Result := True;
 {$IFEND}
