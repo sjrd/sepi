@@ -1773,7 +1773,7 @@ begin
     Exit;
   if (not IsLifeHandled) or (not Other.IsLifeHandled) then
     Exit;
-  if not AreInitFinitCompatible(VarType.TypeInfo,
+  if not IsManagementCompatible(VarType.TypeInfo,
     Other.VarType.TypeInfo) then
     Exit;
   if Life.InterfereWith(Other.Life) then

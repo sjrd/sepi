@@ -73,15 +73,6 @@ const
   tkProcedureOrUnknown = tkUnknown;
 {$IFEND}
 
-  /// Types qui requièrent une initialisation
-  { tkArray and tkRecord are listed here, though static arrays and record don't
-    always need initialization, because these types have got RTTI if and only
-    if the particular type needs initialization. }
-  NeedInitTypeKinds = [
-    tkLString, tkWString, tkVariant, tkArray, tkRecord, tkInterface, tkDynArray
-    {$IF Declared(tkUString)}, tkUString{$IFEND}
-  ];
-
 type
   /// Long string - ambivalent type for Delphi 2007- and Delphi 2009+
 {$IF Declared(RawByteString)}
@@ -141,13 +132,15 @@ type
   end;
 {$IFEND}
 
+function IsTypeManaged(TypeInfo: PTypeInfo): Boolean;
+
 function TypeSize(TypeInfo: PTypeInfo): Integer;
 
 procedure CopyData(const Source; var Dest; Size: Integer;
   TypeInfo: PTypeInfo); overload;
 procedure CopyData(const Source; var Dest; TypeInfo: PTypeInfo); overload;
 
-function AreInitFinitCompatible(Left, Right: PTypeInfo): Boolean;
+function IsManagementCompatible(Left, Right: PTypeInfo): Boolean;
 
 function TypeInfoEncode(const Str: string): TypeInfoString; inline;
 function TypeInfoDecode(const Str: TypeInfoString): string; inline;
@@ -159,6 +152,31 @@ implementation
 
 uses
   ScCompilerMagic;
+
+{*
+  Teste si un type donné est un type managé par le compilateur
+  @param TypeInfo   RTTI du type à tester
+  @return True si le type est managé, False sinon
+*}
+function IsTypeManaged(TypeInfo: PTypeInfo): Boolean;
+const
+  ManagedTypeKinds = [
+    tkLString, tkWString, tkVariant, tkArray, tkRecord, tkInterface, tkDynArray
+    {$IF Declared(tkUString)}, tkUString{$IFEND}
+  ];
+begin
+  Result := (TypeInfo <> nil) and (TypeInfo.Kind in ManagedTypeKinds);
+
+{$IF CompilerVersion >= 21}
+  if Result then
+  begin
+    case TypeInfo.Kind of
+      tkArray: Result := IsTypeManaged(GetTypeData(TypeInfo).ArrayData.ElType^);
+      tkRecord: Result := GetTypeData(TypeInfo).ManagedFldCount <> 0;
+    end;
+  end;
+{$IFEND}
+end;
 
 {*
   Détermine la taille d'un type à partir de ses RTTI
@@ -219,7 +237,7 @@ end;
 procedure CopyData(const Source; var Dest; Size: Integer;
   TypeInfo: PTypeInfo);
 begin
-  if Assigned(TypeInfo) and (TypeInfo.Kind in NeedInitTypeKinds) then
+  if IsTypeManaged(TypeInfo) then
     CopyData(Source, Dest, TypeInfo)
   else
     Move(Source, Dest, Size);
@@ -255,24 +273,24 @@ begin
 end;
 
 {*
-  Teste si deux types tableau statique sont compatibles init/finit
+  Teste si deux types tableau statique sont compatibles pour leur management
   @param Left    Premier type
   @param Right   Second type
   @return True s'ils sont compatibles, False sinon
 *}
-function AreArraysInitFinitCompatible(Left, Right: PArrayTypeData): Boolean;
+function IsArrayManagementCompatible(Left, Right: PArrayTypeData): Boolean;
 begin
   Result := (Left.Size = Right.Size) and (Left.ElCount = Right.ElCount) and
-    AreInitFinitCompatible(Left.ElType^, Right.ElType^);
+    IsManagementCompatible(Left.ElType^, Right.ElType^);
 end;
 
 {*
-  Teste si deux types record sont compatibles init/finit
+  Teste si deux types record sont compatibles pour leur management
   @param Left    Premier type
   @param Right   Second type
   @return True s'ils sont compatibles, False sinon
 *}
-function AreRecordsInitFinitCompatible(Left, Right: PRecordTypeData): Boolean;
+function IsRecordManagementCompatible(Left, Right: PRecordTypeData): Boolean;
 var
   I: Integer;
 begin
@@ -285,7 +303,7 @@ begin
   begin
     if Left.ManagedFields[I].FldOffset <> Right.ManagedFields[I].FldOffset then
       Exit;
-    if not AreInitFinitCompatible(
+    if not IsManagementCompatible(
       Left.ManagedFields[I].TypeRef^, Right.ManagedFields[I].TypeRef^) then
       Exit;
   end;
@@ -294,24 +312,24 @@ begin
 end;
 
 {*
-  Teste si deux types tableau dynamique sont compatibles init/finit
+  Teste si deux types tableau dynamique sont compatibles pour leur management
   @param Left    Premier type
   @param Right   Second type
   @return True s'ils sont compatibles, False sinon
 *}
-function AreDynArraysInitFinitCompatible(Left, Right: PTypeData): Boolean;
+function IsDynArrayManagementCompatible(Left, Right: PTypeData): Boolean;
 begin
   Result := (Left.elSize = Right.elSize) and
-    AreInitFinitCompatible(Left.elType^, Right.elType^);
+    IsManagementCompatible(Left.elType^, Right.elType^);
 end;
 
 {*
-  Teste si deux types sont compatibles au niveau de leur initialisation
+  Teste si deux types sont compatibles au niveau de leur management
   Deux types sont compatibles si et seulement si initialiser/finaliser une
   variable d'un des deux types avec les RTTI de l'autre type est valide.
   Notez que les tailles des types n'ont pas besoin d'être égales. En
   particulier, deux types de tailles quelconques et différentes sont compatibles
-  s'ils ne nécessitent aucune initialisation.
+  s'ils ne sont pas managés.
   Un cas très particulier n'est pas traité parfaitement dans cette
   implémentation : celui ou un type record a la même structure qu'un tableau
   statique. Est alors renvoyé False au lieu de True.
@@ -319,15 +337,18 @@ end;
   @param Right   Second type
   @return True s'ils sont compatibles, False sinon
 *}
-function AreInitFinitCompatible(Left, Right: PTypeInfo): Boolean;
+function IsManagementCompatible(Left, Right: PTypeInfo): Boolean;
 var
+  LeftManaged, RightManaged: Boolean;
   LeftData, RightData: Pointer;
 begin
-  if ((Left = nil) or (not (Left.Kind in NeedInitTypeKinds))) and
-    ((Right = nil) or (not (Right.Kind in NeedInitTypeKinds))) then
-    Result := True
-  else if (Left = nil) or (Right = nil) then
+  LeftManaged := IsTypeManaged(Left);
+  RightManaged := IsTypeManaged(Right);
+
+  if LeftManaged <> RightManaged then
     Result := False
+  else if not LeftManaged then
+    Result := True
   else if Left.Kind <> Right.Kind then
     Result := False
   else
@@ -337,11 +358,11 @@ begin
 
     case Left.Kind of
       tkArray:
-        Result := AreArraysInitFinitCompatible(LeftData, RightData);
+        Result := IsArrayManagementCompatible(LeftData, RightData);
       tkRecord:
-        Result := AreRecordsInitFinitCompatible(LeftData, RightData);
+        Result := IsRecordManagementCompatible(LeftData, RightData);
       tkDynArray:
-        Result := AreDynArraysInitFinitCompatible(LeftData, RightData);
+        Result := IsDynArrayManagementCompatible(LeftData, RightData);
     else
       Result := True;
     end;

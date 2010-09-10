@@ -1954,7 +1954,7 @@ begin
   if Assigned(AKeyInfo) then
   begin
     FKeySize := TypeSize(AKeyInfo);
-    if AKeyInfo.Kind in NeedInitTypeKinds then
+    if IsTypeManaged(AKeyInfo) then
       FKeyInfo := AKeyInfo
     else
       FKeyInfo := nil;
@@ -1967,7 +1967,7 @@ begin
   if Assigned(ADataInfo) then
   begin
     FDataSize := TypeSize(ADataInfo);
-    if ADataInfo.Kind in NeedInitTypeKinds then
+    if IsTypeManaged(ADataInfo) then
       FDataInfo := ADataInfo
     else
       FDataInfo := nil;
