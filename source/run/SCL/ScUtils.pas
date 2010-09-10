@@ -63,18 +63,6 @@ type
   *}
   TSysByteSet = set of Byte;
 
-  {*
-    Ensemble de caractères
-    Ce type est déprécié, utilisez TSysCharSet à la place.
-  *}
-  TSetOfChars = TSysCharSet {$IFNDEF DCTD} deprecated {$ENDIF};
-
-  {*
-    Ensemble de Byte
-    Ce type est déprécié, utilisez TSysByteSet à la place.
-  *}
-  TSetOfBytes = TSysByteSet {$IFNDEF DCTD} deprecated {$ENDIF};
-
 const
   /// Point nul
   NoPoint: TPoint = (X: MaxInt; Y: MaxInt);
@@ -107,10 +95,6 @@ function BaseToInt(const Value: string; Base: Byte = 10): Integer;
 function BaseToIntDef(const Value: string; Default: Integer = 0;
   Base: Byte = 10): Integer;
 
-function ConvertDoubleToInt64(Value: Double): Int64;
-function ConvertInt64ToDouble(Value: Int64): Double;
-
-procedure Wait(Milliseconds: Integer); deprecated;
 procedure WaitProcessMessages(Milliseconds: Integer);
 
 function IntToStr0(Value, Digits: Integer): string;
@@ -451,44 +435,6 @@ begin
     on Error: EConvertError do
       Result := Default;
   end;
-end;
-
-{*
-  Convertit une valeur Double en la valeur Int64 ayant les mêmes bits
-  Attention ! Il n'y a aucune correspondance entre Value et Result ! Cette
-  fonction est totalement empirique.
-  @param Value   Valeur double à convertir
-  @return Valeur entière dont les bits sont identiques à Value
-*}
-function ConvertDoubleToInt64(Value: Double): Int64;
-var
-  IntValue: Int64 absolute Value;
-begin
-  Result := IntValue;
-end;
-
-{*
-  Convertit une valeur Int64 en la valeur Double ayant les mêmes bits
-  Attention ! Il n'y a aucune correspondance entre Value et Result ! Cette
-  fonction est totalement empirique.
-  @param Value   Valeur entière à convertir
-  @return Valeur double dont les bits sont identiques à Value
-*}
-function ConvertInt64ToDouble(Value: Int64): Double;
-var
-  DoubleValue: Double absolute Value;
-begin
-  Result := DoubleValue;
-end;
-
-{*
-  Met en pause l'exécution pendant un temps défini
-  Cette routine est dépréciée, utilisez Sleep à la place.
-  @param Milliseconds   Nombre de milisecondes pendant lesquelles pauser
-*}
-procedure Wait(Milliseconds: Integer);
-begin
-  Sleep(Milliseconds);
 end;
 
 {*
