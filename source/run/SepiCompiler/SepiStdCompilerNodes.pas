@@ -1166,16 +1166,16 @@ type
   *}
   TSepiRecordContentsNode = class(TSepiNonTerminal)
   private
-    FAfterField: string; /// Nom du champ après lequel se placer
+    FAfterField: TSepiField; /// Nom du champ après lequel se placer
   protected
     procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
     procedure ChildEndParsing(Child: TSepiParseTreeNode); override;
 
-    property AfterField: string read FAfterField;
+    property AfterField: TSepiField read FAfterField;
   public
     procedure BeginParsing; override;
 
-    procedure SetAfterField(const AAfterField: string);
+    procedure SetAfterField(const AAfterField: TSepiField);
   end;
 
   {*
@@ -1195,14 +1195,14 @@ type
   *}
   TSepiRecordFieldNode = class(TSepiNonTerminal)
   private
-    FAfterField: string;    /// Champ après lequel se placer
-    FLastField: TSepiField; /// Dernier champ compilé
+    FAfterField: TSepiField; /// Champ après lequel se placer
+    FLastField: TSepiField;  /// Dernier champ compilé
   protected
-    property AfterField: string read FAfterField;
+    property AfterField: TSepiField read FAfterField;
   public
     procedure EndParsing; override;
 
-    procedure SetAfterField(const AAfterField: string);
+    procedure SetAfterField(const AAfterField: TSepiField);
 
     property LastField: TSepiField read FLastField;
   end;
@@ -4619,10 +4619,7 @@ begin
 
   if Child is TSepiRecordFieldNode then
   begin
-    if ChildCount = 1 then
-      TSepiRecordFieldNode(Child).SetAfterField(AfterField)
-    else
-      TSepiRecordFieldNode(Child).SetAfterField('~');
+    TSepiRecordFieldNode(Child).SetAfterField(AfterField);
   end else if Child is TSepiRecordContentsNode then
   begin
     TSepiRecordContentsNode(Child).SetAfterField(AfterField);
@@ -4637,7 +4634,7 @@ begin
   if Child is TSepiRecordFieldNode then
   begin
     if TSepiRecordFieldNode(Child).LastField <> nil then
-      FAfterField := TSepiRecordFieldNode(Child).LastField.Name;
+      FAfterField := TSepiRecordFieldNode(Child).LastField;
   end else if Child is TSepiRecordCaseHeaderNode then
   begin
     FAfterField := TSepiRecordCaseHeaderNode(Child).AfterField;
@@ -4648,9 +4645,9 @@ end;
 
 {*
   Spécifie le nom du champ après lequel placer les champs enfants de ce noeud
-  @param AAfterField   Nom du champ
+  @param AAfterField   Champ
 *}
-procedure TSepiRecordContentsNode.SetAfterField(const AAfterField: string);
+procedure TSepiRecordContentsNode.SetAfterField(const AAfterField: TSepiField);
 begin
   FAfterField := AAfterField;
 end;
@@ -4675,12 +4672,8 @@ begin
 
   if FieldType <> nil then
   begin
-    if AfterField = '~' then
-      FLastField := RecordType.AddField(
-        IdentList.Identifiers[0], FieldType)
-    else
-      FLastField := RecordType.AddFieldAfter(
-        IdentList.Identifiers[0], FieldType, AfterField);
+    FLastField := RecordType.AddFieldAfter(
+      IdentList.Identifiers[0], FieldType, AfterField);
 
     FLastField.DeclarationLocation := IdentList.DeclarationLocations[0];
 
@@ -4698,9 +4691,9 @@ end;
 
 {*
   Spécifie le nom du champ après lequel placer les champs enfants de ce noeud
-  @param AAfterField   Nom du champ
+  @param AAfterField   Champ
 *}
-procedure TSepiRecordFieldNode.SetAfterField(const AAfterField: string);
+procedure TSepiRecordFieldNode.SetAfterField(const AAfterField: TSepiField);
 begin
   FAfterField := AAfterField;
 end;

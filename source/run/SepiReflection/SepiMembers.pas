@@ -77,8 +77,8 @@ type
   TSepiSignatureKind = (
     skStaticProcedure, skStaticFunction,
     skObjectProcedure, skObjectFunction, skConstructor, skDestructor,
-    skClassProcedure, skClassFunction, skClassConstructor,
-    skOperator, skProperty, skClassProperty, skClassDestructor
+    skClassProcedure, skClassFunction, skClassConstructor, skClassDestructor,
+    skOperator, skProperty, skClassProperty
   );
 
 const
@@ -98,7 +98,7 @@ const
   skWithReturnType = skFunction + [skOperator] + skAnyProperty;
 
   /// Types de signature avec un paramètre Self
-  skWithSelfParam = [skObjectProcedure..skClassConstructor];
+  skWithSelfParam = [skObjectProcedure..skClassDestructor];
 
 type
   {*
@@ -712,7 +712,7 @@ type
       ForcePack: Boolean = False): TSepiField;
 
     function AddFieldAfter(const FieldName: string; FieldType: TSepiType;
-      const After: string; ForcePack: Boolean = False): TSepiField;
+      After: TSepiField; ForcePack: Boolean = False): TSepiField;
 
     procedure Complete; override;
 
@@ -3576,11 +3576,11 @@ end;
   @return Champ nouvellement ajouté
 *}
 function TSepiRecordType.AddFieldAfter(const FieldName: string;
-  FieldType: TSepiType; const After: string;
+  FieldType: TSepiType; After: TSepiField;
   ForcePack: Boolean = False): TSepiField;
 begin
-  Result := PrivAddField(FieldName, FieldType,
-    FindComponent(After) as TSepiField, ForcePack);
+  Assert((After = nil) or (After.Owner = Self));
+  Result := PrivAddField(FieldName, FieldType, After, ForcePack);
 end;
 
 {*
