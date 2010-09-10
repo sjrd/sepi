@@ -42,7 +42,7 @@ unit ImporterTemplates;
 interface
 
 uses
-  SysUtils, Classes, StrUtils, TypInfo, ScUtils, ScLowLevel;
+  SysUtils, Classes, StrUtils, TypInfo, ScUtils, ScTypInfo;
 
 type
   {*

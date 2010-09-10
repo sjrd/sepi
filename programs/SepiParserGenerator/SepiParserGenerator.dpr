@@ -47,7 +47,7 @@ uses
   ScUtils,
   ScIntegerSets,
   ScConsoleUtils,
-  ScLowLevel,
+  ScTypInfo,
   SepiCompilerErrors,
   GeneratorOptions in 'GeneratorOptions.pas',
   GeneratorUtils in 'GeneratorUtils.pas',

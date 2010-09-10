@@ -54,6 +54,11 @@
 			<DelphiCompile Include="SepiDelphiUnitImporter.dpr">
 				<MainSource>MainSource</MainSource>
 			</DelphiCompile>
+			<DCCReference Include="ImporterConsts.pas"/>
+			<DCCReference Include="ImporterContext.pas"/>
+			<DCCReference Include="ImporterOptions.pas"/>
+			<DCCReference Include="ImporterProducer.pas"/>
+			<DCCReference Include="ImporterTemplates.pas"/>
 			<BuildConfiguration Include="Base">
 				<Key>Base</Key>
 			</BuildConfiguration>

@@ -26,7 +26,6 @@ uses
   SepiCompiler,
   ScUtils,
   ScStrUtils,
-  ScLowLevel,
   ScConsoleUtils,
   SepiCompilerErrors,
   SepiParseTrees,

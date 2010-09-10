@@ -42,8 +42,7 @@ unit SepiStrTypes;
 interface
 
 uses
-  SysUtils, Classes, TypInfo, ScTypInfo, ScLowLevel, SepiReflectionCore,
-  SepiOrdTypes;
+  SysUtils, Classes, TypInfo, ScTypInfo, SepiReflectionCore, SepiOrdTypes;
 
 type
   {*

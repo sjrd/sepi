@@ -58,9 +58,6 @@
 			<DelphiCompile Include="SepiParserGenerator.dpr">
 				<MainSource>MainSource</MainSource>
 			</DelphiCompile>
-			<DCCReference Include="GeneratorOptions.pas"/>
-			<DCCReference Include="GeneratorUtils.pas"/>
-			<DCCReference Include="SepiLL1Grammars.pas"/>
 			<BuildConfiguration Include="Base">
 				<Key>Base</Key>
 			</BuildConfiguration>

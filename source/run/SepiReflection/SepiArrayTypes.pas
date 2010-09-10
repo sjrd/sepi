@@ -185,7 +185,7 @@ type
 implementation
 
 uses
-  ScCompilerMagic, ScLowLevel, SepiSystemUnit;
+  ScCompilerMagic, SepiSystemUnit;
 
 const
   // Tailles de structure TTypeData en fonction des types

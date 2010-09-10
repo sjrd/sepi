@@ -155,6 +155,11 @@ function Point3DAdd(const Point: T3DPoint; X, Y: Integer;
 function Point3DToString(const Point3D: T3DPoint;
   const Delim: string = ' '): string;
 
+function GetMethodFromName(Obj: TObject;
+  const MethodName: ShortString): TMethod;
+
+function MakeMethod(Code: Pointer; Data: Pointer = nil): TMethod;
+
 {$IFDEF MSWINDOWS}
 procedure RunURL(const URL: string; const Verb: string = DefaultRunURLVerb;
   const Parameters: string = '');
@@ -775,6 +780,32 @@ function Point3DToString(const Point3D: T3DPoint;
 begin
   Result := IntToStr(Point3D.X) + Delim + IntToStr(Point3D.Y) + Delim +
     IntToStr(Point3D.Z);
+end;
+
+{*
+  Recherche une méthode d'un objet à partir de son nom
+  La méthode en question doit être publiée pour pouvoir être trouvée.
+  @param Obj          L'objet définissant la méthode
+  @param MethodName   Nom de la méthode
+  @return Une référence à la méthode recherchée pour l'objet Obj
+*}
+function GetMethodFromName(Obj: TObject;
+  const MethodName: ShortString): TMethod;
+begin
+  Result.Code := Obj.MethodAddress(MethodName);
+  Result.Data := Obj;
+end;
+
+{*
+  Construit un record TMethod
+  @param Code   Valeur du champ Code
+  @param Data   Valeur du champ Data
+  @return Un enregistrement TMethod avec les champs indiqués
+*}
+function MakeMethod(Code: Pointer; Data: Pointer = nil): TMethod;
+begin
+  Result.Code := Code;
+  Result.Data := Data;
 end;
 
 {$IFDEF MSWINDOWS}

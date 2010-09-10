@@ -44,7 +44,7 @@ interface
 {$D-,L-}
 
 uses
-  Windows, Classes, SysUtils, StrUtils, ScUtils, ScStrUtils, ScLowLevel,
+  Windows, Classes, SysUtils, StrUtils, ScUtils, ScStrUtils, ScTypInfo,
   SepiCompilerErrors, SepiParseTrees, SepiLexerUtils, SepiCompilerConsts,
   SepiExpressions, SepiCompiler, SepiDelphiLikeCompilerUtils, SepiOrdTypes,
   SepiStdCompilerNodes;

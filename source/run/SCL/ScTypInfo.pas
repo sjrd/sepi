@@ -42,7 +42,7 @@ unit ScTypInfo;
 interface
 
 uses
-  Classes, TypInfo;
+  SysUtils, Classes, TypInfo;
 
 const
   /// tkUString sous Delphi 2009+, tkUnknown sinon
@@ -148,10 +148,31 @@ function TypeInfoDecode(const Str: TypeInfoString): string; inline;
 function ReadTypeInfoStringFromStream(Stream: TStream): string;
 procedure WriteTypeInfoStringToStream(Stream: TStream; const Str: string);
 
+function StrToStrRepres(const Str: string;
+  ExcludedChars: TSysCharSet = []): string;
+function StrRepresToStr(Str: string): string;
+
+function CharToCharRepres(Chr: AnsiChar;
+  ExcludedChars: TSysCharSet = []): string; overload;
+function CharToCharRepres(Chr: WideChar;
+  ExcludedChars: TSysCharSet = []): string; overload;
+function CharRepresToChar(Str: string): WideChar;
+
+function CharSetToStr(const CharSet: TSysCharSet): string;
+function StrToCharSet(Str: string): TSysCharSet;
+
+function EnumSetToStr(const EnumSet; TypeInfo: PTypeInfo): string;
+procedure StrToEnumSet(const Str: string; TypeInfo: PTypeInfo; out EnumSet);
+
+function SkipPackedShortString(Value: PShortString): Pointer;
+
 implementation
 
 uses
-  ScCompilerMagic;
+{$IFDEF UNICODE}
+  Character,
+{$ENDIF}
+  ScCompilerMagic, ScUtils, ScConsts;
 
 {*
   Teste si un type donné est un type managé par le compilateur
@@ -424,6 +445,531 @@ var
 begin
   TypeInfoStr := TypeInfoEncode(Str);
   Stream.WriteBuffer(TypeInfoStr, Length(TypeInfoStr)+1);
+end;
+
+{*
+  Détermine la représentation Pascal d'une chaîne de caractères
+  Cette représentation est la chaîne encadrée de guillemets simples ('), dont
+  ces caractères à l'intérieur de la chaîne sont doublés, et dont certains
+  caractères spéciaux sont échappés au moyen de #.
+  Cette chaîne peut alors être par exemple insérée dans un code Pascal.
+  @param Str             Chaîne à traiter
+  @param ExcludedChars   Ensemble des caractères qu'il faut échapper
+  @return Représentation Pascal de Str
+*}
+function StrToStrRepres(const Str: string;
+  ExcludedChars: TSysCharSet = []): string;
+
+  function IsExcluded(C: Char): Boolean;
+  begin
+    Result := CharInSet(C, ExcludedChars);
+    {$IFDEF UNICODE}
+    Result := Result or TCharacter.IsControl(C);
+    {$ENDIF}
+  end;
+
+var
+  I: Integer;
+begin
+  if Str = '' then
+    Result := ''''''
+  else
+  begin
+    I := 1;
+    Result := '';
+    ExcludedChars := ExcludedChars + [#0..#31];
+    while I <= Length(Str) do
+    begin
+      if IsExcluded(Str[I]) then
+      begin
+        if I mod 256 = 0 then
+          Result := Result+'+';
+
+        Result := Result+'#'+IntToStr(Integer(Str[I]));
+        Inc(I);
+      end else
+      begin
+        Result := Result+'''';
+        while (I <= Length(Str)) and (not IsExcluded(Str[I])) do
+        begin
+          if I mod 256 = 0 then
+            Result := Result+'''+''';
+
+          if Str[I] = '''' then
+            Result := Result + ''''''
+          else
+            Result := Result + Str[I];
+          Inc(I);
+        end;
+        Result := Result+'''';
+      end;
+    end;
+  end;
+end;
+
+{*
+  Détermine une chaîne à partir de sa représentation Pascal
+  Cette représentation est la chaîne encadrée de guillemets simples ('), dont
+  ces caractères à l'intérieur de la chaîne sont doublés, et dont certains
+  caractères spéciaux sont échappés au moyen de #.
+  Cette chaîne peut par exemple être extraite d'un code Pascal.
+  @param Str   Chaîne à traiter
+  @return Chaîne représentée par Str en Pascal
+  @throws EConvertError Chaîne de caractère incorrecte
+*}
+function StrRepresToStr(Str: string): string;
+var
+  CharStr: string;
+  I, IntChar: Integer;
+  NumChars: TSysCharSet;
+begin
+  Result := '';
+  Str := Trim(Str);
+  I := 1;
+  repeat
+    if I > 1 then
+      Inc(I);
+
+    while (I <= Length(Str)) and ((Str[I] = '''') or (Str[I] = '#')) do
+    begin
+      if Str[I] = '''' then
+      begin
+        Inc(I);
+        while True do
+        begin
+          if I > Length(Str) then
+            raise EConvertError.CreateFmt(sScWrongString, [Str]);
+          if Str[I] = '''' then
+          begin
+            Inc(I);
+            if (I <= Length(Str)) and (Str[I] = '''') then
+            begin
+              Result := Result+'''';
+              Inc(I);
+            end else
+              Break;
+          end else
+          begin
+            Result := Result+Str[I];
+            Inc(I);
+          end;
+        end;
+      end else
+      begin
+        Inc(I);
+        if I > Length(Str) then
+          raise EConvertError.CreateFmt(sScWrongString, [Str]);
+        CharStr := '';
+        if Str[I] = '$' then
+        begin
+          CharStr := '$';
+          Inc(I);
+          NumChars := ['0'..'9', 'A'..'F', 'a'..'f'];
+        end else
+          NumChars := ['0'..'9'];
+        while (I <= Length(Str)) and CharInSet(Str[I], NumChars) do
+        begin
+          CharStr := CharStr+Str[I];
+          Inc(I);
+        end;
+        IntChar := StrToIntDef(CharStr, -1);
+        if (IntChar >= 0) and (IntChar <= Integer(High(Char))) then
+          Result := Result+Char(IntChar)
+        else
+          raise EConvertError.CreateFmt(sScWrongString, [Str]);
+      end;
+    end;
+  until (I > Length(Str)) or (Str[I] <> '+');
+  if I <= Length(Str) then
+    raise EConvertError.CreateFmt(sScWrongString, [Str]);
+end;
+
+{*
+  Détermine la représentation Pascal d'un caractère
+  @param Chr             Caractère à traiter
+  @param ExcludedChars   Ensemble des caractères qu'il faut échapper
+  @return Représentation Pascal de Chr
+*}
+function CharToCharRepres(Chr: AnsiChar;
+  ExcludedChars: TSysCharSet = []): string;
+begin
+  Result := CharToCharRepres(WideChar(Chr), ExcludedChars);
+end;
+
+{*
+  Détermine la représentation Pascal d'un caractère
+  @param Chr             Caractère à traiter
+  @param ExcludedChars   Ensemble des caractères qu'il faut échapper
+  @return Représentation Pascal de Chr
+*}
+function CharToCharRepres(Chr: WideChar;
+  ExcludedChars: TSysCharSet = []): string;
+var
+  Excluded: Boolean;
+begin
+  Excluded := CharInSet(Chr, ExcludedChars + [#0..#31]);
+  {$IFDEF UNICODE}
+  Excluded := Excluded or TCharacter.IsControl(Chr);
+  {$ENDIF}
+
+  if Excluded then
+    Result := '#'+IntToStr(Integer(Chr))
+  else if Chr = '''' then
+    Result := ''''''''''
+  else
+    Result := ''''+Chr+'''';
+end;
+
+{*
+  Détermine un caractère à partir de sa représentation Pascal
+  @param Str   Chaîne à traiter
+  @return Caractère représenté par Str en Pascal
+  @throws EConvertError Caractère incorrect
+*}
+function CharRepresToChar(Str: string): WideChar;
+begin
+  try
+    Str := Trim(Str);
+    if Str = '' then
+      raise EConvertError.Create('');
+    case Str[1] of
+      '#':
+      begin
+        // Le résultat est le caractère dont le code ASCII est l'entier
+        // spécifié à la suite
+        Result := WideChar(StrToInt(Copy(Str, 2, MaxInt)));
+      end;
+      '''':
+      begin
+        case Length(Str) of
+          // Si 3 caractères, le troisième doit être ' et le deuxième
+          // est le caractère résultat
+          3: if Str[3] = '''' then
+              Result := WideChar(Str[2])
+            else
+              raise EConvertError.Create('');
+          // Si 4 caractères, ce doit être '''', auquel cas le caractère
+          // retour est '
+          4: if Str = '''''''''' then
+              Result := ''''
+            else
+              raise EConvertError.Create('');
+        else
+          // Sinon, ce n'est pas un caractère correct
+          raise EConvertError.Create('');
+        end;
+      end;
+    else
+      raise EConvertError.Create('');
+    end;
+  except
+    on Error: EConvertError do
+      raise EConvertError.CreateFmt(sScWrongChar, [Str]);
+  end;
+end;
+
+{*
+  Détermine la représentation Pascal d'un ensemble de caractères (sans les [])
+  @param CharSet   Ensemble de caractères à traiter
+  @return Représentation Pascal de CharSet
+*}
+function CharSetToStr(const CharSet: TSysCharSet): string;
+var
+  I, From: Integer;
+begin
+  Result := '';
+  I := 0;
+  // On cherche d'abord le premier caractère inclus
+  while (I <= 255) and (not CharInSet(Chr(I), CharSet)) do
+    Inc(I);
+  while I <= 255 do
+  begin
+    // Chr(I) est inclus
+    From := I;
+    // On cherche le caractère suivant qui n'est pas inclus
+    while (I <= 255) and CharInSet(Chr(I), CharSet) do
+      Inc(I);
+    // On teste I-From, soit le nombre de caractère consécutifs
+    case I-From of
+      // 1 : on ajoute simplement ce caractère
+      1: Result := Result+', '+CharToCharRepres(AnsiChar(From));
+      // 2 : on ajoute ces deux caractères séparés par des virgules
+      2: Result := Result+', '+CharToCharRepres(AnsiChar(From))+
+          ', '+CharToCharRepres(AnsiChar(I-1));
+    else
+      // 3+ : on ajoute les deux extrèmes séparés par ..
+      Result := Result+', '+CharToCharRepres(AnsiChar(From))+
+        '..'+CharToCharRepres(AnsiChar(I-1));
+    end;
+    // on cherche le caractère suivant inclus
+    repeat
+      Inc(I);
+    until (I > 255) or (AnsiChar(I) in CharSet);
+  end;
+  // On supprime les deux premiers caractères, car ce sont ', '
+  Delete(Result, 1, 2);
+end;
+
+{*
+  Détermine un ensemble de caractères à partir de sa représentation Pascal
+  @param Str   Chaîne à traiter
+  @return Ensemble de caractères représenté par CharSet
+  @throws EConvertError Ensemble de caractères incorrect
+*}
+function StrToCharSet(Str: string): TSysCharSet;
+var
+  I: Integer;
+
+  // Renvoie le caractère à la position courante et augmente I en conséquence
+  // Fonctionne sur le même principe que CharRepresToChar
+  function GetCharAt: AnsiChar;
+  var
+    From: Integer;
+  begin
+    case Str[I] of
+      '#':
+      begin
+        From := I+1;
+        repeat
+          Inc(I);
+        until (I > Length(Str)) or (not CharInSet(Str[I], ['0'..'9']));
+        Result := AnsiChar(StrToInt(Copy(Str, From, I-From)));
+      end;
+      '''':
+      begin
+        Inc(I);
+        if I > Length(Str) then
+          raise EConvertError.Create('');
+        if Str[I] = '''' then
+        begin
+          if I+2 > Length(Str) then
+            raise EConvertError.Create('');
+          if (Str[I+1] <> '''') or (Str[I+2] <> '''') then
+            raise EConvertError.Create('');
+          Result := '''';
+          Inc(I, 3);
+        end else
+        begin
+          if I+1 > Length(Str) then
+            raise EConvertError.Create('');
+          if Str[I+1] <> '''' then
+            raise EConvertError.Create('');
+          Result := AnsiChar(Str[I]);
+          Inc(I, 2);
+        end;
+      end;
+    else
+      raise EConvertError.Create('');
+    end;
+  end;
+
+var
+  C1, C2: AnsiChar;
+begin
+  try
+    Result := [];
+    Str := Trim(Str);
+    // Si Str est vide, il n'y a aucun caractère dans l'ensemble
+    if Str = '' then
+      Exit;
+    // Si il y des [] aux extrémités, on les supprime
+    if (Str[1] = '[') and (Str[Length(Str)] = ']') then
+      Str := Trim(Copy(Str, 2, Length(Str)-2));
+
+    I := 1;
+    while I <= Length(Str) do
+    begin
+      // On récupère le caractère à la position courante
+      C1 := GetCharAt;
+      // On passe tous les espaces
+      while (I <= Length(Str)) and (Str[I] = ' ') do
+        Inc(I);
+
+      // Si I > Length(Str), on ajoute le caractère et on arrête
+      if I > Length(Str) then
+      begin
+        Include(Result, C1);
+        Break;
+      end;
+
+      // Si Str[I] = ',', on ajoute le caractère et on passe la virgule
+      if Str[I] = ',' then
+      begin
+        // On ajoute le caractère
+        Include(Result, C1);
+        // On passe la virgule et les espaces
+        repeat
+          Inc(I);
+        until (I > Length(Str)) or (Str[I] <> ' ');
+        // Si on a atteint la fin de la chaîne, il y a une erreur
+        // (on termine par une virgule)
+        if I > Length(Str) then
+          raise EConvertError.Create('');
+        Continue;
+      end;
+
+      // Si Str[I] = '.', ce doit être une plage de caractères
+      if Str[I] = '.' then
+      begin
+        // On teste si le caractère suivant est aussi un point
+        Inc(I);
+        if (I > Length(Str)) or (Str[I] <> '.') then
+          raise EConvertError.Create('');
+        // On passe ce point et les espaces
+        repeat
+          Inc(I);
+        until (I > Length(Str)) or (Str[I] <> ' ');
+        // On récupère le deuxième caractère
+        C2 := GetCharAt;
+        // On passe les espaces
+        while (I <= Length(Str)) and (Str[I] = ' ') do
+          Inc(I);
+
+        // Si I > Length(Str), on ajoute la plage de caractère et on termine
+        if I > Length(Str) then
+        begin
+          Result := Result+[C1..C2];
+          Break;
+        end;
+
+        // Si Str[I] = ',', on ajoute les caractères et on passe la virgule
+        if Str[I] = ',' then
+        begin
+          // On ajoute la plage de caractères
+          Result := Result+[C1..C2];
+          // On passe la virgule et les espaces
+          repeat
+            Inc(I);
+          until (I > Length(Str)) or (Str[I] <> ' ');
+          // Si on a atteint la fin de la chaîne, il y a une erreur
+          // (on termine par une virgule)
+          if I > Length(Str) then
+            raise EConvertError.Create('');
+          Continue;
+        end;
+        raise EConvertError.Create('');
+      end;
+      raise EConvertError.Create('');
+    end;
+  except
+    on Error: EConvertError do
+      raise EConvertError.CreateFmt(sScWrongCharSet, [Str]);
+  end;
+end;
+
+{*
+  Convertit un type ensemble d'éléments d'énumération en chaîne
+  La représentation est celle du langage Pascal, sans les [].
+  Cette routine fonctionne également pour les ensembles d'entiers.
+  @param EnumSet    Ensemble à convertir
+  @param TypeInfo   RTTI du type ensemble ou du type énumération
+  @return Chaîne représentant l'ensemble EnumSet
+*}
+function EnumSetToStr(const EnumSet; TypeInfo: PTypeInfo): string;
+var
+  TypeData: PTypeData;
+  ByteValue: Byte;
+begin
+  if TypeInfo.Kind = tkSet then
+    TypeInfo := GetTypeData(TypeInfo).CompType^;
+  TypeData := GetTypeData(TypeInfo);
+
+  Result := '';
+
+  for ByteValue := TypeData.MinValue to TypeData.MaxValue do
+  begin
+    if ByteValue-TypeData.MinValue in TSysByteSet(EnumSet) then
+      Result := Result + GetEnumName(TypeInfo, ByteValue) + ', ';
+  end;
+
+  if Result <> '' then
+    SetLength(Result, Length(Result)-2);
+end;
+
+{*
+  Convertit une chaîne en type ensemble d'éléments d'énumération
+  La représentation est celle du langage Pascal, avec ou sans les [].
+  Cette routine fonctionne également pour les ensembles d'entiers.
+  @param Str        Chaîne à convertir
+  @param TypeInfo   RTTI du type ensemble ou du type énumération
+  @param EnumSet    Ensemble converti en sortie
+  @return Chaîne représentant l'ensemble EnumSet
+*}
+procedure StrToEnumSet(const Str: string; TypeInfo: PTypeInfo; out EnumSet);
+type
+  TSetAsBytes = array[0..31] of Byte;
+var
+  SetName: string;
+  TypeData: PTypeData;
+  SetStr: string;
+  Index, Len, BeginIndex, Value: Integer;
+begin
+  if TypeInfo.Kind = tkSet then
+  begin
+    SetName := TypeInfo.Name;
+    TypeInfo := GetTypeData(TypeInfo).CompType^;
+  end else
+    SetName := Format(sScSetOf, [TypeInfo.Name]);
+  TypeData := GetTypeData(TypeInfo);
+
+  Len := TypeData.MaxValue div 8 + 1;
+  FillChar(EnumSet, Len, 0);
+
+  try
+    Index := 1;
+    Len := Length(Str);
+    if (Str <> '') and (Str[1] = '[') and (Str[Len] = ']') then
+    begin
+      SetStr := ',' + Copy(Str, 2, Len-2);
+      Dec(Len, 1);
+    end else
+    begin
+      SetStr := ',' + Str;
+      Inc(Len, 1);
+    end;
+
+    while Index <= Len do
+    begin
+      if SetStr[Index] <> ',' then
+        raise Exception.Create('');
+      Inc(Index);
+
+      while (Index <= Len) and CharInSet(SetStr[Index], [' ', #13, #10]) do
+        Inc(Index);
+      BeginIndex := Index;
+      while (Index <= Len) and (not CharInSet(SetStr[Index],
+        [',', ' ', #13, #10])) do
+        Inc(Index);
+
+      Value := GetEnumValue(TypeInfo,
+        Copy(SetStr, BeginIndex, Index-BeginIndex));
+      if Value < 0 then
+        raise Exception.Create('');
+      Include(TSysByteSet(EnumSet), Value);
+
+      while (Index <= Len) and CharInSet(SetStr[Index], [' ', #13, #10]) do
+        Inc(Index);
+    end;
+  except
+    raise EConvertError.CreateFmt(sScWrongEnumSet, [Str, SetName]);
+  end;
+end;
+
+{*
+  Renvoie un pointeur vers le champ suivant un ShortString compactée (des RTTI)
+  Cette routine peut être utilisée pour passer « au-dessus » d'une ShortString
+  compactée, telle qu'on peut en trouver dans les record extra-compactés des
+  RTTI.
+  @param Value    Adresse de la ShortString compactée
+  @return Adresse du champ suivant
+*}
+function SkipPackedShortString(Value: PShortstring): Pointer;
+asm
+        { ->    EAX Pointer to a packed ShortString                   }
+        { <-    EAX Pointer to data following this packed ShortString }
+        XOR     EDX,EDX
+        MOV     DL,[EAX]
+        LEA     EAX,[EAX].Byte[EDX+1]
 end;
 
 end.

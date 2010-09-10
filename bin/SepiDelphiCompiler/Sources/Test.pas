@@ -3,7 +3,7 @@ unit Test;
 interface
 
 uses
-  Types, SysUtils, Classes, ScLowLevel;
+  Types, SysUtils, Classes, ScTypInfo;
 
 type
   TPrintOnAddStrings = class(TStringList)

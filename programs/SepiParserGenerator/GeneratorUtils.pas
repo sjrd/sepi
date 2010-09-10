@@ -42,7 +42,7 @@ unit GeneratorUtils;
 interface
 
 uses
-  SysUtils, Classes, StrUtils, ScUtils, ScLowLevel, ScIntegerSets;
+  SysUtils, Classes, StrUtils, ScUtils, ScIntegerSets;
 
 type
   TGenerator = class

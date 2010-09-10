@@ -56,7 +56,6 @@ uses
   ScUtils,
   ScStrUtils,
   ScLists,
-  ScLowLevel,
   ScConsoleUtils,
   SepiCompilerErrors,
   SepiParseTrees,
