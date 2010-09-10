@@ -43,7 +43,7 @@ interface
 
 uses
   Windows, Types, SysUtils, Classes, StrUtils, TypInfo, SysConst, ScUtils,
-  ScStrUtils, ScDelphiLanguage, SepiReflectionCore, SepiMembers, SepiOrdTypes,
+  ScStrUtils, ScLowLevel, SepiReflectionCore, SepiMembers, SepiOrdTypes,
   SepiStrTypes, SepiArrayTypes, SepiSystemUnit, SepiDelphiLexer,
   SepiDelphiParser, SepiCompilerErrors, SepiParseTrees, SepiCompiler, SepiCore,
   SepiCompilerConsts, SepiExpressions, SepiDelphiCompilerConsts, SepiOpCodes,

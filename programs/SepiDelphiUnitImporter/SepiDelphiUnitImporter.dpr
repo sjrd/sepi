@@ -56,7 +56,7 @@ uses
   ScUtils,
   ScStrUtils,
   ScLists,
-  ScDelphiLanguage,
+  ScLowLevel,
   ScConsoleUtils,
   SepiCompilerErrors,
   SepiParseTrees,

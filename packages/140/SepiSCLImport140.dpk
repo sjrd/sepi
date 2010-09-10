@@ -38,7 +38,7 @@ contains
   SepiImportsScConsts in '..\..\source\run\SepiSCLImport\SepiImportsScConsts.pas',
   SepiImportsScCoroutines in '..\..\source\run\SepiSCLImport\SepiImportsScCoroutines.pas',
   SepiImportsScDateTimeUtils in '..\..\source\run\SepiSCLImport\SepiImportsScDateTimeUtils.pas',
-  SepiImportsScDelphiLanguage in '..\..\source\run\SepiSCLImport\SepiImportsScDelphiLanguage.pas',
+  SepiImportsScLowLevel in '..\..\source\run\SepiSCLImport\SepiImportsScLowLevel.pas',
   SepiImportsScEnumerators in '..\..\source\run\SepiSCLImport\SepiImportsScEnumerators.pas',
   SepiImportsScIntegerSets in '..\..\source\run\SepiSCLImport\SepiImportsScIntegerSets.pas',
   SepiImportsScInterfaces in '..\..\source\run\SepiSCLImport\SepiImportsScInterfaces.pas',

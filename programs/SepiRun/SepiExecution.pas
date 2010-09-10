@@ -14,7 +14,7 @@ unit SepiExecution;
 interface
 
 uses
-  SysUtils, Classes, ScUtils, ScDelphiLanguage, SepiReflectionCore, SepiMembers,
+  SysUtils, Classes, ScUtils, ScLowLevel, SepiReflectionCore, SepiMembers,
   SepiRuntime, SepiDisassembler;
 
 const

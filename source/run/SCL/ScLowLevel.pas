@@ -33,11 +33,11 @@ statement from your version.
 -------------------------------------------------------------------------------}
 
 {*
-  Définit des routines en lien avec le langage Delphi lui-même
+  Définit des routines de traitement de bas niveau
   @author sjrd
   @version 1.0
 *}
-unit ScDelphiLanguage;
+unit ScLowLevel;
 
 interface
 
@@ -168,7 +168,7 @@ end;
   s'expose à de légères fuites mémoire en cas d'exception à l'intérieur de
   telles méthodes.
   Pour le thread principal, ce n'est pas nécessaire, le code de finalisation de
-  ScDelphiLanguage.pas s'en charge.
+  ScLowLevel.pas s'en charge.
 *}
 procedure ClearCDeclCallInfo;
 begin

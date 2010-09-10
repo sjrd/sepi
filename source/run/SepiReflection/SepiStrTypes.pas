@@ -42,7 +42,7 @@ unit SepiStrTypes;
 interface
 
 uses
-  SysUtils, Classes, TypInfo, ScTypInfo, ScDelphiLanguage, SepiReflectionCore,
+  SysUtils, Classes, TypInfo, ScTypInfo, ScLowLevel, SepiReflectionCore,
   SepiOrdTypes;
 
 type

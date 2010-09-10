@@ -43,7 +43,7 @@ contains
   SepiImportsScWindows in '..\..\source\run\SepiSCLImport\SepiImportsScWindows.pas',
   SepiImportsScZLib in '..\..\source\run\SepiSCLImport\SepiImportsScZLib.pas',
   SepiImportsSCL in '..\..\source\run\SepiSCLImport\SepiImportsSCL.pas',
-  SepiImportsScDelphiLanguage in '..\..\source\run\SepiSCLImport\SepiImportsScDelphiLanguage.pas',
+  SepiImportsScLowLevel in '..\..\source\run\SepiSCLImport\SepiImportsScLowLevel.pas',
   SepiImportsScSyncObjs in '..\..\source\run\SepiSCLImport\SepiImportsScSyncObjs.pas',
   SepiImportsScCompilerMagic in '..\..\source\run\SepiSCLImport\SepiImportsScCompilerMagic.pas',
   SepiImportsScTypInfo in '..\..\source\run\SepiSCLImport\SepiImportsScTypInfo.pas',

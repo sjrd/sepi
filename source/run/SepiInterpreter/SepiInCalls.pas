@@ -42,7 +42,7 @@ unit SepiInCalls;
 interface
 
 uses
-  TypInfo, ScDelphiLanguage, SepiReflectionCore, SepiMembers, SepiOrdTypes,
+  TypInfo, ScLowLevel, SepiReflectionCore, SepiMembers, SepiOrdTypes,
   SepiRuntime;
 
 function MakeInCallCode(RuntimeMethod: TSepiRuntimeMethod;

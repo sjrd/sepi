@@ -39,7 +39,7 @@ contains
   ScConsts in '..\..\source\run\SCL\ScConsts.pas',
   ScCoroutines in '..\..\source\run\SCL\ScCoroutines.pas',
   ScDateTimeUtils in '..\..\source\run\SCL\ScDateTimeUtils.pas',
-  ScDelphiLanguage in '..\..\source\run\SCL\ScDelphiLanguage.pas',
+  ScLowLevel in '..\..\source\run\SCL\ScLowLevel.pas',
   ScEnumerators in '..\..\source\run\SCL\ScEnumerators.pas',
   ScIntegerSets in '..\..\source\run\SCL\ScIntegerSets.pas',
   ScInterfaces in '..\..\source\run\SCL\ScInterfaces.pas',

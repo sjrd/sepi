@@ -40,7 +40,7 @@ contains
   ScNoSecretWindow in '..\..\source\run\SCL\ScNoSecretWindow.pas',
   ScStrUtils in '..\..\source\run\SCL\ScStrUtils.pas',
   ScUtils in '..\..\source\run\SCL\ScUtils.pas',
-  ScDelphiLanguage in '..\..\source\run\SCL\ScDelphiLanguage.pas',
+  ScLowLevel in '..\..\source\run\SCL\ScLowLevel.pas',
   ScWindows in '..\..\source\run\SCL\ScWindows.pas',
   ScZLib in '..\..\source\run\SCL\ScZLib.pas',
   ScSyncObjs in '..\..\source\run\SCL\ScSyncObjs.pas',

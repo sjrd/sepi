@@ -43,7 +43,7 @@ uses
   SepiImportsScConsts,
   SepiImportsScCoroutines,
   SepiImportsScDateTimeUtils,
-  SepiImportsScDelphiLanguage,
+  SepiImportsScLowLevel,
   SepiImportsScEnumerators,
   SepiImportsScIntegerSets,
   SepiImportsScInterfaces,

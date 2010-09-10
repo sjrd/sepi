@@ -3,7 +3,7 @@ unit Test;
 interface
 
 uses
-  Types, SysUtils, Classes, ScDelphiLanguage;
+  Types, SysUtils, Classes, ScLowLevel;
 
 type
   TPrintOnAddStrings = class(TStringList)

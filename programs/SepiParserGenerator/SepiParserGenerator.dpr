@@ -47,7 +47,7 @@ uses
   ScUtils,
   ScIntegerSets,
   ScConsoleUtils,
-  ScDelphiLanguage,
+  ScLowLevel,
   SepiCompilerErrors,
   GeneratorOptions in 'GeneratorOptions.pas',
   GeneratorUtils in 'GeneratorUtils.pas',

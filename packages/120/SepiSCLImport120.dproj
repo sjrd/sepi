@@ -72,7 +72,7 @@
 			<DCCReference Include="..\..\source\run\SepiSCLImport\SepiImportsScConsts.pas"/>
 			<DCCReference Include="..\..\source\run\SepiSCLImport\SepiImportsScCoroutines.pas"/>
 			<DCCReference Include="..\..\source\run\SepiSCLImport\SepiImportsScDateTimeUtils.pas"/>
-			<DCCReference Include="..\..\source\run\SepiSCLImport\SepiImportsScDelphiLanguage.pas"/>
+			<DCCReference Include="..\..\source\run\SepiSCLImport\SepiImportsScLowLevel.pas"/>
 			<DCCReference Include="..\..\source\run\SepiSCLImport\SepiImportsScEnumerators.pas"/>
 			<DCCReference Include="..\..\source\run\SepiSCLImport\SepiImportsScIntegerSets.pas"/>
 			<DCCReference Include="..\..\source\run\SepiSCLImport\SepiImportsScInterfaces.pas"/>

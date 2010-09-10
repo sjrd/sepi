@@ -59,7 +59,7 @@
     <DCCReference Include="..\..\source\run\SCL\ScConsts.pas" />
     <DCCReference Include="..\..\source\run\SCL\ScCoroutines.pas" />
     <DCCReference Include="..\..\source\run\SCL\ScDateTimeUtils.pas" />
-    <DCCReference Include="..\..\source\run\SCL\ScDelphiLanguage.pas" />
+    <DCCReference Include="..\..\source\run\SCL\ScLowLevel.pas" />
     <DCCReference Include="..\..\source\run\SCL\ScEnumerators.pas" />
     <DCCReference Include="..\..\source\run\SCL\ScIntegerSets.pas" />
     <DCCReference Include="..\..\source\run\SCL\ScInterfaces.pas" />

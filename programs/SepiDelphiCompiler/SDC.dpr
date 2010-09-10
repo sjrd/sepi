@@ -26,7 +26,7 @@ uses
   SepiCompiler,
   ScUtils,
   ScStrUtils,
-  ScDelphiLanguage,
+  ScLowLevel,
   ScConsoleUtils,
   SepiCompilerErrors,
   SepiParseTrees,
@@ -137,8 +137,6 @@ begin
   try
     SepiRoot.OnLoadUnit := TSepiLoadUnitEvent(MakeMethod(
       @LoadUnit, Context));
-
-    LoadAll(SepiRoot);
 
     // Update current file name
     Errors.CurrentFileName := ExtractFileName(SrcFileName);

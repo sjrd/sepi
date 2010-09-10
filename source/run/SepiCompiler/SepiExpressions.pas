@@ -43,7 +43,7 @@ interface
 
 uses
   SysUtils, Classes, Math, TypInfo, ScUtils, ScInterfaces, ScCompilerMagic,
-  ScDelphiLanguage, ScIntegerSets, ScTypInfo, SepiReflectionCore, SepiOrdTypes,
+  ScLowLevel, ScIntegerSets, ScTypInfo, SepiReflectionCore, SepiOrdTypes,
   SepiStrTypes, SepiArrayTypes, SepiMembers, SepiSystemUnit, SepiOpCodes,
   SepiRuntimeOperations, SepiCompiler, SepiCompilerErrors, SepiCompilerConsts,
   SepiAsmInstructions;

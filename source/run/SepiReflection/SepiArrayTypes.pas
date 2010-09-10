@@ -185,7 +185,7 @@ type
 implementation
 
 uses
-  ScCompilerMagic, ScDelphiLanguage, SepiSystemUnit;
+  ScCompilerMagic, ScLowLevel, SepiSystemUnit;
 
 const
   // Tailles de structure TTypeData en fonction des types

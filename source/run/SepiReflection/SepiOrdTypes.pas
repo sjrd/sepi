@@ -43,7 +43,7 @@ interface
 
 uses
   Types, Classes, SysUtils, SysConst, TypInfo, ScUtils, ScTypInfo,
-  ScDelphiLanguage, ScSerializer, SepiReflectionCore, SepiReflectionConsts;
+  ScLowLevel, ScSerializer, SepiReflectionCore, SepiReflectionConsts;
 
 const
   MinInt64 = Int64($8000000000000000);

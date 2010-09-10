@@ -47,7 +47,7 @@ interface
 
 uses
   Windows, Classes, SysUtils, StrUtils, RTLConsts, Contnrs, TypInfo, ScUtils,
-  ScStrUtils, ScTypInfo, ScDelphiLanguage, ScSerializer, ScCompilerMagic,
+  ScStrUtils, ScTypInfo, ScLowLevel, ScSerializer, ScCompilerMagic,
   SepiReflectionCore, SepiReflectionConsts, SepiArrayTypes;
 
 const

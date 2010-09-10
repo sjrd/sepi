@@ -45,7 +45,7 @@ interface
 
 uses
   Windows, Types, SysUtils, Classes, StrUtils, TypInfo, SysConst, ScUtils,
-  ScStrUtils, ScDelphiLanguage,
+  ScStrUtils, ScLowLevel,
   SepiCore,
   SepiReflectionCore, SepiMembers, SepiOrdTypes, SepiStrTypes, SepiArrayTypes,
   SepiOpCodes,
