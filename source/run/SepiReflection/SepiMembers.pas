@@ -1127,7 +1127,8 @@ const
     'static procedure', 'static function',
     'object procedure', 'object function', 'constructor', 'destructor',
     'class procedure', 'class function', 'class constructor',
-    'operator', 'property', 'class property', 'class destructor'
+    'class destructor',
+    'operator', 'property', 'class property'
   );
 
   /// Chaînes des types de liaison de méthodes
