@@ -237,6 +237,11 @@ type
 
     function GetChildByName(const ChildName: string): TSepiComponent;
   protected
+    class function ReadStrFromStream(Stream: TStream): string;
+      {$IF CompilerVersion >= 20} static; {$IFEND}
+    class procedure WriteStrToStream(Stream: TStream; const Str: string);
+      {$IF CompilerVersion >= 20} static; {$IFEND}
+
     procedure AddChild(Child: TSepiComponent); virtual;
     procedure RemoveChild(Child: TSepiComponent); virtual;
     procedure ReAddChild(Child: TSepiComponent); virtual;
@@ -625,6 +630,9 @@ type
 
     FLoadingClassIntfChildren: TStrings; /// Classes et interfaces en chargement
     FForwardClassIntfChildren: TObjectList; /// Classes et interfaces forward
+
+    class function ReadStrFromStream(Stream: TStream): string;
+      {$IF CompilerVersion >= 20} static; {$IFEND}
 
     function GetChildData(const Name: string): TSepiLazyLoadChildData;
     function CanLoad(const Data: TSepiLazyLoadChildData): Boolean;
@@ -1384,6 +1392,31 @@ begin
   if Result = nil then
     raise ESepiComponentNotFoundError.CreateFmt(
       SSepiComponentNotFound, [ChildName]);
+end;
+
+{*
+  Lit une chaîne de caractères depuis un flux binaire Sepi
+  Cette chaîne doit avoir été écrite avec WriteStrToStream.
+  @param Stream   Flux depuis lequel lire la chaîne
+  @return La chaîne lue
+*}
+class function TSepiComponent.ReadStrFromStream(Stream: TStream): string;
+begin
+  Result := ScUtils.ReadStrFromStream(Stream
+    {$IF Declared(TEncoding)}, TEncoding.UTF8 {$IFEND});
+end;
+
+{*
+  Écrit une chaîne de caractères dans un flux binaire Sepi
+  Cette chaine pourra être relue avec ReadStrFromStream.
+  @param Stream   Flux dans lequel enregistrer la chaîne
+  @param Str      Chaîne de caractères à écrire
+*}
+class procedure TSepiComponent.WriteStrToStream(Stream: TStream;
+  const Str: string);
+begin
+  ScUtils.WriteStrToStream(Stream, Str
+    {$IF Declared(TEncoding)}, TEncoding.UTF8 {$IFEND});
 end;
 
 {*
@@ -3184,6 +3217,17 @@ begin
   FChildrenNames.Free;
 
   inherited;
+end;
+
+{*
+  Lit une chaîne de caractères depuis un flux binaire Sepi
+  Cette chaîne doit avoir été écrite avec WriteStrToStream.
+  @param Stream   Flux depuis lequel lire la chaîne
+  @return La chaîne lue
+*}
+class function TSepiLazyLoadData.ReadStrFromStream(Stream: TStream): string;
+begin
+  Result := TSepiComponent.ReadStrFromStream(Stream);
 end;
 
 {*

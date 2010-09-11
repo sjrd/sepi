@@ -285,6 +285,11 @@ type
       const Definition: string);
     procedure MakeFlags;
 
+    class function ReadStrFromStream(Stream: TStream): string;
+      {$IF CompilerVersion >= 20} static; {$IFEND}
+    class procedure WriteStrToStream(Stream: TStream; const Str: string);
+      {$IF CompilerVersion >= 20} static; {$IFEND}
+
     procedure ListReferences;
     procedure Save(Stream: TStream);
 
@@ -1574,6 +1579,29 @@ begin
     if (not IsUntyped) and (FType.ParamBehavior.AlwaysByAddress) then
       Include(FFlags, pfReference);
   end;
+end;
+
+{*
+  Lit une chaîne de caractères depuis un flux binaire Sepi
+  Cette chaîne doit avoir été écrite avec WriteStrToStream.
+  @param Stream   Flux depuis lequel lire la chaîne
+  @return La chaîne lue
+*}
+class function TSepiParam.ReadStrFromStream(Stream: TStream): string;
+begin
+  Result := TSepiMethod.ReadStrFromStream(Stream);
+end;
+
+{*
+  Écrit une chaîne de caractères dans un flux binaire Sepi
+  Cette chaine pourra être relue avec ReadStrFromStream.
+  @param Stream   Flux dans lequel enregistrer la chaîne
+  @param Str      Chaîne de caractères à écrire
+*}
+class procedure TSepiParam.WriteStrToStream(Stream: TStream;
+  const Str: string);
+begin
+  TSepiMethod.WriteStrToStream(Stream, Str);
 end;
 
 {*
