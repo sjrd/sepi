@@ -77,16 +77,20 @@ type
     procedure HandleType(Template: TTemplate; SepiType: TSepiType);
     procedure HandleRoutine(Template: TTemplate; Routine: TSepiMethod);
     procedure HandleVariable(Template: TTemplate; Variable: TSepiVariable);
+    procedure HandleRecordType(Template: TTemplate;
+      RecordType: TSepiRecordType);
     procedure HandleClassType(Template: TTemplate; SepiClass: TSepiClass);
 
-    function PrepareClassMethodTags(SepiClass: TSepiClass): Boolean;
+    function PrepareContainerMethodTags(Container: TSepiContainerType): Boolean;
+    procedure HandleRecordMethod(Template: TTemplate;
+      RecordType: TSepiRecordType; Method: TSepiMethod);
     procedure HandleMethod(DeclTemplate, ImplTemplate: TTemplate;
       SepiClass: TSepiClass; Method: TSepiMethod);
 
     function ResolvePropertyMethod(Template: TTemplate;
-      Method: TSepiMethod; const AClassName: string = ''): string;
+      Method: TSepiMethod; const MethodPrefix: string = ''): string;
     function ResolveOverloadedMethod(Template: TTemplate;
-      Method: TSepiMethod; const AClassName: string = ''): string;
+      Method: TSepiMethod; const MethodPrefix: string = ''): string;
     function ResolveCompilerMagicRoutine(Template: TTemplate;
       Method: TSepiMethod): string;
 
@@ -95,7 +99,8 @@ type
     function NextVariableID: Integer;
 
     function MakeSignature(Signature: TSepiSignature; From: TSepiComponent;
-      const MethodName: string = ''): string;
+      const MethodName: string = '';
+      ExplicitSelf: Boolean = False): string;
   public
     constructor Create(ASepiUnit: TSepiUnit;
       const AProducedUnitName: string = ''; ALazyLoad: Boolean = False);
@@ -518,8 +523,10 @@ begin
     end;
   end;
 
-  // Handle classes
-  if SepiType is TSepiClass then
+  // Handle containers
+  if SepiType is TSepiRecordType then
+    HandleRecordType(Template, TSepiRecordType(SepiType))
+  else if SepiType is TSepiClass then
     HandleClassType(Template, TSepiClass(SepiType));
 
   // Handle inner types
@@ -546,7 +553,7 @@ begin
   with Routine do
   begin
     { Hum.  We must not reference coverage routines, because they are imported
-      from a DLL that might be linked. }
+      from a DLL that might not be linked. }
     if AnsiStartsText('@CVR_', Name) then
       Exit;
 
@@ -602,6 +609,30 @@ begin
 end;
 
 {*
+  Produit l'importation d'un type record
+  @param Template     Template de l'importeur d'unité
+  @param RecordType   Type record à importer
+*}
+procedure TSepiImporterProducer.HandleRecordType(Template: TTemplate;
+  RecordType: TSepiRecordType);
+var
+  I: Integer;
+  Child: TSepiComponent;
+begin
+  // If returns False, no import must be done for this record
+  if not PrepareContainerMethodTags(RecordType) then
+    Exit;
+
+  for I := 0 to RecordType.ChildCount-1 do
+  begin
+    Child := RecordType.Children[I];
+
+    if (Child is TSepiMethod) and (Child.Tag >= 0) then
+      HandleRecordMethod(Template, RecordType, TSepiMethod(Child));
+  end;
+end;
+
+{*
   Produit l'importation d'un type classe
   @param Template    Template de l'importeur d'unité
   @param SepiClass   Classe à importer
@@ -626,7 +657,7 @@ begin
   end;
 
   // If returns False, no import must be done for this class
-  if not PrepareClassMethodTags(SepiClass) then
+  if not PrepareContainerMethodTags(SepiClass) then
     Exit;
 
   with SepiClass do
@@ -679,15 +710,16 @@ begin
 end;
 
 {*
-  Prépare les tags des méthodes d'une classe
-  @param SepiClass   Classe Sepi
-  @return True s'il faut prévoir une importation pour la classe, False sinon
+  Prépare les tags des méthodes d'un type composite
+  @param Container   Type composite
+  @return True s'il faut prévoir une importation pour ce type, False sinon
 *}
-function TSepiImporterProducer.PrepareClassMethodTags(
-  SepiClass: TSepiClass): Boolean;
+function TSepiImporterProducer.PrepareContainerMethodTags(
+  Container: TSepiContainerType): Boolean;
 const
   DontGetCode = -1;
 var
+  BadVisibilities: set of TMemberVisibility;
   I, J: Integer;
   Component: TSepiComponent;
   Method: TSepiMethod;
@@ -695,7 +727,15 @@ var
 begin
   Result := False;
 
-  with SepiClass do
+  if Container is TSepiInterface then
+    Exit;
+
+  if Container is TSepiInheritableContainerType then
+    BadVisibilities := [mvStrictPrivate..mvPrivate]
+  else
+    BadVisibilities := [mvStrictPrivate..mvProtected];
+
+  with Container do
   begin
     // Initialize tags
     for I := 0 to ChildCount-1 do
@@ -721,16 +761,16 @@ begin
           if LinkKind <> mlkStatic then
             Continue;
 
-          if Visibility in [mvStrictPrivate, mvPrivate] then
+          if Visibility in BadVisibilities then
           begin
             // Private method
-            for J := 0 to SepiClass.ChildCount-1 do
+            for J := 0 to Container.ChildCount-1 do
             begin
-              Component := SepiClass.Children[J];
+              Component := Container.Children[J];
               if not (Component is TSepiProperty) then
                 Continue;
               Prop := TSepiProperty(Component);
-              if Prop.Visibility in [mvStrictPrivate, mvPrivate] then
+              if Prop.Visibility in BadVisibilities then
                 Continue;
               if Prop.Index <> NoIndex then
                 Continue;
@@ -756,6 +796,47 @@ begin
 end;
 
 {*
+  Produit l'importation d'une méthode de record
+  @param Template     Template de l'importeur d'unité
+  @param RecordType   Record contenant
+  @param Method       Méthode à importer
+*}
+procedure TSepiImporterProducer.HandleRecordMethod(Template: TTemplate;
+  RecordType: TSepiRecordType; Method: TSepiMethod);
+const
+  SetMethodAddressStatement =
+    '  MethodAddresses[%d] := @%s;'+CRLF;
+var
+  ImportRecordName, MethodPrefix, StrAddress: string;
+begin
+  ImportRecordName := RecordType.Name;
+  MethodPrefix := ImportRecordName + '_';
+
+  with Method do
+  begin
+    if Visibility in [mvStrictPrivate..mvProtected] then
+    begin
+      // Resolve using a property
+      StrAddress := MethodPrefix +
+        ResolvePropertyMethod(Template, Method, MethodPrefix);
+    end else if IsOverloaded then
+    begin
+      // Resolve overloaded
+      StrAddress := MethodPrefix +
+        ResolveOverloadedMethod(Template, Method, MethodPrefix);
+    end else
+    begin
+      // Direct access
+      StrAddress := ImportRecordName + '.' + Name;
+    end;
+
+    // Statement
+    Template.AddToParam(InitMethodAddressesParam, Format(
+      SetMethodAddressStatement, [Tag, StrAddress]));
+  end;
+end;
+
+{*
   Produit l'importation d'une méthode de classe
   @param DeclTemplate   Template de la déclaration de la classe
   @param ImplTemplate   Template de l'implémentation de la classe
@@ -769,9 +850,10 @@ const
   SetMethodAddressStatement =
     '  MethodAddresses[%d] := @%s.%s;'+CRLF;
 var
-  ImportClassName, StrAddress: string;
+  ImportClassName, MethodPrefix, StrAddress: string;
 begin
   ImportClassName := 'TSepiImports' + SepiClass.Name;
+  MethodPrefix := ImportClassName + '.';
 
   with Method do
   begin
@@ -779,14 +861,14 @@ begin
     begin
       // Resolve using a property
       StrAddress := ResolvePropertyMethod(ImplTemplate,
-        Method, ImportClassName);
+        Method, MethodPrefix);
       DeclTemplate.AddToParam(MembersParam, Format('    %s;'+CRLF,
         [MakeSignature(Signature, Method, StrAddress)]));
     end else if IsOverloaded then
     begin
       // Resolve overloaded
       StrAddress := ResolveOverloadedMethod(ImplTemplate,
-        Method, ImportClassName);
+        Method, MethodPrefix);
       DeclTemplate.AddToParam(MembersParam, Format('    %s;'+CRLF,
         [MakeSignature(Signature, Method, StrAddress)]));
     end else
@@ -809,14 +891,24 @@ end;
   @return Nom d'import de la méthode
 *}
 function TSepiImporterProducer.ResolvePropertyMethod(Template: TTemplate;
-  Method: TSepiMethod; const AClassName: string): string;
+  Method: TSepiMethod; const MethodPrefix: string): string;
 var
+  ExplicitSelf: Boolean;
+  BadVisibilities: set of TMemberVisibility;
   I: Integer;
   Prop: TSepiProperty;
   ResolveTpl: TTemplate;
   IsReadAccess: Boolean;
   Statement, AMethodName: string;
 begin
+  if Method.Owner is TSepiInheritableContainerType then
+    BadVisibilities := [mvStrictPrivate..mvPrivate]
+  else
+    BadVisibilities := [mvStrictPrivate..mvProtected];
+
+  ExplicitSelf := (Method.Owner is TSepiRecordType) and
+    (Method.Signature.Kind in [skObjectProcedure, skObjectFunction]);
+
   Prop := nil;
   IsReadAccess := False;
 
@@ -829,7 +921,7 @@ begin
       begin
         Prop := TSepiProperty(Children[I]);
 
-        if Prop.Visibility in [mvStrictPrivate, mvPrivate] then
+        if Prop.Visibility in BadVisibilities then
           Continue;
         if Prop.Index <> NoIndex then
           Continue;
@@ -857,7 +949,11 @@ begin
       else
         Result := Name;
 
-      if Signature.GetParam(Prop.Name) = nil then
+      if ExplicitSelf then
+        Statement := 'Self.' + Prop.Name
+      else if Method.Owner is TSepiRecordType then
+        Statement := IdentifierFor(Method.Owner, SepiUnit) + '.' + Prop.Name
+      else if Signature.GetParam(Prop.Name) = nil then
         Statement := Prop.Name
       else
         Statement := 'Self.' + Prop.Name;
@@ -877,12 +973,12 @@ begin
         Statement := '  ' + Statement + ' := ' +
           Signature.Params[Signature.ParamCount-1].Name + ';' + CRLF;
 
-      AMethodName := AClassName + '.' + Result;
+      AMethodName := MethodPrefix + Result;
 
       with ResolveTpl do
       begin
         SetParam(SignatureParam,
-          MakeSignature(Signature, Method, AMethodName));
+          MakeSignature(Signature, Method, AMethodName, ExplicitSelf));
         SetParam(StatementsParam, Statement);
       end;
     end;
@@ -901,13 +997,17 @@ end;
   @return Nom d'import de la méthode
 *}
 function TSepiImporterProducer.ResolveOverloadedMethod(Template: TTemplate;
-  Method: TSepiMethod; const AClassName: string = ''): string;
+  Method: TSepiMethod; const MethodPrefix: string = ''): string;
 var
+  ExplicitSelf: Boolean;
   ResolveTpl: TTemplate;
   IsFunction: Boolean;
   Statement, AMethodName: string;
   I: Integer;
 begin
+  ExplicitSelf := (Method.Owner is TSepiRecordType) and
+    (Method.Signature.Kind in [skObjectProcedure, skObjectFunction]);
+
   ResolveTpl := TTemplate.Create(TemplateDir+MethodTemplateFileName);
   try
     with Method do
@@ -915,7 +1015,11 @@ begin
       Result := Format('%s_%d', [Overloaded.Name, OverloadIndex]);
       IsFunction := Signature.ReturnType <> nil;
 
-      if Signature.GetParam(Overloaded.Name) = nil then
+      if ExplicitSelf then
+        Statement := 'Self.' + Overloaded.Name
+      else if Method.Owner is TSepiRecordType then
+        Statement := IdentifierFor(Method.Owner, SepiUnit)+'.'+Overloaded.Name
+      else if Signature.GetParam(Overloaded.Name) = nil then
         Statement := Overloaded.Name
       else if Signature.SelfParam = nil then
         Statement := Overloaded.GetFullName
@@ -936,15 +1040,12 @@ begin
       else
         Statement := '  ' + Statement + ';' + CRLF;
 
-      if AClassName = '' then
-        AMethodName := Result
-      else
-        AMethodName := AClassName + '.' + Result;
+      AMethodName := MethodPrefix + Result;
 
       with ResolveTpl do
       begin
         SetParam(SignatureParam,
-          MakeSignature(Signature, Method, AMethodName));
+          MakeSignature(Signature, Method, AMethodName, ExplicitSelf));
         SetParam(StatementsParam, Statement);
       end;
     end;
@@ -1019,7 +1120,8 @@ end;
   @return Représentation chaîne de la signature
 *}
 function TSepiImporterProducer.MakeSignature(Signature: TSepiSignature;
-  From: TSepiComponent; const MethodName: string = ''): string;
+  From: TSepiComponent; const MethodName: string = '';
+  ExplicitSelf: Boolean = False): string;
 var
   I, Index: Integer;
   Param: TSepiParam;
@@ -1034,13 +1136,17 @@ begin
     Result := Result + ' ' + MethodName;
 
   // Parameters
-  if Signature.ParamCount > 0 then
+  if ExplicitSelf or (Signature.ParamCount > 0) then
   begin
     Index := Length(Result)+1;
 
-    for I := 0 to Signature.ParamCount-1 do
+    for I := 0 to Signature.ActualParamCount-1 do
     begin
-      Param := Signature.Params[I];
+      Param := Signature.ActualParams[I];
+
+      if (Param.HiddenKind <> hpNormal) and
+        ((not ExplicitSelf) or (Param.HiddenKind <> hpSelf)) then
+        Continue;
 
       // Param kind
       Result := Result + ' ';

@@ -315,11 +315,11 @@ type
     function AddPseudoRoutineToExpression(const Expression: ISepiExpression;
       const Identifier: string): Boolean; virtual;
 
-    function AddClassIntfMemberToExpression(const Expression: ISepiExpression;
+    function AddMemberToExpression(const Expression: ISepiExpression;
       Context: TSepiComponent; const BaseValue: ISepiReadableValue;
       Member: TSepiMember): Boolean; virtual;
 
-    function ClassIntfMemberSelection(const Expression: ISepiExpression;
+    function MemberSelection(const Expression: ISepiExpression;
       Context: TSepiComponent; const BaseValue: ISepiReadableValue;
       const FieldName: string): Boolean; virtual;
   public
@@ -523,7 +523,7 @@ end;
   @param Member       Membre à ajouter
   @return True si réussi, False sinon
 *}
-function TSepiDelphiLanguageRules.AddClassIntfMemberToExpression(
+function TSepiDelphiLanguageRules.AddMemberToExpression(
   const Expression: ISepiExpression; Context: TSepiComponent;
   const BaseValue: ISepiReadableValue; Member: TSepiMember): Boolean;
 begin
@@ -532,8 +532,15 @@ begin
   if Member is TSepiField then
   begin
     // Field
-    ISepiExpressionPart(TSepiObjectFieldValue.Create(
-      BaseValue, TSepiField(Member))).AttachToExpression(Expression);
+    if BaseValue.ValueType is TSepiRecordType then
+    begin
+      ISepiExpressionPart(TSepiRecordFieldValue.Create(
+        BaseValue, TSepiField(Member))).AttachToExpression(Expression);
+    end else
+    begin
+      ISepiExpressionPart(TSepiObjectFieldValue.Create(
+        BaseValue, TSepiField(Member))).AttachToExpression(Expression);
+    end;
 
     Result := True;
   end else if Member is TSepiMethodBase then
@@ -562,7 +569,7 @@ end;
   @param Expression    Expression destination
   @return True si réussi, False sinon
 *}
-function TSepiDelphiLanguageRules.ClassIntfMemberSelection(
+function TSepiDelphiLanguageRules.MemberSelection(
   const Expression: ISepiExpression; Context: TSepiComponent;
   const BaseValue: ISepiReadableValue; const FieldName: string): Boolean;
 const
@@ -586,7 +593,7 @@ begin
     Exit;
 
   // Add the member to the expression
-  Result := AddClassIntfMemberToExpression(Expression, Context, BaseValue,
+  Result := AddMemberToExpression(Expression, Context, BaseValue,
     Member);
 end;
 
@@ -691,7 +698,6 @@ var
   CancelResult: Boolean;
   ComponentExpression: ISepiComponentExpression;
   Component: TSepiComponent;
-  Value: ISepiValue;
   ReadableValue: ISepiReadableValue;
 begin
   Result := TSepiExpression.Create(BaseExpression);
@@ -714,30 +720,13 @@ begin
     end;
   end;
 
-  // Record field
-  if Supports(BaseExpression, ISepiValue, Value) then
-  begin
-    if Value.ValueType is TSepiRecordType then
-    begin
-      Component := TSepiRecordType(Value.ValueType).GetComponent(FieldName);
-
-      if Component is TSepiField then
-      begin
-        ISepiExpressionPart(TSepiRecordFieldValue.Create(
-          Value, TSepiField(Component))).AttachToExpression(Result);
-        CancelResult := False;
-      end;
-    end;
-  end;
-
-  // Class or interface method
+  // Member of a container type
   if Supports(BaseExpression, ISepiReadableValue, ReadableValue) then
   begin
-    if (ReadableValue.ValueType is TSepiClass) or
-      (ReadableValue.ValueType is TSepiMetaClass) or
-      (ReadableValue.ValueType is TSepiInterface) then
+    if (ReadableValue.ValueType is TSepiContainerType) or
+      (ReadableValue.ValueType is TSepiMetaClass) then
     begin
-      if ClassIntfMemberSelection(Result, Context, ReadableValue,
+      if MemberSelection(Result, Context, ReadableValue,
         FieldName) then
         CancelResult := False;
     end;

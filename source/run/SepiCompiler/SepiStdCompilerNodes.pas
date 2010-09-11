@@ -4969,7 +4969,7 @@ begin
   TempMethod := SepiContext.GetComponent(Name);
 
   // Update signature kind for a method implementation
-  if (TempMethod <> nil) and (TempMethod.Owner is TSepiClass) then
+  if (TempMethod <> nil) and (TempMethod.Owner is TSepiContainerType) then
   begin
     if Signature.Kind = skStaticProcedure then
       Signature.Kind := skObjectProcedure

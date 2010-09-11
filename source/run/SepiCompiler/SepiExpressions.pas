@@ -8607,6 +8607,18 @@ begin
     end;
   end;
 
+  // Call a record method: Self must be a var value
+  if SelfValue.ValueType is TSepiRecordType then
+  begin
+    if not (Supports(SelfValue, ISepiReadableValue) and
+      Supports(SelfValue, ISepiWritableValue) and
+      Supports(SelfValue, ISepiAddressableValue)) then
+    begin
+      (SelfValue as ISepiExpression).MakeError(SVarValueRequired);
+      Exit;
+    end;
+  end;
+
   // Call a class method on an object: auto-dereference
   if SelfValue.ValueType is TSepiClass then
   begin
@@ -9258,8 +9270,15 @@ begin
 
   if FProperty.ReadAccess.Kind = pakField then
   begin
-    RightValue := TSepiObjectFieldValue.Create(ObjectValue,
-      FProperty.ReadAccess.Field);
+    if ObjectValue.ValueType is TSepiRecordType then
+    begin
+      RightValue := TSepiRecordFieldValue.Create(ObjectValue,
+        FProperty.ReadAccess.Field);
+    end else
+    begin
+      RightValue := TSepiObjectFieldValue.Create(ObjectValue,
+        FProperty.ReadAccess.Field);
+    end;
     RightValue.AttachToExpression(RightExpression);
   end else if FProperty.ReadAccess.Kind = pakMethod then
   begin
@@ -9303,8 +9322,16 @@ var
 begin
   if FProperty.WriteAccess.Kind = pakField then
   begin
-    LeftValue := TSepiObjectFieldValue.Create(ObjectValue,
-      FProperty.WriteAccess.Field);
+    if ObjectValue.ValueType is TSepiRecordType then
+    begin
+      LeftValue := TSepiRecordFieldValue.Create(ObjectValue,
+        FProperty.WriteAccess.Field);
+    end else
+    begin
+      LeftValue := TSepiObjectFieldValue.Create(ObjectValue,
+        FProperty.WriteAccess.Field);
+    end;
+
     LeftValue.AttachToExpression(TSepiExpression.Create(Expression));
     LeftValue.CompileWrite(Compiler, Instructions, Source);
   end else if FProperty.WriteAccess.Kind = pakMethod then

@@ -1346,19 +1346,28 @@ begin
     begin
       if Owner.Context is TSepiClass then
         FType := TSepiClass(Owner.Context)
-      else
-        FType := (Owner.Root.SystemUnit as TSepiSystemUnit).TObject;
+      else if Owner.Context is TSepiRecordType then
+      begin
+        FKind := pkVar;
+        FByRef := True;
+        FType := TSepiRecordType(Owner.Context);
+      end else
+        FType := TSepiSystemUnit.Get(Owner.Root).TObject;
     end;
+
     hpResult:
     begin
       FKind := pkOut;
       FByRef := True;
       FType := AType;
     end;
-    hpOpenArrayHighValue: FType :=
-      (Owner.Root.SystemUnit as TSepiSystemUnit).Integer;
+
+    hpOpenArrayHighValue:
+    begin
+      FType := TSepiSystemUnit.Get(Owner.Root).Integer;
+    end;
   else
-    FType := (Owner.Root.SystemUnit as TSepiSystemUnit).Boolean;
+    FType := TSepiSystemUnit.Get(Owner.Root).Boolean;
   end;
 
   MakeFlags;

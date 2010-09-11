@@ -140,6 +140,9 @@ begin
   WriteTitle('Test method references');
 
   Strings := TPrintOnAddStrings.Create;
+  {$IF RTLVersion >= 20}
+  TMonitor.Enter(Strings);
+  {$IFEND}
   try
     Add := Strings.Add;
 
@@ -150,6 +153,9 @@ begin
     DoSomething := Strings.DynamicMethod;
     DoSomething();
   finally
+    {$IF RTLVersion >= 20}
+    TMonitor.Exit(Strings);
+    {$IFEND}
     Strings.Free;
   end;
 end;
