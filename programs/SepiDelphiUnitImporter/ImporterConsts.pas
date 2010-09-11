@@ -72,8 +72,6 @@ const // don't localize
 
   DefaultTemplatesDir = 'Templates\';
   DefaultCacheDir = 'Cache\';
-  DefaultOutputDir = 'Output\';
-  DefaultResourcesDir = 'Resources\';
 
 implementation
 
