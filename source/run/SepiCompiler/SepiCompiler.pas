@@ -757,6 +757,8 @@ type
 
     procedure NeedCompileTimeTypes;
 
+    procedure CheckNoForwardType(Context: TSepiComponent;
+      ForwardList: TObjectList);
     procedure CheckMethodsImplemented(Context: TSepiComponent);
 
     function GetMethodCount: Integer;
@@ -2795,6 +2797,61 @@ begin
 end;
 
 {*
+  Vérifie qu'il n'y a plus de type forward
+  @param Context       Contexte dans lequel vérifier (pour la récursion)
+  @param ForwardList   Liste à utiliser pour récupérer les forwards
+*}
+procedure TSepiUnitCompiler.CheckNoForwardType(Context: TSepiComponent;
+  ForwardList: TObjectList);
+var
+  I: Integer;
+  SepiType: TSepiType;
+begin
+  Context.GetForwards(ForwardList);
+
+  // The context is a type
+  for I := 0 to ForwardList.Count-1 do
+  begin
+    Assert(ForwardList[I] is TSepiType,
+      'Only types are supposed to be forward');
+    SepiType := TSepiType(ForwardList[I]);
+
+    // Issue an error
+    Errors.MakeError(Format(SForwardTypeNotCreated, [SepiType.Name]),
+      SepiType.DeclarationLocation);
+
+    // Repare
+    if SepiType is TSepiPointerType then
+    begin
+      // Pointer type
+      TSepiPointerType(SepiType).Create(SepiType.Owner, SepiType.Name,
+        SystemUnit.Integer);
+    end else if SepiType is TSepiClass then
+    begin
+      // Class
+      TSepiClass(SepiType).Create(SepiType.Owner, SepiType.Name,
+        SystemUnit.TObject).Complete;
+    end else if SepiType is TSepiInterface then
+    begin
+      // Interface
+      TSepiInterface(SepiType).Create(SepiType.Owner, SepiType.Name,
+        SystemUnit.IInterface, NoGUID).Complete;
+    end else
+    begin
+      Assert(False, SepiType.GetFullName + ' was a forward of a bad type');
+    end;
+  end;
+
+  // Now, any type should be completed anyway
+  Assert((not (Context is TSepiType)) or TSepiType(Context).Completed,
+    Context.GetFullName + 'is not completed');
+
+  // Check context children
+  for I := 0 to Context.ChildCount-1 do
+    CheckNoForwardType(Context.Children[I], ForwardList);
+end;
+
+{*
   Vérifie que les méthodes ont été implémentées
   @param Context   Contexte dans lequel vérifier (pour la récursion)
 *}
@@ -2984,7 +3041,15 @@ end;
   Complète la partie interface de l'unité
 *}
 procedure TSepiUnitCompiler.CompleteInterface;
+var
+  ForwardList: TObjectList;
 begin
+  ForwardList := TObjectList.Create(False);
+  try
+    CheckNoForwardType(SepiUnit, ForwardList);
+  finally
+    ForwardList.Free;
+  end;
 end;
 
 {*

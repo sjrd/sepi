@@ -89,6 +89,7 @@ type
   TDelphiInterfaceNode = class(TSepiNonTerminal)
   public
     procedure BeginParsing; override;
+    procedure EndParsing; override;
   end;
 
   {*
@@ -881,7 +882,19 @@ end;
 *}
 procedure TDelphiInterfaceNode.BeginParsing;
 begin
+  inherited;
+
   SepiUnit.CurrentVisibility := mvPublic;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TDelphiInterfaceNode.EndParsing;
+begin
+  UnitCompiler.CompleteInterface;
+
+  inherited;
 end;
 
 {---------------------------------}
@@ -893,6 +906,8 @@ end;
 *}
 procedure TDelphiImplementationNode.BeginParsing;
 begin
+  inherited;
+
   SepiUnit.CurrentVisibility := mvPrivate;
 end;
 

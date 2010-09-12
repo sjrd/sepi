@@ -60,6 +60,8 @@ resourcestring
   SIdentifierNotFound = 'Identificateur %s non déclaré';
   STypeMismatch = 'Types incompatibles : %s et %s';
   SNeedConstExpression = 'Expression constante attendue';
+  SForwardTypeNotCreated =
+    'Le type %s a été déclaré forward mais n''a pas été défini';
 
   // Erreurs de l'analyseur lexical
   SBadSourceCharacter = 'Caractère %s incorrect dans un source';

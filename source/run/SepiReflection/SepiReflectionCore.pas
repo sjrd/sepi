@@ -310,6 +310,8 @@ type
     procedure AddPtrResource(Ptr: Pointer);
     procedure AcquirePtrResource(var Ptr);
 
+    procedure GetForwards(List: TObjectList);
+
     property IsForward: Boolean read GetIsForward;
     property WasForward: Boolean read GetWasForward;
     property Owner: TSepiComponent read FOwner;
@@ -2035,6 +2037,21 @@ procedure TSepiComponent.AcquirePtrResource(var Ptr);
 begin
   AddPtrResource(Pointer(Ptr));
   Pointer(Ptr) := nil;
+end;
+
+{*
+  Obtient une liste des enfants forward de ce noeud
+  @param List   En sortie : liste des enfants forward de ce noeud
+*}
+procedure TSepiComponent.GetForwards(List: TObjectList);
+var
+  I: Integer;
+begin
+  List.Clear;
+
+  for I := 0 to FForwards.Count-1 do
+    if TSepiComponent(FForwards.Objects[I]).IsForward then
+      List.Add(FForwards.Objects[I]);
 end;
 
 {------------------}
