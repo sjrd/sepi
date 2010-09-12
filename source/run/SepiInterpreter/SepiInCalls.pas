@@ -95,7 +95,7 @@ type
   TRegisterMethodRefBackedRoutineReference = class(
     TAbstractMethodRefBackedRoutineReference, IRegisterRoutineReference)
   protected
-    procedure Invoke;
+    procedure Invoke; register;
   end;
 
   {*
@@ -107,6 +107,83 @@ type
     TAbstractMethodRefBackedRoutineReference, INonRegisterRoutineReference)
   protected
     procedure Invoke; stdcall;
+  end;
+
+  {*
+    Classe représentant une référence de routine qui pointe sur une routine
+    @author sjrd
+    @version 1.0
+  *}
+  TAbstractRoutineBackedRoutineReference = class(TInterfacedObject)
+  private
+    FCode: Pointer; /// Adresse de la routine à appeler
+  public
+    constructor Create(ACode: Pointer);
+
+    property Code: Pointer read FCode;
+  end;
+
+  {*
+    Classe représentant une référence de routine qui pointe sur une routine
+    @author sjrd
+    @version 1.0
+  *}
+  TRegisterRoutineBackedRoutineReferenceNoStack = class(
+    TAbstractRoutineBackedRoutineReference, IRegisterRoutineReference)
+  protected
+    procedure Invoke; register;
+  end;
+
+  {*
+    Classe représentant une référence de routine qui pointe sur une routine
+    @author sjrd
+    @version 1.0
+  *}
+  TRegisterRoutineBackedRoutineReferenceWithStack = class(
+    TAbstractRoutineBackedRoutineReference, IRegisterRoutineReference)
+  private
+    FMoveStackSize: Integer;
+  protected
+    procedure Invoke; register;
+  public
+    constructor Create(ACode: Pointer; Signature: TSepiSignature);
+  end;
+
+  {*
+    Classe représentant une référence de routine qui pointe sur une routine
+    @author sjrd
+    @version 1.0
+  *}
+  TStdCallRoutineBackedRoutineReference = class(
+    TAbstractRoutineBackedRoutineReference, INonRegisterRoutineReference)
+  protected
+    procedure Invoke; stdcall;
+  end;
+
+  {*
+    Structure représentant le thunk de code de retour de la méthode
+    @author sjrd
+    @version 1.0
+  *}
+  TCDeclReturnThunkCode = packed record
+    MovECXObj: Byte;
+    ObjAddress: Pointer;
+    Jump: TJmpInstruction;
+  end;
+
+  {*
+    Classe représentant une référence de routine qui pointe sur une routine
+    @author sjrd
+    @version 1.0
+  *}
+  TCDeclRoutineBackedRoutineReference = class(
+    TAbstractRoutineBackedRoutineReference, INonRegisterRoutineReference)
+  private
+    FMoveStackCount: Integer;
+  protected
+    procedure Invoke; stdcall;
+  public
+    constructor Create(ACode: Pointer; Signature: TSepiSignature);
   end;
 
 {---------------}
@@ -496,6 +573,192 @@ asm
         JMP     DWORD PTR [EAX+12]
 end;
 
+{----------------------------------------------}
+{ TAbstractRoutineBackedRoutineReference class }
+{----------------------------------------------}
+
+{*
+  Crée une instance de TAbstractRoutineBackedRoutineReference
+  @param ACode   Code la routine à appeler
+*}
+constructor TAbstractRoutineBackedRoutineReference.Create(ACode: Pointer);
+begin
+  inherited Create;
+
+  FCode := ACode;
+end;
+
+{-----------------------------------------------------}
+{ TRegisterRoutineBackedRoutineReferenceNoStack class }
+{-----------------------------------------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TRegisterRoutineBackedRoutineReferenceNoStack.Invoke;
+asm
+        { -> EAX Self }
+        XCHG    EAX,EDX
+        XCHG    EDX,ECX
+        JMP     DWORD PTR [ECX+12]
+end;
+
+{-------------------------------------------------------}
+{ TRegisterRoutineBackedRoutineReferenceWithStack class }
+{-------------------------------------------------------}
+
+{*
+  Crée une instance de TRegisterRoutineBackedRoutineReferenceWithStack
+  @param ACode       Adresse de la routine à appeler
+  @param Signature   Signature du TSepiMethodRefType
+*}
+constructor TRegisterRoutineBackedRoutineReferenceWithStack.Create(
+  ACode: Pointer; Signature: TSepiSignature);
+var
+  ECXParamIndex, StackParamIndex: Integer;
+begin
+  inherited Create(ACode);
+
+  with Signature do
+  begin
+    // Find the index of the parameter that is transmitted via ECX
+    ECXParamIndex := 0;
+    while ActualParams[ECXParamIndex].CallInfo.Place <> ppECX do
+      Inc(ECXParamIndex);
+
+    // Find the last parameter before this one that is stored on the stack
+    StackParamIndex := ECXParamIndex;
+    while (StackParamIndex >= 0) and
+      (ActualParams[StackParamIndex].CallInfo.Place <> ppStack) do
+      Dec(StackParamIndex);
+
+    // The offset of this parameter is the size of the stack to be moved
+    if StackParamIndex >= 0 then
+      FMoveStackSize := ActualParams[StackParamIndex].CallInfo.StackOffset
+    else
+      FMoveStackSize := StackUsage;
+  end;
+
+  Inc(FMoveStackSize, 5*4); // 4 registers and the return address
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TRegisterRoutineBackedRoutineReferenceWithStack.Invoke;
+type
+  TMe = TRegisterRoutineBackedRoutineReferenceWithStack;
+asm
+        { -> EAX Self }
+
+        // Save registers
+
+        PUSH    EBX
+        PUSH    ESI
+        PUSH    EDI
+        PUSH    EBP
+
+        // Shift registers
+
+        MOV     EBX,EAX
+        MOV     EAX,EDX
+        MOV     EDX,ECX
+
+        // Extract the future value of ECX into EBP
+
+        MOV     ECX,[EBX].TMe.FMoveStackSize
+        MOV     EBP,[ESP+ECX]
+
+        // Move stack
+
+        LEA     ESI,[ESP+ECX-4]
+        LEA     EDI,[ESP+ECX]
+        SHR     ECX,2
+        STD
+        REP     MOVSD
+        CLD
+        POP     ECX // get rid of the empty bucket
+
+        // Set the new value of ECX, and reload registers
+
+        MOV     ECX,EBP
+        POP     EBP
+        POP     EDI
+        POP     ESI
+
+        // Finalize
+
+        MOV     EBX,[EBX].TMe.FCode
+        MOV     [ESP-4],EBX
+        POP     EBX
+        JMP     DWORD PTR [ESP-8]
+end;
+
+{---------------------------------------------}
+{ TStdCallRoutineBackedRoutineReference class }
+{---------------------------------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TStdCallRoutineBackedRoutineReference.Invoke;
+asm
+        POP     EBP // cancel the effect of asm keyword with stdcall
+
+        { -> [ESP+4] Self }
+        POP     EAX
+        XCHG    EAX,[ESP]
+        JMP     DWORD PTR [EAX+12]
+end;
+
+{-------------------------------------------}
+{ TCDeclRoutineBackedRoutineReference class }
+{-------------------------------------------}
+
+{*
+  Crée une instance de TCDeclRoutineBackedRoutineReference
+  @param ACode       Adresse de la routine à appeler
+  @param Signature   Signature du TSepiMethodRefType
+*}
+constructor TCDeclRoutineBackedRoutineReference.Create(
+  ACode: Pointer; Signature: TSepiSignature);
+begin
+  inherited Create(ACode);
+
+  FMoveStackCount := Signature.StackUsage div 4;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TCDeclRoutineBackedRoutineReference.Invoke;
+type
+  TMe = TCDeclRoutineBackedRoutineReference;
+asm
+        POP     EBP // cancel the effect of asm keyword with stdcall
+
+        { -> [ESP+4] Self }
+
+        MOV     EAX,[ESP+4]
+        MOV     ECX,[EAX].TMe.FMoveStackCount
+        JECXZ   @@noStackMove
+
+        // Move the stack
+
+        PUSH    ESI
+        PUSH    EDI
+        LEA     ESI,[ESP+16]
+        LEA     EDI,[ESP+12]
+        REP     MOVSD
+        POP     EDI
+        POP     ESI
+@@noStackMove:
+
+        // Jump to routine
+
+        JMP     [EAX].TMe.FCode
+end;
+
 {---------------------------------------}
 { MakeRoutineRefFromMethodRef procedure }
 {---------------------------------------}
@@ -504,26 +767,49 @@ procedure MakeRoutineRefFromMethodRef(MethodRefType: TSepiMethodRefType;
   out RoutineRef: IInterface; const MethodRef: TMethod);
 var
   Signature: TSepiSignature;
-  ARegisterRoutineRef: IRegisterRoutineReference;
-  ANonRegisterRoutineRef: INonRegisterRoutineReference;
+  RegisterRoutineRef: IRegisterRoutineReference;
+  NonRegisterRoutineRef: INonRegisterRoutineReference;
 begin
   Signature := MethodRefType.Signature;
 
-  Assert(Signature.Kind in [skObjectProcedure, skObjectFunction],
+  Assert(Signature.Kind in [skStaticProcedure..skObjectFunction],
     'Unsupported signature kind for RRFMR');
 
   if Signature.CallingConvention = ccRegister then
   begin
-    ARegisterRoutineRef :=
-      TRegisterMethodRefBackedRoutineReference.Create(MethodRef);
+    if Signature.Kind in [skObjectProcedure..skObjectFunction] then
+    begin
+      RegisterRoutineRef :=
+        TRegisterMethodRefBackedRoutineReference.Create(MethodRef);
+    end else if Signature.RegUsage < 3 then
+    begin
+      RegisterRoutineRef :=
+        TRegisterRoutineBackedRoutineReferenceNoStack.Create(MethodRef.Code);
+    end else
+    begin
+      RegisterRoutineRef :=
+        TRegisterRoutineBackedRoutineReferenceWithStack.Create(MethodRef.Code,
+          Signature);
+    end;
 
-    RoutineRef := ARegisterRoutineRef;
+    RoutineRef := RegisterRoutineRef;
   end else
   begin
-    ANonRegisterRoutineRef :=
-      TNonRegisterMethodRefBackedRoutineReference.Create(MethodRef);
+    if Signature.Kind in [skObjectProcedure..skObjectFunction] then
+    begin
+      NonRegisterRoutineRef :=
+        TNonRegisterMethodRefBackedRoutineReference.Create(MethodRef);
+    end else if Signature.CallingConvention = ccCDecl then
+    begin
+      NonRegisterRoutineRef :=
+        TCDeclRoutineBackedRoutineReference.Create(MethodRef.Code, Signature);
+    end else
+    begin
+      NonRegisterRoutineRef :=
+        TStdCallRoutineBackedRoutineReference.Create(MethodRef.Code);
+    end;
 
-    RoutineRef := ANonRegisterRoutineRef;
+    RoutineRef := NonRegisterRoutineRef;
   end;
 end;
 

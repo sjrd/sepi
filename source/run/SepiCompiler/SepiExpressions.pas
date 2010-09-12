@@ -3835,6 +3835,7 @@ end;
 class function TSepiConvertOperation.ConversionExists(
   DestType, SrcType: TSepiType): Boolean;
 var
+  DestKind, SrcKind: TSepiSignatureKind;
   DestBase, SrcBase: TSepiBaseType;
 begin
   // Trivial case: types are equal
@@ -3878,7 +3879,20 @@ begin
     if DestType is TSepiRoutineRefType then
     begin
       Result := TSepiRoutineRefType(DestType).Signature.Equals(
-        TSepiMethodRefType(SrcType).Signature, scoCompatibility);
+        TSepiMethodRefType(SrcType).Signature, scoCompatibility - [scoKind]);
+
+      if Result then
+      begin
+        DestKind := TSepiRoutineRefType(DestType).Signature.Kind;
+        SrcKind := TSepiMethodRefType(SrcType).Signature.Kind;
+
+        if DestKind = skObjectProcedure then
+          Result := SrcKind in [skStaticProcedure, skObjectProcedure]
+        else if DestKind = skObjectFunction then
+          Result := SrcKind in [skStaticFunction, skObjectFunction]
+        else
+          Result := False;
+      end;
     end else
       Result := False;
 
