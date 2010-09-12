@@ -117,6 +117,7 @@ type
     IInterface: TSepiInterface;
     IUnknown: TSepiInterface;
     IDispatch: TSepiInterface;
+    TInterfacedObject: TSepiClass;
     TGUID: TSepiRecordType;
     TMethod: TSepiRecordType;
     TVarRec: TSepiRecordType;
@@ -211,6 +212,7 @@ type
     property IInterface: TSepiInterface read FTypes.IInterface;
     property IUnknown: TSepiInterface read FTypes.IUnknown;
     property IDispatch: TSepiInterface read FTypes.IDispatch;
+    property TInterfacedObject: TSepiClass read FTypes.TInterfacedObject;
     property TGUID: TSepiRecordType read FTypes.TGUID;
     property TMethod: TSepiRecordType read FTypes.TMethod;
     property TVarRec: TSepiRecordType read FTypes.TVarRec;
@@ -285,6 +287,7 @@ const // don't localize
     'IInterface',
     'IUnknown',
     'IDispatch',
+    'TInterfacedObject',
     'TGUID',
     'TMethod',
     'TVarRec'

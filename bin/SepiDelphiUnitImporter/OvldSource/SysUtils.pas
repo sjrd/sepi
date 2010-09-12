@@ -47,5 +47,8 @@ type
 
   TPredicate<T> = reference to function (Arg1: T): Boolean;
 ----------
+// Non-generic Anonymous method declarations
+type
+  TProc = reference to procedure;
 ----------
 

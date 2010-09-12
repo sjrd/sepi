@@ -97,6 +97,7 @@ tkDispID	dispid
 tkReadOnly	readonly
 tkWriteOnly	writeonly
 tkString	string
+tkReference	reference
 
 tkDeprecated	deprecated
 tkPlatform	platform
@@ -185,6 +186,7 @@ Identifier
 	'readonly'
 	'writeonly'
 	'string'
+	'reference'
 	'deprecated'
 	'platform'
 	'operator'
@@ -493,6 +495,7 @@ TypeDesc	Simplify
 	InterfaceDesc
 	DispInterfaceDesc
 	EventDesc
+	1 RoutineRefDesc
 
 TypeName
 	QualifiedIdent
@@ -781,6 +784,14 @@ EventModifiers	SuccessiveTries
 
 EventIsOfObject	AsText
 	'of' 'object'
+
+RoutineRefDesc	AsText
+	'reference'* 'to'* EventKind MethodSignature RoutineRefModifiers
+
+RoutineRefModifiers	SuccessiveTries
+	CallingConvention RoutineRefModifiers
+	';'* CallingConvention RoutineRefModifiers
+	@
 
 RoutineDecl
 	RoutineKind RoutineNameDeclaration MethodSignature (RoutineModifier)* ';'* (RoutineModifier ';'*)*

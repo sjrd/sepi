@@ -1086,6 +1086,38 @@ type
   end;
 
   {*
+    Type référence de routine (reference to)
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiRoutineRefType = class(TSepiType)
+  private
+    FSignature: TSepiSignature; /// Signature
+  protected
+    procedure ListReferences; override;
+    procedure Save(Stream: TStream); override;
+
+    procedure WriteDigestData(Stream: TStream); override;
+
+    procedure SetupProperties; override;
+    procedure WriteTypeInfo(Stream: TStream); override;
+
+    function GetDescription: string; override;
+  public
+    constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
+    constructor Create(AOwner: TSepiComponent; const AName: string;
+      ASignature: TSepiSignature);
+    constructor Clone(AOwner: TSepiComponent; const AName: string;
+      Source: TSepiType); override;
+    destructor Destroy; override;
+
+    function Equals(Other: TSepiType): Boolean; override;
+    function CompatibleWith(AType: TSepiType): Boolean; override;
+
+    property Signature: TSepiSignature read FSignature;
+  end;
+
+  {*
     Type variant
     @author sjrd
     @version 1.0
@@ -5725,6 +5757,154 @@ begin
     FSignature.Equals(TSepiMethodRefType(AType).FSignature, scoCompatibility);
 end;
 
+{----------------------------}
+{ Classe TSepiRoutineRefType }
+{----------------------------}
+
+{*
+  Charge un type référence de méthode depuis un flux
+*}
+constructor TSepiRoutineRefType.Load(AOwner: TSepiComponent; Stream: TStream);
+begin
+  inherited;
+
+  FSignature := TSepiSignature.Load(Self, Stream);
+end;
+
+{*
+  Crée un nouveau type référence de méthode
+  @param AOwner               Propriétaire du type
+  @param AName                Nom du type
+  @param ASignature           Signature
+*}
+constructor TSepiRoutineRefType.Create(AOwner: TSepiComponent;
+  const AName: string; ASignature: TSepiSignature);
+begin
+  inherited Create(AOwner, AName, tkInterface);
+
+  FSignature := TSepiSignature.Clone(Self, ASignature);
+end;
+
+{*
+  [@inheritDoc]
+*}
+constructor TSepiRoutineRefType.Clone(AOwner: TSepiComponent;
+  const AName: string; Source: TSepiType);
+begin
+  Create(AOwner, AName, (Source as TSepiRoutineRefType).Signature);
+end;
+
+{*
+  Détruit l'instance
+*}
+destructor TSepiRoutineRefType.Destroy;
+begin
+  FSignature.Free;
+
+  inherited Destroy;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiRoutineRefType.ListReferences;
+begin
+  inherited;
+
+  Signature.ListReferences;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiRoutineRefType.Save(Stream: TStream);
+begin
+  inherited;
+
+  Signature.Save(Stream);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiRoutineRefType.WriteDigestData(Stream: TStream);
+begin
+  inherited;
+
+  Signature.WriteDigestData(Stream);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiRoutineRefType.SetupProperties;
+begin
+  inherited;
+
+  FSize := 4;
+  FIsManaged := True;
+  FResultBehavior := rbParameter;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiRoutineRefType.WriteTypeInfo(Stream: TStream);
+const
+  Flags: TIntfFlags = [];
+var
+  Count: Integer;
+begin
+  inherited;
+
+  // TTypeData.IntfParent
+  TSepiSystemUnit.Get(Self).TInterfacedObject.WriteTypeInfoRefToStream(Stream);
+
+  // TTypeData.IntfFlags
+  Stream.WriteBuffer(Flags, SizeOf(TIntfFlags));
+
+  // TTypeData.Guid
+  Stream.WriteBuffer(NoGUID, SizeOf(TGUID));
+
+  // TTypeData.IntfUnit
+  WriteTypeInfoStringToStream(Stream, OwningUnit.Name);
+
+  // TIntfMethodTable.Count
+  Count := 1;
+  Stream.WriteBuffer(Count, SizeOf(Word));
+
+{$IF CompilerVersion >= 21}
+  // TIntfMethodTable.RttiCount
+  Count := $FFFF; // no more information available
+  Stream.WriteBuffer(Count, SizeOf(Word));
+{$IFEND}
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiRoutineRefType.GetDescription: string;
+begin
+  Result := 'reference to routine';
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiRoutineRefType.Equals(Other: TSepiType): Boolean;
+begin
+  Result := (ClassType = Other.ClassType) and
+    Signature.Equals(TSepiRoutineRefType(Other).Signature, scoCompatibility);
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiRoutineRefType.CompatibleWith(AType: TSepiType): Boolean;
+begin
+  Result := Equals(AType);
+end;
+
 {-------------------------}
 { Classe TSepiVariantType }
 {-------------------------}
@@ -5818,7 +5998,7 @@ initialization
   SepiRegisterComponentClasses([
     TSepiField, TSepiMethod, TSepiOverloadedMethod, TSepiProperty,
     TSepiRecordType, TSepiInterface, TSepiClass, TSepiMetaClass,
-    TSepiMethodRefType, TSepiVariantType, TSepiTextFileType
+    TSepiMethodRefType, TSepiRoutineRefType, TSepiVariantType, TSepiTextFileType
   ]);
 end.
 

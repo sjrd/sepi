@@ -57,7 +57,7 @@ resourcestring
 
 const
   FirstTerminal = 0;
-  LastTerminal = 120;
+  LastTerminal = 121;
 
   tkEof = SepiLexerUtils.tkEof;         /// Fin de fichier
   tkBlank = SepiLexerUtils.tkBlank;     /// Lexème blanc
@@ -155,44 +155,45 @@ const
   tkReadOnly = 85;  // readonly
   tkWriteOnly = 86; // writeonly
   tkString = 87;    // string
+  tkReference = 88; // reference
 
-  tkDeprecated = 88;  // deprecated
-  tkPlatform = 89;    // platform
+  tkDeprecated = 89;  // deprecated
+  tkPlatform = 90;    // platform
 
-  tkOverload = 90;    // overload
-  tkVirtual = 91;     // virtual
-  tkDynamic = 92;     // dynamic
-  tkMessage = 93;     // message
-  tkOverride = 94;    // override
-  tkAbstract = 95;    // abstract
-  tkStatic = 96;      // static
-  tkReintroduce = 97; // reintroduce
-  tkInline = 98;      // inline
+  tkOverload = 91;    // overload
+  tkVirtual = 92;     // virtual
+  tkDynamic = 93;     // dynamic
+  tkMessage = 94;     // message
+  tkOverride = 95;    // override
+  tkAbstract = 96;    // abstract
+  tkStatic = 97;      // static
+  tkReintroduce = 98; // reintroduce
+  tkInline = 99;      // inline
 
-  tkImplementation = 99;  // implementation
-  tkForward = 100;        // forward
-  tkInitialization = 101; // initialization
-  tkFinalization = 102;   // finalization
+  tkImplementation = 100; // implementation
+  tkForward = 101;        // forward
+  tkInitialization = 102; // initialization
+  tkFinalization = 103;   // finalization
 
-  tkIf = 103;        // if
-  tkThen = 104;      // then
-  tkElse = 105;      // else
-  tkWhile = 106;     // while
-  tkDo = 107;        // do
-  tkRepeat = 108;    // repeat
-  tkUntil = 109;     // until
-  tkFor = 110;       // for
-  tkTo = 111;        // to
-  tkDownTo = 112;    // downto
-  tkTry = 113;       // try
-  tkExcept = 114;    // except
-  tkOn = 115;        // on
-  tkFinally = 116;   // finally
-  tkRaise = 117;     // raise
-  tkInherited = 118; // inherited
-  tkWith = 119;      // with
+  tkIf = 104;        // if
+  tkThen = 105;      // then
+  tkElse = 106;      // else
+  tkWhile = 107;     // while
+  tkDo = 108;        // do
+  tkRepeat = 109;    // repeat
+  tkUntil = 110;     // until
+  tkFor = 111;       // for
+  tkTo = 112;        // to
+  tkDownTo = 113;    // downto
+  tkTry = 114;       // try
+  tkExcept = 115;    // except
+  tkOn = 116;        // on
+  tkFinally = 117;   // finally
+  tkRaise = 118;     // raise
+  tkInherited = 119; // inherited
+  tkWith = 120;      // with
 
-  tkPreProcessor = 120; // pre-processor instruction
+  tkPreProcessor = 121; // pre-processor instruction
 
 const
   /// ID message Directive du Compilateur : $MINEMUMSIZE ou $Z
@@ -562,6 +563,7 @@ begin
           if Key = 'read'           then SymbolClass := tkRead else
           if Key = 'readonly'       then SymbolClass := tkReadOnly else
           if Key = 'record'         then SymbolClass := tkRecord else
+          if Key = 'reference'      then SymbolClass := tkReference else
           if Key = 'register'       then SymbolClass := tkRegister else
           if Key = 'reintroduce'    then SymbolClass := tkReintroduce else
           if Key = 'repeat'         then SymbolClass := tkRepeat else

@@ -559,6 +559,8 @@ type
   private
     FSignature: TSepiSignature; /// Signature
   protected
+    procedure MakeType; virtual;
+
     procedure ChildBeginParsing(Child: TSepiParseTreeNode); override;
     procedure ChildEndParsing(Child: TSepiParseTreeNode); override;
   public
@@ -568,6 +570,16 @@ type
     procedure EndParsing; override;
 
     property Signature: TSepiSignature read FSignature;
+  end;
+
+  {*
+    Noeud descripteur d'un type référence de routine
+    @author sjrd
+    @version 1.0
+  *}
+  TDelphiRoutineRefTypeNode = class(TDelphiMethodRefTypeNode)
+  protected
+    procedure MakeType; override;
   end;
 
   {*
@@ -688,6 +700,7 @@ begin
   NonTerminalClasses[ntInterfaceDesc]     := TDelphiInterfaceTypeNode;
   NonTerminalClasses[ntDispInterfaceDesc] := TDelphiInterfaceTypeNode;
   NonTerminalClasses[ntEventDesc]         := TDelphiMethodRefTypeNode;
+  NonTerminalClasses[ntRoutineRefDesc]    := TDelphiRoutineRefTypeNode;
 
   NonTerminalClasses[ntEventKind]       := TSepiMethodRefKindNode;
   NonTerminalClasses[ntEventModifiers]  := TSepiChildThroughNonTerminal;
@@ -2296,6 +2309,14 @@ begin
 end;
 
 {*
+  Crée le type
+*}
+procedure TDelphiMethodRefTypeNode.MakeType;
+begin
+  SetSepiType(TSepiMethodRefType.Create(SepiContext, TypeName, Signature));
+end;
+
+{*
   [@inheritDoc]
 *}
 procedure TDelphiMethodRefTypeNode.BeginParsing;
@@ -2342,9 +2363,21 @@ end;
 procedure TDelphiMethodRefTypeNode.EndParsing;
 begin
   Signature.Complete;
-  SetSepiType(TSepiMethodRefType.Create(SepiContext, TypeName, Signature));
+  MakeType;
 
   inherited;
+end;
+
+{---------------------------------}
+{ TDelphiRoutineRefTypeNode class }
+{---------------------------------}
+
+{*
+  Crée le type
+*}
+procedure TDelphiRoutineRefTypeNode.MakeType;
+begin
+  SetSepiType(TSepiRoutineRefType.Create(SepiContext, TypeName, Signature));
 end;
 
 initialization

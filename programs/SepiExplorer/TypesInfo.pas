@@ -213,6 +213,14 @@ begin
   Output.WriteLn(';');
 end;
 
+procedure PrintRoutineRefInfo(Output: TOutputWriter;
+  RoutineRef: TSepiRoutineRefType);
+begin
+  Output.WriteLn('reference to');
+  PrintSignature(Output, RoutineRef.Signature);
+  Output.WriteLn(';');
+end;
+
 procedure PrintTypeInfo(Output: TOutputWriter; SepiType: TSepiType);
 begin
   Output.Write('  ' + GetEnumName(TypeInfo(TTypeKind), Integer(SepiType.Kind)) +
@@ -227,7 +235,7 @@ begin
   Output.Write(#9'ParamOnStack: ');
   Output.Write(BooleanIdents[SepiType.ParamBehavior.AlwaysByStack]);
   Output.Write(#9'Result as: ');
-  Output.Write(GetEnumName(
+  Output.WriteLn(GetEnumName(
     TypeInfo(TSepiTypeResultBehavior), Integer(SepiType.ResultBehavior)));
   Output.WriteLn;
 
@@ -269,7 +277,9 @@ begin
   else if SepiType is TSepiMetaClass then
     PrintMetaClassInfo(Output, TSepiMetaClass(SepiType))
   else if SepiType is TSepiMethodRefType then
-    PrintMethodRefInfo(Output, TSepiMethodRefType(SepiType));
+    PrintMethodRefInfo(Output, TSepiMethodRefType(SepiType))
+  else if SepiType is TSepiRoutineRefType then
+    PrintRoutineRefInfo(Output, TSepiRoutineRefType(SepiType));
 end;
 
 procedure PrintValue(Output: TOutputWriter; Value: Pointer;
