@@ -1693,9 +1693,9 @@ type
     @author sjrd
     @version 1.0
   *}
-  TSepiMethodRefCall = class(TSepiCustomCallable)
+  TSepiCallableValueCall = class(TSepiCustomCallable)
   private
-    FMethodRefValue: ISepiReadableValue; /// Valeur référence de méthode
+    FCallableValue: ISepiReadableValue; /// Valeur à appeler
   protected
     procedure CompileCall(Compiler: TSepiMethodCompiler;
       Instructions: TSepiInstructionList;
@@ -1703,13 +1703,13 @@ type
 
     procedure CompleteParams; override;
   public
-    constructor Create(const AMethodRefValue: ISepiReadableValue = nil;
+    constructor Create(const ACallableValue: ISepiReadableValue = nil;
       AComplete: Boolean = False);
 
     procedure Complete;
 
-    property MethodRefValue: ISepiReadableValue
-      read FMethodRefValue write FMethodRefValue;
+    property CallableValue: ISepiReadableValue
+      read FCallableValue write FCallableValue;
   end;
 
   {*
@@ -4113,11 +4113,10 @@ begin
     if TSepiSetType(LeftType).CompType <> TSepiSetType(RightType).CompType then
       ErrorTypeMismatch;
     // OK
-  end else if LeftType is TSepiMethodRefType then
+  end else if (LeftType is TSepiCallableType) then
   begin
-    // Method-ref types must have equal signatures
-    if not TSepiMethodRefType(LeftType).Signature.Equals(
-      TSepiMethodRefType(RightType).Signature) then
+    // Callable types must be equal
+    if not LeftType.Equals(RightType) then
       ErrorTypeMismatch;
     // OK
   end else
@@ -9044,12 +9043,12 @@ end;
   @param AMethodRefValue   Référence de méthode
   @param AComplete         Si True, complète immédiatement
 *}
-constructor TSepiMethodRefCall.Create(
-  const AMethodRefValue: ISepiReadableValue = nil; AComplete: Boolean = False);
+constructor TSepiCallableValueCall.Create(
+  const ACallableValue: ISepiReadableValue = nil; AComplete: Boolean = False);
 begin
   inherited Create;
 
-  FMethodRefValue := AMethodRefValue;
+  FCallableValue := ACallableValue;
 
   if AComplete then
     Complete;
@@ -9060,15 +9059,15 @@ end;
   L'appel doit avoir été lié à une expression auparavant, pour bénéficier de
   son contexte.
 *}
-procedure TSepiMethodRefCall.Complete;
+procedure TSepiCallableValueCall.Complete;
 begin
-  SetSignature((MethodRefValue.ValueType as TSepiMethodRefType).Signature);
+  SetSignature((CallableValue.ValueType as TSepiCallableType).Signature);
 end;
 
 {*
   [@inheritDoc]
 *}
-procedure TSepiMethodRefCall.CompleteParams;
+procedure TSepiCallableValueCall.CompleteParams;
 begin
   inherited;
 
@@ -9079,31 +9078,51 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiMethodRefCall.CompileCall(Compiler: TSepiMethodCompiler;
+procedure TSepiCallableValueCall.CompileCall(Compiler: TSepiMethodCompiler;
   Instructions: TSepiInstructionList; Destination: TSepiMemoryReference);
+const
+  imtCallMethod = 3 * SizeOf(Pointer); // 3 = # methods in IInterface
 var
   CallInstr: TSepiAsmAddressCall;
-  MethodRefMemory, SelfMemory: TSepiMemoryReference;
+  CallableMemory, CodeAddressMemory, SelfMemory: TSepiMemoryReference;
   TempVars: TSepiTempVarsLifeManager;
 begin
   CallInstr := TSepiAsmAddressCall.Create(Compiler);
   CallInstr.SourcePos := Expression.SourcePos;
 
-  MethodRefMemory := nil;
+  CallableMemory := nil;
+  CodeAddressMemory := nil;
   SelfMemory := nil;
   TempVars := TSepiTempVarsLifeManager.Create;
   try
-    MethodRefValue.CompileRead(Compiler, Instructions, MethodRefMemory,
+    CallableValue.CompileRead(Compiler, Instructions, CallableMemory,
       TempVars);
 
-    CallInstr.Address.Assign(MethodRefMemory);
-
-    if Signature.SelfParam <> nil then
+    if CallableValue.ValueType is TSepiMethodRefType then
     begin
-      SelfMemory := TSepiMemoryReference.Clone(MethodRefMemory);
-      SelfMemory.AddOperation(aoPlusConstShortint, SizeOf(Pointer));
-      SelfMemory.Seal;
+      { CodeAddressMemory = CallableMemory
+        SelfMemory = CallableMemory + 4 (optional) }
+      CodeAddressMemory := CallableMemory;
+
+      if Signature.SelfParam <> nil then
+      begin
+        SelfMemory := TSepiMemoryReference.Clone(CallableMemory);
+        SelfMemory.AddOperation(aoPlusConstShortint, SizeOf(Pointer));
+        SelfMemory.Seal;
+      end;
+    end else
+    begin
+      { CodeAddressMemory = CallableMemory^^ + imtCallMethod
+        SelfMemory = CallableMemory }
+      CodeAddressMemory := TSepiMemoryReference.Clone(CallableMemory);
+      CodeAddressMemory.AddOperation(adDouble, aoPlusConstShortint,
+        imtCallMethod);
+      CodeAddressMemory.Seal;
+
+      SelfMemory := CallableMemory;
     end;
+
+    CallInstr.Address.Assign(CodeAddressMemory);
 
     CompileParams(CallInstr, Compiler, Instructions, Destination, nil,
       SelfMemory);
@@ -9113,8 +9132,11 @@ begin
     TempVars.EndAllLifes(CallInstr.BeforeRef);
     TempVars.Free;
 
-    SelfMemory.Free;
-    MethodRefMemory.Free;
+    if CodeAddressMemory <> CallableMemory then
+      CodeAddressMemory.Free;
+    if SelfMemory <> CallableMemory then
+      SelfMemory.Free;
+    CallableMemory.Free;
   end;
 end;
 

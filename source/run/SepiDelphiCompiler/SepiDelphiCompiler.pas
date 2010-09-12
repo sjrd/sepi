@@ -580,6 +580,8 @@ type
   TDelphiRoutineRefTypeNode = class(TDelphiMethodRefTypeNode)
   protected
     procedure MakeType; override;
+  public
+    procedure EndParsing; override;
   end;
 
   {*
@@ -2378,6 +2380,22 @@ end;
 procedure TDelphiRoutineRefTypeNode.MakeType;
 begin
   SetSepiType(TSepiRoutineRefType.Create(SepiContext, TypeName, Signature));
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TDelphiRoutineRefTypeNode.EndParsing;
+begin
+  case Signature.Kind of
+    skStaticProcedure: Signature.Kind := skObjectProcedure;
+    skStaticFunction: Signature.Kind := skObjectFunction;
+    skObjectProcedure, skObjectFunction: ;
+  else
+    Assert(False);
+  end;
+
+  inherited;
 end;
 
 initialization

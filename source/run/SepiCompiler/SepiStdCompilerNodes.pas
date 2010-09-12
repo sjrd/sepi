@@ -3215,19 +3215,19 @@ end;
 *}
 procedure TSepiDelphiLikeParametersNode.BeginParsing;
 var
-  MethodRefValue: ISepiReadableValue;
+  CallableValue: ISepiReadableValue;
   TypeExpression: ISepiTypeExpression;
 begin
   inherited;
 
-  // Method ref call
-  if Supports(Base, ISepiReadableValue, MethodRefValue) and
-    (MethodRefValue.ValueType is TSepiMethodRefType) then
+  // Call a callable value
+  if Supports(Base, ISepiReadableValue, CallableValue) and
+    (CallableValue.ValueType is TSepiCallableType) then
   begin
     SetBase(TSepiExpression.Create(Base));
 
-    ISepiExpressionPart(TSepiMethodRefCall.Create(
-      MethodRefValue, True)).AttachToExpression(Base);
+    ISepiExpressionPart(TSepiCallableValueCall.Create(
+      CallableValue, True)).AttachToExpression(Base);
   end;
 
   // Cast or convert from the type name
