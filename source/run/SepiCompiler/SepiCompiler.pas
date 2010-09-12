@@ -757,6 +757,8 @@ type
 
     procedure NeedCompileTimeTypes;
 
+    procedure CheckMethodsImplemented(Context: TSepiComponent);
+
     function GetMethodCount: Integer;
     function GetMethods(Index: Integer): TSepiMethodCompiler;
   public
@@ -777,6 +779,10 @@ type
       AllowCreate: Boolean = False): TSepiMethodCompiler;
 
     function MakeReference(Component: TSepiComponent): Integer;
+
+    procedure CompleteInterface;
+    procedure CompleteImplementation;
+    procedure CompleteUnit;
 
     procedure WriteToStream(Stream: TStream);
 
@@ -2789,6 +2795,32 @@ begin
 end;
 
 {*
+  Vérifie que les méthodes ont été implémentées
+  @param Context   Contexte dans lequel vérifier (pour la récursion)
+*}
+procedure TSepiUnitCompiler.CheckMethodsImplemented(Context: TSepiComponent);
+var
+  I: Integer;
+  Method: TSepiMethod;
+begin
+  // The context is a method
+  if Context is TSepiMethod then
+  begin
+    Method := TSepiMethod(Context);
+
+    if (not Method.IsAbstract) and (FindMethodCompiler(Method) = nil) then
+    begin
+      Errors.MakeError(Format(SMethodNotImplemented, [Method.Name]),
+        Context.DeclarationLocation);
+    end;
+  end;
+
+  // Check context children
+  for I := 0 to Context.ChildCount-1 do
+    CheckMethodsImplemented(Context.Children[I]);
+end;
+
+{*
   Nombre de compilateurs de méthode
   @return Nombre de compilateurs de méthode
 *}
@@ -2946,6 +2978,31 @@ begin
     Result := FReferences.Add(Component);
     SepiUnit.MoreUses([Component.OwningUnit.Name]);
   end;
+end;
+
+{*
+  Complète la partie interface de l'unité
+*}
+procedure TSepiUnitCompiler.CompleteInterface;
+begin
+end;
+
+{*
+  Complète la partie implémentation de l'unité
+*}
+procedure TSepiUnitCompiler.CompleteImplementation;
+begin
+  CheckMethodsImplemented(SepiUnit);
+end;
+
+{*
+  Complète l'unité
+*}
+procedure TSepiUnitCompiler.CompleteUnit;
+begin
+  CompleteInterface;
+  CompleteImplementation;
+  SepiUnit.Complete;
 end;
 
 {*

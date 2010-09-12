@@ -406,6 +406,8 @@ begin
     // Actually compile the source code
     RootNode := TDelphiRootNode.Create(ntSource, SepiRoot, Errors);
     try
+      RootNode.IsImporter := True;
+
       Lexer := TSepiDelphiInterfaceLexer.Create(Errors, SourceFile.Text,
         Errors.CurrentFileName);
 

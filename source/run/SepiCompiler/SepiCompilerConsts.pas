@@ -192,6 +192,7 @@ resourcestring
   SDeclarationDiffersFromPreviousOne =
     'La déclaration de %s diffère de la déclaration précédente';
   SMethodAlreadyImplemented = 'La méthode %s a déjà été implémentée';
+  SMethodNotImplemented = 'La méthode %s a été déclarée mais pas implémentée';
 
   // Erreurs sur les indices de tableau
   SArrayOrArrayPropRequired = 'Valeur tableau ou propriété tableau requise';

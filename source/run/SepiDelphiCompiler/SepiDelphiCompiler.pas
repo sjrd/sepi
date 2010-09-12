@@ -58,6 +58,8 @@ type
   *}
   TDelphiRootNode = class(TSepiParseTreeRootNode)
   private
+    FIsImporter: Boolean; /// True si c'est l'importeur d'unités Delphi natives
+
     FMinEnumSize: TSepiMinEnumSize; /// Taille minimale d'énumération
     FMaxAlign: Integer;             /// Alignment maximum des champs
 
@@ -72,6 +74,8 @@ type
     procedure EndParsing; override;
 
     function ResolveIdent(const Identifier: string): ISepiExpression; override;
+
+    property IsImporter: Boolean read FIsImporter write FIsImporter;
 
     property MinEnumSize: TSepiMinEnumSize read FMinEnumSize;
     property MaxAlign: Integer read FMaxAlign;
@@ -846,7 +850,15 @@ end;
 *}
 procedure TDelphiRootNode.EndParsing;
 begin
-  SepiUnit.Complete;
+  if IsImporter then
+  begin
+    // Do not complete implementation for imported units!
+    UnitCompiler.CompleteInterface;
+    SepiUnit.Complete;
+  end else
+  begin
+    UnitCompiler.CompleteUnit;
+  end;
 
   inherited;
 end;
