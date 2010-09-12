@@ -1054,11 +1054,11 @@ type
   end;
 
   {*
-    Type référence de méthode
+    Classe de base pour types qui peuvent être appelés
     @author sjrd
     @version 1.0
   *}
-  TSepiMethodRefType = class(TSepiType)
+  TSepiCallableType = class(TSepiType)
   private
     FSignature: TSepiSignature; /// Signature
   protected
@@ -1066,17 +1066,10 @@ type
     procedure Save(Stream: TStream); override;
 
     procedure WriteDigestData(Stream: TStream); override;
-
-    procedure SetupProperties; override;
-    function HasTypeInfo: Boolean; override;
-
-    function GetDescription: string; override;
   public
     constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
     constructor Create(AOwner: TSepiComponent; const AName: string;
-      ASignature: TSepiSignature);
-    constructor Clone(AOwner: TSepiComponent; const AName: string;
-      Source: TSepiType); override;
+      AKind: TTypeKind; ASignature: TSepiSignature);
     destructor Destroy; override;
 
     function Equals(Other: TSepiType): Boolean; override;
@@ -1086,35 +1079,39 @@ type
   end;
 
   {*
+    Type référence de méthode
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiMethodRefType = class(TSepiCallableType)
+  protected
+    procedure SetupProperties; override;
+    function HasTypeInfo: Boolean; override;
+
+    function GetDescription: string; override;
+  public
+    constructor Create(AOwner: TSepiComponent; const AName: string;
+      ASignature: TSepiSignature);
+    constructor Clone(AOwner: TSepiComponent; const AName: string;
+      Source: TSepiType); override;
+  end;
+
+  {*
     Type référence de routine (reference to)
     @author sjrd
     @version 1.0
   *}
-  TSepiRoutineRefType = class(TSepiType)
-  private
-    FSignature: TSepiSignature; /// Signature
+  TSepiRoutineRefType = class(TSepiCallableType)
   protected
-    procedure ListReferences; override;
-    procedure Save(Stream: TStream); override;
-
-    procedure WriteDigestData(Stream: TStream); override;
-
     procedure SetupProperties; override;
     procedure WriteTypeInfo(Stream: TStream); override;
 
     function GetDescription: string; override;
   public
-    constructor Load(AOwner: TSepiComponent; Stream: TStream); override;
     constructor Create(AOwner: TSepiComponent; const AName: string;
       ASignature: TSepiSignature);
     constructor Clone(AOwner: TSepiComponent; const AName: string;
       Source: TSepiType); override;
-    destructor Destroy; override;
-
-    function Equals(Other: TSepiType): Boolean; override;
-    function CompatibleWith(AType: TSepiType): Boolean; override;
-
-    property Signature: TSepiSignature read FSignature;
   end;
 
   {*
@@ -5632,14 +5629,14 @@ begin
     TSepiMetaClass(AType).SepiClass.ClassInheritsFrom(SepiClass);
 end;
 
-{---------------------------}
-{ Classe TSepiMethodRefType }
-{---------------------------}
+{--------------------------}
+{ Classe TSepiCallableType }
+{--------------------------}
 
 {*
-  Charge un type référence de méthode depuis un flux
+  [@inheritDoc]
 *}
-constructor TSepiMethodRefType.Load(AOwner: TSepiComponent; Stream: TStream);
+constructor TSepiCallableType.Load(AOwner: TSepiComponent; Stream: TStream);
 begin
   inherited;
 
@@ -5647,32 +5644,24 @@ begin
 end;
 
 {*
-  Crée un nouveau type référence de méthode
-  @param AOwner               Propriétaire du type
-  @param AName                Nom du type
-  @param ASignature           Signature
+  Crée une instance de TSepiCallableType
+  @param AOwner       Propriétaire du type
+  @param AName        Nom du type
+  @param AKind        Type de type
+  @param ASignature   Signature
 *}
-constructor TSepiMethodRefType.Create(AOwner: TSepiComponent;
-  const AName: string; ASignature: TSepiSignature);
+constructor TSepiCallableType.Create(AOwner: TSepiComponent;
+  const AName: string; AKind: TTypeKind; ASignature: TSepiSignature);
 begin
-  inherited Create(AOwner, AName, tkMethod);
+  inherited Create(AOwner, AName, AKind);
 
   FSignature := TSepiSignature.Clone(Self, ASignature);
 end;
 
 {*
-  [@inheritDoc]
-*}
-constructor TSepiMethodRefType.Clone(AOwner: TSepiComponent;
-  const AName: string; Source: TSepiType);
-begin
-  Create(AOwner, AName, (Source as TSepiMethodRefType).Signature);
-end;
-
-{*
   Détruit l'instance
 *}
-destructor TSepiMethodRefType.Destroy;
+destructor TSepiCallableType.Destroy;
 begin
   FSignature.Free;
 
@@ -5682,29 +5671,73 @@ end;
 {*
   [@inheritDoc]
 *}
-procedure TSepiMethodRefType.ListReferences;
+procedure TSepiCallableType.ListReferences;
 begin
   inherited;
+
   Signature.ListReferences;
 end;
 
 {*
   [@inheritDoc]
 *}
-procedure TSepiMethodRefType.Save(Stream: TStream);
+procedure TSepiCallableType.Save(Stream: TStream);
 begin
   inherited;
+
   Signature.Save(Stream);
 end;
 
 {*
   [@inheritDoc]
 *}
-procedure TSepiMethodRefType.WriteDigestData(Stream: TStream);
+procedure TSepiCallableType.WriteDigestData(Stream: TStream);
 begin
   inherited;
 
   Signature.WriteDigestData(Stream);
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiCallableType.Equals(Other: TSepiType): Boolean;
+begin
+  Result := (ClassType = Other.ClassType) and
+    Signature.Equals(TSepiCallableType(Other).Signature, scoCompatibility);
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TSepiCallableType.CompatibleWith(AType: TSepiType): Boolean;
+begin
+  Result := Equals(AType);
+end;
+
+{---------------------------}
+{ Classe TSepiMethodRefType }
+{---------------------------}
+
+{*
+  Crée une instance de TSepiMethodRefType
+  @param AOwner       Propriétaire du type
+  @param AName        Nom du type
+  @param ASignature   Signature
+*}
+constructor TSepiMethodRefType.Create(AOwner: TSepiComponent;
+  const AName: string; ASignature: TSepiSignature);
+begin
+  inherited Create(AOwner, AName, tkMethod, ASignature);
+end;
+
+{*
+  [@inheritDoc]
+*}
+constructor TSepiMethodRefType.Clone(AOwner: TSepiComponent;
+  const AName: string; Source: TSepiType);
+begin
+  Create(AOwner, AName, (Source as TSepiMethodRefType).Signature);
 end;
 
 {*
@@ -5739,50 +5772,20 @@ begin
   Result := 'method ref';
 end;
 
-{*
-  [@inheritDoc]
-*}
-function TSepiMethodRefType.Equals(Other: TSepiType): Boolean;
-begin
-  Result := (ClassType = Other.ClassType) and
-    Signature.Equals(TSepiMethodRefType(Other).Signature, scoCompatibility);
-end;
-
-{*
-  [@inheritDoc]
-*}
-function TSepiMethodRefType.CompatibleWith(AType: TSepiType): Boolean;
-begin
-  Result := (AType.Kind = tkMethod) and
-    FSignature.Equals(TSepiMethodRefType(AType).FSignature, scoCompatibility);
-end;
-
 {----------------------------}
 { Classe TSepiRoutineRefType }
 {----------------------------}
 
 {*
-  Charge un type référence de méthode depuis un flux
-*}
-constructor TSepiRoutineRefType.Load(AOwner: TSepiComponent; Stream: TStream);
-begin
-  inherited;
-
-  FSignature := TSepiSignature.Load(Self, Stream);
-end;
-
-{*
-  Crée un nouveau type référence de méthode
-  @param AOwner               Propriétaire du type
-  @param AName                Nom du type
-  @param ASignature           Signature
+  Crée une instance de TSepiRoutineRefType
+  @param AOwner       Propriétaire du type
+  @param AName        Nom du type
+  @param ASignature   Signature
 *}
 constructor TSepiRoutineRefType.Create(AOwner: TSepiComponent;
   const AName: string; ASignature: TSepiSignature);
 begin
-  inherited Create(AOwner, AName, tkInterface);
-
-  FSignature := TSepiSignature.Clone(Self, ASignature);
+  inherited Create(AOwner, AName, tkInterface, ASignature);
 end;
 
 {*
@@ -5792,46 +5795,6 @@ constructor TSepiRoutineRefType.Clone(AOwner: TSepiComponent;
   const AName: string; Source: TSepiType);
 begin
   Create(AOwner, AName, (Source as TSepiRoutineRefType).Signature);
-end;
-
-{*
-  Détruit l'instance
-*}
-destructor TSepiRoutineRefType.Destroy;
-begin
-  FSignature.Free;
-
-  inherited Destroy;
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TSepiRoutineRefType.ListReferences;
-begin
-  inherited;
-
-  Signature.ListReferences;
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TSepiRoutineRefType.Save(Stream: TStream);
-begin
-  inherited;
-
-  Signature.Save(Stream);
-end;
-
-{*
-  [@inheritDoc]
-*}
-procedure TSepiRoutineRefType.WriteDigestData(Stream: TStream);
-begin
-  inherited;
-
-  Signature.WriteDigestData(Stream);
 end;
 
 {*
@@ -5886,23 +5849,6 @@ end;
 function TSepiRoutineRefType.GetDescription: string;
 begin
   Result := 'reference to routine';
-end;
-
-{*
-  [@inheritDoc]
-*}
-function TSepiRoutineRefType.Equals(Other: TSepiType): Boolean;
-begin
-  Result := (ClassType = Other.ClassType) and
-    Signature.Equals(TSepiRoutineRefType(Other).Signature, scoCompatibility);
-end;
-
-{*
-  [@inheritDoc]
-*}
-function TSepiRoutineRefType.CompatibleWith(AType: TSepiType): Boolean;
-begin
-  Result := Equals(AType);
 end;
 
 {-------------------------}
