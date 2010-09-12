@@ -728,6 +728,10 @@ type
 
     procedure CollapseConsts;
   protected
+    procedure CompileRoutineRefFromMethodRef(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
+      TempVars: TSepiTempVarsLifeManager);
+
     procedure CompileCompute(Compiler: TSepiMethodCompiler;
       Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
       TempVars: TSepiTempVarsLifeManager); override;
@@ -3666,6 +3670,45 @@ end;
 {*
   [@inheritDoc]
 *}
+procedure TSepiConvertOperation.CompileRoutineRefFromMethodRef(
+  Compiler: TSepiMethodCompiler; Instructions: TSepiInstructionList;
+  var Destination: TSepiMemoryReference; TempVars: TSepiTempVarsLifeManager);
+var
+  SourceMemory: TSepiMemoryReference;
+  SrcTempVars: TSepiTempVarsLifeManager;
+  AsmInstr: TSepiAsmRoutineRefFromMethodRef;
+begin
+  SourceMemory := nil;
+  try
+    // Read source
+    SrcTempVars := TSepiTempVarsLifeManager.Create;
+    try
+      Source.CompileRead(Compiler, Instructions, SourceMemory,
+        SrcTempVars);
+    finally
+      SrcTempVars.EndAllLifes(Instructions.GetCurrentEndRef);
+      SrcTempVars.Free;
+    end;
+
+    // Make CVRT instruction
+    AsmInstr := TSepiAsmRoutineRefFromMethodRef.Create(Compiler,
+      Source.ValueType as TSepiMethodRefType);
+    AsmInstr.SourcePos := Expression.SourcePos;
+
+    NeedDestination(Destination, ValueType, Compiler, TempVars,
+      AsmInstr.AfterRef);
+
+    AsmInstr.Destination.Assign(Destination);
+    AsmInstr.Source.Assign(SourceMemory);
+    Instructions.Add(AsmInstr);
+  finally
+    SourceMemory.Free;
+  end;
+end;
+
+{*
+  [@inheritDoc]
+*}
 procedure TSepiConvertOperation.CompileCompute(Compiler: TSepiMethodCompiler;
   Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
   TempVars: TSepiTempVarsLifeManager);
@@ -3708,6 +3751,13 @@ begin
 
     // Pure assignment
     Source.CompileRead(Compiler, Instructions, Destination, TempVars);
+  end else if SrcType is TSepiMethodRefType then
+  begin
+    Assert(ValueType is TSepiRoutineRefType);
+
+    // RoutineRef From MethodRef
+    CompileRoutineRefFromMethodRef(Compiler, Instructions, Destination,
+      TempVars);
   end else
   begin
     DestBase := SepiTypeToBaseType(ValueType);
@@ -3820,6 +3870,16 @@ begin
     if DestType is TSepiMetaClass then
       Result := DestType.CompatibleWith(SrcType)
     else
+      Result := False;
+
+    Exit;
+  end else if SrcType is TSepiMethodRefType then
+  begin
+    if DestType is TSepiRoutineRefType then
+    begin
+      Result := TSepiRoutineRefType(DestType).Signature.Equals(
+        TSepiMethodRefType(SrcType).Signature, scoCompatibility);
+    end else
       Result := False;
 
     Exit;

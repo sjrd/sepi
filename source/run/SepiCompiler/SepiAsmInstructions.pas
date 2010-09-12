@@ -905,6 +905,31 @@ type
     property CountValue: TSepiMemoryReference read FCountValue;
   end;
 
+  {*
+    Instruction RRFMR
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiAsmRoutineRefFromMethodRef = class(TSepiAsmInstr)
+  private
+    FMethodRefType: TSepiMethodRefType; /// Type référence de méthode
+
+    FDestination: TSepiMemoryReference; /// Destination
+    FSource: TSepiMemoryReference;      /// Source
+  public
+    constructor Create(AMethodCompiler: TSepiMethodCompiler;
+      AMethodRefType: TSepiMethodRefType);
+    destructor Destroy; override;
+
+    procedure Make; override;
+    procedure WriteToStream(Stream: TStream); override;
+
+    property MethodRefType: TSepiMethodRefType read FMethodRefType;
+
+    property Destination: TSepiMemoryReference read FDestination;
+    property Source: TSepiMemoryReference read FSource;
+  end;
+
 implementation
 
 const
@@ -3535,6 +3560,71 @@ begin
     IndexValue.WriteToStream(Stream);
     CountValue.WriteToStream(Stream);
   end;
+end;
+
+{---------------------------------------}
+{ TSepiAsmRoutineRefFromMethodRef class }
+{---------------------------------------}
+
+{*
+  Crée une instruction RRFMR
+  @param AMethodCompiler   Compilateur de méthode
+*}
+constructor TSepiAsmRoutineRefFromMethodRef.Create(
+  AMethodCompiler: TSepiMethodCompiler; AMethodRefType: TSepiMethodRefType);
+begin
+  inherited Create(AMethodCompiler);
+
+  FOpCode := ocRoutineRefFromMethodRef;
+
+  FMethodRefType := AMethodRefType;
+
+  FDestination := TSepiMemoryReference.Create(MethodCompiler);
+  FSource := TSepiMemoryReference.Create(MethodCompiler,
+    aoAcceptNonCodeConsts);
+end;
+
+{*
+  [@inheritDoc]
+*}
+destructor TSepiAsmRoutineRefFromMethodRef.Destroy;
+begin
+  FSource.Free;
+  FDestination.Free;
+
+  inherited;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiAsmRoutineRefFromMethodRef.Make;
+begin
+  inherited;
+
+  Inc(FSize, SizeOf(Integer));
+
+  Destination.Make;
+  Source.Make;
+
+  Inc(FSize, Destination.Size);
+  Inc(FSize, Source.Size);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiAsmRoutineRefFromMethodRef.WriteToStream(Stream: TStream);
+var
+  MethodRefTypeRef: Integer;
+begin
+  inherited;
+
+  MethodRefTypeRef := UnitCompiler.MakeReference(MethodRefType);
+  Stream.WriteBuffer(MethodRefTypeRef, SizeOf(Integer));
+
+  Destination.WriteToStream(Stream);
+  Source.WriteToStream(Stream);
 end;
 
 end.

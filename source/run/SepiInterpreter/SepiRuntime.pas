@@ -230,6 +230,8 @@ type
     procedure OpCodeDynArrayCopy(OpCode: TSepiOpCode);
     procedure OpCodeDynArrayCopyRange(OpCode: TSepiOpCode);
 
+    procedure OpCodeRoutineRefFromMethodRef(OpCode: TSepiOpCode);
+
     // Other methods
 
     function ReadBaseAddress(Options: TSepiAddressOptions; ConstSize: Integer;
@@ -405,6 +407,10 @@ begin
     @TSepiRuntimeContext.OpCodeDynArrayCopy;
   @OpCodeProcs[ocDynArrayCopyRange] :=
     @TSepiRuntimeContext.OpCodeDynArrayCopyRange;
+
+  // Routine reference instructions
+  @OpCodeProcs[ocRoutineRefFromMethodRef] :=
+    @TSepiRuntimeContext.OpCodeRoutineRefFromMethodRef;
 end;
 
 {*
@@ -1858,6 +1864,28 @@ begin
 
   // Execute instruction
   DynArrayCopyRange(SrcPtr^, SepiType.TypeInfo, IndexPtr^, CountPtr^, DestPtr^);
+end;
+
+{*
+  OpCode RRFMR
+  @param OpCode   OpCode
+*}
+procedure TSepiRuntimeContext.OpCodeRoutineRefFromMethodRef(
+  OpCode: TSepiOpCode);
+var
+  MethodRefType: TSepiMethodRefType;
+  DestPtr, SrcPtr: PPointer;
+  MethodRef: TMethod;
+begin
+  // Read arguments
+  RuntimeUnit.ReadRef(Instructions, MethodRefType);
+  DestPtr := ReadAddress;
+  SrcPtr := ReadAddress(aoAcceptNonCodeConsts);
+
+  Move(SrcPtr^, MethodRef, MethodRefType.Size);
+
+  // Execute instruction
+  MakeRoutineRefFromMethodRef(MethodRefType, IInterface(DestPtr^), MethodRef);
 end;
 
 {*

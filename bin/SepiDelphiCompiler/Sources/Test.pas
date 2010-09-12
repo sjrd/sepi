@@ -364,6 +364,49 @@ begin
   WriteLn(IntToStr(P^));
 end;
 
+{$IF CompilerVersion >= 20}
+type
+  TIntegerCallback = reference to procedure(Value: Integer);
+  TIntegerMethod = procedure(Value: Integer) of object;
+
+  THelperClass = class
+  public
+    procedure DisplayValue(Value: Integer);
+  end;
+
+procedure THelperClass.DisplayValue(Value: Integer);
+begin
+  WriteLn(IntToStr(Value));
+end;
+
+procedure OneToFive(const Callback: TIntegerCallback);
+var
+  OtherCallback: TIntegerCallback;
+  I: Integer;
+begin
+  OtherCallback := Callback;
+
+  for I := 1 to 5 do
+    OtherCallback(I);
+end;
+
+procedure TestRoutineReferences;
+var
+  Obj: THelperClass;
+  Callback: TIntegerMethod;
+begin
+  WriteTitle('Test routine reference');
+
+  Obj := THelperClass.Create;
+  try
+    Callback := Obj.DisplayValue;
+    OneToFive(Callback);
+  finally
+    Obj.Free;
+  end;
+end;
+{$IFEND}
+
 procedure Main;
 begin
   Randomize;
@@ -377,6 +420,11 @@ begin
   TestSetLengthAndCopy;
   TestStringChars;
   TestSomePseudoRoutines;
+
+{$IF CompilerVersion >= 20}
+  TestRoutineReferences;
+{$IFEND}
+
   TestExceptionsAndClassDef;
 end;
 

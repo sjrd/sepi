@@ -108,6 +108,8 @@ type
     function OpCodeDynArrayCopy(OpCode: TSepiOpCode): string;
     function OpCodeDynArrayCopyRange(OpCode: TSepiOpCode): string;
 
+    function OpCodeRoutineRefFromMethodRef(OpCode: TSepiOpCode): string;
+
     // Other methods
 
     function ReadRef: string;
@@ -144,7 +146,7 @@ var
   OpCodeArgsFuncs: array[TSepiOpCode] of TOpCodeArgsFunc;
 
 const
-  MaxKnownOpCode = ocDynArrayCopyRange; /// Plus grand OpCode connu
+  MaxKnownOpCode = ocRoutineRefFromMethodRef; /// Plus grand OpCode connu
 
   /// Nom des OpCodes
   { Don't localize any of these strings! }
@@ -183,7 +185,10 @@ const
     'SINT', 'SADD', 'SSUB', 'SINT', 'SADD', 'SSUB', 'SEXP',
     // Standard Delphi functions
     'ASL', 'WSL', 'USL', 'DAL', 'DAH', 'ASSL', 'WSSL', 'USSL', 'DASL', 'ASCP',
-    'WSCP', 'USCP', 'DACP', 'DACP'
+    'WSCP', 'USCP', 'DACP', 'DACP', '', '',
+    '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',
+    // Routine reference instructions
+    'RRFMR'
   );
 
   /// Virgule
@@ -323,6 +328,10 @@ begin
     @TSepiDisassembler.OpCodeDynArrayCopy;
   @OpCodeArgsFuncs[ocDynArrayCopyRange] :=
     @TSepiDisassembler.OpCodeDynArrayCopyRange;
+
+  // Routine reference instructions
+  @OpCodeArgsFuncs[ocRoutineRefFromMethodRef] :=
+    @TSepiDisassembler.OpCodeRoutineRefFromMethodRef;
 end;
 
 {-------------------------}
@@ -1057,6 +1066,26 @@ begin
   // Make result
   Result := Format('%s, %s, %s, %s, %s',
     [SepiType.DisplayName, DestPtr, SrcPtr, IndexPtr, CountPtr]);
+end;
+
+{*
+  OpCode RRFMR
+  @param OpCode   OpCode
+*}
+function TSepiDisassembler.OpCodeRoutineRefFromMethodRef(
+  OpCode: TSepiOpCode): string;
+var
+  MethodRefType: TSepiType;
+  DestPtr, SrcPtr: string;
+begin
+  // Read arguments
+  RuntimeUnit.ReadRef(Instructions, MethodRefType);
+  DestPtr := ReadAddress;
+  SrcPtr := ReadAddress(aoAcceptNonCodeConsts);
+
+  // Make result
+  Result := Format('%s, %s, %s',
+    [MethodRefType.DisplayName, DestPtr, SrcPtr]);
 end;
 
 {*

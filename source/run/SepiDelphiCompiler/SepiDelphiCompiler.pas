@@ -704,9 +704,10 @@ begin
   NonTerminalClasses[ntEventDesc]         := TDelphiMethodRefTypeNode;
   NonTerminalClasses[ntRoutineRefDesc]    := TDelphiRoutineRefTypeNode;
 
-  NonTerminalClasses[ntEventKind]       := TSepiMethodRefKindNode;
-  NonTerminalClasses[ntEventModifiers]  := TSepiChildThroughNonTerminal;
-  NonTerminalClasses[ntEventIsOfObject] := TDelphiOfObjectMarkerNode;
+  NonTerminalClasses[ntEventKind]           := TSepiMethodRefKindNode;
+  NonTerminalClasses[ntEventModifiers]      := TSepiChildThroughNonTerminal;
+  NonTerminalClasses[ntEventIsOfObject]     := TDelphiOfObjectMarkerNode;
+  NonTerminalClasses[ntRoutineRefModifiers] := TSepiChildThroughNonTerminal;
 
   NonTerminalClasses[ntRecordContents]           := TSepiRecordContentsNode;
   NonTerminalClasses[ntRecordCaseBlockOuterMost] := TSepiRecordContentsNode;

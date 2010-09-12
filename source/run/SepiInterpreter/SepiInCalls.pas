@@ -49,7 +49,65 @@ function MakeInCallCode(RuntimeMethod: TSepiRuntimeMethod;
   ResultType: TSepiType; CallingConvention: TCallingConvention;
   SepiStackUsage: Word; RegUsage: Word = 0): Pointer;
 
+procedure MakeRoutineRefFromMethodRef(MethodRefType: TSepiMethodRefType;
+  out RoutineRef: IInterface; const MethodRef: TMethod);
+
 implementation
+
+type
+  {*
+    Interface représentant une référence de routine
+    @author sjrd
+    @version 1.0
+  *}
+  IRegisterRoutineReference = interface(IInterface)
+    procedure Invoke; register;
+  end;
+
+  {*
+    Interface représentant une référence de routine
+    @author sjrd
+    @version 1.0
+  *}
+  INonRegisterRoutineReference = interface(IInterface)
+    procedure Invoke; stdcall;
+  end;
+
+  {*
+    Classe représentant une référence de routine qui pointe sur une méthode
+    @author sjrd
+    @version 1.0
+  *}
+  TAbstractMethodRefBackedRoutineReference = class(TInterfacedObject)
+  private
+    FMethod: TMethod; /// Référence à la méthode à appeler
+  public
+    constructor Create(const AMethod: TMethod);
+
+    property Method: TMethod read FMethod;
+  end;
+
+  {*
+    Classe représentant une référence de routine qui pointe sur une méthode
+    @author sjrd
+    @version 1.0
+  *}
+  TRegisterMethodRefBackedRoutineReference = class(
+    TAbstractMethodRefBackedRoutineReference, IRegisterRoutineReference)
+  protected
+    procedure Invoke;
+  end;
+
+  {*
+    Classe représentant une référence de routine qui pointe sur une méthode
+    @author sjrd
+    @version 1.0
+  *}
+  TNonRegisterMethodRefBackedRoutineReference = class(
+    TAbstractMethodRefBackedRoutineReference, INonRegisterRoutineReference)
+  protected
+    procedure Invoke; stdcall;
+  end;
 
 {---------------}
 { Result thunks }
@@ -385,6 +443,87 @@ begin
     ccCDecl: Result := MakeCodeWithoutRegs(RuntimeMethod, ResultThunk, 0);
   else
     Result := MakeCodeWithoutRegs(RuntimeMethod, ResultThunk, SepiStackUsage);
+  end;
+end;
+
+{------------------------------------------------}
+{ TAbstractMethodRefBackedRoutineReference class }
+{------------------------------------------------}
+
+{*
+  Crée une instance de TAbstractMethodRefBackedRoutineReference
+  @param AMethod   Méthode à appeler
+*}
+constructor TAbstractMethodRefBackedRoutineReference.Create(
+  const AMethod: TMethod);
+begin
+  inherited Create;
+
+  FMethod := AMethod;
+end;
+
+{------------------------------------------------}
+{ TRegisterMethodRefBackedRoutineReference class }
+{------------------------------------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TRegisterMethodRefBackedRoutineReference.Invoke;
+asm
+        { -> EAX Self }
+        PUSH    DWORD PTR [EAX+12]
+        ADD     ESP,4
+        MOV     EAX,[EAX+16]
+        JMP     DWORD PTR [ESP-4]
+end;
+
+{---------------------------------------------------}
+{ TNonRegisterMethodRefBackedRoutineReference class }
+{---------------------------------------------------}
+
+{*
+  [@inheritDoc]
+*}
+procedure TNonRegisterMethodRefBackedRoutineReference.Invoke;
+asm
+        POP     EBP // cancel the effect of asm keyword with stdcall
+
+        { -> [ESP+4] Self }
+        MOV     EAX,[ESP+4]
+        MOV     ECX,[EAX+16]
+        MOV     [ESP+4],ECX
+        JMP     DWORD PTR [EAX+12]
+end;
+
+{---------------------------------------}
+{ MakeRoutineRefFromMethodRef procedure }
+{---------------------------------------}
+
+procedure MakeRoutineRefFromMethodRef(MethodRefType: TSepiMethodRefType;
+  out RoutineRef: IInterface; const MethodRef: TMethod);
+var
+  Signature: TSepiSignature;
+  ARegisterRoutineRef: IRegisterRoutineReference;
+  ANonRegisterRoutineRef: INonRegisterRoutineReference;
+begin
+  Signature := MethodRefType.Signature;
+
+  Assert(Signature.Kind in [skObjectProcedure, skObjectFunction],
+    'Unsupported signature kind for RRFMR');
+
+  if Signature.CallingConvention = ccRegister then
+  begin
+    ARegisterRoutineRef :=
+      TRegisterMethodRefBackedRoutineReference.Create(MethodRef);
+
+    RoutineRef := ARegisterRoutineRef;
+  end else
+  begin
+    ANonRegisterRoutineRef :=
+      TNonRegisterMethodRefBackedRoutineReference.Create(MethodRef);
+
+    RoutineRef := ANonRegisterRoutineRef;
   end;
 end;
 
