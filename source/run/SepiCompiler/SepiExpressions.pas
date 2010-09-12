@@ -3236,7 +3236,7 @@ procedure TSepiMetaClassValue.Complete;
 begin
   Assert(SepiClass <> nil);
 
-  SetValueType(UnitCompiler.GetMetaClass(SepiClass));
+  SetValueType(SepiClass.MetaClass);
 end;
 
 {*
@@ -6365,7 +6365,7 @@ begin
   if OpType is TSepiPointerType then
     SetValueType(TSepiPointerType(OpType).PointTo)
   else if OpType is TSepiClass then
-    SetValueType(UnitCompiler.GetMetaClass(TSepiClass(OpType)))
+    SetValueType(TSepiClass(OpType).MetaClass)
   else
     MakeError(SPointerTypeRequired);
 end;

@@ -113,8 +113,8 @@ begin
   {$IFEND}
 
   FCacheDir := Dir+DefaultCacheDir;
-  FOutputDir := Dir;
-  FResourcesDir := Dir;
+  FOutputDir := '.\';
+  FResourcesDir := '.\';
 
   // Create options
 

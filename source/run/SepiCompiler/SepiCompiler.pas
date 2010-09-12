@@ -765,7 +765,6 @@ type
     destructor Destroy; override;
 
     function GetPointerType(PointTo: TSepiType): TSepiPointerType;
-    function GetMetaClass(SepiClass: TSepiClass): TSepiMetaClass;
     function GetMethodRefType: TSepiType;
     function GetEmptySetType: TSepiType;
 
@@ -2834,28 +2833,6 @@ begin
   if Result = nil then
     Result := TSepiPointerType.Create(FCompileTimeTypes,
       PointerTypeName, PointTo);
-end;
-
-{*
-  Obtient un type meta-classe qui ne durera que la compilation
-  @param SepiClass   Classe dont obtenir une meta-classe
-  @return Meta-classe de la classe
-*}
-function TSepiUnitCompiler.GetMetaClass(SepiClass: TSepiClass): TSepiMetaClass;
-var
-  MetaClassName: string;
-  I: Integer;
-begin
-  MetaClassName := 'class$' + SepiClass.GetFullName;
-  for I := 1 to Length(MetaClassName) do
-    if MetaClassName[I] = '.' then
-      MetaClassName[I] := '$';
-
-  NeedCompileTimeTypes;
-  Result := FCompileTimeTypes.GetComponent(MetaClassName) as TSepiMetaClass;
-  if Result = nil then
-    Result := TSepiMetaClass.Create(FCompileTimeTypes,
-      MetaClassName, SepiClass);
 end;
 
 {*

@@ -100,6 +100,10 @@ const
   /// Types de signature avec un paramètre Self
   skWithSelfParam = [skObjectProcedure..skClassDestructor];
 
+  /// Types de signature avec un paramètre Self métaclasse
+  skWithMetaClassSelfParam =
+    [skClassProcedure..skClassDestructor, skClassProperty];
+
 type
   {*
     Type de paramètre caché
@@ -208,6 +212,7 @@ type
 
   TSepiSignature = class;
   TSepiOverloadedMethod = class;
+  TSepiMetaClass = class;
 
   /// Champ de classe
   TSepiClassField = TSepiVariable;
@@ -865,8 +870,9 @@ type
   *}
   TSepiClass = class(TSepiInheritableContainerType)
   private
-    FDelphiClass: TClass; /// Classe Delphi
-    FParent: TSepiClass;  /// Classe parent (nil si n'existe pas - TObject)
+    FDelphiClass: TClass;       /// Classe Delphi
+    FParent: TSepiClass;        /// Classe parent (nil si n'existe pas, TObject)
+    FMetaClass: TSepiMetaClass; /// Métaclasse par défaut
 
     /// Interfaces supportées par la classe
     FInterfaces: array of TSepiInterfaceEntry;
@@ -898,6 +904,8 @@ type
     procedure MakeMethodTable;
     procedure MakeDMT;
     procedure MakeVMT;
+
+    procedure CreateMetaClass;
 
     function GetInterfaceCount: Integer;
     function GetInterfaces(Index: Integer): TSepiInterface;
@@ -1002,6 +1010,7 @@ type
 
     property DelphiClass: TClass read FDelphiClass;
     property Parent: TSepiClass read FParent;
+    property MetaClass: TSepiMetaClass read FMetaClass;
 
     property InterfaceCount: Integer read GetInterfaceCount;
     property Interfaces[Index: Integer]: TSepiInterface read GetInterfaces;
@@ -1345,14 +1354,23 @@ begin
     hpSelf:
     begin
       if Owner.Context is TSepiClass then
-        FType := TSepiClass(Owner.Context)
-      else if Owner.Context is TSepiRecordType then
       begin
+        // Class
+        if Owner.Kind in skWithMetaClassSelfParam then
+          FType := TSepiClass(Owner.Context).MetaClass
+        else
+          FType := TSepiClass(Owner.Context);
+      end else if Owner.Context is TSepiRecordType then
+      begin
+        // Record
         FKind := pkVar;
         FByRef := True;
         FType := TSepiRecordType(Owner.Context);
       end else
+      begin
+        // Interface, method ref, etc.
         FType := TSepiSystemUnit.Get(Owner.Root).TObject;
+      end;
     end;
 
     hpResult:
@@ -4074,6 +4092,7 @@ begin
   else
     FDelphiClass := nil;
   OwningUnit.ReadRef(Stream, FParent);
+  OwningUnit.ReadRef(Stream, FMetaClass);
 
   Stream.ReadBuffer(IntfCount, 4);
   SetLength(FInterfaces, IntfCount);
@@ -4129,7 +4148,9 @@ begin
   if Assigned(AParent) then
     FParent := AParent
   else
-    FParent := (Root.SystemUnit as TSepiSystemUnit).TObject;
+    FParent := TSepiSystemUnit.Get(Self).TObject;
+
+  CreateMetaClass;
 
   LoadInitialDataFromParent;
 end;
@@ -4771,6 +4792,32 @@ begin
 end;
 
 {*
+  Crée la métaclasse par défaut
+*}
+procedure TSepiClass.CreateMetaClass;
+const
+  MetaClassName = '$MetaClass';
+var
+  I: Integer;
+  Component: TSepiComponent;
+begin
+  // Try and find an existing metaclass for this class
+  for I := Owner.ChildCount-1 downto 0 do
+  begin
+    Component := Owner.Children[I];
+    if (Component is TSepiMetaClass) and
+      (TSepiMetaClass(Component).SepiClass = Self) then
+    begin
+      FMetaClass := TSepiMetaClass(Component);
+      Exit;
+    end;
+  end;
+
+  // If none found, then create one
+  FMetaClass := TSepiMetaClass.Create(Self, MetaClassName, Self);
+end;
+
+{*
   Nombre d'interfaces supportées
   @return Nombre d'interfaces supportées
 *}
@@ -4831,7 +4878,11 @@ var
 begin
   inherited;
 
-  if Child is TSepiField then
+  if Child is TSepiMetaClass then
+  begin
+    if (FMetaClass = nil) and (TSepiMetaClass(Child).SepiClass = Self) then
+      FMetaClass := TSepiMetaClass(Child);
+  end else if Child is TSepiField then
   begin
     with TSepiField(Child) do
       if Offset + FieldType.Size > FInstSize then
@@ -4873,6 +4924,8 @@ begin
   inherited;
 
   OwningUnit.AddRef(FParent);
+  if FMetaClass.Owner <> Self then
+    OwningUnit.AddRef(FMetaClass);
 
   for I := 0 to InterfaceCount-1 do
     OwningUnit.AddRef(Interfaces[I]);
@@ -4895,7 +4948,13 @@ var
   IntfCount, RedirectorCount, I: Integer;
 begin
   inherited;
+
   OwningUnit.WriteRef(Stream, FParent);
+
+  if FMetaClass.Owner <> Self then
+    OwningUnit.WriteRef(Stream, FMetaClass)
+  else
+    OwningUnit.WriteRef(Stream, nil);
 
   IntfCount := InterfaceCount;
   Stream.WriteBuffer(IntfCount, 4);

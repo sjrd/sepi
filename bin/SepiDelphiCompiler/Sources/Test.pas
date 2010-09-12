@@ -12,6 +12,8 @@ type
 
     function Add(const Str: string): Integer; override;
     procedure DynamicMethod; dynamic;
+
+    class procedure ShowClassName;
   end;
 
 implementation
@@ -30,6 +32,11 @@ end;
 procedure TPrintOnAddStrings.DynamicMethod;
 begin
   Add('DynamicMethod entered');
+end;
+
+class procedure TPrintOnAddStrings.ShowClassName;
+begin
+  WriteLn(ClassName);
 end;
 
 procedure Test(const Str: string; Strings: TStrings);
@@ -144,6 +151,8 @@ begin
   TMonitor.Enter(Strings);
   {$IFEND}
   try
+    Strings.ShowClassName;
+
     Add := Strings.Add;
 
     for I := 1 to 3 do
