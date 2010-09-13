@@ -3,7 +3,8 @@ unit Test;
 interface
 
 uses
-  Types, SysUtils, Classes, ScTypInfo;
+  Types, SysUtils, Classes, ScTypInfo
+  {$IF RTLVersion >= 21}, TimeSpan{$IFEND};
 
 type
   TPrintOnAddStrings = class(TStringList)
@@ -364,6 +365,18 @@ begin
   WriteLn(IntToStr(P^));
 end;
 
+{$IF RTLVersion >= 21}
+procedure TestTimeSpan;
+var
+  Span: TTimeSpan;
+begin
+  WriteTitle('Test TimeSpan');
+
+  Span.Create(1, 2, 3);
+  WriteLn(IntToStr(Span.Minutes));
+end;
+{$IFEND}
+
 {$IF CompilerVersion >= 20}
 type
   TIntegerCallback = reference to procedure(Value: Integer);
@@ -449,6 +462,10 @@ begin
   TestSetLengthAndCopy;
   TestStringChars;
   TestSomePseudoRoutines;
+
+{$IF RTLVersion >= 21}
+  TestTimeSpan;
+{$IFEND}
 
 {$IF CompilerVersion >= 20}
   TestRoutineReferences;

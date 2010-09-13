@@ -69,16 +69,17 @@ type
     - skClassProcedure : procédure de classe ;
     - skClassFunction : fonction de classe ;
     - skClassConstructor : constructeur de classe (pour usage futur) ;
+    - skClassDestructor : destructeur de classe (pour usage futur) ;
     - skOperator : surcharge d'opérateur (pour usage futur) ;
     - skProperty : propriété ;
     - skClassProperty : propriété de classe ;
-    - skClassDestructor : destructeur de classe (pour usage futur).
+    - skRecordConstructor : constructeur de record.
   *}
   TSepiSignatureKind = (
     skStaticProcedure, skStaticFunction,
     skObjectProcedure, skObjectFunction, skConstructor, skDestructor,
     skClassProcedure, skClassFunction, skClassConstructor, skClassDestructor,
-    skOperator, skProperty, skClassProperty
+    skOperator, skProperty, skClassProperty, skRecordConstructor
   );
 
 const
@@ -98,7 +99,7 @@ const
   skWithReturnType = skFunction + [skOperator] + skAnyProperty;
 
   /// Types de signature avec un paramètre Self
-  skWithSelfParam = [skObjectProcedure..skClassDestructor];
+  skWithSelfParam = [skObjectProcedure..skClassDestructor, skRecordConstructor];
 
   /// Types de signature avec un paramètre Self métaclasse
   skWithMetaClassSelfParam =
@@ -1166,7 +1167,7 @@ const
     'object procedure', 'object function', 'constructor', 'destructor',
     'class procedure', 'class function', 'class constructor',
     'class destructor',
-    'operator', 'property', 'class property'
+    'operator', 'property', 'class property', 'record constructor'
   );
 
   /// Chaînes des types de liaison de méthodes

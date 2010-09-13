@@ -98,6 +98,7 @@ type
     function NextMethodID: Integer;
     function NextVariableID: Integer;
 
+    function NeedExplicitSelf(Method: TSepiMethod): Boolean;
     function MakeSignature(Signature: TSepiSignature; From: TSepiComponent;
       const MethodName: string = '';
       ExplicitSelf: Boolean = False): string;
@@ -906,8 +907,7 @@ begin
   else
     BadVisibilities := [mvStrictPrivate..mvProtected];
 
-  ExplicitSelf := (Method.Owner is TSepiRecordType) and
-    (Method.Signature.Kind in [skObjectProcedure, skObjectFunction]);
+  ExplicitSelf := NeedExplicitSelf(Method);
 
   Prop := nil;
   IsReadAccess := False;
@@ -1005,8 +1005,7 @@ var
   Statement, AMethodName: string;
   I: Integer;
 begin
-  ExplicitSelf := (Method.Owner is TSepiRecordType) and
-    (Method.Signature.Kind in [skObjectProcedure, skObjectFunction]);
+  ExplicitSelf := NeedExplicitSelf(Method);
 
   ResolveTpl := TTemplate.Create(TemplateDir+MethodTemplateFileName);
   try
@@ -1113,6 +1112,18 @@ begin
 end;
 
 {*
+  Teste si une méthode a besoin d'un paramètre Self explicite pour l'import
+  @param Method   Méthode à tester
+  @return True si l'usage d'un paramètre Self explicite est requis
+*}
+function TSepiImporterProducer.NeedExplicitSelf(Method: TSepiMethod): Boolean;
+begin
+  Result := (Method.Owner is TSepiRecordType) and
+    (Method.Signature.Kind in [skObjectProcedure, skObjectFunction,
+    skRecordConstructor]);
+end;
+
+{*
   Produit une représentation chaîne d'une signature
   @param Signature    Signature
   @param From         Component depuis lequel on regarde
@@ -1130,6 +1141,8 @@ begin
   Result := SignatureKindStrings[Signature.Kind];
   if AnsiStartsStr('static ', Result) or AnsiStartsStr('object ', Result) then
     Delete(Result, 1, 7);
+  if Signature.Kind = skRecordConstructor then
+    Result := 'procedure';
 
   // Method name
   if MethodName <> '' then

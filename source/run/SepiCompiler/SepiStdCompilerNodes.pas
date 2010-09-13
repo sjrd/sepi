@@ -3759,6 +3759,9 @@ begin
       skDestructor: Result := skClassDestructor;
     end;
   end;
+
+  if (Result = skConstructor) and (SepiContext is TSepiRecordType) then
+    Result := skRecordConstructor;
 end;
 
 {*
