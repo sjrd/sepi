@@ -3751,6 +3751,14 @@ begin
     Result := skStaticProcedure
   else
     Result := TSepiSignatureKind(OrdKind);
+
+  if IsAncestor(TSepiClassMemberDefinitionNode) then
+  begin
+    case Result of
+      skConstructor: Result := skClassConstructor;
+      skDestructor: Result := skClassDestructor;
+    end;
+  end;
 end;
 
 {*
@@ -4213,17 +4221,20 @@ begin
       FIsOverloaded := True;
   end;
 
-  if IsOverloaded then
+  if not (Signature.Kind in [skClassConstructor, skClassDestructor]) then
   begin
-    SepiMethod := TSepiMethod.CreateOverloaded(SepiContext, Name, nil,
-      Signature, LinkKind, IsAbstract, MsgID);
-  end else
-  begin
-    SepiMethod := TSepiMethod.Create(SepiContext, Name, nil,
-      Signature, LinkKind, IsAbstract, MsgID);
-  end;
+    if IsOverloaded then
+    begin
+      SepiMethod := TSepiMethod.CreateOverloaded(SepiContext, Name, nil,
+        Signature, LinkKind, IsAbstract, MsgID);
+    end else
+    begin
+      SepiMethod := TSepiMethod.Create(SepiContext, Name, nil,
+        Signature, LinkKind, IsAbstract, MsgID);
+    end;
 
-  SepiMethod.DeclarationLocation := DeclarationLocation;
+    SepiMethod.DeclarationLocation := DeclarationLocation;
+  end;
 
   inherited;
 end;

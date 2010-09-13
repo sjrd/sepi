@@ -1,10 +1,3 @@
-Around line 267 in Delphi 2010
-----------
-    class constructor Create;
-    class destructor Destroy;
-----------
-----------
-
 Around line 521 in Delphi 2009
 ----------
   EmptyStr: string = '';
