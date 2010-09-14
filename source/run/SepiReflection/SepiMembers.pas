@@ -1753,7 +1753,7 @@ begin
     Result := Result + ': ' + ParamType.DisplayName;
 
   if HasDefaultValue then
-    Result := Result + ' = ...'; // TODO Print a nice default value in param
+    Result := Result + ' = ' + ParamType.ValueToString(DefaultValuePtr^);
 end;
 
 {*
