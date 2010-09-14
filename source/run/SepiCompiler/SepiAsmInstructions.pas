@@ -912,19 +912,19 @@ type
   *}
   TSepiAsmRoutineRefFromMethodRef = class(TSepiAsmInstr)
   private
-    FMethodRefType: TSepiMethodRefType; /// Type référence de méthode
+    FSignatureComponent: TSepiComponent; /// Composant qui contient la signature
 
     FDestination: TSepiMemoryReference; /// Destination
     FSource: TSepiMemoryReference;      /// Source
   public
     constructor Create(AMethodCompiler: TSepiMethodCompiler;
-      AMethodRefType: TSepiMethodRefType);
+      ASignatureComponent: TSepiComponent);
     destructor Destroy; override;
 
     procedure Make; override;
     procedure WriteToStream(Stream: TStream); override;
 
-    property MethodRefType: TSepiMethodRefType read FMethodRefType;
+    property SignatureComponent: TSepiComponent read FSignatureComponent;
 
     property Destination: TSepiMemoryReference read FDestination;
     property Source: TSepiMemoryReference read FSource;
@@ -3571,13 +3571,13 @@ end;
   @param AMethodCompiler   Compilateur de méthode
 *}
 constructor TSepiAsmRoutineRefFromMethodRef.Create(
-  AMethodCompiler: TSepiMethodCompiler; AMethodRefType: TSepiMethodRefType);
+  AMethodCompiler: TSepiMethodCompiler; ASignatureComponent: TSepiComponent);
 begin
   inherited Create(AMethodCompiler);
 
   FOpCode := ocRoutineRefFromMethodRef;
 
-  FMethodRefType := AMethodRefType;
+  FSignatureComponent := ASignatureComponent;
 
   FDestination := TSepiMemoryReference.Create(MethodCompiler);
   FSource := TSepiMemoryReference.Create(MethodCompiler,
@@ -3616,12 +3616,12 @@ end;
 *}
 procedure TSepiAsmRoutineRefFromMethodRef.WriteToStream(Stream: TStream);
 var
-  MethodRefTypeRef: Integer;
+  SignatureRef: Integer;
 begin
   inherited;
 
-  MethodRefTypeRef := UnitCompiler.MakeReference(MethodRefType);
-  Stream.WriteBuffer(MethodRefTypeRef, SizeOf(Integer));
+  SignatureRef := UnitCompiler.MakeReference(SignatureComponent);
+  Stream.WriteBuffer(SignatureRef, SizeOf(Integer));
 
   Destination.WriteToStream(Stream);
   Source.WriteToStream(Stream);

@@ -1075,17 +1075,17 @@ end;
 function TSepiDisassembler.OpCodeRoutineRefFromMethodRef(
   OpCode: TSepiOpCode): string;
 var
-  MethodRefType: TSepiType;
+  SignatureComponent: TSepiComponent;
   DestPtr, SrcPtr: string;
 begin
   // Read arguments
-  RuntimeUnit.ReadRef(Instructions, MethodRefType);
+  RuntimeUnit.ReadRef(Instructions, SignatureComponent);
   DestPtr := ReadAddress;
   SrcPtr := ReadAddress(aoAcceptNonCodeConsts);
 
   // Make result
   Result := Format('%s, %s, %s',
-    [MethodRefType.DisplayName, DestPtr, SrcPtr]);
+    [SignatureComponent.DisplayName, DestPtr, SrcPtr]);
 end;
 
 {*

@@ -383,8 +383,9 @@ type
   TIntegerMethod = procedure(Value: Integer) of object;
   TIntegerProc = procedure(Value: Integer);
 
-  TComplicatedCallback = reference to procedure(S: Single; A, B, C, D: Integer);
-  TComplicatedProc = procedure(S: Single; A, B, C, D: Integer);
+  TComplicatedCallback = reference to procedure(S: Single;
+    A, B, C, D, E: Integer);
+  TComplicatedProc = procedure(S: Single; A, B, C, D, E: Integer);
 
   THelperClass = class
   public
@@ -401,9 +402,9 @@ begin
   WriteLn(IntToStr(Value));
 end;
 
-procedure Complicated(S: Single; A, B, C, D: Integer);
+procedure Complicated(S: Single; A, B, C, D, E: Integer);
 begin
-  WriteLn(Format('%f %d %d %d %d', [S, A, B, C, D]));
+  WriteLn(Format('%f %d %d %d %d %d', [S, A, B, C, D, E]));
 end;
 
 procedure OneToFive(const Callback: TIntegerCallback);
@@ -419,33 +420,27 @@ end;
 
 procedure CallComplicated(const Callback: TComplicatedCallback);
 begin
-  Callback(Pi, 1, 2, 4, 8);
+  Callback(Pi, 1, 2, 4, 8, 16);
 end;
 
 procedure TestRoutineReferences;
 var
   Obj: THelperClass;
-  Callback: TIntegerMethod;
-  Proc: TIntegerProc;
-  ComplicatedProc: TComplicatedProc;
 begin
   WriteTitle('Test routine reference');
 
-  Proc := DisplayValue;
-  OneToFive(Proc);
+  OneToFive(DisplayValue);
   WriteLn('');
 
   Obj := THelperClass.Create;
   try
-    Callback := Obj.DisplayValue;
-    OneToFive(Callback);
+    OneToFive(Obj.DisplayValue);
   finally
     Obj.Free;
   end;
 
   WriteLn('');
-  ComplicatedProc := Complicated;
-  CallComplicated(ComplicatedProc);
+  CallComplicated(Complicated);
 end;
 {$IFEND}
 

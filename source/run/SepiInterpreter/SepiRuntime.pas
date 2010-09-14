@@ -1873,19 +1873,33 @@ end;
 procedure TSepiRuntimeContext.OpCodeRoutineRefFromMethodRef(
   OpCode: TSepiOpCode);
 var
-  MethodRefType: TSepiMethodRefType;
+  SignatureComponent: TSepiComponent;
+  Signature: TSepiSignature;
   DestPtr, SrcPtr: PPointer;
   MethodRef: TMethod;
 begin
   // Read arguments
-  RuntimeUnit.ReadRef(Instructions, MethodRefType);
+  RuntimeUnit.ReadRef(Instructions, SignatureComponent);
   DestPtr := ReadAddress;
   SrcPtr := ReadAddress(aoAcceptNonCodeConsts);
 
-  Move(SrcPtr^, MethodRef, MethodRefType.Size);
+  // Extract signature
+  if SignatureComponent is TSepiMethod then
+    Signature := TSepiMethod(SignatureComponent).Signature
+  else if SignatureComponent is TSepiMethodRefType then
+    Signature := TSepiMethodRefType(SignatureComponent).Signature
+  else
+  begin
+    RaiseInvalidOpCode;
+    Signature := nil; // avoid compiler warning
+  end;
+
+  // Read method ref
+  Move(SrcPtr^, MethodRef,
+    IIF(Signature.Kind in skWithSelfParam, SizeOf(TMethod), SizeOf(Pointer)));
 
   // Execute instruction
-  MakeRoutineRefFromMethodRef(MethodRefType, IInterface(DestPtr^), MethodRef);
+  MakeRoutineRefFromMethodRef(Signature, IInterface(DestPtr^), MethodRef);
 end;
 
 {*

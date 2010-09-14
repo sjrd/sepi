@@ -49,7 +49,7 @@ function MakeInCallCode(RuntimeMethod: TSepiRuntimeMethod;
   ResultType: TSepiType; CallingConvention: TCallingConvention;
   SepiStackUsage: Word; RegUsage: Word = 0): Pointer;
 
-procedure MakeRoutineRefFromMethodRef(MethodRefType: TSepiMethodRefType;
+procedure MakeRoutineRefFromMethodRef(Signature: TSepiSignature;
   out RoutineRef: IInterface; const MethodRef: TMethod);
 
 implementation
@@ -763,15 +763,12 @@ end;
 { MakeRoutineRefFromMethodRef procedure }
 {---------------------------------------}
 
-procedure MakeRoutineRefFromMethodRef(MethodRefType: TSepiMethodRefType;
+procedure MakeRoutineRefFromMethodRef(Signature: TSepiSignature;
   out RoutineRef: IInterface; const MethodRef: TMethod);
 var
-  Signature: TSepiSignature;
   RegisterRoutineRef: IRegisterRoutineReference;
   NonRegisterRoutineRef: INonRegisterRoutineReference;
 begin
-  Signature := MethodRefType.Signature;
-
   Assert(Signature.Kind in [skStaticProcedure..skObjectFunction],
     'Unsupported signature kind for RRFMR');
 

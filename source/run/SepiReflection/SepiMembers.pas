@@ -164,10 +164,13 @@ type
     - pcoName : Compare les noms des paramètres
     - pcoType : Compare les types des paramètres
     - pcoDefaultValue : Compare les valeurs par défaut (pour usage futur)
+    - scoRoutineRefKind : Compare les types pour compatibilité avec une
+      référence de routine
   *}
   TSepiSignatureCompareOption = (
     scoKind, scoCallingConvention, scoParams, scoReturnType,
-    pcoHiddenKind, pcoKind, pcoName, pcoType, pcoDefaultValue
+    pcoHiddenKind, pcoKind, pcoName, pcoType, pcoDefaultValue,
+    scoRoutineRefKind
   );
 
   {*
@@ -181,6 +184,10 @@ const
 
   /// Comparaison des signatures pour compatibilité d'assignation
   scoCompatibility = scoAll - [pcoName, pcoDefaultValue];
+
+  /// Comparaison des signatures pour compatibilité d'une référence de routine
+  scoRoutineRefCompatibility = scoCompatibility -
+    [scoKind] + [scoRoutineRefKind];
 
   /// Comparaison des signatures pour recherche de la méthode héritée
   scoInheritance = scoCompatibility - [scoCallingConvention];
@@ -1063,6 +1070,9 @@ type
   private
     FSignature: TSepiSignature; /// Signature
   protected
+    /// Options de comparaison des signatures à appliquer
+    FCompareOptions: TSepiSignatureCompareOptions;
+
     procedure ListReferences; override;
     procedure Save(Stream: TStream); override;
 
@@ -1077,6 +1087,7 @@ type
     function CompatibleWith(AType: TSepiType): Boolean; override;
 
     property Signature: TSepiSignature read FSignature;
+    property CompareOptions: TSepiSignatureCompareOptions read FCompareOptions;
   end;
 
   {*
@@ -2372,17 +2383,34 @@ end;
 *}
 function TSepiSignature.Equals(ASignature: TSepiSignature;
   Options: TSepiSignatureCompareOptions = scoAll): Boolean;
+const
+  RoutineRefAlternateKind:
+    array[skStaticProcedure..skObjectFunction] of TSepiSignatureKind = (
+      skObjectProcedure, skObjectFunction, skStaticProcedure, skStaticFunction
+    );
 var
   I: Integer;
 begin
   Result := False;
 
+  // Kind
   if (scoKind in Options) and (Kind <> ASignature.Kind) then
     Exit;
+
+  // Routine reference kind
+  if (scoRoutineRefKind in Options) and (Kind <> ASignature.Kind) then
+  begin
+    if not ((Kind in [skStaticProcedure..skObjectFunction]) and
+      (RoutineRefAlternateKind[Kind] = ASignature.Kind)) then
+      Exit;
+  end;
+
+  // Calling convention
   if (scoCallingConvention in Options) and
     (CallingConvention <> ASignature.CallingConvention) then
     Exit;
 
+  // Parameters
   if scoParams in Options then
   begin
     if ParamCount <> ASignature.ParamCount then
@@ -2392,6 +2420,7 @@ begin
         Exit;
   end;
 
+  // Return type
   if (scoReturnType in Options) and (ReturnType <> ASignature.ReturnType) then
     Exit;
 
@@ -5755,6 +5784,8 @@ begin
     FResultBehavior := rbParameter;
   end else
     FSize := 4;
+
+  FCompareOptions := scoCompatibility;
 end;
 
 {*
@@ -5808,6 +5839,8 @@ begin
   FSize := 4;
   FIsManaged := True;
   FResultBehavior := rbParameter;
+
+  FCompareOptions := scoRoutineRefCompatibility;
 end;
 
 {*

@@ -401,7 +401,7 @@ const
   ocDynArrayCopyRange   = TSepiOpCode($8D); /// DACP Type-Ref, Dest, Src,Idx,Cnt
 
   // Routine reference instructions
-  /// RRFMR MethodRefType, Dest, Source
+  /// RRFMR Method-Or-MethodRefType, Dest, Source
   ocRoutineRefFromMethodRef = TSepiOpCode($A0);
 
 function MemoryRefEncode(MemorySpace: TSepiMemorySpace;
