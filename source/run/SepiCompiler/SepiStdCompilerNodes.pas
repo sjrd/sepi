@@ -4229,11 +4229,11 @@ begin
   begin
     if IsOverloaded then
     begin
-      SepiMethod := TSepiMethod.CreateOverloaded(SepiContext, Name, nil,
+      SepiMethod := TSepiMethod.CreateOverloaded(SepiContext, Name,
         Signature, LinkKind, IsAbstract, MsgID);
     end else
     begin
-      SepiMethod := TSepiMethod.Create(SepiContext, Name, nil,
+      SepiMethod := TSepiMethod.Create(SepiContext, Name,
         Signature, LinkKind, IsAbstract, MsgID);
     end;
 
@@ -4924,14 +4924,9 @@ begin
   // Declare the method
   FJustDeclared := True;
   if IsOverloaded then
-  begin
-    FSepiMethod := TSepiMethod.CreateOverloaded(SepiContext,
-      Name, nil, Signature);
-  end else
-  begin
-    FSepiMethod := TSepiMethod.Create(SepiContext,
-      Name, nil, Signature);
-  end;
+    FSepiMethod := TSepiMethod.CreateOverloaded(SepiContext, Name, Signature)
+  else
+    FSepiMethod := TSepiMethod.Create(SepiContext, Name, Signature);
 
   FSepiMethod.DeclarationLocation := DeclarationLocation;
 end;
@@ -5035,7 +5030,10 @@ begin
 
   // Ensure SepiMethod <> nil
   if SepiMethod = nil then
-    FSepiMethod := TSepiMethod.Create(SepiContext, '', nil, Signature);
+  begin
+    FSepiMethod := TSepiMethod.Create(SepiContext,
+      'static procedure', Signature);
+  end;
 
   inherited;
 end;

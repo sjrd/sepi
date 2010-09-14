@@ -297,21 +297,6 @@ const // don't localize
 { Global routines }
 {-----------------}
 
-procedure Write(const S: string);
-begin
-  System.Write(S);
-end;
-
-procedure Writeln(const S: string);
-begin
-  System.Writeln(S);
-end;
-
-procedure Readln(var S: string);
-begin
-  System.Readln(S);
-end;
-
 {*
   Create builtin types
 *}
@@ -432,21 +417,21 @@ begin
     actual implementation, since the Delphi compiler accepts many different
     kinds of argument. So, it appears like we simply do not support other
     types of argument. }
-  TSepiMethod.CreateOverloaded(Self, 'Write', @Write,
+  TSepiMethod.CreateOverloaded(Self, 'Write',
     'static procedure(const S: string)');
-  TSepiMethod.CreateOverloaded(Self, 'Writeln', @Writeln,
+  TSepiMethod.CreateOverloaded(Self, 'Writeln',
     'static procedure(const S: string)');
-  TSepiMethod.CreateOverloaded(Self, 'Readln', @Readln,
+  TSepiMethod.CreateOverloaded(Self, 'Readln',
     'static procedure(var S: string)');
 
   { Insert and Delete routines }
   for I := Low(StringTypeNames) to High(StringTypeNames) do
   begin
-    TSepiMethod.CreateOverloaded(Self, 'Insert', nil, Format(
+    TSepiMethod.CreateOverloaded(Self, 'Insert', Format(
       'static procedure(const Substr: %s; var Dest: %0:s; Index: Integer)',
       [StringTypeNames[I]]));
 
-    TSepiMethod.CreateOverloaded(Self, 'Delete', nil, Format(
+    TSepiMethod.CreateOverloaded(Self, 'Delete', Format(
       'static procedure(var S: %s; Index, Count: Integer)',
       [StringTypeNames[I]]));
   end;

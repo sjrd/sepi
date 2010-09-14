@@ -487,8 +487,8 @@ type
     procedure MakeLink;
     procedure FindNativeCode;
 
-    procedure CommonCreate(ACode: Pointer; ALinkKind: TMethodLinkKind;
-      AAbstract: Boolean; AMsgID: Integer);
+    procedure CommonCreate(ALinkKind: TMethodLinkKind; AAbstract: Boolean;
+      AMsgID: Integer);
 
     function GetRealName: string;
   protected
@@ -501,25 +501,21 @@ type
 
     // Not overloaded constructors
     constructor Create(AOwner: TSepiComponent; const AName: string;
-      ACode: Pointer; const ASignature: string;
-      ALinkKind: TMethodLinkKind = mlkStatic; AAbstract: Boolean = False;
-      AMsgID: Integer = 0;
+      const ASignature: string; ALinkKind: TMethodLinkKind = mlkStatic;
+      AAbstract: Boolean = False; AMsgID: Integer = 0;
       ACallingConvention: TCallingConvention = ccRegister); overload;
     constructor Create(AOwner: TSepiComponent; const AName: string;
-      ACode: Pointer; ASignature: TSepiSignature;
-      ALinkKind: TMethodLinkKind = mlkStatic; AAbstract: Boolean = False;
-      AMsgID: Integer = 0); overload;
+      ASignature: TSepiSignature; ALinkKind: TMethodLinkKind = mlkStatic;
+      AAbstract: Boolean = False; AMsgID: Integer = 0); overload;
 
     // Overloaded constructors
     constructor CreateOverloaded(AOwner: TSepiComponent; const AName: string;
-      ACode: Pointer; const ASignature: string;
-      ALinkKind: TMethodLinkKind = mlkStatic; AAbstract: Boolean = False;
-      AMsgID: Integer = 0;
+      const ASignature: string; ALinkKind: TMethodLinkKind = mlkStatic;
+      AAbstract: Boolean = False; AMsgID: Integer = 0;
       ACallingConvention: TCallingConvention = ccRegister); overload;
     constructor CreateOverloaded(AOwner: TSepiComponent; const AName: string;
-      ACode: Pointer; ASignature: TSepiSignature;
-      ALinkKind: TMethodLinkKind = mlkStatic; AAbstract: Boolean = False;
-      AMsgID: Integer = 0); overload;
+      ASignature: TSepiSignature; ALinkKind: TMethodLinkKind = mlkStatic;
+      AAbstract: Boolean = False; AMsgID: Integer = 0); overload;
 
     destructor Destroy; override;
 
@@ -957,27 +953,26 @@ type
     function AddField(const FieldName: string; FieldType: TSepiType;
       ForcePack: Boolean = False): TSepiField;
 
-    function AddMethod(const MethodName: string; ACode: Pointer;
-      ASignature: TSepiSignature; ALinkKind: TMethodLinkKind = mlkStatic;
-      AAbstract: Boolean = False; AMsgID: Integer = 0): TSepiMethod; overload;
-    function AddMethod(const MethodName: string; ACode: Pointer;
-      const ASignature: string; ALinkKind: TMethodLinkKind = mlkStatic;
-      AAbstract: Boolean = False; AMsgID: Integer = 0;
+    function AddMethod(const MethodName: string; ASignature: TSepiSignature;
+      ALinkKind: TMethodLinkKind = mlkStatic; AAbstract: Boolean = False;
+      AMsgID: Integer = 0): TSepiMethod; overload;
+    function AddMethod(const MethodName: string; const ASignature: string;
+      ALinkKind: TMethodLinkKind = mlkStatic; AAbstract: Boolean = False;
+      AMsgID: Integer = 0;
       ACallingConvention: TCallingConvention = ccRegister): TSepiMethod;
       overload;
-    function AddMethod(const MethodName: string; ACode: Pointer;
-      const ASignature: string;
+    function AddMethod(const MethodName: string; const ASignature: string;
       ACallingConvention: TCallingConvention): TSepiMethod; overload;
 
-    function AddOverloadedMethod(const MethodName: string; ACode: Pointer;
+    function AddOverloadedMethod(const MethodName: string;
       ASignature: TSepiSignature; ALinkKind: TMethodLinkKind = mlkStatic;
       AAbstract: Boolean = False; AMsgID: Integer = 0): TSepiMethod; overload;
-    function AddOverloadedMethod(const MethodName: string; ACode: Pointer;
+    function AddOverloadedMethod(const MethodName: string;
       const ASignature: string; ALinkKind: TMethodLinkKind = mlkStatic;
       AAbstract: Boolean = False; AMsgID: Integer = 0;
       ACallingConvention: TCallingConvention = ccRegister): TSepiMethod;
       overload;
-    function AddOverloadedMethod(const MethodName: string; ACode: Pointer;
+    function AddOverloadedMethod(const MethodName: string;
       const ASignature: string;
       ACallingConvention: TCallingConvention): TSepiMethod; overload;
 
@@ -2499,7 +2494,6 @@ end;
   Crée une nouvelle méthode
   @param AOwner       Propriétaire de la méthode
   @param AName        Nom de la méthode
-  @param ACode        Pointeur sur le code de la méthode
   @param ASignature   Signature Delphi de la méthode
   @param ALinkKind    Type de liaison
   @param AAbstract    Indique si la méthode est abstraite
@@ -2507,44 +2501,41 @@ end;
   @param ACallingConvention   Convention d'appel de la méthode
 *}
 constructor TSepiMethod.Create(AOwner: TSepiComponent; const AName: string;
-  ACode: Pointer; const ASignature: string;
-  ALinkKind: TMethodLinkKind = mlkStatic; AAbstract: Boolean = False;
-  AMsgID: Integer = 0; ACallingConvention: TCallingConvention = ccRegister);
+  const ASignature: string; ALinkKind: TMethodLinkKind = mlkStatic;
+  AAbstract: Boolean = False; AMsgID: Integer = 0;
+  ACallingConvention: TCallingConvention = ccRegister);
 begin
   inherited Create(AOwner, AName);
 
   FSignature := TSepiSignature.Create(Self, ASignature, ACallingConvention);
 
-  CommonCreate(ACode, ALinkKind, AAbstract, AMsgID);
+  CommonCreate(ALinkKind, AAbstract, AMsgID);
 end;
 
 {*
   Crée une nouvelle méthode d'après une signature déjà construite
   @param AOwner       Propriétaire de la méthode
   @param AName        Nom de la méthode
-  @param ACode        Pointeur sur le code de la méthode
   @param ASignature   Signature
   @param ALinkKind    Type de liaison
   @param AAbstract    Indique si la méthode est abstraite
   @param AMsgID       Pour les méthodes de message, le message intercepté
 *}
 constructor TSepiMethod.Create(AOwner: TSepiComponent; const AName: string;
-  ACode: Pointer; ASignature: TSepiSignature;
-  ALinkKind: TMethodLinkKind = mlkStatic; AAbstract: Boolean = False;
-  AMsgID: Integer = 0);
+  ASignature: TSepiSignature; ALinkKind: TMethodLinkKind = mlkStatic;
+  AAbstract: Boolean = False; AMsgID: Integer = 0);
 begin
   inherited Create(AOwner, AName);
 
   FSignature := TSepiSignature.Clone(Self, ASignature);
 
-  CommonCreate(ACode, ALinkKind, AAbstract, AMsgID);
+  CommonCreate(ALinkKind, AAbstract, AMsgID);
 end;
 
 {*
   Crée une nouvelle méthode surchargée
   @param AOwner       Propriétaire de la méthode
   @param AName        Nom de la méthode
-  @param ACode        Pointeur sur le code de la méthode
   @param ASignature   Signature Delphi de la méthode
   @param ALinkKind    Type de liaison
   @param AAbstract    Indique si la méthode est abstraite
@@ -2552,7 +2543,7 @@ end;
   @param ACallingConvention   Convention d'appel de la méthode
 *}
 constructor TSepiMethod.CreateOverloaded(AOwner: TSepiComponent;
-  const AName: string; ACode: Pointer; const ASignature: string;
+  const AName: string; const ASignature: string;
   ALinkKind: TMethodLinkKind = mlkStatic; AAbstract: Boolean = False;
   AMsgID: Integer = 0; ACallingConvention: TCallingConvention = ccRegister);
 begin
@@ -2564,21 +2555,20 @@ begin
   FOverloadIndex := FOverloaded.MethodCount;
 
   Create(AOwner, Format(OverloadedNameFormat, [AName, FOverloadIndex]),
-    ACode, ASignature, ALinkKind, AAbstract, AMsgID, ACallingConvention);
+    ASignature, ALinkKind, AAbstract, AMsgID, ACallingConvention);
 end;
 
 {*
   Crée une nouvelle méthode surchargée d'après une signature déjà construite
   @param AOwner       Propriétaire de la méthode
   @param AName        Nom de la méthode
-  @param ACode        Pointeur sur le code de la méthode
   @param ASignature   Signature Delphi de la méthode
   @param ALinkKind    Type de liaison
   @param AAbstract    Indique si la méthode est abstraite
   @param AMsgID       Pour les méthodes de message, le message intercepté
 *}
 constructor TSepiMethod.CreateOverloaded(AOwner: TSepiComponent;
-  const AName: string; ACode: Pointer; ASignature: TSepiSignature;
+  const AName: string; ASignature: TSepiSignature;
   ALinkKind: TMethodLinkKind = mlkStatic; AAbstract: Boolean = False;
   AMsgID: Integer = 0);
 begin
@@ -2590,7 +2580,7 @@ begin
   FOverloadIndex := FOverloaded.MethodCount;
 
   Create(AOwner, Format(OverloadedNameFormat, [AName, FOverloadIndex]),
-    ACode, ASignature, ALinkKind, AAbstract, AMsgID);
+    ASignature, ALinkKind, AAbstract, AMsgID);
 end;
 
 {*
@@ -2712,12 +2702,9 @@ end;
 {*
   Partie commune à tous les constructeurs
 *}
-procedure TSepiMethod.CommonCreate(ACode: Pointer; ALinkKind: TMethodLinkKind;
+procedure TSepiMethod.CommonCreate(ALinkKind: TMethodLinkKind;
   AAbstract: Boolean; AMsgID: Integer);
 begin
-  FCode := ACode;
-  FCodeHandler := nil;
-
   FLinkKind := ALinkKind;
   FFirstDeclaration := FLinkKind <> mlkOverride;
   FAbstract := AAbstract and (FLinkKind in [mlkVirtual, mlkDynamic]);
@@ -2725,7 +2712,7 @@ begin
 
   MakeLink;
 
-  if (not IsAbstract) and (not Assigned(FCode)) then
+  if not IsAbstract then
   begin
     if (Owner is TSepiClass) and TSepiClass(Owner).Native then
       FindNativeCode
@@ -4034,8 +4021,7 @@ end;
 function TSepiInterface.AddMethod(const MethodName: string;
   ASignature: TSepiSignature): TSepiMethod;
 begin
-  Result := TSepiMethod.Create(Self, MethodName, nil, ASignature,
-    mlkInterface);
+  Result := TSepiMethod.Create(Self, MethodName, ASignature, mlkInterface);
 end;
 
 {*
@@ -4047,8 +4033,8 @@ end;
 function TSepiInterface.AddMethod(const MethodName, ASignature: string;
   ACallingConvention: TCallingConvention = ccRegister): TSepiMethod;
 begin
-  Result := TSepiMethod.Create(Self, MethodName, nil, ASignature,
-    mlkInterface, False, 0, ACallingConvention);
+  Result := TSepiMethod.Create(Self, MethodName, ASignature, mlkInterface,
+    False, 0, ACallingConvention);
 end;
 
 {*
@@ -5249,59 +5235,55 @@ end;
 {*
   Ajoute une méthode à la classe
   @param MethodName   Nom de la méthode
-  @param ACode        Pointeur sur le code de la méthode
   @param ASignature   Signature Delphi de la méthode
   @param ALinkKind    Type de liaison
   @param AAbstract    Indique si la méthode est abstraite
   @param AMsgID       Pour les méthodes de message, le message intercepté
   @param ACallingConvention   Convention d'appel de la méthode
 *}
-function TSepiClass.AddMethod(const MethodName: string; ACode: Pointer;
+function TSepiClass.AddMethod(const MethodName: string;
   ASignature: TSepiSignature; ALinkKind: TMethodLinkKind; AAbstract: Boolean;
   AMsgID: Integer): TSepiMethod;
 begin
-  Result := TSepiMethod.Create(Self, MethodName, ACode, ASignature,
-    ALinkKind, AAbstract, AMsgID);
+  Result := TSepiMethod.Create(Self, MethodName,
+    ASignature, ALinkKind, AAbstract, AMsgID);
 end;
 
 {*
   Ajoute une méthode à la classe
   @param MethodName   Nom de la méthode
-  @param ACode        Pointeur sur le code de la méthode
   @param ASignature   Signature Delphi de la méthode
   @param ALinkKind    Type de liaison
   @param AAbstract    Indique si la méthode est abstraite
   @param AMsgID       Pour les méthodes de message, le message intercepté
   @param ACallingConvention   Convention d'appel de la méthode
 *}
-function TSepiClass.AddMethod(const MethodName: string; ACode: Pointer;
+function TSepiClass.AddMethod(const MethodName: string;
   const ASignature: string; ALinkKind: TMethodLinkKind = mlkStatic;
   AAbstract: Boolean = False; AMsgID: Integer = 0;
   ACallingConvention: TCallingConvention = ccRegister): TSepiMethod;
 begin
-  Result := TSepiMethod.Create(Self, MethodName, ACode, ASignature,
-    ALinkKind, AAbstract, AMsgID, ACallingConvention);
+  Result := TSepiMethod.Create(Self, MethodName,
+    ASignature, ALinkKind, AAbstract, AMsgID, ACallingConvention);
 end;
 
 {*
   Ajoute une méthode à la classe
   @param MethodName           Nom de la méthode
-  @param ACode                Pointeur sur le code de la méthode
   @param ASignature           Signature Delphi de la méthode
   @param ACallingConvention   Convention d'appel de la méthode
 *}
-function TSepiClass.AddMethod(const MethodName: string; ACode: Pointer;
+function TSepiClass.AddMethod(const MethodName: string;
   const ASignature: string;
   ACallingConvention: TCallingConvention): TSepiMethod;
 begin
-  Result := TSepiMethod.Create(Self, MethodName, ACode, ASignature,
-    mlkStatic, False, 0, ACallingConvention);
+  Result := TSepiMethod.Create(Self, MethodName,
+    ASignature, mlkStatic, False, 0, ACallingConvention);
 end;
 
 {*
   Ajoute une méthode surchargée à la classe
   @param MethodName   Nom de la méthode
-  @param ACode        Pointeur sur le code de la méthode
   @param ASignature   Signature Delphi de la méthode
   @param ALinkKind    Type de liaison
   @param AAbstract    Indique si la méthode est abstraite
@@ -5309,17 +5291,16 @@ end;
   @param ACallingConvention   Convention d'appel de la méthode
 *}
 function TSepiClass.AddOverloadedMethod(const MethodName: string;
-  ACode: Pointer; ASignature: TSepiSignature; ALinkKind: TMethodLinkKind;
-  AAbstract: Boolean; AMsgID: Integer): TSepiMethod;
+  ASignature: TSepiSignature; ALinkKind: TMethodLinkKind; AAbstract: Boolean;
+  AMsgID: Integer): TSepiMethod;
 begin
-  Result := TSepiMethod.CreateOverloaded(Self, MethodName, ACode,
+  Result := TSepiMethod.CreateOverloaded(Self, MethodName,
     ASignature, ALinkKind, AAbstract, AMsgID);
 end;
 
 {*
   Ajoute une méthode surchargée à la classe
   @param MethodName   Nom de la méthode
-  @param ACode        Pointeur sur le code de la méthode
   @param ASignature   Signature Delphi de la méthode
   @param ALinkKind    Type de liaison
   @param AAbstract    Indique si la méthode est abstraite
@@ -5327,27 +5308,25 @@ end;
   @param ACallingConvention   Convention d'appel de la méthode
 *}
 function TSepiClass.AddOverloadedMethod(const MethodName: string;
-  ACode: Pointer;
   const ASignature: string; ALinkKind: TMethodLinkKind = mlkStatic;
   AAbstract: Boolean = False; AMsgID: Integer = 0;
   ACallingConvention: TCallingConvention = ccRegister): TSepiMethod;
 begin
-  Result := TSepiMethod.CreateOverloaded(Self, MethodName, ACode,
+  Result := TSepiMethod.CreateOverloaded(Self, MethodName,
     ASignature, ALinkKind, AAbstract, AMsgID, ACallingConvention);
 end;
 
 {*
   Ajoute une méthode surchargée à la classe
   @param MethodName           Nom de la méthode
-  @param ACode                Pointeur sur le code de la méthode
   @param ASignature           Signature Delphi de la méthode
   @param ACallingConvention   Convention d'appel de la méthode
 *}
 function TSepiClass.AddOverloadedMethod(const MethodName: string;
-  ACode: Pointer; const ASignature: string;
+  const ASignature: string;
   ACallingConvention: TCallingConvention): TSepiMethod;
 begin
-  Result := TSepiMethod.CreateOverloaded(Self, MethodName, ACode,
+  Result := TSepiMethod.CreateOverloaded(Self, MethodName,
     ASignature, mlkStatic, False, 0, ACallingConvention);
 end;
 
