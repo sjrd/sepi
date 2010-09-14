@@ -249,7 +249,7 @@ OtherInitializationExpression
 	OtherInitialization
 
 OtherInitialization
-	ConstExpression
+	InitializationConstExpression
 
 Expression
 	SingleExpr (BinaryOp SingleExpr)*
@@ -258,6 +258,9 @@ ExpressionNoEquals
 	SingleExpr (BinaryOpNoEquals SingleExpr)*
 
 ConstExpression
+	Expression
+
+InitializationConstExpression
 	Expression
 
 ConstExpressionNoEquals

@@ -189,6 +189,18 @@ type
   end;
 
   {*
+    Noeud expression constante d'initialisation
+    @author sjrd
+    @version 1.0
+  *}
+  TDelphiInitializationConstExpressionNode = class(TSepiConstExpressionNode)
+  private
+    function DisableErrorMessage: Boolean;
+  protected
+    function ValidateExpression: Boolean; override;
+  end;
+
+  {*
     Noeud expression constante ou type
     @author sjrd
     @version 1.0
@@ -648,6 +660,8 @@ begin
   NonTerminalClasses[ntExpression]              := TSepiBinaryOpTreeNode;
   NonTerminalClasses[ntExpressionNoEquals]      := TSepiBinaryOpTreeNode;
   NonTerminalClasses[ntConstExpression]         := TSepiConstExpressionNode;
+  NonTerminalClasses[ntInitializationConstExpression] :=
+    TDelphiInitializationConstExpressionNode;
   NonTerminalClasses[ntConstExpressionNoEquals] := TSepiConstExpressionNode;
   NonTerminalClasses[ntConstOrType]             := TDelphiConstOrTypeNode;
   NonTerminalClasses[ntConstOrTypeNoEquals]     := TDelphiConstOrTypeNode;
@@ -1180,6 +1194,46 @@ function TDelphiOtherInitializationNode.IsValidType(
 begin
   Result := (AValueType <> nil) and
     not ((AValueType is TSepiArrayType) or (AValueType is TSepiRecordType));
+end;
+
+{------------------------------------------------}
+{ TDelphiInitializationConstExpressionNode class }
+{------------------------------------------------}
+
+{*
+  Teste si le message d'erreur Expression constante attendue doit être évité
+  @return True si le message d'erreur doit être évité, False sinon
+*}
+function TDelphiInitializationConstExpressionNode.DisableErrorMessage: Boolean;
+begin
+  Result := (RootNode as TDelphiRootNode).IsImporter and
+    (IsAncestor(TDelphiVariableDeclNode) or
+    IsAncestor(TDelphiConstantDeclNode));
+end;
+
+{*
+  [@inheritDoc]
+*}
+function TDelphiInitializationConstExpressionNode.ValidateExpression: Boolean;
+var
+  Value: ISepiValue;
+  ReadableValue: ISepiReadableValue;
+begin
+  Value := AsValue(ValueType);
+  if Value = nil then
+    Result := False
+  else
+  begin
+    Result := Supports(Value, ISepiReadableValue, ReadableValue) and
+      ReadableValue.IsConstant;
+
+    if not Result then
+    begin
+      if not DisableErrorMessage then
+        MakeError(SConstExpressionRequired);
+    end else if ValueType <> nil then
+      SetExpression(Value as ISepiExpression);
+  end;
 end;
 
 {------------------------------}

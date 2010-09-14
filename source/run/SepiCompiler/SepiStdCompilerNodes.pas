@@ -2103,7 +2103,8 @@ function TSepiExpressionNode.AsComponent: TSepiComponent;
 var
   ComponentExpression: ISepiComponentExpression;
 begin
-  if AsExpressionPart(ISepiComponentExpression, ComponentExpression, SComponentRequired) then
+  if AsExpressionPart(ISepiComponentExpression, ComponentExpression,
+    SComponentRequired) then
     Result := ComponentExpression.Component
   else
     Result := nil;

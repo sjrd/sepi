@@ -1,27 +1,3 @@
-Around line 521 in Delphi 2009
-----------
-  EmptyStr: string = '';
-  NullStr: PString = @EmptyStr;
-
-  EmptyWideStr: WideString = '';
-  NullWideStr: PWideString = @EmptyWideStr;
-----------
-  EmptyStr: string = '';
-  NullStr: PString;
-
-  EmptyWideStr: WideString = '';
-  NullWideStr: PWideString;
-----------
-
-Around line 527 in Delphi 2009
-----------
-  EmptyAnsiStr: AnsiString = '';
-  NullAnsiStr: PAnsiString = @EmptyAnsiStr;
-----------
-  EmptyAnsiStr: AnsiString = '';
-  NullAnsiStr: PAnsiString;
-----------
-
 Around line 3601 in Delphi 2009
 ----------
 // Generic Anonymous method declarations

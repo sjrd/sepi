@@ -34,11 +34,3 @@ Around line 1413 in Delphi 2007
   end;
 ----------
 ----------
-
-Around line 1552 in Delphi 2009
-----------
-  HintWindowClass: THintWindowClass = THintWindow;
-----------
-  HintWindowClass: THintWindowClass;
-----------
-
