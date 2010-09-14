@@ -444,6 +444,29 @@ begin
 end;
 {$IFEND}
 
+procedure TestVariants;
+var
+  I: Integer;
+  Str: string;
+  V: Variant;
+  Cur: Currency;
+begin
+  WriteTitle('Test Variant type');
+
+  I := 5;
+  V := I;
+  V := V + 7;
+  V := '5 + 7 = ' + string(V);
+  WriteLn(V);
+
+  Str := V;
+  WriteLn(Str);
+
+  Cur := 40.3399; // EUR to BEF conversion
+  V := Cur;
+  WriteLn(Format('1 € = %s BEF', [V]));
+end;
+
 procedure Main;
 begin
   Randomize;
@@ -466,6 +489,7 @@ begin
   TestRoutineReferences;
 {$IFEND}
 
+  TestVariants;
   TestExceptionsAndClassDef;
 end;
 

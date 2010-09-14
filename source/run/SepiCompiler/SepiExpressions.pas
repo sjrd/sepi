@@ -3648,6 +3648,9 @@ begin
   if not Source.IsConstant then
     Exit;
 
+  if not TSepiConstant.IsValidConstType(ValueType) then
+    Exit;
+
   SrcType := Source.ValueType;
 
   // If the source is already of the good type, just copy the constant

@@ -797,6 +797,9 @@ type
       const AValue: Variant); overload;
     destructor Destroy; override;
 
+    class function IsValidConstType(SepiType: TSepiType): Boolean;
+      {$IF CompilerVersion >= 20} static; {$IFEND}
+
     property ConstType: TSepiType read FType;
     property ValuePtr: Pointer read FValuePtr;
   end;
@@ -4251,6 +4254,8 @@ end;
 constructor TSepiConstant.Create(AOwner: TSepiComponent;
   const AName: string; AType: TSepiType);
 begin
+  Assert(IsValidConstType(AType));
+
   inherited Create(AOwner, AName);
 
   FType := AType;
@@ -4308,7 +4313,7 @@ var
 begin
   SystemUnit := TSepiSystemUnit.Get(AOwner);
 
-    case VarType(AValue) of
+  case VarType(AValue) of
     varSmallint: AType := SystemUnit.Smallint;
     varInteger:  AType := SystemUnit.Integer;
     varSingle:   AType := SystemUnit.Single;
@@ -4330,10 +4335,10 @@ begin
       {$IF Declared(varUString)}
     varUString: AType := SystemUnit.LongString;
       {$IFEND}
-    else
-      raise ESepiBadConstTypeError.CreateFmt(
-        SSepiBadConstType, [VarType(AValue)]);
-    end;
+  else
+    raise ESepiBadConstTypeError.CreateFmt(
+      SSepiBadConstType, [VarType(AValue)]);
+  end;
 
   Create(AOwner, AName, AValue, AType);
 end;
@@ -4376,6 +4381,17 @@ begin
 
   ConstType.WriteDigestToStream(Stream);
   WriteDataToStream(Stream, FValuePtr^, FType.Size, FType.TypeInfo);
+end;
+
+{*
+  Teste si un type est un type de constante valide
+  @param SepiType   Type à tester
+  @return True si c'est un type de constante valide, False sinon
+*}
+class function TSepiConstant.IsValidConstType(SepiType: TSepiType): Boolean;
+begin
+  Result := not ((SepiType is TSepiVariantType) or
+    (SepiType is TSepiInterface));
 end;
 
 {----------------------}
