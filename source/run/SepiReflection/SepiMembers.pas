@@ -43,8 +43,6 @@ interface
 
 {$ASSERTIONS ON}
 
-{.$DEFINE TRYING_TO_UNDERSTAND_THE_GAP_IN_CLASSES}
-
 uses
   Windows, Classes, SysUtils, StrUtils, RTLConsts, Contnrs, TypInfo, ScUtils,
   ScStrUtils, ScTypInfo, ScLowLevel, ScSerializer, ScCompilerMagic,
@@ -892,6 +890,7 @@ type
     FVMTSize: Integer;            /// Taille de la VMT dans les index positifs
     FDMTNextIndex: Integer;       /// Prochain index à utiliser dans la DMT
     FPublishedPropCount: Integer; /// Nombre de propriétés publiées
+    FInternalAlignment: Integer;  /// Alignement interne
 
     FStoredInstSize: Integer; /// Valeur de FInstSize telle que stockée
 
@@ -4174,22 +4173,6 @@ begin
   LoadInitialDataFromParent;
 
   Stream.ReadBuffer(FStoredInstSize, 4);
-
-  {$IFDEF TRYING_TO_UNDERSTAND_THE_GAP_IN_CLASSES}
-  if Native then
-  begin
-    if (DelphiClass.InstanceSize-FStoredInstSize) <>
-      (Parent.DelphiClass.InstanceSize-Parent.FStoredInstSize) then
-    begin
-      {$I-}
-      WriteLn(ErrOutput, Format('InstanceSize;%s;%s;%d;%d;%s;%s;%d;%d',
-        [OwningUnit.Name, Name, FStoredInstSize, DelphiClass.InstanceSize,
-        Parent.OwningUnit.Name, Parent.Name, Parent.FStoredInstSize,
-        Parent.DelphiClass.InstanceSize]));
-      {$I+}
-    end;
-  end;
-  {$ENDIF}
 end;
 
 {*
@@ -4269,6 +4252,7 @@ begin
     FVMTSize := Parent.VMTSize;
     FDMTNextIndex := Parent.FDMTNextIndex;
     FPublishedPropCount := Parent.FPublishedPropCount;
+    FInternalAlignment := Parent.FInternalAlignment;
     FDefaultProperty := Parent.DefaultProperty;
   end else
   begin
@@ -4276,6 +4260,7 @@ begin
     FInstSize := 4; // pointer to VMT
     FVMTSize := vmtMinMethodIndex;
     FDMTNextIndex := -1;
+    FInternalAlignment := 4;
   end;
 end;
 
@@ -4944,8 +4929,13 @@ begin
   end else if Child is TSepiField then
   begin
     with TSepiField(Child) do
+    begin
       if Offset + FieldType.Size > FInstSize then
         FInstSize := Offset + FieldType.Size;
+
+      if FieldType.Alignment > FInternalAlignment then
+        FInternalAlignment := FieldType.Alignment;
+    end;
   end else if Child is TSepiProperty then
   begin
     Prop := TSepiProperty(Child);
@@ -5489,12 +5479,17 @@ begin
   if Completed then
     Exit;
 
+  // Align instance size on a double word boundary before adding IMTs
   AlignOffset(FInstSize);
 
   inherited;
 
   if Native then
     ReadNativeIMTs;
+
+  // Align instance size w.r.t. FInternalAlignment after adding IMTs
+  if FInstSize mod FInternalAlignment <> 0 then
+    Inc(FInstSize, FInternalAlignment - FInstSize mod FInternalAlignment);
 end;
 
 {*

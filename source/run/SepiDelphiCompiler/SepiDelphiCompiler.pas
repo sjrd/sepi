@@ -2046,6 +2046,26 @@ end;
 { TDelphiClassTypeNode class }
 {----------------------------}
 
+const
+  TroubledClasses: array[0..11] of string = (
+    'Classes.TStringList',
+    'Classes.TReader',
+    'Classes.TWriter',
+    'Classes.TParser',
+    'Classes.TBasicActionLink',
+    'Classes.TBasicAction',
+    'Classes.TDataModule',
+    'WideStrings.TWideStringList',
+    'ScMatsh.EIntegerError',
+    'ScPipes.TCoroutineTransformationStream',
+    'ScSyncObjs.TScCustomTaskQueue',
+    'Buttons.TSpeedButton'
+  );
+
+  BigTroubledClasses: array[0..0] of string = (
+    'Truc'
+  );
+
 {*
   [@inheritDoc]
 *}
@@ -2060,6 +2080,12 @@ begin
     FSepiClass.Create(Context, TypeName, ParentClass)
   else
     FSepiClass := TSepiClass.Create(Context, TypeName, ParentClass);
+
+  {if AnsiMatchText(FSepiClass.GetFullName, TroubledClasses) then
+    FSepiClass.AddField('$Padding', SystemUnit.Integer);
+
+  if AnsiMatchText(FSepiClass.GetFullName, BigTroubledClasses) then
+    FSepiClass.AddField('$Padding2', SystemUnit.Integer);}
 end;
 
 {*

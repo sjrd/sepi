@@ -116,8 +116,7 @@ begin
 procedure CheckInstanceSize(AClass: TClass;
   SepiInstSize, ParentSepiInstSize: Longint);
 begin
-  if (AClass.InstanceSize - SepiInstSize) =
-    (AClass.ClassParent.InstanceSize - ParentSepiInstSize) then
+  if AClass.InstanceSize = SepiInstSize then
     Exit;
 
   WriteLn(ErrOutput, Format('InstanceSize;%d;%d;(#UnitName#);%s;%s',

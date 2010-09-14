@@ -653,8 +653,8 @@ begin
   if SepiClass.Parent <> nil then
   begin
     Template.AddToParam(DynamicAssertionsParam,
-      Format(CheckInstanceSizeStatement,
-        [SepiClass.Name, SepiClass.InstSize, SepiClass.Parent.InstSize]));
+      Format(CheckInstanceSizeStatement, [SepiClass.Name,
+        SepiClass.TotalInstSize, SepiClass.Parent.TotalInstSize]));
   end;
 
   // If returns False, no import must be done for this class
