@@ -490,6 +490,7 @@ type
     procedure CommonCreate(ALinkKind: TMethodLinkKind; AAbstract: Boolean;
       AMsgID: Integer);
 
+    function GetHasImplementation: Boolean;
     function GetRealName: string;
   protected
     procedure ListReferences; override;
@@ -533,11 +534,12 @@ type
     property FirstDeclaration: Boolean read FFirstDeclaration;
     property IsAbstract: Boolean read FAbstract;
     property InheritedMethod: TSepiMethod read FInherited;
+    property HasImplementation: Boolean read GetHasImplementation;
 
     property VMTOffset: Integer read FLinkIndex;
     property DMTIndex: Integer read FLinkIndex;
     property MsgID: Integer read FLinkIndex;
-    property IMTIndex: Integer read FLinkIndex;
+    property IMTOffset: Integer read FLinkIndex;
 
     property IsOverloaded: Boolean read FIsOverloaded;
     property Overloaded: TSepiOverloadedMethod read FOverloaded;
@@ -1009,6 +1011,8 @@ type
 
     function ClassInheritsFrom(AParent: TSepiClass): Boolean;
     function ClassImplementsInterface(AInterface: TSepiInterface): Boolean;
+
+    function GetInterfaceOffset(AInterface: TSepiInterface): Integer;
 
     property DelphiClass: TClass read FDelphiClass;
     property Parent: TSepiClass read FParent;
@@ -2477,7 +2481,7 @@ begin
 
   LoadChildren(Stream);
 
-  if not IsAbstract then
+  if HasImplementation then
   begin
     if (Owner is TSepiClass) and TSepiClass(Owner).Native then
       FindNativeCode;
@@ -2712,13 +2716,22 @@ begin
 
   MakeLink;
 
-  if not IsAbstract then
+  if HasImplementation then
   begin
     if (Owner is TSepiClass) and TSepiClass(Owner).Native then
       FindNativeCode
     else
       FCode := @FCodeJumper;
   end;
+end;
+
+{*
+  Indique si cette méthode a une implémentation
+  @return True si elle a une implémentation, False sinon
+*}
+function TSepiMethod.GetHasImplementation: Boolean;
+begin
+  Result := not (IsAbstract or (LinkKind = mlkInterface));
 end;
 
 {*
@@ -5518,6 +5531,30 @@ begin
     Result := False
   else
     Result := Parent.ClassImplementsInterface(AInterface);
+end;
+
+{*
+  Détermine l'offset du champ caché représentant une interface donnée
+  @param AInterface   Interface implémentée par cette classe
+  @return Offset du champ caché dans cette classe représentant cette interface
+*}
+function TSepiClass.GetInterfaceOffset(AInterface: TSepiInterface): Integer;
+var
+  I: Integer;
+begin
+  Assert(ClassImplementsInterface(AInterface));
+
+  for I := 0 to InterfaceCount-1 do
+  begin
+    if FInterfaces[I].IntfRef = AInterface then
+    begin
+      Result := FInterfaces[I].Offset;
+      Exit;
+    end;
+  end;
+
+  Assert(Parent <> nil);
+  Result := Parent.GetInterfaceOffset(AInterface);
 end;
 
 {-----------------------}

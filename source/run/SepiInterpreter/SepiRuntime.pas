@@ -231,6 +231,7 @@ type
     procedure OpCodeDynArrayCopyRange(OpCode: TSepiOpCode);
 
     procedure OpCodeRoutineRefFromMethodRef(OpCode: TSepiOpCode);
+    procedure OpCodeIntfFromClass(OpCode: TSepiOpCode);
 
     // Other methods
 
@@ -408,9 +409,10 @@ begin
   @OpCodeProcs[ocDynArrayCopyRange] :=
     @TSepiRuntimeContext.OpCodeDynArrayCopyRange;
 
-  // Routine reference instructions
+  // Miscellaneous instructions
   @OpCodeProcs[ocRoutineRefFromMethodRef] :=
     @TSepiRuntimeContext.OpCodeRoutineRefFromMethodRef;
+  @OpCodeProcs[ocIntfFromClass] := @TSepiRuntimeContext.OpCodeIntfFromClass;
 end;
 
 {*
@@ -1066,7 +1068,7 @@ end;
 procedure TSepiRuntimeContext.OpCodeDynamicCall(OpCode: TSepiOpCode);
 var
   SepiMethod: TSepiMethod;
-  SelfPtr: Pointer;
+  SelfValue: Pointer;
   SelfClass: TClass;
   Address: Pointer;
   ResultBehavior: TSepiTypeResultBehavior;
@@ -1074,23 +1076,23 @@ var
 begin
   // Read the instruction
   RuntimeUnit.ReadRef(Instructions, SepiMethod);
-  SelfPtr := PPointer(ReadAddress([aoAcceptZero]))^;
+  SelfValue := PPointer(ReadAddress([aoAcceptZero]))^;
 
   // Find code address
   if SepiMethod.LinkKind = mlkInterface then
   begin
-    // SelfPtr is an interface, thus points to a pointer to an IMT
-    Address := PPointerList(SelfPtr^)^[SepiMethod.IMTIndex];
+    // SelfValue is an interface, thus points to an IMT
+    Address := PPointer(Integer(SelfValue^) + SepiMethod.IMTOffset)^;
   end else
   begin
-    // SelfPtr is an objet or a class
+    // SelfValue is an objet or a class
 
     // Find the class
     case SepiMethod.Signature.Kind of
       skObjectProcedure, skObjectFunction, skDestructor:
-        SelfClass := TObject(SelfPtr).ClassType;
+        SelfClass := TObject(SelfValue).ClassType;
       skConstructor, skClassProcedure, skClassFunction:
-        SelfClass := TClass(SelfPtr);
+        SelfClass := TClass(SelfValue);
     else
       RaiseInvalidOpCode;
       SelfClass := nil; // avoid compiler warning
@@ -1900,6 +1902,27 @@ begin
 
   // Execute instruction
   MakeRoutineRefFromMethodRef(Signature, IInterface(DestPtr^), MethodRef);
+end;
+
+{*
+  OpCode IFC
+  @param OpCode   OpCode
+*}
+procedure TSepiRuntimeContext.OpCodeIntfFromClass(OpCode: TSepiOpCode);
+var
+  Offset: Integer;
+  DestPtr: ^IInterface;
+  SourcePtr: PInteger;
+  SrcIntf: Integer;
+begin
+  // Read operands
+  Instructions.ReadBuffer(Offset, 4);
+  DestPtr := ReadAddress;
+  SourcePtr := ReadAddress([aoAcceptAddressedConst]);
+
+  // Execute instruction
+  SrcIntf := SourcePtr^ + Offset;
+  DestPtr^ := IInterface(SrcIntf);
 end;
 
 {*

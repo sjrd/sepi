@@ -930,6 +930,27 @@ type
     property Source: TSepiMemoryReference read FSource;
   end;
 
+  {*
+    Instruction IFC
+    @author sjrd
+    @version 1.0
+  *}
+  TSepiAsmIntfFromClass = class(TSepiAsmInstr)
+  private
+    FOffset: Integer;                   /// Offset
+    FDestination: TSepiMemoryReference; /// Destination
+    FSource: TSepiMemoryReference;      /// Source
+  public
+    constructor Create(AMethodCompiler: TSepiMethodCompiler; AOffset: Integer);
+    destructor Destroy; override;
+
+    procedure Make; override;
+    procedure WriteToStream(Stream: TStream); override;
+
+    property Destination: TSepiMemoryReference read FDestination;
+    property Source: TSepiMemoryReference read FSource;
+  end;
+
 implementation
 
 const
@@ -3622,6 +3643,68 @@ begin
 
   SignatureRef := UnitCompiler.MakeReference(SignatureComponent);
   Stream.WriteBuffer(SignatureRef, SizeOf(Integer));
+
+  Destination.WriteToStream(Stream);
+  Source.WriteToStream(Stream);
+end;
+
+{-----------------------------}
+{ TSepiAsmIntfFromClass class }
+{-----------------------------}
+
+{*
+  Crée une instruction IFC
+  @param AMethodCompiler   Compilateur de méthode
+*}
+constructor TSepiAsmIntfFromClass.Create(
+  AMethodCompiler: TSepiMethodCompiler; AOffset: Integer);
+begin
+  inherited Create(AMethodCompiler);
+
+  FOpCode := ocIntfFromClass;
+
+  FOffset := AOffset;
+
+  FDestination := TSepiMemoryReference.Create(MethodCompiler);
+  FSource := TSepiMemoryReference.Create(MethodCompiler,
+    [aoAcceptAddressedConst]);
+end;
+
+{*
+  [@inheritDoc]
+*}
+destructor TSepiAsmIntfFromClass.Destroy;
+begin
+  FSource.Free;
+  FDestination.Free;
+
+  inherited;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiAsmIntfFromClass.Make;
+begin
+  inherited;
+
+  Inc(FSize, SizeOf(Integer));
+
+  Destination.Make;
+  Source.Make;
+
+  Inc(FSize, Destination.Size);
+  Inc(FSize, Source.Size);
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiAsmIntfFromClass.WriteToStream(Stream: TStream);
+begin
+  inherited;
+
+  Stream.WriteBuffer(FOffset, SizeOf(Integer));
 
   Destination.WriteToStream(Stream);
   Source.WriteToStream(Stream);

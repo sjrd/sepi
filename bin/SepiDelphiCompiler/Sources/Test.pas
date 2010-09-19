@@ -467,6 +467,31 @@ begin
   WriteLn(Format('1 € = %s BEF', [V]));
 end;
 
+type
+  IIntfTest = interface(IInterface)
+    ['{4E823C1B-7852-42FE-A0E0-8AA5CD6FA1F2}']
+    procedure Display(Value: Integer);
+  end;
+
+  TIntfTestObject = class(TInterfacedObject, IIntfTest)
+  protected
+    procedure Display(Value: Integer);
+  public
+    constructor Create;
+    destructor Destroy; override;
+  end;
+
+procedure TestInterfaces;
+var
+  Intf: IIntfTest;
+begin
+  WriteTitle('Test interfaces');
+
+  Intf := TIntfTestObject.Create;
+
+  Intf.Display(151189);
+end;
+
 procedure Main;
 begin
   Randomize;
@@ -490,7 +515,29 @@ begin
 {$IFEND}
 
   TestVariants;
+  TestInterfaces;
   TestExceptionsAndClassDef;
+end;
+
+{ TIntfTestObject }
+
+constructor TIntfTestObject.Create;
+begin
+  inherited;
+
+  WriteLn(ClassName + ' created');
+end;
+
+destructor TIntfTestObject.Destroy;
+begin
+  WriteLn(ClassName + ' destroyed');
+
+  inherited;
+end;
+
+procedure TIntfTestObject.Display(Value: Integer);
+begin
+  WriteLn('Display: '+IntToStr(Value));
 end;
 
 end.

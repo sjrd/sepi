@@ -109,6 +109,7 @@ type
     function OpCodeDynArrayCopyRange(OpCode: TSepiOpCode): string;
 
     function OpCodeRoutineRefFromMethodRef(OpCode: TSepiOpCode): string;
+    function OpCodeIntfFromClass(OpCode: TSepiOpCode): string;
 
     // Other methods
 
@@ -146,7 +147,7 @@ var
   OpCodeArgsFuncs: array[TSepiOpCode] of TOpCodeArgsFunc;
 
 const
-  MaxKnownOpCode = ocRoutineRefFromMethodRef; /// Plus grand OpCode connu
+  MaxKnownOpCode = ocIntfFromClass; /// Plus grand OpCode connu
 
   /// Nom des OpCodes
   { Don't localize any of these strings! }
@@ -188,7 +189,7 @@ const
     'WSCP', 'USCP', 'DACP', 'DACP', '', '',
     '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',
     // Routine reference instructions
-    'RRFMR'
+    'RRFMR', 'IFC'
   );
 
   /// Virgule
@@ -329,9 +330,10 @@ begin
   @OpCodeArgsFuncs[ocDynArrayCopyRange] :=
     @TSepiDisassembler.OpCodeDynArrayCopyRange;
 
-  // Routine reference instructions
+  // Miscellaneous instructions
   @OpCodeArgsFuncs[ocRoutineRefFromMethodRef] :=
     @TSepiDisassembler.OpCodeRoutineRefFromMethodRef;
+  @OpCodeArgsFuncs[ocIntfFromClass] := @TSepiDisassembler.OpCodeIntfFromClass;
 end;
 
 {-------------------------}
@@ -1086,6 +1088,26 @@ begin
   // Make result
   Result := Format('%s, %s, %s',
     [SignatureComponent.DisplayName, DestPtr, SrcPtr]);
+end;
+
+{*
+  OpCode IFC
+  @param OpCode   OpCode
+*}
+function TSepiDisassembler.OpCodeIntfFromClass(OpCode: TSepiOpCode): string;
+var
+  Offset: Integer;
+  DestPtr: string;
+  SourcePtr: string;
+begin
+  // Read operands
+  Instructions.ReadBuffer(Offset, 4);
+  DestPtr := ReadAddress;
+  SourcePtr := ReadAddress([aoAcceptAddressedConst]);
+
+  // Format arguments
+  Result := Format('%d, %s, %s', {don't localize}
+    [Offset, DestPtr, SourcePtr]);
 end;
 
 {*

@@ -728,9 +728,21 @@ type
 
     procedure CollapseConsts;
   protected
+    procedure CompileReadSource(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList;
+      var SourceMemory: TSepiMemoryReference);
+
+    procedure CompileClassToInterface(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
+      TempVars: TSepiTempVarsLifeManager);
+
     procedure CompileRoutineRefFromMethodRef(Compiler: TSepiMethodCompiler;
       Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
       TempVars: TSepiTempVarsLifeManager);
+
+    procedure CompileConvert(Compiler: TSepiMethodCompiler;
+      Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
+      DestBase, SrcBase: TSepiBaseType; TempVars: TSepiTempVarsLifeManager);
 
     procedure CompileCompute(Compiler: TSepiMethodCompiler;
       Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
@@ -3671,6 +3683,64 @@ begin
 end;
 
 {*
+  Compile la lecture de l'opérande source
+  @param Compiler       Compilateur
+  @param Instructions   Instructions
+  @param SourceMemory   En sortie : emplacement mémoire de la source
+*}
+procedure TSepiConvertOperation.CompileReadSource(Compiler: TSepiMethodCompiler;
+  Instructions: TSepiInstructionList; var SourceMemory: TSepiMemoryReference);
+var
+  SrcTempVars: TSepiTempVarsLifeManager;
+begin
+  SrcTempVars := TSepiTempVarsLifeManager.Create;
+  try
+    Source.CompileRead(Compiler, Instructions, SourceMemory, SrcTempVars);
+  finally
+    SrcTempVars.EndAllLifes(Instructions.GetCurrentEndRef);
+    SrcTempVars.Free;
+  end;
+end;
+
+{*
+  [@inheritDoc]
+*}
+procedure TSepiConvertOperation.CompileClassToInterface(
+  Compiler: TSepiMethodCompiler; Instructions: TSepiInstructionList;
+  var Destination: TSepiMemoryReference; TempVars: TSepiTempVarsLifeManager);
+var
+  SepiIntf: TSepiInterface;
+  SepiClass: TSepiClass;
+  Offset: Integer;
+  SourceMemory: TSepiMemoryReference;
+  AsmInstr: TSepiAsmIntfFromClass;
+begin
+  // Compute offset
+  SepiIntf := ValueType as TSepiInterface;
+  SepiClass := Source.ValueType as TSepiClass;
+  Offset := SepiClass.GetInterfaceOffset(SepiIntf);
+
+  SourceMemory := nil;
+  try
+    // Read source
+    CompileReadSource(Compiler, Instructions, SourceMemory);
+
+    // Make conversion instruction
+    AsmInstr := TSepiAsmIntfFromClass.Create(Compiler, Offset);
+    AsmInstr.SourcePos := Expression.SourcePos;
+
+    NeedDestination(Destination, ValueType, Compiler, TempVars,
+      AsmInstr.AfterRef);
+
+    AsmInstr.Destination.Assign(Destination);
+    AsmInstr.Source.Assign(SourceMemory);
+    Instructions.Add(AsmInstr);
+  finally
+    SourceMemory.Free;
+  end;
+end;
+
+{*
   [@inheritDoc]
 *}
 procedure TSepiConvertOperation.CompileRoutineRefFromMethodRef(
@@ -3678,22 +3748,14 @@ procedure TSepiConvertOperation.CompileRoutineRefFromMethodRef(
   var Destination: TSepiMemoryReference; TempVars: TSepiTempVarsLifeManager);
 var
   SourceMemory: TSepiMemoryReference;
-  SrcTempVars: TSepiTempVarsLifeManager;
   AsmInstr: TSepiAsmRoutineRefFromMethodRef;
 begin
   SourceMemory := nil;
   try
     // Read source
-    SrcTempVars := TSepiTempVarsLifeManager.Create;
-    try
-      Source.CompileRead(Compiler, Instructions, SourceMemory,
-        SrcTempVars);
-    finally
-      SrcTempVars.EndAllLifes(Instructions.GetCurrentEndRef);
-      SrcTempVars.Free;
-    end;
+    CompileReadSource(Compiler, Instructions, SourceMemory);
 
-    // Make CVRT instruction
+    // Make conversion instruction
     AsmInstr := TSepiAsmRoutineRefFromMethodRef.Create(Compiler,
       Source.ValueType as TSepiMethodRefType);
     AsmInstr.SourcePos := Expression.SourcePos;
@@ -3712,15 +3774,42 @@ end;
 {*
   [@inheritDoc]
 *}
+procedure TSepiConvertOperation.CompileConvert(Compiler: TSepiMethodCompiler;
+  Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
+  DestBase, SrcBase: TSepiBaseType; TempVars: TSepiTempVarsLifeManager);
+var
+  ConvertInstr: TSepiAsmConvert;
+  SourceMemory: TSepiMemoryReference;
+begin
+  SourceMemory := nil;
+  try
+    // Read source
+    CompileReadSource(Compiler, Instructions, SourceMemory);
+
+    // Make CVRT instruction
+    ConvertInstr := TSepiAsmConvert.Create(Compiler, DestBase, SrcBase);
+    ConvertInstr.SourcePos := Expression.SourcePos;
+
+    NeedDestination(Destination, ValueType, Compiler, TempVars,
+      ConvertInstr.AfterRef);
+
+    ConvertInstr.Destination.Assign(Destination);
+    ConvertInstr.Source.Assign(SourceMemory);
+    Instructions.Add(ConvertInstr);
+  finally
+    SourceMemory.Free;
+  end;
+end;
+
+{*
+  [@inheritDoc]
+*}
 procedure TSepiConvertOperation.CompileCompute(Compiler: TSepiMethodCompiler;
   Instructions: TSepiInstructionList; var Destination: TSepiMemoryReference;
   TempVars: TSepiTempVarsLifeManager);
 var
   SrcType: TSepiType;
   DestBase, SrcBase: TSepiBaseType;
-  SourceDestination: TSepiMemoryReference;
-  SrcTempVars: TSepiTempVarsLifeManager;
-  ConvertInstr: TSepiAsmConvert;
 begin
   SrcType := Source.ValueType;
 
@@ -3738,9 +3827,7 @@ begin
     begin
       // Here we must take into account the offset of the interface hidden field
       Assert(ValueType is TSepiInterface);
-
-      // TODO Convertir une classe en interface
-      raise EAssertionFailed.Create('Can''t convert class to interface');
+      CompileClassToInterface(Compiler, Instructions, Destination, TempVars);
     end;
   end else if SrcType is TSepiInterface then
   begin
@@ -3772,33 +3859,9 @@ begin
       Source.CompileRead(Compiler, Instructions, Destination, TempVars);
     end else
     begin
-      // CVRT convertion
-
-      SourceDestination := nil;
-      try
-        // Read source
-        SrcTempVars := TSepiTempVarsLifeManager.Create;
-        try
-          Source.CompileRead(Compiler, Instructions, SourceDestination,
-            SrcTempVars);
-        finally
-          SrcTempVars.EndAllLifes(Instructions.GetCurrentEndRef);
-          SrcTempVars.Free;
-        end;
-
-        // Make CVRT instruction
-        ConvertInstr := TSepiAsmConvert.Create(Compiler, DestBase, SrcBase);
-        ConvertInstr.SourcePos := Expression.SourcePos;
-
-        NeedDestination(Destination, ValueType, Compiler, TempVars,
-          ConvertInstr.AfterRef);
-
-        ConvertInstr.Destination.Assign(Destination);
-        ConvertInstr.Source.Assign(SourceDestination);
-        Instructions.Add(ConvertInstr);
-      finally
-        SourceDestination.Free;
-      end;
+      // Interpreter conversion
+      CompileConvert(Compiler, Instructions, Destination, DestBase, SrcBase,
+        TempVars);
     end;
   end;
 end;

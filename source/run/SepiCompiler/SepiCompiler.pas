@@ -2865,7 +2865,7 @@ begin
   begin
     Method := TSepiMethod(Context);
 
-    if (not Method.IsAbstract) and (FindMethodCompiler(Method) = nil) then
+    if Method.HasImplementation and (FindMethodCompiler(Method) = nil) then
     begin
       Errors.MakeError(Format(SMethodNotImplemented, [Method.Name]),
         Context.DeclarationLocation);
