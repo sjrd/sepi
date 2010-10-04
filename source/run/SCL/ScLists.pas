@@ -338,6 +338,17 @@ type
   TValueBucketEvent = procedure(const Key, Data;
     var Continue: Boolean) of object;
 
+{$IF CompilerVersion >= 20}
+  {*
+    Référence de call-back pour la méthode ForEach de TCustomValueBucketList
+    @param Key        Clef
+    @param Data       Données associées à la clef
+    @param Continue   Positionner à False pour interrompre l'énumération
+  *}
+  TValueBucketCallback = reference to procedure(const Key, Data;
+    var Continue: Boolean);
+{$IFEND}
+
   {*
     Classe de base pour les tables associatives hashées par valeur
     Au contraire de TCustomBucketList, et donc de TBucketList,
@@ -404,6 +415,9 @@ type
     function ForEach(Proc: TValueBucketProc;
       Info: Pointer = nil): Boolean; overload;
     function ForEach(Event: TValueBucketEvent): Boolean; overload;
+{$IF CompilerVersion >= 20}
+    function ForEach(const Callback: TValueBucketCallback): Boolean; overload;
+{$IFEND}
 
     function Exists(const Key): Boolean;
     function Find(const Key; out Data): Boolean;
@@ -2401,6 +2415,43 @@ begin
   with TMethod(Event) do
     Result := ForEach(TValueBucketProc(Code), Data);
 end;
+
+{$IF CompilerVersion >= 20}
+{*
+  Appelle un call-back pour chaque paire clef/valeur de la liste
+  @param Callback   Call-back
+  @return False si ForEach a été interrompu par le paramètre Continue,
+          True sinon
+*}
+function TCustomValueBucketList.ForEach(
+  const Callback: TValueBucketCallback): Boolean;
+var
+  Bucket, Index: Integer;
+  OldListLocked: Boolean;
+begin
+  // Copied and adapted from Contnrs.pas: TCustomBucketList.ForEach
+  Result := True;
+  OldListLocked := FListLocked;
+  FListLocked := True;
+  try
+    for Bucket := 0 to BucketCount-1 do
+    begin
+      with Buckets[Bucket] do
+      begin
+        for Index := Count-1 downto 0 do
+        begin
+          with Items[Index] do
+            Callback(Item^, Data^, Result);
+          if not Result then
+            Exit;
+        end;
+      end;
+    end;
+  finally
+    FListLocked := OldListLocked;
+  end;
+end;
+{$IFEND}
 
 {*
   Copie le contenu d'une liste
