@@ -49,6 +49,7 @@
 			<DCC_HppOutput>.\..\..\dcu\</DCC_HppOutput>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Cfg_2)'!=''">
+			<DCC_MapFile>3</DCC_MapFile>
 			<Version>7.0</Version>
 			<DCC_SYMBOL_PLATFORM>False</DCC_SYMBOL_PLATFORM>
 			<DCC_UNIT_PLATFORM>False</DCC_UNIT_PLATFORM>

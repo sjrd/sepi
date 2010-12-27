@@ -37,6 +37,7 @@
 			<DCC_SymbolReferenceInfo>1</DCC_SymbolReferenceInfo>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Cfg_1)'!=''">
+			<DCC_MapFile>3</DCC_MapFile>
 			<Version>7.0</Version>
 			<DCC_DcuOutput>.\..\..\dcu\</DCC_DcuOutput>
 			<DCC_ObjOutput>.\..\..\dcu\</DCC_ObjOutput>
@@ -142,6 +143,7 @@
 						<Source Name="MainSource">SCL120.dpk</Source>
 					</Source>
 					<Excluded_Packages>
+						<Excluded_Packages Name="C:\Users\Public\Documents\RAD Studio\6.0\Bpl\GR32_BDS2006.bpl">Graphics32</Excluded_Packages>
 						<Excluded_Packages Name="$(BDS)\bin\dcloffice2k120.bpl">Composants Microsoft Office 2000 Sample Automation Server Wrapper</Excluded_Packages>
 						<Excluded_Packages Name="$(BDS)\bin\dclofficexp120.bpl">Composants Microsoft Office XP Sample Automation Server Wrapper</Excluded_Packages>
 					</Excluded_Packages>

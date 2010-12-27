@@ -36,6 +36,7 @@
 			<DCC_SymbolReferenceInfo>1</DCC_SymbolReferenceInfo>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Cfg_1)'!=''">
+			<DCC_MapFile>3</DCC_MapFile>
 			<Version>7.0</Version>
 			<DCC_SYMBOL_PLATFORM>False</DCC_SYMBOL_PLATFORM>
 			<DCC_UNIT_PLATFORM>False</DCC_UNIT_PLATFORM>
