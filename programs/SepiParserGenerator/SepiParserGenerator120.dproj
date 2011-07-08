@@ -23,14 +23,14 @@
 			<Base>true</Base>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Base)'!=''">
+			<DCC_ExeOutput>$(SEPISDK)\bin\SepiParserGenerator</DCC_ExeOutput>
 			<DCC_IMPLICIT_STRING_CAST_LOSS>false</DCC_IMPLICIT_STRING_CAST_LOSS>
 			<DCC_IMPLICIT_STRING_CAST>false</DCC_IMPLICIT_STRING_CAST>
 			<UsePackages>true</UsePackages>
-			<DCC_DependencyCheckOutputName>SepiParserGenerator.exe</DCC_DependencyCheckOutputName>
+			<DCC_DependencyCheckOutputName>..\..\bin\SepiParserGenerator\SepiParserGenerator.exe</DCC_DependencyCheckOutputName>
 			<DCC_UsePackage>vcl;rtl;vclx;dbrtl;vcldb;VclSmp;SCL120;SVCL120;SDL120;SepiCore120;SepiReflection120;SepiInterpreter120;SepiCompiler120;SepiDelphiCompiler120</DCC_UsePackage>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Cfg_1)'!=''">
-			<DCC_DependencyCheckOutputName>..\..\bin\SepiParserGenerator\SepiParserGenerator.exe</DCC_DependencyCheckOutputName>
 			<Version>7.0</Version>
 			<DCC_DebugInformation>False</DCC_DebugInformation>
 			<DCC_LocalDebugSymbols>False</DCC_LocalDebugSymbols>
@@ -41,10 +41,8 @@
 			<DCC_COMPARING_SIGNED_UNSIGNED>False</DCC_COMPARING_SIGNED_UNSIGNED>
 			<DCC_COMBINING_SIGNED_UNSIGNED>False</DCC_COMBINING_SIGNED_UNSIGNED>
 			<DCC_DUPLICATE_CTOR_DTOR>False</DCC_DUPLICATE_CTOR_DTOR>
-			<DCC_ExeOutput>$(SEPISDK)\bin\SepiParserGenerator</DCC_ExeOutput>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Cfg_2)'!=''">
-			<DCC_DependencyCheckOutputName>..\..\bin\SepiParserGenerator\SepiParserGenerator.exe</DCC_DependencyCheckOutputName>
 			<Version>7.0</Version>
 			<DCC_Define>DEBUG;$(DCC_Define)</DCC_Define>
 			<DCC_SYMBOL_PLATFORM>False</DCC_SYMBOL_PLATFORM>
@@ -52,12 +50,14 @@
 			<DCC_COMPARING_SIGNED_UNSIGNED>False</DCC_COMPARING_SIGNED_UNSIGNED>
 			<DCC_COMBINING_SIGNED_UNSIGNED>False</DCC_COMBINING_SIGNED_UNSIGNED>
 			<DCC_DUPLICATE_CTOR_DTOR>False</DCC_DUPLICATE_CTOR_DTOR>
-			<DCC_ExeOutput>$(SEPISDK)\bin\SepiParserGenerator</DCC_ExeOutput>
 		</PropertyGroup>
 		<ItemGroup>
 			<DelphiCompile Include="SepiParserGenerator.dpr">
 				<MainSource>MainSource</MainSource>
 			</DelphiCompile>
+			<DCCReference Include="GeneratorOptions.pas"/>
+			<DCCReference Include="GeneratorUtils.pas"/>
+			<DCCReference Include="SepiLL1Grammars.pas"/>
 			<BuildConfiguration Include="Base">
 				<Key>Base</Key>
 			</BuildConfiguration>

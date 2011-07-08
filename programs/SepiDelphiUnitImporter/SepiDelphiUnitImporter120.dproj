@@ -23,13 +23,13 @@
 			<Base>true</Base>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Base)'!=''">
+			<DCC_ExeOutput>$(SEPISDK)\bin\SepiDelphiUnitImporter</DCC_ExeOutput>
 			<UsePackages>true</UsePackages>
 			<DCC_IMPLICIT_STRING_CAST>false</DCC_IMPLICIT_STRING_CAST>
-			<DCC_DependencyCheckOutputName>SepiDelphiUnitImporter.exe</DCC_DependencyCheckOutputName>
+			<DCC_DependencyCheckOutputName>..\..\bin\SepiDelphiUnitImporter\SepiDelphiUnitImporter.exe</DCC_DependencyCheckOutputName>
 			<DCC_UsePackage>vcl;rtl;vclx;dbrtl;vcldb;VclSmp;SCL120;SVCL120;SDL120;SepiCore120;SepiReflection120;SepiInterpreter120;SepiCompiler120;SepiDelphiCompiler120</DCC_UsePackage>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Cfg_1)'!=''">
-			<DCC_DependencyCheckOutputName>..\..\bin\SepiDelphiUnitImporter\SepiDelphiUnitImporter.exe</DCC_DependencyCheckOutputName>
 			<Version>7.0</Version>
 			<DCC_Define>RELEASE;$(DCC_Define)</DCC_Define>
 			<DCC_SYMBOL_PLATFORM>False</DCC_SYMBOL_PLATFORM>
@@ -37,10 +37,8 @@
 			<DCC_COMPARING_SIGNED_UNSIGNED>False</DCC_COMPARING_SIGNED_UNSIGNED>
 			<DCC_COMBINING_SIGNED_UNSIGNED>False</DCC_COMBINING_SIGNED_UNSIGNED>
 			<DCC_DUPLICATE_CTOR_DTOR>False</DCC_DUPLICATE_CTOR_DTOR>
-			<DCC_ExeOutput>C:\Projets\Sepi\bin\SepiDelphiUnitImporter</DCC_ExeOutput>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Cfg_2)'!=''">
-			<DCC_DependencyCheckOutputName>..\..\bin\SepiDelphiUnitImporter\SepiDelphiUnitImporter.exe</DCC_DependencyCheckOutputName>
 			<Version>7.0</Version>
 			<DCC_Define>DEBUG;$(DCC_Define)</DCC_Define>
 			<DCC_SYMBOL_PLATFORM>False</DCC_SYMBOL_PLATFORM>
@@ -48,7 +46,6 @@
 			<DCC_COMPARING_SIGNED_UNSIGNED>False</DCC_COMPARING_SIGNED_UNSIGNED>
 			<DCC_COMBINING_SIGNED_UNSIGNED>False</DCC_COMBINING_SIGNED_UNSIGNED>
 			<DCC_DUPLICATE_CTOR_DTOR>False</DCC_DUPLICATE_CTOR_DTOR>
-			<DCC_ExeOutput>$(SEPISDK)\bin\SepiDelphiUnitImporter</DCC_ExeOutput>
 		</PropertyGroup>
 		<ItemGroup>
 			<DelphiCompile Include="SepiDelphiUnitImporter.dpr">
