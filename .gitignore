@@ -2,3 +2,4 @@
 *.local
 *.dcu
 *.identcache
+__history/
