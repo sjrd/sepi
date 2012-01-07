@@ -725,6 +725,7 @@ type
   TSepiConvertOperation = class(TSepiCustomComputedValue)
   private
     FSource: ISepiReadableValue; /// Expression source
+    FExplicit: Boolean;          /// Indique si c'est une conversion explicite
 
     procedure CollapseConsts;
   protected
@@ -749,18 +750,21 @@ type
       TempVars: TSepiTempVarsLifeManager); override;
   public
     constructor Create(DestType: TSepiType;
-      const ASource: ISepiReadableValue = nil);
+      const ASource: ISepiReadableValue = nil; AExplicit: Boolean = False);
 
     procedure Complete;
 
-    class function ConversionExists(
-      DestType, SrcType: TSepiType): Boolean; overload;
+    class function ConversionExists(DestType, SrcType: TSepiType;
+      Explicit: Boolean = False): Boolean; overload;
     class function ConversionExists(DestType: TSepiType;
-      const Source: ISepiReadableValue): Boolean; overload;
+      const Source: ISepiReadableValue;
+      Explicit: Boolean = False): Boolean; overload;
     class function ConvertValue(DestType: TSepiType;
-      const Value: ISepiReadableValue): ISepiReadableValue;
+      const Value: ISepiReadableValue;
+      Explicit: Boolean = False): ISepiReadableValue;
 
     property Source: ISepiReadableValue read FSource write FSource;
+    property Explicit: Boolean read FExplicit write FExplicit;
   end;
 
   {*
@@ -3527,7 +3531,10 @@ end;
 procedure TSepiCastOperator.CompileWrite(Compiler: TSepiMethodCompiler;
   Instructions: TSepiInstructionList; Source: ISepiReadableValue);
 begin
-  if not (Operand.ValueType is TSepiUntypedType) then
+  if Operand.ValueType is TSepiUntypedType then
+  begin
+    Source := Source;
+  end else
   begin
     Source := TSepiCastOperator.CastValue(Operand.ValueType,
       Source) as ISepiReadableValue;
@@ -3637,16 +3644,18 @@ end;
 
 {*
   Crée une opération de conversion
-  @param DestType   Type de destination
-  @param ASource    Expression source
+  @param DestType    Type de destination
+  @param ASource     Expression source
+  @param AExplicit   Indique si c'est une conversion explicite
 *}
 constructor TSepiConvertOperation.Create(DestType: TSepiType;
-  const ASource: ISepiReadableValue = nil);
+  const ASource: ISepiReadableValue = nil; AExplicit: Boolean = False);
 begin
   inherited Create;
 
   SetValueType(DestType);
   FSource := ASource;
+  FExplicit := AExplicit;
 end;
 
 {*
@@ -3875,7 +3884,7 @@ var
 begin
   Assert(FSource <> nil);
 
-  if not ConversionExists(ValueType, Source) then
+  if not ConversionExists(ValueType, Source, Explicit) then
   begin
     MakeError(Format(STypeMismatch,
       [ValueType.DisplayName, Source.ValueType.DisplayName]));
@@ -3884,7 +3893,7 @@ begin
 
   if (Source.ValueType <> ValueType) and
     Supports(Source, ISepiTypeForceableValue, TypeForceableSrc) and
-    TypeForceableSrc.CanForceType(ValueType) then
+    TypeForceableSrc.CanForceType(ValueType, Explicit) then
   begin
     TypeForceableSrc.ForceType(ValueType);
   end;
@@ -3896,10 +3905,11 @@ end;
   Teste si une conversion existe et est possible depuis un type vers un autre
   @param DestType   Type de destination
   @param SrcType    Type source
+  @param Explicit   Indique si c'est une conversion explicite
   @return True si une conversion est possible, False sinon
 *}
 class function TSepiConvertOperation.ConversionExists(
-  DestType, SrcType: TSepiType): Boolean;
+  DestType, SrcType: TSepiType; Explicit: Boolean = False): Boolean;
 var
   DestKind, SrcKind: TSepiSignatureKind;
   DestBase, SrcBase: TSepiBaseType;
@@ -3968,7 +3978,7 @@ begin
   // Convertions via the CVRT instruction
   if SepiTypeToBaseType(DestType, DestBase) and
     SepiTypeToBaseType(SrcType, SrcBase) and
-    SepiRuntimeOperations.ConversionExists(SrcBase, DestBase) then
+    SepiRuntimeOperations.ConversionExists(SrcBase, DestBase, Explicit) then
   begin
     Result := True;
     Exit;
@@ -3982,10 +3992,11 @@ end;
   Teste si une conversion existe et est possible d'une valeur en un type donné
   @param DestType   Type de destination
   @param Source     Valeur source
+  @param Explicit   Indique si c'est une conversion explicite
   @return True si une conversion est possible, False sinon
 *}
 class function TSepiConvertOperation.ConversionExists(DestType: TSepiType;
-  const Source: ISepiReadableValue): Boolean;
+  const Source: ISepiReadableValue; Explicit: Boolean = False): Boolean;
 var
   SrcType: TSepiType;
   TypeForceableSrc: ISepiTypeForceableValue;
@@ -3995,24 +4006,26 @@ begin
   if SrcType = DestType then
     Result := True
   else if Supports(Source, ISepiTypeForceableValue, TypeForceableSrc) and
-    TypeForceableSrc.CanForceType(DestType) then
+    TypeForceableSrc.CanForceType(DestType, Explicit) then
     Result := True
   else
-    Result := ConversionExists(DestType, SrcType);
+    Result := ConversionExists(DestType, SrcType, Explicit);
 end;
 
 {*
   Convertit une valeur
   @param DestType   Type de destination
   @param Value      Valeur à convertir
+  @param Explicit   Indique si c'est une conversion explicite
   @return Valeur convertie
 *}
 class function TSepiConvertOperation.ConvertValue(DestType: TSepiType;
-  const Value: ISepiReadableValue): ISepiReadableValue;
+  const Value: ISepiReadableValue;
+  Explicit: Boolean = False): ISepiReadableValue;
 var
   ConvertOp: TSepiConvertOperation;
 begin
-  ConvertOp := TSepiConvertOperation.Create(DestType, Value);
+  ConvertOp := TSepiConvertOperation.Create(DestType, Value, Explicit);
 
   Result := ConvertOp;
   Result.AttachToExpression(TSepiExpression.Create(Value as ISepiExpression));

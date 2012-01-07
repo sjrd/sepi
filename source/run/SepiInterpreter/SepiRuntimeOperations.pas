@@ -54,7 +54,8 @@ procedure Compare(OpCode: TSepiOpCode; VarType: TSepiBaseType;
 
 procedure Convert(ToType, FromType: TSepiBaseType; var Dest; const Source);
 
-function ConversionExists(SrcBaseType, DestBaseType: TSepiBaseType): Boolean;
+function ConversionExists(SrcBaseType, DestBaseType: TSepiBaseType;
+  Explicit: Boolean = False): Boolean;
 
 implementation
 
@@ -1049,7 +1050,8 @@ begin
   end;
 end;
 
-function ConversionExists(SrcBaseType, DestBaseType: TSepiBaseType): Boolean;
+function ConversionExists(SrcBaseType, DestBaseType: TSepiBaseType;
+  Explicit: Boolean = False): Boolean;
 const
   BoolFriendlyTypes = [btBoolean] + btIntegers;
 var
@@ -1072,7 +1074,7 @@ begin
   // Char types convert to Char types or string types
   if SrcBaseType in btChars then
   begin
-    Result := DestBaseType in (btCharsAndStrings);
+    Result := DestBaseType in btCharsAndStrings;
     Exit;
   end;
 
@@ -1092,14 +1094,21 @@ begin
     Exit;
   end;
 
-  // Boolean type convert with integer types, but not with anything else
+  // Boolean type convert with integer types, but not with anything else,
+  // and only explicitly
   if btBoolean in BaseTypes then
   begin
-    Result := BaseTypes <= BoolFriendlyTypes;
+    Result := Explicit and (BaseTypes <= BoolFriendlyTypes);
     Exit;
   end;
 
   // All other cases are number to number conversions, which are supported
+  // However, decimal to integral conversion is allowed only explicitly
+  if (SrcBaseType in btFloats) and (DestBaseType in btIntegers) then
+  begin
+    Result := Explicit;
+    Exit;
+  end;
 end;
 
 {*
