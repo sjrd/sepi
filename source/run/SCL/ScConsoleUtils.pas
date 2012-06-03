@@ -38,12 +38,15 @@ statement from your version.
   @version 1.0
 *}
 unit ScConsoleUtils;
-
+{$i ..\..\source\Sepi.inc}
 interface
 
 uses
-  Windows, SysUtils, Classes, StrUtils, Contnrs, IniFiles, TypInfo, ScStrUtils,
-  ScUtils, ScConsts;
+  Windows, SysUtils, Classes, Contnrs, IniFiles, TypInfo,
+  ScUtils, ScConsts
+  {$IFNDEF FPC}
+  , StrUtils, ScStrUtils
+  {$ENDIF};
 
 type
   {*
@@ -83,7 +86,12 @@ type
     FPresent: Boolean; /// Indique si l'option est présente
 
     FVariable: Pointer;    /// Pointeur sur la variable où stocker le résultat
+
+    {$IFDEF FPC} // and maybe specific to windows too...
+    FPresentVar: PWinBool;
+    {$ELSE}
     FPresentVar: PBoolean; /// Pointeur sur le booléen où indiquer si présente
+    {$ENDIF}
 
     FRightMostArgument: string; /// Argument sauvegardé pour omRightMost
   protected
@@ -104,7 +112,12 @@ type
   public
     constructor Create(const AName: string; const AChars: TSysCharSet;
       AVariable: Pointer; AMultiplicity: TCommandLineOptionMultiplicity;
-      ARequired: Boolean = True; APresentVar: PBoolean = nil;
+      ARequired: Boolean = True;
+      {$IFDEF FPC}  // and maybe specific to windows too...
+      APresentVar: PWinBool = nil;
+      {$ELSE}
+      APresentVar: PBoolean = nil;
+      {$ENDIF}
       AHasDefaultValue: Boolean = False);
 
     procedure Init; virtual;
@@ -155,7 +168,11 @@ type
     function GetNeedArgument: Boolean; override;
   public
     constructor Create(const AName: string; const AChars: TSysCharSet;
-      AVariable: PBoolean);
+    {$IFDEF FPC}  // and maybe specific to windows too...
+    AVariable: PWinBool);
+    {$ELSE}
+    AVariable: PBoolean);
+    {$ENDIF}
   end;
 
   {*
@@ -177,20 +194,40 @@ type
   public
     constructor Create(const AName: string; const AChars: TSysCharSet;
       AVariable: Pointer; AOrdType: TOrdType; AMinValue, AMaxValue: Int64;
-      ARequired: Boolean = True; APresentVar: PBoolean = nil;
+      ARequired: Boolean = True;
+      {$IFDEF FPC}  // and maybe specific to windows too...
+      APresentVar: PWinBool = nil;
+      {$ELSE}
+      APresentVar: PBoolean = nil;
+      {$ENDIF}
       AHasDefaultValue: Boolean = False); overload;
     constructor Create(const AName: string; const AChars: TSysCharSet;
       AVariable: Pointer; AMinValue, AMaxValue: Int64;
-      ARequired: Boolean = True; APresentVar: PBoolean = nil;
+      ARequired: Boolean = True;
+      {$IFDEF FPC}  // and maybe specific to windows too...
+      APresentVar: PWinBool = nil;
+      {$ELSE}
+      APresentVar: PBoolean = nil;
+      {$ENDIF}
       AHasDefaultValue: Boolean = False); overload;
     constructor CreateInt64(const AName: string; const AChars: TSysCharSet;
       AVariable: Pointer; AMinValue, AMaxValue: Int64;
-      ARequired: Boolean = True; APresentVar: PBoolean = nil;
+      ARequired: Boolean = True;
+      {$IFDEF FPC}  // and maybe specific to windows too...
+      APresentVar: PWinBool = nil;
+      {$ELSE}
+      APresentVar: PBoolean = nil;
+      {$ENDIF}
       AHasDefaultValue: Boolean = False);
 
     constructor CreateTypeInfo(const AName: string; const AChars: TSysCharSet;
       AVariable: Pointer; ATypeInfo: PTypeInfo; ARequired: Boolean = True;
-      APresentVar: PBoolean = nil; AHasDefaultValue: Boolean = False);
+      {$IFDEF FPC}  // and maybe specific to windows too...
+      APresentVar: PWinBool = nil;
+      {$ELSE}
+      APresentVar: PBoolean = nil;
+      {$ENDIF}
+      AHasDefaultValue: Boolean = False);
 
     property OrdType: TOrdType read FOrdType;
     property MinValue: Int64 read FMinValue;
@@ -212,7 +249,12 @@ type
   public
     constructor Create(const AName: string; const AChars: TSysCharSet;
       AVariable: PString; ARequired: Boolean = True;
-      APresentVar: PBoolean = nil; AHasDefaultValue: Boolean = False); overload;
+      {$IFDEF FPC}  // and maybe specific to windows too...
+      APresentVar: PWinBool = nil;
+      {$ELSE}
+      APresentVar: PBoolean = nil;
+      {$ENDIF}
+      AHasDefaultValue: Boolean = False); overload;
   end;
 
   {*
@@ -229,7 +271,12 @@ type
   public
     constructor Create(const AName: string; const AChars: TSysCharSet;
       AVariable: Pointer; AEnumTypeInfo: PTypeInfo; const APrefix: string = '';
-      ARequired: Boolean = True; APresentVar: PBoolean = nil;
+      ARequired: Boolean = True;
+      {$IFDEF FPC}  // and maybe specific to windows too...
+      APresentVar: PWinBool = nil;
+      {$ELSE}
+      APresentVar: PBoolean = nil;
+      {$ENDIF}
       AHasDefaultValue: Boolean = False); overload;
 
     property EnumTypeInfo: PTypeInfo read FEnumTypeInfo;
@@ -349,7 +396,12 @@ end;
 constructor TCommandLineOption.Create(const AName: string;
   const AChars: TSysCharSet; AVariable: Pointer;
   AMultiplicity: TCommandLineOptionMultiplicity; ARequired: Boolean = True;
-  APresentVar: PBoolean = nil; AHasDefaultValue: Boolean = False);
+  {$IFDEF FPC}  // and maybe specific to windows too...
+  APresentVar: PWinBool = nil;
+  {$ELSE}
+  APresentVar: PBoolean = nil;
+  {$ENDIF}
+  AHasDefaultValue: Boolean = False);
 begin
   inherited Create;
 
@@ -495,7 +547,11 @@ end;
   @param AVariable   Pointeur sur la variable booléenne où stocker le résultat
 *}
 constructor TCommandLineSwitch.Create(const AName: string; const AChars: TSysCharSet;
-  AVariable: PBoolean);
+    {$IFDEF FPC}  // and maybe specific to windows too...
+    AVariable: PWinBool);
+    {$ELSE}
+    AVariable: PBoolean);
+    {$ENDIF}
 begin
   inherited Create(AName, AChars, nil, omSingle, False, AVariable);
 end;
@@ -537,7 +593,12 @@ const
 constructor TIntegerOption.Create(const AName: string;
   const AChars: TSysCharSet; AVariable: Pointer; AOrdType: TOrdType;
   AMinValue, AMaxValue: Int64; ARequired: Boolean = True;
-  APresentVar: PBoolean = nil; AHasDefaultValue: Boolean = False);
+  {$IFDEF FPC}  // and maybe specific to windows too...
+  APresentVar: PWinBool = nil;
+  {$ELSE}
+  APresentVar: PBoolean = nil;
+  {$ENDIF}
+  AHasDefaultValue: Boolean = False);
 begin
   inherited Create(AName, AChars, AVariable, omSingle, ARequired, APresentVar,
     AHasDefaultValue);
@@ -560,7 +621,12 @@ end;
 *}
 constructor TIntegerOption.Create(const AName: string;
   const AChars: TSysCharSet; AVariable: Pointer; AMinValue, AMaxValue: Int64;
-  ARequired: Boolean = True; APresentVar: PBoolean = nil;
+  ARequired: Boolean = True;
+  {$IFDEF FPC}  // and maybe specific to windows too...
+  APresentVar: PWinBool = nil;
+  {$ELSE}
+  APresentVar: PBoolean = nil;
+  {$ENDIF}
   AHasDefaultValue: Boolean = False);
 var
   AOrdType: TOrdType;
@@ -584,7 +650,12 @@ end;
 *}
 constructor TIntegerOption.CreateInt64(const AName: string;
   const AChars: TSysCharSet; AVariable: Pointer; AMinValue, AMaxValue: Int64;
-  ARequired: Boolean = True; APresentVar: PBoolean = nil;
+  ARequired: Boolean = True;
+  {$IFDEF FPC}  // and maybe specific to windows too...
+  APresentVar: PWinBool = nil;
+  {$ELSE}
+  APresentVar: PBoolean = nil;
+  {$ENDIF}
   AHasDefaultValue: Boolean = False);
 begin
   Create(AName, AChars, AVariable, otInt64, AMinValue, AMaxValue, ARequired,
@@ -603,7 +674,12 @@ end;
 *}
 constructor TIntegerOption.CreateTypeInfo(const AName: string;
   const AChars: TSysCharSet; AVariable: Pointer; ATypeInfo: PTypeInfo;
-  ARequired: Boolean = True; APresentVar: PBoolean = nil;
+  ARequired: Boolean = True;
+  {$IFDEF FPC}  // and maybe specific to windows too...
+  APresentVar: PWinBool = nil;
+  {$ELSE}
+  APresentVar: PBoolean = nil;
+  {$ENDIF}
   AHasDefaultValue: Boolean = False);
 var
   TypeData: PTypeData;
@@ -701,7 +777,12 @@ end;
 *}
 constructor TStringOption.Create(const AName: string;
   const AChars: TSysCharSet; AVariable: PString; ARequired: Boolean = True;
-  APresentVar: PBoolean = nil; AHasDefaultValue: Boolean = False);
+        {$IFDEF FPC}  // and maybe specific to windows too...
+        APresentVar: PWinBool = nil;
+        {$ELSE}
+        APresentVar: PBoolean = nil;
+        {$ENDIF}
+        AHasDefaultValue: Boolean = False);
 begin
   inherited Create(AName, AChars, AVariable, omSingle, ARequired, APresentVar,
     AHasDefaultValue);
@@ -765,7 +846,13 @@ end;
 *}
 constructor TEnumOption.Create(const AName: string; const AChars: TSysCharSet;
   AVariable: Pointer; AEnumTypeInfo: PTypeInfo; const APrefix: string;
-  ARequired: Boolean; APresentVar: PBoolean; AHasDefaultValue: Boolean);
+  ARequired: Boolean;
+  {$IFDEF FPC}  // and maybe specific to windows too...
+  APresentVar: PWinBool = nil;
+  {$ELSE}
+  APresentVar: PBoolean = nil;
+  {$ENDIF}
+  AHasDefaultValue: Boolean = False);
 begin
   inherited Create(AName, AChars, AVariable, omSingle, ARequired, APresentVar,
     AHasDefaultValue);

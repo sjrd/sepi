@@ -38,7 +38,7 @@ statement from your version.
   @version 1.0
 *}
 unit ScDateTimeUtils;
-
+{$i ..\..\source\Sepi.inc}
 interface
 
 function GetMonthName(Month: Integer; Maj: Boolean = True): string;

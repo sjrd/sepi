@@ -38,7 +38,7 @@ statement from your version.
   @version 1.0
 *}
 unit ScMD5;
-
+{$i ..\..\source\Sepi.inc}
 interface
 
 uses
@@ -455,7 +455,7 @@ begin
     repeat
       ReadBytes := Stream.Read(Buffer, SizeOf(Buffer));
       Inc(TotalBytes, ReadBytes);
-      MD5Update(Context, @Buffer, ReadBytes);
+      MD5Update(Context, PByteArray(@Buffer), ReadBytes);
     until (ReadBytes = 0) or (TotalBytes = Size);
   finally
     Stream.Seek(SavePos, soFromBeginning);

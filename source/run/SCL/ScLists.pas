@@ -38,7 +38,7 @@ statement from your version.
   @version 1.0
 *}
 unit ScLists;
-
+{$i ..\..\source\Sepi.inc}
 interface
 
 uses
@@ -60,9 +60,18 @@ type
     @author sjrd
     @version 1.0
   *}
+
+  { TCompareStrings }
+
   TCompareStrings = class(TStrings)
   public
-    function CompareStrings(const S1, S2: string): Integer; override;
+    {$IFDEF FPC}
+    FCaseSensitive: Boolean;
+    {$ENDIF}
+    function CompareStrings(const S1, S2: string): Integer; {$IFNDEF FPC}override;{$ENDIF}
+    {$IFDEF FPC}
+    Property CaseSensitive: Boolean Read FCaseSensitive Write FCaseSensitive;
+    {$ENDIF}
   end;
 
   {*
@@ -338,8 +347,9 @@ type
   TValueBucketEvent = procedure(const Key, Data;
     var Continue: Boolean) of object;
 
-{$IF CompilerVersion >= 20}
-  {*
+  {$IFNDEF FPC} // FPC doesn't support "reference to" see http://www.lazarus.freepascal.org/index.php?topic=12250.0
+  {$IF CompilerVersion >= 20}
+{*
     Référence de call-back pour la méthode ForEach de TCustomValueBucketList
     @param Key        Clef
     @param Data       Données associées à la clef
@@ -347,7 +357,8 @@ type
   *}
   TValueBucketCallback = reference to procedure(const Key, Data;
     var Continue: Boolean);
-{$IFEND}
+  {$IFEND}
+  {$ENDIF}
 
   {*
     Classe de base pour les tables associatives hashées par valeur
@@ -415,9 +426,13 @@ type
     function ForEach(Proc: TValueBucketProc;
       Info: Pointer = nil): Boolean; overload;
     function ForEach(Event: TValueBucketEvent): Boolean; overload;
-{$IF CompilerVersion >= 20}
+    {$IFNDEF FPC}
+      {$IF CompilerVersion >= 20}
+    {$ENDIF}
     function ForEach(const Callback: TValueBucketCallback): Boolean; overload;
-{$IFEND}
+    {$IFNDEF FPC}
+      {$IFEND}
+    {$ENDIF}
 
     function Exists(const Key): Boolean;
     function Find(const Key; out Data): Boolean;
@@ -475,7 +490,13 @@ const
 *}
 function TCompareStrings.CompareStrings(const S1, S2: string): Integer;
 begin
+  {$IFDEF FPC}
+  if CaseSensitive
+     then result:=AnsiCompareStr(s1,s2)
+     else result:=AnsiCompareText(s1,s2);
+  {$ELSE}
   Result := (inherited CompareStrings(S1, S2));
+  {$ENDIF}
 end;
 
 {$REGION 'Classe StringsOps'}
@@ -2416,6 +2437,7 @@ begin
     Result := ForEach(TValueBucketProc(Code), Data);
 end;
 
+{$IFNDEF FPC}  // FPC doesn't support "reference to" see http://www.lazarus.freepascal.org/index.php?topic=12250.0
 {$IF CompilerVersion >= 20}
 {*
   Appelle un call-back pour chaque paire clef/valeur de la liste
@@ -2452,6 +2474,7 @@ begin
   end;
 end;
 {$IFEND}
+{$ENDIF}
 
 {*
   Copie le contenu d'une liste

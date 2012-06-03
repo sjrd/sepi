@@ -38,17 +38,30 @@ statement from your version.
   @version 1.0
 *}
 unit ScZLib;
-
+{$i ..\..\source\Sepi.inc}
 interface
 
 uses
-  Classes, ZLib;
+  Classes,
+  {$IFDEF FPC}
+  zstream
+  {$ELSE}
+  ZLib
+  {$ENDIF}
+  ;
 
 const
+  {$IFDEF FPC}
+  clNoComp = zstream.cldefault;       /// Pas de compression
+  clFastestComp = zstream.clfastest;  /// Compression la plus rapide
+  clDefaultComp = zstream.cldefault;  /// Compression par défaut
+  clMaxComp = zstream.clmax;          /// Compression maximale
+  {$ELSE}
   clNoComp = ZLib.clNone;         /// Pas de compression
   clFastestComp = ZLib.clFastest; /// Compression la plus rapide
   clDefaultComp = ZLib.clDefault; /// Compression par défaut
   clMaxComp = ZLib.clMax;         /// Compression maximale
+  {$ENDIF}
 
 procedure CompressStream(Stream: TStream; Dest: TStream = nil;
   CompressionLevel: TCompressionLevel = clDefaultComp);

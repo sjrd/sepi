@@ -39,7 +39,7 @@ statement from your version.
   @version 1.0
 *}
 unit ScCompilerMagic;
-
+{$i ..\..\source\Sepi.inc}
 interface
 
 uses
@@ -97,7 +97,7 @@ end;
 *}
 procedure Initialize(var Value; TypeInfo: PTypeInfo; Count: Cardinal = 1);
 asm
-        JMP     System.@InitializeArray
+ // TODO FPC       JMP     System.@InitializeArray
 end;
 
 {*
@@ -108,7 +108,7 @@ end;
 *}
 procedure Finalize(var Value; TypeInfo: PTypeInfo; Count: Cardinal = 1);
 asm
-        JMP     System.@FinalizeArray
+  // TODO FPC      JMP     System.@FinalizeArray
 end;
 
 {*
@@ -119,7 +119,7 @@ end;
 *}
 procedure AddRef(var Value; TypeInfo: PTypeInfo; Count: Cardinal = 1);
 asm
-        JMP     System.@AddRefArray
+  // TODO FPC      JMP     System.@AddRefArray
 end;
 
 {$IFDEF UNICODE}
@@ -132,7 +132,7 @@ end;
 procedure LStrFromUStr(var Dest: AnsiString; const Source: UnicodeString;
   CodePage: Word);
 asm
-        JMP     System.@LStrFromUStr
+  // TODO FPC      JMP     System.@LStrFromUStr
 end;
 {$ENDIF}
 
@@ -145,8 +145,8 @@ end;
 *}
 procedure CopyArray(Dest, Source, TypeInfo: Pointer; Count: Integer);
 asm
-        POP     EBP // Anti-asm
-        JMP     System.@CopyArray
+// TODO FPC        POP     EBP // Anti-asm
+// TODO FPC        JMP     System.@CopyArray
 end;
 
 {*
@@ -157,7 +157,7 @@ end;
 *}
 procedure CopyRecord(Dest, Source, TypeInfo: Pointer);
 asm
-        JMP     System.@CopyRecord
+// TODO FPC        JMP     System.@CopyRecord
 end;
 
 {*
@@ -169,7 +169,7 @@ end;
 procedure DynArrayCopy(Source: Pointer; TypeInfo: Pointer;
   var Dest: Pointer);
 asm
-        JMP     System.@DynArrayCopy
+// TODO FPC        JMP     System.@DynArrayCopy
 end;
 
 {*
@@ -183,8 +183,8 @@ end;
 procedure DynArrayCopyRange(Source: Pointer; TypeInfo: Pointer;
   Index, Count: Integer; var Dest: Pointer);
 asm
-        POP     EBP // Anti-asm
-        JMP     System.@DynArrayCopyRange
+// TODO FPC        POP     EBP // Anti-asm
+// TODO FPC        JMP     System.@DynArrayCopyRange
 end;
 
 {*
@@ -194,8 +194,8 @@ end;
 *}
 function DynArrayLength(const DynArray): Integer;
 asm
-        MOV     EAX,[EAX]
-        JMP     System.@DynArrayLength
+// TODO FPC        MOV     EAX,[EAX]
+// TODO FPC        JMP     System.@DynArrayLength
 end;
 
 {*
@@ -205,8 +205,8 @@ end;
 *}
 function DynArrayHigh(const DynArray): Integer;
 asm
-        MOV     EAX,[EAX]
-        JMP     System.@DynArrayHigh
+//  TODO FPC        MOV     EAX,[EAX]
+//  TODO FPC        JMP     System.@DynArrayHigh
 end;
 
 {*
@@ -217,7 +217,7 @@ end;
 *}
 procedure DynArrayAsg(var Dest: Pointer; Src: Pointer; TypeInfo: Pointer);
 asm
-        JMP     System.@DynArrayAsg
+// TODO FPC        JMP     System.@DynArrayAsg
 end;
 
 {*
@@ -228,7 +228,7 @@ end;
 *}
 procedure SetElem(var Dest; Elem, Size: Byte);
 asm
-        JMP     System.@SetElem
+//  TODO FPC        JMP     System.@SetElem
 end;
 
 {*
@@ -240,10 +240,12 @@ end;
 *}
 procedure SetRange(var Dest; Lo, Hi, Size: Byte);
 asm
+(*  TODO FPC
         MOV     DH,Size
         XCHG    EAX,EDX
         XCHG    EDX,ECX
         CALL    System.@SetRange
+*)
 end;
 
 {*
@@ -255,11 +257,13 @@ end;
 *}
 function SetEquals(const Set1, Set2; Size: Byte): Boolean;
 asm
+(*  TODO FPC
         CALL    System.@SetEq
         MOV     AL,0
         JNZ     @@notEqual
         INC     AL
 @@notEqual:
+*)
 end;
 
 {*
@@ -271,11 +275,13 @@ end;
 *}
 function SetContained(const SubSet, ContainingSet; Size: Byte): Boolean;
 asm
+(*  TODO FPC
         CALL    System.@SetLe
         MOV     AL,0
         JNZ     @@notEqual
         INC     AL
 @@notEqual:
+*)
 end;
 
 {*
@@ -286,7 +292,7 @@ end;
 *}
 procedure SetIntersect(var Dest; const Source; Size: Byte);
 asm
-        JMP     System.@SetIntersect
+// TODO FPC         JMP     System.@SetIntersect
 end;
 
 {*
@@ -297,7 +303,7 @@ end;
 *}
 procedure SetUnion(var Dest; const Source; Size: Byte);
 asm
-        JMP     System.@SetUnion
+//        JMP     System.@SetUnion
 end;
 
 {*
@@ -308,7 +314,7 @@ end;
 *}
 procedure SetSub(var Dest; const Source; Size: Byte);
 asm
-        JMP     System.@SetSub
+//        JMP     System.@SetSub
 end;
 
 {*
@@ -320,8 +326,8 @@ end;
 *}
 procedure SetExpand(const PackedSet; var ExpandedSet; Lo, Hi: Byte);
 asm
-        MOV     CH,Hi
-        CALL    System.@SetExpand
+//  TODO FPC         MOV     CH,Hi
+//  TODO FPC         CALL    System.@SetExpand
 end;
 
 {*
@@ -341,7 +347,8 @@ begin
     // Handle module redirector
     if PWord(Result)^ = $25FF then // JMP dword ptr [] op code
     begin
-      Inc(Integer(Result), 2);
+      // FPC : Is it the correct way 32/64 ?
+      Inc(PtrInt(Result), 2);
       Result := PPointer(Result)^;
       Result := PPointer(Result)^;
     end;
@@ -349,9 +356,9 @@ begin
     // Handle simple jump
     if PByte(Result)^ = $E9 then // JMP op code
     begin
-      Inc(Integer(Result));
-      Result := Pointer(Integer(Result) +
-        PInteger(Result)^ + 4);
+      // FPC : Is it the correct way 32/64 ?
+      Inc(PtrUInt(Result));
+      Result := Pointer(PtrUInt(Result) + PPtrUInt(Result)^ + 4);
     end;
   until Result = OldResult;
 end;

@@ -38,7 +38,7 @@ statement from your version.
   @version 1.0
 *}
 unit ScSyncObjs;
-
+{$i ..\..\source\Sepi.inc}
 interface
 
 uses
