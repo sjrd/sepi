@@ -38,7 +38,7 @@ statement from your version.
   @version 1.0
 *}
 unit ScConsts;
-
+{$i ..\..\source\Sepi.inc}
 interface
 
 resourcestring

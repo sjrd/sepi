@@ -38,11 +38,12 @@ statement from your version.
   @version 1.0
 *}
 unit ScMaths;
-
+{$i ..\..\source\Sepi.inc}
 interface
 
 uses
-  Classes, SysUtils, Contnrs, Math, VarCmplx, ScUtils, ScStrUtils, ScLists,
+  {$IFNDEF FPC} VarCmplx {$ENDIF}
+  Classes, SysUtils, Contnrs, Math, ScUtils, ScStrUtils, ScLists,
   ScConsts;
 
 const
@@ -305,7 +306,11 @@ type
     destructor Destroy; override;
     procedure SetToZero;
     procedure Assign(Source: TPolynom);
+    {$IFNDEF FPC}
     function ToString: string; {$IF RTLVersion >= 20.0} override; {$IFEND}
+    {$ELSE}
+    function ToString: string;
+    {$ENDIF}
     procedure LoadFromStream(Stream: TStream);
     procedure SaveToStream(Stream: TStream);
     procedure Add(Source: TPolynom);

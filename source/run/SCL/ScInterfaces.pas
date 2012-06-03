@@ -33,7 +33,7 @@ statement from your version.
 -------------------------------------------------------------------------------}
 
 unit ScInterfaces;
-
+{$i ..\..\source\Sepi.inc}
 interface
 
 uses
@@ -168,7 +168,7 @@ end;
   [@inheritDoc]
 *}
 function TDynamicallyLinkedObject.QueryInterface(const IID: TGUID;
-  out Obj): HResult;
+  out Obj): HResult; {$IFDEF FPC} stdcall;{$ENDIF}
 begin
   Result := inherited QueryInterface(IID, Obj);
   if (Result <> 0) and (FController <> nil) then
@@ -178,7 +178,7 @@ end;
 {*
   [@inheritDoc]
 *}
-function TDynamicallyLinkedObject._AddRef: Integer;
+function TDynamicallyLinkedObject._AddRef: Integer; {$IFDEF FPC} stdcall;{$ENDIF}
 begin
   Result := inherited _AddRef;
 
@@ -189,7 +189,7 @@ end;
 {*
   [@inheritDoc]
 *}
-function TDynamicallyLinkedObject._Release: Integer;
+function TDynamicallyLinkedObject._Release: Integer; {$IFDEF FPC} stdcall;{$ENDIF}
 begin
   Result := inherited _Release;
 
@@ -318,7 +318,7 @@ end;
   [@inheritDoc]
 *}
 function TDynamicIntfController.QueryInterface(const IID: TGUID;
-  out Obj): HResult;
+  out Obj): HResult; {$IFDEF FPC} stdcall;{$ENDIF}
 var
   Index: Integer;
 begin
@@ -335,7 +335,7 @@ end;
 {*
   [@inheritDoc]
 *}
-function TDynamicIntfController._AddRef: Integer;
+function TDynamicIntfController._AddRef: Integer; {$IFDEF FPC} stdcall;{$ENDIF}
 begin
   if Destroying then
     Result := 0
@@ -346,7 +346,7 @@ end;
 {*
   [@inheritDoc]
 *}
-function TDynamicIntfController._Release: Integer;
+function TDynamicIntfController._Release: Integer; {$IFDEF FPC} stdcall;{$ENDIF}
 begin
   if Destroying then
     Result := 0

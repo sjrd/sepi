@@ -38,11 +38,16 @@ statement from your version.
   @version 1.0
 *}
 unit ScSerializer;
-
+{$i ..\..\source\Sepi.inc}
 interface
 
 uses
-  SysUtils, Classes, TypInfo, ScTypInfo;
+
+  SysUtils, Classes, TypInfo, ScTypInfo
+  {$IFDEF FPC}
+  , variants
+  {$ENDIF}
+  ;
 
 resourcestring
   SCantSerializeType = 'Impossible de sérialiser le type %s';
@@ -61,9 +66,6 @@ procedure ReadDataFromStream(Stream: TStream; var Data;
   TypeInfo: PTypeInfo); overload;
 
 implementation
-
-uses
-  ScCompilerMagic;
 
 {$IFDEF UNICODE}
 {*
@@ -367,7 +369,11 @@ begin
   if Count = 0 then
   begin
     // No element
+    {$IFDEF FPC} // Hope it works ...
+    DynArraySetLength(Pointer(Data), TypeInfo, 1, @Count);
+    {$ELSE}
     DynArrayClear(Pointer(Data), TypeInfo);
+    {$ENDIF}
   end else
   begin
     // At least 1 element

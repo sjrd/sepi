@@ -33,12 +33,18 @@ statement from your version.
 -------------------------------------------------------------------------------}
 
 unit ScXML;
-
+{$i ..\..\source\Sepi.inc}
 interface
 
 uses
-  SysUtils, Classes, msxml, ActiveX, ScConsts;
 
+  SysUtils, Classes, ActiveX, ScConsts,
+  {$IFDEF FPC}
+  XMLRead, XMLWrite, DOM
+  {$ELSE}
+  msxml
+  {$ENDIF}
+  ;
 const
   /// Caractères de la base 64
   Base64Chars: AnsiString =
@@ -50,6 +56,7 @@ const
 procedure Base64Encode(Input, Output: TStream);
 procedure Base64Decode(Input, Output: TStream);
 
+(* TODO FPC
 function LoadXMLDocumentFromStream(Stream: TStream): IXMLDOMDocument;
 procedure SaveXMLDocumentToStream(const Document: IXMLDOMDocument;
   Stream: TStream; Indent: Boolean = True);
@@ -60,6 +67,7 @@ procedure SaveXMLDocumentToFile(const Document: IXMLDOMDocument;
 
 procedure CreateXMLHeaderIfNotExists(const Document: IXMLDOMDocument);
 function IndentXMLDocument(const Document: IXMLDOMDocument): IXMLDOMDocument;
+*)
 
 implementation
 
@@ -166,6 +174,7 @@ begin
   end;
 end;
 
+(* TODO FPC
 {*
   Charge un document XML depuis un flux
   @param Stream   Flux source
@@ -286,7 +295,7 @@ begin
 
   Document.transformNodeToObject(IndentStylesheet, Result);
 end;
-
+ *)
 initialization
   InitGlobalVars;
 end.

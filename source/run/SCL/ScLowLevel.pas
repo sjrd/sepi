@@ -38,7 +38,7 @@ statement from your version.
   @version 1.0
 *}
 unit ScLowLevel;
-
+{$i ..\..\source\Sepi.inc}
 interface
 
 type
@@ -305,7 +305,7 @@ asm
         { ->    EAX     Pointer to class  }
         {       EDX     DMTIndex          }
         { <-    EAX     Pointer to method }
-        CALL    System.@FindDynaClass
+// TODO FPC        CALL    System.@FindDynaClass
 end;
 
 {*
@@ -334,7 +334,7 @@ asm
         {       EDX     DMTIndex          }
         { <-    EAX     Pointer to method }
         MOV     EAX,[EAX]
-        CALL    System.@FindDynaClass
+ // TODO FPC       CALL    System.@FindDynaClass
 end;
 
 {*

@@ -38,11 +38,14 @@ statement from your version.
   @version 1.0
 *}
 unit ScUtils;
-
+{$i ..\..\source\Sepi.inc}
 interface
 
 uses
-  Types, SysUtils, Classes;
+ {$IFNDEF FPC}
+ Types,
+ {$ENDIF}
+ SysUtils, Classes;
 
 {$IF not Declared(CharInSet)}
   {$DEFINE NEED_CHARINSET}

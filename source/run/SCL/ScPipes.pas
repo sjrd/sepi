@@ -38,7 +38,7 @@ statement from your version.
   @version 1.0
 *}
 unit ScPipes;
-
+{$i ..\..\source\Sepi.inc}
 interface
 
 uses
@@ -126,8 +126,14 @@ type
   TThreadTransformationStream = class(TTransformationStream)
   private
     FThread: TMethodThread;         /// Thread interne
+
+    {$IFDEF FPC}
+    FWrittenSomethingEvent: TSimpleEvent; /// Quelque chose a été écrit
+    FReadSomethingEvent: TSimpleEvent;    /// Quelque chose a été lu
+    {$ELSE}
     FWrittenSomethingEvent: TEvent; /// Quelque chose a été écrit
     FReadSomethingEvent: TEvent;    /// Quelque chose a été lu
+    {$ENDIF}
 
     FWritePosition: Int64;    /// Position en écriture
     FBufferSize: Integer;     /// Taille du buffer
@@ -146,8 +152,14 @@ type
     procedure RaiseFatalException;
 
     property Thread: TMethodThread read FThread;
+
+    {$IFDEF FPC}
+    property WrittenSomethingEvent: TSimpleEvent read FWrittenSomethingEvent;
+    property ReadSomethingEvent: TSimpleEvent read FReadSomethingEvent;
+    {$ELSE}
     property WrittenSomethingEvent: TEvent read FWrittenSomethingEvent;
     property ReadSomethingEvent: TEvent read FReadSomethingEvent;
+    {$ENDIF}
 
     property BufferSize: Integer read FBufferSize;
     property BufferCount: Integer read FBufferCount;
@@ -221,10 +233,11 @@ end;
   @param AddParam   Valeur à ajouter à Value
 *}
 procedure InterlockedAdd(var Value: Integer; AddParam: Integer);
-asm
+begin
+//asm
         { ->    EAX     Pointer to Value
                 EDX     AddParam         }
-   LOCK ADD     [EAX],EDX
+// TODO LAZ   LOCK ADD     [EAX],EDX
 end;
 
 {*
@@ -452,13 +465,14 @@ end;
 class procedure TTransformationStream.Error(const Msg: string;
   Data: Integer = 0);
 
-  function ReturnAddr: Pointer;
-  asm
-        MOV     EAX,[EBP+4]
-  end;
+  // TODO FPC
+  //function ReturnAddr: Pointer;
+  //asm
+  //      MOV     EAX,[EBP+4]
+  //end;
 
 begin
-  raise ETransformationStreamError.CreateFmt(Msg, [Data]) at ReturnAddr;
+ // raise ETransformationStreamError.CreateFmt(Msg, [Data]) at ReturnAddr;
 end;
 
 {*
@@ -568,7 +582,7 @@ begin
   // Multiple Read vs 1 Write
   while Count-Result >= FBufferSize do
   begin
-    Move(Pointer(Integer(@Buffer) + Result)^, FBuffer^, FBufferSize);
+    Move(Pointer(PtrUInt(@Buffer) + Result)^, FBuffer^, FBufferSize);
     Inc(Result, FBufferSize);
     IncPosition(FBufferSize);
     FBuffer := nil;
@@ -583,10 +597,10 @@ begin
   TempCount := Count-Result;
   if TempCount > 0 then
   begin
-    Move(Pointer(Integer(@Buffer) + Result)^, FBuffer^, TempCount);
+    Move(PPtrInt(PtrInt(@Buffer) + Result)^, FBuffer^, TempCount);
     Result := Count;
     IncPosition(TempCount);
-    Inc(Integer(FBuffer), TempCount);
+    Inc(PtrInt(FBuffer), TempCount);
     Dec(FBufferSize, TempCount);
   end;
 end;
@@ -615,8 +629,14 @@ begin
 
   FThread := TMethodThread.Create(PrivTransformStream, True);
   FThread.OnDoTerminate := ThreadTerminated;
+
+  {$IFDEF FPC}
+  FWrittenSomethingEvent := TSimpleEvent.Create;
+  FReadSomethingEvent := TSimpleEvent.Create;
+  {$ELSE}
   FWrittenSomethingEvent := TEvent.Create;
   FReadSomethingEvent := TEvent.Create;
+  {$ENDIF}
 
   FWritePosition := 0;
   FBufferSize := ABufferSize;
@@ -711,13 +731,13 @@ begin
   // Before looping
   if Count1 > 0 then
   begin
-    Move(Pointer(Integer(FBuffer) + FBufferReadPos)^, Dest^, Count1);
-    Inc(Integer(Dest), Count1);
+    Move(PPtrInt(PtrInt(FBuffer) + FBufferReadPos)^, Dest^, Count1);
+    Inc(PtrInt(Dest), Count1);
     FBufferReadPos := 0;
   end;
 
   // After looping
-  Move(Pointer(Integer(FBuffer) + FBufferReadPos)^, Dest^, Count2);
+  Move(PPtrInt(PtrInt(FBuffer) + FBufferReadPos)^, Dest^, Count2);
   Inc(FBufferReadPos, Count2);
 
   // Update state
@@ -751,13 +771,13 @@ begin
   // Before looping
   if Count1 > 0 then
   begin
-    Move(Source^, Pointer(Integer(FBuffer) + FBufferWritePos)^, Count1);
-    Inc(Integer(Source), Count1);
+    Move(Source^, PPtrInt(PtrInt(FBuffer) + FBufferWritePos)^, Count1);
+    Inc(PtrInt(Source), Count1);
     FBufferWritePos := 0;
   end;
 
   // After looping
-  Move(Source^, Pointer(Integer(FBuffer) + FBufferWritePos)^, Count2);
+  Move(Source^, PPtrInt(PtrInt(FBuffer) + FBufferWritePos)^, Count2);
   Inc(FBufferWritePos, Count2);
 
   // Update state
@@ -828,7 +848,7 @@ begin
     else
       SubCount := BufCount;
 
-    InternalRead(Pointer(Integer(@Buffer) + Result), SubCount);
+    InternalRead(PPtrInt(PtrInt(@Buffer) + Result), SubCount);
 
     if not Terminated then
       WrittenSomethingEvent.ResetEvent;
@@ -866,7 +886,7 @@ begin
     else
       SubCount := BufferSize-BufCount;
 
-    InternalWrite(Pointer(Integer(@Buffer) + Result), SubCount);
+    InternalWrite(PPtrInt(PtrInt(@Buffer) + Result), SubCount);
 
     ReadSomethingEvent.ResetEvent;
 

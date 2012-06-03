@@ -38,11 +38,15 @@ statement from your version.
   @version 1.0
 *}
 unit ScStrUtils;
-
+{$i ..\..\source\Sepi.inc}
 interface
 
 uses
-  Types;
+  Types
+  {$IFDEF FPC}
+  , Math // needed for TValueRelationship
+  , StringHashList // needed to replace delphi TStringHash
+  {$ENDIF};
 
 type
   {*
@@ -371,7 +375,11 @@ type
     @author sjrd
     @version 1.0
   *}
+  {$IFDEF FPC}
+  TProtectedStringHash = class(TStringHashList)
+  {$ELSE}
   TProtectedStringHash = class(TStringHash)
+  {$ENDIF}
   public
     function HashOf(const Str: string): Cardinal; reintroduce;
   end;

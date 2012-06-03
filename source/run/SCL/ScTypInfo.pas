@@ -38,7 +38,7 @@ statement from your version.
   @version 1.0
 *}
 unit ScTypInfo;
-
+{$i ..\..\source\Sepi.inc}
 interface
 
 uses
@@ -87,7 +87,10 @@ type
   /// Pointeur sur un type chaîne utilisé dans les RTTI
   PTypeInfoString = PShortString;
 
-{$IF CompilerVersion < 21}
+
+
+  {$IF Defined(FPC) or (CompilerVersion < 21)}
+
   /// Pointeur vers TManagedField
   PManagedField = ^TManagedField;
 
@@ -100,7 +103,8 @@ type
     TypeRef: PPTypeInfo; /// RTTI du type du champ
     FldOffset: Integer;  /// Offset du champ dans le record
   end;
-{$IFEND}
+
+ {$IFEND}
 
   /// Pointeur vers TRecordTypeData
   PRecordTypeData = ^TRecordTypeData;
@@ -116,7 +120,8 @@ type
     ManagedFields: array[0..0] of TManagedField; /// Champs (0..ManagedCount-1)
   end;
 
-{$IF CompilerVersion < 21}
+  {$IF Defined(FPC) or (CompilerVersion < 21)}
+
   /// Pointeur vers TArrayTypeData
   PArrayTypeData = ^TArrayTypeData;
 
@@ -130,7 +135,10 @@ type
     ElCount: Integer;   /// Nombre d'éléments (linéarisés)
     ElType: PPTypeInfo; /// RTTI du type des éléments
   end;
-{$IFEND}
+
+  {$IFEND}
+
+
 
 function IsTypeManaged(TypeInfo: PTypeInfo): Boolean;
 
@@ -188,7 +196,9 @@ const
 begin
   Result := (TypeInfo <> nil) and (TypeInfo.Kind in ManagedTypeKinds);
 
-{$IF CompilerVersion >= 21}
+{$IFNDEF FPC}
+    {$IF CompilerVersion >= 21}
+{$ENDIF}
   if Result then
   begin
     case TypeInfo.Kind of
@@ -196,7 +206,9 @@ begin
       tkRecord: Result := GetTypeData(TypeInfo).ManagedFldCount <> 0;
     end;
   end;
-{$IFEND}
+{$IFNDEF FPC}
+  {$IFEND}
+{$ENDIF}
 end;
 
 {*
@@ -209,11 +221,13 @@ end;
 *}
 function TypeSize(TypeInfo: PTypeInfo): Integer;
 const
-  TypeKindToSize: array[TTypeKind] of Integer = (
+// FPC Warning Error: Expected another 8 array elements
+TypeKindToSize: array[TTypeKind] of Integer = (
     -1, 0, 1, 0, 0, 0, 0, 4, 8, 2, 4, 4, 16, 0, 0, 4, 8, 4
     {$IF Declared(tkUString)}, 4 {$IFEND}
     {$IF Declared(tkProcedure)}, 4, 4, 4 {$IFEND}
-  );
+    { Added arbitrary size...to pass compilation with FPC... TODO LAZ}
+    ,4,4,4,4,4,4,4,4);
   OrdTypeToSize: array[TOrdType] of Integer = (1, 1, 2, 2, 4, 4);
   FloatTypeToSize: array[TFloatType] of Integer = (4, 8, 10, 8, 8);
 var
@@ -236,7 +250,11 @@ begin
         since it can be out of range for large sets. }
       tkSet:
       begin
+        {$IFDEF FPC}
+        with GetTypeData(TypeData.CompType)^ do
+        {$ELSE}
         with GetTypeData(TypeData.CompType^)^ do
+        {$ENDIF}
           Result := (MaxValue - MinValue) div 8 + 1;
         if Result = 3 then
           Result := 4;
@@ -871,7 +889,12 @@ var
   ByteValue: Byte;
 begin
   if TypeInfo.Kind = tkSet then
-    TypeInfo := GetTypeData(TypeInfo).CompType^;
+     {$IFDEF FPC}
+     TypeInfo := GetTypeData(TypeInfo).CompType;
+     {$ELSE}
+     TypeInfo := GetTypeData(TypeInfo).CompType^;
+     {$ENDIF}
+
   TypeData := GetTypeData(TypeInfo);
 
   Result := '';
@@ -907,7 +930,11 @@ begin
   if TypeInfo.Kind = tkSet then
   begin
     SetName := TypeInfo.Name;
+    {$IFDEF FPC}
+    TypeInfo := GetTypeData(TypeInfo).CompType;
+    {$ELSE}
     TypeInfo := GetTypeData(TypeInfo).CompType^;
+    {$ENDIF}
   end else
     SetName := Format(sScSetOf, [TypeInfo.Name]);
   TypeData := GetTypeData(TypeInfo);
